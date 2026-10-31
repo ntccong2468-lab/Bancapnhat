@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +22,17 @@ import static com.vncode.app.integration.wb.WbRepositorySupport.setNullableLong;
 
 public class WbOrderRepository {
     private static final int IN_CLAUSE_BATCH_SIZE = 400;
+    private static final java.time.format.DateTimeFormatter ORDER_TIME = new java.time.format.DateTimeFormatterBuilder().appendInstant(9).toFormatter();
+    // SQLite's julianday rounds to milliseconds.  Normalize UTC Instant text to
+    // nine fractional digits so two overlapping reads within one millisecond
+    // cannot be mistaken for the same response.
+    private static final String STATUS_NOT_NEWER = """
+            (status_synced_at IS NULL OR
+             (status_synced_at GLOB '????-??-??T??:??:??*Z' AND
+              (substr(status_synced_at,1,19) || '.' ||
+               substr(CASE WHEN substr(status_synced_at,20,1)='.'
+                    THEN substr(status_synced_at,21,length(status_synced_at)-21) ELSE '' END || '000000000',1,9) || 'Z') <= ?))
+            """;
 
     public void saveOrders(int shopId, List<WbOrderDto> orders) {
         if (orders == null || orders.isEmpty()) {
@@ -43,6 +55,12 @@ public class WbOrderRepository {
     }
 
     public void saveCurrentNewOrdersSnapshot(int shopId, List<WbOrderDto> orders) {
+        saveCurrentNewOrdersSnapshot(shopId, orders, Instant.now());
+    }
+
+    /** Do not let an older in-flight WB response override a newer status read. */
+    public void saveCurrentNewOrdersSnapshot(int shopId, List<WbOrderDto> orders, Instant requestedAt) {
+        java.util.Objects.requireNonNull(requestedAt, "requestedAt");
         List<WbOrderDto> safeOrders = orders == null ? List.of() : orders;
         List<Long> currentNewOrderIds = safeOrders.stream()
                 .map(WbOrderDto::getId)
@@ -53,8 +71,8 @@ public class WbOrderRepository {
             conn.setAutoCommit(false);
             try {
                 saveOrders(conn, shopId, safeOrders);
-                markCurrentNewOrders(conn, shopId, currentNewOrderIds);
-                clearPreviousNewOrders(conn, shopId, currentNewOrderIds);
+                markCurrentNewOrders(conn, shopId, currentNewOrderIds, requestedAt);
+                clearPreviousNewOrders(conn, shopId, currentNewOrderIds, requestedAt);
                 conn.commit();
             } catch (Exception ex) {
                 conn.rollback();
@@ -79,7 +97,11 @@ public class WbOrderRepository {
                 ON CONFLICT(shop_id, order_id) DO UPDATE SET
                     order_uid = excluded.order_uid,
                     rid = excluded.rid,
-                    supply_id = excluded.supply_id,
+                    supply_id = CASE WHEN EXISTS (
+                        SELECT 1 FROM wb_supply_orders so
+                        WHERE so.shop_id = wb_orders.shop_id AND so.order_id = wb_orders.order_id
+                          AND so.supply_id = wb_orders.supply_id
+                    ) THEN wb_orders.supply_id ELSE COALESCE(NULLIF(excluded.supply_id, ''), wb_orders.supply_id) END,
                     delivery_type = excluded.delivery_type,
                     ddate = excluded.ddate,
                     seller_date = excluded.seller_date,
@@ -148,25 +170,25 @@ public class WbOrderRepository {
             }
             ps.executeBatch();
         }
-        List<Long> orderIds = orders.stream()
-                .map(WbOrderDto::getId)
-                .map(WbRepositorySupport::safeLong)
-                .filter(orderId -> orderId > 0)
-                .distinct()
-                .toList();
-        deleteOrderChildren(conn, shopId, orderIds);
+        // List endpoints can omit fields; absence must not erase validated data
+        // from an earlier detailed read or an already-confirmed shipment.
+        deletePresentOrderChildren(conn, shopId, orders);
         insertOrderChildren(conn, shopId, orders);
     }
 
     public void updateOrderStatuses(int shopId, List<WbOrderStatusDto> statuses) {
+        updateOrderStatuses(shopId, statuses, Instant.now());
+    }
+
+    public void updateOrderStatuses(int shopId, List<WbOrderStatusDto> statuses, Instant requestedAt) {
+        java.util.Objects.requireNonNull(requestedAt, "requestedAt");
         if (statuses == null || statuses.isEmpty()) {
             return;
         }
         String sql = """
                 UPDATE wb_orders
                 SET supplier_status = ?, wb_status = ?, is_cancellable = ?, status_synced_at = ?
-                WHERE shop_id = ? AND order_id = ?
-                """;
+                WHERE shop_id = ? AND order_id = ? AND """ + STATUS_NOT_NEWER;
         try {
             SqliteWriteTransaction.run(conn -> {
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -178,6 +200,7 @@ public class WbOrderRepository {
                         ps.setString(4, now);
                         ps.setInt(5, shopId);
                         ps.setLong(6, safeLong(status.getId()));
+                        ps.setString(7, ORDER_TIME.format(requestedAt));
                         ps.addBatch();
                     }
                     ps.executeBatch();
@@ -190,6 +213,12 @@ public class WbOrderRepository {
     }
 
     public void replaceSupplyOrders(int shopId, String supplyId, List<Long> orderIds) {
+        replaceSupplyOrders(shopId, supplyId, orderIds, Instant.now());
+    }
+
+    /** Replace only when the remote read did not start before a local/remote membership update. */
+    public boolean replaceSupplyOrders(int shopId, String supplyId, List<Long> orderIds, Instant requestedAt) {
+        java.util.Objects.requireNonNull(requestedAt, "requestedAt");
         List<Long> safeOrderIds = orderIds == null ? Collections.emptyList() : orderIds;
         try (Connection conn = Database.getConnection()) {
             conn.setAutoCommit(false);
@@ -197,6 +226,7 @@ public class WbOrderRepository {
                          UPDATE wb_orders
                          SET supply_id = NULL
                          WHERE shop_id = ?
+                           AND supply_id = ?
                            AND order_id IN (
                                SELECT order_id
                                FROM wb_supply_orders
@@ -209,9 +239,12 @@ public class WbOrderRepository {
                                  "SELECT ?, ?, ? WHERE EXISTS (SELECT 1 FROM wb_orders WHERE shop_id = ? AND order_id = ?)");
                  PreparedStatement updateOrders = conn.prepareStatement(
                          "UPDATE wb_orders SET supply_id = ? WHERE shop_id = ? AND order_id = ?")) {
+                if (supplyMembershipChangedAfter(conn,shopId,supplyId,requestedAt)
+                        || !containsConfirmedPending(conn,shopId,supplyId,safeOrderIds)) { conn.rollback(); return false; }
                 clearDetached.setInt(1, shopId);
-                clearDetached.setInt(2, shopId);
-                clearDetached.setString(3, supplyId);
+                clearDetached.setString(2, supplyId);
+                clearDetached.setInt(3, shopId);
+                clearDetached.setString(4, supplyId);
                 clearDetached.executeUpdate();
 
                 delete.setInt(1, shopId);
@@ -234,7 +267,10 @@ public class WbOrderRepository {
                 insert.executeBatch();
                 updateOrders.executeBatch();
                 updateSupplyOrderCount(conn, shopId, supplyId, safeOrderIds.size());
+                try(var confirmed=conn.prepareStatement("DELETE FROM wb_supply_pending_confirmations WHERE shop_id=? AND supply_id=?")){confirmed.setInt(1,shopId);confirmed.setString(2,supplyId);confirmed.executeUpdate();}
+                saveSupplyMembershipVersion(conn,shopId,supplyId);
                 conn.commit();
+                return true;
             } catch (Exception ex) {
                 conn.rollback();
                 throw ex;
@@ -243,6 +279,66 @@ public class WbOrderRepository {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    /** Record only the batch WB has definitively accepted; keep existing orders. */
+    public void appendConfirmedSupplyOrders(int shopId, String supplyId, List<Long> orderIds) {
+        if (orderIds == null || orderIds.isEmpty()) return;
+        try (Connection conn = Database.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement lookupOld=conn.prepareStatement("SELECT supply_id FROM wb_supply_orders WHERE shop_id=? AND order_id=? AND supply_id<>?");
+                 PreparedStatement removeOld=conn.prepareStatement("DELETE FROM wb_supply_orders WHERE shop_id=? AND order_id=? AND supply_id<>?");
+                 PreparedStatement clearOldPending=conn.prepareStatement("DELETE FROM wb_supply_pending_confirmations WHERE shop_id=? AND order_id=? AND supply_id<>?");
+                 PreparedStatement insert=conn.prepareStatement("INSERT OR IGNORE INTO wb_supply_orders(shop_id,supply_id,order_id) SELECT ?,?,? WHERE EXISTS(SELECT 1 FROM wb_orders WHERE shop_id=? AND order_id=?)");
+                 PreparedStatement pending=conn.prepareStatement("INSERT OR REPLACE INTO wb_supply_pending_confirmations(shop_id,supply_id,order_id,confirmed_at) SELECT ?,?,?,? WHERE EXISTS(SELECT 1 FROM wb_orders WHERE shop_id=? AND order_id=?)");
+                 PreparedStatement update=conn.prepareStatement("UPDATE wb_orders SET supply_id=?,supplier_status='confirm',status_synced_at=? WHERE shop_id=? AND order_id=?")) {
+                String now=Instant.now().toString();
+                java.util.Set<String> previousSupplies=new java.util.LinkedHashSet<>();
+                for (Long id:orderIds) {
+                    if(id==null||id<=0)throw new IllegalArgumentException("WB_ORDER_ID_INVALID");
+                    lookupOld.setInt(1,shopId);lookupOld.setLong(2,id);lookupOld.setString(3,supplyId);
+                    try(var previous=lookupOld.executeQuery()){while(previous.next())previousSupplies.add(previous.getString(1));}
+                    removeOld.setInt(1,shopId);removeOld.setLong(2,id);removeOld.setString(3,supplyId);removeOld.addBatch();
+                    clearOldPending.setInt(1,shopId);clearOldPending.setLong(2,id);clearOldPending.setString(3,supplyId);clearOldPending.addBatch();
+                    insert.setInt(1,shopId);insert.setString(2,supplyId);insert.setLong(3,id);insert.setInt(4,shopId);insert.setLong(5,id);insert.addBatch();
+                    pending.setInt(1,shopId);pending.setString(2,supplyId);pending.setLong(3,id);pending.setString(4,now);pending.setInt(5,shopId);pending.setLong(6,id);pending.addBatch();
+                    update.setString(1,supplyId);update.setString(2,now);update.setInt(3,shopId);update.setLong(4,id);update.addBatch();
+                }
+                removeOld.executeBatch();clearOldPending.executeBatch();insert.executeBatch();pending.executeBatch();update.executeBatch();
+                int count;
+                try(var p=conn.prepareStatement("SELECT count(*) FROM wb_supply_orders WHERE shop_id=? AND supply_id=?")){p.setInt(1,shopId);p.setString(2,supplyId);try(var r=p.executeQuery()){r.next();count=r.getInt(1);}}
+                updateSupplyOrderCount(conn,shopId,supplyId,count);
+                saveSupplyMembershipVersion(conn,shopId,supplyId);
+                for(String previous:previousSupplies){
+                    try(var p=conn.prepareStatement("SELECT count(*) FROM wb_supply_orders WHERE shop_id=? AND supply_id=?")){p.setInt(1,shopId);p.setString(2,previous);try(var r=p.executeQuery()){r.next();updateSupplyOrderCount(conn,shopId,previous,r.getInt(1));}}
+                    saveSupplyMembershipVersion(conn,shopId,previous);
+                }
+                conn.commit();
+            } catch (Exception ex) { conn.rollback(); throw ex; }
+            finally { conn.setAutoCommit(true); }
+        } catch (SQLException e) { throw new RuntimeException(e); }
+    }
+
+    private static boolean supplyMembershipChangedAfter(Connection conn,int shopId,String supplyId,Instant requestedAt)throws SQLException {
+        try(var p=conn.prepareStatement("SELECT updated_at FROM wb_supply_membership_versions WHERE shop_id=? AND supply_id=?")){
+            p.setInt(1,shopId);p.setString(2,supplyId);try(var r=p.executeQuery()){
+                if(!r.next())return false;
+                try {return !Instant.parse(r.getString(1)).isBefore(requestedAt);}
+                catch(RuntimeException invalid){throw new SQLException("WB_SUPPLY_VERSION_INVALID",invalid);}
+            }
+        }
+    }
+    private static boolean containsConfirmedPending(Connection conn,int shopId,String supplyId,List<Long> returned)throws SQLException {
+        var ids=new java.util.HashSet<>(returned);
+        try(var p=conn.prepareStatement("SELECT order_id FROM wb_supply_pending_confirmations WHERE shop_id=? AND supply_id=?")){
+            p.setInt(1,shopId);p.setString(2,supplyId);try(var r=p.executeQuery()){while(r.next())if(!ids.contains(r.getLong(1)))return false;}
+        }
+        return true;
+    }
+    private static void saveSupplyMembershipVersion(Connection conn,int shopId,String supplyId)throws SQLException {
+        try(var p=conn.prepareStatement("INSERT INTO wb_supply_membership_versions(shop_id,supply_id,updated_at) VALUES(?,?,?) ON CONFLICT(shop_id,supply_id) DO UPDATE SET updated_at=excluded.updated_at")){
+            p.setInt(1,shopId);p.setString(2,supplyId);p.setString(3,Instant.now().toString());p.executeUpdate();
         }
     }
 
@@ -635,14 +731,20 @@ public class WbOrderRepository {
         }
     }
 
-    private void deleteOrderChildren(Connection conn, int shopId, List<Long> orderIds) throws SQLException {
-        if (orderIds == null || orderIds.isEmpty()) {
-            return;
-        }
-        deleteOrderChildrenByBatch(conn, "DELETE FROM wb_order_offices WHERE shop_id = ? AND order_id IN ", shopId, orderIds);
-        deleteOrderChildrenByBatch(conn, "DELETE FROM wb_order_skus WHERE shop_id = ? AND order_id IN ", shopId, orderIds);
-        deleteOrderChildrenByBatch(conn, "DELETE FROM wb_order_meta_requirements WHERE shop_id = ? AND order_id IN ", shopId, orderIds);
-        deleteOrderChildrenByBatch(conn, "DELETE FROM wb_supply_orders WHERE shop_id = ? AND order_id IN ", shopId, orderIds);
+    private void deletePresentOrderChildren(Connection conn, int shopId, List<WbOrderDto> orders) throws SQLException {
+        deleteOrderChildrenByBatch(conn, "DELETE FROM wb_order_offices WHERE shop_id = ? AND order_id IN ", shopId,
+                presentOrderIds(orders, o -> o.getOffices() != null));
+        deleteOrderChildrenByBatch(conn, "DELETE FROM wb_order_skus WHERE shop_id = ? AND order_id IN ", shopId,
+                presentOrderIds(orders, o -> o.getSkus() != null));
+        deleteOrderChildrenByBatch(conn, "DELETE FROM wb_order_meta_requirements WHERE requirement_type = 'required' AND shop_id = ? AND order_id IN ", shopId,
+                presentOrderIds(orders, o -> o.getRequiredMeta() != null));
+        deleteOrderChildrenByBatch(conn, "DELETE FROM wb_order_meta_requirements WHERE requirement_type = 'optional' AND shop_id = ? AND order_id IN ", shopId,
+                presentOrderIds(orders, o -> o.getOptionalMeta() != null));
+    }
+
+    private static List<Long> presentOrderIds(List<WbOrderDto> orders, java.util.function.Predicate<WbOrderDto> hasField) {
+        return orders.stream().filter(java.util.Objects::nonNull).filter(hasField).map(WbOrderDto::getId)
+                .filter(id -> id != null && id > 0).distinct().toList();
     }
 
     private void deleteOrderChildrenByBatch(Connection conn, String sqlPrefix, int shopId, List<Long> orderIds) throws SQLException {
@@ -673,6 +775,7 @@ public class WbOrderRepository {
                     FROM wb_supplies
                     WHERE shop_id = ? AND supply_id = ?
                 )
+                AND EXISTS (SELECT 1 FROM wb_orders WHERE shop_id = ? AND order_id = ? AND supply_id = ?)
                 """;
         try (PreparedStatement officesPs = conn.prepareStatement(officesSql);
              PreparedStatement skusPs = conn.prepareStatement(skusSql);
@@ -693,6 +796,9 @@ public class WbOrderRepository {
                     supplyPs.setLong(3, orderId);
                     supplyPs.setInt(4, shopId);
                     supplyPs.setString(5, order.getSupplyId());
+                    supplyPs.setInt(6, shopId);
+                    supplyPs.setLong(7, orderId);
+                    supplyPs.setString(8, order.getSupplyId());
                     supplyPs.addBatch();
                 }
             }
@@ -755,7 +861,7 @@ public class WbOrderRepository {
         }
     }
 
-    private void markCurrentNewOrders(Connection conn, int shopId, List<Long> orderIds) throws SQLException {
+    private void markCurrentNewOrders(Connection conn, int shopId, List<Long> orderIds, Instant requestedAt) throws SQLException {
         if (orderIds == null || orderIds.isEmpty()) {
             return;
         }
@@ -763,46 +869,50 @@ public class WbOrderRepository {
                 UPDATE wb_orders
                 SET supplier_status = 'new', status_synced_at = ?
                 WHERE shop_id = ? AND order_id = ?
-                """;
+                  AND (supply_id IS NULL OR supply_id = '') AND """ + STATUS_NOT_NEWER;
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             String now = Instant.now().toString();
             for (Long orderId : orderIds) {
                 ps.setString(1, now);
                 ps.setInt(2, shopId);
                 ps.setLong(3, orderId);
+                ps.setString(4, ORDER_TIME.format(requestedAt));
                 ps.addBatch();
             }
             ps.executeBatch();
         }
     }
 
-    private void clearPreviousNewOrders(Connection conn, int shopId, List<Long> currentNewOrderIds) throws SQLException {
-        StringBuilder sql = new StringBuilder("""
+    private void clearPreviousNewOrders(Connection conn, int shopId, List<Long> currentNewOrderIds, Instant requestedAt) throws SQLException {
+        // Use a temporary set instead of one SQL parameter per order.  The WB
+        // endpoint returns all new orders and may exceed SQLite's bind limit.
+        try (Statement statement = conn.createStatement()) {
+            statement.execute("CREATE TEMP TABLE IF NOT EXISTS vncode_wb_new_snapshot_ids (id INTEGER PRIMARY KEY)");
+            statement.execute("DELETE FROM temp.vncode_wb_new_snapshot_ids");
+        }
+        if (currentNewOrderIds != null && !currentNewOrderIds.isEmpty()) {
+            try (PreparedStatement insert = conn.prepareStatement("INSERT OR IGNORE INTO temp.vncode_wb_new_snapshot_ids(id) VALUES (?)")) {
+                int pending = 0;
+                for (Long id : currentNewOrderIds) {
+                    insert.setLong(1, id); insert.addBatch();
+                    if (++pending == 1000) { insert.executeBatch(); pending = 0; }
+                }
+                if (pending != 0) insert.executeBatch();
+            }
+        }
+        String sql = """
                 UPDATE wb_orders
                 SET supplier_status = NULL, status_synced_at = ?
                 WHERE shop_id = ?
                   AND supplier_status = 'new'
                   AND (supply_id IS NULL OR supply_id = '')
-                """);
-        if (currentNewOrderIds != null && !currentNewOrderIds.isEmpty()) {
-            sql.append(" AND order_id NOT IN (");
-            for (int i = 0; i < currentNewOrderIds.size(); i++) {
-                if (i > 0) {
-                    sql.append(", ");
-                }
-                sql.append("?");
-            }
-            sql.append(")");
-        }
-        try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                  AND NOT EXISTS (SELECT 1 FROM temp.vncode_wb_new_snapshot_ids n WHERE n.id = wb_orders.order_id)
+                  AND """ + STATUS_NOT_NEWER;
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             int index = 1;
             ps.setString(index++, Instant.now().toString());
             ps.setInt(index++, shopId);
-            if (currentNewOrderIds != null && !currentNewOrderIds.isEmpty()) {
-                for (Long orderId : currentNewOrderIds) {
-                    ps.setLong(index++, orderId);
-                }
-            }
+            ps.setString(index++, ORDER_TIME.format(requestedAt));
             ps.executeUpdate();
         }
     }

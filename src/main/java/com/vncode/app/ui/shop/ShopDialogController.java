@@ -32,6 +32,7 @@ public class ShopDialogController {
     private Label errorLabel;
 
     private boolean editing;
+    private String originalClientId;
 
     @FXML
     public void initialize() {
@@ -50,6 +51,7 @@ public class ShopDialogController {
 
     public void setShop(Shop shop) {
         editing = shop.getId() > 0;
+        originalClientId = shop.getClientId();
         nameField.setText(shop.getName());
         marketplaceField.setValue(shop.getMarketplace());
         marketplaceField.setDisable(editing);
@@ -85,6 +87,11 @@ public class ShopDialogController {
 
         if (marketplace == Marketplace.OZON && clientId.isEmpty()) {
             showErrorState(clientIdField, i18n.tr("shop_dialog.validation.client_id_empty"));
+            return false;
+        }
+
+        if (editing && marketplace == Marketplace.OZON && !java.util.Objects.equals(originalClientId, clientId)) {
+            showErrorState(clientIdField, i18n.tr("shop_dialog.validation.client_id_change"));
             return false;
         }
 

@@ -20,28 +20,114 @@ import static com.vncode.app.integration.listing.ListingJson.*;
 public final class OzonGtinAdapter implements GtinBatchAdapter {
     public static final int MAX_ADD_PAIRS=100;
     @FunctionalInterface public interface BeforeRequest { void await(int shopId)throws InterruptedException; }
+    @FunctionalInterface interface CrossGuard {void verify(Shop shop,Map<ProductKey,String> requested)throws IOException;}
     private static final Capability CAPABILITY=new Capability(true,false,"replacement_not_supported");
     private static final OzonApiRateLimiter BARCODE_LIMITER=new OzonApiRateLimiter(Duration.ofSeconds(3));
-    private final Shop shop;private final ListingTransport client;private final BeforeRequest beforeRequest;
+    private final Shop shop;private final ListingTransport client;private final BeforeRequest beforeRequest;private final CrossGuard crossGuard;
     public OzonGtinAdapter(Shop shop){this(shop,new ListingHttpClient(shop));}
     public OzonGtinAdapter(Shop shop,ListingTransport client){this(shop,client,id->BARCODE_LIMITER.awaitTurn(com.vncode.app.integration.listing.ListingIdentity.hash(shop.getClientId()),"gtin-barcodes"));}
     public OzonGtinAdapter(Shop shop,ListingTransport client,BeforeRequest beforeRequest){
+        this(shop,client,beforeRequest,WbOzonGtinDispatchService::verifyQueuedCrossBatch);
+    }
+    OzonGtinAdapter(Shop shop,ListingTransport client,BeforeRequest beforeRequest,CrossGuard crossGuard){
         MarketplaceGuard.requireOzon(shop);this.shop=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
-        this.client=Objects.requireNonNull(client);this.beforeRequest=Objects.requireNonNull(beforeRequest);
+        this.client=Objects.requireNonNull(client);this.beforeRequest=Objects.requireNonNull(beforeRequest);this.crossGuard=Objects.requireNonNull(crossGuard);
     }
     public Capability capability(ProductKey key){requireKey(key);return CAPABILITY;}
     public void validateRegistration(String gtin){RegisteredGtinProof.requireCurrent(shop,gtin);}
     @Override public void validateIdentity(ProductSnapshot target,RegisteredGtin source)throws IOException{
+        identityEvidence(target,source);
+    }
+    @Override public ProductSnapshot prepareIdentity(ProductSnapshot target,RegisteredGtin source)throws IOException {
+        String evidence=identityEvidence(target,source);
+        return new ProductSnapshot(target.key(),target.article(),target.color(),target.size(),target.barcodes(),target.fingerprint(),target.fetchedAt(),evidence);
+    }
+    private String identityEvidence(ProductSnapshot target,RegisteredGtin source)throws IOException{
         requireKey(target.key());
         var key=new com.vncode.app.features.products.ProductKey(shop.getId(),Marketplace.OZON,target.key().productId(),target.key().variantId());
         var product=new OzonProductSnapshotReader(ignored->client).readForGtinSync(shop,key);
+        JsonObject observed;
+        try{observed=obj(JsonParser.parseString(product.metadata().get("source.payload")).getAsJsonObject(),"info");}
+        catch(RuntimeException invalid){throw new IOException("OZON_IDENTITY_EVIDENCE_UNAVAILABLE",invalid);}
+        if(!target.key().productId().equals(text(observed,"id"))||!target.key().variantId().equals(text(observed,"offer_id"))
+                ||!snapshotMatches(target,snapshot(target.key(),observed,null)))throw new IllegalArgumentException("product_changed");
         var variants=product.variants().stream().filter(value->key.variantId().equals(value.id())).toList();if(variants.size()!=1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");var variant=variants.getFirst();
         for(String field:List.of("color","russianSize")){var values=com.vncode.app.features.products.ProductFieldNames.sourceAttributes(field,product.attributes()).stream().flatMap(attribute->attribute.values().stream()).filter(value->!value.isBlank()).distinct().toList();if(values.size()>1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");}
         var manufacturerSizes=product.attributes().stream().filter(attribute->attribute.complexId().isBlank()||attribute.complexId().equals("0")).filter(attribute->Set.of("размер производителя","manufacturer size").contains(attribute.name().strip().toLowerCase(Locale.ROOT))).flatMap(attribute->attribute.values().stream()).filter(value->!value.isBlank()).distinct().toList();if(manufacturerSizes.size()>1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
         String primarySize=variant.size().isBlank()?variant.russianSize():variant.size();
         var row=new com.vncode.app.features.products.ProductRow(key,product.title(),product.vendorArticle(),"",product.metadata().getOrDefault("source.category.name",""),product.brand(),variant.color(),primarySize,target.barcodes(),"","","","",com.vncode.app.features.products.DocumentState.UNVERIFIED,"",true,variant.russianSize(),variant.size());
-        if(new GtinCatalogIndex(List.of(source)).ozon(row).size()!=1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
+        if(source==null||!OzonSkuGtinMatcher.sameColor(row.color(),source.color())
+                ||!GtinVariantIdentity.sizeMatches(source,GtinVariantIdentity.primarySize(row),row.russianSize()))
+            throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
+        // Even an exact article/color/size match is only a candidate, not proof
+        // that this Catalog identity belongs to this particular Ozon SKU.
+        // Require the durable, seller-reviewed registration link for every write.
+        String evidence=establishedLink(target,product,source);
+        if(evidence.isBlank())throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
         GtinTnvedIdentity.requireCompatible(product,source);
+        return evidence;
+    }
+    private String establishedLink(ProductSnapshot target,com.vncode.app.features.products.ProductSnapshot product,RegisteredGtin source)throws IOException {
+        var key=target.key();
+        // An old mapping or a barcode just added by this very operation cannot
+        // independently prove that a Catalog GTIN belongs to this product.
+        JsonObject info;
+        try{info=obj(JsonParser.parseString(product.metadata().get("source.payload")).getAsJsonObject(),"info");}
+        catch(RuntimeException invalid){throw new IOException("OZON_IDENTITY_EVIDENCE_UNAVAILABLE",invalid);}
+        String sku=product.metadata().getOrDefault("sku","");
+        if(!key.productId().equals(text(info,"id"))||!key.variantId().equals(text(info,"offer_id"))||!sku.equals(text(info,"sku")))return "";
+        strictArray(info,"barcodes");
+        var registrationKey=new com.vncode.app.features.products.ProductKey(key.shopId(),Marketplace.OZON,key.productId(),key.variantId());
+        try{
+            var current=RegisteredGtinProof.current(shop);
+            var explicit=com.vncode.app.integration.znack.registration.OzonReviewedGtinLinks.read(shop,key);
+            String revision="";long goodId=0;String owner=ListingIdentity.fingerprint(shop);
+            if(explicit!=null&&explicit.owner().equals(owner)&&explicit.source().equals(current.source())&&explicit.sku().equals(sku)
+                    &&RegisteredGtinProof.sameCode(explicit.gtin(),source.gtin())&&Long.toString(explicit.goodId()).equals(source.details().single("@catalog_id"))){
+                revision=explicit.revision();goodId=explicit.goodId();
+            }else{
+                var repository=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository();var row=repository.find(registrationKey);
+                if(row==null||row.status()!=com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.PUBLISHED
+                        ||row.goodId()==null||row.goodId()<=0||!row.sku().equals(sku)
+                        ||!RegisteredGtinProof.sameCode(row.gtin(),source.gtin())
+                        ||!Long.toString(row.goodId()).equals(source.details().single("@catalog_id"))||!row.owner().equals(owner))return "";
+                var saved=new Gson().fromJson(row.scopeJson(),com.vncode.app.integration.znack.registration.ZnackRegistrationScope.class);
+                if(!new com.vncode.app.integration.znack.registration.ZnackRegistrationScope(current.inn(),current.environment(),current.fingerprint()).equals(saved))return "";
+                revision=repository.reviewedRevisions(registrationKey).getFirst();goodId=row.goodId();
+            }
+            if(revision.isBlank())return "";
+            var full=new OzonShopBrand().apply(shop,new OzonProductSnapshotReader(ignored->client).readForGtinRegistrationProof(shop,registrationKey));
+            if(!sku.equals(full.metadata().getOrDefault("sku","")))return "";
+            String token="ozon-reg-v1:"+ListingIdentity.hash(String.join("\n",key.toString(),source.gtin(),Long.toString(goodId),sku,owner,current.source(),revision,physicalRevision(full)));
+            // A fresh preview proves the full saved registration snapshot before a write.
+            // Recovery uses only the immutable, pre-dispatch token stored in that preview.
+            if(target.postWriteFingerprint().isBlank()){
+                if(revision.equals(com.vncode.app.integration.znack.registration.RegistrationReviewedValues.productRevision(full)))return token;
+                // An already-applied addition changes the registration snapshot's
+                // barcode list. Restore only that one GTIN for comparison; do not
+                // infer that any other changed product fact was reviewed.
+                if(target.barcodes().stream().filter(code->RegisteredGtinProof.sameCode(code,source.gtin())).count()==1
+                        &&revision.equals(com.vncode.app.integration.znack.registration.RegistrationReviewedValues.productRevision(withoutAddedGtin(full,source.gtin()))))return token;
+                return "";
+            }
+            return token.equals(target.postWriteFingerprint())?token:"";
+        }catch(RuntimeException invalid){return "";}
+    }
+    private static com.vncode.app.features.products.ProductSnapshot withoutAddedGtin(com.vncode.app.features.products.ProductSnapshot full,String gtin){
+        var variants=full.variants().stream().map(v->{
+            var codes=v.barcodes().stream().filter(code->!RegisteredGtinProof.sameCode(code,gtin)).toList();
+            boolean removed=RegisteredGtinProof.sameCode(v.gtin(),gtin);
+            return new com.vncode.app.features.products.ProductVariant(v.id(),v.sellerArticle(),v.color(),v.size(),removed?"":v.gtin(),removed?false:v.gtinVerified(),v.russianSize(),codes,removed?com.vncode.app.features.products.ProductVariant.GtinEvidence.UNVERIFIED:v.gtinEvidence());
+        }).toList();
+        return new com.vncode.app.features.products.ProductSnapshot(full.key(),full.revision(),full.title(),full.description(),full.brand(),full.vendorArticle(),full.categoryId(),full.media(),full.attributes(),variants,full.dimensions(),full.documents(),full.checkedAt(),full.metadata());
+    }
+    private static String physicalRevision(com.vncode.app.features.products.ProductSnapshot full){
+        var variants=full.variants().stream().map(v->new com.vncode.app.features.products.ProductVariant(v.id(),v.sellerArticle(),v.color(),v.size(),"",false,v.russianSize(),List.of(),com.vncode.app.features.products.ProductVariant.GtinEvidence.UNVERIFIED)).toList();
+        var physical=new com.vncode.app.features.products.ProductSnapshot(full.key(),full.revision(),full.title(),full.description(),full.brand(),full.vendorArticle(),full.categoryId(),full.media(),full.attributes(),variants,full.dimensions(),full.documents(),full.checkedAt(),full.metadata());
+        return com.vncode.app.integration.znack.registration.RegistrationReviewedValues.productRevision(physical);
+    }
+    private static ProductSnapshot withEvidence(ProductSnapshot current,ProductSnapshot before){
+        return new ProductSnapshot(current.key(),current.article(),current.color(),current.size(),current.barcodes(),current.fingerprint(),current.fetchedAt(),before.postWriteFingerprint());
     }
     public ProductSnapshot read(ProductKey key)throws IOException{var tokens=beginRead(key);var started=Instant.now();var actual=snapshot(key,ownProduct(key),null);if(!observe(actual,started,tokens))throw new IOException("OZON_BARCODE_READ_SUPERSEDED");return actual;}
     private Map<String,Long> beginRead(ProductKey key){requireKey(key);return client instanceof GtinBatchTransport?Map.of():MarketplaceBarcodeCache.issueOzon(shop.getId(),ListingIdentity.fingerprint(shop),List.of(key.productId()));}
@@ -145,12 +231,16 @@ public final class OzonGtinAdapter implements GtinBatchAdapter {
         requireWrites(previews);
         if(client instanceof GtinBatchTransport batch)batch.refresh(previews.stream().map(p->p.before().key()).toList());
         var catalog=new GtinSyncRepository().catalogItems(shop.getId(),Marketplace.OZON,previews.stream().map(Preview::newGtin).toList());
+        var cross=new LinkedHashMap<ProductKey,String>();for(var preview:previews)cross.put(preview.before().key(),preview.newGtin());
+        crossGuard.verify(shop,cross);
         for(var preview:previews){var key=preview.before().key();var product=ownProduct(key);var fresh=snapshot(key,product,null);
             if(!snapshotMatches(preview.before(),fresh))throw new IllegalArgumentException("product_changed");
             if(RegisteredGtinProof.contains(fresh.barcodes(),preview.newGtin()))throw new IllegalArgumentException("already_present");
             if(fresh.barcodes().size()>=100)throw new IllegalArgumentException("ozon_barcode_limit");
             if(conflicts(key,preview.newGtin()))throw new IllegalArgumentException("gtin_on_another_product");
-            var source=catalog.get(preview.newGtin());if(source==null)throw new IllegalArgumentException("unverified_catalog_gtin");validateIdentity(fresh,source);
+            var source=catalog.get(preview.newGtin());if(source==null)throw new IllegalArgumentException("unverified_catalog_gtin");
+            String evidence=identityEvidence(withEvidence(fresh,preview.before()),source);
+            if(!evidence.isBlank()&&!evidence.equals(preview.before().postWriteFingerprint()))throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
         }
     }
     private static GtinKnownUnsentException knownUnsent(Exception cause){var error=new GtinKnownUnsentException(com.vncode.app.features.sync.SyncFailure.of(cause,0).code());error.initCause(cause);return error;}
@@ -158,9 +248,12 @@ public final class OzonGtinAdapter implements GtinBatchAdapter {
     public Verification verify(Preview preview,Submission submission)throws IOException {
         var key=preview.before().key();requireKey(key);var tokens=beginRead(key);var started=Instant.now();var product=ownProduct(key);var actual=snapshot(key,product,null);if(!observe(actual,started,tokens))return Verification.UNKNOWN;
         if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin())) {
+            // A legacy dispatch without its reviewed pre-send link cannot use a
+            // later barcode observation to retroactively prove its identity.
+            if(preview.before().postWriteFingerprint().isBlank()||actual.barcodes().stream().filter(code->RegisteredGtinProof.sameCode(code,preview.newGtin())).count()!=1)return Verification.UNKNOWN;
             var restored=actual.barcodes().stream().filter(code->!RegisteredGtinProof.sameCode(code,preview.newGtin())).toList();
             if(!snapshotMatches(preview.before(),snapshot(key,product,restored)))return Verification.UNKNOWN;
-            try{validateIdentity(actual,new GtinSyncRepository().catalogItem(shop.getId(),Marketplace.OZON,preview.newGtin()));return Verification.APPLIED;}catch(IllegalArgumentException unknown){return Verification.UNKNOWN;}
+            try{validateIdentity(withEvidence(actual,preview.before()),new GtinSyncRepository().catalogItem(shop.getId(),Marketplace.OZON,preview.newGtin()));return Verification.APPLIED;}catch(IllegalArgumentException unknown){return Verification.UNKNOWN;}
         }
         if(submission.remoteTaskId().equals("ozon-rejected")||submission.remoteTaskId().startsWith("ozon-rejected:"))return Verification.REJECTED;
         return Verification.PENDING;

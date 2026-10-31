@@ -20,13 +20,15 @@ public final class CatalogSyncPane extends BorderPane {
     private final Map<Field,CheckBox> fields=new EnumMap<>(Field.class);
     private final Map<GtinSyncModels.ProductKey,List<ProductDocument>> documents=new LinkedHashMap<>();
     private final Map<GtinSyncModels.ProductKey,Map<String,List<String>>> values=new LinkedHashMap<>();
-    private final Button preview=new Button(),apply=new Button(),advance=new Button(),pause=new Button(),editDocument=new Button(),options=new Button(),editValue=new Button();
+    private final Button preview=new Button(),apply=new Button(),advance=new Button(),pause=new Button(),editDocument=new Button(),options=new Button(),editValue=new Button(),reviewOzonLink=new Button();
     private final CheckBox confirmed=new CheckBox();private final Label status=new Label(),scope=new Label(),wbPriceImpact=new Label();
     private final TableView<Row> products=new TableView<>();private final TableView<Diff> differences=new TableView<>();
     private final ComboBox<String> history=new ComboBox<>();private final Supplier<CatalogSyncService> factory;
     private CatalogSyncService service;private Shop shop;private List<Selection> selection=List.of();private Job job;private boolean busy,disposed;private long generation;
-    private BiConsumer<Shop,Job> onMutationResult=(owner,result)->{};
-    public void setOnMutationResult(BiConsumer<Shop,Job> callback){onMutationResult=Objects.requireNonNull(callback);}
+    @FunctionalInterface public interface MutationObserver {void accept(Shop owner,Job result,boolean sellerApproved);}
+    private MutationObserver onMutationResult=(owner,result,sellerApproved)->{};
+    public void setOnMutationResult(BiConsumer<Shop,Job> callback){Objects.requireNonNull(callback);onMutationResult=(owner,result,sellerApproved)->callback.accept(owner,result);}
+    public void setOnMutationResult(MutationObserver callback){onMutationResult=Objects.requireNonNull(callback);}
     public CatalogSyncPane(){this(CatalogSyncService::new);}
     CatalogSyncPane(Supplier<CatalogSyncService> factory){
         this.factory=factory;products.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);differences.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);products.setFixedCellSize(38);differences.setFixedCellSize(38);products.setPlaceholder(new Label(tr("catalogsync.empty")));differences.setPlaceholder(new Label(tr("catalogsync.empty")));history.setPromptText(tr("catalogsync.history"));preview.getStyleClass().add("btn-primary");apply.getStyleClass().add("btn-primary");setId("catalogSyncPane");setPadding(new Insets(12));
@@ -36,8 +38,9 @@ public final class CatalogSyncPane extends BorderPane {
         }
         var notice=new Label(tr("catalogsync.notice"));notice.setWrapText(true);scope.setWrapText(true);status.setWrapText(true);
         preview.setText(tr("catalogsync.preview"));apply.setText(tr("catalogsync.apply"));advance.setText(tr("catalogsync.advance"));pause.setText(tr("catalogsync.pause"));editValue.setText(tr("catalogsync.edit_value"));editDocument.setText(tr("catalogsync.document_edit"));options.setText(tr("catalogsync.document_options"));confirmed.setText(tr("catalogsync.confirm"));
-        preview.setId("catalogSyncPreview");apply.setId("catalogSyncApply");advance.setId("catalogSyncAdvance");confirmed.setId("catalogSyncConfirm");history.setId("catalogSyncHistory");
-        setTop(new VBox(10,title,scope,notice,choices,new FlowPane(8,8,preview,editValue,editDocument,options,history),status));
+        preview.setId("catalogSyncPreview");apply.setId("catalogSyncApply");advance.setId("catalogSyncAdvance");pause.setId("catalogSyncPause");confirmed.setId("catalogSyncConfirm");history.setId("catalogSyncHistory");
+        reviewOzonLink.setText(tr("catalogsync.ozon_link"));reviewOzonLink.setId("catalogSyncOzonLink");
+        setTop(new VBox(10,title,scope,notice,choices,new FlowPane(8,8,preview,editValue,editDocument,options,reviewOzonLink,history),status));
         column(products,"catalogsync.product",r->r.key().productId()+" / "+r.key().variantId());column(products,"catalogsync.gtin",r->r.catalog().gtin());column(products,"catalogsync.state",r->tr("catalogsync.state."+r.state()));column(products,"catalogsync.issue",r->issue(r.issue()));
         column(differences,"catalogsync.field",d->fieldName(d.field()));column(differences,"catalogsync.before",d->String.join(" | ",d.before()));column(differences,"catalogsync.after",d->String.join(" | ",d.after()));column(differences,"catalogsync.issue",d->issue(d.code()));
         products.setId("catalogSyncProducts");differences.setId("catalogSyncDifferences");
@@ -47,7 +50,7 @@ public final class CatalogSyncPane extends BorderPane {
         products.getSelectionModel().selectedItemProperty().addListener((o,a,b)->{differences.getItems().setAll(b==null?List.of():b.differences());buttons();});confirmed.selectedProperty().addListener((o,a,b)->buttons());
         preview.setOnAction(e->preview());apply.setOnAction(e->run(true));advance.setOnAction(e->run(false));pause.setOnAction(e->{if(job==null)return;var owner=shop;String id=job.id();boolean paused=!job.paused();mutate(()->{service().pause(owner,id,paused);return service().read(owner,id);});});
         editValue.setOnAction(e->editValue());
-        editDocument.setOnAction(e->editDocuments());options.setOnAction(e->documentOptions());
+        editDocument.setOnAction(e->editDocuments());options.setOnAction(e->documentOptions());reviewOzonLink.setOnAction(e->reviewOzonLink());
         history.setOnAction(e->{String id=history.getValue();if(id!=null&&shop!=null&&!busy){var owner=shop;read(()->service().read(owner,id),this::render);}});buttons();
     }
     public void open(Shop owner,List<Selection> selected){generation++;shop=owner==null?null:new Shop(owner.getId(),owner.getName(),owner.getMarketplace(),owner.getClientId(),owner.getApiKey());selection=List.copyOf(selected);job=null;documents.clear();values.clear();products.getItems().clear();differences.getItems().clear();confirmed.setSelected(false);scope.setText(shop==null?"":shop.getName()+" · "+shop.getMarketplace().badge()+" · "+selection.size());buttons();if(shop!=null){var captured=shop;read(()->service().list(captured),ids->history.getItems().setAll(ids));}}
@@ -64,9 +67,10 @@ public final class CatalogSyncPane extends BorderPane {
         mutate(()->{
             if(wbGtin){service().confirm(owner,id,true);return service().run(owner,id,false);}
             return service().run(owner,id,approve);
-        });
+        },approve);
     }
-    private void mutate(Callable<Job> work){var owner=shop;var observer=onMutationResult;start(()->{var result=work.call();observer.accept(owner,result);return result;},this::render,true);}
+    private void mutate(Callable<Job> work){mutate(work,false);}
+    private void mutate(Callable<Job> work,boolean sellerApproved){var owner=shop;var observer=onMutationResult;start(()->{var result=work.call();observer.accept(owner,result,sellerApproved);return result;},this::render,true);}
     private <T>void read(Callable<T> work,Consumer<T> accept){start(work,accept,false);}
     private <T>void start(Callable<T> work,Consumer<T> accept,boolean mutation){
         long epoch=generation;busy=true;buttons();CompletableFuture<T> result;
@@ -85,6 +89,21 @@ public final class CatalogSyncPane extends BorderPane {
             if(docs.size()>1){var choose=new ChoiceDialog<>(docs.getFirst().number(),docs.stream().map(ProductDocument::number).toList());AlertService.applyTheme(choose);choose.setTitle(tr("catalogsync.document_edit"));var number=choose.showAndWait();if(number.isEmpty())return;initial=docs.stream().filter(d->d.number().equals(number.get())).findFirst().orElseThrow();}
             else initial=docs.isEmpty()?new ProductDocument("","DECLARATION","",null,null,"","",null,owner.getMarketplace(),DocumentState.UNVERIFIED,"",null,Map.of()):docs.getFirst();
             var original=initial;CatalogDocumentEditor.show(getScene().getWindow(),owner.getMarketplace(),initial).ifPresent(updated->{var combined=new ArrayList<>(docs);combined.removeIf(d->d==original||d.number().equals(original.number()));combined.add(updated);for(var sibling:selection)if(sibling.key().productId().equals(item.key().productId()))documents.put(sibling.key(),List.copyOf(combined));invalidate();status.setText(tr("catalogsync.document_saved"));});
+        });
+    }
+    private void reviewOzonLink(){
+        if(shop==null||busy||shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON)return;
+        var selected=products.getSelectionModel().getSelectedItem();
+        Selection item=selected!=null?new Selection(selected.key(),selected.catalog().gtin()):selection.size()==1?selection.getFirst():null;
+        if(item==null){status.setText(tr("catalogsync.select_product"));return;}
+        var owner=shop;var service=new com.vncode.app.integration.znack.registration.OzonExistingCardLinkService();
+        read(()->service.read(owner,item.key(),item.gtin()),review->{
+            var dialog=new Alert(Alert.AlertType.CONFIRMATION);AlertService.applyTheme(dialog);dialog.setTitle(tr("catalogsync.ozon_link"));
+            dialog.setHeaderText(tr("catalogsync.ozon_link_confirm"));
+            dialog.setContentText("Ozon: "+review.ozonTitle()+"\nArticle: "+review.ozonArticle()+"\nSKU: "+review.sku()+"\n"+review.ozonColor()+" · "+review.ozonSize()+"\n\nCatalog: "+review.catalogArticle()+"\nGTIN: "+review.gtin()+" · good_id: "+review.goodId()+"\n"+review.catalogColor()+" · "+review.catalogSize()+"\nTN VED: "+review.tnved());
+            if(getScene()!=null)dialog.initOwner(getScene().getWindow());
+            if(dialog.showAndWait().filter(ButtonType.OK::equals).isPresent()&&!disposed&&shop==owner)
+                read(()->{service.approve(owner,review);return true;},done->{invalidate();status.setText(tr("catalogsync.ozon_link_saved"));});
         });
     }
     private void editValue(){
@@ -115,7 +134,7 @@ public final class CatalogSyncPane extends BorderPane {
     private void invalidate(){job=null;confirmed.setSelected(false);buttons();}
     private void buttons(){
         boolean showWbPrice=shop!=null&&shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES&&(job!=null?job.fields().contains(Field.GTIN):fields.get(Field.GTIN).isSelected());wbPriceImpact.setVisible(showWbPrice);wbPriceImpact.setManaged(showWbPrice);
-        preview.setDisable(busy||shop==null||selection.isEmpty());apply.setDisable(busy||job==null||job.confirmed()||job.readyCount()==0||!confirmed.isSelected());advance.setDisable(busy||job==null||!job.confirmed()||job.paused());pause.setDisable(busy||job==null||!job.confirmed());pause.setText(tr(job!=null&&job.paused()?"catalogsync.resume":"catalogsync.pause"));editValue.setDisable(busy||shop==null||products.getSelectionModel().getSelectedItem()==null);editDocument.setDisable(busy||shop==null);options.setDisable(busy||shop==null||shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON);confirmed.setDisable(busy||job==null||job.confirmed());history.setDisable(busy);fields.values().forEach(box->box.setDisable(busy));
+        preview.setDisable(busy||shop==null||selection.isEmpty());apply.setDisable(busy||job==null||job.confirmed()||job.readyCount()==0||!confirmed.isSelected());advance.setDisable(busy||job==null||!job.confirmed()||job.paused());pause.setDisable(busy||job==null||!job.confirmed());pause.setText(tr(job!=null&&job.paused()?"catalogsync.resume":"catalogsync.pause"));editValue.setDisable(busy||shop==null||products.getSelectionModel().getSelectedItem()==null);editDocument.setDisable(busy||shop==null);options.setDisable(busy||shop==null||shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON);reviewOzonLink.setVisible(shop!=null&&shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON);reviewOzonLink.setManaged(reviewOzonLink.isVisible());reviewOzonLink.setDisable(busy||shop==null||selection.isEmpty());confirmed.setDisable(busy||job==null||job.confirmed());history.setDisable(busy);fields.values().forEach(box->box.setDisable(busy));
     }
     public void dispose(){disposed=true;generation++;}
     private static <T>void column(TableView<T> table,String key,Function<T,String> value){var column=new TableColumn<T,String>(tr(key));column.setCellValueFactory(c->new ReadOnlyStringWrapper(value.apply(c.getValue())));column.setPrefWidth(220);table.getColumns().add(column);}

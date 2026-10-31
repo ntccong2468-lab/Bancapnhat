@@ -18,6 +18,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import static com.vncode.app.features.catalogsync.CatalogSyncModels.*;
 
 class CatalogSyncPaneTest {
+    @Test void crossMarketplaceHistoryExplainsWhereToResumeInEveryLocale()throws Exception {
+        var previous=I18nService.getInstance().getCurrentLanguage();
+        try{var safe=CatalogSyncPane.class.getDeclaredMethod("safe",Throwable.class);safe.setAccessible(true);
+            for(var language:AppLanguage.values()){
+                I18nService.getInstance().setLanguage(language);
+                String actual=(String)safe.invoke(null,new CompletionException(new IllegalStateException("WB_OZON_RESUME_FROM_LINK_WORKFLOW")));
+                assertEquals(I18nService.getInstance().tr("catalogsync.issue.WB_OZON_RESUME_FROM_LINK_WORKFLOW"),actual);
+                assertFalse(actual.contains("WB_OZON_RESUME_FROM_LINK_WORKFLOW"));
+            }
+        }finally{I18nService.getInstance().setLanguage(previous);}
+    }
     @TempDir Path path;CatalogSyncPane pane;CountDownLatch release=new CountDownLatch(1);
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     static <T>T fx(Callable<T> f)throws Exception{var task=new FutureTask<>(f);Platform.runLater(task);return task.get(10,TimeUnit.SECONDS);}
@@ -57,5 +68,27 @@ class CatalogSyncPaneTest {
             var notice=(Label)pane.lookup("#catalogSyncWbPriceImpact");assertTrue(notice.isVisible());assertFalse(notice.getText().isBlank());
             assertFalse(((CheckBox)pane.lookup("#catalogSyncConfirm")).isSelected());assertTrue(((Button)pane.lookup("#catalogSyncApply")).isDisabled());
             ((CheckBox)pane.lookup("#catalogSyncConfirm")).setSelected(true);assertFalse(((Button)pane.lookup("#catalogSyncApply")).isDisabled());return null;});
+    }
+    @Test void pauseAndResumeAreNotSellerApprovalButApplyingCheckedPlanIs()throws Exception{
+        var owner=new Shop(1,"First shop","fixture");var results=new LinkedBlockingQueue<Boolean>();
+        var key=new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(1,owner.getMarketplace(),"101","11");
+        var gtin=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","A","Blue","M",true,true,"fixture",Instant.now());
+        var row=new Row("row",key,gtin,List.of(),List.of(),null,Map.of(),"","",State.READY,"");
+        var existing=new Job("existing-reviewed-history",1,owner.getMarketplace().name(),ListingIdentity.fingerprint(owner),Set.of(Field.BRAND),Instant.now(),true,false,List.of(row));
+        var nextRow=new Row("row-next",key,gtin,List.of(),List.of(),null,Map.of(),"","",State.READY,"");
+        var apply=new Job("new-plan-apply",1,owner.getMarketplace().name(),ListingIdentity.fingerprint(owner),Set.of(Field.BRAND),Instant.now(),false,true,List.of(nextRow));
+        var repository=new CatalogSyncRepository();repository.insert(existing);repository.confirm(owner,existing.id());repository.insert(apply);repository.pause(owner,apply.id(),true);
+        fx(()->{pane=new CatalogSyncPane();pane.setOnMutationResult((shop,result,approved)->results.add(approved));new Scene(pane,1060,700);pane.open(owner,List.of());return null;});
+        com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();fx(()->null);
+        var render=CatalogSyncPane.class.getDeclaredMethod("render",Job.class);render.setAccessible(true);
+        fx(()->{render.invoke(pane,existing);((Button)pane.lookup("#catalogSyncPause")).fire();return null;});
+        assertEquals(Boolean.FALSE,results.poll(5,TimeUnit.SECONDS));awaitButton("#catalogSyncPause");
+        fx(()->{((Button)pane.lookup("#catalogSyncPause")).fire();return null;});assertEquals(Boolean.FALSE,results.poll(5,TimeUnit.SECONDS));awaitButton("#catalogSyncPause");
+        fx(()->{render.invoke(pane,apply);((CheckBox)pane.lookup("#catalogSyncConfirm")).setSelected(true);((Button)pane.lookup("#catalogSyncApply")).fire();return null;});
+        assertEquals(Boolean.TRUE,results.poll(5,TimeUnit.SECONDS));
+    }
+    private void awaitButton(String selector)throws Exception{
+        for(int i=0;i<100;i++){if(fx(()->!((Button)pane.lookup(selector)).isDisabled()))return;Thread.sleep(20);}
+        fail("Button remained disabled: "+selector);
     }
 }

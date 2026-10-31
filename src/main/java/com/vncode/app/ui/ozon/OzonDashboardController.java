@@ -117,10 +117,15 @@ public final class OzonDashboardController {
     private final OzonSyncWorkflow syncWorkflow;
     public OzonDashboardController(){this(new OzonSyncWorkflow());}
     public OzonDashboardController(OzonSyncWorkflow syncWorkflow){this.syncWorkflow=java.util.Objects.requireNonNull(syncWorkflow);}
+    @FunctionalInterface interface QueueReadiness { void ensure(Shop owner,java.util.function.BooleanSupplier stopped)throws Exception; }
+    private QueueReadiness queueReadiness=this::ensureCompleteQueue;
+    void setQueueReadiness(QueueReadiness readiness){queueReadiness=Objects.requireNonNull(readiness);}
     private final OzonShipService shipService = new OzonShipService();
     @FunctionalInterface interface PostingAcceptor {com.vncode.app.integration.ozon.OzonShipResult accept(Shop owner,String number,KizSourceSelection sources)throws Exception;}
     private PostingAcceptor postingAcceptor=(owner,number,sources)->shipService.shipPerUnit(owner,number,true,sources);
     void setPostingAcceptor(PostingAcceptor acceptor){postingAcceptor=Objects.requireNonNull(acceptor);}
+    private OzonAcceptanceRetry.Pause acceptancePause=OzonAcceptanceRetry::pause;
+    void setAcceptancePause(OzonAcceptanceRetry.Pause pause){acceptancePause=Objects.requireNonNull(pause);}
     @FunctionalInterface interface AcceptanceStockPurchase {
         void replenish(Shop owner,List<String> numbers,KizSourceSelection sources,java.util.function.Consumer<String> progress,java.util.function.BooleanSupplier cancelled)throws Exception;
     }
@@ -145,7 +150,7 @@ public final class OzonDashboardController {
             com.vncode.app.ui.kiz.Kn3BatchDialog.open(kn3StatusHost,owner,report,sources,()->{if(isCurrent(owner))loadLocal();});
         }));
     }
-    private record Kn3Pages(Map<String,com.vncode.app.features.ozon.OzonFbsPage> pages,boolean rejected,Map<String,List<String>> completedTransfers,List<String> selectable){}
+    private record Kn3Pages(Map<String,com.vncode.app.features.ozon.OzonFbsPage> pages,boolean rejected,Map<String,List<String>> completedTransfers,long selectedFiltered){}
     private BatchTransitionResult lastTransitionResult;
     private long transitionRevision;
 
@@ -161,13 +166,16 @@ public final class OzonDashboardController {
     private final OrderSortPreferenceService sortPreferences = new OrderSortPreferenceService();
     private final KizMappingRepository gtinRepository = new KizMappingRepository();
     private final Set<String> selectedPostingNumbers = new LinkedHashSet<>();
-    private Set<String> filteredNewPostingNumbers = Set.of();
+    private long filteredNewCount;
+    private long selectedFilteredCount;
     private final Set<String> purchasesStarting = new HashSet<>();
     private final CheckBox selectAllCheckBox = new CheckBox();
 
     @FXML private Label titleLabel;
     @FXML private Label statusLabel;
     @FXML private ProgressIndicator loadingIndicator;
+    @FXML private Button cancelSelectionButton;
+    private Task<List<String>> activeSelectionTask;
     @FXML private Button refreshButton;
     @FXML private TabPane orderStatusTabs;
     @FXML private Tab newOrdersTab;
@@ -285,10 +293,11 @@ public final class OzonDashboardController {
         Shop selected = shop != null && shop.getMarketplace() == Marketplace.OZON ? shop : null;
         boolean sameContext = sameShopContext(this.shop, selected);
         if (!sameContext) {
+            if(activeSelectionTask!=null){activeSelectionTask.cancel(true);activeSelectionTask=null;cancelSelectionButton.setVisible(false);cancelSelectionButton.setManaged(false);}
             clearPrintPill();com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);
             requestToken++;
             setBusy(false);
-            selectedPostingNumbers.clear();filteredNewPostingNumbers=Set.of();offsets.clear();totals.clear();pageGeneration++;
+            selectedPostingNumbers.clear();filteredNewCount=0;selectedFilteredCount=0;offsets.clear();totals.clear();pageGeneration++;
             productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();addAgainKizButton.setVisible(false);addAgainKizButton.setManaged(false);
             newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();printedOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();
         }
@@ -389,6 +398,7 @@ public final class OzonDashboardController {
         selectFilteredButton.setText(i18n.tr("ozon.batch.select_filtered"));clearBatchSelectionButton.setText(i18n.tr("ozon.batch.clear_selection"));
         selectAllCheckBox.setTooltip(new Tooltip(i18n.tr("ozon.batch.select_filtered")));
         selectAllCheckBox.setAccessibleText(i18n.tr("ozon.batch.select_filtered"));
+        cancelSelectionButton.setText(i18n.tr("ozon.batch.cancel_selection"));
         sortByProductCheckBox.setText(i18n.tr("ozon.dashboard.sort.product"));
         sortByArticleCheckBox.setText(i18n.tr("ozon.dashboard.sort.article"));
         sortByColorCheckBox.setText(i18n.tr("ozon.dashboard.sort.color"));
@@ -435,20 +445,65 @@ public final class OzonDashboardController {
         else onClearBatchSelection();
     }
 
-    @FXML private void onClearBatchSelection(){selectedPostingNumbers.clear();newOrdersTable.refresh();updateSelectionState();}
+    @FXML private void onClearBatchSelection(){selectedPostingNumbers.clear();selectedFilteredCount=0;newOrdersTable.refresh();updateSelectionState();}
     @FXML private void onSelectFiltered(){
-        Shop selected=shop;if(selected==null||busy)return;String text=postingSearch.getText();String sort=sortFields();long token=++requestToken;long epoch=pageGeneration;
-        Task<List<String>> task=new Task<>(){@Override protected List<String> call(){return postings.freezeFilteredNumbers(pageQuery(selected.getId(),"awaiting_packaging",text,sort,0,100),10000);}};
-        setBusy(true);task.setOnSucceeded(e->{if(token!=requestToken||!isCurrent(selected))return;setBusy(false);if(epoch!=pageGeneration||!text.equals(postingSearch.getText())||!sort.equals(sortFields())){updateSelectionState();return;}
-            filteredNewPostingNumbers=Set.copyOf(task.getValue());selectedPostingNumbers.clear();selectedPostingNumbers.addAll(task.getValue());newOrdersTable.refresh();updateSelectionState();});
-        java.util.function.Consumer<Throwable> failed=error->finishFailure(token,selected,error);task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
+        Shop selected=shop;if(selected==null||busy)return;String text=postingSearch.getText();String sort=sortFields();long token=++requestToken;long generation=shopGeneration;
+        Task<List<String>> task=new Task<>(){@Override protected List<String> call()throws Exception{
+            queueReadiness.ensure(selected,()->isCancelled()||Thread.currentThread().isInterrupted()||disposed||generation!=shopGeneration||!sameShopContext(shop,selected));
+            com.vncode.app.integration.listing.ListingIdentity.require(selected);
+            try{return postings.freezeFilteredNumbers(pageQuery(selected.getId(),"awaiting_packaging",text,sort,0,100),100_000);}
+            catch(IllegalArgumentException tooMany){if("Too many selected Ozon postings".equals(tooMany.getMessage()))throw new IOException(tr("ozon.batch.selection_limit"),tooMany);throw tooMany;}
+        }};
+        activeSelectionTask=task;cancelSelectionButton.setVisible(true);cancelSelectionButton.setManaged(true);
+        setBusy(true,true);statusLabel.setText(tr("ozon.batch.sync_before_select"));task.setOnSucceeded(e->{if(token!=requestToken||generation!=shopGeneration||!sameShopContext(shop,selected))return;finishSelectionTask(task);setBusy(false);if(!text.equals(postingSearch.getText())||!sort.equals(sortFields())){updateSelectionState();loadLocal();return;}
+            selectedPostingNumbers.clear();selectedPostingNumbers.addAll(task.getValue());filteredNewCount=task.getValue().size();selectedFilteredCount=task.getValue().size();newOrdersTable.refresh();updateSelectionState();loadLocal();});
+        java.util.function.Consumer<Throwable> failed=error->{finishSelectionTask(task);if(token!=requestToken||generation!=shopGeneration||!sameShopContext(shop,selected))return;setBusy(false);statusLabel.setText(tr("ozon.batch.queue_incomplete"));AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(error));loadLocal();};task.setOnFailed(e->failed.accept(task.getException()));
+        task.setOnCancelled(e->{if(token!=requestToken||generation!=shopGeneration)return;finishSelectionTask(task);setBusy(false);statusLabel.setText(tr("ozon.batch.selection_cancelled"));loadLocal();});
+        AppTaskExecutor.execute(task,failed);
+    }
+
+    @FXML private void onCancelSelection(){if(activeSelectionTask!=null)activeSelectionTask.cancel(true);}
+    private void finishSelectionTask(Task<List<String>> task){if(activeSelectionTask==task){activeSelectionTask=null;cancelSelectionButton.setVisible(false);cancelSelectionButton.setManaged(false);}}
+
+    private void ensureCompleteQueue(Shop selected,java.util.function.BooleanSupplier stopped)throws Exception {
+        if(!com.vncode.app.features.sync.SyncRuntime.requestIfRunning(selected,com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_QUEUE)) {
+            ShopOperationCoordinator.withActiveShop(selected.getId(),()->{syncWorkflow.syncCurrentPostings(selected);return null;});
+            return;
+        }
+        long deadline=System.nanoTime()+java.util.concurrent.TimeUnit.MINUTES.toNanos(30);
+        long nextReport=0;Task<List<String>> current=activeSelectionTask;
+        while(!com.vncode.app.features.sync.SyncRuntime.isQueueMembershipCurrent(selected,java.time.Duration.ofSeconds(30))) {
+            if(stopped.getAsBoolean())throw new java.util.concurrent.CancellationException();
+            com.vncode.app.integration.listing.ListingIdentity.require(selected);
+            if(System.nanoTime()>=deadline)throw new IOException(tr("ozon.batch.queue_incomplete"));
+            if(System.nanoTime()>=nextReport) {
+                var progress=com.vncode.app.features.sync.SyncRuntime.queueProgress(selected);
+                String message=java.text.MessageFormat.format(tr("ozon.batch.sync_progress"),progress.pages());
+                if("FBS_STATUS_UNCLASSIFIED".equals(progress.error()))message+=" · "+tr("ozon.batch.status_unclassified");
+                else if(!progress.error().isBlank())message+=" · "+progress.error();
+                if(progress.next()!=null&&!progress.error().isBlank())message+=" · "+tr("ozon.batch.sync_retry_at")+" "+
+                        java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss").withZone(java.time.ZoneId.systemDefault()).format(progress.next());
+                String report=message;
+                Platform.runLater(()->{if(!disposed&&activeSelectionTask==current)statusLabel.setText(report);});
+                if("OZON_AUTH_REQUIRED".equals(progress.error()))throw new IOException(tr("ozon.batch.sync_auth_required"));
+                if("LICENSE_REQUIRED".equals(progress.error()))throw new IOException(tr("ozon.batch.sync_license_required"));
+                nextReport=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(1);
+            }
+            try{Thread.sleep(250);}catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new java.util.concurrent.CancellationException();}
+        }
     }
 
     @FXML private void onMoveToPacking() {
         Shop selected = shop;
         List<String> postingNumbers = new ArrayList<>(selectedPostingNumbers);
         if (selected == null || postingNumbers.isEmpty() || busy) return;
-        final KizSourceSelection stockSources=selectedKizSources();if(stockSources==null)return;
+        // A source is required only for postings which Ozon says need a mark.
+        // Preserve an explicit empty choice so no background task falls back to
+        // an implicit warehouse or purchases a code without the seller's choice.
+        KizSourceSelection currentSources;
+        try { currentSources=shipmentKizPane.snapshot(); }
+        catch (IllegalStateException loading) { statusLabel.setText(tr("kiz.shipment.select_source"));return; }
+        final KizSourceSelection stockSources=currentSources;
         var dialog=new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
         if(newOrdersTable.getScene()!=null&&newOrdersTable.getScene().getWindow()!=null)dialog.initOwner(newOrdersTable.getScene().getWindow());
         AlertService.applyTheme(dialog);dialog.setTitle(tr("ozon.fbs.confirm_title"));dialog.setHeaderText(selected.getName()+" · "+postingNumbers.size());dialog.setContentText(tr("ozon.fbs.confirm_body")+"\n"+tr("ozon.fbs.auto_split_notice")+"\n"+String.join(", ",postingNumbers.stream().limit(20).toList())+(postingNumbers.size()>20?" …":""));
@@ -473,7 +528,11 @@ public final class OzonDashboardController {
                     }
                     try {
                         com.vncode.app.integration.ozon.OzonShipResult result;
-                        try { result=postingAcceptor.accept(selected,postingNumber,stockSources); }
+                        try { result=OzonAcceptanceRetry.run(
+                                ()->postingAcceptor.accept(selected,postingNumber,stockSources),
+                                ()->{lease.requireOwner(selected);com.vncode.app.integration.listing.ListingIdentity.require(selected);},
+                                ()->isCancelled()||lease.stopping(),
+                                delay->updateMessage(java.text.MessageFormat.format(tr("ozon.fbs.rate_wait_seconds"),delay.toSeconds())),acceptancePause); }
                         catch (IOException shortage) {
                             if(!"OZON_ACCEPT_KIZ_STOCK_REQUIRED".equals(shortage.getMessage())
                                     ||stockSources==null||!stockSources.purchased())throw shortage;
@@ -495,7 +554,11 @@ public final class OzonDashboardController {
                             } catch(Exception failure){purchaseFailure=failure;throw failure;}
                             lease.requireOwner(selected);
                             com.vncode.app.integration.listing.ListingIdentity.require(selected);
-                            result=postingAcceptor.accept(selected,postingNumber,stockSources);
+                            result=OzonAcceptanceRetry.run(
+                                    ()->postingAcceptor.accept(selected,postingNumber,stockSources),
+                                    ()->{lease.requireOwner(selected);com.vncode.app.integration.listing.ListingIdentity.require(selected);},
+                                    ()->isCancelled()||lease.stopping(),
+                                    delay->updateMessage(java.text.MessageFormat.format(tr("ozon.fbs.rate_wait_seconds"),delay.toSeconds())),acceptancePause);
                         }
                         children.put(postingNumber,result.resultingPostings());
                         completed.add(postingNumber);
@@ -538,10 +601,10 @@ public final class OzonDashboardController {
     @FXML private void onPrintAll() {
         Shop selected = shop;
         if (selected == null || packingOrdersTable.getItems().isEmpty() || busy) return;
-        KizSourceSelection sources=selectedKizSources();if(sources==null)return;
+        KizSourceSelection sources=printKizSources();if(sources==null)return;
         String text=postingSearch.getText(),sort=sortFields();long epoch=pageGeneration;
         long token = ++requestToken;
-        Task<List<String>> task=new Task<>(){@Override protected List<String> call(){return postings.freezeFilteredNumbers(pageQuery(selected.getId(),"awaiting_deliver",text,sort,0,100),10000);}};
+        Task<List<String>> task=new Task<>(){@Override protected List<String> call(){try{return postings.freezeFilteredNumbers(pageQuery(selected.getId(),"awaiting_deliver",text,sort,0,100),10000);}catch(IllegalArgumentException tooMany){if("Too many selected Ozon postings".equals(tooMany.getMessage()))throw new IllegalStateException("OZON_PRINT_LIMIT_10000",tooMany);throw tooMany;}}};
         setBusy(true);
         task.setOnSucceeded(event -> {
             if (token != requestToken || !isCurrent(selected)) return;
@@ -563,6 +626,10 @@ public final class OzonDashboardController {
         try{var source=shipmentKizPane.snapshot();if(!source.anySelected()){statusLabel.setText(tr("kiz.shipment.select_source"));return null;}return source;}
         catch(IllegalStateException loading){statusLabel.setText(com.vncode.app.features.kiz.KizErrorMessages.message("KIZ_SOURCE_LOADING"));return null;}
     }
+    private KizSourceSelection printKizSources(){
+        try{return shipmentKizPane.snapshot();}
+        catch(IllegalStateException loading){statusLabel.setText(com.vncode.app.features.kiz.KizErrorMessages.message("KIZ_SOURCE_LOADING"));return null;}
+    }
 
     private void checkBatchReadinessAndExport(Shop selected,List<String> postingNumbers,KizSourceSelection sources){
         var preflight=new java.util.concurrent.atomic.AtomicLong(-1);
@@ -578,6 +645,17 @@ public final class OzonDashboardController {
                 if(disposed||!isCurrent(selected)||busy||token!=requestToken)return;
                 chooseBatchTargetAndExport(selected,readiness.readyPostingNumbers(),sources,preflight.get());return;
             }
+            if(!readiness.ready()&&!readiness.readyPostingNumbers().isEmpty()&&readiness.readyPostingNumbers().size()<postingNumbers.size()){
+                var printReady=new ButtonType(tr("ozon.batch.print_ready_only"),javafx.scene.control.ButtonBar.ButtonData.YES);
+                var buyMissing=new ButtonType(tr("ozon.batch.purchase_missing"),javafx.scene.control.ButtonBar.ButtonData.NO);
+                var cancel=new ButtonType(tr("common.cancel"),javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE);
+                var choice=new Alert(Alert.AlertType.CONFIRMATION,MessageFormat.format(tr("ozon.batch.mixed_stock_choice"),readiness.readyPostingNumbers().size(),postingNumbers.size()),printReady,buyMissing,cancel);
+                AlertService.applyTheme(choice);choice.setHeaderText(selected.getName());
+                ButtonType selectedAction=choice.showAndWait().orElse(cancel);
+                if(disposed||!isCurrent(selected)||busy||token!=requestToken||selectedAction==cancel)return;
+                if(selectedAction==printReady){chooseBatchTargetAndExport(selected,readiness.readyPostingNumbers(),sources,preflight.get());return;}
+                if(selectedAction!=buyMissing)return;
+            }
             chooseBatchTargetAndExport(selected,postingNumbers,sources,preflight.get());});
         java.util.function.Consumer<Throwable> failed=error->{showReadinessTimingOnFailure(token,selected,preflight.get());finishFailure(token,selected,error);};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
     }
@@ -591,7 +669,7 @@ public final class OzonDashboardController {
     private void downloadLabel(OzonPostingDto posting) {
         Shop selected = shop;
         if (posting == null || selected == null || busy || !canPrintLabel(posting)) return;
-        KizSourceSelection sources=selectedKizSources();if(sources==null)return;
+        KizSourceSelection sources=printKizSources();if(sources==null)return;
         var preflight=new java.util.concurrent.atomic.AtomicLong(-1);
         long token = ++requestToken;
         Task<OzonPrintReadiness> task = new Task<>() {
@@ -637,8 +715,10 @@ public final class OzonDashboardController {
         File target=choosePdf("OZON-"+selected.getId()+"-FBS-"+LocalDate.now()+".pdf");if(target==null)return;
         File picking=pickingTarget(target);
         runPrintTask(selected,target,picking,postingNumbers,sources,preflightMillis,progress->{
-            var result=new OzonPrintBundleService(sources).exportAll(selected,postingNumbers,target,picking,progress);
-            return new PrintOutput(MessageFormat.format(tr("ozon.dashboard.print_all_done"),result.postingCount()),List.of(target,picking),postingNumbers);
+            var result=new OzonPrintBundleService(sources).exportAvailable(selected,postingNumbers,target,picking,progress);
+            String message=result.failures().isEmpty()?MessageFormat.format(tr("ozon.dashboard.print_all_done"),result.successful().size()):
+                    MessageFormat.format(tr("ozon.batch.print_partial"),result.successful().size(),result.failures().size());
+            return new PrintOutput(message,result.successful().isEmpty()?List.of():List.of(target,picking),result.successful(),result.failures(),result.waiting());
         });
     }
 
@@ -673,7 +753,7 @@ public final class OzonDashboardController {
                         try { new com.vncode.app.integration.ozon.OzonStockReplenishment().forPrint(selected,numbers,sources); }
                         finally { com.vncode.app.integration.ozon.OzonPrintTiming.add(com.vncode.app.integration.ozon.OzonPrintTiming.Stage.STOCK,stockStarted); }
                         return work.run(count->{updateProgress(count,numbers.size());long now=System.nanoTime();if(count==numbers.size()||now-published[0]>250_000_000L){published[0]=now;updateMessage(MessageFormat.format(tr("ozon.batch.progress"),count,numbers.size()));}});});
-                    report.finish(selected,true);return result;
+                    report.finishAvailable(selected,Set.copyOf(result.postingNumbers()),result.failures(),result.waiting());return result;
                 }catch(Exception failed){try{if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(failed))report.waitingForStock(selected);else report.finish(selected,false);}catch(RuntimeException storage){failed.addSuppressed(storage);}throw failed;}
                 } finally { timingResult.set(timer.snapshot()); timer.close(); }
             }
@@ -691,14 +771,16 @@ public final class OzonDashboardController {
             setBusy(false);clearPrintPill();
             PrintOutput output = task.getValue();
             statusLabel.setText(output.message());
-            batchResultsArea.setText(readinessTimingText(preflightMillis)+printTimingText(timingResult.get())+output.postingNumbers().stream().map(n->n+" · "+tr("ozon.fbs.pdf_created_local_kiz")).collect(java.util.stream.Collectors.joining("\n")));
+            String done=output.postingNumbers().stream().map(n->n+" · "+tr("ozon.fbs.pdf_created_local_kiz")).collect(java.util.stream.Collectors.joining("\n"));
+            String failures=output.failures().entrySet().stream().map(e->e.getKey()+" · "+tr(output.waiting().contains(e.getKey())?"ozon.batch.wait_rate_limit":"ozon.fbs.batch_incomplete")+" · "+e.getValue()).collect(java.util.stream.Collectors.joining("\n"));
+            batchResultsArea.setText(readinessTimingText(preflightMillis)+printTimingText(timingResult.get())+done+(done.isBlank()||failures.isBlank()?"":"\n")+failures);
             batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);batchResultsPanel.setExpanded(true);
             offsets.put("printed_awaiting_deliver",0);
-            if(orderStatusTabs.getSelectionModel().getSelectedItem()!=printedOrdersTab)orderStatusTabs.getSelectionModel().select(printedOrdersTab);else loadLocal();
+            if(!output.postingNumbers().isEmpty()&&orderStatusTabs.getSelectionModel().getSelectedItem()!=printedOrdersTab)orderStatusTabs.getSelectionModel().select(printedOrdersTab);else loadLocal();
             refreshGtinInventory();
             Task<Void> open=new Task<>(){@Override protected Void call()throws IOException{exportedFileOpener.open(output.files());return null;}};
             open.setOnFailed(e->{if(!disposed&&isCurrent(selected))AlertService.showWarning(tr("ozon.dashboard.open_files.title"),tr("ozon.dashboard.open_files.failed"),tr("ozon.dashboard.open_files.unsupported"));});
-            AppTaskExecutor.execute(open,error->{});
+            if(!output.files().isEmpty())AppTaskExecutor.execute(open,error->{});
         });
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {lease.close();if(!com.vncode.app.shared.ShopBatchRegistry.hasShop(selected.getId()))onBusy.accept(selected.getId(),false);if(!disposed&&isCurrent(selected)){clearPrintPill();batchResultsArea.setText(readinessTimingText(preflightMillis)+printTimingText(timingResult.get())+numbers.stream().map(n->n+" · "+tr(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(rejection)?"kiz.pending.title":"ozon.fbs.batch_incomplete")).collect(java.util.stream.Collectors.joining("\n")));batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);batchResultsPanel.setExpanded(true);}if(rejection instanceof java.util.concurrent.CancellationException){if(!disposed&&isCurrent(selected)){setBusy(false);statusLabel.setText(tr("kiz.print.cancelled"));}return;}finishFailure(token, selected, rejection);};
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
@@ -749,15 +831,14 @@ public final class OzonDashboardController {
     private void loadLocal() {
         Shop selected=shop;if(disposed||selected==null){newOrdersTable.getItems().clear();packingOrdersTable.getItems().clear();printedOrdersTable.getItems().clear();deliveringOrdersTable.getItems().clear();updateTabTitles();updatePaging();return;}
         long epoch=++pageGeneration,started=System.nanoTime();String text=postingSearch.getText();String currentStatus=activeStatus();String sort=sortFields();var frozenOffsets=Map.copyOf(offsets);
-        var owner=selected;var transferReport=lastTransitionResult;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+currentStatus+"|"+text+"|"+sort+"|"+frozenOffsets+"|batch:"+transitionRevision;
+        var owner=selected;var selectedAtRead=Set.copyOf(selectedPostingNumbers);var transferReport=lastTransitionResult;String scope=com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)+"|"+currentStatus+"|"+text+"|"+sort+"|"+frozenOffsets+"|batch:"+transitionRevision;
         reads.submitLocal(new com.vncode.app.shared.ShopReadCoordinator.Key(selected.getId(),"ozon-fbs-page",scope),()->{
             var pages=new java.util.LinkedHashMap<String,com.vncode.app.features.ozon.OzonFbsPage>();
             for(String status:List.of("awaiting_packaging","awaiting_deliver","printed_awaiting_deliver","delivering"))pages.put(status,fbsReader.apply(pageQuery(owner.getId(),status,text,sort,frozenOffsets.getOrDefault(status,0),100)));
-            var ids=postings.freezeFilteredNumbers(pageQuery(owner.getId(),currentStatus,text,sort,0,100),10000);
-            boolean red;try(var c=com.vncode.app.config.Database.getConnection()){red=new com.vncode.app.features.kiz.status.Kn3Repository().read(c,owner.getId(),owner.getMarketplace(),ids).values().stream().flatMap(List::stream).anyMatch(m->m.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED);}
+            boolean red=postings.hasRejectedFiltered(pageQuery(owner.getId(),currentStatus,text,sort,0,100));
             var completed=transferReport==null||transferReport.pending().isEmpty()?Map.<String,List<String>>of():shipService.completedUnitPostings(owner,transferReport.pending());
-            var selectable="awaiting_packaging".equals(currentStatus)?ids:postings.freezeFilteredNumbers(pageQuery(owner.getId(),"awaiting_packaging",text,sort,0,100),10000);
-            return new Kn3Pages(pages,red,completed,selectable);
+            long selectedFiltered=postings.countSelectedFiltered(pageQuery(owner.getId(),"awaiting_packaging",text,sort,0,100),selectedAtRead);
+            return new Kn3Pages(pages,red,completed,selectedFiltered);
         }).whenComplete((result,error)->Platform.runLater(()->{
             if(disposed||epoch!=pageGeneration||!isCurrent(owner))return;
             if(error!=null){statusLabel.setText(tr("products.read_failed"));return;}
@@ -768,7 +849,8 @@ public final class OzonDashboardController {
                 lastTransitionResult=new BatchTransitionResult(transferReport.requested(),List.copyOf(completed),transferReport.failed(),List.copyOf(pending),transferReport.notProcessed(),Map.copyOf(children),transferReport.reasons());
                 selectedPostingNumbers.removeAll(result.completedTransfers().keySet());transitionRevision++;renderTransitionResult(lastTransitionResult);
             }
-            filteredNewPostingNumbers=Set.copyOf(result.selectable());
+            if(!selectedAtRead.equals(selectedPostingNumbers)){loadLocal();return;}
+            filteredNewCount=result.pages().get("awaiting_packaging").total();selectedFilteredCount=result.selectedFiltered();
             var pages=result.pages();boolean repage=false;
             for(var entry:pages.entrySet()){int offset=offsets.getOrDefault(entry.getKey(),0);long total=entry.getValue().total();if(offset>0&&offset>=total){offsets.put(entry.getKey(),total==0?0:(int)((total-1)/100)*100);repage=true;}}
             if(repage){loadLocal();return;}
@@ -797,7 +879,7 @@ public final class OzonDashboardController {
     @FXML private void onPreviousPage(){String status=activeStatus();offsets.put(status,Math.max(0,offsets.getOrDefault(status,0)-100));loadLocal();}
     @FXML private void onNextPage(){String status=activeStatus();if(offsets.getOrDefault(status,0)+100<totals.getOrDefault(status,0L)){offsets.put(status,offsets.getOrDefault(status,0)+100);loadLocal();}}
     private void updatePaging(){if(pageStatusLabel==null)return;String status=activeStatus();long total=totals.getOrDefault(status,0L);int offset=offsets.getOrDefault(status,0);pageStatusLabel.setText((total==0?0:offset+1)+"–"+Math.min(offset+100,total)+" / "+total);previousPageButton.setDisable(shop==null||offset==0);nextPageButton.setDisable(shop==null||offset+100>=total);}
-    public void dispose(){clearPrintPill();com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();}
+    public void dispose(){if(activeSelectionTask!=null)activeSelectionTask.cancel(true);clearPrintPill();com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();}
 
     private void updateTabTitles() {
         I18nService i18n = I18nService.getInstance();
@@ -974,8 +1056,8 @@ public final class OzonDashboardController {
                 checkBox.setOnAction(event -> {
                     OzonPostingDto posting = getTableRow() == null ? null : getTableRow().getItem();
                     if (posting == null) return;
-                    if (checkBox.isSelected()) selectedPostingNumbers.add(posting.postingNumber());
-                    else selectedPostingNumbers.remove(posting.postingNumber());
+                    boolean changed=checkBox.isSelected()?selectedPostingNumbers.add(posting.postingNumber()):selectedPostingNumbers.remove(posting.postingNumber());
+                    if(changed)selectedFilteredCount+=checkBox.isSelected()?1:-1;
                     updateSelectionState();
                 });
             }
@@ -1055,8 +1137,8 @@ public final class OzonDashboardController {
     }
 
     private void updateSelectionState() {
-        long selectedFiltered = filteredNewPostingNumbers.stream().filter(selectedPostingNumbers::contains).count();
-        int filtered = filteredNewPostingNumbers.size();
+        long selectedFiltered = Math.max(0,selectedFilteredCount);
+        long filtered = Math.max(0,filteredNewCount);
         selectAllCheckBox.setIndeterminate(selectedFiltered > 0 && selectedFiltered < filtered);
         selectAllCheckBox.setSelected(filtered > 0 && selectedFiltered == filtered);
         selectedCountLabel.setText(MessageFormat.format(
@@ -1064,7 +1146,7 @@ public final class OzonDashboardController {
         boolean hasSelection = !selectedPostingNumbers.isEmpty();
         selectionActionBar.setVisible(hasSelection);
         selectionActionBar.setManaged(hasSelection);
-        moveToPackingButton.setDisable(busy || shop == null || !hasSelection || !shipmentKizPane.readyForUse());
+        moveToPackingButton.setDisable(busy || shop == null || !hasSelection);
         selectFilteredButton.setDisable(busy||shop==null);clearBatchSelectionButton.setDisable(busy||shop==null||!hasSelection);
     }
 
@@ -1100,7 +1182,7 @@ public final class OzonDashboardController {
 
     private void clear() {
         selectedPostingNumbers.clear();
-        filteredNewPostingNumbers=Set.of();
+        filteredNewCount=0;selectedFilteredCount=0;
         catalogProducts = List.of();productsBySku=Map.of();verifiedGtinsBySku=Map.of();totals.clear();offsets.clear();
         packingOrdersRaw = List.of();
         newOrdersTable.getItems().clear();
@@ -1507,6 +1589,8 @@ public final class OzonDashboardController {
             return MessageFormat.format(i18n.tr("ozon.dashboard.readiness.unsupported"),
                     String.join(", ", readiness.unsupportedRequirements()));
         }
+        if(readiness.missingSkus().stream().anyMatch(s->s.startsWith("KIZ_SOURCE_REQUIRED: ")))
+            return com.vncode.app.features.kiz.KizErrorMessages.message("KIZ_SOURCE_REQUIRED")+" · SKU: "+readiness.missingSkus().stream().map(s->s.replace("KIZ_SOURCE_REQUIRED: ","")).collect(java.util.stream.Collectors.joining(", "));
         if(readiness.missingSkus().stream().anyMatch(s->s.startsWith("KIZ_CATEGORY_STOCK: "))){
             return i18n.tr("kiz.error.category_shortage")+" · SKU: "+readiness.missingSkus().stream().map(s->s.replace("KIZ_CATEGORY_STOCK: ","")).collect(java.util.stream.Collectors.joining(", "));
         }
@@ -1610,7 +1694,7 @@ public final class OzonDashboardController {
     static boolean reconciliationRequired(Throwable error){
         if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(error))return true;
         for(int depth=0;error!=null&&depth<8;depth++,error=error.getCause())
-            if(error instanceof com.vncode.app.integration.ozon.OzonApiException e&&(e.ambiguousMutation()||e.kind().equals("reconcile_required"))
+            if(error instanceof com.vncode.app.integration.ozon.OzonApiException e&&(e.ambiguousMutation()||e.kind().equals("reconcile_required")||e.statusCode()==429)
                     ||error instanceof IOException&&"OZON_ACCEPT_KIZ_PENDING".equals(error.getMessage()))return true;
         return false;
     }
@@ -1658,7 +1742,9 @@ public final class OzonDashboardController {
     }
 
     private static String shippingFailure(Throwable failure){
+        if(failure instanceof com.vncode.app.integration.ozon.OzonApiException api&&api.statusCode()==429)return I18nService.getInstance().tr("ozon.fbs.rate_deferred");
         String code=failure instanceof com.vncode.app.integration.ozon.OzonApiException api?api.safeErrorCode():failure.getMessage();
+        if("FBS_INCOMPLETE_POSTING".equals(code)||"FBS_INVALID_RESPONSE".equals(code))return I18nService.getInstance().tr("ozon.fbs.incomplete_order");
         if("OZON_ACCEPT_KIZ_BATCH_PREFLIGHT".equals(code))return I18nService.getInstance().tr("ozon.fbs.purchase_batch_failed")+": "+safeFailure(failure.getCause());
         if(code!=null&&code.startsWith("OZON_SPLIT_"))return I18nService.getInstance().tr("ozon.fbs.reason."+code,safeFailure(failure));
         if(code!=null&&code.startsWith("OZON_ACCEPT_KIZ_"))return I18nService.getInstance().tr("ozon.flow."+code,safeFailure(failure));
@@ -1767,11 +1853,14 @@ public final class OzonDashboardController {
     }
 
     private record BatchTransitionResult(int requested,List<String> completed,List<String> failed,List<String> pending,List<String> notProcessed,Map<String,List<String>> children,Map<String,String> reasons) { }
-    record PrintOutput(String message, List<File> files, List<String> postingNumbers) {
+    record PrintOutput(String message, List<File> files, List<String> postingNumbers,Map<String,String> failures,Set<String> waiting) {
+        PrintOutput(String message,List<File> files,List<String> postingNumbers){this(message,files,postingNumbers,Map.of(),Set.of());}
         PrintOutput {
             message = message == null ? "" : message;
             files = files == null ? List.of() : List.copyOf(files);
             postingNumbers = postingNumbers == null ? List.of() : List.copyOf(postingNumbers);
+            failures=failures==null?Map.of():Map.copyOf(failures);
+            waiting=waiting==null?Set.of():Set.copyOf(waiting);
         }
     }
 }

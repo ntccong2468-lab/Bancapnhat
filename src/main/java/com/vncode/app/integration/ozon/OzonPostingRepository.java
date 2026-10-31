@@ -3,6 +3,7 @@ package com.vncode.app.integration.ozon;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.vncode.app.config.Database;
+import com.vncode.app.models.Shop;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,6 +19,22 @@ import java.util.Objects;
 public final class OzonPostingRepository {
     private static final Gson GSON = new Gson();
 
+    /** Publish only after every unfulfilled page was persisted and all statuses were classified. */
+    public void markQueueMembershipComplete(Shop shop,boolean incomplete){
+        Objects.requireNonNull(shop,"shop");String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
+        try(Connection c=Database.getConnection()){
+            c.setAutoCommit(false);
+            try{
+                if(!owner.equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shop.getId(),com.vncode.app.integration.marketplace.Marketplace.OZON)))throw new SecurityException("Listing owner changed");
+                try(var p=c.prepareStatement("INSERT INTO ozon_fbs_queue_scans(shop_id,owner,completed_at,incomplete) VALUES(?,?,?,?) ON CONFLICT(shop_id) DO UPDATE SET owner=excluded.owner,completed_at=excluded.completed_at,incomplete=excluded.incomplete")){
+                    p.setInt(1,shop.getId());p.setString(2,owner);p.setString(3,Instant.now().toString());p.setInt(4,incomplete?1:0);p.executeUpdate();
+                }
+                c.commit();
+            }catch(SQLException|RuntimeException error){c.rollback();throw error;}
+            finally{c.setAutoCommit(true);}
+        }catch(SQLException error){throw new IllegalStateException("Cannot record Ozon queue scan",error);}
+    }
+
     public long countFiltered(int shop,String status,String text){try(var c=Database.getConnection()){return countFiltered(c,shop,status,text);}catch(SQLException e){throw new IllegalStateException("Cannot count Ozon postings");}}
     public long countFiltered(Connection c,int shop,String status,String text)throws SQLException{
         return countFiltered(c,new com.vncode.app.features.ozon.OzonFbsQuery(shop,status,text,"",0,100));
@@ -25,6 +42,102 @@ public final class OzonPostingRepository {
     public long countFiltered(Connection c,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{
         registerSearch(c);
         try(var p=c.prepareStatement("SELECT COUNT(*) FROM ozon_postings p WHERE "+filter(q)+unitShipExclusion(c))){bindFilter(p,q);try(var r=p.executeQuery()){return r.getLong(1);}}
+    }
+
+    /** Checks the complete filtered queue without loading or imposing a limit on posting IDs. */
+    public boolean hasRejectedFiltered(com.vncode.app.features.ozon.OzonFbsQuery query) {
+        try (var connection = Database.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                boolean rejected = hasRejectedFiltered(connection, query);
+                connection.commit();
+                return rejected;
+            } catch (SQLException | RuntimeException exception) {
+                connection.rollback();
+                throw exception;
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Cannot inspect Ozon marking status", exception);
+        }
+    }
+
+    /** The owner, filters and marking observation are read on the caller's connection. */
+    public boolean hasRejectedFiltered(Connection connection, com.vncode.app.features.ozon.OzonFbsQuery query) throws SQLException {
+        Objects.requireNonNull(connection, "connection");
+        Objects.requireNonNull(query, "query");
+        registerSearch(connection);
+        String owner = com.vncode.app.integration.listing.ListingIdentity.fingerprint(connection, query.shopId(),
+                com.vncode.app.integration.marketplace.Marketplace.OZON);
+        String sql = "SELECT 1 FROM ozon_postings p WHERE " + filter(query) + unitShipExclusion(connection) + """
+                AND EXISTS (
+                    SELECT 1 FROM kn3_marks mark
+                    WHERE mark.shop_id=p.shop_id AND mark.marketplace='OZON' AND mark.owner=?
+                      AND mark.order_id=p.posting_number AND mark.state='REJECTED'
+                      AND NOT EXISTS (
+                          SELECT 1 FROM kn3_replacements replacement
+                          WHERE replacement.shop_id=mark.shop_id AND replacement.marketplace=mark.marketplace
+                            AND replacement.owner=mark.owner AND replacement.order_id=mark.order_id
+                            AND replacement.product_id=mark.product_id AND replacement.exemplar_id=mark.exemplar_id
+                            AND replacement.state IN ('PREPARED','SENDING','AWAITING','RECONCILE')
+                      )
+                ) LIMIT 1
+                """;
+        try (var statement = connection.prepareStatement(sql)) {
+            statement.setString(bindFilter(statement, query), owner);
+            try (var rows = statement.executeQuery()) { return rows.next(); }
+        }
+    }
+
+    /** Counts selected IDs against the complete filter rather than just the visible page. */
+    public long countSelectedFiltered(com.vncode.app.features.ozon.OzonFbsQuery query, Collection<String> selected) {
+        try (var connection = Database.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                long count = countSelectedFiltered(connection, query, selected);
+                connection.commit();
+                return count;
+            } catch (SQLException | RuntimeException exception) {
+                connection.rollback();
+                throw exception;
+            }
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Cannot count selected Ozon postings", exception);
+        }
+    }
+
+    public long countSelectedFiltered(Connection connection, com.vncode.app.features.ozon.OzonFbsQuery query,
+            Collection<String> selected) throws SQLException {
+        Objects.requireNonNull(connection, "connection");
+        Objects.requireNonNull(query, "query");
+        Objects.requireNonNull(selected, "selected");
+        com.vncode.app.integration.listing.ListingIdentity.fingerprint(connection, query.shopId(),
+                com.vncode.app.integration.marketplace.Marketplace.OZON);
+        if (selected.isEmpty()) return 0;
+        registerSearch(connection);
+        try (var statement = connection.createStatement()) {
+            statement.execute("CREATE TEMP TABLE IF NOT EXISTS vncode_selected_ozon_postings(posting_number TEXT PRIMARY KEY) WITHOUT ROWID");
+            statement.execute("DELETE FROM vncode_selected_ozon_postings");
+        }
+        try {
+            try (var insert = connection.prepareStatement("INSERT OR IGNORE INTO vncode_selected_ozon_postings(posting_number) VALUES(?)")) {
+                int pending = 0;
+                for (String number : selected) {
+                    if (number == null || number.isBlank()) continue;
+                    insert.setString(1, number);
+                    insert.addBatch();
+                    if (++pending == 500) { insert.executeBatch(); pending = 0; }
+                }
+                if (pending > 0) insert.executeBatch();
+            }
+            String sql = "SELECT COUNT(*) FROM ozon_postings p WHERE " + filter(query) + unitShipExclusion(connection)
+                    + " AND EXISTS(SELECT 1 FROM vncode_selected_ozon_postings selected WHERE selected.posting_number=p.posting_number)";
+            try (var statement = connection.prepareStatement(sql)) {
+                bindFilter(statement, query);
+                try (var rows = statement.executeQuery()) { return rows.next() ? rows.getLong(1) : 0; }
+            }
+        } finally {
+            try (var cleanup = connection.createStatement()) { cleanup.execute("DROP TABLE IF EXISTS temp.vncode_selected_ozon_postings"); }
+        }
     }
     public List<OzonPostingDto> findSortedPage(com.vncode.app.features.ozon.OzonFbsQuery q){try(var c=Database.getConnection()){return findSortedPage(c,q);}catch(SQLException e){throw new IllegalStateException("Cannot page Ozon postings");}}
     public List<OzonPostingDto> findSortedPage(Connection c,com.vncode.app.features.ozon.OzonFbsQuery q)throws SQLException{
@@ -36,7 +149,7 @@ public final class OzonPostingRepository {
     }
     /** Freezes all matching IDs in one read transaction before confirmation/export, never just the UI page. */
     public List<String> freezeFilteredNumbers(com.vncode.app.features.ozon.OzonFbsQuery query, int maximum) {
-        if (query == null || maximum < 1 || maximum > 10_000) {
+        if (query == null || maximum < 1 || maximum > 100_000) {
             throw new IllegalArgumentException("Invalid Ozon selection limit");
         }
         try (Connection connection = Database.getConnection()) {
@@ -115,6 +228,14 @@ public final class OzonPostingRepository {
         }catch(SQLException error){throw new IllegalStateException("Cannot read Ozon status page",error);}
     }
 
+    /** Only detail-read orders that were not observed in this status pass. */
+    public List<String> findStatusNumbersAfter(int shopId,String after,int limit,Instant passStarted){
+        if(shopId<=0||limit<1||limit>1000||passStarted==null)throw new IllegalArgumentException("Invalid Ozon status page");
+        try(var connection=Database.getConnection();var statement=connection.prepareStatement("SELECT p.posting_number FROM ozon_postings p WHERE p.shop_id=? AND p.status IN ('awaiting_packaging','awaiting_deliver','delivering') AND p.posting_number>? AND (NOT EXISTS (SELECT 1 FROM ozon_fbs_status_observations seen WHERE seen.shop_id=p.shop_id AND seen.posting_number=p.posting_number AND seen.pass_started=?) OR coalesce(p.mandatory_mark_product_ids,'[]')<>'[]' OR coalesce(p.unsupported_requirements,'[]') LIKE '%OZON_INCOMPLETE_POSTING%' OR EXISTS(SELECT 1 FROM kn3_marks k WHERE k.shop_id=p.shop_id AND k.marketplace='OZON' AND k.order_id=p.posting_number) OR EXISTS(SELECT 1 FROM ozon_exemplar_jobs j WHERE j.shop_id=p.shop_id AND j.posting_number=p.posting_number))"+unitShipStatusExclusion(connection)+" ORDER BY p.posting_number LIMIT ?")){
+            statement.setInt(1,shopId);statement.setString(2,after);statement.setString(3,passStarted.toString());statement.setInt(4,limit);try(var result=statement.executeQuery()){var numbers=new ArrayList<String>();while(result.next())numbers.add(result.getString(1));return List.copyOf(numbers);}
+        }catch(SQLException error){throw new IllegalStateException("Cannot read Ozon status page",error);}
+    }
+
     private static void registerSearch(Connection c)throws SQLException{org.sqlite.Function.create(c,"vn_fold",new org.sqlite.Function(){protected void xFunc()throws SQLException{String v=value_text(0);result(v==null?"":java.text.Normalizer.normalize(v,java.text.Normalizer.Form.NFKC).toLowerCase(java.util.Locale.ROOT));}});}
     private static String printFilter(com.vncode.app.features.ozon.OzonFbsQuery q){
         if(q.printState()==com.vncode.app.features.ozon.OzonFbsQuery.PrintState.ALL)return "";
@@ -139,6 +260,86 @@ public final class OzonPostingRepository {
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    /** Do not let a slower in-flight API read overwrite a result written after it started. */
+    public int upsertPageIfUnchanged(int shopId,List<OzonPostingDto> postings,Instant requestStarted){
+        if(shopId<=0||postings==null||requestStarted==null)throw new IllegalArgumentException("Invalid Ozon posting refresh");
+        try(Connection connection=Database.getConnection()){
+            connection.setAutoCommit(false);
+            try(var lookup=connection.prepareStatement("SELECT p.synced_at,seen.observed_at FROM ozon_postings p LEFT JOIN ozon_fbs_status_observations seen ON seen.shop_id=p.shop_id AND seen.posting_number=p.posting_number WHERE p.shop_id=? AND p.posting_number=?")){
+                int changed=0;
+                for(OzonPostingDto posting:postings){
+                    lookup.setInt(1,shopId);lookup.setString(2,posting.postingNumber());
+                    try(var result=lookup.executeQuery()){
+                        if(result.next()){
+                            if(newerThan(result.getString(1),requestStarted)||newerThan(result.getString(2),requestStarted))continue;
+                        }
+                    }
+                    upsert(connection,shopId,posting);changed++;
+                }
+                connection.commit();return changed;
+            }catch(RuntimeException|SQLException error){connection.rollback();throw error;}
+            finally{connection.setAutoCommit(true);}
+        }catch(SQLException error){throw new IllegalStateException("Cannot safely refresh Ozon postings",error);}
+    }
+
+    /** Show incomplete orders while retaining known KIZ/labels and blocking preparation. */
+    public void recordIncomplete(int shopId,OzonPostingDto posting,Instant requestStarted){
+        if(shopId<=0||posting==null||requestStarted==null)throw new IllegalArgumentException("Invalid Ozon posting");
+        var required=posting.requirements();
+        var unsupported=new ArrayList<>(required.unsupportedRequirements());unsupported.add("OZON_INCOMPLETE_POSTING");
+        var restricted=new OzonPostingDto(posting.postingNumber(),posting.orderId(),posting.orderNumber(),posting.status(),posting.substatus(),posting.warehouseId(),posting.shipmentAt(),posting.inProcessAt(),posting.lowerBarcode(),posting.upperBarcode(),new OzonRequirements(required.mandatoryMarkProductIds(),required.optionalMarkProductIds(),unsupported),List.of(),false,posting.items());
+        try(Connection connection=Database.getConnection()){
+            connection.setAutoCommit(false);
+            try(var lookup=connection.prepareStatement("SELECT p.synced_at,p.unsupported_requirements,seen.observed_at FROM ozon_postings p LEFT JOIN ozon_fbs_status_observations seen ON seen.shop_id=p.shop_id AND seen.posting_number=p.posting_number WHERE p.shop_id=? AND p.posting_number=?")){
+                lookup.setInt(1,shopId);lookup.setString(2,posting.postingNumber());
+                boolean exists;boolean newer=false;String previous="[]";
+                try(var row=lookup.executeQuery()){exists=row.next();if(exists){newer=newerThan(row.getString(1),requestStarted)||newerThan(row.getString(3),requestStarted);previous=row.getString(2);}}
+                if(!exists)upsert(connection,shopId,restricted);
+                else if(!newer){
+                    List<String> old=GSON.fromJson(previous,new TypeToken<List<String>>(){}.getType());var blocked=new ArrayList<String>();if(old!=null)blocked.addAll(old);if(!blocked.contains("OZON_INCOMPLETE_POSTING"))blocked.add("OZON_INCOMPLETE_POSTING");
+                    try(var update=connection.prepareStatement("UPDATE ozon_postings SET status=CASE WHEN ?='unknown' THEN status ELSE ? END,substatus=CASE WHEN ?='unknown' THEN substatus ELSE ? END,unsupported_requirements=?,available_actions='[]',ship_available=0,synced_at=? WHERE shop_id=? AND posting_number=?")){
+                        update.setString(1,posting.status());update.setString(2,posting.status());update.setString(3,posting.status());update.setString(4,posting.substatus());update.setString(5,GSON.toJson(blocked));update.setString(6,Instant.now().toString());update.setInt(7,shopId);update.setString(8,posting.postingNumber());update.executeUpdate();
+                    }
+                }
+                connection.commit();
+            }catch(RuntimeException|SQLException error){connection.rollback();throw error;}
+            finally{connection.setAutoCommit(true);}
+        }catch(SQLException error){throw new IllegalStateException("Cannot retain incomplete Ozon posting",error);}
+    }
+
+    /** Refresh only status fields from the list API, preserving KIZ, labels and product details. */
+    public int updateStatusPageIfUnchanged(int shopId,List<OzonPostingDto> postings,Instant passStarted,Instant requestStarted){
+        if(shopId<=0||postings==null||passStarted==null||requestStarted==null)throw new IllegalArgumentException("Invalid Ozon status refresh");
+        try(Connection connection=Database.getConnection()){
+            connection.setAutoCommit(false);
+            try(var lookup=connection.prepareStatement("SELECT p.synced_at,seen.observed_at FROM ozon_postings p LEFT JOIN ozon_fbs_status_observations seen ON seen.shop_id=p.shop_id AND seen.posting_number=p.posting_number WHERE p.shop_id=? AND p.posting_number=?");
+                var update=connection.prepareStatement("UPDATE ozon_postings SET status=?,substatus=? WHERE shop_id=? AND posting_number=?");
+                var mark=connection.prepareStatement("INSERT INTO ozon_fbs_status_observations(shop_id,posting_number,pass_started,observed_at) VALUES(?,?,?,?) ON CONFLICT(shop_id,posting_number) DO UPDATE SET pass_started=excluded.pass_started,observed_at=excluded.observed_at")){
+                int changed=0;
+                for(OzonPostingDto posting:postings){
+                    lookup.setInt(1,shopId);lookup.setString(2,posting.postingNumber());
+                    boolean exists;boolean newer=false;
+                    try(var result=lookup.executeQuery()){
+                        exists=result.next();
+                        if(exists)newer=newerThan(result.getString(1),requestStarted)||newerThan(result.getString(2),requestStarted);
+                    }
+                    if(!exists)continue;
+                    if(!newer){update.setString(1,posting.status());update.setString(2,posting.substatus());update.setInt(3,shopId);update.setString(4,posting.postingNumber());changed+=update.executeUpdate();}
+                    // A newer full/detail read is also sufficient evidence for this pass.
+                    mark.setInt(1,shopId);mark.setString(2,posting.postingNumber());mark.setString(3,passStarted.toString());mark.setString(4,Instant.now().toString());mark.executeUpdate();
+                }
+                connection.commit();return changed;
+            }catch(RuntimeException|SQLException error){connection.rollback();throw error;}
+            finally{connection.setAutoCommit(true);}
+        }catch(SQLException error){throw new IllegalStateException("Cannot safely refresh Ozon status",error);}
+    }
+
+    private static boolean newerThan(String value,Instant requestStarted){
+        if(value==null||value.isBlank())return false;
+        try{return Instant.parse(value).isAfter(requestStarted);}
+        catch(RuntimeException invalid){throw new IllegalStateException("OZON_INVALID_CACHE_TIMESTAMP",invalid);}
     }
 
     public void upsertDetail(int shopId, OzonPostingDto posting) {

@@ -259,14 +259,14 @@ public final class Gs1Pane extends BorderPane {
         case NONE->{}
     }}
     private void render(){
-        Label title=new Label(tr("gs1.reference.title"));title.getStyleClass().add("h2");
-        var subtitle=new Label(inn.isBlank()?"":membershipName()+" · ИНН "+inn);subtitle.getStyleClass().add("text-muted");
-        var sync=button("gs1.reference.recheck",this::checkAll);sync.setId("gs1CheckAllButton");sync.setDisable(busy||syncing||shop==null);sync.getStyleClass().add("btn-primary");sync.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-refresh-cw"));
+        Label title=new Label(tr("gs1.reference.title"));title.getStyleClass().add("h2");title.setWrapText(true);title.setMinWidth(0);title.setMaxWidth(Double.MAX_VALUE);
+        var subtitle=new Label(inn.isBlank()?"":membershipName()+" · ИНН "+inn);subtitle.setId("gs1ShopIdentity");subtitle.getStyleClass().add("text-muted");subtitle.setWrapText(true);subtitle.setMinWidth(0);subtitle.setMaxWidth(Double.MAX_VALUE);
+        var sync=button("gs1.reference.recheck",this::checkAll);sync.setId("gs1CheckAllButton");sync.setMinWidth(Region.USE_PREF_SIZE);sync.setDisable(busy||syncing||shop==null);sync.getStyleClass().add("btn-primary");sync.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-refresh-cw"));
         var configure=new Button(tr("gs1.sync.configure"));configure.setId("gs1ConfigureZnack");configure.setOnAction(e->configureSignature.run());
         var report=new Button(tr("gs1.sync.report"));report.setId("gs1SyncReport");report.setDisable(shop==null);report.setOnAction(e->Gs1SyncReportDialog.show(getScene()==null?null:getScene().getWindow(),shop));
         var extras=new HBox(configure,report);extras.setVisible(false);extras.setManaged(false);
         var menu=new ContextMenu();var settingsItem=new MenuItem(configure.getText());settingsItem.setOnAction(e->configure.fire());var reportItem=new MenuItem(report.getText());reportItem.setOnAction(e->report.fire());menu.getItems().addAll(settingsItem,reportItem);title.setContextMenu(menu);
-        var pageTitle=new VBox(3,title,subtitle);HBox.setHgrow(pageTitle,Priority.ALWAYS);var heading=new HBox(16,pageTitle,sync,extras);heading.setAlignment(Pos.CENTER_LEFT);heading.setPadding(new Insets(0,0,18,0));setTop(heading);
+        var pageTitle=new VBox(3,title,subtitle);pageTitle.setMinWidth(0);pageTitle.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(pageTitle,Priority.ALWAYS);var heading=new HBox(16,pageTitle,sync,extras);heading.setAlignment(Pos.CENTER_LEFT);heading.setPadding(new Insets(0,0,18,0));setTop(heading);
         summary.setWrapText(true);summary.getStyleClass().setAll("label","text-bold");detail.setWrapText(true);detail.getStyleClass().setAll("label","text-muted");status.setWrapText(true);
         var left=new VBox(18,membershipCard(),readinessCard(),prefixCard());left.setId("gs1AccountPanel");left.setPadding(new Insets(0,8,8,0));left.setMinWidth(0);
         headerScroll.setId("gs1AccountScroll");headerScroll.setFitToWidth(true);headerScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);headerScroll.setMinWidth(0);headerScroll.setMinHeight(0);headerScroll.setMaxHeight(Double.MAX_VALUE);headerScroll.setContent(left);

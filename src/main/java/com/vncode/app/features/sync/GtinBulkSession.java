@@ -30,8 +30,12 @@ final class GtinBulkSession implements AutoCloseable {
         this(shop,client,beforeRequest,null);
     }
     GtinBulkSession(Shop shop,ListingTransport client,OzonGtinAdapter.BeforeRequest beforeRequest,CatalogSyncService.SourceRefresh sourceRefresh){
+        this(shop,client,beforeRequest,sourceRefresh,null);
+    }
+    /** Explicit fake Prices API transport for isolated contract tests. */
+    GtinBulkSession(Shop shop,ListingTransport client,OzonGtinAdapter.BeforeRequest beforeRequest,CatalogSyncService.SourceRefresh sourceRefresh,ListingTransport priceClient){
         this.shop=shop;transport=new GtinBatchTransport(shop,client);
-        adapter=shop.getMarketplace()==Marketplace.WILDBERRIES?new WbGtinAdapter(shop,transport):beforeRequest==null?new OzonGtinAdapter(shop,transport):new OzonGtinAdapter(shop,transport,beforeRequest);
+        adapter=shop.getMarketplace()==Marketplace.WILDBERRIES?(priceClient==null?new WbGtinAdapter(shop,transport):new WbGtinAdapter(shop,transport,priceClient)):beforeRequest==null?new OzonGtinAdapter(shop,transport):new OzonGtinAdapter(shop,transport,beforeRequest);
         wb=new WbProductSnapshotReader(s->transport);ozon=new OzonProductSnapshotReader(s->transport);
         databaseSession=com.vncode.app.config.Database.openBatchSession();
         ownerChecks=openOwnerChecks(shop,databaseSession);

@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ShopRepository {
     private static final Object CREATE_LOCK = new Object();
@@ -63,10 +64,18 @@ public class ShopRepository {
                 && (shop.getClientId() == null || shop.getClientId().isBlank())) {
             throw new IllegalArgumentException("Ozon Client ID is required.");
         }
+        // FBS and related caches are keyed by shop_id. Reusing that id for another
+        // Ozon seller would mix order, product and transaction data. Keep the old
+        // shop and create a separate one for a different Client ID. Rotating the
+        // API key for the same seller remains supported.
+        if (existing.getMarketplace() == Marketplace.OZON
+                && !Objects.equals(existing.getClientId(), shop.getClientId())) {
+            throw new IllegalArgumentException(I18nService.getInstance().tr("shop_dialog.validation.client_id_change"));
+        }
         boolean replaceCredential = shop.getApiKey() != null && !shop.getApiKey().isBlank();
         String sql = replaceCredential
-                ? "UPDATE shops SET name = ?, client_id = ?, api_key = ? WHERE id = ? AND marketplace = ?"
-                : "UPDATE shops SET name = ?, client_id = ? WHERE id = ? AND marketplace = ?";
+                ? "UPDATE shops SET name = ?, client_id = ?, api_key = ? WHERE id = ? AND marketplace = ? AND client_id IS ?"
+                : "UPDATE shops SET name = ?, client_id = ? WHERE id = ? AND marketplace = ? AND client_id IS ?";
 
         try (Connection conn = Database.getConnection();
             PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -76,12 +85,16 @@ public class ShopRepository {
                 ps.setString(3, shop.getApiKey().strip());
                 ps.setInt(4, id);
                 ps.setString(5, existing.getMarketplace().name());
+                ps.setString(6, existing.getClientId());
             } else {
                 ps.setInt(3, id);
                 ps.setString(4, existing.getMarketplace().name());
+                ps.setString(5, existing.getClientId());
             }
             LicenseRuntime.require(SHOP_MANAGE);
-            return ps.executeUpdate();
+            int updated = ps.executeUpdate();
+            if (updated == 0 && findById(id) != null) throw new IllegalStateException("SHOP_OWNER_CHANGED");
+            return updated;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

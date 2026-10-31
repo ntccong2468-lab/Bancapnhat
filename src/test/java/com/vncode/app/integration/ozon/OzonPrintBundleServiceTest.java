@@ -487,6 +487,101 @@ class OzonPrintBundleServiceTest {
         }
     }
 
+    @Test void availableBatchPublishesOnlyCompletePostingsAndReportsTheFailedOrder() throws Exception {
+        for(int i=1;i<=3;i++) {seedUnmarkedPosting("POST-"+i,"SKU-"+i,"offer-"+i);new OzonProductKizPolicyRepository().setRequired(1,"SKU-"+i,false);}
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Exempt order must not reserve KIZ");},
+                (owner,number,target)->{if(number.equals("POST-2"))throw new IOException("OZON_LABEL_BATCH_IDENTITY_UNVERIFIED");Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        Path labels=temporaryDirectory.resolve("partial.pdf"),picking=temporaryDirectory.resolve("partial-picking.pdf");
+        var progress=new java.util.ArrayList<Integer>();
+        var result=exporter.exportAvailable(shop,List.of("POST-1","POST-2","POST-3"),labels.toFile(),picking.toFile(),progress::add);
+        assertEquals(List.of("POST-1","POST-3"),result.successful());assertEquals(java.util.Set.of("POST-2"),result.failures().keySet());
+        assertEquals(List.of(1,2,3),progress);assertEquals(4,result.totalPages());
+        try(PDDocument doc=Loader.loadPDF(labels.toFile())){assertEquals(4,doc.getNumberOfPages());}
+        try(PDDocument doc=Loader.loadPDF(picking.toFile())){String text=new PDFTextStripper().getText(doc);assertTrue(text.contains("offer-1"));assertFalse(text.contains("offer-2"));assertTrue(text.contains("offer-3"));}
+        assertEquals("2",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void failedLabelDoesNotConsumeReservedKizWhenAnotherOrderSucceeds() throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);seedUnmarkedPosting("POST-2","SKU-2","offer-2");
+        new OzonProductKizPolicyRepository().setRequired(1,"SKU-2",false);
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Existing reservation must not be changed");},
+                (owner,number,target)->{if(number.equals("POST-1"))throw new IOException("OZON_LABEL_BATCH_IDENTITY_UNVERIFIED");Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        var result=exporter.exportAvailable(shop,List.of("POST-1","POST-2"),temporaryDirectory.resolve("safe-part.pdf").toFile(),temporaryDirectory.resolve("safe-pick.pdf").toFile(),null);
+        assertEquals(List.of("POST-2"),result.successful());assertEquals(java.util.Set.of("POST-1"),result.failures().keySet());
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("VALIDATED",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+        assertEquals("1",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void rateLimitStopsFurtherRequestsAndPreservesExistingFiles() throws Exception {
+        for(int i=1;i<=3;i++) {seedUnmarkedPosting("POST-"+i,"SKU-"+i,"offer-"+i);new OzonProductKizPolicyRepository().setRequired(1,"SKU-"+i,false);}
+        var calls=new java.util.ArrayList<String>();
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Exempt order must not reserve KIZ");},
+                (owner,number,target)->{calls.add(number);throw new OzonApiException("rate_limited",429,true,false,null);});
+        Path labels=temporaryDirectory.resolve("existing.pdf"),picking=temporaryDirectory.resolve("existing-pick.pdf");
+        Files.writeString(labels,"existing-label");Files.writeString(picking,"existing-picking");
+        var result=exporter.exportAvailable(shop,List.of("POST-1","POST-2","POST-3"),labels.toFile(),picking.toFile(),null);
+        assertTrue(result.successful().isEmpty());assertEquals(java.util.Set.of("POST-1","POST-2","POST-3"),result.failures().keySet());assertEquals(result.failures().keySet(),result.waiting());assertEquals(List.of("POST-1"),calls);
+        assertEquals("existing-label",Files.readString(labels));assertEquals("existing-picking",Files.readString(picking));assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void pickingFilePublishFailureKeepsExistingLabelAndDoesNotConsumeKiz()throws Exception{
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        Path labels=temporaryDirectory.resolve("already.pdf"),picking=temporaryDirectory.resolve("blocked.pdf");
+        Files.writeString(labels,"original-label");Files.createDirectory(picking);Files.writeString(picking.resolve("keep"),"keep");
+        assertThrows(IOException.class,()->service(new AtomicBoolean()).exportAvailable(shop,List.of("POST-1"),labels.toFile(),picking.toFile(),null));
+        assertEquals("original-label",Files.readString(labels));assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void databaseFailureAfterPdfPublishReportsReconciliationAndDoesNotFreeTheKiz()throws Exception{
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("CREATE TRIGGER fail_ozon_consume BEFORE UPDATE OF status ON kiz_codes WHEN NEW.status='CONSUMED' BEGIN SELECT RAISE(ABORT,'simulated storage failure'); END");
+        }
+        Path labels=temporaryDirectory.resolve("published.pdf"),picking=temporaryDirectory.resolve("published-pick.pdf");
+        var error=assertThrows(IOException.class,()->service(new AtomicBoolean()).exportAvailable(shop,List.of("POST-1"),labels.toFile(),picking.toFile(),null));
+        assertEquals("OZON_PDF_PUBLISHED_RECONCILIATION_REQUIRED",error.getMessage());
+        assertTrue(Files.exists(labels));assertTrue(Files.exists(picking));assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void missingKizJobAtCommitNeverConsumesOtherSelectedKiz()throws Exception{
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        var jobs=new OzonExemplarJobRepository();var job=jobs.find(1,"POST-1");var proof=OzonExemplarJobRepository.printProof(job,jobs.bindings(job.id()));
+        assertThrows(IllegalStateException.class,()->jobs.consumePrintedKizBatch(1,Map.of("POST-1",proof,"POST-MISSING",proof)));
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("VALIDATED",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+    }
+
+    @Test void changedKizAfterRenderingIsNotConsumed()throws Exception{
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        var jobs=new OzonExemplarJobRepository();var job=jobs.find(1,"POST-1");var proof=OzonExemplarJobRepository.printProof(job,jobs.bindings(job.id()));
+        try(var c=Database.getConnection();var statement=c.prepareStatement("UPDATE kiz_codes SET raw_code=? WHERE id=100")){statement.setString(1,"changed-mark");statement.executeUpdate();}
+        assertThrows(IllegalStateException.class,()->jobs.consumePrintedKizBatch(1,Map.of("POST-1",proof)));
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("VALIDATED",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+    }
+    @Test void kizChangedDuringPdfRenderRequiresReconciliationAndKeepsReservation()throws Exception{
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Existing reservation must not be replaced");},
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);try(var c=Database.getConnection();var statement=c.prepareStatement("UPDATE kiz_codes SET raw_code=? WHERE id=100")){statement.setString(1,"changed-mark");statement.executeUpdate();}catch(java.sql.SQLException e){throw new IOException(e);}return target;});
+        var error=assertThrows(IOException.class,()->exporter.exportAvailable(shop,List.of("POST-1"),temporaryDirectory.resolve("changed.pdf").toFile(),temporaryDirectory.resolve("changed-pick.pdf").toFile(),null));
+        assertEquals("OZON_PRINT_KIZ_PROOF_CHANGED",error.getMessage());assertFalse(Files.exists(temporaryDirectory.resolve("changed.pdf")));assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+    @Test void unboundExemplarAddedDuringRenderingNeverPublishesPdfOrConsumesKiz()throws Exception{
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Existing reservation must not be replaced");},
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);
+                    try(var c=Database.getConnection();var statement=c.prepareStatement("INSERT INTO ozon_exemplars(job_id,shop_id,posting_number,item_index,product_id,exemplar_id,exemplar_index,kiz_id,updated_at) VALUES(51,1,'POST-1',0,'1001','extra',1,NULL,?)")){statement.setString(1,"2026-08-19T00:00:00Z");statement.executeUpdate();}catch(java.sql.SQLException e){throw new IOException(e);}return target;});
+        Path labels=temporaryDirectory.resolve("unbound.pdf"),picking=temporaryDirectory.resolve("unbound-pick.pdf");
+        var error=assertThrows(IOException.class,()->exporter.exportAvailable(shop,List.of("POST-1"),labels.toFile(),picking.toFile(),null));
+        assertEquals("OZON_PRINT_KIZ_PROOF_CHANGED",error.getMessage());assertFalse(Files.exists(labels));assertFalse(Files.exists(picking));
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
     @Test
     void printAllOmitsProductLabelOnlyForPostingWithCombinedKizCoverage() throws Exception {
         seedPosting(1);

@@ -26,28 +26,40 @@ public final class ZnackRegistrationMonitor {
         boolean batchPending=shop.getMarketplace()==Marketplace.WILDBERRIES
                 ?new ZnackRegistrationBatchService(wb).resumePending(shop)
                 :resumeOzonBatch.test(shop);
-        int checked=0,published=0;com.vncode.app.features.sync.SyncFailure warning=null;
+        RegistrationMonitoringEngine.Result monitored;
         if(shop.getMarketplace()==Marketplace.WILDBERRIES){
             var rows=new ArrayList<>(wb.pendingStatus(shop.getId(),limit));
             if(rows.size()<limit)rows.addAll(wb.unconfirmedPublications(shop,limit-rows.size()));
-            var signable=new ArrayList<ZnackCardRegistrationModels.Sku>();
-            for(var row:rows){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");try{if(!row.hasFeed()&&row.canResume()){if(!new ZnackRegistrationBatchService(wb).ownsPending(shop,row))wbWorkflow.resume(shop,row,null);}else if(wbWorkflow.refreshStatusWithoutSigning(shop,row))published++;checked++;
-                var current=wb.find(shop.getId(),row.chrtId());if(current!=null&&current.status()==ZnackCardRegistrationModels.Status.READY_TO_SIGN&&!new ZnackRegistrationBatchService(wb).blocksSigning(shop,current)&&RegistrationSigningConsent.allowed(shop,new ProductKey(shop.getId(),Marketplace.WILDBERRIES,Long.toString(current.nmId()),Long.toString(current.chrtId())),current.gtin()))signable.add(current);
-            }catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException))throw error;warning=com.vncode.app.features.sync.SyncFailure.of(error,0);try{wbWorkflow.recordPollingFailure(shop,row,error);}catch(RuntimeException originalAccountChanged){/* Never rebind a historical request. */}checked++;}}
-            if(!signable.isEmpty()){
-                try{wbWorkflow.signConsented(shop,signable,null);}catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException paused){warning=com.vncode.app.features.sync.SyncFailure.of(paused,0);}
-                for(var row:signable)if(wb.checkpointStatus(shop.getId(),row.chrtId())==ZnackCardRegistrationModels.Status.PUBLISHED)published++;
-            }
+            monitored=RegistrationMonitoringEngine.poll(rows,new RegistrationMonitoringEngine.Adapter<ZnackCardRegistrationModels.Sku>(){
+                @Override public RegistrationMonitoringEngine.Observed<ZnackCardRegistrationModels.Sku> observe(ZnackCardRegistrationModels.Sku row)throws Exception{
+                    boolean published=false;
+                    if(!row.hasFeed()&&row.canResume()){if(!new ZnackRegistrationBatchService(wb).ownsPending(shop,row))wbWorkflow.resume(shop,row,null);}
+                    else published=wbWorkflow.refreshStatusWithoutSigning(shop,row);
+                    var current=wb.find(shop.getId(),row.chrtId());
+                    var nativeKey=current==null?null:new ProductKey(shop.getId(),Marketplace.WILDBERRIES,Long.toString(current.nmId()),Long.toString(current.chrtId()));
+                    boolean eligible=current!=null&&current.status()==ZnackCardRegistrationModels.Status.READY_TO_SIGN&&!new ZnackRegistrationBatchService(wb).blocksSigning(shop,current)&&WbSourceConsentPolicy.permitsAutomatic(shop,nativeKey,current.gtin())&&RegistrationSigningConsent.allowed(shop,nativeKey,current.gtin());
+                    return new RegistrationMonitoringEngine.Observed<>(published,eligible?current:null);
+                }
+                @Override public void recordFailure(ZnackCardRegistrationModels.Sku row,Exception error){wbWorkflow.recordPollingFailure(shop,row,error);}
+                @Override public void signConsented(List<ZnackCardRegistrationModels.Sku> selected){wbWorkflow.signConsented(shop,selected,null);}
+                @Override public boolean isPublished(ZnackCardRegistrationModels.Sku row){return wb.checkpointStatus(shop.getId(),row.chrtId())==ZnackCardRegistrationModels.Status.PUBLISHED;}
+            });
         }else{
             var keys=pendingOzonKeys(shop,limit);
-            var signable=new ArrayList<ProductKey>();var ozon=new OzonCardRegistrationRepository();
-            for(var key:keys){if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");try{var row=ozon.find(key);if(row!=null&&row.status()==ZnackCardRegistrationModels.Status.READY_TO_SUBMIT&&row.feedId().isBlank()){if(!ownsOzonBatch.test(shop,key))ozonWorkflow.resume(shop,key,null);}else if(ozonWorkflow.refreshStatusWithoutSigning(shop,key))published++;checked++;
-                var current=ozon.find(key);if(current!=null&&current.status()==ZnackCardRegistrationModels.Status.READY_TO_SIGN&&!new OzonRegistrationBatchRepository().blocksSigning(shop,key)&&RegistrationSigningConsent.allowed(shop,key,current.gtin()))signable.add(key);
-            }catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException))throw error;warning=com.vncode.app.features.sync.SyncFailure.of(error,0);try{ozonWorkflow.recordPollingFailure(shop,key,error);}catch(RuntimeException originalAccountChanged){/* Never rebind a historical request. */}checked++;}}
-            if(!signable.isEmpty()){
-                try{ozonWorkflow.signConsented(shop,signable,null);}catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException paused){warning=com.vncode.app.features.sync.SyncFailure.of(paused,0);}
-                for(var key:signable)if(ozon.find(key).status()==ZnackCardRegistrationModels.Status.PUBLISHED)published++;
-            }
+            var ozon=new OzonCardRegistrationRepository();
+            monitored=RegistrationMonitoringEngine.poll(keys,new RegistrationMonitoringEngine.Adapter<ProductKey>(){
+                @Override public RegistrationMonitoringEngine.Observed<ProductKey> observe(ProductKey key)throws Exception{
+                    boolean published=false;var row=ozon.find(key);
+                    if(row!=null&&row.status()==ZnackCardRegistrationModels.Status.READY_TO_SUBMIT&&row.feedId().isBlank()){if(!ownsOzonBatch.test(shop,key))ozonWorkflow.resume(shop,key,null);}
+                    else published=ozonWorkflow.refreshStatusWithoutSigning(shop,key);
+                    var current=ozon.find(key);
+                    boolean eligible=current!=null&&current.status()==ZnackCardRegistrationModels.Status.READY_TO_SIGN&&!new OzonRegistrationBatchRepository().blocksSigning(shop,key)&&OzonSourceConsentPolicy.permitsAutomatic(shop,key,current.gtin())&&RegistrationSigningConsent.allowed(shop,key,current.gtin());
+                    return new RegistrationMonitoringEngine.Observed<>(published,eligible?key:null);
+                }
+                @Override public void recordFailure(ProductKey key,Exception error){ozonWorkflow.recordPollingFailure(shop,key,error);}
+                @Override public void signConsented(List<ProductKey> selected){ozonWorkflow.signConsented(shop,selected,null);}
+                @Override public boolean isPublished(ProductKey key){var current=ozon.find(key);return current!=null&&current.status()==ZnackCardRegistrationModels.Status.PUBLISHED;}
+            });
         }
         String table=shop.getMarketplace()==Marketplace.OZON?"ozon_card_registrations":"znack_card_registrations";
         boolean pending;
@@ -57,7 +69,7 @@ public final class ZnackRegistrationMonitor {
         if(!pending)pending=hasEligibleSigningConsent(shop);
         pending|=batchPending;
         pending|=shop.getMarketplace()==Marketplace.WILDBERRIES?wbWorkflow.activeCount(shop)>0:ozonWorkflow.isRunning(shop);
-        return new Result(checked,published,pending,warning);
+        return new Result(monitored.checked(),monitored.published(),pending,monitored.warning());
     }
     /** Legacy or changed-scope enabled flags are not pending signing work. */
     static String signingScopeHash(int shopId){
@@ -71,7 +83,7 @@ public final class ZnackRegistrationMonitor {
             try(var rows=p.executeQuery()){while(rows.next()){
                 var key=new ProductKey(shop.getId(),shop.getMarketplace(),rows.getString(1),rows.getString(2));
                 boolean stopped=shop.getMarketplace()==Marketplace.OZON?new OzonRegistrationBatchRepository().blocksSigning(shop,key):new ZnackRegistrationBatchService().blocksSigning(shop,new ZnackCardRegistrationRepository().find(shop.getId(),Long.parseLong(key.variantId())));
-                if(!stopped&&RegistrationSigningConsent.allowed(shop,key,rows.getString(3)))return true;
+                if(!stopped&&RegistrationSourcePolicy.permitsAutomatic(shop,key,rows.getString(3))&&RegistrationSigningConsent.allowed(shop,key,rows.getString(3)))return true;
             }}return false;
         }
     }

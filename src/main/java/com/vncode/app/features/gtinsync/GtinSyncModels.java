@@ -35,10 +35,16 @@ public final class GtinSyncModels {
         }
     }
     public record ProductSnapshot(ProductKey key, String article, String color, String size,
-                                  List<String> barcodes, String fingerprint, Instant fetchedAt) {
+                                  List<String> barcodes, String fingerprint, Instant fetchedAt,
+                                  String postWriteFingerprint) {
+        /** Older persisted previews do not contain the additional post-write evidence. */
+        public ProductSnapshot(ProductKey key,String article,String color,String size,List<String> barcodes,String fingerprint,Instant fetchedAt) {
+            this(key,article,color,size,barcodes,fingerprint,fetchedAt,"");
+        }
         public ProductSnapshot {
             Objects.requireNonNull(key); article = safe(article); color = safe(color); size = safe(size);
             barcodes = List.copyOf(barcodes); fingerprint = required(fingerprint); Objects.requireNonNull(fetchedAt);
+            postWriteFingerprint = safe(postWriteFingerprint);
         }
     }
     public record Capability(boolean add, boolean replace, String reason) {
@@ -59,8 +65,10 @@ public final class GtinSyncModels {
         public Submission(String remoteTaskId){this(remoteTaskId,null);}
         public Submission { remoteTaskId = safe(remoteTaskId); }
     }
-    public record JobItem(UUID id, UUID jobId, Preview preview, Status status, String remoteTaskId, Instant dispatchedAt) {
-        public JobItem(UUID id,UUID jobId,Preview preview,Status status,String remoteTaskId){this(id,jobId,preview,status,remoteTaskId,null);}
+    public record JobItem(UUID id, UUID jobId, Preview preview, Status status, String remoteTaskId, Instant dispatchedAt, String dispatchId) {
+        public JobItem(UUID id,UUID jobId,Preview preview,Status status,String remoteTaskId){this(id,jobId,preview,status,remoteTaskId,null,"");}
+        public JobItem(UUID id,UUID jobId,Preview preview,Status status,String remoteTaskId,Instant dispatchedAt){this(id,jobId,preview,status,remoteTaskId,dispatchedAt,"");}
+        public JobItem { dispatchId=safe(dispatchId); }
     }
     static String safe(String value) { return value == null ? "" : value.strip(); }
     private static String required(String value) {

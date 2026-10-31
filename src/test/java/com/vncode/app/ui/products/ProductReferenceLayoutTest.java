@@ -55,6 +55,29 @@ class ProductReferenceLayoutTest {
         image.getPixelReader().getPixels(0,0,png.getWidth(),png.getHeight(),javafx.scene.image.PixelFormat.getIntArgbInstance(),((java.awt.image.DataBufferInt)png.getRaster().getDataBuffer()).getData(),0,png.getWidth());
         javax.imageio.ImageIO.write(png,"png",Path.of(file).toFile());
     }
+    @Test void productFiltersRemainInsideWindowAtNarrowWidthsInEveryLanguage()throws Exception{
+        System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
+        var reads=new ShopReadCoordinator(2,16);var pane=fx(()->new ProductsPane(null,reads));var stage=fx(Stage::new);
+        var language=I18nService.getInstance().getCurrentLanguage();
+        try{
+            fx(()->{stage.setScene(new Scene(pane,760,650));ThemeService.applyTheme(stage.getScene());stage.show();return null;});
+            for(var locale:AppLanguage.values())for(int width:List.of(600,760,1078)){
+                fx(()->{I18nService.getInstance().setLanguage(locale);pane.applyTranslations();double frame=stage.getWidth()-stage.getScene().getWidth();stage.setMinWidth(width+frame);stage.setWidth(width+frame);return null;});
+                await(()->Math.abs(stage.getScene().getWidth()-width)<1);
+                fx(()->{
+                    pane.applyCss();pane.layout();var filters=(javafx.scene.layout.Pane)pane.lookup("#productFilters");
+                    var filterBounds=filters.localToScene(filters.getBoundsInLocal());var listBounds=pane.lookup("#productRows").localToScene(pane.lookup("#productRows").getBoundsInLocal());
+                    assertTrue(filterBounds.getMaxY()<=listBounds.getMinY()+1,"Filters cannot cover the product list");
+                    for(var child:filters.getChildren()){
+                        var bounds=child.localToScene(child.getBoundsInLocal());
+                        assertTrue(bounds.getMinX()>=-1&&bounds.getMaxX()<=stage.getScene().getWidth()+1,locale+" "+width+" filter extends outside the window: "+child);
+                        assertTrue(bounds.getMaxY()<=filterBounds.getMaxY()+1,locale+" "+width+" filter extends below its container: "+child);
+                    }
+                    return null;
+                });
+            }
+        }finally{fx(()->{pane.dispose();stage.close();I18nService.getInstance().setLanguage(language);return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);System.clearProperty("vncode.appdata.dir");}
+    }
     @Test void allFilteredProductsIncludingUnloadedRowsReachEveryBatchActionAndClear()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
         try(var c=Database.getConnection();var s=c.createStatement()){

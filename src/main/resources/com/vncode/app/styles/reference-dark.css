@@ -80,7 +80,12 @@
     -fx-border-color: transparent;
     -fx-text-fill: white;
 }
-.reference-dark .button.btn-primary:hover    { -fx-background-color: #9b6aff; }
+.reference-dark .button.btn-primary:hover    { -fx-background-color: #8247ef; }
+.reference-dark .button:focused, .reference-dark .menu-button:focused,
+.reference-dark .toggle-button:focused {
+    -fx-border-color: #e4d8ff;
+    -fx-border-width: 1.5;
+}
 .reference-dark .button:disabled, .reference-dark .menu-button:disabled    { -fx-opacity: .5; }
 .reference-dark .btn-icon    { -fx-min-width: 38; -fx-min-height: 38; -fx-padding: 8; -fx-background-radius: 10; -fx-border-radius: 10; }
 .reference-dark .button .ikonli-font-icon, .reference-dark .menu-button .ikonli-font-icon    { -fx-icon-color: #f1f3f6; }

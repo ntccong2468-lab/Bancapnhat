@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -74,6 +75,12 @@ public final class ZnackNationalCatalogService {
     public java.util.Optional<CountryDictionaryEvidence> countryDictionaryEvidence(){
         if(!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))return java.util.Optional.empty();
         var snapshot=countries;return snapshot==null?java.util.Optional.empty():java.util.Optional.of(snapshot.evidence());
+    }
+    /** Evidence for this operation only; another thread's newer dictionary cannot prove this mapping. */
+    java.util.Optional<CountryDictionaryEvidence> currentCountryDictionaryEvidence(){
+        if(!dataProfile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))return java.util.Optional.empty();
+        assertCountryAccess();var scope=countryReadScopes.get();
+        return scope==null||scope.state.snapshot==null||scope.state.failure!=null?java.util.Optional.empty():java.util.Optional.of(scope.state.snapshot.evidence());
     }
 
     private final ZnackApiClient api;
@@ -354,6 +361,9 @@ public final class ZnackNationalCatalogService {
             List<String> before = draftGtins(beforeResponse);
             String reusable = firstUnclaimed(before, claimed);
             if (reuseExisting && !reusable.isBlank()) {
+                // Reuse has no remote write, but still claims this exact reviewed operation
+                // before the journal acknowledges and persists its identity.
+                beforeAllocation.run();
                 LOGGER.info("Reusing an existing unclaimed National Catalog draft GTIN.");
                 return reusable;
             }
@@ -372,8 +382,13 @@ public final class ZnackNationalCatalogService {
 
             // A successful allocation response without drafts is ambiguous. The allocation call
             // must never be repeated automatically because it can consume another GS1 number.
-            JsonElement readBackResponse = api.generatedGtins(
-                    settings.resolvedTrueApiBaseUrl(), token);
+            JsonElement readBackResponse;
+            try{readBackResponse=api.generatedGtins(settings.resolvedTrueApiBaseUrl(), token);}
+            catch(Exception failure){
+                // This GET follows a successful allocation POST. Its status cannot
+                // prove that the earlier POST was rejected or safe to repeat.
+                throw new java.io.IOException("GTIN_ALLOCATION_READBACK_REQUIRED",failure);
+            }
             List<String> readBack = draftGtins(readBackResponse);
             List<String> candidates = readBack.stream()
                     .filter(value -> !claimed.contains(value))
@@ -424,6 +439,9 @@ public final class ZnackNationalCatalogService {
             requireDraftReview(shop,reviewed);
             var card=observedCardStatus(token,string(payload,"gtin"),exactPositiveId(payload.get("good_id"),"good_id"));
             if(card==null||!card.draftForReview())throw new RegistrationValidationException("SOURCE_CARD_ACTION_CHANGED");
+            var scope=ZnackRegistrationScope.fromSettings(settings);scope.assertCurrent(shop);
+            if(verifiedOwnerAtNanos(token,string(payload,"gtin"),card.goodId(),scope.inn(),false,()->scope.assertCurrent(shop))==0)
+                throw new IllegalStateException("CATALOG_OWNER_UNCONFIRMED");
             requireDraftReview(shop,reviewed);
         });
     }
@@ -453,12 +471,21 @@ public final class ZnackNationalCatalogService {
         LicenseRuntime.require(Permission.GTIN);
         if(draftCheck!=null)draftCheck.check();
         beforeSend.run();
-        LicenseRuntime.require(Permission.GTIN);
+        try { LicenseRuntime.require(Permission.GTIN); }
+        catch (com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied) {
+            // This exact guard executes before entering the feed transport.
+            throw new FeedLicenseDeniedBeforeTransport(denied);
+        }
         JsonObject result = resultObject(api.submitNationalCatalogFeed(
                 settings.resolvedTrueApiBaseUrl(), token, payload));
         String feedId = string(result, "feed_id");
         if (feedId.isBlank()) throw new IllegalStateException("National Catalog did not return feed_id.");
         return feedId;
+    }
+
+    static final class FeedLicenseDeniedBeforeTransport extends IllegalStateException {
+        FeedLicenseDeniedBeforeTransport(com.vncode.app.features.license.LicenseGate.LicenseDeniedException cause){super(cause);}
+        @Override public synchronized com.vncode.app.features.license.LicenseGate.LicenseDeniedException getCause(){return (com.vncode.app.features.license.LicenseGate.LicenseDeniedException)super.getCause();}
     }
 
     /** A read-only preallocation check. It never supplies missing facts or rewrites the reviewed payload. */
@@ -747,6 +774,151 @@ public final class ZnackNationalCatalogService {
             return new FeedProgress("Rejected", null, List.of("CATALOG_FEED_COMPLETED_WITHOUT_CARD"));
         }
         return new FeedProgress("CardNotFound", null, List.of());
+    }
+
+    /** Strict read-only evidence for serializing cross-marketplace writes. Unlike status display,
+     * a missing/expired feed never falls back to an older card. A terminal status must identify
+     * exactly the requested GTIN, and any returned good_id must match the reviewed card. */
+    boolean verifiedTerminalFeed(String token,String feedId,String gtin,Long expectedGoodId,String participantInn)throws Exception {
+        return verifiedTerminalFeed(token,feedId,gtin,expectedGoodId,participantInn,()->{});
+    }
+    boolean verifiedTerminalFeed(String token,String feedId,String gtin,Long expectedGoodId,String participantInn,Runnable scopeGuard)throws Exception {
+        return verifyTerminalFeed(token,feedId,gtin,expectedGoodId,participantInn,false,scopeGuard,false)!=null;
+    }
+    /** Read every exact terminal feed, then establish fresh owner evidence once for this card. */
+    long verifiedTerminalFeeds(String token,List<String> feedIds,String gtin,Long expectedGoodId,String participantInn,Runnable scopeGuard)throws Exception {
+        if(feedIds==null||feedIds.isEmpty()||feedIds.size()>10_000)return 0;
+        for(String feedId:new LinkedHashSet<>(feedIds))
+            if(verifyTerminalFeed(token,feedId,gtin,expectedGoodId,participantInn,false,scopeGuard,true)==null)return 0;
+        return verifiedOwnerAtNanos(token,gtin,expectedGoodId,participantInn,false,scopeGuard);
+    }
+    /** Automatic repair requires an independently read rejected feed, not only a rejected card. */
+    boolean verifiedRejectedFeed(String token,String feedId,String gtin,Long expectedGoodId,String participantInn)throws Exception {
+        return verifiedRejectedFeed(token,feedId,gtin,expectedGoodId,participantInn,()->{});
+    }
+    boolean verifiedRejectedFeed(String token,String feedId,String gtin,Long expectedGoodId,String participantInn,Runnable scopeGuard)throws Exception {
+        return verifiedRejectedProgress(token,feedId,gtin,expectedGoodId,participantInn,scopeGuard)!=null;
+    }
+    /** Errors returned here are exclusively linked to this exact GTIN and good_id. */
+    FeedProgress verifiedRejectedProgress(String token,String feedId,String gtin,Long expectedGoodId,String participantInn,Runnable scopeGuard)throws Exception {
+        var proof=verifyTerminalFeed(token,feedId,gtin,expectedGoodId,participantInn,true,scopeGuard,false);
+        return proof==null?null:new FeedProgress("Rejected",expectedGoodId,proof.errors());
+    }
+    /** A prior create can be retried only if that exact GTIN was rejected and a successful card read is empty. */
+    boolean verifiedRejectedUncreatedFeed(String token,String feedId,String gtin)throws Exception {
+        if(feedId==null||feedId.isBlank()||!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(gtin))return false;
+        var result=feedResult(api.nationalCatalogFeedStatus(settings.resolvedTrueApiBaseUrl(),token,feedId));
+        if(!feedId.equals(string(result,"feed_id"))||!Set.of("rejected","failed","error").contains(string(result,"status").strip().toLowerCase(Locale.ROOT)))return false;
+        int matched=0;boolean error=false;var entries=new java.util.HashMap<String,Set<String>>();
+        for(var element:array(result.get("item"))){
+            if(!element.isJsonObject())return false;var item=element.getAsJsonObject();String code=string(item,"gtin"),id=string(item,"id");
+            if(!id.isBlank()&&!code.isBlank())entries.computeIfAbsent(id,k->new java.util.HashSet<>()).add(com.vncode.app.integration.znack.GtinNormalizer.normalize(code));
+            if(!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,code))continue;
+            matched++;if(item.has("good_id")&&!item.get("good_id").isJsonNull())return false;
+            if(item.has("status_code")&&!item.get("status_code").isJsonNull())try{error|=item.get("status_code").getAsBigDecimal().intValueExact()!=0;}catch(RuntimeException invalid){return false;}
+        }
+        if(matched==0)return false;
+        var details=object(result.get("error_details"));
+        for(var element:array(details.get("items"))){
+            if(!element.isJsonObject())return false;var item=element.getAsJsonObject();String code=string(item,"gtin"),id=string(item,"id");
+            boolean exact=!code.isBlank()?com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,code):!id.isBlank()&&entries.getOrDefault(id,Set.of()).equals(Set.of(com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin)));
+            if(exact){var errors=new ArrayList<String>();collectFeedErrors(item.get("errors"),errors);error|=!errors.isEmpty();}
+        }
+        if(!error)return false;
+        // readCard returns null only after an HTTP-successful empty array. A 404 propagates.
+        return readCard(token,gtin,null)==null;
+    }
+    private record TerminalFeedEvidence(List<String> errors,long proofAtNanos) {private TerminalFeedEvidence{errors=List.copyOf(errors);}}
+    private TerminalFeedEvidence verifyTerminalFeed(String token,String feedId,String gtin,Long expectedGoodId,String participantInn,boolean rejectedOnly,Runnable scopeGuard,boolean deferOwner)throws Exception {
+        java.util.Objects.requireNonNull(scopeGuard,"scopeGuard");assertRegistrationReadScope();scopeGuard.run();
+        if(feedId==null||feedId.isBlank()||!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(gtin)
+                ||expectedGoodId==null||expectedGoodId<=0||participantInn==null||!participantInn.matches("[0-9]{10}|[0-9]{12}"))return null;
+        var result=feedResult(api.nationalCatalogFeedStatus(settings.resolvedTrueApiBaseUrl(),token,feedId));
+        if(!feedId.equals(string(result,"feed_id")))return null;
+        String status=string(result,"status").strip().toLowerCase(Locale.ROOT);
+        if(!Set.of("processed","done","completed","rejected","failed","error","signed").contains(status))return null;
+        if(rejectedOnly&&!Set.of("rejected","failed","error").contains(status))return null;
+        var matched=new ArrayList<JsonObject>();var ids=new HashMap<String,Set<String>>();var exactErrors=new ArrayList<String>();
+        String canonical=com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin);
+        for(var raw:array(result.get("item"))){
+            if(!raw.isJsonObject())return null;var item=raw.getAsJsonObject();String code=string(item,"gtin"),entry=string(item,"id");
+            if(!entry.isBlank()&&!code.isBlank())ids.computeIfAbsent(entry,ignored->new LinkedHashSet<>()).add(com.vncode.app.integration.znack.GtinNormalizer.normalize(code));
+            if(!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,code))continue;
+            matched.add(item);
+            if(!item.has("good_id")||item.get("good_id").isJsonNull()||number(item,"good_id")!=expectedGoodId)return null;
+            if(item.has("status_code")&&!item.get("status_code").isJsonNull()){
+                int itemStatus;try{itemStatus=item.get("status_code").getAsBigDecimal().intValueExact();}catch(RuntimeException invalid){return null;}
+                if(itemStatus!=0){String message=first(string(item,"message"),string(item,"status_message"));exactErrors.add(attributeError(item,message.isBlank()?"Catalog item status code "+itemStatus:message));}
+            }
+        }
+        if(matched.isEmpty())return null;
+        var details=object(result.get("error_details"));
+        for(var raw:array(details.get("items"))){
+            if(!raw.isJsonObject())return null;var item=raw.getAsJsonObject();String code=string(item,"gtin"),entry=string(item,"id");
+            boolean exact=!code.isBlank()?com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,code)
+                    :!entry.isBlank()&&ids.getOrDefault(entry,Set.of()).equals(Set.of(canonical));
+            if(!exact)continue;
+            if(!entry.isBlank()&&ids.containsKey(entry)&&!ids.get(entry).equals(Set.of(canonical)))return null;
+            if(item.has("good_id")&&!item.get("good_id").isJsonNull()&&number(item,"good_id")!=expectedGoodId)return null;
+            for(String name:List.of("owner_inn","participant_inn")){String value=string(item,name);if(!value.isBlank()&&!participantInn.equals(value))return null;}
+            collectFeedErrors(item.get("errors"),exactErrors);
+        }
+        if(rejectedOnly&&exactErrors.isEmpty())return null;
+        var ownerSources=new ArrayList<JsonObject>();ownerSources.add(result);ownerSources.addAll(matched);
+        for(var source:ownerSources)for(String name:List.of("owner_inn","participant_inn")){
+            String value=string(source,name);if(!value.isBlank()&&!participantInn.equals(value))return null;
+        }
+        if(deferOwner){assertRegistrationReadScope();scopeGuard.run();return new TerminalFeedEvidence(exactErrors,0);}
+        long proofAt=verifiedOwnerAtNanos(token,gtin,expectedGoodId,participantInn,rejectedOnly,scopeGuard);
+        return proofAt==0?null:new TerminalFeedEvidence(exactErrors,proofAt);
+    }
+    /** Fresh participant-bound ownership proof for a seller-reviewed published card. */
+    boolean verifiedPublishedCardOwner(String token,String gtin,long goodId,String participantInn,Runnable scopeGuard)throws Exception {
+        if(goodId<=0||participantInn==null||!participantInn.matches("[0-9]{10}|[0-9]{12}"))return false;
+        var card=readCard(token,gtin,goodId);
+        if(card==null||!"published".equalsIgnoreCase(string(card,"good_status")))return false;
+        return verifiedOwnerAtNanos(token,gtin,goodId,participantInn,false,scopeGuard,card)!=0;
+    }
+    /** Fresh participant-bound ownership proof for an explicitly reviewed rejected card. */
+    boolean verifiedRejectedCardOwner(String token,String gtin,long goodId,String participantInn,Runnable scopeGuard)throws Exception {
+        if(goodId<=0||participantInn==null||!participantInn.matches("[0-9]{10}|[0-9]{12}"))return false;
+        return verifiedOwnerAtNanos(token,gtin,goodId,participantInn,true,scopeGuard)!=0;
+    }
+    boolean verifiedRejectedCardOwner(String token,String gtin,long goodId,String participantInn,Runnable scopeGuard,JsonObject expectedCard)throws Exception {
+        if(goodId<=0||participantInn==null||!participantInn.matches("[0-9]{10}|[0-9]{12}")||expectedCard==null)return false;
+        return verifiedOwnerAtNanos(token,gtin,goodId,participantInn,true,scopeGuard,expectedCard)!=0;
+    }
+    private long verifiedOwnerAtNanos(String token,String gtin,Long expectedGoodId,String participantInn,boolean rejectedOnly,Runnable scopeGuard)throws Exception {
+        return verifiedOwnerAtNanos(token,gtin,expectedGoodId,participantInn,rejectedOnly,scopeGuard,null);
+    }
+    private long verifiedOwnerAtNanos(String token,String gtin,Long expectedGoodId,String participantInn,boolean rejectedOnly,Runnable scopeGuard,JsonObject expectedCard)throws Exception {
+        assertRegistrationReadScope();scopeGuard.run();
+        // A terminal feed is not ownership evidence. Read the exact current card first;
+        // when the card omits the owner use a fresh, INN-filtered official index instead.
+        var card=readCard(token,gtin,expectedGoodId);if(card==null||expectedCard!=null&&!card.equals(expectedCard))return 0;
+        long proofAt=System.nanoTime();
+        if(rejectedOnly&&(!"draft".equalsIgnoreCase(string(card,"good_status"))
+                ||detailedState(card).stream().noneMatch(Set.of("errors","error","rejected")::contains)))return 0;
+        boolean owned=false;
+        for(String name:List.of("owner_inn","participant_inn")){
+            String value=string(card,name);if(!value.isBlank()){if(!participantInn.equals(value))return 0;owned=true;}
+        }
+        if(!owned){
+            String etag="";
+            if(card.has("_etag")&&!card.get("_etag").isJsonNull()){
+                if(!card.get("_etag").isJsonPrimitive()||!card.getAsJsonPrimitive("_etag").isString())throw new IllegalStateException("CATALOG_OWNER_UNCONFIRMED");
+                etag=card.get("_etag").getAsString();
+            }
+            Runnable guard=()->{assertRegistrationReadScope();scopeGuard.run();};
+            var observedAt=new java.util.concurrent.atomic.AtomicLong();
+            CatalogOwnerEvidence.verify(participantInn,expectedGoodId,etag,
+                    (inn,offset)->{var page=api.catalogVersions(settings.resolvedTrueApiBaseUrl(),token,inn,offset);observedAt.set(System.nanoTime());return page;},guard);
+            proofAt=observedAt.get();
+            var reread=readCard(token,gtin,expectedGoodId);
+            if(reread==null||!card.equals(reread))throw new IllegalStateException("CATALOG_OWNER_UNCONFIRMED");
+            owned=true;
+        }
+        assertRegistrationReadScope();scopeGuard.run();return owned?proofAt:0;
     }
 
     private FeedProgress readFeedProgress(String token, String feedId, String gtin, boolean verifyCard) throws Exception {

@@ -34,6 +34,8 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
     public WbGtinAdapter(Shop shop,ListingTransport client){
         this(shop,client,client instanceof GtinBatchTransport?new WbGtinPriceRepair(shop):new WbGtinPriceRepair(shop,client));
     }
+    /** Separate prices transport; production callers keep the default Prices API client. */
+    public WbGtinAdapter(Shop shop,ListingTransport client,ListingTransport prices){this(shop,client,new WbGtinPriceRepair(shop,prices));}
     WbGtinAdapter(Shop shop,ListingTransport client,WbGtinPriceRepair prices){
         MarketplaceGuard.requireWildberries(shop);
         this.shop=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
@@ -102,13 +104,18 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
     @Override public void prepareBatch(Collection<ProductKey> keys)throws IOException{for(var key:keys)requireKey(key);if(client instanceof GtinBatchTransport batch)batch.prepare(keys);}
     @Override public void refreshBatch(Collection<ProductKey> keys)throws IOException{for(var key:keys)requireKey(key);if(client instanceof GtinBatchTransport batch)batch.refresh(keys);}
     @Override public void validateRegistrations(Collection<String> gtins){RegisteredGtinProof.requireCurrent(shop,gtins);}
+    @Override public void preparePriceBatch(List<JobItem> items,Runnable guard)throws IOException {
+        if(client instanceof GtinBatchTransport)prices.prefetch(items.stream().map(i->i.preview().before().key().productId()).toList(),guard);
+    }
     @Override public Preparation beforeSubmit(List<JobItem> items,Runnable guard,Runnable priceConsentGuard,SqlGuard claimGuard)throws Exception {
         if(items.isEmpty())throw new IllegalArgumentException("empty_selection");
         var first=items.getFirst();String id=first.preview().before().key().productId();UUID job=first.jobId();
         for(var item:items)if(!item.jobId().equals(job)||!item.preview().before().key().productId().equals(id))throw new IllegalArgumentException("WB_PRICE_MIXED_PRODUCT");
         var previews=items.stream().map(JobItem::preview).toList();
         guard.run();requireWrites(previews);
-        if(client instanceof GtinBatchTransport batch)batch.refresh(previews.stream().map(p->p.before().key()).toList());
+        // The run-scoped index was refreshed for this batch before price preflight.
+        // Re-read this card only if a price mutation is actually about to be sent;
+        // the later GTIN write always refreshes the entire dispatch group.
         var card=ownCard(first.preview().before().key());var sizes=new TreeSet<Long>();
         for(var value:strictArray(card,"sizes"))try{
             String raw=text(object(value),"chrtID");long size=Long.parseLong(raw);if(size<=0||!sizes.add(size))throw new NumberFormatException();
@@ -116,7 +123,7 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
         if(sizes.isEmpty())throw new IOException("WB_PRICE_SIZE_INCOMPLETE");
         var sources=RegisteredGtinProof.requireCurrent(shop,previews.stream().map(Preview::newGtin).toList());
         for(var preview:previews){var actual=snapshot(preview.before().key(),card);if(!actual.fingerprint().equals(preview.before().fingerprint()))throw new IllegalArgumentException("product_changed");validateIdentity(actual,sources.get(preview.newGtin()),card);}
-        var result=prices.repair(id,job.toString(),sizes,()->{guard.run();requireWrites(previews);},priceConsentGuard,claimGuard::check);
+        var result=prices.repair(id,job.toString(),sizes,()->{guard.run();requireWrites(previews);},priceConsentGuard,claimGuard::check,()->dispatchReadback(previews));
         return switch(result.state()){
             case READY -> Preparation.ready();
             case PENDING,RATE_LIMIT -> new Preparation(PreparationState.PENDING,result.code());
@@ -143,7 +150,7 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
             if(groups.size()>MAX_UPDATE_CARDS)throw new IllegalArgumentException("WB_BATCH_LIMIT");var request=new JsonArray();
             for(var group:groups.values())request.add(update(group));
             if(request.toString().getBytes(StandardCharsets.UTF_8).length>MAX_UPDATE_BYTES)throw new IllegalArgumentException("WB_UPDATE_TOO_LARGE");
-            var response=object(client.call("content/v2/cards/update",request,true,()->dispatchReadback(previews),()->{requireWrites(previews);if(client instanceof GtinBatchTransport batch)batch.reserve(previews);boundaryGuard.run();dispatchedAt.set(Instant.now());dispatched.set(true);}));
+            var response=object(client.call("content/v2/cards/update",request,true,()->{if(client instanceof GtinBatchTransport)prices.verifyReady(previews.stream().map(p->p.before().key().productId()).toList(),()->requireWrites(previews));dispatchReadback(previews);},()->{requireWrites(previews);if(client instanceof GtinBatchTransport batch)batch.reserve(previews);boundaryGuard.run();dispatchedAt.set(Instant.now());dispatched.set(true);}));
             if(!response.has("error")||!response.get("error").isJsonPrimitive()||!response.getAsJsonPrimitive("error").isBoolean())throw new IOException("invalid_wb_update_response");
             var result=new LinkedHashMap<ProductKey,Submission>();for(var p:previews)result.put(p.before().key(),new Submission(response.get("error").getAsBoolean()?rejectionReceipt(text(response,"errorText")):"",dispatchedAt.get()));return Map.copyOf(result);
         }catch(Exception failure){if(failure instanceof ListingRateLimitException rate)throw new GtinRateLimitedException("WB_RATE_LIMIT",rate.retryAfter(),rate);if(!dispatched.get())throw new GtinKnownUnsentException(com.vncode.app.features.sync.SyncFailure.of(failure,0).code());throw failure;}
@@ -154,7 +161,12 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
         for(var item:items)try{
             var p=item.preview();var card=ownCard(p.before().key());var actual=snapshot(p.before().key(),card);observe(actual);
             targets.add(rejectionTarget(p,card,actual,item.dispatchedAt()));
-            if(RegisteredGtinProof.contains(actual.barcodes(),p.newGtin())&&sameVariant(p.before(),actual)&&text(card,"vendorCode").equals(com.vncode.app.shared.SellerArticle.trim(p.before().article())))result.put(p.before().key(),new VerificationResult(p.before().barcodes().stream().allMatch(code->RegisteredGtinProof.contains(actual.barcodes(),code))?Verification.APPLIED:Verification.UNKNOWN));
+            if(RegisteredGtinProof.contains(actual.barcodes(),p.newGtin())&&sameVariant(p.before(),actual)&&text(card,"vendorCode").equals(com.vncode.app.shared.SellerArticle.trim(p.before().article()))){
+                boolean preserved=preservesCard(p,card,List.of(p));
+                if(!preserved)try{preserved=preservesCard(p,card,new GtinSyncRepository().dispatchedBatch(item).stream().map(JobItem::preview).toList());}
+                catch(RuntimeException unavailable){preserved=false;}
+                result.put(p.before().key(),new VerificationResult(preserved?Verification.APPLIED:Verification.UNKNOWN,preserved?"":"WB_CARD_READBACK_UNVERIFIED"));
+            }
             else if(RegisteredGtinProof.contains(actual.barcodes(),p.newGtin()))result.put(p.before().key(),new VerificationResult(Verification.UNKNOWN,"PRODUCT_CHANGED"));
             else pending.add(item);
         }catch(IOException unavailable){result.put(item.preview().before().key(),new VerificationResult(Verification.UNKNOWN,com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code()));}
@@ -261,7 +273,7 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
         requireKey(preview.before().key());
         var card=ownCard(preview.before().key());var actual=snapshot(preview.before().key(),card);observe(actual);
         if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin()) && sameVariant(preview.before(),actual) && text(card,"vendorCode").equals(com.vncode.app.shared.SellerArticle.trim(preview.before().article())))
-            return preview.before().barcodes().stream().allMatch(code->RegisteredGtinProof.contains(actual.barcodes(),code))?Verification.APPLIED:Verification.UNKNOWN;
+            return preservesCard(preview,card,List.of(preview))?Verification.APPLIED:Verification.UNKNOWN;
         if(RegisteredGtinProof.contains(actual.barcodes(),preview.newGtin()))return Verification.UNKNOWN;
         if("wb-rejected".equals(submission.remoteTaskId()))return Verification.REJECTED;
         var rejection=recentRejections(List.of(rejectionTarget(preview,card,actual,submission.dispatchedAt())),10).get(preview.before().key());if(rejection!=null)throw new GtinRejectedException(rejection.issue());
@@ -297,8 +309,25 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
     private ProductSnapshot snapshot(ProductKey key,JsonObject card)throws IOException {
         var dto=new Gson().fromJson(card,WbProductCard.class);
         var result=WbGtinProductReader.fromCard(key,dto);
-        String fingerprint=ListingIdentity.hash(key+"\n"+ListingIdentity.fingerprint(shop)+"\n"+ListingIdentity.canonical(payload(card)));
-        return new ProductSnapshot(key,result.article(),result.color(),result.size(),result.barcodes(),fingerprint,Instant.now());
+        var original=payload(card);String fingerprint=contentFingerprint(key,original);
+        var normalized=original.deepCopy();normalized.addProperty("vendorCode",com.vncode.app.shared.SellerArticle.trim(text(original,"vendorCode")));
+        return new ProductSnapshot(key,result.article(),result.color(),result.size(),result.barcodes(),fingerprint,Instant.now(),contentFingerprint(key,normalized));
+    }
+    private String contentFingerprint(ProductKey key,JsonObject card){return ListingIdentity.hash(key+"\n"+ListingIdentity.fingerprint(shop)+"\n"+ListingIdentity.canonical(card));}
+    /** Remove only this dispatch group's additions and compare every writable WB field. */
+    private boolean preservesCard(Preview preview,JsonObject card,List<Preview> dispatch)throws IOException {
+        var restored=payload(card);var target=preview.before().key();
+        for(var member:dispatch){var before=member.before();var key=before.key();
+            if(key.shopId()!=target.shopId()||key.marketplace()!=target.marketplace()||!key.productId().equals(target.productId())||member.operation()!=Operation.ADD)continue;
+            if(RegisteredGtinProof.contains(before.barcodes(),member.newGtin()))return false;
+            for(var raw:strictArray(restored,"sizes")){var size=object(raw);if(!key.variantId().equals(text(size,"chrtID")))continue;
+                var codes=strictArray(size,"skus");int found=0;for(int i=codes.size()-1;i>=0;i--)if(RegisteredGtinProof.sameCode(codes.get(i).getAsString(),member.newGtin())){codes.remove(i);found++;}if(found>1)return false;
+            }
+        }
+        String expected=preview.before().postWriteFingerprint();
+        if(!expected.isBlank())restored.addProperty("vendorCode",com.vncode.app.shared.SellerArticle.trim(text(restored,"vendorCode")));
+        else expected=preview.before().fingerprint();
+        return expected.equals(contentFingerprint(target,restored));
     }
     private static JsonObject payload(JsonObject card)throws IOException {
         if(!numeric(text(card,"nmID"))||text(card,"vendorCode").isBlank()||!card.has("dimensions")||!card.get("dimensions").isJsonObject())throw new IOException("incomplete_wb_card");

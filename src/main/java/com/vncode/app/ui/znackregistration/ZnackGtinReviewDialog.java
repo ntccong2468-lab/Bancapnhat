@@ -45,7 +45,7 @@ public final class ZnackGtinReviewDialog {
             getChildren().setAll(hint,new FlowPane(8,8,refresh,all,more,preview,report),status,table,plan);VBox.setVgrow(plan,Priority.ALWAYS);
             table.getSelectionModel().getSelectedItems().addListener((javafx.collections.ListChangeListener<SyncRunRepository.Item>)c->buttons());
             refresh.setOnAction(e->reload());more.setOnAction(e->page(false));all.setOnAction(e->{table.getSelectionModel().clearSelection();for(int i=0;i<table.getItems().size()&&table.getSelectionModel().getSelectedItems().size()<1000;i++)if(ZnackGtinReviewService.eligible(table.getItems().get(i)))table.getSelectionModel().select(i);});
-            preview.setOnAction(e->{var selected=List.copyOf(table.getSelectionModel().getSelectedItems());String reviewedRun=run;read(()->service.select(shop,reviewedRun,selected),rows->{plan.setOnMutationResult((owner,result)->new SyncRunRepository().linkReviewed(owner,reviewedRun,result));plan.openGtin(shop,rows);status.setText(tr("znack.gtinflow.preview_ready"));});});
+            preview.setOnAction(e->{var selected=List.copyOf(table.getSelectionModel().getSelectedItems());String reviewedRun=run;read(()->service.select(shop,reviewedRun,selected),rows->{plan.setOnMutationResult((owner,result,approved)->new SyncRunRepository().linkReviewed(owner,reviewedRun,result,approved));plan.openGtin(shop,rows);status.setText(tr("znack.gtinflow.preview_ready"));});});
             report.setOnAction(e->RegistrationSyncReportDialog.show(getScene()==null?null:getScene().getWindow(),shop,run));
             reload();
         }

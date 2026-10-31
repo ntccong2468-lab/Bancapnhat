@@ -33,7 +33,7 @@ class WorkspaceChromeUiTest {
   });
   ShopSidebarController sidebar=side[0].getController();WorkspaceHeaderController header=head[0].getController();
   try{
-   for(var lang:AppLanguage.values())for(String theme:List.of("theme-dark","theme-light"))for(var size:List.of(new int[]{1024,600},new int[]{1366,768},new int[]{1600,900})){
+   for(var lang:AppLanguage.values())for(String theme:List.of("theme-dark","theme-light"))for(var size:List.of(new int[]{640,480},new int[]{800,600},new int[]{1024,600},new int[]{1366,768},new int[]{1600,900})){
     fx(()->{I18nService.getInstance().setLanguage(lang);sidebar.applyTranslations();header.applyTranslations();header.setAvailableUpdate("1.4.14");var shell=stage.getScene().getRoot();shell.getStyleClass().removeAll("theme-dark","theme-light");shell.getStyleClass().add(theme);stage.setWidth(size[0]);stage.setHeight(size[1]);sidebar.resetSidebarLayout();sidebar.setViewportWidth(size[0]);return null;});pulse();
     fx(()->{var scene=stage.getScene();scene.getRoot().applyCss();scene.getRoot().layout();var chrome=(HBox)head[0].getRoot();for(var node:chrome.getChildren())if(node.isManaged()&&node.isVisible()){var b=node.localToScene(node.getBoundsInLocal());assertTrue(b.getMinX()>=-1&&b.getMaxX()<=scene.getWidth()+1,lang+" "+size[0]+" clipped header: "+node.getId()+" "+b);}
      var more=(MenuButton)head[0].getNamespace().get("moreButton");if(more.isManaged()){assertEquals(1,more.getItems().size());var body=((CustomMenuItem)more.getItems().getFirst()).getContent();assertNotNull(body);assertNotNull(((Button)head[0].getNamespace().get("supportButton")).getParent());}
@@ -45,5 +45,27 @@ class WorkspaceChromeUiTest {
  }
  @Test void sharedDialogsFitOwnerWithoutReplacingTheirContent()throws Exception{
   fx(()->{var owner=new Stage();owner.setScene(new Scene(new StackPane(),1024,600));owner.show();try{var dialog=new Dialog<Void>();dialog.initOwner(owner);var content=new VBox(new Label("Synthetic"),new TableView<>());dialog.getDialogPane().setContent(content);AlertService.applyTheme(dialog.getDialogPane());dialog.getDialogPane().setPrefSize(1600,1200);assertSame(content,dialog.getDialogPane().getContent());assertTrue(dialog.getDialogPane().getPrefWidth()<=owner.getWidth()-32);assertTrue(dialog.getDialogPane().getPrefHeight()<=owner.getHeight()-60);}finally{owner.close();}return null;});
+ }
+ @Test void collapsedSidebarKeepsLicenseStatusAvailableForMouseAndAccessibility()throws Exception{
+  var original=I18nService.getInstance().getCurrentLanguage();
+  try{
+   for(var lang:AppLanguage.values())fx(()->{
+    I18nService.getInstance().setLanguage(lang);
+    var loader=FxmlViewLoader.loader(ShopSidebarController.class,"shop-sidebar-view.fxml");loader.load();
+    ShopSidebarController sidebar=loader.getController();sidebar.setViewportWidth(640);
+    var label=(Label)loader.getNamespace().get("editionStatusLabel");
+    sidebar.setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status.EXPIRED,false);
+    assertTrue(label.isVisible()&&label.isManaged());assertTrue(label.isFocusTraversable());assertNotNull(label.getGraphic());
+    assertEquals("",label.getText());assertTrue(label.getStyleClass().contains("text-danger"));
+    assertEquals(com.vncode.app.ui.license.LicensePane.statusText(com.vncode.app.features.license.LicenseModels.Status.EXPIRED),label.getAccessibleText());
+    assertEquals(label.getAccessibleText(),label.getTooltip().getText());
+    sidebar.setLicenseStatus(com.vncode.app.features.license.LicenseModels.Status.OFFLINE,true);
+    assertEquals(I18nService.getInstance().tr("license.account.summary.valid"),label.getAccessibleText());
+    assertFalse(label.getStyleClass().contains("text-danger"));
+    sidebar.setViewportWidth(1600);
+    assertNull(label.getGraphic());assertFalse(label.isFocusTraversable());assertEquals(label.getAccessibleText(),label.getText());
+    return null;
+   });
+  }finally{fx(()->{I18nService.getInstance().setLanguage(original);return null;});}
  }
 }

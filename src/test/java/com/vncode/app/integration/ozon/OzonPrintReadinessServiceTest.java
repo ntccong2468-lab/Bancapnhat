@@ -77,6 +77,16 @@ class OzonPrintReadinessServiceTest {
         assertTrue(result.missingSkus().isEmpty());
     }
 
+    @Test void noSelectedSourceAllowsOnlyVerifiedExemptOrdersInMixedBatch() {
+        new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto("102","offer-2","SKU-2","Exempt item","",false,"",List.of())),"mixed");
+        new OzonPostingRepository().upsertDetail(1,new OzonPostingDto("POST-2","ORDER-2","ORDER-2","awaiting_deliver","","","","","","",new OzonRequirements(List.of(),List.of(),List.of()),List.of(),false,List.of(new OzonPostingItemDto(0,"102","SKU-2","offer-2","Exempt item",1,"RUB","1"))));
+        new OzonProductKizPolicyRepository().setRequired(1,"SKU-2",false);
+        var batch=new OzonPrintReadinessService().inspectAll(shop,List.of("POST-1","POST-2"),new com.vncode.app.features.kiz.KizSourceSelection(false,false));
+        assertFalse(batch.ready());assertEquals(List.of("POST-2"),batch.readyPostingNumbers());
+        assertEquals(List.of("KIZ_SOURCE_REQUIRED: SKU-1"),batch.postings().getFirst().missingSkus());
+        assertTrue(batch.postings().getLast().ready());assertEquals(0,batch.postings().getLast().requiredKiz());
+    }
+
     @Test
     void reportsRequiredAndAvailableKizForMappedGtin() throws Exception {
         new OzonProductGtinMappingRepository().put(1, "SKU-1", GTIN);

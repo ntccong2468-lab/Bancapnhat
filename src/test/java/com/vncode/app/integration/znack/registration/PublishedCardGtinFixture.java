@@ -26,6 +26,16 @@ final class PublishedCardGtinFixture {
         var refresh=new RegisteredGtinSyncService(source,repository);refresh.refresh(shop.getId(),shop.getMarketplace());
         assertThrows(IllegalArgumentException.class,()->preview.create(key,Operation.ADD,"",gtin));assertEquals(0,transport.writes);
         published[0]=true;refresh.refresh(shop.getId(),shop.getMarketplace());
+        if(shop.getMarketplace()==Marketplace.OZON){
+            // Seller approval binds the published Catalog identity to the exact
+            // Ozon product and registration snapshot before any barcode write.
+            var nativeKey=new com.vncode.app.features.products.ProductKey(shop.getId(),Marketplace.OZON,product,variant);
+            var full=new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,
+                    new com.vncode.app.integration.ozon.OzonProductSnapshotReader(ignored->transport).readForRegistrationProof(shop,nativeKey));
+            var review=new OzonExistingCardLinkService.Review(key,gtin,91,sku,"Fixture",variant,"Black","XL",variant,"Black","XL","6204420000",
+                    com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),RegisteredGtinProof.source(shop),RegistrationReviewedValues.productRevision(full),"a".repeat(64));
+            new OzonExistingCardLinkService((s,k,g)->review).approve(shop,review);
+        }
         var before=adapter.read(key);var request=preview.create(key,Operation.ADD,"",gtin);
         var queue=new GtinSyncCoordinator(repository,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->refresh.refresh(shop.getId(),shop.getMarketplace()));
         var job=queue.confirm(List.of(request));assertEquals(0,transport.writes);
@@ -65,6 +75,8 @@ final class PublishedCardGtinFixture {
                 var rows=new JsonArray();rows.add(actual);var response=new JsonObject();response.add("result",rows);return response;
             }
             if(path.equals("v1/description-category/attribute"))return JsonParser.parseString("{\"result\":[{\"id\":99,\"name\":\"Цвет товара\"},{\"id\":100,\"name\":\"Размер производителя\"},{\"id\":88,\"name\":\"ТН ВЭД\"}]}");
+            if(path.equals("v1/product/certificate/list"))return JsonParser.parseString("{\"result\":{\"certificates\":[],\"page_count\":1}}");
+            if(path.equals("v5/product/info/prices"))return JsonParser.parseString("{\"items\":[]}");
             assertEquals("v3/product/info/list",path);var result=new JsonObject();var rows=new JsonArray();rows.add(card.deepCopy());result.add("items",rows);return result;
         }
     }

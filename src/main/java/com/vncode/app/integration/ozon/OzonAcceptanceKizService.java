@@ -17,7 +17,14 @@ final class OzonAcceptanceKizService {
     OzonAcceptanceKizService(OzonExemplarJobRepository jobs) { this.jobs=jobs; }
 
     static boolean requiredBeforeAccept(Shop shop,OzonPostingDto posting) {
+        return requiredBeforeAccept(shop,posting,null);
+    }
+    static boolean requiredBeforeAccept(Shop shop,OzonPostingDto posting,KizSourceSelection sources) {
         if(!posting.requirements().mandatoryMarkProductIds().isEmpty())return true;
+        // Ozon describes this list as *possible* marking, not a requirement.
+        // An explicit no-source choice must not turn every optional SKU into a
+        // blocking mandatory mark. The server still decides whether to accept it.
+        if(sources!=null&&!sources.anySelected())return false;
         var optional=new HashSet<>(posting.requirements().optionalMarkProductIds());
         if(optional.isEmpty())return false;
         var exempt=new OzonProductKizPolicyRepository().findExemptSkus(shop.getId());
@@ -27,7 +34,8 @@ final class OzonAcceptanceKizService {
         ensure(shop,posting,api,null);
     }
     void ensure(Shop shop,OzonPostingDto posting,OzonApiClient api,KizSourceSelection sources)throws IOException {
-        if(!requiredBeforeAccept(shop,posting))return;
+        if(!requiredBeforeAccept(shop,posting,sources))return;
+        if(sources!=null&&!sources.anySelected())throw new IOException("OZON_ACCEPT_KIZ_SOURCE_REQUIRED");
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
         new OzonPostingRepository().upsertDetail(shop.getId(),posting);
         var prior=jobs.find(shop.getId(),posting.postingNumber());

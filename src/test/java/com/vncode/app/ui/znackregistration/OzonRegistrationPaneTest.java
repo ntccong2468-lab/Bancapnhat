@@ -314,6 +314,136 @@ class OzonRegistrationPaneTest {
     private Button button(String name)throws Exception{var field=OzonRegistrationPane.class.getDeclaredField(name);field.setAccessible(true);return (Button)field.get(pane);}
     private void awaitRows(int count)throws Exception{long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(System.nanoTime()<end){if(fx(()->table().getItems().size()==count&&!button("more").isDisabled()))return;Thread.sleep(10);}fail("Native Ozon page did not arrive");}
     private static <T>T fx(Callable<T> work)throws Exception{var task=new FutureTask<>(work);Platform.runLater(task);return task.get(10,TimeUnit.SECONDS);}
+    private void sourceReviewStarter(OzonRegistrationPane.BatchStarter starter)throws Exception{
+        fx(()->{var reader=OzonRegistrationPane.class.getDeclaredField("preflightReader");reader.setAccessible(true);
+            reader.set(pane,(java.util.function.BiFunction<Shop,java.util.List<ProductKey>,RegistrationBatchPreflight.Review>)ZnackCardRegistrationControllerTest::sourceReviewFixture);
+            var field=OzonRegistrationPane.class.getDeclaredField("batchStarter");field.setAccessible(true);field.set(pane,starter);return null;});
+    }
+    private void installConflictCheckpoint(String gtin,String feed,Long goodId)throws Exception{
+        var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");
+        var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,owner.getName())).getSettings();
+        String scope=new com.google.gson.Gson().toJson(com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(settings));
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_card_registrations(shop_id,product_id,offer_id,sku,status,gtin,feed_id,good_id,scope_json,owner,created_at,updated_at) VALUES(1,'1','offer-1','10001','ERROR',?,?,?,?,?,'fixture','fixture')")){
+            p.setString(1,gtin);p.setString(2,feed);if(goodId==null)p.setNull(3,java.sql.Types.BIGINT);else p.setLong(3,goodId);p.setString(4,scope);p.setString(5,com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner));p.executeUpdate();
+        }
+    }
+    private RegistrationSyncReportDialog.Report conflictReport(Shop owner,String gtin)throws Exception{
+        var reports=new com.vncode.app.features.sync.SyncRunRepository();String run=reports.begin(owner,"znack_marketplace","READBACK");
+        reports.add(owner,run,"1","offer-1","10001","Article","Blue","XL",gtin,"NEEDS_ACTION","GTIN_ON_ANOTHER_PRODUCT","{}");
+        var report=fx(()->{var item=new RegistrationSyncReportDialog.Report(owner,run,confirmed->{try{var method=OzonRegistrationPane.class.getDeclaredMethod("prepareConfirmedConflict",OzonGtinConflictReview.Confirmed.class);method.setAccessible(true);method.invoke(pane,confirmed);}catch(ReflectiveOperationException e){throw new IllegalStateException(e);}});
+            item.setConflictReview(new OzonGtinConflictReview(new OzonGtinConflictReview.Probe(){
+                public boolean alreadyOnSelected(com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey key,String code){return false;}
+                public boolean belongsToAnother(com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey key,String code){return true;}
+            }));return item;});
+        awaitIdle();return report;
+    }
+    private void openConflict(RegistrationSyncReportDialog.Report report)throws Exception{
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{var table=(TableView<?>)report.lookup("#registrationSyncReportItems");table.getSelectionModel().select(0);((Button)report.lookup("#registrationConflictNewCard")).fire();},dialog->dialog.getButtonTypes().contains(javafx.scene.control.ButtonType.OK)&&dialog.getButtonTypes().contains(javafx.scene.control.ButtonType.CANCEL),dialog->javafx.scene.control.ButtonType.OK);
+    }
+    private void approveReplacementReview()throws Exception{
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(20);
+        while(System.nanoTime()<deadline){boolean fired=fx(()->{for(var window:java.util.List.copyOf(javafx.stage.Window.getWindows())){
+            if(!window.isShowing()||window.getScene()==null)continue;var root=window.getScene().getRoot();var dialog=root instanceof javafx.scene.control.DialogPane d?d:(javafx.scene.control.DialogPane)root.lookup(".dialog-pane");if(dialog==null)continue;
+            var facts=dialog.lookup("#registrationSourceConfirm");var replacement=dialog.lookup("#registrationSourceConfirmReplacement");var action=dialog.lookup("#registrationSourceReviewApply");
+            if(facts instanceof javafx.scene.control.CheckBox a&&replacement instanceof javafx.scene.control.CheckBox b&&action instanceof Button go){if(!a.isSelected())a.fire();if(!b.isSelected()){assertTrue(go.isDisabled());b.fire();}if(!go.isDisabled()){go.fire();return true;}}
+        }return false;});if(fired)return;Thread.sleep(20);}fail("Seller replacement review did not become ready");
+    }
+    @Test void reportConflictRequiresExactCardThenPersistsSellerReviewedIntent()throws Exception{
+        String gtin="04631993764370";var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");installConflictCheckpoint(gtin,"catalog-old-feed",91L);
+        var queued=new CountDownLatch(1);var run="approved-conflict";
+        sourceReviewStarter((shop,keys,automatic,approved)->{try(var c=Database.getConnection()){
+            c.setAutoCommit(false);com.vncode.app.integration.znack.registration.RegistrationSourceConsent.persist(c,shop,run,keys,approved);c.commit();queued.countDown();return run;
+        }catch(Exception e){throw new IllegalStateException(e);}});
+        var report=conflictReport(owner,gtin);try{
+            openConflict(report);approveReplacementReview();assertTrue(queued.await(15,TimeUnit.SECONDS));
+            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT product_id,variant_id,action,replaced_good_id,ozon_conflict_gtin,replaced_gtin_hash FROM znack_source_consents WHERE run_id=?")){
+                p.setString(1,run);try(var r=p.executeQuery()){assertTrue(r.next());assertEquals("1",r.getString(1));assertEquals("offer-1",r.getString(2));assertEquals("REPLACE",r.getString(3));assertEquals(91,r.getLong(4));assertEquals(gtin,r.getString(5));assertEquals(com.vncode.app.integration.listing.ListingIdentity.hash(gtin),r.getString(6));assertFalse(r.next());}
+            }
+        }finally{fx(()->{report.dispose();return null;});}
+    }
+    @Test void reportConflictWithoutMatchingOldFeedShowsReasonAndNeverReviewsOrQueues()throws Exception{
+        String gtin="04631993764370";var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");installConflictCheckpoint(gtin,"",91L);
+        var calls=new java.util.concurrent.atomic.AtomicInteger();sourceReviewStarter((shop,keys,automatic,approved)->{calls.incrementAndGet();return "unexpected";});
+        var report=conflictReport(owner,gtin);try{openConflict(report);awaitIdle();assertEquals(0,calls.get());fx(()->{var field=OzonRegistrationPane.class.getDeclaredField("status");field.setAccessible(true);assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.conflict_checkpoint_missing"),((javafx.scene.control.Label)field.get(pane)).getText());return null;});}
+        finally{fx(()->{report.dispose();return null;});}
+    }
+    @Test void reportConflictForAnotherCatalogGtinNeverReviewsOrQueues()throws Exception{
+        String gtin="04631993764370";var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");installConflictCheckpoint("00000000000017","catalog-old-feed",91L);
+        var calls=new java.util.concurrent.atomic.AtomicInteger();sourceReviewStarter((shop,keys,automatic,approved)->{calls.incrementAndGet();return "unexpected";});
+        var report=conflictReport(owner,gtin);try{openConflict(report);awaitIdle();assertEquals(0,calls.get());fx(()->{var field=OzonRegistrationPane.class.getDeclaredField("status");field.setAccessible(true);assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.conflict_checkpoint_missing"),((javafx.scene.control.Label)field.get(pane)).getText());return null;});}
+        finally{fx(()->{report.dispose();return null;});}
+    }
+    @Test void reportConflictWithoutCardIdNeverReviewsOrQueues()throws Exception{
+        String gtin="04631993764370";var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");installConflictCheckpoint(gtin,"catalog-old-feed",null);
+        var calls=new java.util.concurrent.atomic.AtomicInteger();sourceReviewStarter((shop,keys,automatic,approved)->{calls.incrementAndGet();return "unexpected";});
+        var report=conflictReport(owner,gtin);try{openConflict(report);awaitIdle();assertEquals(0,calls.get());fx(()->{var field=OzonRegistrationPane.class.getDeclaredField("status");field.setAccessible(true);assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.conflict_checkpoint_missing"),((javafx.scene.control.Label)field.get(pane)).getText());return null;});}
+        finally{fx(()->{report.dispose();return null;});}
+    }
+    @Test void reportConflictForAnotherOwnerNeverReviewsOrQueues()throws Exception{
+        String gtin="04631993764370";var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");installConflictCheckpoint(gtin,"catalog-old-feed",91L);
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_card_registrations SET owner='different-owner' WHERE shop_id=1 AND product_id='1'");}
+        var calls=new java.util.concurrent.atomic.AtomicInteger();sourceReviewStarter((shop,keys,automatic,approved)->{calls.incrementAndGet();return "unexpected";});
+        var report=conflictReport(owner,gtin);try{openConflict(report);awaitIdle();assertEquals(0,calls.get());fx(()->{var field=OzonRegistrationPane.class.getDeclaredField("status");field.setAccessible(true);assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.conflict_checkpoint_missing"),((javafx.scene.control.Label)field.get(pane)).getText());return null;});}
+        finally{fx(()->{report.dispose();return null;});}
+    }
+    @Test void reportConflictDoesNotBypassOtherBlockedCatalogStates()throws Exception{
+        String gtin="04631993764370";var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");installConflictCheckpoint(gtin,"catalog-old-feed",91L);
+        var data=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_status\":\"published\",\"good_detailed_status\":[\"published\"]}").getAsJsonObject());
+        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,Marketplace.OZON,java.util.List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(gtin,"","","",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),data)));
+        var receipt=new com.vncode.app.features.sync.RegistrationSources().require(owner);var page=new com.vncode.app.features.products.ProductRepository().loadPage(new com.vncode.app.features.products.ProductQuery(1,Marketplace.OZON,"",java.util.List.of(),null,false,null,300),receipt.run());
+        var product=page.rows().stream().filter(r->r.key().cardId().equals("1")).findFirst().orElseThrow();var index=new com.vncode.app.features.sync.RegistrationCardIndex(owner);var checkpoint=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository().find(product.key());var view=index.viewOzon(checkpoint.status(),checkpoint.gtin(),product,index.ownsOzon(checkpoint.owner(),checkpoint.scopeJson()));
+        assertTrue(view.blocked());assertEquals("GTIN_VARIANT_UNVERIFIED",view.detail());
+        var calls=new java.util.concurrent.atomic.AtomicInteger();sourceReviewStarter((shop,keys,automatic,approved)->{calls.incrementAndGet();return "unexpected";});
+        var report=conflictReport(owner,gtin);try{openConflict(report);
+            com.vncode.app.testsupport.FxDialogDriver.choose(()->{},dialog->dialog.lookup(".text-area") instanceof javafx.scene.control.TextArea,dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow());
+            awaitIdle();assertEquals(0,calls.get());
+        }finally{fx(()->{report.dispose();return null;});}
+    }
+    @Test void cancellingReplacementReviewNeverCreatesAQueuedIntent()throws Exception{
+        String gtin="04631993764370";var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");installConflictCheckpoint(gtin,"catalog-old-feed",91L);
+        var calls=new java.util.concurrent.atomic.AtomicInteger();sourceReviewStarter((shop,keys,automatic,approved)->{calls.incrementAndGet();return "unexpected";});
+        var report=conflictReport(owner,gtin);try{
+            openConflict(report);
+            com.vncode.app.testsupport.FxDialogDriver.choose(()->{},dialog->dialog.lookup("#registrationSourceReviewTable")!=null,dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow());
+            awaitIdle();assertEquals(0,calls.get());
+            try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='znack_source_consents'")){assertTrue(r.next());if(r.getInt(1)>0)try(var r2=s.executeQuery("SELECT count(*) FROM znack_source_consents")){assertTrue(r2.next());assertEquals(0,r2.getInt(1));}}
+        }finally{fx(()->{report.dispose();return null;});}
+    }
+    @Test void ozonSellerReviewEnqueuesOnlyTheExactFrozenVariants()throws Exception{
+        var started=new CountDownLatch(1);var release=new CountDownLatch(1);var approved=new java.util.concurrent.atomic.AtomicReference<java.util.Set<ProductKey>>();var selection=new java.util.concurrent.atomic.AtomicReference<java.util.List<ProductKey>>();
+        sourceReviewStarter((shop,keys,autoSign,consent)->{assertNotNull(consent);selection.set(java.util.List.copyOf(keys));approved.set(consent.keys());started.countDown();try{if(!release.await(10,TimeUnit.SECONDS))throw new IllegalStateException("fixture timeout");}catch(InterruptedException e){Thread.currentThread().interrupt();throw new IllegalStateException(e);}return "ozon-review-fixture";});
+        try{
+            var expected=fx(()->{var rows=table().getItems();table().getSelectionModel().select(rows.get(0));table().getSelectionModel().select(rows.get(1));var keys=java.util.Set.of(rows.get(0).key(),rows.get(1).key());button("register").fire();return keys;});
+            ZnackCardRegistrationControllerTest.approveSourceReview();assertTrue(started.await(15,TimeUnit.SECONDS));assertEquals(expected,approved.get());assertEquals(expected,new java.util.HashSet<>(selection.get()));
+            fx(()->{((javafx.scene.control.ComboBox<String>)pane.lookup("#ozonRegistrationStatusFilter")).setValue("COMPLETED");return null;});assertEquals(expected,new java.util.HashSet<>(selection.get()));
+        }finally{release.countDown();}
+        awaitIdle();
+    }
+    @Test void ozonCancelSourceReviewDoesNotEnqueueAndRestoresControls()throws Exception{
+        var started=new java.util.concurrent.atomic.AtomicInteger();sourceReviewStarter((shop,keys,autoSign,consent)->{started.incrementAndGet();return "unexpected";});
+        fx(()->{table().getSelectionModel().select(0);button("register").fire();return null;});
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{},dialog->dialog.lookup("#registrationSourceReviewTable")!=null,dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow());
+        awaitIdle();assertEquals(0,started.get());fx(()->{var preparing=OzonRegistrationPane.class.getDeclaredField("selectionPreparing");preparing.setAccessible(true);assertFalse(preparing.getBoolean(pane));return null;});
+    }
+    @Test void ozonResumeWithSavedGtinAndNoFeedRequiresFreshReviewBeforeEnqueue()throws Exception{
+        var owner=new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic");
+        var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,owner.getName())).getSettings();
+        String scope=new com.google.gson.Gson().toJson(com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(settings));
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_card_registrations(shop_id,product_id,offer_id,sku,status,gtin,scope_json,owner,created_at,updated_at) VALUES(1,'1','offer-1','10001','READY_TO_SUBMIT','00000000000017',?,?,'fixture','fixture')")){
+            p.setString(1,scope);p.setString(2,com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner));p.executeUpdate();
+        }
+        fx(()->{button("refresh").fire();return null;});awaitIdle();
+        var sent=new CountDownLatch(1);var observed=new java.util.concurrent.atomic.AtomicReference<java.util.Set<ProductKey>>();
+        sourceReviewStarter((shop,keys,auto,consent)->{observed.set(consent.keys());sent.countDown();return "resume-reviewed";});
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{try{var method=OzonRegistrationPane.class.getDeclaredMethod("resume",ProductKey.class);method.setAccessible(true);method.invoke(pane,new ProductKey(1,Marketplace.OZON,"1","offer-1"));}catch(ReflectiveOperationException e){throw new RuntimeException(e);}},dialog->dialog.getButtonTypes().contains(javafx.scene.control.ButtonType.OK)&&dialog.getButtonTypes().contains(javafx.scene.control.ButtonType.CANCEL),dialog->javafx.scene.control.ButtonType.OK);
+        ZnackCardRegistrationControllerTest.approveSourceReview();assertTrue(sent.await(10,TimeUnit.SECONDS));assertEquals(java.util.Set.of(new ProductKey(1,Marketplace.OZON,"1","offer-1")),observed.get());
+    }
+    @Test void ozonDuplicateVariantSelectionIsRejectedBeforeReviewOrEnqueue()throws Exception{
+        var reviewed=new java.util.concurrent.atomic.AtomicInteger();var started=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{var reader=OzonRegistrationPane.class.getDeclaredField("preflightReader");reader.setAccessible(true);reader.set(pane,(java.util.function.BiFunction<Shop,java.util.List<ProductKey>,RegistrationBatchPreflight.Review>)(shop,keys)->{reviewed.incrementAndGet();return ZnackCardRegistrationControllerTest.sourceReviewFixture(shop,keys);});var field=OzonRegistrationPane.class.getDeclaredField("batchStarter");field.setAccessible(true);field.set(pane,(OzonRegistrationPane.BatchStarter)(shop,keys,automatic,consent)->{started.incrementAndGet();return "unexpected";});return null;});
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{try{var key=table().getItems().getFirst().key();var method=OzonRegistrationPane.class.getDeclaredMethod("registerSelection",java.util.List.class);method.setAccessible(true);method.invoke(pane,java.util.List.of(key,key));}catch(ReflectiveOperationException e){throw new RuntimeException(e);}},dialog->dialog.lookup(".text-area") instanceof javafx.scene.control.TextArea,dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==javafx.scene.control.ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow());
+        awaitIdle();assertEquals(0,reviewed.get());assertEquals(0,started.get());
+    }
     @Test void errorsContainOnlyCatalogRefusalsAndSendingAppearsImmediately(){
         var key=new com.vncode.app.features.products.ProductKey(1,Marketplace.OZON,"1","offer-1");
         for(var status:java.util.List.of(com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.PREFLIGHT_ERROR,com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.ERROR,com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.GTIN_REVIEW_REQUIRED)){

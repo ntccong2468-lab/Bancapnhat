@@ -84,6 +84,51 @@ public final class OzonJson {
         return page;
     }
 
+    /** Membership can be complete even if a posting needs a separate detail read. */
+    public static PostingPage requireQueuePage(JsonObject response)throws java.io.IOException {
+        JsonObject container=response!=null&&response.has("result")&&response.get("result").isJsonObject()?response.getAsJsonObject("result"):response;
+        var hasNext=container==null?null:container.get("has_next");if(hasNext==null&&response!=null)hasNext=response.get("has_next");
+        if(container==null||!container.has("postings")||!container.get("postings").isJsonArray()||hasNext==null||!hasNext.isJsonPrimitive()||!hasNext.getAsJsonPrimitive().isBoolean())throw new java.io.IOException("FBS_INVALID_RESPONSE");
+        var raw=container.getAsJsonArray("postings");var values=new ArrayList<OzonPostingDto>();var ids=new LinkedHashSet<String>();
+        for(var element:raw){
+            if(!element.isJsonObject())throw new java.io.IOException("FBS_INVALID_RESPONSE");
+            try{
+                var posting=parsePosting(element.getAsJsonObject()).orElseThrow();
+                if(!ids.add(posting.postingNumber()))throw new java.io.IOException("FBS_INVALID_RESPONSE");
+                values.add(posting);
+            }catch(RuntimeException invalid){throw new java.io.IOException("FBS_INVALID_RESPONSE",invalid);}
+        }
+        boolean next=hasNext.getAsBoolean();String cursor=firstNonBlank(text(container,"cursor"),text(response,"cursor"));
+        if(next&&(values.isEmpty()||cursor.isBlank()))throw new java.io.IOException("FBS_INVALID_CURSOR");
+        return new PostingPage(List.copyOf(values),next,cursor);
+    }
+
+    public static boolean hasCompletePostingDetails(JsonObject raw,OzonPostingDto posting){
+        try{
+            requirePosting(raw,posting);
+            boolean actionable=switch(posting.status()) {case "awaiting_packaging","awaiting_deliver","delivering"->true;default->false;};
+            return (!actionable||!posting.items().isEmpty())&&hasCompleteQueueFields(raw);
+        }
+        catch(java.io.IOException|RuntimeException invalid){return false;}
+    }
+    public static boolean isTerminalPosting(OzonPostingDto posting){
+        return posting!=null&&(posting.status().equals("cancelled")||posting.status().equals("delivered"));
+    }
+
+    /** A missing field is not evidence that marking, actions or labels are empty. */
+    public static boolean hasCompleteQueueFields(JsonObject raw){
+        if(raw==null)return false;
+        var requirements=raw.get("requirements");var optional=raw.get("optional");var barcodes=raw.get("barcodes");var actions=raw.get("available_actions");
+        if(requirements==null||!requirements.isJsonObject()||optional==null||!optional.isJsonObject()
+                ||barcodes==null||!barcodes.isJsonObject()||actions==null||!actions.isJsonArray())return false;
+        var required=requirements.getAsJsonObject().get("products_requiring_mandatory_mark");
+        var possible=optional.getAsJsonObject().get("products_with_possible_mandatory_mark");
+        var lower=barcodes.getAsJsonObject().get("lower_barcode");var upper=barcodes.getAsJsonObject().get("upper_barcode");
+        return required!=null&&required.isJsonArray()&&possible!=null&&possible.isJsonArray()
+                &&lower!=null&&lower.isJsonPrimitive()&&lower.getAsJsonPrimitive().isString()
+                &&upper!=null&&upper.isJsonPrimitive()&&upper.getAsJsonPrimitive().isString();
+    }
+
     public static OzonPostingDto requirePostingDetail(JsonObject response,String expected)throws java.io.IOException {
         var nested=object(response,"result");var raw=nested.isEmpty()?response:nested;
         if(raw==null)throw new java.io.IOException("FBS_INVALID_RESPONSE");
@@ -93,7 +138,13 @@ public final class OzonJson {
     }
     private static void requirePosting(JsonObject raw,OzonPostingDto posting)throws java.io.IOException {
         var items=raw.has("products")?raw.get("products"):raw.get("items");
-        if(posting.status().isBlank()||items==null||!items.isJsonArray()||items.getAsJsonArray().size()!=posting.items().size())throw new java.io.IOException("FBS_INCOMPLETE_POSTING");
+        // The DTO deliberately maps a missing status to "unknown" for display, but an
+        // incomplete API response must never replace a previously verified order status.
+        var status=raw.get("status");
+        if(status==null||!status.isJsonPrimitive()||!status.getAsJsonPrimitive().isString()
+                ||status.getAsString().isBlank()||status.getAsString().length()>128
+                ||status.getAsString().chars().anyMatch(Character::isISOControl)
+                ||items==null||!items.isJsonArray()||items.getAsJsonArray().size()!=posting.items().size())throw new java.io.IOException("FBS_INCOMPLETE_POSTING");
         for(int i=0;i<posting.items().size();i++){
             if(posting.items().get(i).productId().isBlank())throw new java.io.IOException("FBS_INCOMPLETE_POSTING");
             try{

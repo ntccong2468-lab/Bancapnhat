@@ -40,18 +40,18 @@ public class WbSupplyRepository {
                     shop_id, supply_id, is_b2b, done, order_count, created_at, closed_at, scan_dt, reject_dt, name, cargo_type, cross_border_type, destination_office_id, recommended_wh_id, synced_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(shop_id, supply_id) DO UPDATE SET
-                    is_b2b = excluded.is_b2b,
-                    done = excluded.done,
+                    is_b2b = COALESCE(excluded.is_b2b, wb_supplies.is_b2b),
+                    done = CASE WHEN wb_supplies.done = 1 THEN 1 ELSE COALESCE(excluded.done, wb_supplies.done) END,
                     order_count = COALESCE(wb_supplies.order_count, excluded.order_count),
-                    created_at = excluded.created_at,
-                    closed_at = excluded.closed_at,
-                    scan_dt = excluded.scan_dt,
-                    reject_dt = excluded.reject_dt,
-                    name = excluded.name,
-                    cargo_type = excluded.cargo_type,
-                    cross_border_type = excluded.cross_border_type,
-                    destination_office_id = excluded.destination_office_id,
-                    recommended_wh_id = excluded.recommended_wh_id,
+                    created_at = COALESCE(excluded.created_at, wb_supplies.created_at),
+                    closed_at = COALESCE(excluded.closed_at, wb_supplies.closed_at),
+                    scan_dt = COALESCE(excluded.scan_dt, wb_supplies.scan_dt),
+                    reject_dt = COALESCE(excluded.reject_dt, wb_supplies.reject_dt),
+                    name = COALESCE(excluded.name, wb_supplies.name),
+                    cargo_type = COALESCE(excluded.cargo_type, wb_supplies.cargo_type),
+                    cross_border_type = COALESCE(excluded.cross_border_type, wb_supplies.cross_border_type),
+                    destination_office_id = COALESCE(excluded.destination_office_id, wb_supplies.destination_office_id),
+                    recommended_wh_id = COALESCE(excluded.recommended_wh_id, wb_supplies.recommended_wh_id),
                     synced_at = excluded.synced_at
                 """;
         try (Connection conn = Database.getConnection()) {

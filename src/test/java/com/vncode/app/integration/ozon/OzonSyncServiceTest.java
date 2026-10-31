@@ -3,6 +3,8 @@ package com.vncode.app.integration.ozon;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.vncode.app.config.Database;
 import java.io.IOException;
@@ -193,7 +195,9 @@ class OzonSyncServiceTest {
     }
     @Test void unfulfilledQueueCannotIgnoreMalformedProducts()throws Exception{
         server.enqueue(json("{\"postings\":[{\"posting_number\":\"P-1\",\"status\":\"awaiting_packaging\",\"products\":[{}]}],\"has_next\":false}"));
-        assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).syncUnfulfilled());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
+        server.enqueue(new MockResponse().setResponseCode(404).setBody("{}"));
+        assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).syncUnfulfilled());
+        var saved=new OzonPostingRepository().find(1,"P-1");assertNotNull(saved);assertTrue(saved.requirements().blocksPreparation());assertFalse(saved.canShip());
     }
     @Test void refreshRejectsAForeignPostingWithoutWritingIt()throws Exception{
         server.enqueue(json("{\"result\":{\"posting_number\":\"OTHER\",\"status\":\"awaiting_deliver\",\"products\":[]}}"));
@@ -276,7 +280,7 @@ class OzonSyncServiceTest {
                 + "\"status\":\"awaiting_packaging\","
                 + "\"products\":[{\"sku\":\"101\",\"offer_id\":\"offer-1\",\"quantity\":2}],"
                 + "\"requirements\":{\"products_requiring_mandatory_mark\":[\"101\"]},"
-                + "\"available_actions\":[]}}"));
+                + "\"optional\":{\"products_with_possible_mandatory_mark\":[]},\"barcodes\":{\"lower_barcode\":\"\",\"upper_barcode\":\"\"},\"available_actions\":[]}}"));
         OzonPostingSyncService service = new OzonPostingSyncService(1, api);
 
         service.sync();
@@ -298,7 +302,7 @@ class OzonSyncServiceTest {
         server.enqueue(json("{\"postings\":[{\"posting_number\":\"POST-TEXT-1\","
                 + "\"status\":\"awaiting_deliver\","
                 + "\"products\":[{\"sku\":\"101\",\"offer_id\":\"offer-1\",\"quantity\":2}],"
-                + "\"requirements\":{},\"available_actions\":[]}],"
+                + "\"requirements\":{\"products_requiring_mandatory_mark\":[]},\"optional\":{\"products_with_possible_mandatory_mark\":[]},\"barcodes\":{\"lower_barcode\":\"\",\"upper_barcode\":\"\"},\"available_actions\":[]}],"
                 + "\"cursor\":\"\",\"has_next\":false}"));
 
         assertEquals(1, service.syncUnfulfilled());
@@ -413,6 +417,8 @@ class OzonSyncServiceTest {
     private static String posting() {
         return "{\"posting_number\":\"POST-TEXT-1\",\"status\":\"awaiting_packaging\","
                 + "\"products\":[{\"sku\":\"101\",\"offer_id\":\"offer-1\",\"quantity\":2}],"
-                + "\"requirements\":{},\"available_actions\":[]}";
+                + "\"requirements\":{\"products_requiring_mandatory_mark\":[]},"
+                + "\"optional\":{\"products_with_possible_mandatory_mark\":[]},"
+                + "\"barcodes\":{\"lower_barcode\":\"\",\"upper_barcode\":\"\"},\"available_actions\":[]}";
     }
 }

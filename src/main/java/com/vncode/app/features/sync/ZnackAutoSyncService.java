@@ -56,6 +56,10 @@ public final class ZnackAutoSyncService {
             for(var item:items){
                 if(Set.of("SUCCEEDED","UNCHANGED","CANCELLED").contains(item.state()))continue;
                 if(Set.of("NEEDS_ACTION","FAILED").contains(item.state())){blocked=true;continue;}
+                if(!sellerReviewed(item)&&!RegistrationSourcePolicy.permitsAutomatic(shop,new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId()),item.gtin())){
+                    if(!item.state().equals("AWAITING_CONFIRMATION"))runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
+                    review=true;continue;
+                }
                 if(item.childJob().isBlank()){
                     if(!registeredCandidates.contains(new RegistrationMarketplaceConsent.Candidate(item.productId(),item.variantId(),item.gtin()))){
                         if(!item.state().equals("AWAITING_CONFIRMATION"))runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
@@ -78,7 +82,7 @@ public final class ZnackAutoSyncService {
                             runs.update(shop,item,"NEEDS_ACTION","VALIDATING",reason,null);blocked=true;
                         }else{
                             // Link the durable confirmed child BEFORE the first marketplace write.
-                            runs.linkReviewed(shop,id,catalog.confirm(shop,plan.id()));waiting=true;
+                            runs.linkReviewed(shop,id,catalog.confirm(shop,plan.id()),false);waiting=true;
                         }
                     }catch(Exception error){runs.update(shop,item,"NEEDS_ACTION","VALIDATING",SyncFailure.of(error,0).code(),null);blocked=true;}
                     continue;
@@ -86,6 +90,10 @@ public final class ZnackAutoSyncService {
                 if(!seenChildren.add(item.childJob()))continue;
                 if(CatalogSyncService.running(shop,item.childJob())){waiting=true;continue;}
                 var members=runs.childItems(shop,id,item.childJob());
+                if(members.stream().anyMatch(member->!sellerReviewed(member)&&!RegistrationSourcePolicy.permitsAutomatic(shop,new ProductKey(shop.getId(),shop.getMarketplace(),member.productId(),member.variantId()),member.gtin()))){
+                    for(var member:members)if(!Set.of("SUCCEEDED","UNCHANGED","CANCELLED").contains(member.state()))runs.update(shop,member,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
+                    review=true;continue;
+                }
                 var work=bulk==null?catalog:bulk.catalog;
                 if(!work.read(shop,item.childJob()).confirmed()){
                     runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);review=true;continue;
@@ -109,6 +117,11 @@ public final class ZnackAutoSyncService {
         if(waiting){runs.stage(shop,id,"WAITING_REMOTE","READBACK",retry==null?"":retry.code());return new SyncCoordinator.Page(id,false,processed,retry==null?new SyncFailure("READBACK_PENDING",Duration.ofSeconds(5),false):retry);}
         runs.stage(shop,id,review?"AWAITING_CONFIRMATION":blocked?"PARTIAL":"SUCCEEDED","REPORT",review?"GTIN_CONFIRMATION_REQUIRED":blocked?"ITEMS_NEED_ACTION":"");
         return SyncCoordinator.Page.complete(processed);
+    }
+    private static boolean sellerReviewed(SyncRunRepository.Item item){
+        if(item.childJob()==null||item.childJob().isBlank())return false;
+        try{var json=com.google.gson.JsonParser.parseString(item.evidence()).getAsJsonObject();return json.has("gtinApproval")&&"SELLER_REVIEWED".equals(json.get("gtinApproval").getAsString());}
+        catch(RuntimeException malformed){return false;}
     }
     private SyncCoordinator.Page prepare(Shop shop,String existing)throws Exception {return prepare(shop,existing,"");}
     private SyncCoordinator.Page prepare(Shop shop,String existing,String receipt)throws Exception {return prepare(shop,existing,receipt,Set.of());}

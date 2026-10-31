@@ -55,7 +55,7 @@
                 </Button>
             </children>
         </FlowPane>
-        <Label fx:id="supplyMetaLabel" managed="false" style="-fx-text-fill: #6c757d;" text="" visible="false" />
+        <Label fx:id="supplyMetaLabel" managed="false" styleClass="text-muted" text="" visible="false" />
 
         <HBox fx:id="sortOptionsBox" alignment="CENTER_LEFT" managed="false" spacing="14.0" visible="false">
             <children>
@@ -82,11 +82,11 @@
                                 <TableColumn fx:id="priceTC" minWidth="100" prefWidth="100.0" text="%supply.col.price" />
                             </columns>
                         </TableView>
-                        <Label fx:id="emptyStateLabel" managed="false" style="-fx-text-fill: #6c757d;" text="" visible="false" wrapText="true" />
+                        <Label fx:id="emptyStateLabel" managed="false" styleClass="text-muted" text="" visible="false" wrapText="true" />
                         <VBox fx:id="orderLoadingBox" alignment="CENTER" managed="false" spacing="10.0" visible="false">
                             <children>
                                 <ProgressIndicator fx:id="orderLoadingInline" maxHeight="28.0" maxWidth="28.0" prefHeight="28.0" prefWidth="28.0" visible="false" />
-                                <Label fx:id="orderLoadingLabel" style="-fx-text-fill: #6c757d;" text="%supply.loading_orders" />
+                                <Label fx:id="orderLoadingLabel" styleClass="text-muted" text="%supply.loading_orders" />
                             </children>
                         </VBox>
         <HBox fx:id="stickerLoadingBox" alignment="CENTER" maxWidth="940" maxHeight="-Infinity" styleClass="task-status-pill" StackPane.alignment="BOTTOM_CENTER" managed="false" spacing="8.0" visible="false">

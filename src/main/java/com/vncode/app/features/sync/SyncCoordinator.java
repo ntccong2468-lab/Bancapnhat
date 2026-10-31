@@ -16,6 +16,8 @@ public final class SyncCoordinator implements AutoCloseable {
         public static Page complete(int changed){return new Page("",true,changed);}
     }
     public record Health(int shopId,Stream stream,boolean running,Instant success,Instant complete,Instant next,String error) {}
+    /** Safe summary only; no cursors, tokens or upstream messages. */
+    public record QueueProgress(int pages,String error,Instant next,boolean running,boolean requested) {}
     @FunctionalInterface public interface Handler {Page run(Shop shop,Stream stream,String checkpoint)throws Exception;}
     private record Key(int shopId,Stream stream) {}
     private static final class Entry {
@@ -61,6 +63,60 @@ public final class SyncCoordinator implements AutoCloseable {
     /** Non-blocking on FX: persistence and network requests are handled on the scheduler thread. */
     public void request(int shopId,Stream stream){if(!closed)requested.add(new Key(shopId,stream));}
     public synchronized boolean running(Stream stream){return entries.entrySet().stream().anyMatch(e->e.getKey().stream()==stream&&e.getValue().running);}
+    /** Must be called off the UI thread. This is a point-in-time local check. */
+    public boolean isQueueCurrent(Shop shop,Duration maxAge){
+        if(closed||shop==null||maxAge==null||maxAge.isNegative()||maxAge.isZero())return false;
+        Key key=new Key(shop.getId(),Stream.FBS_QUEUE);Entry entry;
+        synchronized(this){entry=entries.get(key);if(entry==null||entry.running||requested.contains(key)||!entry.owner.equals(ListingIdentity.fingerprint(shop)))return false;}
+        try{
+            ListingIdentity.require(shop);
+            var state=store.existing(shop.getId(),Stream.FBS_QUEUE.name());
+            if(state==null||!entry.owner.equals(state.owner())||state.requested()||!state.checkpoint().isBlank()||!state.error().isBlank()||state.lastComplete()==null)return false;
+            Instant now=clock.instant();
+            if(state.lastComplete().isAfter(now)||Duration.between(state.lastComplete(),now).compareTo(maxAge)>0)return false;
+            synchronized(this){return !closed&&entries.get(key)==entry&&!entry.running&&!requested.contains(key);}
+        }catch(RuntimeException unavailable){return false;}
+    }
+    /** Ozon may know every posting ID even when one posting lacks details. */
+    public boolean isQueueMembershipCurrent(Shop shop,Duration maxAge){
+        if(isQueueCurrent(shop,maxAge))return true;
+        if(closed||shop==null||shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON||maxAge==null||maxAge.isNegative()||maxAge.isZero())return false;
+        Key key=new Key(shop.getId(),Stream.FBS_QUEUE);Entry entry;
+        synchronized(this){entry=entries.get(key);if(entry==null||entry.running||requested.contains(key)||!entry.owner.equals(ListingIdentity.fingerprint(shop)))return false;}
+        try{
+            ListingIdentity.require(shop);var state=store.existing(shop.getId(),Stream.FBS_QUEUE.name());
+            if(state==null||!entry.owner.equals(state.owner())||state.requested()||!state.checkpoint().isBlank()||!"FBS_INCOMPLETE_POSTING".equals(state.error()))return false;
+            var attempt=store.lastAttempt(shop.getId(),Stream.FBS_QUEUE.name());if(attempt==null)return false;
+            Instant complete;
+            try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("SELECT owner,completed_at,incomplete FROM ozon_fbs_queue_scans WHERE shop_id=?")){
+                p.setInt(1,shop.getId());try(var r=p.executeQuery()){
+                    if(!r.next()||!entry.owner.equals(r.getString(1))||r.getInt(3)!=1)return false;
+                    complete=Instant.parse(r.getString(2));
+                }
+            }
+            Instant now=clock.instant();if(complete.isBefore(attempt)||complete.isAfter(now)||Duration.between(complete,now).compareTo(maxAge)>0)return false;
+            synchronized(this){return !closed&&entries.get(key)==entry&&!entry.running&&!requested.contains(key);}
+        }catch(Exception invalid){return false;}
+    }
+    /** Read on a worker thread; this does not start or alter synchronization. */
+    public QueueProgress queueProgress(Shop shop){
+        QueueProgress unavailable=new QueueProgress(0,"SYNC_UNAVAILABLE",null,false,false);
+        if(closed||shop==null)return unavailable;
+        Key key=new Key(shop.getId(),Stream.FBS_QUEUE);Entry entry;
+        synchronized(this){entry=entries.get(key);if(entry==null||!entry.owner.equals(ListingIdentity.fingerprint(shop)))return unavailable;}
+        try{
+            ListingIdentity.require(shop);
+            var state=store.existing(shop.getId(),Stream.FBS_QUEUE.name());
+            if(state==null||!entry.owner.equals(state.owner()))return unavailable;
+            int pages=0;
+            if(state.checkpoint()!=null&&!state.checkpoint().isBlank()){
+                var object=com.google.gson.JsonParser.parseString(state.checkpoint()).getAsJsonObject();
+                if(object.has("pages"))pages=Math.max(0,Math.min(20_001,object.get("pages").getAsInt()));
+            }
+            String error=state.error()==null||state.error().isBlank()?"":SyncRunRepository.code(state.error());
+            synchronized(this){if(closed||entries.get(key)!=entry)return unavailable;return new QueueProgress(pages,error,state.next(),entry.running,state.requested()||requested.contains(key));}
+        }catch(RuntimeException invalid){return unavailable;}
+    }
     public AutoCloseable listen(Consumer<Health> listener){listeners.add(listener);return ()->listeners.remove(listener);}
     public List<Health> health(int shopId){return health.values().stream().filter(h->h.shopId()==shopId).toList();}
     private void safeTick(){try{tick();}catch(RuntimeException error){int shop; synchronized(this){shop=selected;}if(shop>0){var old=health.get(new Key(shop,Stream.FBS_QUEUE));publish(new Health(shop,Stream.FBS_QUEUE,false,old==null?null:old.success(),old==null?null:old.complete(),clock.instant().plusSeconds(5),"SYNC_STORAGE"));}}}
@@ -140,11 +196,19 @@ public final class SyncCoordinator implements AutoCloseable {
         }
         finally{synchronized(this){entry.running=false;if(interactive)fastRunning--;else if(registry!=background&&(key.stream()==Stream.ZNACK||key.stream()==Stream.GS1))registryRunning--;else backgroundRunning--;}}
     }
-    private Duration interval(Key key){return switch(key.stream()){
-        case FBS_QUEUE->Duration.ofSeconds(key.shopId()==selected?10:45);
-        case FBS_STATUS->Duration.ofSeconds(key.shopId()==selected?15:60);
-        case SUPPLIES->Duration.ofSeconds(key.shopId()==selected?30:90);
-        case SUPPLY_CONTENT->Duration.ofSeconds(key.shopId()==selected?10:45);
+    private Duration interval(Key key){
+        int otherShops;
+        synchronized(this){otherShops=(int)entries.keySet().stream().filter(k->k.stream()==Stream.FBS_QUEUE&&k.shopId()!=selected).count();}
+        long backgroundShops=Math.max(1,otherShops);
+        return switch(key.stream()){
+        // Poll the visible seller frequently while preserving the shared per-seller
+        // API limiter and any server-requested cooldown. Spread background
+        // polling across the configured shops so one or two shops are timely,
+        // while large multi-shop accounts do not overwhelm their shared quota.
+        case FBS_QUEUE->Duration.ofSeconds(key.shopId()==selected?3:Math.max(10,backgroundShops*5));
+        case FBS_STATUS->Duration.ofSeconds(key.shopId()==selected?5:Math.max(15,backgroundShops*7));
+        case SUPPLIES->Duration.ofSeconds(key.shopId()==selected?30:Math.max(30,backgroundShops*10));
+        case SUPPLY_CONTENT->Duration.ofSeconds(key.shopId()==selected?10:Math.max(15,backgroundShops*5));
         case HISTORY->Duration.ofMinutes(5);case CATALOG,ZNACK,GS1,FBO->Duration.ofMinutes(15);case FINANCE->Duration.ofSeconds(5);
     };}
     private void publish(Health update){health.put(new Key(update.shopId(),update.stream()),update);for(var listener:listeners)try{listener.accept(update);}catch(RuntimeException ignored){}}

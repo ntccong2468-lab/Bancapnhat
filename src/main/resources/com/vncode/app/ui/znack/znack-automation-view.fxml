@@ -18,24 +18,24 @@
        <Button fx:id="accountSettingsButton" onAction="#showAccountSettings" text="%znack.account.open_settings"/>
        <Button fx:id="refreshAccountButton" onAction="#refreshAccountInfo" styleClass="btn-primary" text="%znack.account.refresh"/>
       </HBox>
-      <HBox fx:id="accountOwnerCard" spacing="16" alignment="CENTER_LEFT" styleClass="card">
-       <VBox spacing="6" HBox.hgrow="ALWAYS">
+      <VBox fx:id="accountOwnerCard" spacing="8" styleClass="card" minWidth="0">
+       <VBox spacing="6" minWidth="0" maxWidth="Infinity">
         <Label fx:id="accountOwnerTitleLabel" styleClass="text-muted" text="%znack.account.owner"/>
         <Label fx:id="accountOwnerLabel" styleClass="h3" wrapText="true"/>
         <Label fx:id="accountInnLabel" styleClass="text-muted"/>
        </VBox>
-       <Label fx:id="accountStatusLabel" styleClass="activation-warning" wrapText="true" maxWidth="260"/>
-      </HBox>
+       <Label fx:id="accountStatusLabel" styleClass="activation-warning" wrapText="true" minWidth="0" maxWidth="Infinity"/>
+      </VBox>
       <HBox spacing="16">
        <VBox fx:id="accountBalanceCard" minWidth="0" maxWidth="Infinity" spacing="10" styleClass="card" HBox.hgrow="ALWAYS">
         <Label fx:id="accountBalanceTitleLabel" styleClass="text-muted" text="%znack.account.balance"/>
-        <Label fx:id="accountBalanceLabel" styleClass="h2"/>
+        <Label fx:id="accountBalanceLabel" styleClass="h2" wrapText="true" minWidth="0" maxWidth="Infinity"/>
         <ComboBox fx:id="accountBalanceCombo" maxWidth="Infinity" promptText="%znack.account.choose_balance" visible="false" managed="false"/>
         <Label fx:id="accountBalanceUpdatedLabel" styleClass="text-muted" wrapText="true"/>
        </VBox>
        <VBox fx:id="accountCertificateCard" minWidth="0" maxWidth="Infinity" spacing="10" styleClass="card" HBox.hgrow="ALWAYS">
         <Label fx:id="accountCertificateTitleLabel" styleClass="text-muted" text="%znack.account.certificate"/>
-        <Label fx:id="accountCertificateLabel" styleClass="h2"/>
+        <Label fx:id="accountCertificateLabel" styleClass="h2" wrapText="true" minWidth="0" maxWidth="Infinity"/>
         <Label fx:id="accountCertificateDaysLabel" styleClass="text-muted" wrapText="true"/>
        </VBox>
       </HBox>
@@ -124,7 +124,7 @@
         <Label fx:id="signatureTitleLabel" styleClass="h3" text="%znack.digital_signature"/>
         <ComboBox fx:id="signatureCertificateCombo" minWidth="0" maxWidth="Infinity"/>
         <Button fx:id="testSignatureButton" onAction="#testSignature" styleClass="btn-primary" text="%znack.signature.test"><tooltip><Tooltip text="%znack.signature.help"/></tooltip></Button>
-        <Label fx:id="signatureSummaryLabel" styleClass="text-muted"/>
+        <Label fx:id="signatureSummaryLabel" styleClass="text-muted" wrapText="true"/>
        </VBox>
       </GridPane>
       <CheckBox fx:id="autoIntroductionCheck" text="%znack.auto_introduction" visible="false" managed="false"/>

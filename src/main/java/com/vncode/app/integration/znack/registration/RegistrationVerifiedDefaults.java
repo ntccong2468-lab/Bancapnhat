@@ -10,9 +10,6 @@ import static com.vncode.app.integration.znack.registration.ZnackCardRegistratio
 public final class RegistrationVerifiedDefaults {
     private static final Set<Long> SUPPORTED=Set.of(13836L);
     private static final long PRODUCTION_COUNTRY=2630L;
-    // Explicit owner configuration; this name must still resolve through the current
-    // official dictionary. It is not an inferred country or a hard-coded dictionary ID.
-    private static final String OWNER_PRODUCTION_COUNTRY="Россия";
     private static final Set<String> PRODUCTION_COUNTRY_FIELDS=Set.of("странапроизводства","странаизготовления","странаизготовитель","countryofmanufacture","manufacturingcountry","productioncountry","nướcsảnxuất","quốcgiasảnxuất");
     private RegistrationVerifiedDefaults(){}
 
@@ -24,7 +21,8 @@ public final class RegistrationVerifiedDefaults {
     static Draft apply(Draft draft,List<Attribute> schema,Map<Long,String> verified,ProductSnapshot source){
         return fill(draft,schema,verified,source,SUPPORTED);
     }
-    /** The seller's default is Russia; an explicit source country is resolved without replacing it. */
+    /** Resolve only a country explicitly present in the product source. Missing or conflicting
+     * evidence remains blank for the seller to review; a document or location is not proof. */
     static String productionCountry(ProductSnapshot source,List<Attribute> schema,BiFunction<String,List<Attribute>,String> resolve){
         var fields=schema.stream().filter(attribute->attribute.id()==PRODUCTION_COUNTRY).toList();
         if(fields.size()!=1)return "";
@@ -32,7 +30,8 @@ public final class RegistrationVerifiedDefaults {
         var codes=new LinkedHashSet<String>();
         for(String sourceValue:sourceValues){String code=resolve.apply(sourceValue,schema);if(code==null||code.isBlank())return "";codes.add(code);}
         if(codes.size()>1)return "";
-        String value=codes.isEmpty()?resolve.apply(OWNER_PRODUCTION_COUNTRY,schema):codes.getFirst();
+        if(codes.isEmpty())return "";
+        String value=codes.getFirst();
         return value!=null&&field.presets().contains(value)&&RegistrationAttributeRules.validFieldValue(field,value)?value:"";
     }
     /** Applies only an ISO country allowed by the current enriched Catalog country dictionary. */

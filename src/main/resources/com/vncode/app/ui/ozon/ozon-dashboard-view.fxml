@@ -35,6 +35,7 @@
                     </children>
                 </VBox>
                 <ProgressIndicator fx:id="loadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" visible="false" />
+                <Button fx:id="cancelSelectionButton" onAction="#onCancelSelection" text="%ozon.batch.cancel_selection" visible="false" managed="false" />
                 <Button fx:id="kizInventoryButton" onAction="#onOpenKizInventory" text="%kiz.shipment.title" styleClass="btn-secondary" prefHeight="46"/>
                 <Button fx:id="addAgainKizButton" visible="false" managed="false" onAction="#onAddAgainKiz" text="%kn3.batch.title" styleClass="btn-primary"/>
 <Button fx:id="printAllButton" disable="true" mnemonicParsing="false" onAction="#onPrintAll" prefHeight="46.0" styleClass="btn-success" text="Print all">
@@ -48,12 +49,12 @@
         </FlowPane>
         <Label fx:id="statusLabel" styleClass="text-muted" wrapText="true" />
         <Label fx:id="workflowLabel" styleClass="text-muted" wrapText="true" visible="false" managed="false" />
-        <HBox spacing="8.0" alignment="CENTER_LEFT" styleClass="surface filter-bar">
-            <TextField fx:id="postingSearch" HBox.hgrow="ALWAYS" minWidth="100.0" />
+        <FlowPane hgap="8.0" vgap="8.0" alignment="CENTER_LEFT" styleClass="surface filter-bar">
+            <TextField fx:id="postingSearch" prefWidth="320.0" minWidth="100.0" />
             <Button fx:id="clearSearchButton" onAction="#onClearSearch" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-x" iconSize="15" /></graphic></Button>
             <Button fx:id="selectFilteredButton" onAction="#onSelectFiltered" text="Select all filtered"/>
             <Button fx:id="clearBatchSelectionButton" onAction="#onClearBatchSelection" text="Clear selection"/>
-        </HBox>
+        </FlowPane>
         <VBox spacing="8.0" VBox.vgrow="ALWAYS">
             <children>
                 <VBox spacing="8.0" VBox.vgrow="ALWAYS">

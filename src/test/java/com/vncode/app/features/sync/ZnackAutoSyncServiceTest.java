@@ -76,9 +76,36 @@ class ZnackAutoSyncServiceTest {
         snapshot=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),"OTHER",snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),snapshot.variants(),snapshot.dimensions(),snapshot.documents(),snapshot.checkedAt(),snapshot.metadata());
         assertEquals("OZON_SKU_GTIN_MISMATCH",assertThrows(IllegalArgumentException.class,()->review.select(shop,run.id(),items)).getMessage());assertEquals(0,writes);
     }
-    @Test void onlyExplicitlyRegisteredExactWbCardIsAutomaticallyLinkedThenVerified()throws Exception{automaticRegistration(Marketplace.WILDBERRIES);}
-    @Test void onlyExplicitlyRegisteredExactOzonSkuIsAutomaticallyLinkedThenVerified()throws Exception{automaticRegistration(Marketplace.OZON);}
-    private void automaticRegistration(Marketplace market)throws Exception{
+    @Test void onlyExplicitlyRegisteredExactWbCardIsAutomaticallyLinkedThenVerified()throws Exception{automaticRegistration(Marketplace.WILDBERRIES,true);}
+    @Test void legacyWbReceiptWithOnlyOldMarketplaceConsentNeedsReviewAndNeverWrites()throws Exception{automaticRegistration(Marketplace.WILDBERRIES,false);}
+    @Test void wbAutomaticSourceConsentMustMatchTheCurrentReceiptPayloadAndOwner()throws Exception{
+        init(Marketplace.WILDBERRIES);var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
+        var scope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(settings);String now=Instant.now().toString();
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,feed_id,good_id,status,created_at,updated_at) VALUES(1,201,101,?,'synthetic-feed',91,'PUBLISHED',?,?)")){
+            p.setString(1,observation.gtin());p.setString(2,now);p.setString(3,now);p.executeUpdate();
+        }
+        new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository().bindScope(shop,201,scope);
+        assertFalse(com.vncode.app.integration.znack.registration.WbSourceConsentPolicy.permitsAutomatic(shop,key,observation.gtin()));
+        saveApprovedWbSource(scope);
+        assertTrue(com.vncode.app.integration.znack.registration.WbSourceConsentPolicy.permitsAutomatic(shop,key,observation.gtin()));
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE znack_card_registrations SET payload_json='{}' WHERE shop_id=1 AND chrt_id=201");}
+        assertFalse(com.vncode.app.integration.znack.registration.WbSourceConsentPolicy.permitsAutomatic(shop,key,observation.gtin()));
+    }
+    @Test void onlyExplicitlyRegisteredExactOzonSkuIsAutomaticallyLinkedThenVerified()throws Exception{automaticRegistration(Marketplace.OZON,true);}
+    @Test void legacyOzonReceiptWithOnlyOldMarketplaceConsentNeedsReviewAndNeverWrites()throws Exception{automaticRegistration(Marketplace.OZON,false);}
+    @Test void pauseOrAdvanceCannotCreateSellerApprovalAndNewChildDoesNotInheritIt()throws Exception{
+        init(Marketplace.OZON);service.step(shop,"");var reports=new SyncRunRepository();String run=reports.list(shop.getId(),0,10).getFirst().id();
+        var selected=new ZnackGtinReviewService(s->{},service,(s,k)->snapshot).select(shop,run,reports.items(run,0,10));
+        var first=catalog.preview(shop,selected,new CatalogSyncModels.Options(Set.of(CatalogSyncModels.Field.GTIN),Map.of()));first=catalog.confirm(shop,first.id());
+        reports.linkReviewed(shop,run,first,false);assertEquals("REGISTRATION_AUTO",approval(reports,run));
+        reports.linkReviewed(shop,run,first,false);assertEquals("REGISTRATION_AUTO",approval(reports,run));
+        reports.linkReviewed(shop,run,first,true);assertEquals("SELLER_REVIEWED",approval(reports,run));
+        reports.linkReviewed(shop,run,first,false);assertEquals("SELLER_REVIEWED",approval(reports,run));
+        var second=catalog.preview(shop,selected,new CatalogSyncModels.Options(Set.of(CatalogSyncModels.Field.GTIN),Map.of()));second=catalog.confirm(shop,second.id());
+        reports.linkReviewed(shop,run,second,false);assertEquals("REGISTRATION_AUTO",approval(reports,run));assertEquals(0,writes);
+    }
+    private String approval(SyncRunRepository reports,String run){return com.google.gson.JsonParser.parseString(reports.items(run,0,10).getFirst().evidence()).getAsJsonObject().get("gtinApproval").getAsString();}
+    private void automaticRegistration(Marketplace market,boolean reviewedSource)throws Exception{
         init(market);
         var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
         var scope=com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(settings);
@@ -88,10 +115,12 @@ class ZnackAutoSyncServiceTest {
                 p.setString(1,observation.gtin());p.setString(2,now);p.setString(3,now);p.executeUpdate();
             }
             new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository().bindScope(shop,201,scope);
+            if(reviewedSource)saveApprovedWbSource(scope);
         }else{
             try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_card_registrations(shop_id,product_id,offer_id,sku,status,gtin,feed_id,good_id,scope_json,owner,created_at,updated_at) VALUES(2,'101','offer-a','501','PUBLISHED',?,'synthetic-feed',91,?,?,?,?)")){
                 p.setString(1,observation.gtin());p.setString(2,ProductJson.GSON.toJson(scope));p.setString(3,ListingIdentity.fingerprint(shop));p.setString(4,now);p.setString(5,now);p.executeUpdate();
             }
+            if(reviewedSource)saveApprovedOzonSource(scope);
         }
         com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.set(shop,key,observation.gtin(),true);
         var candidate=new com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.Candidate(key.cardId(),key.variantId(),observation.gtin());
@@ -101,10 +130,39 @@ class ZnackAutoSyncServiceTest {
         com.vncode.app.integration.znack.registration.RegistrationMarketplaceConsent.set(shop,key,observation.gtin(),true);
         service.step(shop,"");assertEquals(0,writes);
         service.step(shop,"");assertEquals(0,writes,"Authorization and linking must be durable before dispatch");
-        var runs=new SyncRunRepository();var active=runs.active(shop,"znack_marketplace").orElseThrow();
+        var runs=new SyncRunRepository();
+        if(!reviewedSource){var latest=runs.list(shop.getId(),0,10).getFirst();var item=runs.items(latest.id(),0,10).getFirst();assertEquals("AWAITING_CONFIRMATION",item.state());assertTrue(item.childJob().isBlank());return;}
+        var active=runs.active(shop,"znack_marketplace").orElseThrow();
         var item=runs.items(active,0,10).getFirst();assertFalse(item.childJob().isBlank());assertTrue(catalog.read(shop,item.childJob()).confirmed());
         for(int n=0;n<5;n++)if(service.step(shop,"").complete())break;
         assertEquals(1,writes);assertEquals("SUCCEEDED",runs.items(active,0,10).getFirst().state());assertTrue(barcodes.contains(observation.gtin()));
+    }
+    private void saveApprovedWbSource(com.vncode.app.integration.znack.registration.ZnackRegistrationScope scope)throws Exception{
+        String run=java.util.UUID.randomUUID().toString(),now=Instant.now().toString();
+        String payload="{\"gtin\":\""+observation.gtin()+"\",\"good_id\":91}";
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            try(var p=c.prepareStatement("UPDATE znack_card_registrations SET payload_json=? WHERE shop_id=1 AND nm_id=101 AND chrt_id=201")){p.setString(1,payload);p.executeUpdate();}
+            try(var p=c.prepareStatement("INSERT INTO znack_registration_batches(id,shop_id,owner,scope,auto_sign,state,created_at,updated_at) VALUES(?,1,?,?,1,'COMPLETED',?,?)")){
+                p.setString(1,run);p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,ProductJson.GSON.toJson(scope));p.setString(4,now);p.setString(5,now);p.executeUpdate();
+            }
+            try(var p=c.prepareStatement("INSERT INTO znack_registration_batch_items(run_id,position,sku_json,state,feed_id,updated_at) VALUES(?,0,'{\"nmId\":101,\"chrtId\":201}','SUBMITTED','synthetic-feed',?)")){p.setString(1,run);p.setString(2,now);p.executeUpdate();}
+            s.execute("CREATE TABLE IF NOT EXISTS znack_source_consents(run_id TEXT,position INTEGER,shop_id INTEGER,marketplace TEXT,product_id TEXT,variant_id TEXT,owner TEXT,scope TEXT,phase TEXT,expected_gtin_hash TEXT,submission_hash TEXT)");
+            try(var p=c.prepareStatement("INSERT INTO znack_source_consents(run_id,position,shop_id,marketplace,product_id,variant_id,owner,scope,phase,expected_gtin_hash,submission_hash) VALUES(?,0,1,'WILDBERRIES','101','201',?,?,'SUBMITTED',?,?)")){
+                p.setString(1,run);p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,RegisteredGtinProof.source(shop));p.setString(4,ListingIdentity.hash(observation.gtin()));p.setString(5,ListingIdentity.hash(ListingIdentity.canonical(com.google.gson.JsonParser.parseString(payload))));p.executeUpdate();
+            }
+        }
+    }
+    private void saveApprovedOzonSource(com.vncode.app.integration.znack.registration.ZnackRegistrationScope scope)throws Exception{
+        String run=new com.vncode.app.integration.znack.registration.OzonRegistrationBatchRepository().create(shop,List.of(key),true,scope);
+        String payload="{\"gtin\":\""+observation.gtin()+"\",\"good_id\":91}";
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            try(var p=c.prepareStatement("UPDATE ozon_card_registrations SET payload_json=? WHERE shop_id=2 AND product_id='101'")){p.setString(1,payload);p.executeUpdate();}
+            try(var p=c.prepareStatement("UPDATE ozon_registration_batch_items SET feed_id='synthetic-feed' WHERE run_id=?")){p.setString(1,run);p.executeUpdate();}
+            s.execute("CREATE TABLE IF NOT EXISTS znack_source_consents(run_id TEXT,position INTEGER,shop_id INTEGER,marketplace TEXT,product_id TEXT,variant_id TEXT,owner TEXT,scope TEXT,phase TEXT,expected_gtin_hash TEXT,submission_hash TEXT)");
+            try(var p=c.prepareStatement("INSERT INTO znack_source_consents(run_id,position,shop_id,marketplace,product_id,variant_id,owner,scope,phase,expected_gtin_hash,submission_hash) VALUES(?,0,2,'OZON','101','offer-a',?,?,'SUBMITTED',?,?)")){
+                p.setString(1,run);p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,RegisteredGtinProof.source(shop));p.setString(4,ListingIdentity.hash(observation.gtin()));p.setString(5,ListingIdentity.hash(ListingIdentity.canonical(com.google.gson.JsonParser.parseString(payload))));p.executeUpdate();
+            }
+        }
     }
     @Test void wbSecondClickKeepsTheVerifiedResultAndSkipsTheCompletedWrite()throws Exception{reusesVerified(Marketplace.WILDBERRIES);}
     @Test void ozonSecondClickKeepsTheVerifiedResultAndSkipsTheCompletedWrite()throws Exception{reusesVerified(Marketplace.OZON);}

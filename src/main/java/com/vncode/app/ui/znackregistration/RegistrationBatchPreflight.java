@@ -106,8 +106,12 @@ return readComplete(owner,selected,entered,documents,Map.of());
     }
     static boolean show(javafx.stage.Window window,Shop owner,Review review){return show(window,owner,review,false);}
     static boolean show(javafx.stage.Window window,Shop owner,Review review,boolean reviewAllFields){
-        if(!reviewAllFields&&review.findings().isEmpty())return true;
-        return new Editor(window,owner,review,reviewAllFields).show();
+        return reviewed(window,owner,review,reviewAllFields)!=null;
+    }
+    /** The final fresh facts are needed for one seller confirmation of the whole frozen selection. */
+    static Review reviewed(javafx.stage.Window window,Shop owner,Review review,boolean reviewAllFields){
+        if(!reviewAllFields&&review.findings().isEmpty())return review;
+        var editor=new Editor(window,owner,review,reviewAllFields);return editor.show()?editor.review:null;
     }
     static boolean sameFacts(RegistrationDynamicPreflight.Review before,RegistrationDynamicPreflight.Review after){
         if(before.plans().size()!=after.plans().size())return false;var old=new HashMap<ProductKey,RegistrationDynamicPreflight.Plan>();before.plans().forEach(p->old.put(p.snapshot().key(),p));

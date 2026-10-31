@@ -134,6 +134,7 @@ public final class OzonExemplarService {
         if (selected.isEmpty()) throw new IllegalArgumentException("At least one Ozon posting is required.");
         List<OzonPreparationResult> prepared = new ArrayList<>();
         Map<String, String> failures = new LinkedHashMap<>();
+        Map<String, OzonApiException> apiFailures = new LinkedHashMap<>();
         int done = 0;
         try (var databaseSession = Database.openBatchSession()) {
             for (int start = 0; start < selected.size(); start += READ_AHEAD) {
@@ -156,6 +157,7 @@ public final class OzonExemplarService {
                         } catch (IOException | IllegalStateException failure) {
                             requireNotInterrupted();
                             failures.put(window.get(index), safePreparationFailure(failure));
+                            if(failure instanceof OzonApiException apiFailure)apiFailures.put(window.get(index),apiFailure);
                         }
                         if (completed != null) completed.accept(++done);
                     }
@@ -166,7 +168,7 @@ public final class OzonExemplarService {
                 }
             }
         }
-        return new BatchPreparationResult(List.copyOf(prepared), java.util.Collections.unmodifiableMap(failures));
+        return new BatchPreparationResult(List.copyOf(prepared), java.util.Collections.unmodifiableMap(failures),java.util.Collections.unmodifiableMap(apiFailures));
     }
 
     private static OzonPostingDto await(Future<OzonPostingDto> read) throws IOException {
@@ -226,7 +228,7 @@ public final class OzonExemplarService {
         }
     }
 
-    public record BatchPreparationResult(List<OzonPreparationResult> results, Map<String, String> failed) {
+    public record BatchPreparationResult(List<OzonPreparationResult> results, Map<String, String> failed,Map<String,OzonApiException> apiFailures) {
         public int completedCount() { return results.size() + failed.size(); }
     }
 

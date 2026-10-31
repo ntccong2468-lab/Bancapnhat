@@ -25,7 +25,8 @@ public final class GtinPreviewService {
         var product=adapter.read(key);
         if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");
         adapter.validateProduct(key);
-        adapter.validateIdentity(product,observed);
+        product=adapter.prepareIdentity(product,observed);
+        if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");
         if(RegisteredGtinProof.contains(product.barcodes(),newGtin))throw new IllegalArgumentException("already_present");
         if(operation==Operation.REPLACE && (oldGtin==null || oldGtin.isBlank() || RegisteredGtinProof.sameCode(oldGtin,newGtin) || !RegisteredGtinProof.contains(product.barcodes(),oldGtin)))
             throw new IllegalArgumentException("old_gtin_not_found");
@@ -36,23 +37,40 @@ public final class GtinPreviewService {
     }
     /** ADD-only batch validation; production adapters reuse a fresh, run-scoped catalog index. */
     public List<Preview> createAdds(Map<ProductKey,String> requested)throws Exception {
+        return createAdds(requested,null);
+    }
+    /** Validate each member once, preserving independent per-product failures. */
+    public List<Preview> createAddsCollecting(Map<ProductKey,String> requested,java.util.function.BiConsumer<ProductKey,Exception> failed)throws Exception {
+        return createAdds(requested,Objects.requireNonNull(failed));
+    }
+    private List<Preview> createAdds(Map<ProductKey,String> requested,java.util.function.BiConsumer<ProductKey,Exception> failed)throws Exception {
         if(requested.isEmpty()||requested.size()>GtinBatchAdapter.MAX_PLAN_ROWS)throw new IllegalArgumentException("invalid_selection");
         var first=requested.keySet().iterator().next();var adapter=adapters.apply(first);
-        if(!(adapter instanceof GtinBatchAdapter batch)){var result=new ArrayList<Preview>();for(var e:requested.entrySet())result.add(create(e.getKey(),Operation.ADD,"",e.getValue()));return List.copyOf(result);}
+        if(!(adapter instanceof GtinBatchAdapter batch)){
+            var result=new ArrayList<Preview>();
+            for(var e:requested.entrySet())try{result.add(create(e.getKey(),Operation.ADD,"",e.getValue()));}
+            catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException|RegisteredGtinProof.UnverifiedOwnerException denied){throw denied;}
+            catch(Exception invalid){if(failed==null)throw invalid;failed.accept(e.getKey(),invalid);}
+            return List.copyOf(result);
+        }
         if(requested.keySet().stream().anyMatch(k->k.shopId()!=first.shopId()||k.marketplace()!=first.marketplace()))throw new IllegalArgumentException("mixed_shops");
         var owners=new HashMap<String,ProductKey>();for(var entry:requested.entrySet()){var previous=owners.putIfAbsent(RegisteredGtinProof.canonicalCode(entry.getValue()),entry.getKey());if(previous!=null&&!previous.equals(entry.getKey()))throw new IllegalArgumentException("GTIN_SELECTED_MULTIPLE_PRODUCTS");}
         LicenseRuntime.require(Permission.SELLER_API);batch.prepareBatch(requested.keySet());
         var observed=repository.catalogItems(first.shopId(),first.marketplace(),requested.values());batch.validateRegistrations(requested.values());
         var now=clock.instant();var result=new ArrayList<Preview>();
         for(var e:requested.entrySet()){
-            var key=e.getKey();String gtin=e.getValue();var capability=adapter.capability(key);var source=observed.get(gtin);
-            if(!capability.add())throw new IllegalArgumentException("unsupported_operation");
-            if(!RegisteredGtinValidator.isValid(gtin))throw new IllegalArgumentException("invalid_gtin");
-            if(!RegisteredGtinProof.currentObservation(source,now))throw new IllegalArgumentException("unverified_catalog_gtin");
-            var product=adapter.read(key);if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");adapter.validateProduct(key);adapter.validateIdentity(product,source);
-            if(RegisteredGtinProof.contains(product.barcodes(),gtin))throw new IllegalArgumentException("already_present");
-            if(adapter.conflicts(key,gtin))throw new IllegalArgumentException("gtin_on_another_product");
-            result.add(new Preview(product,Operation.ADD,"",gtin,capability));
+            var key=e.getKey();
+            try {
+                String gtin=e.getValue();var capability=adapter.capability(key);var source=observed.get(gtin);
+                if(!capability.add())throw new IllegalArgumentException("unsupported_operation");
+                if(!RegisteredGtinValidator.isValid(gtin))throw new IllegalArgumentException("invalid_gtin");
+                if(!RegisteredGtinProof.currentObservation(source,now))throw new IllegalArgumentException("unverified_catalog_gtin");
+                var product=adapter.read(key);if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");adapter.validateProduct(key);product=adapter.prepareIdentity(product,source);if(!product.key().equals(key))throw new IllegalArgumentException("product_mismatch");
+                if(RegisteredGtinProof.contains(product.barcodes(),gtin))throw new IllegalArgumentException("already_present");
+                if(adapter.conflicts(key,gtin))throw new IllegalArgumentException("gtin_on_another_product");
+                result.add(new Preview(product,Operation.ADD,"",gtin,capability));
+            } catch(com.vncode.app.features.license.LicenseGate.LicenseDeniedException|SecurityException|RegisteredGtinProof.UnverifiedOwnerException denied){throw denied;}
+            catch(Exception invalid){if(failed==null)throw invalid;failed.accept(key,invalid);}
         }return List.copyOf(result);
     }
 }

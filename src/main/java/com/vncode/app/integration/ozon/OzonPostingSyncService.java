@@ -47,20 +47,23 @@ public final class OzonPostingSyncService {
         Instant start = startFor(state.find(shopId), end);
         int postingCount = 0;
         int itemCount = 0;
+        boolean incomplete = false;
         String cursor = "";
         var cursors=new java.util.HashSet<String>();
         try {
             for (int pageNumber = 0; pageNumber < MAX_PAGES; pageNumber++) {
                 if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("OZON_SYNC_CANCELLED");
                 LicenseRuntime.require(SELLER_API);
-                OzonJson.PostingPage page = OzonJson.requirePostingPage(
-                        api.listPostings(start.toString(), end.toString(), cursor, PAGE_SIZE));
+                Instant started=Instant.now();
+                var raw=api.listPostings(start.toString(), end.toString(), cursor, PAGE_SIZE);
+                OzonJson.PostingPage page = OzonJson.requirePostingPage(raw);
                 if (page.hasNext() && !cursors.add(page.cursor())) throw new IOException("FBS_INVALID_CURSOR");
                 api.requireSyncOwner(shopId);
-                postings.upsertPage(shopId, page.postings());
+                incomplete |= !saveListPage(raw,page,started);
                 postingCount += page.postings().size();
                 itemCount += page.postings().stream().mapToInt(posting -> posting.items().size()).sum();
                 if (!page.hasNext()) {
+                    if(incomplete)throw new IOException("FBS_INCOMPLETE_POSTING");
                     state.advancePostings(shopId, end.toString());
                     return new OzonSyncReport(0, postingCount, itemCount);
                 }
@@ -89,19 +92,22 @@ public final class OzonPostingSyncService {
         String cutoffFrom = now.minus(ACTIVE_CUTOFF_PAST).toString();
         String cutoffTo = now.plus(ACTIVE_CUTOFF_FUTURE).toString();
         int postingCount = 0;
+        boolean incomplete = false;
         String cursor = "";
         var cursors=new java.util.HashSet<String>();
         try {
             for (int pageNumber = 0; pageNumber < MAX_PAGES; pageNumber++) {
                 if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("OZON_SYNC_CANCELLED");
                 LicenseRuntime.require(SELLER_API);
-                OzonJson.PostingPage page = OzonJson.requirePostingPage(api.listUnfulfilledPostings(
-                        cutoffFrom, cutoffTo, cursor, PAGE_SIZE));
+                Instant started=Instant.now();
+                var raw=api.listUnfulfilledPostings(cutoffFrom, cutoffTo, cursor, PAGE_SIZE);
+                OzonJson.PostingPage page = OzonJson.requireQueuePage(raw);
                 if (page.hasNext() && !cursors.add(page.cursor())) throw new IOException("FBS_INVALID_CURSOR");
                 api.requireSyncOwner(shopId);
-                postings.upsertPage(shopId, page.postings());
+                incomplete |= !saveListPage(raw,page,started);
                 postingCount += page.postings().size();
                 if (!page.hasNext()) {
+                    if(incomplete)throw new IOException("FBS_INCOMPLETE_POSTING");
                     return postingCount;
                 }
                 cursor = page.cursor();
@@ -121,13 +127,46 @@ public final class OzonPostingSyncService {
         }
     }
 
+    private boolean saveListPage(com.google.gson.JsonObject raw,OzonJson.PostingPage page,Instant started)throws IOException {
+        var container=raw.has("result")&&raw.get("result").isJsonObject()?raw.getAsJsonObject("result"):raw;
+        var items=container.getAsJsonArray("postings");var usable=new java.util.ArrayList<OzonPostingDto>();boolean complete=true;
+        for(int i=0;i<page.postings().size();i++){
+            var posting=page.postings().get(i);
+            if(!posting.status().equals("unknown")&&OzonJson.hasCompletePostingDetails(items.get(i).getAsJsonObject(),posting))usable.add(posting);
+            else {
+                try {
+                    var detail=api.getPosting(posting.postingNumber(),false);
+                    var full=OzonJson.requirePostingDetail(detail,posting.postingNumber());
+                    var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;
+                    if(!full.status().equals("unknown")&&OzonJson.hasCompletePostingDetails(object,full))usable.add(full);
+                    else {api.requireSyncOwner(shopId);postings.recordIncomplete(shopId,posting,started);complete=false;}
+                }catch(OzonApiException unavailable){
+                    api.requireSyncOwner(shopId);postings.recordIncomplete(shopId,posting,started);
+                    if(unavailable.statusCode()!=404)throw unavailable;
+                    complete=false;
+                }
+            }
+        }
+        api.requireSyncOwner(shopId);return postings.upsertPageIfUnchanged(shopId,usable,started)==usable.size()&&complete;
+    }
+
     public OzonPostingDto refresh(String postingNumber, boolean withExemplars) throws IOException {
         LicenseRuntime.require(SELLER_API);
         api.requireSyncOwner(shopId);
-        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, withExemplars),postingNumber);
+        Instant started=Instant.now();
+        var raw=api.getPosting(postingNumber, withExemplars);
+        OzonPostingDto posting = OzonJson.requirePostingDetail(raw,postingNumber);
         api.requireSyncOwner(shopId);
-        postings.upsertDetail(shopId, posting);
-        return posting;
+        var object=raw.has("result")&&raw.get("result").isJsonObject()?raw.getAsJsonObject("result"):raw;
+        if(!OzonJson.hasCompletePostingDetails(object,posting)){
+            if(OzonJson.isTerminalPosting(posting)&&postings.find(shopId,postingNumber)!=null){
+                postings.updateStatusPageIfUnchanged(shopId,List.of(posting),started,started);
+                return postings.find(shopId,postingNumber);
+            }
+            postings.recordIncomplete(shopId,posting,started);throw new IOException("FBS_INCOMPLETE_POSTING");
+        }
+        int written=postings.upsertPageIfUnchanged(shopId,List.of(posting),started);
+        return written==0?postings.find(shopId,postingNumber):posting;
     }
 
     /**

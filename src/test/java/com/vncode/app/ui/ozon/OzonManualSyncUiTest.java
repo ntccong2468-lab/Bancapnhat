@@ -34,8 +34,8 @@ class OzonManualSyncUiTest {
                     case "/v2/warehouse/list" -> "{\"warehouses\":[]}";
                     case "/v4/posting/fbs/unfulfilled/list","/v4/posting/fbs/list" -> "{\"postings\":[],\"has_next\":false,\"cursor\":\"\"}";
                     case "/v3/posting/fbs/get" -> "{\"result\":{\"posting_number\":\"OLD\",\"status\":\"cancelled\",\"products\":[]}}";
-                    case "/v3/product/list" -> {starts.add(com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("last_id").getAsString());yield "{\"result\":{\"items\":[{\"product_id\":321,\"offer_id\":\"O-1\"}],\"last_id\":\"done\"}}";}
-                    case "/v3/product/info/list" -> "{\"items\":[{\"id\":321,\"offer_id\":\"O-1\",\"sku\":11,\"name\":\""+title.get()+"\"}]}";
+                    case "/v3/product/list" -> {starts.add(com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("last_id").getAsString());yield "{\"result\":{\"items\":[{\"product_id\":321,\"offer_id\":\"O-1\"}],\"total_items\":1,\"last_id\":\"done\"}}";}
+                    case "/v3/product/info/list" -> "{\"items\":[{\"id\":321,\"offer_id\":\"O-1\",\"sku\":11,\"name\":\""+title.get()+"\",\"barcodes\":[]}]}";
                     case "/v4/product/info/attributes" -> "{\"result\":[{\"id\":321,\"offer_id\":\"O-1\",\"description_category_id\":9,\"type_id\":8,\"attributes\":[]}]}";
                     default -> "{\"result\":[]}";
                 };return new MockResponse().setHeader("Content-Type","application/json").setBody(data);

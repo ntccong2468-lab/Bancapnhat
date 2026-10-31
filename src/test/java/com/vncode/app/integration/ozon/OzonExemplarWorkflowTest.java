@@ -93,6 +93,14 @@ class OzonExemplarWorkflowTest {
         assertEquals(1, count("SELECT COUNT(*) FROM ozon_exemplars"));
         assertEquals(1, count("SELECT COUNT(*) FROM kiz_codes WHERE status='RESERVED'"));
     }
+    @Test void rateLimitedDetailPrefetchRetainsTyped429ForThePrintQueue()throws Exception{
+        server.enqueue(new MockResponse().setResponseCode(429).setHeader("Retry-After","0").setBody("{}"));
+        var operation=OzonPrintBundleService.defaultPreparation(service()).forBatch(shop);
+        operation.prefetch(shop,java.util.List.of("POST-1"));
+        var error=org.junit.jupiter.api.Assertions.assertThrows(OzonApiException.class,()->operation.prepare(shop,"POST-1"));
+        assertEquals(429,error.statusCode());assertEquals(1,server.getRequestCount());
+        assertEquals(0,count("SELECT COUNT(*) FROM ozon_exemplar_jobs"));
+    }
     @Test void productionPrintFlowUsesCategoryStockWithDifferentGtinAndReusesItsDurableProof()throws Exception{
         new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("9001","sku-a","101","Synthetic","",false,"",java.util.List.of())),"");
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}

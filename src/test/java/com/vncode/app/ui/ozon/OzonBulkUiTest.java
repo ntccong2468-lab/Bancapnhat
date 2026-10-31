@@ -55,7 +55,7 @@ class OzonBulkUiTest {
                 remoteCalls.incrementAndGet(); throw new AssertionError("This UI test must not call Ozon");
             })));
             window = new Stage(); window.setScene(new Scene(loader.load(), 1024, 650)); window.show();
-            controller = loader.getController(); return null;
+            controller = loader.getController(); controller.setQueueReadiness((owner,stopped)->{}); return null;
         });
     }
     @AfterEach void cleanup() throws Exception {
@@ -97,6 +97,62 @@ class OzonBulkUiTest {
             assertTrue(selected().stream().allMatch(number -> number.contains("order-10")));
             assertEquals(12, table("newOrdersTable").getItems().size()); return null;
         });
+    }
+
+    @Test void moreThanTenThousandOrdersRemainBrowsableAndCanBeSelectedAcrossPages() throws Exception {
+        var repository=new OzonPostingRepository();
+        for(int first=0;first<10_001;first+=1000){
+            var values=new ArrayList<OzonPostingDto>();
+            for(int i=first;i<Math.min(first+1000,10_001);i++)values.add(posting("large-"+i,"awaiting_packaging"));
+            repository.upsertPage(1,values);
+        }
+        fx(()->{controller.setShop(shop,false);return null;});
+        awaitFx(30,()->table("newOrdersTable").getItems().size()==100,()->"First page was not rendered");
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(30,()->selected().size()==10_001,()->"Selection did not include every matching order");
+        assertEquals(100,fx(()->table("newOrdersTable").getItems().size()));
+        assertTrue(fx(()->node("newOrdersTab",Tab.class).getText().contains("10001")));
+    }
+
+    @Test void sellerCanCancelSelectionWhileQueueIsStillSyncing() throws Exception {
+        var entered=new CountDownLatch(1);var stopped=new CountDownLatch(1);
+        new OzonPostingRepository().upsertDetail(1,posting("waiting-sync","awaiting_packaging"));
+        fx(()->{controller.setQueueReadiness((owner,cancelled)->{entered.countDown();try{while(!cancelled.getAsBoolean())Thread.sleep(25);}catch(InterruptedException expected){Thread.currentThread().interrupt();}finally{stopped.countDown();}throw new java.util.concurrent.CancellationException();});controller.setShop(shop,false);return null;});
+        awaitFx(10,()->table("newOrdersTable").getItems().size()==1,()->"Order page did not load");
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});assertTrue(entered.await(5,TimeUnit.SECONDS));
+        fx(()->{assertTrue(node("cancelSelectionButton",Button.class).isVisible());assertFalse(table("newOrdersTable").isDisabled());node("cancelSelectionButton",Button.class).fire();return null;});
+        assertTrue(stopped.await(5,TimeUnit.SECONDS));
+        awaitFx(10,()->!node("cancelSelectionButton",Button.class).isVisible()&&!node("selectFilteredButton",Button.class).isDisabled(),()->"Selection did not cancel");
+        assertTrue(fx(()->selected().isEmpty()));
+    }
+
+    @Test void acceptanceContinuesAcrossOneHundredOrdersAfterDefinite429AndKeepsUnknownPending() throws Exception {
+        var repository=new OzonPostingRepository();
+        repository.upsertPage(1,java.util.stream.IntStream.range(0,101).mapToObj(i->posting("rate-"+i,"awaiting_packaging")).toList());
+        new com.vncode.app.features.kiz.ShipmentKizRepository().saveSelection(shop,"OZON:FBS",new com.vncode.app.features.kiz.KizSourceSelection(false,false));
+        var calls=new java.util.concurrent.ConcurrentHashMap<String,AtomicInteger>();var waits=new AtomicInteger();
+        fx(()->{
+            controller.setAcceptancePause((delay,stopping)->waits.incrementAndGet());
+            controller.setPostingAcceptor((owner,number,sources)->{
+                assertNotNull(sources);assertFalse(sources.anySelected());
+                int attempt=calls.computeIfAbsent(number,key->new AtomicInteger()).incrementAndGet();
+                if(number.equals("rate-0")&&attempt==1)throw new com.vncode.app.integration.ozon.OzonApiException("rate_limited",429,true,false,null);
+                if(number.equals("rate-1"))throw new com.vncode.app.integration.ozon.OzonApiException("upstream",503,true,true,null);
+                repository.upsertDetail(1,posting(number,"awaiting_deliver"));return new OzonShipResult(number,"awaiting_deliver",false);
+            });
+            controller.setShop(shop,false);return null;
+        });
+        awaitFx(20,()->table("newOrdersTable").getItems().size()==100,()->"Orders were not rendered");
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(20,()->selected().size()==101&&stockSourceLoaded()&&!node("moveToPackingButton",Button.class).isDisabled(),()->"All orders or KIZ source choice were not loaded");
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,
+                dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow());
+        awaitFx(30,()->ShopBatchRegistry.activeCount()==0&&node("batchResultsPanel",TitledPane.class).isVisible(),()->"Batch did not complete");
+        assertEquals(101,calls.size());assertEquals(2,calls.get("rate-0").get());assertEquals(1,calls.get("rate-1").get());assertEquals(1,waits.get());
+        fx(()->{assertEquals(Set.of("rate-1"),selected());var report=node("batchResultsArea",TextArea.class).getText();
+            assertEquals(100,report.lines().filter(line->line.contains(" · "+I18nService.getInstance().tr("ozon.fbs.packaged")+" → ")).count());
+            assertTrue(report.contains("rate-1 · "+I18nService.getInstance().tr("ozon.fbs.pending")));return null;});
     }
 
     @Test void cancellingFullShipmentConfirmationStartsNoPackingOrPrintJob() throws Exception {
@@ -399,6 +455,10 @@ class OzonBulkUiTest {
     @SuppressWarnings("unchecked") private Set<String> selected() { return (Set<String>) field("selectedPostingNumbers"); }
     private boolean stockSourceReady() {
         try { return ((com.vncode.app.ui.kiz.ShipmentKizPane)field("shipmentKizPane")).snapshot().anySelected(); }
+        catch (IllegalStateException loading) { return false; }
+    }
+    private boolean stockSourceLoaded() {
+        try { ((com.vncode.app.ui.kiz.ShipmentKizPane)field("shipmentKizPane")).snapshot();return true; }
         catch (IllegalStateException loading) { return false; }
     }
     private boolean purchasedSourceReady() {

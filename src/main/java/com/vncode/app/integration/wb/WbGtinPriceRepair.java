@@ -32,6 +32,8 @@ public final class WbGtinPriceRepair {
     private static final Object[] LOCKS=new Object[64];
     static { Arrays.setAll(LOCKS,ignored->new Object()); }
     private final Shop shop; private final ListingTransport client; private final boolean pacing;
+    private final Map<String,Snapshot> prefetched=new ConcurrentHashMap<>(),ready=new ConcurrentHashMap<>();
+    private volatile boolean batchPrepared;
     public WbGtinPriceRepair(Shop shop){this(shop,new ListingHttpClient(shop,new OkHttpClient(),Objects.requireNonNull(okhttp3.HttpUrl.parse("https://discounts-prices-api.wildberries.ru/"))),true);}
     public WbGtinPriceRepair(Shop shop,ListingTransport client){this(shop,client,false);}
     WbGtinPriceRepair(Shop source,ListingTransport client,boolean pacing){
@@ -42,14 +44,18 @@ public final class WbGtinPriceRepair {
     @FunctionalInterface public interface SqlGuard {void check(Connection connection)throws SQLException;}
     public Result repair(String nmId,String anchor,Set<Long> expectedSizes,Runnable guard,Runnable priceConsentGuard)throws IOException {return repair(nmId,anchor,expectedSizes,guard,priceConsentGuard,c->{});}
     public Result repair(String nmId,String anchor,Set<Long> expectedSizes,Runnable guard,Runnable priceConsentGuard,SqlGuard claimGuard)throws IOException {
+        return repair(nmId,anchor,expectedSizes,guard,priceConsentGuard,claimGuard,()->{});
+    }
+    public Result repair(String nmId,String anchor,Set<Long> expectedSizes,Runnable guard,Runnable priceConsentGuard,SqlGuard claimGuard,ListingTransport.CheckedGuard freshProduct)throws IOException {
         Objects.requireNonNull(priceConsentGuard);Objects.requireNonNull(claimGuard);
+        Objects.requireNonNull(freshProduct);
         if(nmId==null||!nmId.matches("[1-9][0-9]{0,17}")||anchor==null||anchor.isBlank()||anchor.length()>200)throw new IllegalArgumentException("WB_PRICE_REPAIR_ID_INVALID");
         if(expectedSizes==null||expectedSizes.isEmpty()||expectedSizes.size()>1000||expectedSizes.stream().anyMatch(id->id==null||id<=0))throw new IllegalArgumentException("WB_PRICE_EXPECTED_SIZES_INVALID");
         var frozenSizes=Set.copyOf(expectedSizes);
         String key=ListingIdentity.fingerprint(shop)+"\n"+nmId;
-        synchronized(LOCKS[Math.floorMod(key.hashCode(),LOCKS.length)]){return repairLocked(nmId,anchor,frozenSizes,guard,priceConsentGuard,claimGuard);}
+        synchronized(LOCKS[Math.floorMod(key.hashCode(),LOCKS.length)]){return repairLocked(nmId,anchor,frozenSizes,guard,priceConsentGuard,claimGuard,freshProduct);}
     }
-    private Result repairLocked(String nmId,String anchor,Set<Long> expectedSizes,Runnable guard,Runnable priceConsentGuard,SqlGuard claimGuard)throws IOException {
+    private Result repairLocked(String nmId,String anchor,Set<Long> expectedSizes,Runnable guard,Runnable priceConsentGuard,SqlGuard claimGuard,ListingTransport.CheckedGuard freshProduct)throws IOException {
         Objects.requireNonNull(guard);ListingIdentity.require(shop);guard.run();init();
         Receipt prior=load(nmId,anchor);
         if(otherPending(nmId,anchor))return new Result(State.PENDING,Duration.ofSeconds(30),"WB_PRICE_OTHER_REQUEST_PENDING");
@@ -64,13 +70,13 @@ public final class WbGtinPriceRepair {
                 &&(prior==null||prior.state.equals("PLANNED")||prior.state.equals("RATE_LIMIT")))
             return new Result(State.FAILED,null,"WB_PRICE_TOKEN_LIMIT");
         Snapshot current;
-        try {current=read(nmId,guard);}catch(ListingRateLimitException rate){return rate(nmId,anchor,prior,rate);}
+        try {Snapshot cached=prior==null?prefetched.remove(nmId):null;current=cached==null?read(nmId,guard):cached;}catch(ListingRateLimitException rate){return rate(nmId,anchor,prior,rate);}
         if(!current.prices.keySet().equals(expectedSizes)){
             if(prior!=null&&(prior.state.equals("PLANNED")||prior.state.equals("RATE_LIMIT")))transition(nmId,anchor,prior.state,"FAILED",prior.task,null);
             return new Result(State.FAILED,null,"WB_PRICE_SIZE_INCOMPLETE");
         }
         if(prior!=null&&(prior.state.equals("DISPATCHING")||prior.state.equals("WAITING")||prior.state.equals("READY"))){
-            if(matches(prior,current)){transition(nmId,anchor,prior.state,"READY",prior.task,null);return new Result(State.READY,null,"");}
+            if(matches(prior,current)){transition(nmId,anchor,prior.state,"READY",prior.task,null);ready.put(nmId,current);return new Result(State.READY,null,"");}
             if(prior.state.equals("READY"))return new Result(State.FAILED,null,"WB_PRICE_CHANGED");
             if(prior.task!=null&&!prior.task.isBlank())try {if(taskFailed(prior.task,guard)){transition(nmId,anchor,prior.state,"FAILED",prior.task,null);return new Result(State.FAILED,null,"WB_PRICE_REJECTED");}}catch(ListingRateLimitException rate){return rate(nmId,anchor,prior,rate);}
             return new Result(State.PENDING,Duration.ofSeconds(30),"WB_PRICE_READBACK_PENDING");
@@ -78,6 +84,7 @@ public final class WbGtinPriceRepair {
         int target=current.average();
         if(current.equalTo(target)){
             if(!markReadyWhenUncontested(nmId,anchor,target,current.json()))return new Result(State.PENDING,Duration.ofSeconds(30),"WB_PRICE_OTHER_REQUEST_PENDING");
+            ready.put(nmId,current);
             return new Result(State.READY,null,"");
         }
         // Do not reuse a plan after the seller has changed prices while waiting for a 429.
@@ -91,7 +98,7 @@ public final class WbGtinPriceRepair {
         var dispatched=new java.util.concurrent.atomic.AtomicBoolean(false);
         try {
             await();
-            JsonElement response=client.call(endpoint,body,true,()->{guard.run();if(!read(nmId,guard).json().equals(current.json()))throw new IOException("WB_PRICE_CHANGED");await();},()->{guard.run();priceConsentGuard.run();if(!claimProductDispatch(nmId,anchor,target,current.json(),claimGuard))throw new ClaimBlocked();dispatched.set(true);});
+            JsonElement response=client.call(endpoint,body,true,()->{guard.run();if(!read(nmId,guard).json().equals(current.json()))throw new IOException("WB_PRICE_CHANGED");freshProduct.check();await();},()->{guard.run();priceConsentGuard.run();if(!claimProductDispatch(nmId,anchor,target,current.json(),claimGuard))throw new ClaimBlocked();dispatched.set(true);});
             var obj=asObject(response);if(flag(obj,"error")) {transition(nmId,anchor,"DISPATCHING","FAILED","",null);return new Result(State.FAILED,null,"WB_PRICE_REJECTED");}
             var info=obj.has("data")&&obj.get("data").isJsonObject()?obj.getAsJsonObject("data"):new JsonObject();
             String task=text(info,"id");if(!task.matches("[1-9][0-9]{0,18}"))return new Result(State.PENDING,Duration.ofSeconds(30),"WB_PRICE_RECEIPT_UNKNOWN");
@@ -129,6 +136,46 @@ public final class WbGtinPriceRepair {
         try {var before=JsonParser.parseString(receipt.before).getAsJsonObject();return text(before,"currency").equals(current.currency)&&before.get("editable").getAsBoolean()==current.editable&&before.getAsJsonObject("prices").keySet().equals(current.prices.keySet().stream().map(Object::toString).collect(java.util.stream.Collectors.toSet()))&&current.equalTo(receipt.target);}catch(RuntimeException invalid){return false;}
     }
     private Result rate(String nm,String anchor,Receipt prior,ListingRateLimitException error){return rate(nm,anchor,prior,error,false);}
+    /** WB supports up to 1,000 nmIDs for a read-only Prices request. Each product
+     * must appear exactly once; editable size prices still require the size endpoint. */
+    public void prefetch(Collection<String> ids,Runnable guard)throws IOException {
+        prefetched.clear();ready.clear();batchPrepared=false;
+        // Unknown/base tokens have a 15-minute price quota. Existing preflight
+        // rejects new guarded price work before any read, while pending receipts
+        // retain their individual readback path.
+        if(pacing&&!WbPriceApiRateLimiter.supportsGuardedPriceWrite(shop.getApiKey()))return;
+        var values=readMany(ids,guard);
+        prefetched.putAll(values);batchPrepared=true;
+    }
+    /** Re-read prices at the dispatch boundary; a cached preflight is never proof
+     * that the seller has not changed prices while the batch was waiting. */
+    public void verifyReady(Collection<String> ids,Runnable guard)throws IOException {
+        // A prior price receipt can be reconciled with a slow token, but its
+        // result is not fresh evidence after the Content API has waited.
+        if(pacing&&!WbPriceApiRateLimiter.supportsGuardedPriceWrite(shop.getApiKey()))throw new IOException("WB_PRICE_TOKEN_LIMIT");
+        if(!batchPrepared)throw new IOException("WB_PRICE_READBACK_PENDING");
+        var unique=new LinkedHashSet<>(ids);var current=readMany(unique,guard);
+        for(String id:unique){Snapshot expected=ready.get(id),actual=current.get(id);
+            if(expected==null)throw new IOException("WB_PRICE_READBACK_PENDING");
+            if(expected.editable)actual=read(id,guard);
+            if(actual==null||!actual.json().equals(expected.json()))throw new IOException("WB_PRICE_CHANGED");
+        }
+        guard.run();
+    }
+    private Map<String,Snapshot> readMany(Collection<String> ids,Runnable guard)throws IOException {
+        var all=new ArrayList<>(new LinkedHashSet<>(ids));var result=new HashMap<String,Snapshot>();
+        for(String id:all)if(id==null||!id.matches("[1-9][0-9]{0,17}"))throw new IOException("WB_PRICE_REPAIR_ID_INVALID");
+        for(int offset=0;offset<all.size();offset+=1000){var chunk=all.subList(offset,Math.min(offset+1000,all.size()));var wanted=new HashSet<>(chunk);
+            var numbers=new JsonArray();for(String id:chunk)numbers.add(Long.parseLong(id));var body=new JsonObject();body.add("nmList",numbers);
+            var goods=array(data(request("api/v2/list/goods/filter",body,guard)),"listGoods");var seen=new HashSet<String>();
+            for(var entry:goods){var item=asObject(entry);String id=text(item,"nmID");if(!wanted.contains(id)||!seen.add(id))throw new IOException("WB_PRICE_BATCH_PRODUCT_MISMATCH");
+                String currency=text(item,"currencyIsoCode4217");if(currency.isBlank())throw new IOException("WB_PRICE_CURRENCY_MISSING");
+                if(!item.has("editableSizePrice")||!item.get("editableSizePrice").isJsonPrimitive()||!item.getAsJsonPrimitive("editableSizePrice").isBoolean())throw new IOException("WB_PRICE_SIZE_MODE_MISSING");
+                if(!item.get("editableSizePrice").getAsBoolean()){var sizes=new TreeMap<Long,Integer>();for(var size:array(item,"sizes"))add(sizes,asObject(size));if(sizes.isEmpty())throw new IOException("WB_PRICE_MISSING");result.put(id,new Snapshot(currency,false,Collections.unmodifiableSortedMap(sizes)));}
+            }
+            if(!seen.equals(wanted))throw new IOException("WB_PRICE_BATCH_PRODUCT_MISMATCH");guard.run();
+        }return result;
+    }
     private Result rate(String nm,String anchor,Receipt prior,ListingRateLimitException error,boolean explicitlyRejectedDispatch){
         if(pacing)COOLDOWN.merge(ListingIdentity.fingerprint(shop),System.currentTimeMillis()+error.retryAfter().toMillis(),Math::max);
         // A 429 before upload is a known rejection. A 429 on readback must not turn

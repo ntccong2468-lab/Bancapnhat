@@ -33,22 +33,29 @@ public final class OzonRegistrationBatchService {
     public OzonRegistrationBatchService(){this(new OzonRegistrationBatchRepository(),new OzonCardRegistrationRepository(),new OzonCardRegistrationWorkflow());}
     public OzonRegistrationBatchService(OzonRegistrationBatchRepository batches,OzonCardRegistrationRepository cards,OzonCardRegistrationWorkflow workflow){this.batches=Objects.requireNonNull(batches);this.cards=Objects.requireNonNull(cards);this.workflow=Objects.requireNonNull(workflow);}
     public String start(Shop selected,List<ProductKey> keys,boolean autoSign) {
+        return start(selected,keys,autoSign,null);
+    }
+    public String start(Shop selected,List<ProductKey> keys,boolean autoSign,RegistrationSourceConsent.Prepared consent) {
         Shop shop=capture(selected);new RegistrationSources().require(shop);
         String id;
         synchronized(OzonRegistrationBatchService.class){
             var prior=batches.latest(shop);
-            if(prior!=null&&!Set.of("COMPLETED","FAILED","CANCELLED").contains(prior.state()))id=prior.id();
+            if(prior!=null&&!Set.of("COMPLETED","FAILED","CANCELLED").contains(prior.state()))throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
             else{var frozen=List.copyOf(new LinkedHashSet<>(keys));if(frozen.isEmpty()||frozen.size()>100000||frozen.stream().anyMatch(k->k.shopId()!=shop.getId()||k.marketplace()!=Marketplace.OZON))throw new IllegalArgumentException("invalid_selection");
-                var scope=scope(shop);var eligible=eligible(shop,frozen);id=OzonRegistrationAttemptReports.queue(shop,frozen);id=batches.create(shop,frozen,autoSign,scope,id);
+                var scope=scope(shop);var eligible=eligible(shop,frozen,consent);id=OzonRegistrationAttemptReports.queue(shop,frozen);
+                try{id=batches.create(shop,frozen,autoSign,scope,id,consent);}
+                catch(RuntimeException failure){OzonRegistrationAttemptReports.failPending(shop,id,"ZNACK_REGISTRATION_BATCH_NOT_QUEUED");throw failure;}
                 int position=0;for(var key:frozen){if(!eligible.contains(key))item(shop,new OzonRegistrationBatchRepository.Item(id,position,key,"PENDING",""),"FAILED","SOURCE_CARD_ACTION_CHANGED");position++;}}
         }
         resumePending(shop);return id;
     }
-    private Set<ProductKey> eligible(Shop shop,List<ProductKey> keys){
+    private Set<ProductKey> eligible(Shop shop,List<ProductKey> keys,RegistrationSourceConsent.Prepared consent){
         var receipt=new RegistrationSources().require(shop);var index=new RegistrationCardIndex(shop);var wanted=Set.copyOf(keys);var allowed=new HashSet<ProductKey>();var products=new ProductRepository();String cursor=null;
         do{var page=products.loadPage(new ProductQuery(shop.getId(),Marketplace.OZON,"",List.of(),null,false,cursor,1000),receipt.run());var rows=cards.findMany(page.rows().stream().map(ProductRow::key).toList());
             for(var product:page.rows())if(wanted.contains(product.key())){var row=rows.get(product.key());var status=row==null?Status.NOT_CREATED:row.status();var view=index.viewOzon(status,row==null?"":row.gtin(),product,row==null||index.ownsOzon(row.owner(),row.scopeJson()));
-                if(!view.published()&&!view.blocked()&&(row==null?!view.exists():RegistrationCardIndex.notSubmitted(status,row.gtin(),row.goodId(),row.feedId(),false)))allowed.add(product.key());}
+                boolean replacing=consent!=null&&consent.action(product.key())==RegistrationSourceConsent.Action.REPLACE;
+                if(replacing){if(row!=null&&index.ownsOzon(row.owner(),row.scopeJson())&&!row.gtin().isBlank()&&row.goodId()!=null&&row.goodId()>0&&!row.feedId().isBlank()&&!Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState())&&(status==Status.PUBLISHED||status==Status.ERROR||TnvedGroupChange.replaceable(status)))allowed.add(product.key());}
+                else if(!view.published()&&!view.blocked()&&(row==null?!view.exists():RegistrationCardIndex.notSubmitted(status,row.gtin(),row.goodId(),row.feedId(),false)))allowed.add(product.key());}
             cursor=page.nextCursor();
         }while(cursor!=null);if(!new RegistrationSources().require(shop).run().equals(receipt.run()))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");return Set.copyOf(allowed);
     }
@@ -73,7 +80,7 @@ public final class OzonRegistrationBatchService {
             for(var item:batches.failedItems(batch)){
                 var row=cards.find(item.key());if(row==null||row.status()!=Status.ERROR||row.feedId().isBlank()||Set.of("SENDING","RECONCILE_REQUIRED").contains(row.signatureState()))continue;
                 cards.guard(selected,item.key(),scope(selected));
-                if(CatalogPackingPolicy.correctedPayload(new ZnackNationalCatalogService.FeedProgress("Rejected",row.goodId(),List.of(row.error())),com.google.gson.JsonParser.parseString(row.payload()).getAsJsonObject())!=null)eligible.add(item);
+                if(row.goodId()!=null&&row.goodId()>0&&CatalogFeedback.rejectionMessage(row.error())&&hasApprovedRepair(item))eligible.add(item);
             }
             if(batches.reopenRejected(selected,batch,eligible))batch=batches.latest(selected);
         }
@@ -84,6 +91,22 @@ public final class OzonRegistrationBatchService {
     }
     public boolean ownsPending(Shop shop,ProductKey key){return batches.ownsPending(shop,key);}
     public boolean blocksSigning(Shop shop,ProductKey key){return batches.blocksSigning(shop,key);}
+    private boolean unstartedReplacement(OzonRegistrationBatchRepository.Item item)throws java.sql.SQLException{
+        var intent=new RegistrationIntent(item.run(),item.position());
+        try(var c=com.vncode.app.config.Database.getConnection()){
+            if(!RegistrationSourceConsentGuard.hasPositionOrLegacy(c,intent,item.key()))return false;
+            if(RegistrationSourceConsentGuard.action(c,intent,item.key())!=RegistrationSourceConsent.Action.REPLACE)return false;
+            try(var p=c.prepareStatement("SELECT phase FROM znack_source_consents WHERE run_id=? AND position=? AND shop_id=? AND marketplace=? AND product_id=? AND variant_id=?")){
+                p.setString(1,intent.runId());p.setInt(2,intent.position());p.setInt(3,item.key().shopId());p.setString(4,item.key().marketplace().name());p.setString(5,item.key().cardId());p.setString(6,item.key().variantId());
+                try(var r=p.executeQuery()){return r.next()&&"ACTIVE".equals(r.getString(1));}
+            }
+        }
+    }
+    private boolean hasApprovedRepair(OzonRegistrationBatchRepository.Item item){
+        try(var c=com.vncode.app.config.Database.getConnection()){
+            return RegistrationSourceConsentGuard.hasApprovedRepair(c,new RegistrationIntent(item.run(),item.position()),item.key());
+        }catch(java.sql.SQLException|RegistrationValidationException unavailable){return false;}
+    }
     public static boolean hasPendingJobs(){return !ACTIVE.isEmpty();}
     private void run(Shop shop,String namespace,java.nio.file.Path directory) {
         boolean deferred=false;OzonRegistrationBatchRepository.Batch batch=null;
@@ -106,7 +129,7 @@ public final class OzonRegistrationBatchService {
                             // A new receipt gets only a final read. An older resumed request
                             // retains its existing one-time, server-proven repair policy.
                             boolean checked=checkedReceipts.contains(waiting.position());
-                            if(checked?workflow.verifySubmissionForBatch(shop,waiting.key()):workflow.advanceSubmissionForBatch(shop,waiting.key()))observeReceipt(shop,waiting);
+                            if(checked?workflow.verifySubmissionForBatch(shop,waiting.key()):workflow.advanceSubmissionForBatch(shop,waiting.key(),new RegistrationIntent(waiting.run(),waiting.position())))observeReceipt(shop,waiting);
                             if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
                         }catch(Exception unavailable){
                             if(unavailable instanceof ZnackRegistrationScope.ScopeChangedException changed)throw changed;
@@ -126,39 +149,68 @@ public final class OzonRegistrationBatchService {
                 try {
                     new RegistrationSources().require(shop);scope(shop).assertCurrent(shop);ListingIdentity.require(shop);
                     var row=cards.find(item.key());
-                    if(row!=null&&(!row.feedId().isBlank()||row.goodId()!=null)) {
+                    boolean replacementPending=unstartedReplacement(item);
+                    if(!replacementPending&&lifecycle(row)==RegistrationLifecycleDecision.Next.READBACK) {
                         checkedReceipts.add(item.position());cards.guard(shop,item.key(),scope(shop));
-                        if(workflow.advanceSubmissionForBatch(shop,item.key()))observeReceipt(shop,item);
+                        if(workflow.advanceSubmissionForBatch(shop,item.key(),new RegistrationIntent(item.run(),item.position())))observeReceipt(shop,item);
                         else item(shop,item,"WAITING_REMOTE","REGISTRATION_BUSY");
                         if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
                         continue;
                     }
-                    if(row!=null&&Set.of(Status.GTIN_REVIEW_REQUIRED,Status.FEED_REVIEW_REQUIRED,Status.ALLOCATING_GTIN,Status.FEED_SUBMITTING).contains(row.status())) {
-                        // A crash during a write has an unknown remote outcome. Never request another GTIN/feed.
-                        if(row.status()==Status.ALLOCATING_GTIN)cards.uncertain(item.key(),Status.GTIN_REVIEW_REQUIRED,"GTIN_ALLOCATION_READBACK_REQUIRED");
-                        if(row.status()==Status.FEED_SUBMITTING)cards.uncertain(item.key(),Status.FEED_REVIEW_REQUIRED,"CATALOG_FEED_READBACK_REQUIRED");
-                        item(shop,item,"FAILED",row.status().name());continue;
+                    if(!replacementPending&&lifecycle(row)==RegistrationLifecycleDecision.Next.RECONCILE) {
+                        // Only a durably acknowledged allocation with matching reviewed source,
+                        // scope and generation can recover; UNKNOWN never authorizes a replay.
+                        boolean allocation=Set.of(Status.ALLOCATING_GTIN,Status.GTIN_REVIEW_REQUIRED).contains(row.status());
+                        if(allocation&&workflow.recoverAcknowledgedForBatch(shop,item.key(),new RegistrationIntent(item.run(),item.position()))) {
+                            row=cards.find(item.key());
+                            if(lifecycle(row)!=RegistrationLifecycleDecision.Next.SUBMIT_SAVED){
+                                item(shop,item,"FAILED","GTIN_ALLOCATION_READBACK_REQUIRED");continue;
+                            }
+                        }
+                        else {
+                            if(row.status()==Status.ALLOCATING_GTIN)cards.uncertain(item.key(),Status.GTIN_REVIEW_REQUIRED,"GTIN_ALLOCATION_READBACK_REQUIRED");
+                            if(row.status()==Status.FEED_SUBMITTING)cards.uncertain(item.key(),Status.FEED_REVIEW_REQUIRED,"CATALOG_FEED_READBACK_REQUIRED");
+                            item(shop,item,"FAILED",allocation?"GTIN_ALLOCATION_READBACK_REQUIRED":"CATALOG_FEED_READBACK_REQUIRED");continue;
+                        }
                     }
                     var member=item;
                     java.util.function.BiConsumer<Status,String> receiptListener=(state,detail)->{if(state==Status.FEED_SUBMITTED)item(shop,member,"WAITING_REMOTE","CATALOG_REQUEST_ACCEPTED_CARD_PENDING");};
                     boolean accepted;
-                    if(row!=null&&row.status()==Status.READY_TO_SUBMIT)accepted=workflow.resumeForBatch(shop,item.key(),batch.autoSign(),receiptListener);
+                    if(!replacementPending&&lifecycle(row)==RegistrationLifecycleDecision.Next.SUBMIT_SAVED)accepted=workflow.resumeForBatch(shop,item.key(),batch.autoSign(),receiptListener,new RegistrationIntent(item.run(),item.position()));
                     else {
                         if(row!=null&&row.status()==Status.CHECKING)cards.transition(item.key(),Status.CHECKING,Status.PREFLIGHT_ERROR);
                         var prepared=workflow.prepare(shop,item.key());
                         var draft=OzonCardRegistrationWorkflow.suggestedDraft(prepared);
                         if(draft.isEmpty()||prepared.documents().automatic()==null){item(shop,item,"FAILED",draft.isEmpty()?"REGISTRATION_MISSING_REQUIRED_FIELDS":"REGISTRATION_DOCUMENT_REVIEW_REQUIRED");continue;}
-                        accepted=workflow.registerReviewedForBatch(shop,prepared,draft.get().withAutoSign(batch.autoSign()),receiptListener,lookup);
+                        accepted=workflow.registerReviewedForBatch(shop,prepared,draft.get().withAutoSign(batch.autoSign()),receiptListener,lookup,new RegistrationIntent(item.run(),item.position()));
                     }
                     if(!accepted){item(shop,item,"PENDING","");defer(shop,namespace,directory,batch.id(),"REGISTRATION_BUSY",2);deferred=true;return;}
                     workflow.completion(shop).toCompletableFuture().join();
                     row=cards.find(item.key());
+                    if(replacementPending&&unstartedReplacement(item)){
+                        var failure=workflow.failure(shop);var reason=failure==null?null:SyncFailure.of(failure,0);
+                        if(reason!=null&&!reason.actionRequired()){item(shop,item,"PENDING",reason.code());defer(shop,namespace,directory,batch.id(),reason.code(),Math.max(2,reason.delay().toSeconds()));deferred=true;return;}
+                        item(shop,item,"FAILED",reason==null?"CATALOG_REPLACEMENT_READBACK_REQUIRED":reason.code());continue;
+                    }
+                    // Catalog can reject a new feed while the first call is still
+                    // completing. Apply the same seller-approved, evidence-based
+                    // repair policy as for a rejection observed on later readback.
+                    // The durable ledger enforces the two-round limit; unchanged
+                    // or unknown feeds must never be resubmitted here.
+                    for(int repair=0;repair<2&&row!=null&&row.status()==Status.ERROR
+                            &&!row.feedId().isBlank()&&hasApprovedRepair(item);repair++){
+                        String priorFeed=row.feedId();
+                        if(!workflow.advanceSubmissionForBatch(shop,item.key(),new RegistrationIntent(item.run(),item.position())))break;
+                        row=cards.find(item.key());
+                        if(row==null||priorFeed.equals(row.feedId()))break;
+                    }
                     if(row!=null&&(!row.feedId().isBlank()||row.goodId()!=null)){
                         checkedReceipts.add(item.position());observeReceipt(shop,item);
                         if(deferReadbackLimit(shop,namespace,directory,batch.id())){deferred=true;return;}
                     }
                     else if(row!=null&&row.status()==Status.READY_TO_SUBMIT){
                         var failure=workflow.failure(shop);var reason=failure==null?null:SyncFailure.of(failure,0);
+                        if(reason!=null&&reason.actionRequired()){item(shop,item,"FAILED",reason.code());continue;}
                         item(shop,item,"PENDING",row.error());defer(shop,namespace,directory,batch.id(),reason==null?"NETWORK_RETRY":reason.code(),Math.max(10,reason==null?10:reason.delay().toSeconds()));deferred=true;return;
                     }
                     else if((row==null||row.status()==Status.PREFLIGHT_ERROR)&&workflow.failure(shop)!=null&&!SyncFailure.of(workflow.failure(shop),0).actionRequired()){
@@ -168,6 +220,12 @@ public final class OzonRegistrationBatchService {
                 }catch(Exception failure) {
                     if(failure instanceof ZnackRegistrationScope.ScopeChangedException){failPending(shop,batch.id(),"SOURCE_CONFIGURATION_CHANGED");return;}
                     var reason=SyncFailure.of(failure,0);
+                    boolean pendingReplacement;
+                    try{pendingReplacement=unstartedReplacement(item);}catch(Exception noProof){item(shop,item,"FAILED","ZNACK_SOURCE_REVIEW_REQUIRED");continue;}
+                    if(pendingReplacement){
+                        if(!reason.actionRequired()){item(shop,item,"PENDING",reason.code());defer(shop,namespace,directory,batch.id(),reason.code(),Math.max(2,reason.delay().toSeconds()));deferred=true;return;}
+                        item(shop,item,"FAILED",reason.code());continue;
+                    }
                     var row=cards.find(item.key());
                     if(row!=null&&(!row.feedId().isBlank()||row.goodId()!=null)){
                         checkedReceipts.add(item.position());observeReadbackFailure(shop,item,failure);
@@ -180,7 +238,19 @@ public final class OzonRegistrationBatchService {
             }
         }catch(ZnackRegistrationScope.ScopeChangedException changed){
             if(batch!=null&&directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize()))failPending(shop,batch.id(),"SOURCE_CONFIGURATION_CHANGED");
+        }catch(RuntimeException failure){
+            if(batch!=null&&directory.equals(AppPaths.appDataDir().toAbsolutePath().normalize())){
+                var reason=SyncFailure.of(failure,batch.retryCount());
+                if(reason.actionRequired())failPending(shop,batch.id(),reason.code());
+                else {defer(shop,namespace,directory,batch.id(),reason.code(),Math.max(2,reason.delay().toSeconds()));deferred=true;}
+            }
         }finally {if(!deferred){ACTIVE.remove(namespace);LOOKUPS.remove(namespace);}}
+    }
+    static RegistrationLifecycleDecision.Next lifecycle(OzonCardRegistrationRepository.Row row){
+        if(row==null)return RegistrationLifecycleDecision.next(new RegistrationLifecycleDecision.Evidence(Status.NOT_CREATED,false,false,false));
+        boolean uncertain=row.status()==Status.PROCESSING||!row.gtin().isBlank()&&Set.of(Status.CHECKING,Status.ERROR).contains(row.status());
+        return RegistrationLifecycleDecision.next(new RegistrationLifecycleDecision.Evidence(row.status(),
+                !row.feedId().isBlank()||row.goodId()!=null,uncertain,!row.gtin().isBlank()));
     }
     private void observeReceipt(Shop shop,OzonRegistrationBatchRepository.Item item){
         var row=cards.find(item.key());

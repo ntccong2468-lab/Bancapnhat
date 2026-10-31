@@ -1088,6 +1088,13 @@ class FxmlSmokeTest {
             var setup=new java.util.concurrent.FutureTask<Void>(() -> {
                 var loader=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");
                 FxmlViewLoader.load(loader);holder.set(loader);
+                // This structural smoke test uses a local, complete queue; production
+                // still checks every remote page before selecting all orders.
+                var readinessType=Class.forName("com.vncode.app.ui.ozon.OzonDashboardController$QueueReadiness");
+                var readiness=java.lang.reflect.Proxy.newProxyInstance(readinessType.getClassLoader(),new Class<?>[]{readinessType},
+                        (proxy,method,args)->null);
+                var configure=OzonDashboardController.class.getDeclaredMethod("setQueueReadiness",readinessType);
+                configure.setAccessible(true);configure.invoke(loader.getController(),readiness);
                 ((OzonDashboardController)loader.getController()).setShop(new Shop(909,"Ozon test",
                         com.vncode.app.integration.marketplace.Marketplace.OZON,"client-909","secret-909"),false);
                 return null;

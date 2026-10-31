@@ -479,6 +479,85 @@ public class ZnackCardRegistrationRepository {
     public void saveReadyToSubmitGenerated(int shopId,Sku sku,String gtin,String tnved,long categoryId,String goodName,String payloadJson) {
         saveGenerated(shopId,sku,gtin,tnved,categoryId,goodName,payloadJson,Status.READY_TO_SUBMIT);
     }
+    /** Bind the journal ACK to the frozen seller intent in the same native GTIN transaction. */
+    void saveReadyToSubmitWithSourceReceipt(com.vncode.app.models.Shop shop,Sku sku,String tnved,long categoryId,String goodName,String payloadJson,ZnackRegistrationScope scope,RegistrationAllocationReceipt receipt) {
+        if(receipt==null||receipt.intent()==null||scope==null)throw new IllegalArgumentException("ZNACK_SOURCE_REVIEW_REQUIRED");
+        var payload=com.google.gson.JsonParser.parseString(payloadJson).getAsJsonObject();
+        if(!payload.has("gtin")||!receipt.gtin().equals(payload.get("gtin").getAsString()))throw new IllegalArgumentException("CATALOG_IDENTITY_CHANGED");
+        var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
+        try{com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            scope.assertCurrent(shop);RegistrationSourceConsentGuard.bindAcknowledgedAllocation(c,shop,receipt.intent().runId(),key,receipt.owner(),receipt.command(),receipt.gtin());
+            try(var statement=c.prepareStatement("""
+                UPDATE znack_card_registrations SET gtin=?,tnved=?,category_id=?,good_name=?,payload_json=?,
+                    status='READY_TO_SUBMIT',error_message=NULL,updated_at=?
+                WHERE shop_id=? AND chrt_id=? AND nm_id=? AND status IN ('ALLOCATING_GTIN','GTIN_REVIEW_REQUIRED')
+                    AND NULLIF(TRIM(feed_id),'') IS NULL AND good_id IS NULL
+                    AND (NULLIF(TRIM(gtin),'') IS NULL OR gtin=?)
+                """)){
+                int i=1;statement.setString(i++,receipt.gtin());statement.setString(i++,tnved);statement.setLong(i++,categoryId);
+                statement.setString(i++,goodName);statement.setString(i++,payloadJson);statement.setString(i++,Instant.now().toString());
+                statement.setInt(i++,shop.getId());statement.setLong(i++,sku.chrtId());statement.setLong(i++,sku.nmId());statement.setString(i,receipt.gtin());
+                if(statement.executeUpdate()!=1)throw new IllegalStateException("Registration identity has changed or is already published.");
+            }return null;
+        });}catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
+    }
+    /** Restore a feed ID already acknowledged by the exact persisted SUBMIT command; never POST. */
+    boolean recoverAcknowledgedFeed(com.vncode.app.models.Shop shop,Sku sku,ZnackRegistrationScope scope,
+            RegistrationIntent intent,com.vncode.app.integration.znack.registration.v3.RegistrationJob.Owner owner) {
+        if(shop==null||sku==null||scope==null||intent==null||owner==null)return false;
+        var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
+        try{return com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            com.vncode.app.integration.listing.ListingIdentity.require(shop,key);scope.assertCurrent(shop);
+            String ownerHash=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
+            if(!ownerHash.equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shop.getId(),shop.getMarketplace()))
+                    ||!owner.equals(OzonCardRegistrationRepository.allocationOwner(shop,scope)))throw new ZnackRegistrationScope.ScopeChangedException();
+            String saved;
+            try(var p=c.prepareStatement("""
+                SELECT r.payload_json FROM znack_card_registrations r
+                JOIN znack_card_registration_scopes s ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id
+                WHERE r.shop_id=? AND r.nm_id=? AND r.chrt_id=? AND r.status IN ('FEED_SUBMITTING','FEED_REVIEW_REQUIRED')
+                  AND NULLIF(TRIM(r.feed_id),'') IS NULL AND s.owner_hash=?
+                  AND s.participant_inn=? AND s.environment=? AND s.fingerprint=?
+                """)){
+                p.setInt(1,shop.getId());p.setLong(2,sku.nmId());p.setLong(3,sku.chrtId());p.setString(4,ownerHash);
+                p.setString(5,scope.inn());p.setString(6,scope.environment());p.setString(7,scope.fingerprint());
+                try(var r=p.executeQuery()){if(!r.next())return false;saved=r.getString(1);}
+            }
+            if(saved==null||saved.isBlank())return false;
+            var payload=com.google.gson.JsonParser.parseString(saved).getAsJsonObject();
+            var command=new com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal.Command(
+                    com.vncode.app.integration.znack.registration.v3.RegistrationJob.Action.SUBMIT,sku.nmId()+"/"+sku.chrtId(),payload.toString());
+            var receipt=com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal.acknowledgedSubmission(c,owner,command);
+            if(receipt.isEmpty())return false;String feed=receipt.get();
+            if(feed.isBlank()||feed.length()>200)throw new IllegalStateException("CATALOG_ACKNOWLEDGEMENT_INVALID");
+            RegistrationSourceConsentGuard.acceptedSubmission(c,intent,key,payload);
+            try(var p=c.prepareStatement("UPDATE znack_card_registrations SET status='FEED_SUBMITTED',feed_id=?,error_message=NULL,updated_at=? WHERE shop_id=? AND nm_id=? AND chrt_id=? AND status IN ('FEED_SUBMITTING','FEED_REVIEW_REQUIRED') AND NULLIF(TRIM(feed_id),'') IS NULL AND payload_json=?")){
+                p.setString(1,feed);p.setString(2,Instant.now().toString());p.setInt(3,shop.getId());p.setLong(4,sku.nmId());p.setLong(5,sku.chrtId());p.setString(6,saved);if(p.executeUpdate()!=1)throw new IllegalStateException("REGISTRATION_CHANGED");return true;
+            }
+        });}catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
+    }
+    /** Persist the identity and seller's repair permission together, so crash cannot split them. */
+    void saveReadyToSubmitWithRepairConsent(com.vncode.app.models.Shop shop,Sku sku,String gtin,String tnved,long categoryId,String goodName,String payloadJson,ZnackRegistrationScope scope) {
+        var payload=com.google.gson.JsonParser.parseString(payloadJson).getAsJsonObject();
+        var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
+        try{com.vncode.app.config.SqliteWriteTransaction.run(c->{
+            try(var statement=c.prepareStatement("""
+                INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,vendor_code,source_barcode,
+                    gtin,tnved,category_id,good_name,payload_json,status,created_at,updated_at)
+                VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,chrt_id) DO UPDATE SET
+                    gtin=excluded.gtin,tnved=excluded.tnved,category_id=excluded.category_id,good_name=excluded.good_name,
+                    payload_json=excluded.payload_json,status=excluded.status,error_message=NULL,updated_at=excluded.updated_at
+                WHERE znack_card_registrations.status <> 'PUBLISHED' AND
+                    (NULLIF(TRIM(znack_card_registrations.gtin),'') IS NULL OR znack_card_registrations.gtin=excluded.gtin)
+                """)){
+                int i=1;String now=Instant.now().toString();statement.setInt(i++,shop.getId());statement.setLong(i++,sku.chrtId());statement.setLong(i++,sku.nmId());
+                statement.setString(i++,sku.vendorCode());statement.setString(i++,sku.sourceBarcode());statement.setString(i++,gtin);statement.setString(i++,tnved);
+                statement.setLong(i++,categoryId);statement.setString(i++,goodName);statement.setString(i++,payloadJson);statement.setString(i++,Status.READY_TO_SUBMIT.name());
+                statement.setString(i++,now);statement.setString(i,now);if(statement.executeUpdate()!=1)throw new IllegalStateException("Registration identity has changed or is already published.");
+            }
+            RegistrationRepairConsent.grant(c,shop,key,scope,gtin,payload);return null;
+        });}catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
+    }
     private void saveGenerated(int shopId,Sku sku,String gtin,String tnved,long categoryId,String goodName,String payloadJson,Status checkpoint) {
         String now = Instant.now().toString();
         try (Connection connection = Database.getConnection();
@@ -518,6 +597,23 @@ public class ZnackCardRegistrationRepository {
     /** A server-confirmed rejected feed is retained before resetting its remote identity. */
     public boolean prepareRejectedRetry(com.vncode.app.models.Shop shop,Sku sku,String gtin,String oldFeed,Long rejectedGoodId,
             String tnved,long category,String name,String payload,String rejection){
+        return prepareRejectedRetry(shop,sku,gtin,oldFeed,rejectedGoodId,tnved,category,name,payload,rejection,null,null,null);
+    }
+
+    /** Automatic retries reserve their bounded, evidence-backed round atomically with the checkpoint. */
+    boolean prepareAutomaticRejectedRetry(com.vncode.app.models.Shop shop,Sku sku,String gtin,String oldFeed,
+            String tnved,long category,String name,ZnackRegistrationScope scope,CatalogAutomaticRepair.Proposal proposal){
+        return false; // No seller operation proof was provided.
+    }
+    boolean prepareAutomaticRejectedRetry(com.vncode.app.models.Shop shop,Sku sku,String gtin,String oldFeed,
+            String tnved,long category,String name,ZnackRegistrationScope scope,CatalogAutomaticRepair.Proposal proposal,RegistrationSourceConsentGuard.VerifiedRepairIntent proof){
+        if(scope==null||proposal==null||proof==null)return false;
+        return prepareRejectedRetry(shop,sku,gtin,oldFeed,proposal.goodId(),tnved,category,name,
+                proposal.payload().toString(),proposal.rejection(),scope,proposal,proof);
+    }
+
+    private boolean prepareRejectedRetry(com.vncode.app.models.Shop shop,Sku sku,String gtin,String oldFeed,Long rejectedGoodId,
+            String tnved,long category,String name,String payload,String rejection,ZnackRegistrationScope scope,CatalogAutomaticRepair.Proposal automatic,RegistrationSourceConsentGuard.VerifiedRepairIntent proof){
         if(oldFeed==null||oldFeed.isBlank()||gtin==null||gtin.isBlank()||payload.length()>2*1024*1024)return false;
         try{return com.vncode.app.config.SqliteWriteTransaction.run(c->{
             if(!com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shop.getId(),shop.getMarketplace())))throw new SecurityException("Listing owner changed");
@@ -526,6 +622,19 @@ public class ZnackCardRegistrationRepository {
             }
             try(var p=c.prepareStatement("SELECT 1 FROM znack_card_registration_signatures WHERE shop_id=? AND chrt_id=? AND state IN ('SENDING','RECONCILE_REQUIRED')")){
                 p.setInt(1,shop.getId());p.setLong(2,sku.chrtId());try(var r=p.executeQuery()){if(r.next())return false;}
+            }
+            if(automatic!=null){
+                try(var p=c.prepareStatement("SELECT r.status,r.payload_json,r.good_id,s.participant_inn,s.environment,s.fingerprint,s.owner_hash FROM znack_card_registrations r JOIN znack_card_registration_scopes s ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id WHERE r.shop_id=? AND r.chrt_id=?")){
+                    p.setInt(1,shop.getId());p.setLong(2,sku.chrtId());try(var r=p.executeQuery()){
+                        if(!r.next()||!"ERROR".equals(r.getString(1))||!com.google.gson.JsonParser.parseString(r.getString(2)).equals(automatic.originalPayload())
+                                ||r.getObject(3)!=null&&r.getLong(3)!=automatic.goodId()
+                                ||!scope.inn().equals(r.getString(4))||!scope.environment().equals(r.getString(5))||!scope.fingerprint().equals(r.getString(6))
+                                ||!com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop).equals(r.getString(7)))return false;
+                    }
+                }
+                var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
+                if(!RegistrationRepairConsent.allowed(c,shop,key,scope,gtin,automatic.originalPayload(),proof)
+                        ||!CatalogAutomaticRepairLedger.reserve(c,scope,gtin,oldFeed,automatic))return false;
             }
             String now=Instant.now().toString();
             try(var p=c.prepareStatement("INSERT OR IGNORE INTO znack_card_registration_history SELECT shop_id,chrt_id,nm_id,gtin,COALESCE(?,good_id),feed_id,payload_json,tnved,'ERROR',?,? FROM znack_card_registrations WHERE shop_id=? AND chrt_id=?")){

@@ -33,6 +33,7 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.Node;
 import javafx.scene.paint.Color;
@@ -79,9 +80,26 @@ public class PackingController {
     @FXML private Tab newOrdersTab;
     @FXML private Tab preparationTab;
     @FXML private Tab dispatchTab;
-    @FXML private HBox selectionActionBar;
+    @FXML private Tab debtTab;
+    @FXML private Button debtBackButton, debtRefreshButton;
+    @FXML private Label debtHeading, debtWarning;
+    @FXML private ProgressIndicator debtLoading;
+    @FXML private TableView<com.vncode.app.integration.wb.WbDebtShipmentService.Shipment> debtShipmentsTable;
+    @FXML private TableColumn<com.vncode.app.integration.wb.WbDebtShipmentService.Shipment, String> debtShipmentNameTC, debtShipmentStatusTC, debtShipmentDateTC;
+    @FXML private TableColumn<com.vncode.app.integration.wb.WbDebtShipmentService.Shipment, Number> debtShipmentCountTC;
+    @FXML private TableView<Order> debtOrdersTable;
+    @FXML private TableColumn<Order, String> debtOrderDateTC, debtProductTC, debtPriceTC, debtOrderStatusTC;
+    @FXML private TableColumn<Order, byte[]> debtImageTC;
+    @FXML private TableColumn<Order, Void> debtPrintTC;
+    private final com.vncode.app.integration.wb.WbDebtShipmentService debtService = new com.vncode.app.integration.wb.WbDebtShipmentService();
+    private String openDebtShipmentId;
+    private long debtEpoch;
+    private boolean debtBusy;
+    private final Set<Long> pendingDebtPrints = new LinkedHashSet<>();
+    @FXML private FlowPane selectionActionBar;
     @FXML private Label selectedCountLabel;
     @FXML private Label emptyNewOrdersLabel;
+    private Label newOrdersEmptyPlaceholder;
     @FXML private Button newShipmentButton;
     @FXML private Button addToShipmentButton;
     @FXML private TextField newOrderSearchField;
@@ -126,6 +144,7 @@ public class PackingController {
         setupNewOrdersTable();
         setupNewOrderFilters();
         setupSupplyTables();
+        setupDebtTables();
         setupTabs();
         applyTranslations();
         updateSelectionState();
@@ -137,6 +156,8 @@ public class PackingController {
 
     public void setShop(Shop shop, boolean tokenValid) {
         renderedOrders.clear();shopGeneration++;
+        debtEpoch++; debtBusy=false; pendingDebtPrints.clear(); openDebtShipmentId=null; debtShipmentsTable.getItems().clear(); debtOrdersTable.getItems().clear(); debtRefreshButton.setDisable(false);
+        debtLoading.setVisible(false); debtLoading.setManaged(false); debtWarning.setVisible(false); debtWarning.setManaged(false); showDebtShipmentList();
         dispatchEpoch++;dispatchLoading=false;dispatchOffset=0;dispatchTable.getItems().clear();dispatchMoreButton.setDisable(true);
         this.shop = shop;
         this.tokenValid = tokenValid;
@@ -149,7 +170,8 @@ public class PackingController {
             setBoard(new PackingWorkflow.PackingBoard(List.of(), List.of(), List.of()));
             return;
         }
-        refresh();
+        if (packingTabPane.getSelectionModel().getSelectedItem() == debtTab) onRefreshDebt();
+        else refresh();
     }
 
     @FXML private void onLoadMoreDispatch() {
@@ -322,6 +344,12 @@ public class PackingController {
             if (!isCurrent(selectedShop, generation)) return;
             setLoading(false);
             if (ShopOperationCoordinator.isShopUnavailable(rejection)) return;
+            if (rejection instanceof com.vncode.app.integration.wb.WbReadbackPendingException pending) {
+                selectedOrderIds.clear();refresh();
+                var i18n=I18nService.getInstance();
+                AlertService.showWarning(i18n.tr("packing.readback_pending.title"),i18n.tr("packing.readback_pending.header"),i18n.tr("packing.readback_pending.detail")+" " + pending.supplyId());
+                return;
+            }
             LOGGER.error("WB write action failed", rejection);
             AlertService.showError(FriendlyErrorService.format(rejection));
         };
@@ -350,6 +378,19 @@ public class PackingController {
         newOrdersTab.setText(i18n.tr("packing.tab.new"));
         preparationTab.setText(i18n.tr("packing.tab.preparation"));
         dispatchTab.setText(i18n.tr("packing.tab.dispatch"));
+        debtTab.setText(i18n.tr("packing.debt.tab"));
+        debtBackButton.setText(i18n.tr("packing.debt.back"));
+        debtRefreshButton.setText(i18n.tr("packing.refresh"));
+        debtShipmentNameTC.setText(i18n.tr("packing.col.supply"));
+        debtShipmentStatusTC.setText(i18n.tr("packing.col.status"));
+        debtShipmentCountTC.setText(i18n.tr("packing.debt.count"));
+        debtShipmentDateTC.setText(i18n.tr("packing.col.date"));
+        debtOrderDateTC.setText(i18n.tr("packing.col.order_id"));
+        debtImageTC.setText(i18n.tr("packing.col.photo"));
+        debtProductTC.setText(i18n.tr("packing.col.product"));
+        debtPriceTC.setText(i18n.tr("packing.col.price"));
+        debtOrderStatusTC.setText(i18n.tr("packing.debt.wb_status"));
+        if (openDebtShipmentId == null) debtHeading.setText(i18n.tr("packing.debt.shipments"));
         newOrderSearchField.setPromptText(i18n.tr("packing.search_prompt"));
         emptyNewOrdersLabel.setText(i18n.tr("packing.empty"));
         newShipmentButton.setText(i18n.tr("packing.new_shipment"));
@@ -414,13 +455,16 @@ public class PackingController {
         refreshButton.setDisable(loading || shop == null || !tokenValid);
         refreshLoading.setVisible(false);
         if(loading)newOrdersTable.setPlaceholder(new com.vncode.app.shared.LoadingSkeleton(I18nService.getInstance().tr("supply.loading_orders")));
-        else newOrdersTable.setPlaceholder(new Label(I18nService.getInstance().tr("supply_list.empty")));
+        else newOrdersTable.setPlaceholder(newOrdersEmptyPlaceholder);
         newOrdersTable.setDisable(loading);
         newOrderSearchField.setDisable(loading);
         categoryFilterMenuButton.setDisable(loading);
     }
 
     private void setupNewOrdersTable() {
+        newOrdersEmptyPlaceholder = new Label();
+        newOrdersEmptyPlaceholder.textProperty().bind(emptyNewOrdersLabel.textProperty());
+        newOrdersTable.setPlaceholder(newOrdersEmptyPlaceholder);
         selectAllCheckBox.setOnAction(event -> onSelectAll());
         selectedTC.setGraphic(selectAllCheckBox);
         selectedTC.setText("");
@@ -473,6 +517,7 @@ public class PackingController {
         }
         packingTabPane.getSelectionModel().selectedItemProperty().addListener((obs, oldTab, newTab) -> {
             delayTransition.stop();
+            if (newTab == debtTab) { onRefreshDebt(); return; }
             if(shop!=null&&!refreshLoading.isVisible())refresh();
         });
     }
@@ -581,6 +626,187 @@ public class PackingController {
         dispatchCountTC.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getItemCount()));
         dispatchCreatedTC.setCellValueFactory(data -> new SimpleStringProperty(formatOrderDate(data.getValue().getCreatedAt())));
         dispatchActionTC.setCellFactory(column -> dispatchActionCell());
+    }
+
+    private void setupDebtTables() {
+        var headingTip = new javafx.scene.control.Tooltip();
+        headingTip.textProperty().bind(debtHeading.textProperty());
+        debtHeading.setTooltip(headingTip);
+        debtShipmentsTable.setPlaceholder(new Label(I18nService.getInstance().tr("packing.debt.empty")));
+        debtOrdersTable.setPlaceholder(new Label(I18nService.getInstance().tr("packing.debt.empty")));
+        debtShipmentNameTC.setCellValueFactory(data -> new SimpleStringProperty(
+                nullToEmpty(data.getValue().name()) + "\n" + nullToEmpty(data.getValue().id())));
+        debtShipmentStatusTC.setCellValueFactory(data -> new SimpleStringProperty(I18nService.getInstance().tr("packing.debt.pending")));
+        debtShipmentStatusTC.setCellFactory(column -> debtStatusCell());
+        debtShipmentCountTC.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().orders().size()));
+        debtShipmentDateTC.setCellValueFactory(data -> new SimpleStringProperty(formatOrderDate(data.getValue().createdAt())));
+        debtShipmentsTable.setRowFactory(table -> {
+            TableRow<com.vncode.app.integration.wb.WbDebtShipmentService.Shipment> row = new TableRow<>();
+            row.setOnMouseClicked(event -> { if (!row.isEmpty() && event.getClickCount() >= 1) showDebtOrders(row.getItem()); });
+            return row;
+        });
+        debtOrderDateTC.setCellValueFactory(data -> new SimpleStringProperty(formatOrderDate(data.getValue().getCreatedAt())));
+        debtOrderDateTC.setCellFactory(column -> new OrderIdDateCell());
+        debtImageTC.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getImage()));
+        debtImageTC.setCellFactory(column -> imageCell());
+        debtProductTC.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getName()));
+        debtProductTC.setCellFactory(column -> new ProductDetailsCell());
+        debtPriceTC.setCellValueFactory(data -> new SimpleStringProperty(formatPrice(data.getValue().getPrice())));
+        debtOrderStatusTC.setCellValueFactory(data -> new SimpleStringProperty(debtOrderStatus(data.getValue())));
+        debtOrderStatusTC.setCellFactory(column -> debtStatusCell());
+        debtPrintTC.setCellFactory(column -> debtPrintCell());
+    }
+
+    private <T> TableCell<T, String> debtStatusCell() {
+        return new TableCell<>() {
+            private final Label badge = new Label();
+            {
+                badge.setWrapText(true);
+                badge.setMinWidth(0);
+                badge.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+                badge.maxWidthProperty().bind(javafx.beans.binding.Bindings.max(0, widthProperty().subtract(24)));
+            }
+            @Override protected void updateItem(String text, boolean empty) {
+                super.updateItem(text, empty); badge.setText(text);
+                Object row=getTableRow()==null?null:getTableRow().getItem();
+                String wb=row instanceof Order order ? nullToEmpty(order.getWbStatus()).toLowerCase(java.util.Locale.ROOT) : "";
+                String palette=row instanceof com.vncode.app.integration.wb.WbDebtShipmentService.Shipment
+                        ? "-fx-background-color: #4b3020; -fx-text-fill: #ffad70;" : switch(wb) {
+                    case "waiting" -> "-fx-background-color: #4b3020; -fx-text-fill: #ffad70;";
+                    case "sold", "ready_for_pickup" -> "-fx-background-color: #17382d; -fx-text-fill: #78e1aa;";
+                    case "canceled", "canceled_by_client", "declined_by_client", "defect", "canceled_by_carrier" -> "-fx-background-color: #492329; -fx-text-fill: #ff9ca8;";
+                    case "sorted", "accepted_by_carrier", "sent_to_carrier" -> "-fx-background-color: #23354c; -fx-text-fill: #a8c9ff;";
+                    default -> "-fx-background-color: #292f39; -fx-text-fill: #cbd2dd;";
+                };
+                badge.setStyle(palette + " -fx-background-radius: 7; -fx-padding: 5 8;");
+                if (row instanceof Order order) {
+                    badge.setTooltip(new javafx.scene.control.Tooltip("wbStatus: " + nullToEmpty(order.getWbStatus()) + "\nsupplierStatus: " + nullToEmpty(order.getSupplierStatus())));
+                } else badge.setTooltip(null);
+                setGraphic(empty || text == null ? null : badge);
+            }
+        };
+    }
+
+    private static String debtOrderStatus(Order order) {
+        String wb = order == null ? "" : nullToEmpty(order.getWbStatus());
+        String supplier = order == null ? "" : nullToEmpty(order.getSupplierStatus());
+        String result = "";
+        if (!wb.isBlank()) result += "\nWB: " + describeDebtStatus("wb",wb);
+        if (!supplier.isBlank()) result += "\nSeller: " + describeDebtStatus("supplier",supplier);
+        if (wb.isBlank() && supplier.isBlank()) result = I18nService.getInstance().tr("packing.debt.status_unavailable");
+        return result.strip();
+    }
+    private static String describeDebtStatus(String kind, String value) {
+        String normalized=value.toLowerCase(java.util.Locale.ROOT);
+        String translated = switch (kind + ":" + normalized) {
+            case "wb:waiting", "wb:sorted", "wb:sold", "wb:canceled", "wb:canceled_by_client", "wb:declined_by_client", "wb:defect", "wb:ready_for_pickup", "wb:postponed_delivery", "wb:accepted_by_carrier", "wb:sent_to_carrier", "wb:canceled_by_carrier",
+                    "supplier:new", "supplier:confirm", "supplier:complete", "supplier:cancel", "supplier:cancel_carrier" -> I18nService.getInstance().tr("packing.debt." + kind + "." + normalized);
+            default -> value;
+        };
+        return translated;
+    }
+
+    @FXML private void onDebtBack() { showDebtShipmentList(); }
+    private void showDebtShipmentList() {
+        openDebtShipmentId=null;
+        debtBackButton.setVisible(false); debtBackButton.setManaged(false);
+        debtOrdersTable.setVisible(false); debtOrdersTable.setManaged(false);
+        debtShipmentsTable.setVisible(true); debtShipmentsTable.setManaged(true);
+        debtHeading.setText(I18nService.getInstance().tr("packing.debt.shipments"));
+    }
+    private void showDebtOrders(com.vncode.app.integration.wb.WbDebtShipmentService.Shipment shipment) {
+        if (shipment == null) return;
+        openDebtShipmentId=shipment.id();
+        debtHeading.setText(nullToEmpty(shipment.name()) + " · " + nullToEmpty(shipment.id()));
+        debtOrdersTable.getItems().setAll(shipment.orders());
+        debtShipmentsTable.setVisible(false); debtShipmentsTable.setManaged(false);
+        debtBackButton.setVisible(true); debtBackButton.setManaged(true);
+        debtOrdersTable.setVisible(true); debtOrdersTable.setManaged(true);
+    }
+    @FXML private void onRefreshDebt() {
+        if (shop == null || !tokenValid || debtBusy) return;
+        Shop owner=debtOwnerSnapshot(); long generation=shopGeneration; long epoch=++debtEpoch;
+        debtBusy=true; debtRefreshButton.setDisable(true); debtLoading.setVisible(true); debtLoading.setManaged(true);
+        Task<com.vncode.app.integration.wb.WbDebtShipmentService.Snapshot> task=new Task<>() {
+            @Override protected com.vncode.app.integration.wb.WbDebtShipmentService.Snapshot call() throws Exception { return debtService.load(owner); }
+        };
+        task.setOnSucceeded(event -> {
+            if (disposed || !isCurrent(owner,generation) || epoch != debtEpoch) return;
+            if (!isDebtCurrent(owner,generation)) { debtConnectionChanged(); return; }
+            debtBusy=false; debtRefreshButton.setDisable(false); debtLoading.setVisible(false); debtLoading.setManaged(false);
+            var snapshot=task.getValue();
+            debtShipmentsTable.getItems().setAll(snapshot.shipments());
+            String warning=nullToEmpty(snapshot.warning());
+            if (!snapshot.complete() && warning.isBlank()) warning=I18nService.getInstance().tr("packing.debt.incomplete");
+            debtWarning.setText(warning); debtWarning.setVisible(!warning.isBlank()); debtWarning.setManaged(!warning.isBlank());
+            if (openDebtShipmentId != null) {
+                String id=openDebtShipmentId;
+                var current=snapshot.shipments().stream().filter(s -> id.equals(s.id())).findFirst();
+                if (current.isPresent()) showDebtOrders(current.get());
+                else if (snapshot.complete()) showDebtShipmentList();
+            }
+        });
+        java.util.function.Consumer<Throwable> failed=error -> {
+            if (disposed || !isCurrent(owner,generation) || epoch != debtEpoch) return;
+            if (!isDebtCurrent(owner,generation)) { debtConnectionChanged(); return; }
+            debtBusy=false; debtRefreshButton.setDisable(false); debtLoading.setVisible(false); debtLoading.setManaged(false);
+            debtWarning.setText(I18nService.getInstance().tr("packing.debt.refresh_failed") + " " + FriendlyErrorService.format(error));
+            debtWarning.setVisible(true); debtWarning.setManaged(true);
+        };
+        task.setOnFailed(event -> failed.accept(task.getException()));
+        AppTaskExecutor.execute(task, failed);
+    }
+    private void debtConnectionChanged() {
+        debtBusy=false; debtRefreshButton.setDisable(false); debtLoading.setVisible(false); debtLoading.setManaged(false);
+        debtShipmentsTable.getItems().clear(); debtOrdersTable.getItems().clear(); showDebtShipmentList();
+        debtWarning.setText(I18nService.getInstance().tr("packing.debt.connection_changed")); debtWarning.setVisible(true); debtWarning.setManaged(true);
+    }
+
+    private TableCell<Order, Void> debtPrintCell() {
+        return new TableCell<>() {
+            private final Button button=new Button();
+            {
+                FontIcon icon=new FontIcon("fth-printer"); icon.setIconSize(15); icon.setIconColor(Color.WHITE);
+                button.setGraphic(icon); button.getStyleClass().add("btn-icon");
+                button.setTooltip(new javafx.scene.control.Tooltip(I18nService.getInstance().tr("packing.debt.print")));
+                button.setOnAction(event -> { Order order=getTableRow()==null?null:getTableRow().getItem(); if(order!=null) saveDebtLabel(order); });
+            }
+            @Override protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item,empty); Order order=getTableRow()==null?null:getTableRow().getItem();
+                button.setDisable(order==null || order.getId()==null || pendingDebtPrints.contains(order.getId()) || !tokenValid);
+                setGraphic(empty?null:button);
+            }
+        };
+    }
+    private void saveDebtLabel(Order order) {
+        if (shop==null || !tokenValid || order.getId()==null || pendingDebtPrints.contains(order.getId())) return;
+        Shop owner=debtOwnerSnapshot(); long generation=shopGeneration; long orderId=order.getId();
+        FileChooser chooser=new FileChooser();
+        chooser.setTitle(I18nService.getInstance().tr("packing.debt.print"));
+        chooser.setInitialFileName("WB-" + orderId + ".pdf");
+        File directory=AppPaths.preferredDownloadsDirectory(); if(directory!=null) chooser.setInitialDirectory(directory);
+        chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter(I18nService.getInstance().tr("filechooser.pdf"),"*.pdf"));
+        File file=chooser.showSaveDialog(debtOrdersTable.getScene()==null?null:debtOrdersTable.getScene().getWindow());
+        if(file==null || !isDebtCurrent(owner,generation)) return;
+        pendingDebtPrints.add(orderId); debtOrdersTable.refresh();
+        Task<Void> task=new Task<>() {
+            @Override protected Void call() throws Exception { new com.vncode.app.features.print.WbReshipmentLabelService().export(owner,orderId,file.toPath()); return null; }
+        };
+        task.setOnSucceeded(event -> {
+            if(!isCurrent(owner,generation) || disposed)return; pendingDebtPrints.remove(orderId); debtOrdersTable.refresh();
+            if(!isDebtCurrent(owner,generation)) { debtConnectionChanged(); return; }
+            try { if(Desktop.isDesktopSupported())Desktop.getDesktop().open(file); } catch(IOException ex) { AlertService.showError(FriendlyErrorService.format(ex)); }
+        });
+        java.util.function.Consumer<Throwable> failed=error -> { if(!isCurrent(owner,generation)||disposed)return; pendingDebtPrints.remove(orderId); debtOrdersTable.refresh(); if(!isDebtCurrent(owner,generation)){debtConnectionChanged();return;} AlertService.showError(FriendlyErrorService.format(error)); };
+        task.setOnFailed(event -> failed.accept(task.getException())); AppTaskExecutor.execute(task,failed);
+    }
+    private Shop debtOwnerSnapshot() {
+        return new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
+    }
+    private boolean isDebtCurrent(Shop expected,long generation) {
+        return isCurrent(expected,generation) && shop.getMarketplace()==expected.getMarketplace()
+                && java.util.Objects.equals(shop.getClientId(),expected.getClientId())
+                && java.util.Objects.equals(shop.getApiKey(),expected.getApiKey());
     }
 
     private void openSupplyDetail(WbSupplySummary supply) {
@@ -883,7 +1109,8 @@ public class PackingController {
                 setGraphic(null);
                 return;
             }
-            titleLabel.setText(nullToEmpty(order.getName()));
+            String name=nullToEmpty(order.getName());
+            titleLabel.setText(name.isBlank() && getTableView()==debtOrdersTable ? I18nService.getInstance().tr("packing.debt.details_unavailable") : name);
 
             String brand = nullToEmpty(order.getBrand());
             String article = nullToEmpty(order.getArticle());

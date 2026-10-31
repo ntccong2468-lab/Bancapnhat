@@ -18,6 +18,8 @@ public class ShopSidebarController {
     @FXML private javafx.scene.layout.VBox sidebarRoot;
     @FXML private Label sidebarTitle;
     private boolean compact;private Boolean compactOverride;private double viewportWidth;
+    private String editionStatusText="";
+    private org.kordamp.ikonli.javafx.FontIcon compactStatusIcon;
     @FXML private Button sidebarToggleButton;
     private MenuItem automaticLayoutItem;
     @FXML private void onToggleSidebar(){compactOverride=!compact;setViewportWidth(viewportWidth);}
@@ -25,7 +27,7 @@ public class ShopSidebarController {
 
     private final java.util.Map<javafx.scene.control.ButtonBase,String> fullLabels=new java.util.HashMap<>();
     public void setViewportWidth(double width){viewportWidth=width;compact=compactOverride!=null?compactOverride:width>0&&width<1240;applyCompact();}
-    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:224;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);editionStatusLabel.setVisible(!compact);editionStatusLabel.setManaged(!compact);
+    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:224;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);renderEditionStatusPresentation();
         if(sidebarToggleButton!=null){String text=I18nService.getInstance().tr(compact?"sidebar.expand":"sidebar.collapse");sidebarToggleButton.setTooltip(new javafx.scene.control.Tooltip(text));sidebarToggleButton.setAccessibleText(text);((org.kordamp.ikonli.javafx.FontIcon)sidebarToggleButton.getGraphic()).setIconLiteral(compact?"fth-chevrons-right":"fth-chevrons-left");}
     }
     private void compactButtons(javafx.scene.Parent parent){for(var n:parent.getChildrenUnmodifiable()){
@@ -167,6 +169,30 @@ public class ShopSidebarController {
             default -> editionStatusLabel.getStyleClass().add(licenseStatus == com.vncode.app.features.license.LicenseModels.Status.OFFLINE && !licenseAccessValid ? "text-danger" : "text-secondary");
         }
         editionStatusLabel.setStyle("");
+        editionStatusText=editionStatusLabel.getText();
+        renderEditionStatusPresentation();
+    }
+
+    /** Keep the license state discoverable even when the navigation collapses. */
+    private void renderEditionStatusPresentation() {
+        if(editionStatusLabel==null)return;
+        editionStatusLabel.setVisible(true);
+        editionStatusLabel.setManaged(true);
+        editionStatusLabel.setFocusTraversable(compact);
+        editionStatusLabel.setAccessibleText(editionStatusText);
+        editionStatusLabel.setTooltip(new javafx.scene.control.Tooltip(editionStatusText));
+        if(compact){
+            if(compactStatusIcon==null){compactStatusIcon=new org.kordamp.ikonli.javafx.FontIcon("fth-shield");compactStatusIcon.setIconSize(16);}
+            boolean alert=editionStatusLabel.getStyleClass().contains("text-danger");
+            compactStatusIcon.setStyle("-fx-icon-color: "+(alert?"-danger":"-text-secondary")+";");
+            editionStatusLabel.setText("");
+            editionStatusLabel.setGraphic(compactStatusIcon);
+            editionStatusLabel.setAlignment(javafx.geometry.Pos.CENTER);
+        }else{
+            editionStatusLabel.setGraphic(null);
+            editionStatusLabel.setText(editionStatusText);
+            editionStatusLabel.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        }
     }
 
     @FXML

@@ -36,12 +36,37 @@ final class ZnackRegistrationBatchStore {
         ensureColumn(c,"retry_count","INTEGER NOT NULL DEFAULT 0");
         ensureColumn(c,"waiting_since","TEXT");
         ensureColumn(c,"correction_resumed","INTEGER NOT NULL DEFAULT 0");
+        boolean checkedFeed=false;
+        try(var s=c.createStatement();var rows=s.executeQuery("PRAGMA table_info(znack_registration_batch_items)")){while(rows.next())checkedFeed|="correction_checked_feed".equals(rows.getString("name"));}
+        if(!checkedFeed)try(var s=c.createStatement()){
+            s.execute("ALTER TABLE znack_registration_batch_items ADD COLUMN correction_checked_feed TEXT NOT NULL DEFAULT ''");
+            // Old releases only recorded one batch-wide boolean. A newer feed is
+            // recognizable when the previous rejected receipt was archived for this
+            // same card after this batch started. Otherwise conservatively preserve
+            // its checked status and explain why the seller must review it.
+            s.execute("""
+                UPDATE znack_registration_batch_items AS i
+                SET correction_checked_feed=feed_id,
+                    detail='CATALOG_LEGACY_REPAIR_REVIEW_REQUIRED: '||detail
+                WHERE state='NEEDS_ACTION' AND EXISTS(SELECT 1 FROM znack_registration_batches b
+                    WHERE b.id=i.run_id AND b.correction_resumed<>0)
+                AND NOT EXISTS(SELECT 1 FROM znack_registration_batches b
+                    JOIN znack_card_registrations r ON r.shop_id=b.shop_id
+                         AND json_valid(i.sku_json) AND r.chrt_id=json_extract(i.sku_json,'$.chrtId')
+                    JOIN znack_card_registration_history h ON h.shop_id=r.shop_id AND h.chrt_id=r.chrt_id
+                         AND h.gtin=r.gtin AND h.status='ERROR' AND h.feed_id<>i.feed_id AND h.archived_at>=b.created_at
+                    WHERE b.id=i.run_id AND r.feed_id=i.feed_id)
+                """);
+        }
     }
     private static void ensureColumn(Connection c,String name,String definition)throws SQLException {
         try(var s=c.createStatement();var r=s.executeQuery("PRAGMA table_info(znack_registration_batches)")){while(r.next())if(name.equals(r.getString("name")))return;}
         try(var s=c.createStatement()){s.execute("ALTER TABLE znack_registration_batches ADD COLUMN "+name+" "+definition);}
     }
     String create(Shop shop,String run,List<Sku> rows,boolean autoSign,String scope){
+        return create(shop,run,rows,autoSign,scope,null);
+    }
+    String create(Shop shop,String run,List<Sku> rows,boolean autoSign,String scope,RegistrationSourceConsent.Prepared consent){
         try{return SqliteWriteTransaction.run(c->{
             requireOwner(c,shop);
             try(var p=c.prepareStatement("SELECT id FROM znack_registration_batches WHERE shop_id=? AND owner=? AND state IN ('QUEUED','RUNNING','WAITING_NETWORK','WAITING_REMOTE','PAUSED') ORDER BY created_at DESC LIMIT 1")){
@@ -54,6 +79,7 @@ final class ZnackRegistrationBatchStore {
             try(var p=c.prepareStatement("INSERT INTO znack_registration_batch_items(run_id,position,sku_json,state,updated_at) VALUES(?,?,?,'QUEUED',?)")){
                 int position=0;for(var row:rows){p.setString(1,run);p.setInt(2,position++);p.setString(3,JSON.toJson(row));p.setString(4,now);p.addBatch();}p.executeBatch();
             }
+            if(consent!=null)RegistrationSourceConsent.persist(c,shop,run,rows.stream().map(row->new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).toList(),consent);
             return run;
         });}catch(SQLException e){throw storage(e);}
     }
@@ -109,6 +135,7 @@ final class ZnackRegistrationBatchStore {
             if(changed[0]&&"CANCELLED".equals(state))try(var p=c.prepareStatement("UPDATE znack_registration_batch_items SET state='CANCELLED',detail='ZNACK_BATCH_CANCELLED',updated_at=? WHERE run_id=? AND state='QUEUED'")){
                 p.setString(1,Instant.now().toString());p.setString(2,id);p.executeUpdate();
             }
+            if(changed[0]&&"CANCELLED".equals(state))RegistrationSourceConsentGuard.cancel(c,id);
             return null;
         });return changed[0];
     }
@@ -117,11 +144,11 @@ final class ZnackRegistrationBatchStore {
     boolean reopenRejected(Shop shop,String id,List<Integer> positions){
         if(positions.isEmpty())return false;var changed=new boolean[1];
         write(shop,id,c->{
-            try(var p=c.prepareStatement("UPDATE znack_registration_batches SET state='QUEUED',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',retry_at=NULL,retry_count=0,waiting_since=NULL,correction_resumed=1,updated_at=? WHERE id=? AND state='NEEDS_ACTION' AND correction_resumed=0")){
-                p.setString(1,Instant.now().toString());p.setString(2,id);changed[0]=p.executeUpdate()==1;
+            try(var p=c.prepareStatement("UPDATE znack_registration_batch_items SET state='WAITING_REMOTE',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',correction_checked_feed=feed_id,updated_at=? WHERE run_id=? AND position=? AND state='NEEDS_ACTION' AND feed_id<>'' AND correction_checked_feed<>feed_id AND EXISTS(SELECT 1 FROM znack_registration_batches b WHERE b.id=run_id AND b.state='NEEDS_ACTION')")){
+                for(int position:positions){p.setString(1,Instant.now().toString());p.setString(2,id);p.setInt(3,position);changed[0]|=p.executeUpdate()==1;}
             }
-            if(changed[0])try(var p=c.prepareStatement("UPDATE znack_registration_batch_items SET state='WAITING_REMOTE',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',updated_at=? WHERE run_id=? AND position=? AND state='NEEDS_ACTION' AND feed_id<>''")){
-                for(int position:positions){p.setString(1,Instant.now().toString());p.setString(2,id);p.setInt(3,position);p.addBatch();}p.executeBatch();
+            if(changed[0])try(var p=c.prepareStatement("UPDATE znack_registration_batches SET state='QUEUED',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',retry_at=NULL,retry_count=0,waiting_since=NULL,updated_at=? WHERE id=? AND state='NEEDS_ACTION'")){
+                p.setString(1,Instant.now().toString());p.setString(2,id);if(p.executeUpdate()!=1)throw new IllegalStateException("REGISTRATION_BATCH_CHANGED");
             }
             return null;
         });return changed[0];

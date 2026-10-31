@@ -312,6 +312,62 @@ class OzonLabelServiceTest {
         for(int i=0;i<numbers.size();i++)assertEquals("v3s:"+(8000+i),repo.find(1,numbers.get(i)).taskId());
     }
 
+    @Test void rateLimitedLabelPollContinuesTheSameTaskWithoutCreatingAnother()throws Exception {
+        var numbers=twoPostings();
+        server.enqueue(json("{\"task_id\":7001}"));
+        server.enqueue(new MockResponse().setResponseCode(429).setHeader("Retry-After","0").setBody("{}"));
+        server.enqueue(json("{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/retry.pdf")+"\"}"));
+        server.enqueue(new MockResponse().setBody(new okio.Buffer().write(textPdf(numbers.toArray(String[]::new)))));
+        try(var batch=batch(numbers)){
+            assertEquals(numbers.getFirst(),pageText(batch.download(owner(),numbers.getFirst(),temporaryDirectory.resolve("retry-one.pdf").toFile())));
+            assertEquals(numbers.getLast(),pageText(batch.download(owner(),numbers.getLast(),temporaryDirectory.resolve("retry-two.pdf").toFile())));
+        }
+        assertEquals(4,server.getRequestCount());
+        assertEquals("/v3/posting/fbs/package-label/create",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+        assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+        assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+    }
+    @Test void rateLimitedTaskCreationRetriesOnlyTheDefinitivelyRejectedRequest()throws Exception{
+        var numbers=twoPostings();server.enqueue(new MockResponse().setResponseCode(429).setHeader("Retry-After","0").setBody("{}"));
+        server.enqueue(json("{\"task_id\":7001}"));server.enqueue(json("{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/create-retry.pdf")+"\"}"));
+        server.enqueue(new MockResponse().setBody(new okio.Buffer().write(textPdf(numbers.toArray(String[]::new)))));
+        try(var batch=batch(numbers)){assertEquals(numbers.getFirst(),pageText(batch.download(owner(),numbers.getFirst(),temporaryDirectory.resolve("retry-create.pdf").toFile())));}
+        assertEquals(4,server.getRequestCount());assertEquals("/v3/posting/fbs/package-label/create",server.takeRequest(1,TimeUnit.SECONDS).getPath());assertEquals("/v3/posting/fbs/package-label/create",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+        assertEquals("v3:7001",new OzonLabelRepository().find(1,numbers.getFirst()).taskId());
+    }
+
+    @Test void definiteBadRequestSplitsOneBadPostingFromOneHundredWithoutRepeatingSuccessfulTasks()throws Exception {
+        var numbers=java.util.stream.IntStream.range(0,100).mapToObj(i->"93000000-"+String.format("%04d",i)+"-1").toList();
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_postings(shop_id,posting_number,status,synced_at) VALUES(1,?,'awaiting_deliver','2026-08-18T00:00:00Z')")){for(String number:numbers){p.setString(1,number);p.addBatch();}p.executeBatch();}
+        String bad=numbers.get(47);var created=new java.util.concurrent.ConcurrentHashMap<Long,byte[]>();var counter=new java.util.concurrent.atomic.AtomicLong(1000);var successfulGroups=new java.util.concurrent.ConcurrentHashMap<String,Integer>();
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){public MockResponse dispatch(RecordedRequest request){
+            try{
+                if(request.getPath().equals("/v3/posting/fbs/package-label/create")){
+                    var ids=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_numbers").asList().stream().map(com.google.gson.JsonElement::getAsString).toList();
+                    if(ids.contains(bad))return new MockResponse().setResponseCode(400).setBody("{}");
+                    successfulGroups.merge(String.join(",",ids),1,Integer::sum);long task=counter.incrementAndGet();created.put(task,textPdf(ids.toArray(String[]::new)));return json("{\"task_id\":"+task+"}");
+                }
+                if(request.getPath().equals("/v2/posting/fbs/package-label/get")){
+                    long task=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("task_id").getAsLong();return json("{\"status\":\"completed\",\"file_url\":\""+server.url("/cdn/"+task)+"\"}");
+                }
+                if(request.getPath().startsWith("/cdn/")){long task=Long.parseLong(request.getPath().substring(5));return new MockResponse().setBody(new okio.Buffer().write(created.get(task)));}
+                return new MockResponse().setResponseCode(404);
+            }catch(Exception e){throw new AssertionError(e);}
+        }});
+        var failed=new java.util.ArrayList<String>();
+        try(var batch=batch(numbers)){for(String number:numbers){try{assertEquals(number,pageText(batch.download(owner(),number,temporaryDirectory.resolve("split-label.pdf").toFile())));}catch(OzonApiException rejected){failed.add(number);}}}
+        assertEquals(java.util.List.of(bad),failed);assertTrue(successfulGroups.values().stream().allMatch(count->count==1));assertTrue(successfulGroups.size()<=7);
+    }
+    @Test void rejectedPollingOfAnExistingTaskNeverSplitsOrCreatesAnotherTask()throws Exception{
+        var numbers=twoPostings();server.enqueue(json("{\"task_id\":7001}"));server.enqueue(new MockResponse().setResponseCode(400).setBody("{}"));
+        try(var batch=batch(numbers)){
+            assertThrows(OzonApiException.class,()->batch.download(owner(),numbers.getFirst(),temporaryDirectory.resolve("poll1.pdf").toFile()));
+            assertThrows(OzonApiException.class,()->batch.download(owner(),numbers.getLast(),temporaryDirectory.resolve("poll2.pdf").toFile()));
+        }
+        assertEquals(2,server.getRequestCount());
+        assertEquals("v3:7001",new OzonLabelRepository().find(1,numbers.getFirst()).taskId());
+    }
+
     @Test void printAllOneHundredOrdersCreatesOneSharedLabelTaskAndMapsEveryPage() throws Exception {
         var numbers = java.util.stream.IntStream.range(0,100)
                 .mapToObj(i -> "95000000-" + String.format("%04d",i) + "-1").toList();

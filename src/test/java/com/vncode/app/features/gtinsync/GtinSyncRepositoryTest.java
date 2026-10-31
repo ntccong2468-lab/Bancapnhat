@@ -31,7 +31,7 @@ class GtinSyncRepositoryTest {
     @Test void migratesVersionTwoWithSnapshotAndPreservesData() throws Exception {
         // Recreate the pre-GTIN schema-2 fixture, including the newer verified-mapping table.
         try(var c=Database.getConnection();var s=c.createStatement()) {
-            for(String table:List.of("gtin_sync_events","gtin_sync_items","gtin_sync_jobs","gtin_sync_verified_mappings","gtin_sync_mappings","gtin_sync_catalog"))s.execute("DROP TABLE "+table);
+            for(String table:List.of("gtin_sync_events","gtin_sync_items","gtin_sync_jobs","gtin_sync_verified_mappings","gtin_sync_barcode_observations","gtin_sync_barcode_read_heads","gtin_sync_mappings","gtin_sync_catalog"))s.execute("DROP TABLE "+table);
             s.execute("PRAGMA user_version=2");
             assertFalse(s.executeQuery("SELECT name FROM sqlite_master WHERE name LIKE 'gtin_sync_%'").next());
         }
@@ -40,7 +40,7 @@ class GtinSyncRepositoryTest {
                 var v=s.executeQuery("PRAGMA user_version");assertTrue(v.next());assertEquals(Database.currentSchemaVersion(),v.getInt(1));v.close();
                 var integrity=s.executeQuery("PRAGMA integrity_check");assertEquals("ok",integrity.getString(1));integrity.close();
                 assertFalse(s.executeQuery("PRAGMA foreign_key_check").next());
-                var tables=s.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name LIKE 'gtin_sync_%'");assertEquals(6,tables.getInt(1));tables.close();
+                var tables=s.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name LIKE 'gtin_sync_%'");assertEquals(8,tables.getInt(1));tables.close();
             }
             Path snapshot;
             try(var files=java.nio.file.Files.walk(temp.resolve("snapshots"))) {
@@ -61,6 +61,16 @@ class GtinSyncRepositoryTest {
         assertEquals(row,repo.catalog(1,Marketplace.WILDBERRIES).getFirst());
         assertThrows(IllegalArgumentException.class,()->repo.catalog(1,Marketplace.OZON));
         assertTrue(repo.catalog(2,Marketplace.OZON).isEmpty());
+    }
+    @Test void oldDispatchEventsGainAnEmptyIdentityWithoutInventingAGroup()throws Exception {
+        var job=repo.createJob(List.of(preview(1,Marketplace.WILDBERRIES)));var item=repo.jobItems(job).getFirst();
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("ALTER TABLE gtin_sync_events DROP COLUMN dispatch_id");
+            s.execute("INSERT INTO gtin_sync_events(item_id,status,created_at) VALUES('"+item.id()+"','DISPATCHED','2026-10-30T12:00:00Z')");
+        }
+        Database.initDatabase();var restored=new GtinSyncRepository().jobItems(job).getFirst();
+        assertEquals(Instant.parse("2026-10-30T12:00:00Z"),restored.dispatchedAt());assertTrue(restored.dispatchId().isBlank());
+        assertEquals("GTIN_DISPATCH_EVIDENCE_MISSING",assertThrows(IllegalArgumentException.class,()->new GtinSyncRepository().dispatchedBatch(restored)).getMessage());
     }
     @Test void deduplicatesConfirmsAndClaimsTransitions() {
         var p=preview(1,Marketplace.WILDBERRIES);

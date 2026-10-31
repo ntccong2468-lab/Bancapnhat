@@ -88,8 +88,13 @@ public final class GtinSyncSchema {
                 CREATE TABLE IF NOT EXISTS gtin_sync_events(
                   id INTEGER PRIMARY KEY AUTOINCREMENT, item_id TEXT NOT NULL
                   REFERENCES gtin_sync_items(id) ON DELETE CASCADE,
-                  status TEXT NOT NULL, created_at TEXT NOT NULL)
+                  status TEXT NOT NULL, created_at TEXT NOT NULL, dispatch_id TEXT NOT NULL DEFAULT '')
                 """);
+            boolean hasDispatchId=false;
+            try(var columns=c.createStatement();var rows=columns.executeQuery("PRAGMA table_info(gtin_sync_events)")){
+                while(rows.next())if("dispatch_id".equals(rows.getString("name")))hasDispatchId=true;
+            }
+            if(!hasDispatchId)s.execute("ALTER TABLE gtin_sync_events ADD COLUMN dispatch_id TEXT NOT NULL DEFAULT ''");
             s.execute("CREATE INDEX IF NOT EXISTS gtin_sync_dispatch_events ON gtin_sync_events(item_id,status,id DESC)");
         }
     }

@@ -203,6 +203,26 @@ public final class WbSchemaSupport {
                 )
             """);
             st.execute("""
+                CREATE TABLE IF NOT EXISTS wb_supply_membership_versions(
+                    shop_id INTEGER NOT NULL,
+                    supply_id TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    PRIMARY KEY (shop_id, supply_id),
+                    FOREIGN KEY (shop_id, supply_id) REFERENCES wb_supplies(shop_id, supply_id) ON DELETE CASCADE
+                )
+            """);
+            st.execute("""
+                CREATE TABLE IF NOT EXISTS wb_supply_pending_confirmations(
+                    shop_id INTEGER NOT NULL,
+                    supply_id TEXT NOT NULL,
+                    order_id INTEGER NOT NULL,
+                    confirmed_at TEXT NOT NULL,
+                    PRIMARY KEY (shop_id, supply_id, order_id),
+                    FOREIGN KEY (shop_id, supply_id) REFERENCES wb_supplies(shop_id, supply_id) ON DELETE CASCADE,
+                    FOREIGN KEY (shop_id, order_id) REFERENCES wb_orders(shop_id, order_id) ON DELETE CASCADE
+                )
+            """);
+            st.execute("""
                 CREATE TABLE IF NOT EXISTS wb_sync_runs(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     shop_id INTEGER NOT NULL,

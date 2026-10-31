@@ -31,23 +31,25 @@
         <Button fx:id="newCardsSelectedButton" text="Tạo thẻ mới cho tập đã chọn" onAction="#onNewCardsSelected"/>
     </VBox>
     <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6">
-        <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="375"/>
+        <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="280"/>
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
-        <ComboBox fx:id="statusFilter" prefWidth="225"/>
+        <ComboBox fx:id="statusFilter" prefWidth="195"/>
         <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
+        <Button fx:id="connectionButton" text="Kiểm tra kết nối" onAction="#onConnection" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
+        <Button fx:id="provenanceButton" text="Nguồn dữ liệu" onAction="#onProvenance" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
     </FlowPane>
     <StackPane fx:id="registrationTableHost" minHeight="0" VBox.vgrow="ALWAYS">
         <TableView fx:id="productTable" minHeight="0">
             <columns>
-                <TableColumn fx:id="selectionColumn" text="✓" minWidth="48" prefWidth="64" maxWidth="64" sortable="false"/>
-                <TableColumn fx:id="imageColumn" text="Ảnh" prefWidth="90" maxWidth="90"/>
-                <TableColumn fx:id="nameColumn" text="Sản phẩm" prefWidth="250"/>
-                <TableColumn fx:id="articleColumn" text="Article" prefWidth="142"/>
-                <TableColumn fx:id="genderColumn" text="Giới tính" prefWidth="80"/>
-                <TableColumn fx:id="colorColumn" text="Màu" prefWidth="80"/>
-                <TableColumn fx:id="sizeColumn" text="Size" prefWidth="62" minWidth="62"/>
+                <TableColumn fx:id="selectionColumn" text="✓" minWidth="48" prefWidth="48" maxWidth="48" sortable="false"/>
+                <TableColumn fx:id="imageColumn" text="Ảnh" minWidth="64" prefWidth="64" maxWidth="64"/>
+                <TableColumn fx:id="nameColumn" text="Sản phẩm" prefWidth="220"/>
+                <TableColumn fx:id="articleColumn" text="Article" prefWidth="145"/>
+                <TableColumn fx:id="genderColumn" text="Giới tính" prefWidth="95"/>
+                <TableColumn fx:id="colorColumn" text="Màu" prefWidth="72"/>
+                <TableColumn fx:id="sizeColumn" text="Size" prefWidth="95" minWidth="90"/>
                 <TableColumn fx:id="russianSizeColumn" visible="false" text="Size RU" prefWidth="88"/>
-                <TableColumn fx:id="barcodeColumn" text="Barcode WB" prefWidth="210"/>
+                <TableColumn fx:id="barcodeColumn" text="Barcode WB" prefWidth="175"/>
                 <TableColumn fx:id="verifiedGtinColumn" visible="false" text="GTIN đã xác minh" prefWidth="175"/>
                 <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="154"/>
                 <TableColumn fx:id="moderationColumn" visible="false" text="Kiểm duyệt" prefWidth="185"/>

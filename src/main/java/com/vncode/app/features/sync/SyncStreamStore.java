@@ -24,6 +24,16 @@ public final class SyncStreamStore {
             p.setInt(1,shop);p.setString(2,stream);try(var r=p.executeQuery()){return r.next()?new State(r.getString("owner"),r.getLong("revision"),r.getInt("requested")!=0,r.getString("checkpoint"),time(r.getString("last_success")),time(r.getString("last_complete")),time(r.getString("next_attempt")),r.getInt("failures"),r.getString("error_code")):null;}
         }
     }
+    /** Read only: do not create/reset a checkpoint while checking freshness. */
+    public State existing(int shopId,String stream){
+        try(var c=Database.getConnection()){return read(c,shopId,stream);}
+        catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
+    }
+    public Instant lastAttempt(int shopId,String stream){
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT last_attempt FROM sync_streams WHERE shop_id=? AND stream=?")){
+            p.setInt(1,shopId);p.setString(2,stream);try(var r=p.executeQuery()){return r.next()?time(r.getString(1)):null;}
+        }catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
+    }
     /** Safe to call inside a publication transaction: this is the durable handoff. */
     public static void request(Connection c,int shopId,String stream) throws SQLException {
         String owner;

@@ -36,4 +36,18 @@ class SignedUpdateManifestTest {
         String foreign=envelope(payload("1.4.4","https://github.com/rupphi/relatest-wcode/releases/download/v1.4.4/WCode.exe"));
         assertThrows(java.io.IOException.class,()->SignedUpdateManifest.verify(foreign,publicKey(),"1.4.4"));
     }
+    @Test void signedVersionedBaselineMsiCanBeSelectedByTheWindowsUpdater() throws Exception {
+        String url="https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.0/VN-code-1.6.0-Windows-x64.msi";
+        var body=JsonParser.parseString(payload("1.6.0",url)).getAsJsonObject();
+        body.getAsJsonArray("assets").get(0).getAsJsonObject().addProperty("kind","msi");
+        var info=SignedUpdateManifest.verify(envelope(body.toString()),publicKey(),"1.6.0");
+        String os=System.getProperty("os.name");
+        try {
+            System.setProperty("os.name","Windows 11");
+            assertEquals(url,info.getBestDownloadUrl());
+            assertEquals("a".repeat(64),info.getBestDownloadSha256());
+            assertEquals(12345L,info.getBestDownloadSize());
+            assertTrue(new UpdateInstallerService().supportsInAppInstall(info));
+        } finally {System.setProperty("os.name",os);}
+    }
 }

@@ -14,6 +14,8 @@ public interface GtinBatchAdapter extends GtinMarketplaceAdapter {
     /** Optional durable preparation before a GTIN write, for one selected product. */
     @FunctionalInterface interface SqlGuard {void check(java.sql.Connection connection)throws java.sql.SQLException;}
     default Preparation beforeSubmit(List<JobItem> items,Runnable guard,Runnable priceConsentGuard,SqlGuard claimGuard)throws Exception{return Preparation.ready();}
+    /** Read-only preflight for one partition; no mutation may be inferred from this snapshot. */
+    default void preparePriceBatch(List<JobItem> items,Runnable guard)throws Exception{}
     /** Called for each partition, including the first; run-scoped adapters retain cadence across child jobs. */
     default void beforeNextBatch()throws InterruptedException{}
     void prepareBatch(Collection<ProductKey> keys) throws Exception;

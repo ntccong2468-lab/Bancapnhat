@@ -35,7 +35,7 @@ class WbMarketplaceApiRateLimiter {
         }
     }
 
-    static void registerRateLimit(String apiKey, Headers headers) {
+    static Duration registerRateLimit(String apiKey, Headers headers) {
         Bucket bucket = bucketFor(apiKey);
         long cooldownMs = resolveCooldownMs(headers);
         synchronized (bucket) {
@@ -44,6 +44,7 @@ class WbMarketplaceApiRateLimiter {
             bucket.nextAllowedAtMs = Math.max(bucket.nextAllowedAtMs, cooldownUntil);
         }
         LOGGER.warn("WB Marketplace API rate limit cooldown set for {} ms", cooldownMs);
+        return Duration.ofMillis(cooldownMs);
     }
 
     private static Bucket bucketFor(String apiKey) {
@@ -59,13 +60,10 @@ class WbMarketplaceApiRateLimiter {
 
     private static long resolveCooldownMs(Headers headers) {
         Long resetSeconds = parsePositiveLong(firstHeader(headers, "X-Ratelimit-Reset", "X-RateLimit-Reset"));
-        if (resetSeconds != null) {
-            return clamp(resetSeconds * 1000L, MIN_INTERVAL_MS, MAX_RATE_LIMIT_COOLDOWN_MS);
-        }
         Long retryAfterSeconds = parsePositiveLong(firstHeader(headers, "Retry-After"));
-        if (retryAfterSeconds != null) {
-            return clamp(retryAfterSeconds * 1000L, MIN_INTERVAL_MS, MAX_RATE_LIMIT_COOLDOWN_MS);
-        }
+        // When both headers are present, do not retry before either deadline.
+        long seconds = Math.max(resetSeconds == null ? 0 : resetSeconds, retryAfterSeconds == null ? 0 : retryAfterSeconds);
+        if (seconds > 0) return clamp(seconds > MAX_RATE_LIMIT_COOLDOWN_MS / 1000 ? MAX_RATE_LIMIT_COOLDOWN_MS : seconds * 1000L, MIN_INTERVAL_MS, MAX_RATE_LIMIT_COOLDOWN_MS);
         return DEFAULT_RATE_LIMIT_COOLDOWN_MS;
     }
 

@@ -26,7 +26,7 @@ public record SyncFailure(String code,Duration delay,boolean actionRequired) {
             }
             if(e instanceof WbApiException w) {
                 if(w.getStatusCode()==401||w.getStatusCode()==403)return new SyncFailure("WB_AUTH_REQUIRED",Duration.ofMinutes(5),true);
-                if(w.getStatusCode()==429)return new SyncFailure("WB_RATE_LIMIT",Duration.ofMinutes(1),false);
+                if(w.getStatusCode()==429)return new SyncFailure("WB_RATE_LIMIT",w.getRetryAfter()==null?Duration.ofMinutes(1):w.getRetryAfter(),false);
                 return new SyncFailure("WB_HTTP_"+w.getStatusCode(),backoff(attempt),false);
             }
             if(e instanceof com.vncode.app.integration.znack.ZnackApiClient.ZnackApiException z){

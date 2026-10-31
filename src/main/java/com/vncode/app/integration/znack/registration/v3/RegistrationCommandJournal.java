@@ -69,6 +69,7 @@ public final class RegistrationCommandJournal {
         var claims=transaction(c->{
             recover(c);var result=new ArrayList<Claim>();
             for(var command:commands){
+                if(command.action()==Action.ALLOCATE_GTIN)requireNoUnresolvedLegacyAllocation(c,owner,allocationPool,command.resource());
                 // Uncertainty is a property of the resource, not the payload or button used next.
                 try(var q=c.prepareStatement("SELECT 1 FROM znack_v3_dispatches WHERE state IN ('SENDING','UNKNOWN') AND ((owner_key=? AND resource=?) OR (?='ALLOCATE_GTIN' AND action='ALLOCATE_GTIN' AND (pool_key=? OR owner_key=? OR pool_key=owner_key)))")){
                     q.setString(1,owner.key());q.setString(2,command.resource());q.setString(3,command.action().name());q.setString(4,allocationPool);q.setString(5,owner.key());
@@ -101,6 +102,76 @@ public final class RegistrationCommandJournal {
             boolean rejected=!dispatched.get()||failure instanceof ZnackApiException http&&Set.of(400,401,403,413,429).contains(http.statusCode());
             try{finish(claims,rejected?"REJECTED":"UNKNOWN",Collections.nCopies(claims.size(),""));}catch(RuntimeException storage){failure.addSuppressed(storage);}
             throw failure;
+        }
+    }
+    /** The allocation pool is shared by both marketplaces for the same Catalog participant. */
+    public static String allocationPool(String inn,String environmentUrl) {
+        if(inn==null||!inn.matches("[0-9]{10}|[0-9]{12}"))throw new IllegalArgumentException("REGISTRATION_POOL_REQUIRED");
+        try{
+            var url=okhttp3.HttpUrl.get(environmentUrl);
+            boolean production=Set.of(okhttp3.HttpUrl.get(com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API).host(),
+                    okhttp3.HttpUrl.get(com.vncode.app.integration.znack.ZnackModels.PRODUCTION_NATIONAL_CATALOG).host()).contains(url.host());
+            boolean sandbox=Set.of("markirovka.sandbox.crptech.ru",okhttp3.HttpUrl.get(com.vncode.app.integration.znack.ZnackModels.SANDBOX_NATIONAL_CATALOG).host()).contains(url.host());
+            if(!url.isHttps()||url.port()!=443||!url.username().isEmpty()||!url.password().isEmpty()||!(production||sandbox))throw new IllegalArgumentException();
+            return hash(inn+"|"+(production?"production":"sandbox"));
+        }catch(RuntimeException invalid){throw new IllegalArgumentException("REGISTRATION_POOL_REQUIRED");}
+    }
+    /** Resource identity is stable, unambiguous and does not expose seller product IDs. */
+    public static String ozonAllocationResource(String productId,String offerId) {
+        if(blank(productId)||blank(offerId))throw new IllegalArgumentException("REGISTRATION_COMMAND_INVALID");
+        return "OZON:"+hash(productId.length()+":"+productId+offerId.length()+":"+offerId);
+    }
+    /** Old native checkpoints predate the shared journal. A lost receipt is not permission to
+     * allocate again, including from another marketplace or another process. */
+    private static void requireNoUnresolvedLegacyAllocation(Connection c,Owner owner,String pool,String resource)throws SQLException {
+        try(var p=c.prepareStatement("""
+            SELECT r.shop_id,r.nm_id,r.chrt_id,s.participant_inn,s.environment
+            FROM znack_card_registrations r LEFT JOIN znack_card_registration_scopes s
+              ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id
+            WHERE r.status IN ('ALLOCATING_GTIN','GTIN_REVIEW_REQUIRED')
+              AND TRIM(COALESCE(r.gtin,''))='' AND TRIM(COALESCE(r.feed_id,''))=''
+            """);var rows=p.executeQuery()) {
+            while(rows.next()) {
+                if(rows.getInt(1)==owner.shopId()&&resource.equals(rows.getLong(2)+"/"+rows.getLong(3)))continue;
+                if(samePoolOrUnknown(pool,rows.getString(4),rows.getString(5)))throw new IllegalStateException("GTIN_ALLOCATION_READBACK_REQUIRED");
+            }
+        }
+        try(var p=c.prepareStatement("""
+            SELECT shop_id,product_id,offer_id,scope_json FROM ozon_card_registrations
+            WHERE status IN ('ALLOCATING_GTIN','GTIN_REVIEW_REQUIRED') AND gtin='' AND feed_id=''
+            """);var rows=p.executeQuery()) {
+            while(rows.next()) {
+                if(rows.getInt(1)==owner.shopId()&&resource.equals(ozonAllocationResource(rows.getString(2),rows.getString(3))))continue;
+                try{
+                    var json=com.google.gson.JsonParser.parseString(rows.getString(4)).getAsJsonObject();
+                    if(samePoolOrUnknown(pool,json.get("inn").getAsString(),json.get("environment").getAsString()))
+                        throw new IllegalStateException("GTIN_ALLOCATION_READBACK_REQUIRED");
+                }catch(IllegalStateException blocked){throw blocked;}
+                catch(RuntimeException unknown){throw new IllegalStateException("GTIN_ALLOCATION_READBACK_REQUIRED");}
+            }
+        }
+    }
+    private static boolean samePoolOrUnknown(String expected,String inn,String environment) {
+        try{return expected.equals(allocationPool(inn,environment));}
+        catch(RuntimeException unknown){return true;}
+    }
+    /** Read the exact acknowledged result inside the same transaction as a native checkpoint.
+     * UNKNOWN, SENDING, mismatched owner/resource/generation and blank receipts cannot recover. */
+    public static Optional<String> acknowledged(Connection c,Owner owner,Command command)throws SQLException {
+        if(command.action()!=Action.ALLOCATE_GTIN)throw new IllegalArgumentException("REGISTRATION_COMMAND_INVALID");
+        return acknowledgedReceipt(c,owner,command);
+    }
+    /** Exact immutable SUBMIT payload only; an unknown or merely sent request is not an ACK. */
+    public static Optional<String> acknowledgedSubmission(Connection c,Owner owner,Command command)throws SQLException {
+        if(command.action()!=Action.SUBMIT)throw new IllegalArgumentException("REGISTRATION_COMMAND_INVALID");
+        return acknowledgedReceipt(c,owner,command);
+    }
+    private static Optional<String> acknowledgedReceipt(Connection c,Owner owner,Command command)throws SQLException {
+        try(var p=c.prepareStatement("SELECT receipt FROM znack_v3_dispatches WHERE owner_key=? AND action=? AND resource=? AND content_hash=? AND state='ACKNOWLEDGED'")){
+            bind(p,owner,command);try(var r=p.executeQuery()){
+                if(!r.next()||blank(r.getString(1)))return Optional.empty();
+                return Optional.of(r.getString(1));
+            }
         }
     }
     private void finish(List<Claim> claims,String state,List<String> receipts){

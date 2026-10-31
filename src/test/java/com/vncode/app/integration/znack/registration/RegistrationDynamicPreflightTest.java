@@ -82,12 +82,19 @@ class RegistrationDynamicPreflightTest {
         var review=service.read(shop,List.of(source),Map.of(source.key(),Map.of(999L,new RegistrationReviewedValues.Value("A",""))));
         assertEquals(1,review.missing().size());assertEquals(13836L,review.missing().getFirst().attribute().id());assertEquals(0,api.writes);
     }
-    @Test void announcedProductionCountryDefaultsToRussiaWithoutAnyRegulationProofOrSellerChoice()throws Exception{
+    @Test void missingProductionCountryIsReportedForEveryCardWithoutAllocatingOrSubmitting()throws Exception{
         api.announcedCountry=true;var one=snapshot("1");var two=snapshot("2");
         var entered=Map.of(one.key(),Map.of(999L,new RegistrationReviewedValues.Value("A","")),two.key(),Map.of(999L,new RegistrationReviewedValues.Value("B","")));
         var review=service.read(shop,List.of(one,two),entered);
-        assertTrue(review.missing().isEmpty());assertEquals(2,review.plans().size());for(var plan:review.plans()){assertEquals("RU",plan.draft().attributes().get(2630L));assertFalse(plan.draft().attributes().containsKey(13836L));}
+        assertEquals(2,review.missing().stream().filter(m->m.attribute().id()==2630L).count());assertEquals(2,review.plans().size());
+        for(var plan:review.plans()){assertFalse(plan.draft().attributes().containsKey(2630L));assertFalse(plan.draft().attributes().containsKey(13836L));}
+        assertThrows(RegistrationValidationException.class,()->RegistrationDynamicPreflight.approvals(review));
         assertEquals(1,api.countries);assertEquals(1,api.fullModels);assertEquals(1,api.permits);assertEquals(0,api.writes);
+        var supplied=Map.of(one.key(),Map.of(999L,new RegistrationReviewedValues.Value("A",""),2630L,new RegistrationReviewedValues.Value("CN","")),
+                two.key(),Map.of(999L,new RegistrationReviewedValues.Value("B",""),2630L,new RegistrationReviewedValues.Value("RU","")));
+        var reviewed=service.read(shop,List.of(one,two),supplied);
+        assertTrue(reviewed.missing().isEmpty());assertEquals(2,RegistrationDynamicPreflight.approvals(reviewed).size());
+        assertEquals("CN",reviewed.plans().getFirst().draft().attributes().get(2630L));assertEquals("RU",reviewed.plans().getLast().draft().attributes().get(2630L));assertEquals(0,api.writes);
     }
     @Test void actualChineseSourceCountryIsKeptAsItsOfficialIsoInsteadOfUsingRussiaDefault()throws Exception{
         api.announcedCountry=true;var original=snapshot("1");var attributes=new ArrayList<>(original.attributes());attributes.add(new ProductAttribute("country","Страна производства",List.of("Китай"),""));

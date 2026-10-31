@@ -295,11 +295,39 @@ class ZnackCardRegistrationControllerTest {
             assertFalse(button("registerSelectedButton").isDisable());return null;
         });
     }
+    @Test void selectedReplacementUsesReviewedDurableBatch()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("UPDATE znack_card_registrations SET feed_id='feed-3',good_id=903 WHERE shop_id=1 AND chrt_id=3");
+        }
+        var controller=(ZnackCardRegistrationController)loader.getController();
+        var dispatched=new CountDownLatch(1);
+        fx(()->{var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);
+            preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->sourceReviewFixture(owner,selection));
+            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);
+            starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,sign,approval)->{
+                assertEquals(1,selection.size());var row=selection.getFirst();assertEquals(3,row.chrtId());
+                var key=new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
+                assertNotNull(approval);assertEquals(com.vncode.app.integration.znack.registration.RegistrationSourceConsent.Action.REPLACE,approval.action(key));
+                dispatched.countDown();return "reviewed-replacement";});controller.refreshLocal();return null;});awaitTasks();
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{
+            table().getSelectionModel().select(table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow());
+            button("newCardsSelectedButton").fire();
+        },pane->pane.getButtonTypes().contains(ButtonType.OK)&&pane.lookup("#registrationSourceReviewTable")==null,
+                pane->ButtonType.OK);
+        approveSourceReview();assertTrue(dispatched.await(15,TimeUnit.SECONDS));awaitTasks();
+    }
     @Test void changedTnvedRowNewCardButtonRequiresExplicitConfirmationAndUsesReplacementFlow()throws Exception{
-        var accepted=new java.util.concurrent.atomic.AtomicBoolean();var calls=new java.util.concurrent.atomic.AtomicInteger();
-        fx(()->{var controller=(ZnackCardRegistrationController)loader.getController();var source=table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow();var changed=new Sku(source.nmId(),source.chrtId(),source.subjectId(),source.vendorCode(),source.subjectName(),source.brand(),source.title(),source.color(),source.size(),source.barcodes(),source.imageUrl(),source.needKiz(),source.gtin(),source.goodId(),source.feedId(),source.status(),source.errorMessage(),source.wbUpdated(),source.wbSize(),source.registrationRevision(),true);
-            var confirmation=controller.getClass().getDeclaredField("replacementConfirmation");confirmation.setAccessible(true);confirmation.set(controller,(java.util.function.Predicate<Sku>)row->accepted.get());var preparation=controller.getClass().getDeclaredField("replacementPreparation");preparation.setAccessible(true);preparation.set(controller,(ZnackCardRegistrationController.ReplacementPreparation)(owner,epoch,row,fresh,replacement,done)->{assertEquals(3,row.chrtId());assertFalse(fresh);assertTrue(replacement,"A button labelled new card must use the explicitly approved new-card path");calls.incrementAndGet();});
-            var column=(TableColumn<Sku,Sku>)loader.getNamespace().get("actionColumn");var cell=column.getCellFactory().call(column);var update=cell.getClass().getDeclaredMethod("updateItem",Sku.class,boolean.class);update.setAccessible(true);update.invoke(cell,changed,false);var button=(Button)cell.getGraphic();assertEquals(I18nService.getInstance().tr("znack.registration.create_new_card"),button.getText());assertFalse(button.isDisabled());button.fire();assertEquals(0,calls.get(),"Cancelling the confirmation must not prepare, allocate or send a replacement");accepted.set(true);button.fire();assertEquals(1,calls.get());return null;});
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("UPDATE znack_card_registrations SET feed_id='feed-3',good_id=903 WHERE shop_id=1 AND chrt_id=3");
+        }
+        var accepted=new java.util.concurrent.atomic.AtomicBoolean();var calls=new java.util.concurrent.atomic.AtomicInteger();var dispatched=new CountDownLatch(1);
+        var controller=(ZnackCardRegistrationController)loader.getController();
+        fx(()->{var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->sourceReviewFixture(owner,selection));
+            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,sign,approval)->{var row=selection.getFirst();assertEquals(3,row.chrtId());var key=new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));assertEquals(com.vncode.app.integration.znack.registration.RegistrationSourceConsent.Action.REPLACE,approval.action(key));calls.incrementAndGet();dispatched.countDown();return "replacement";});
+            var confirmation=controller.getClass().getDeclaredField("replacementConfirmation");confirmation.setAccessible(true);confirmation.set(controller,(java.util.function.Predicate<Sku>)row->accepted.get());button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{var source=table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow();assertEquals(903L,source.goodId());assertTrue(source.hasFeed());var changed=new Sku(source.nmId(),source.chrtId(),source.subjectId(),source.vendorCode(),source.subjectName(),source.brand(),source.title(),source.color(),source.size(),source.barcodes(),source.imageUrl(),source.needKiz(),source.gtin(),source.goodId(),source.feedId(),source.status(),source.errorMessage(),source.wbUpdated(),source.wbSize(),source.registrationRevision(),true);
+            var column=(TableColumn<Sku,Sku>)loader.getNamespace().get("actionColumn");var cell=column.getCellFactory().call(column);var update=cell.getClass().getDeclaredMethod("updateItem",Sku.class,boolean.class);update.setAccessible(true);update.invoke(cell,changed,false);var button=(Button)cell.getGraphic();assertEquals(I18nService.getInstance().tr("znack.registration.create_new_card"),button.getText());assertFalse(button.isDisabled());button.fire();assertEquals(0,calls.get(),"Cancelling the confirmation must not enqueue, allocate or send a replacement");accepted.set(true);button.fire();return null;});
+        approveSourceReview();assertTrue(dispatched.await(15,TimeUnit.SECONDS));assertEquals(1,calls.get());awaitTasks();
     }
     @Test void cancellingFreshGtinConfirmationLeavesThePendingCardUnchanged() throws Exception {
         try(var c=Database.getConnection();var statement=c.createStatement()){
@@ -422,13 +450,13 @@ class ZnackCardRegistrationControllerTest {
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));
         var controller=(ZnackCardRegistrationController)loader.getController();var dispatched=new CountDownLatch(1);var count=new java.util.concurrent.atomic.AtomicInteger();
         fx(()->{
-            var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->new RegistrationBatchPreflight.Review(java.util.List.of()));
-            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,sign)->{count.set(selection.size());dispatched.countDown();return "all-unsent-fixture";});
+            var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->sourceReviewFixture(owner,selection));
+            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,sign,approval)->{assertNotNull(approval);assertEquals(selection.stream().map(row->new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).collect(java.util.stream.Collectors.toSet()),approval.keys());count.set(selection.size());dispatched.countDown();return "all-unsent-fixture";});
             ((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;
         });awaitTasks();
         fx(()->{((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();return null;});awaitTasks();
         fx(()->{assertEquals(300,table().getItems().size());assertEquals(I18nService.getInstance().tr("znack.registration.register_short"),button("registerSelectedButton").getText());button("registerSelectedButton").fire();return null;});
-        assertTrue(dispatched.await(5,TimeUnit.SECONDS),"Select all and one Register click must start submission, not error repair");assertEquals(304,count.get());awaitTasks();
+        approveSourceReview();assertTrue(dispatched.await(15,TimeUnit.SECONDS),"Select all and one Register click must start submission, not error repair");assertEquals(304,count.get());awaitTasks();
     }
     @Test void automaticRefreshKeepsFilteredLoadedExtentAndSelection()throws Exception{
         try(var c=Database.getConnection();var q=c.createStatement()){
@@ -451,10 +479,10 @@ class ZnackCardRegistrationControllerTest {
         var frozen=new java.util.concurrent.atomic.AtomicReference<java.util.List<Sku>>();
         fx(()->{
             var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);
-            preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->new RegistrationBatchPreflight.Review(java.util.List.of()));
+            preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selection)->sourceReviewFixture(owner,selection));
             var field=controller.getClass().getDeclaredField("batchStarter");field.setAccessible(true);
-            field.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,autoSign)->{
-                frozen.set(java.util.List.copyOf(selection));dispatched.countDown();
+            field.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,autoSign,approval)->{
+                assertNotNull(approval);assertEquals(selection.stream().map(row->new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).collect(java.util.stream.Collectors.toSet()),approval.keys());frozen.set(java.util.List.copyOf(selection));dispatched.countDown();
                 try{if(!finish.await(5,TimeUnit.SECONDS))throw new IllegalStateException("fixture dispatch timed out");}
                 catch(InterruptedException error){Thread.currentThread().interrupt();throw new IllegalStateException(error);}
                 return "frozen-button-run";
@@ -463,7 +491,7 @@ class ZnackCardRegistrationControllerTest {
         });awaitTasks();
         try{
             fx(()->{((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();button("registerSelectedButton").fire();return null;});
-            assertTrue(dispatched.await(5,TimeUnit.SECONDS),"One click must dispatch every safe unsent card without another create click");
+            approveSourceReview();assertTrue(dispatched.await(15,TimeUnit.SECONDS),"One click must dispatch every safe unsent card without another create click");
             assertEquals(java.util.Set.of(1L,2L),frozen.get().stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet()));
             fx(()->{
                 assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());
@@ -475,9 +503,19 @@ class ZnackCardRegistrationControllerTest {
         }finally{finish.countDown();}
         awaitTasks();
     }
+    @Test void cancelSourceReviewDoesNotEnqueue()throws Exception{
+        var controller=(ZnackCardRegistrationController)loader.getController();var starts=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{var reader=controller.getClass().getDeclaredField("preflightReader");reader.setAccessible(true);
+            reader.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)ZnackCardRegistrationControllerTest::sourceReviewFixture);
+            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selection,sign,approval)->{starts.incrementAndGet();return "unexpected";});
+            table().getSelectionModel().select(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow());button("registerSelectedButton").fire();return null;});
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->{},pane->pane.lookup("#registrationSourceReviewTable")!=null,pane->pane.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow());
+        awaitTasks();assertEquals(0,starts.get());
+        fx(()->{var preparing=controller.getClass().getDeclaredField("preparing");preparing.setAccessible(true);assertFalse(preparing.getBoolean(controller),"Cancel must restore the controls");return null;});
+    }
     @Test void countryDictionaryFailureKeepsTheBatchUnstartedAndProvidesCopyableRootCause()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();var starts=new java.util.concurrent.atomic.AtomicInteger();
-        fx(()->{var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selected)->{assertFalse(Platform.isFxApplicationThread());assertTrue(Thread.currentThread().getName().startsWith("vncode-catalog-read-"));throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE",new java.net.SocketTimeoutException("fixture dictionary timeout"));});var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selected,sign)->{starts.incrementAndGet();return "must-not-start";});table().getSelectionModel().select(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow());return null;});
+        fx(()->{var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selected)->{assertFalse(Platform.isFxApplicationThread());assertTrue(Thread.currentThread().getName().startsWith("vncode-catalog-read-"));throw new IllegalStateException("CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE",new java.net.SocketTimeoutException("fixture dictionary timeout"));});var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selected,sign,approval)->{starts.incrementAndGet();return "must-not-start";});table().getSelectionModel().select(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow());return null;});
         var preparingField=controller.getClass().getDeclaredField("preparing");preparingField.setAccessible(true);
         com.vncode.app.testsupport.FxDialogDriver.choose(()->button("registerSelectedButton").fire(),pane->pane.lookup(".text-area") instanceof TextArea,pane->{
             String diagnostics=((TextArea)pane.lookup(".text-area")).getText();assertTrue(diagnostics.contains("CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE"));assertTrue(diagnostics.contains("SocketTimeoutException"));assertTrue(pane.getButtonTypes().stream().anyMatch(button->button.getButtonData()==ButtonBar.ButtonData.OTHER));
@@ -500,7 +538,7 @@ class ZnackCardRegistrationControllerTest {
         var controller=(ZnackCardRegistrationController)loader.getController();var starts=new java.util.concurrent.atomic.AtomicInteger();
         fx(()->{var reader=controller.getClass().getDeclaredField("preflightReader");reader.setAccessible(true);reader.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(shop,keys)->{
                 assertFalse(Platform.isFxApplicationThread());assertEquals(java.util.Set.of("1","2"),keys.stream().map(com.vncode.app.features.products.ProductKey::variantId).collect(java.util.stream.Collectors.toSet()));return ExistingDraftReviewTest.completeReview(shop,keys);});
-            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(shop,rows,sign)->{starts.incrementAndGet();return "must-not-start";});return null;});
+            var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(shop,rows,sign,approval)->{starts.incrementAndGet();return "must-not-start";});return null;});
         com.vncode.app.testsupport.FxDialogDriver.choose(()->{button("selectAllButton").fire();assertFalse(button("registerSelectedButton").isDisabled());button("registerSelectedButton").fire();},pane->"registrationMissingFieldsDialog".equals(pane.getId()),pane->{
             var content=(javafx.scene.layout.VBox)pane.getContent();var review=content.getChildren().stream().filter(TableView.class::isInstance).map(TableView.class::cast).findFirst().orElseThrow();
             assertEquals(4,review.getItems().size(),"Both complete Drafts require explicit review, not just missing fields");
@@ -514,7 +552,7 @@ class ZnackCardRegistrationControllerTest {
     @Test void navigatingAwayInterruptsAnInitialCatalogReadWithoutDispatchingARegistration()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();var started=new CountDownLatch(1);var exited=new CountDownLatch(1);var release=new CountDownLatch(1);var starts=new java.util.concurrent.atomic.AtomicInteger();var savedTask=new java.util.concurrent.atomic.AtomicReference<javafx.concurrent.Task<?>>();
         try{
-            fx(()->{var reader=controller.getClass().getDeclaredField("preflightReader");reader.setAccessible(true);reader.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selected)->{started.countDown();try{release.await(5,TimeUnit.SECONDS);}catch(InterruptedException stopped){Thread.currentThread().interrupt();}finally{exited.countDown();}return new RegistrationBatchPreflight.Review(java.util.List.of());});var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selected,sign)->{starts.incrementAndGet();return "must-not-start";});table().getSelectionModel().select(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow());button("registerSelectedButton").fire();return null;});assertTrue(started.await(5,TimeUnit.SECONDS));
+            fx(()->{var reader=controller.getClass().getDeclaredField("preflightReader");reader.setAccessible(true);reader.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,selected)->{started.countDown();try{release.await(5,TimeUnit.SECONDS);}catch(InterruptedException stopped){Thread.currentThread().interrupt();}finally{exited.countDown();}return new RegistrationBatchPreflight.Review(java.util.List.of());});var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(owner,selected,sign,approval)->{starts.incrementAndGet();return "must-not-start";});table().getSelectionModel().select(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow());button("registerSelectedButton").fire();return null;});assertTrue(started.await(5,TimeUnit.SECONDS));
             fx(()->{var active=controller.getClass().getDeclaredField("registrationPreflightTask");active.setAccessible(true);savedTask.set((javafx.concurrent.Task<?>)active.get(controller));controller.dispose();return null;});assertTrue(exited.await(5,TimeUnit.SECONDS));awaitTasks();assertTrue(savedTask.get().isCancelled());assertEquals(0,starts.get());
         }finally{release.countDown();}
     }
@@ -531,6 +569,30 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{var raw=(TableColumn<Sku,String>)loader.getNamespace().get("barcodeColumn");var verified=(TableColumn<Sku,String>)loader.getNamespace().get("verifiedGtinColumn");assertEquals(I18nService.getInstance().tr("znack.registration.barcode_wb")+" / GTIN",raw.getText());assertEquals(I18nService.getInstance().tr("znack.registration.verified_gtin"),verified.getText());assertEquals(table().getColumns().indexOf(raw)+1,table().getColumns().indexOf(verified));
             var unknown=table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow();var observed=table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow();assertEquals("4006381333931",raw.getCellData(unknown));assertTrue(verified.getCellData(unknown).contains(I18nService.getInstance().tr("znack.registration.gtin_unverified")));assertFalse(verified.getCellData(unknown).contains("4006381333931"),"EAN13 does not become a registered GTIN merely by being displayed");assertTrue(raw.getCellData(observed).startsWith(actual));assertTrue(verified.getCellData(observed).startsWith(actual+"\n"));assertTrue(verified.getCellData(observed).contains(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.gtin_verified_at"),java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm").withZone(java.time.ZoneId.systemDefault()).format(checked))));assertFalse(verified.getCellData(observed).contains(I18nService.getInstance().tr("znack.registration.gtin_unverified")));
             var controller=(ZnackCardRegistrationController)loader.getController();var index=controller.getClass().getDeclaredField("cardIndex");index.setAccessible(true);var saved=index.get(controller);index.set(controller,null);assertTrue(verified.getCellData(observed).contains(I18nService.getInstance().tr("znack.registration.gtin_unverified")),"Unavailable verification must never reuse a successful label");assertTrue(raw.getCellData(observed).startsWith(actual));index.set(controller,saved);return null;});
+    }
+    static RegistrationBatchPreflight.Review sourceReviewFixture(Shop shop,java.util.List<com.vncode.app.features.products.ProductKey> keys){
+        var plans=new java.util.ArrayList<com.vncode.app.integration.znack.registration.RegistrationDynamicPreflight.Plan>();
+        var evidence=new java.util.ArrayList<com.vncode.app.integration.znack.registration.RegistrationFieldProvenance.Prepared>();
+        for(var key:keys){
+            var variant=new com.vncode.app.features.products.ProductVariant(key.variantId(),"SKU-"+key.variantId(),"Blue","XL","",false,"52");
+            var snapshot=new com.vncode.app.features.products.ProductSnapshot(key,"fixture","Fixture","","Brand","SKU-"+key.variantId(),"category",java.util.List.of(),java.util.List.of(),java.util.List.of(variant),null,java.util.List.of(),java.time.Instant.now(),(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON?java.util.Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop),"sku",Long.toString(10000+Long.parseLong(key.cardId()))):java.util.Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop))));
+            var draft=new com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Draft("6103109000","6103",10,"Fixture","Brand",java.util.Map.of(),java.util.Map.of(),false,false);
+            plans.add(new com.vncode.app.integration.znack.registration.RegistrationDynamicPreflight.Plan(snapshot,draft,java.util.List.of(),null));
+            evidence.add(com.vncode.app.integration.znack.registration.RegistrationFieldProvenance.capture(snapshot,snapshot,draft,java.util.List.of(),java.util.Map.of(),null,false));
+        }
+        com.vncode.app.integration.znack.registration.RegistrationFieldProvenance.save(shop,evidence);
+        return new RegistrationBatchPreflight.Review(java.util.List.of(),keys,new com.vncode.app.integration.znack.registration.RegistrationDynamicPreflight.Review(plans,java.util.List.of()));
+    }
+    static void approveSourceReview()throws Exception{
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(20);
+        while(System.nanoTime()<deadline){
+            boolean fired=fx(()->{for(var window:java.util.List.copyOf(javafx.stage.Window.getWindows())){
+                if(!window.isShowing()||window.getScene()==null)continue;var pane=window.getScene().getRoot().lookup(".dialog-pane");
+                if(pane==null)continue;var check=pane.lookup("#registrationSourceConfirm");var action=pane.lookup("#registrationSourceReviewApply");
+                if(check instanceof CheckBox box&&action instanceof Button button){if(!box.isSelected())box.fire();var replacement=pane.lookup("#registrationSourceConfirmReplacement");if(replacement instanceof CheckBox choice&&choice.isVisible()&&!choice.isSelected())choice.fire();if(!button.isDisabled()){button.fire();return true;}}
+            }return false;});if(fired)return;Thread.sleep(20);
+        }
+        fail("Seller source review did not become ready");
     }
     @SuppressWarnings("unchecked") TableView<Sku> table(){return (TableView<Sku>)loader.getNamespace().get("productTable");}
     Button button(String id){var b=(Button)loader.getNamespace().get(id);assertNotNull(b,id);return b;}

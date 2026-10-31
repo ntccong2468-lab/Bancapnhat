@@ -23,11 +23,12 @@ class GtinBulkPipelineTest {
     @TempDir Path directory;String previous;
     @BeforeEach void init()throws Exception{previous=System.getProperty("vncode.appdata.dir");System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();}
     @AfterEach void restore(){if(previous==null)System.clearProperty("vncode.appdata.dir");else System.setProperty("vncode.appdata.dir",previous);}
+    private static GtinBulkSession session(Shop shop,Api api){return new GtinBulkSession(shop,api,id->{},GtinBulkPipelineTest::freshSyntheticSource,shop.getMarketplace()==Marketplace.WILDBERRIES?api.priceTransport():null);}
     @Test void wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember()throws Exception{large(Marketplace.WILDBERRIES);}
     @Test void ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites()throws Exception{large(Marketplace.OZON);}
     @Test void wbCadenceSurvivesSeparateCohortsInTheSameFrozenRun()throws Exception{
         var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var api=new Api(Marketplace.WILDBERRIES,2);var selected=seed(shop,api);
-        try(var session=new GtinBulkSession(shop,api,id->{},GtinBulkPipelineTest::freshSyntheticSource)){
+        try(var session=session(shop,api)){
             session.prepare(selected.stream().map(Selection::key).toList());
             for(var member:selected){var plan=session.catalog.preview(shop,List.of(member),new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);assertEquals(State.SUCCEEDED,done.rows().getFirst().state());}
             assertEquals(2,api.writes);assertEquals(List.of(Duration.ofSeconds(15)),api.batchPauses);
@@ -35,7 +36,7 @@ class GtinBulkPipelineTest {
     }
     @Test void explicitWbRejectionReachesTheFinalReportWithoutCredentialsOrAReplay()throws Exception{
         var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var api=new Api(Marketplace.WILDBERRIES,1);api.apply=false;api.wbError="Barcode refused by WB; token=private-test; "+shop.getApiKey();var selected=seed(shop,api);
-        try(var session=new GtinBulkSession(shop,api,id->{},GtinBulkPipelineTest::freshSyntheticSource)){
+        try(var session=session(shop,api)){
             session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);
             assertEquals(State.BLOCKED,done.rows().getFirst().state());assertEquals(1,api.writes);assertEquals(0,api.applied.size());assertTrue(api.errorListReads>0);
             var reports=new SyncRunRepository();String run=reports.begin(shop,"znack_marketplace","READBACK");var key=selected.getFirst().key();reports.add(shop,run,key.productId(),key.variantId(),"","","","",selected.getFirst().gtin(),"WAITING_REMOTE","","{}");reports.linkReviewed(shop,run,done);
@@ -45,25 +46,40 @@ class GtinBulkPipelineTest {
     }
     @Test void theSecondOzonPartitionReselectsRetainedTargetsWithoutLosingItsApprovedScope()throws Exception{
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,105);var selected=seed(shop,api);
-        try(var session=new GtinBulkSession(shop,api,ignored->{},GtinBulkPipelineTest::freshSyntheticSource)){
+        try(var session=session(shop,api)){
             session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));assertEquals(105,plan.readyCount());
             var done=session.catalog.run(shop,plan.id(),true);assertEquals(105,done.rows().stream().filter(row->row.state()==State.SUCCEEDED).count(),()->done.rows().stream().filter(row->row.state()!=State.SUCCEEDED).limit(3).toList().toString());assertEquals(2,api.writes);assertEquals(105,api.applied.size());
             for(int i=0;i<105;i++)assertTrue(api.info.get(Integer.toString(100000+i)).getAsJsonArray("barcodes").asList().contains(new JsonPrimitive("legacy-"+i)));
-            assertTrue(api.reads<30,"Reselecting the next retained partition must not trigger per-product HTTP reads");
+            assertTrue(api.reads-api.evidenceReads<30,"Content reads while reselecting a retained partition must remain batched");
+            assertEquals(0,api.proofPriceReads,"GTIN review must not fetch price metadata");assertTrue(api.certificateReads>0,"GTIN review must still re-read certificates");
+        }
+    }
+    @Test void missingOrWrongReviewedOzonLinkNeverAuthorizesBarcodeWrite()throws Exception{
+        var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,2);var selected=seed(shop,api);
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.executeUpdate("DELETE FROM ozon_reviewed_gtin_links WHERE product_id='100000'");
+            s.executeUpdate("UPDATE ozon_reviewed_gtin_links SET sku='999999' WHERE product_id='100001'");
+        }
+        try(var session=session(shop,api)){
+            session.prepare(selected.stream().map(Selection::key).toList());
+            var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));
+            assertEquals(0,plan.readyCount());assertTrue(plan.rows().stream().allMatch(row->row.state()==State.BLOCKED));
+            assertThrows(IllegalArgumentException.class,()->session.catalog.run(shop,plan.id(),true));assertEquals(0,api.writes);
         }
     }
     private void large(Marketplace marketplace)throws Exception {
         var shop=GtinWriteTestFixture.shop(marketplace);var api=new Api(marketplace,10_000);var selections=seed(shop,api);var progress=new ArrayList<JobItem>();long started=System.nanoTime();
-        try(var session=new GtinBulkSession(shop,api,id->{},GtinBulkPipelineTest::freshSyntheticSource)){
+        try(var session=session(shop,api)){
             session.prepare(selections.stream().map(Selection::key).toList());
             var plan=session.catalog.preview(shop,selections,new Options(Set.of(Field.GTIN),Map.of()));assertEquals(10_000,plan.readyCount());assertEquals(0,api.writes);
             var result=session.catalog.run(shop,plan.id(),true,progress::add);
             assertTrue(result.rows().stream().allMatch(r->r.state()==State.SUCCEEDED),()->"Unfinished: "+result.rows().stream().filter(r->r.state()!=State.SUCCEEDED).limit(3).toList());
             assertEquals(marketplace==Marketplace.WILDBERRIES?4:100,api.writes);assertEquals(10_000,api.applied.size());if(marketplace==Marketplace.WILDBERRIES)assertEquals(java.util.Collections.nCopies(3,Duration.ofSeconds(15)),api.batchPauses);assertTrue(api.maximumBodyBytes<=10_000_000);assertTrue(api.maximumItems<=(marketplace==Marketplace.WILDBERRIES?3000:100));
-            assertTrue(api.reads<=(marketplace==Marketplace.WILDBERRIES?240:300),()->"Read requests must scale with pages/batches, not GTIN²: "+api.reads);
+            assertTrue(api.reads-api.evidenceReads<=(marketplace==Marketplace.WILDBERRIES?240:300),()->"Content read requests must scale with pages/batches, not GTIN²: "+(api.reads-api.evidenceReads));
+            if(marketplace==Marketplace.WILDBERRIES){assertTrue(api.priceReads<=30,"Prices reads should be batched");assertTrue(api.priceProductsRead>=20_000,"Each selected card is read before preparation and before dispatch");}
             assertTrue(progress.stream().anyMatch(i->i.status()==Status.AWAITING_VERIFICATION));assertEquals(10_000,progress.stream().filter(i->i.status()==Status.SUCCEEDED).count());
             int before=api.writes;session.catalog.run(shop,plan.id(),false);assertEquals(before,api.writes,"Reopening a completed job cannot replay its writes");
-            var report=new LinkedHashMap<String,Object>();report.put("marketplace",marketplace.name());report.put("gtins",10_000);report.put("liveSellerMutations",false);report.put("simulatedApi",true);report.put("realApplicationPlannerAdaptersAndSqlite",true);report.put("writes",api.writes);report.put("reads",api.reads);report.put("maximumRequestItems",api.maximumItems);report.put("maximumRequestBytes",api.maximumBodyBytes);report.put("verified",10_000);report.put("elapsedMs",(System.nanoTime()-started)/1_000_000.0);report.put("quotaWaitSimulatedSeparately",true);
+            var report=new LinkedHashMap<String,Object>();report.put("marketplace",marketplace.name());report.put("gtins",10_000);report.put("liveSellerMutations",false);report.put("simulatedApi",true);report.put("realApplicationPlannerAdaptersAndSqlite",true);report.put("writes",api.writes);report.put("reads",api.reads);report.put("registrationEvidenceReads",api.evidenceReads);report.put("certificateEvidenceReads",api.certificateReads);report.put("priceEvidenceReads",api.proofPriceReads);report.put("pricePreflightReads",api.priceReads);report.put("maximumRequestItems",api.maximumItems);report.put("maximumRequestBytes",api.maximumBodyBytes);report.put("verified",10_000);report.put("elapsedMs",(System.nanoTime()-started)/1_000_000.0);report.put("quotaWaitSimulatedSeparately",true);
             Path output=Path.of("target","gtin-bulk-"+marketplace.name().toLowerCase(Locale.ROOT)+"-10000.json");Files.writeString(output,new GsonBuilder().setPrettyPrinting().create().toJson(report));
         }
     }
@@ -71,23 +87,23 @@ class GtinBulkPipelineTest {
         var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var api=new Api(Marketplace.WILDBERRIES,3);var first=api.info.get("100000");var sizes=first.getAsJsonArray("sizes");
         for(int i=1;i<3;i++)sizes.add(api.info.remove(Integer.toString(100000+i)).getAsJsonArray("sizes").get(0).deepCopy());
         var selections=new ArrayList<Selection>();var registered=new ArrayList<RegisteredGtin>();for(int i=0;i<3;i++){var key=new ProductKey(shop.getId(),shop.getMarketplace(),"100000",Integer.toString(200000+i));selections.add(new Selection(key,gtin(i)));registered.add(new RegisteredGtin(gtin(i),"article-0","Blue","52",true,true,RegisteredGtinProof.source(shop),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of(Integer.toString(91+i)),"@catalog_status",List.of("published"),"tnved",List.of("6112110000")),List.of(),List.of())));}new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),registered);
-        try(var session=new GtinBulkSession(shop,api,id->{},GtinBulkPipelineTest::freshSyntheticSource)){session.prepare(selections.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selections,new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);assertEquals(1,api.writes);assertEquals(3,done.rows().stream().filter(r->r.state()==State.SUCCEEDED).count());assertEquals(3,api.applied.size());assertEquals(3,first.getAsJsonArray("sizes").size());}
+        try(var session=session(shop,api)){session.prepare(selections.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selections,new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);assertEquals(1,api.writes);assertEquals(3,done.rows().stream().filter(r->r.state()==State.SUCCEEDED).count());assertEquals(3,api.applied.size());assertEquals(3,first.getAsJsonArray("sizes").size());}
     }
     @Test void responseLossIsReconciledForEveryMemberWithoutReplayingAnyBatch()throws Exception {
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,230);api.loseResponse=true;var selected=seed(shop,api);
         String id;
-        try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));id=plan.id();var done=session.catalog.run(shop,id,true);assertTrue(done.rows().stream().allMatch(r->r.state()==State.SUCCEEDED));assertEquals(3,api.writes);}
+        try(var session=session(shop,api)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));id=plan.id();var done=session.catalog.run(shop,id,true);assertTrue(done.rows().stream().allMatch(r->r.state()==State.SUCCEEDED));assertEquals(3,api.writes);}
         new GtinSyncRepository().recoverInterrupted();
-        try(var reopened=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){reopened.catalog.run(shop,id,false);assertEquals(3,api.writes);}
+        try(var reopened=session(shop,api)){reopened.catalog.run(shop,id,false);assertEquals(3,api.writes);}
     }
     @Test void ozonPartialRejectionDoesNotRejectItsSuccessfulSiblings()throws Exception {
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,105);api.rejected.add("100003");var selected=seed(shop,api);
-        try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);assertEquals(2,api.writes);assertEquals(104,done.rows().stream().filter(r->r.state()==State.SUCCEEDED).count());var failed=done.rows().stream().filter(r->r.state()==State.BLOCKED).toList();assertEquals(1,failed.size());assertEquals("100003",failed.getFirst().key().productId());assertEquals("OZON_BARCODE_BAD_CODE",failed.getFirst().issue());}
+        try(var session=session(shop,api)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);assertEquals(2,api.writes);assertEquals(104,done.rows().stream().filter(r->r.state()==State.SUCCEEDED).count());var failed=done.rows().stream().filter(r->r.state()==State.BLOCKED).toList();assertEquals(1,failed.size());assertEquals("100003",failed.getFirst().key().productId());assertEquals("OZON_BARCODE_BAD_CODE",failed.getFirst().issue());}
     }
     @Test void workerAdvancesSharedParentOnceAndReportsEveryMembersOwnResult()throws Exception {
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,105);api.rejected.add("100003");var selected=seed(shop,api);var reports=new SyncRunRepository();String run=reports.begin(shop,"znack_marketplace","MATCHING");
         reports.addBatch(shop,run,selected.stream().map(s->new SyncRunRepository.Item(UUID.randomUUID().toString(),run,s.key().productId(),s.key().variantId(),"sku","article","Blue","52",s.gtin(),"AWAITING_CONFIRMATION","REVIEW","","","{}")).toList());
-        try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){
+        try(var session=session(shop,api)){
             session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));reports.linkReviewed(shop,run,session.catalog.confirm(shop,plan.id()));
             var worker=new ZnackAutoSyncService((s,issues)->{throw new AssertionError("Existing confirmed parent must not refresh unrelated sources");},(s,k)->{throw new AssertionError("New plans already freeze product attributes");},session.catalog);
             assertFalse(worker.step(shop,"").complete());assertEquals(2,api.writes);assertEquals(104,reports.counts(run).get("SUCCEEDED"));assertEquals(1,reports.counts(run).get("NEEDS_ACTION"));
@@ -97,9 +113,9 @@ class GtinBulkPipelineTest {
     }
     @Test void delayedWbReadbackIsPolledByPageAndDoesNotResendAcknowledgedWrites()throws Exception {
         var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var api=new Api(Marketplace.WILDBERRIES,120);api.apply=false;var selected=seed(shop,api);String id;
-        try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));id=plan.id();var done=session.catalog.run(shop,id,true);assertTrue(done.rows().stream().allMatch(r->r.state()==State.GTIN_PENDING));assertEquals(1,api.writes);assertEquals(3,api.errorListReads,"One error-list read per poll, never one per SKU");assertTrue(api.reads<25);}
+        try(var session=session(shop,api)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));id=plan.id();var done=session.catalog.run(shop,id,true);assertTrue(done.rows().stream().allMatch(r->r.state()==State.GTIN_PENDING),()->done.rows().stream().filter(r->r.state()!=State.GTIN_PENDING).limit(3).toList().toString());assertEquals(1,api.writes);assertEquals(2,api.priceReads,"A batch read before preparation and another before the GTIN write");assertEquals(240,api.priceProductsRead);assertEquals(3,api.errorListReads,"One error-list read per poll, never one per SKU");assertTrue(api.reads<25,"Content read requests: "+api.reads);}
         api.acceptPending();new GtinSyncRepository().recoverInterrupted();
-        try(var reopened=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){var done=reopened.catalog.run(shop,id,false);assertTrue(done.rows().stream().allMatch(r->r.state()==State.SUCCEEDED));assertEquals(1,api.writes);}
+        try(var reopened=session(shop,api)){var done=reopened.catalog.run(shop,id,false);assertTrue(done.rows().stream().allMatch(r->r.state()==State.SUCCEEDED),()->done.rows().stream().filter(r->r.state()!=State.SUCCEEDED).limit(3).toList().toString());assertEquals(1,api.writes);}
     }
     @Test void wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay()throws Exception {
         var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var api=new Api(Marketplace.WILDBERRIES,10_000);api.apply=false;
@@ -107,7 +123,7 @@ class GtinBulkPipelineTest {
         reports.addBatch(shop,run,selected.stream().map(s->new SyncRunRepository.Item(UUID.randomUUID().toString(),run,s.key().productId(),s.key().variantId(),"","article","Blue","52",s.gtin(),"AWAITING_CONFIRMATION","REVIEW","","","{}")).toList());
         var cohort=selected.stream().map(s->new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),s.key().productId(),s.key().variantId())).collect(java.util.stream.Collectors.toSet());
         var context=GtinRunStatusSnapshot.capture(shop,cohort);long started=System.nanoTime();String planId;Map<String,Long> pendingCounts;
-        try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){
+        try(var session=session(shop,api)){
             session.prepare(selected.stream().map(Selection::key).toList());
             var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));assertEquals(10_000,plan.readyCount());planId=plan.id();
             reports.linkReviewed(shop,run,session.catalog.confirm(shop,planId));
@@ -122,7 +138,7 @@ class GtinBulkPipelineTest {
             int reads=api.reads;GtinRunStatusSnapshot.read(context,run);assertEquals(reads,api.reads,"Observing the durable report makes no marketplace requests");assertEquals(4,api.writes);
         }
         api.acceptPending();new GtinSyncRepository().recoverInterrupted();Map<String,Long> verifiedCounts;
-        try(var reopened=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){
+        try(var reopened=session(shop,api)){
             var worker=new ZnackAutoSyncService((s,issues)->{throw new AssertionError("A confirmed child must not refresh unrelated sources");},(s,k)->{throw new AssertionError("The approved plan already freezes product identity");},reopened.catalog);
             assertFalse(worker.step(shop,"").complete());
             verifiedCounts=reports.marketplaceCounts(run);assertEquals(10_000L,verifiedCounts.get("TOTAL"));assertEquals(10_000L,verifiedCounts.get("SUBMITTED"));assertEquals(10_000L,verifiedCounts.get("UPDATED"));assertEquals(0L,verifiedCounts.get("PENDING"));assertEquals(0L,verifiedCounts.get("NOT_UPDATED"));assertEquals(0L,verifiedCounts.get("BLOCKED"));
@@ -139,11 +155,11 @@ class GtinBulkPipelineTest {
     }
     @Test void explicit429MayRetryButA503ResponseMustOnlyReconcile()throws Exception {
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,12);api.rateLimitOnce=true;var selected=seed(shop,api);
-        try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);assertEquals(2,api.attempts);assertEquals(1,api.writes);assertTrue(done.rows().stream().allMatch(r->r.state()==State.SUCCEEDED));}
+        try(var session=session(shop,api)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));var done=session.catalog.run(shop,plan.id(),true);assertEquals(2,api.attempts);assertEquals(1,api.writes);assertTrue(done.rows().stream().allMatch(r->r.state()==State.SUCCEEDED));}
     }
     @Test void ozonChangedColorBeforeDispatchIsBlockedWithoutAWrite()throws Exception {
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var api=new Api(Marketplace.OZON,2);var selected=seed(shop,api);
-        try(var session=new GtinBulkSession(shop,api,n->{},GtinBulkPipelineTest::freshSyntheticSource)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));
+        try(var session=session(shop,api)){session.prepare(selected.stream().map(Selection::key).toList());var plan=session.catalog.preview(shop,selected,new Options(Set.of(Field.GTIN),Map.of()));
             api.attributes.get("100000").getAsJsonArray("attributes").get(0).getAsJsonObject().getAsJsonArray("values").get(0).getAsJsonObject().addProperty("value","Red");
             var done=session.catalog.run(shop,plan.id(),true);assertEquals(1,done.rows().stream().filter(r->r.state()==State.BLOCKED).count());assertEquals(1,done.rows().stream().filter(r->r.state()==State.SUCCEEDED).count());assertFalse(api.applied.containsKey(gtin(0)));assertTrue(api.applied.containsKey(gtin(1)));
         }
@@ -155,10 +171,44 @@ class GtinBulkPipelineTest {
         var refreshed=rows.values().stream().map(row->new RegisteredGtin(row.gtin(),row.article(),row.color(),row.size(),row.tradeUnit(),row.published(),row.source(),Instant.now(),row.details())).toList();
         repository.mergeCatalog(shop.getId(),shop.getMarketplace(),refreshed);RegisteredGtinProof.requireCurrent(shop,requested);
     }
-    static List<Selection> seed(Shop shop,Api api){
+    static List<Selection> seed(Shop shop,Api api)throws Exception{
         var selected=new ArrayList<Selection>();var source=new ArrayList<RegisteredGtin>();String proof=RegisteredGtinProof.source(shop);int index=0;
         for(var e:api.info.entrySet()){String id=e.getKey();var key=new ProductKey(shop.getId(),shop.getMarketplace(),id,shop.getMarketplace()==Marketplace.WILDBERRIES?text(e.getValue().getAsJsonArray("sizes").get(0).getAsJsonObject(),"chrtID"):text(e.getValue(),"offer_id"));String code=gtin(index++);selected.add(new Selection(key,code));source.add(new RegisteredGtin(code,"article-"+(index-1),"Blue","52",true,true,proof,Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of(id),"@catalog_status",List.of("published"),"tnved",List.of("6112110000")),List.of(),List.of())));}
-        new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),source);return selected;
+        new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),source);
+        if(shop.getMarketplace()==Marketplace.OZON)seedReviewedOzonLinks(shop,api,selected);
+        return selected;
+    }
+    /** Simulate explicit seller approval for each exact fixture pair; no live data or API is used. */
+    private static void seedReviewedOzonLinks(Shop shop,Api api,List<Selection> selected)throws Exception {
+        var revisions=new ArrayList<String>(selected.size());
+        try(var batch=Database.openBatchSession();var owner=ListingIdentity.batchChecks(shop);
+            var transport=new GtinBatchTransport(shop,api)) {
+            transport.prepare(selected.stream().map(Selection::key).toList());
+            var reader=new com.vncode.app.integration.ozon.OzonProductSnapshotReader(s->transport);
+            var brand=new com.vncode.app.integration.ozon.OzonShopBrand();
+            // The fixture shop configuration is fixed throughout seeding. When it
+            // has no fallback brand, apply() would return the same snapshot for
+            // every member after an otherwise redundant per-item SQLite lookup.
+            boolean noBrandFallback=brand.load(shop).isBlank();
+            for(var item:selected){
+                var key=item.key();var productKey=new com.vncode.app.features.products.ProductKey(key.shopId(),key.marketplace(),key.productId(),key.variantId());
+                var full=reader.readForRegistrationProof(shop,productKey);
+                if(!noBrandFallback)full=brand.apply(shop,full);
+                revisions.add(com.vncode.app.integration.znack.registration.RegistrationReviewedValues.productRevision(full));
+            }
+            com.vncode.app.integration.znack.registration.OzonReviewedGtinLinks.read(shop,selected.getFirst().key());
+            try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_reviewed_gtin_links(shop_id,product_id,offer_id,gtin,good_id,sku,owner,source,revision,approved_at) VALUES(?,?,?,?,?,?,?,?,?,?)")){
+                c.setAutoCommit(false);String fingerprint=ListingIdentity.fingerprint(shop),source=RegisteredGtinProof.source(shop),now=Instant.now().toString();
+                for(int i=0;i<selected.size();i++){
+                    var item=selected.get(i);var key=item.key();
+                    p.setInt(1,key.shopId());p.setString(2,key.productId());p.setString(3,key.variantId());p.setString(4,item.gtin());
+                    p.setLong(5,Long.parseLong(key.productId()));p.setString(6,text(api.info.get(key.productId()),"sku"));p.setString(7,fingerprint);p.setString(8,source);p.setString(9,revisions.get(i));p.setString(10,now);p.addBatch();
+                }
+                p.executeBatch();c.commit();
+            }
+        }
+        // Setup reads are separate from the operation being measured.
+        api.reads=0;api.evidenceReads=0;api.certificateReads=0;api.proofPriceReads=0;
     }
     static String gtin(int index){String base=String.format(Locale.ROOT,"460%09d",index+1);int sum=0;for(int i=0;i<base.length();i++)sum+=(base.charAt(i)-'0')*(i%2==0?1:3);return base+(10-sum%10)%10;}
     static String text(JsonObject value,String key){return value.has(key)?value.get(key).getAsString():"";}
@@ -167,7 +217,15 @@ class GtinBulkPipelineTest {
         final List<java.time.Duration> batchPauses=new ArrayList<>();
         @Override public void pauseBetweenWrites(java.time.Duration delay){batchPauses.add(delay);}
         final Marketplace market;final LinkedHashMap<String,JsonObject> info=new LinkedHashMap<>(),attributes=new LinkedHashMap<>();final Map<String,String> applied=new HashMap<>();final Set<String> rejected=new HashSet<>();
-        final List<JsonElement> waiting=new ArrayList<>();int reads,writes,attempts,maximumItems,maximumBodyBytes,errorListReads;boolean apply=true,loseResponse,rateLimitOnce;String wbError="";long revision=1;
+        final List<JsonElement> waiting=new ArrayList<>();int reads,evidenceReads,certificateReads,proofPriceReads,writes,attempts,maximumItems,maximumBodyBytes,errorListReads,priceReads,priceProductsRead;boolean apply=true,loseResponse,rateLimitOnce;String wbError="";long revision=1;
+        ListingTransport priceTransport(){return (path,body,mutation)->{
+            assertFalse(mutation,"Equal fixture prices must not produce a price update");
+            var ids=new ArrayList<String>();if(path.equals("api/v2/list/goods/filter")){assertNotNull(body);var requested=body.getAsJsonObject().getAsJsonArray("nmList");assertTrue(requested.size()<=1000);for(var id:requested)ids.add(id.getAsString());}else {assertTrue(path.startsWith("api/v2/list/goods/filter?limit=1&offset=0&filterNmID="),"Unexpected Prices API request: "+path);ids.add(path.substring(path.lastIndexOf('=')+1));}
+            priceReads++;priceProductsRead+=ids.size();var list=new JsonArray();for(String id:ids){var card=info.get(id);assertNotNull(card);
+                var sizes=new JsonArray();for(var value:card.getAsJsonArray("sizes")){var item=new JsonObject();item.add("sizeID",value.getAsJsonObject().get("chrtID"));item.addProperty("price",1000);sizes.add(item);}
+                var item=new JsonObject();item.addProperty("nmID",Long.parseLong(id));item.addProperty("currencyIsoCode4217","RUB");item.addProperty("editableSizePrice",false);item.add("sizes",sizes);list.add(item);}
+            var data=new JsonObject();data.add("listGoods",list);var response=new JsonObject();response.add("data",data);response.addProperty("error",false);return response;
+        };}
         Api(Marketplace market,int count){this.market=market;for(int i=0;i<count;i++){
             String id=Integer.toString(100000+i);JsonObject card;
             if(market==Marketplace.WILDBERRIES)card=JsonParser.parseString("{\"nmID\":"+id+",\"subjectID\":77,\"vendorCode\":\"article-"+i+"\",\"title\":\"Synthetic product "+i+"\",\"brand\":\"Fixture\",\"description\":\"Keep this description\",\"kizMarked\":true,\"dimensions\":{\"length\":12,\"width\":13,\"height\":14,\"weightBrutto\":0.25},\"characteristics\":[{\"id\":99,\"name\":\"Цвет\",\"value\":[\"Blue\"]},{\"id\":88,\"name\":\"ТН ВЭД\",\"value\":[\"6112110000\"]}],\"sizes\":[{\"chrtID\":"+(200000+i)+",\"techSize\":\"52\",\"wbSize\":\"52\",\"skus\":[\"legacy-"+i+"\"]}],\"documents\":{\"items\":[{\"id\":\"doc-"+i+"\",\"type\":2,\"number\":\"D-"+i+"\"}]}} ").getAsJsonObject();
@@ -187,6 +245,8 @@ class GtinBulkPipelineTest {
             if(path.equals("v3/product/list")){int start=request.has("last_id")&&!text(request,"last_id").isBlank()?Integer.parseInt(text(request,"last_id")):0;var entries=new ArrayList<>(info.keySet());if("ARCHIVED".equals(text(request.getAsJsonObject("filter"),"visibility")))entries.clear();int end=Math.min(start+1000,entries.size());var rows=new JsonArray();for(var id:entries.subList(start,end)){var row=new JsonObject();row.addProperty("product_id",Long.parseLong(id));rows.add(row);}var result=new JsonObject();var data=new JsonObject();data.add("items",rows);data.addProperty("total_items",entries.size());data.addProperty("last_id",Integer.toString(end));result.add("result",data);return result;}
             if(path.equals("v3/product/info/list")||path.equals("v4/product/info/attributes")){boolean attr=path.contains("attributes");var filter=attr?request.getAsJsonObject("filter"):request;var result=new JsonObject();var rows=new JsonArray();for(var id:filter.getAsJsonArray("product_id")){var value=(attr?attributes:info).get(id.getAsString());if(value!=null)rows.add(value.deepCopy());}result.add(attr?"result":"items",rows);return result;}
             if(path.equals("v1/description-category/attribute"))return JsonParser.parseString("{\"result\":[{\"id\":99,\"name\":\"Цвет товара\"},{\"id\":100,\"name\":\"Размер производителя\"},{\"id\":88,\"name\":\"ТН ВЭД\"}]}");
+            if(path.equals("v1/product/certificate/list")){evidenceReads++;certificateReads++;return JsonParser.parseString("{\"result\":{\"certificates\":[],\"page_count\":1}}");}
+            if(path.equals("v5/product/info/prices")){evidenceReads++;proofPriceReads++;return JsonParser.parseString("{\"items\":[]}");}
             throw new AssertionError("GTIN-only bulk work must not request certificates/prices or unknown endpoints: "+path);
         }
         @Override public JsonElement call(String path,JsonElement body,boolean mutation,Runnable guard)throws IOException{guard.run();return call(path,body,mutation);}

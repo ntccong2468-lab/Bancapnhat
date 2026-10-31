@@ -70,4 +70,32 @@ class GtinPreviewServiceTest {
         };
         var failure=assertThrows(IllegalArgumentException.class,()->new GtinPreviewService(repo,k->unsupported).create(fixture.product.key(),Operation.ADD,"","00000000000017"));assertEquals("GTIN_VARIANT_IDENTITY_UNVERIFIED",failure.getMessage());assertEquals(0,fixture.sends);
     }
+    @Test void batchCollectsIndividualIdentityFailuresWithoutRepeatingOtherProducts() throws Exception {
+        var proof=new com.vncode.app.features.catalogsync.CatalogProductData(java.util.Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published")),List.of(),List.of());
+        var codes=List.of("00000000000017","00000000000024","00000000000031");
+        repo.saveCatalog(1,Marketplace.WILDBERRIES,codes.stream().map(code->new RegisteredGtin(code,"PANTS","Đen","XL",true,true,"NK",Instant.now(),proof)).toList());
+        class Batch extends Adapter implements GtinBatchAdapter {
+            final java.util.Map<ProductKey,Integer> checks=new java.util.HashMap<>();int preparations;
+            public void prepareBatch(java.util.Collection<ProductKey> keys){preparations++;}
+            public void validateRegistrations(java.util.Collection<String> gtins){}
+            public ProductSnapshot read(ProductKey key){return new ProductSnapshot(key,"PANTS","Đen","XL",List.of("old"),"fixture",Instant.now());}
+            public ProductSnapshot prepareIdentity(ProductSnapshot target,RegisteredGtin source){
+                checks.merge(target.key(),1,Integer::sum);
+                if(target.key().productId().equals("2"))throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
+                return target;
+            }
+            public java.util.List<java.util.List<Preview>> partition(java.util.List<Preview> previews){return List.of(previews);}
+            public java.util.Map<ProductKey,Submission> submitBatch(java.util.List<Preview> previews,Runnable guard){throw new AssertionError("preview must not write");}
+            public java.util.Map<ProductKey,VerificationResult> verifyBatch(java.util.List<JobItem> items){throw new AssertionError("preview must not verify writes");}
+        }
+        var batch=new Batch();var requested=new java.util.LinkedHashMap<ProductKey,String>();
+        for(int i=0;i<codes.size();i++)requested.put(new ProductKey(1,Marketplace.WILDBERRIES,Integer.toString(i+1),"1"),codes.get(i));
+        var failures=new java.util.LinkedHashMap<ProductKey,Exception>();
+        var previews=new GtinPreviewService(repo,k->batch).createAddsCollecting(requested,failures::put);
+        assertEquals(2,previews.size());assertEquals(1,failures.size());
+        assertEquals("GTIN_VARIANT_IDENTITY_UNVERIFIED",failures.values().iterator().next().getMessage());
+        assertEquals(1,batch.preparations);assertEquals(3,batch.checks.size());assertTrue(batch.checks.values().stream().allMatch(count->count==1));
+        assertThrows(IllegalArgumentException.class,()->new GtinPreviewService(repo,k->batch).createAdds(requested));
+    }
+
 }

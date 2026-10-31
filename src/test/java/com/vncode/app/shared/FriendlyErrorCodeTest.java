@@ -5,6 +5,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
 class FriendlyErrorCodeTest {
+ @Test void crossMarketplaceResumeExplainsTheCorrectScreenAcrossLocales(){
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);String key="catalogsync.issue.WB_OZON_RESUME_FROM_LINK_WORKFLOW",expected=i18n.tr(key);
+   assertNotEquals(key,expected);assertFalse(expected.isBlank());
+   String actual=FriendlyErrorService.format(new RuntimeException("private wrapper",new IllegalStateException("WB_OZON_RESUME_FROM_LINK_WORKFLOW")));
+   assertEquals(expected+"\n[WB_OZON_RESUME_FROM_LINK_WORKFLOW]",actual);assertFalse(actual.contains("private wrapper"));
+  }}finally{i18n.setLanguage(previous);}
+ }
  @TempDir java.nio.file.Path directory;
  private String previousDirectory;
  @BeforeEach void isolateData() throws Exception {

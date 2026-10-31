@@ -23,6 +23,10 @@ class ZnackCardRegistrationWorkflowTest {
     Draft draft=new Draft("6204",1,"Fixture","Brand",Map.of(1L,"Fixture"));
     FixtureApi api;
     ZnackCardRegistrationWorkflow workflow;
+    ZnackRegistrationBatchService reviewedBatch;
+    RegistrationIntent directIntent;
+    ZnackCardRegistrationWorkflow reviewedWorkflow;
+    Draft reviewedFrozen;
     @BeforeEach void setup() throws Exception {
         System.setProperty("vncode.appdata.dir",temp.toString()); Database.initDatabase();
         try(var c=Database.getConnection();var s=c.createStatement()) {
@@ -40,8 +44,57 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     Sku current(){return repository.search(new SearchCriteria(1,"",List.of(),"ALL",20,0)).getFirst();}
+    boolean startReviewed(Draft requested)throws Exception {return startReviewed(requested,false);}
+    boolean startReviewed(Draft requested,boolean repairApproved)throws Exception {return startReviewed(requested,repairApproved,Runnable::run);}
+    boolean startReviewed(Draft requested,boolean repairApproved,java.util.concurrent.Executor executor)throws Exception {
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var key=new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","11");
+        var variant=new com.vncode.app.features.products.ProductVariant("11","PANTS","","XL","",false,"");
+        var snapshot=new com.vncode.app.features.products.ProductSnapshot(key,"fixture","Fixture","","Brand","PANTS","category",List.of(),List.of(),List.of(variant),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));
+        var settings=new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings();var scope=ZnackRegistrationScope.fromSettings(settings);
+        var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings ignored){return "fixture-token";}};
+        var catalog=new ZnackNationalCatalogService(api,auth,(payload,context)->new com.vncode.app.integration.znack.signature.CryptoProSigningResult(new byte[]{1},""),settings);
+        var session=new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog,scope);
+        var schema=session.catalog().registrationAttributes(requested.categoryId(),session.token());
+        var fullCode=new Draft("6204420000",requested.feedTnved(),requested.categoryId(),requested.goodName(),requested.brand(),requested.attributes(),requested.attributeTypes(),requested.autoSign(),requested.isKit());
+        var reviewed=ZnackCardRegistrationWorkflow.withSchemaTypes(current().status()==Status.READY_TO_SUBMIT?requested:fullCode.withProductCategory(current().subjectName()),schema,current().wbSize());
+        var plan=new RegistrationDynamicPreflight.Plan(snapshot,reviewed,schema,null);
+        var facts=RegistrationFieldProvenance.capture(snapshot,snapshot,reviewed,schema,Map.of(),null,false);
+        RegistrationFieldProvenance.save(shop,List.of(facts));
+        var values=RegistrationFieldProvenance.readBatch(shop,List.of(plan)).get(key);
+        var consent=RegistrationSourceConsent.prepare(shop,UUID.randomUUID(),List.of(plan),Map.of(key,RegistrationSourceConsent.forIdentity(current().gtin(),current().goodId())),Map.of(),Map.of(key,values),repairApproved);
+        reviewedWorkflow=new ZnackCardRegistrationWorkflow(repository,ignored->session,Runnable::run,false,(owner,nm,id,gtin)->false,
+                ()->api.preExistingRawDraft==null?RegistrationWorkflowTestFixtures.emptyLookup():new RegistrationExistingCards.LookupContext(
+                    (owner,scoped)->{var data=CatalogProductDataParser.parse(api.preExistingRawDraft);return List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764370","PANTS","черный","XL",true,false,"fixture",java.time.Instant.now(),data));},
+                    (scoped,gtin,id)->scoped.catalog().observedCardStatus(scoped.token(),gtin,id),(owner,scoped)->"fixture"),(owner,product)->snapshot);
+        reviewedFrozen=reviewed;
+        var batch=new ZnackRegistrationBatchService(repository,reviewedWorkflow,(owner,sku,sign)->reviewed,executor,true);reviewedBatch=batch;
+        batch.start(shop,List.of(current()),requested.autoSign(),consent);return true;
+    }
+    ZnackCardRegistrationWorkflow reviewedDirect(Draft requested,java.util.concurrent.Executor executor,java.util.function.BiConsumer<Status,String> listener)throws Exception {return reviewedDirect(requested,executor,listener,false);}
+    ZnackCardRegistrationWorkflow reviewedDirect(Draft requested,java.util.concurrent.Executor executor,java.util.function.BiConsumer<Status,String> listener,boolean strict)throws Exception {
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var key=new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","11");
+        var variant=new com.vncode.app.features.products.ProductVariant("11","PANTS","","XL","",false,"");
+        var snapshot=new com.vncode.app.features.products.ProductSnapshot(key,"fixture","Fixture","","Brand","PANTS","category",List.of(),List.of(),List.of(variant),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));
+        var settings=new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings();var scope=ZnackRegistrationScope.fromSettings(settings);
+        var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings ignored){return "fixture-token";}};
+        var catalog=new ZnackNationalCatalogService(api,auth,(payload,context)->new com.vncode.app.integration.znack.signature.CryptoProSigningResult(new byte[]{1},""),settings);
+        var session=new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog,scope);
+        var schema=catalog.registrationAttributes(requested.categoryId(),session.token());
+        var fullCode=new Draft("6204420000",requested.feedTnved(),requested.categoryId(),requested.goodName(),requested.brand(),requested.attributes(),requested.attributeTypes(),requested.autoSign(),requested.isKit());
+        var reviewed=ZnackCardRegistrationWorkflow.withSchemaTypes(fullCode.withProductCategory(current().subjectName()),schema,current().wbSize());
+        var plan=new RegistrationDynamicPreflight.Plan(snapshot,reviewed,schema,null);
+        RegistrationFieldProvenance.save(shop,List.of(RegistrationFieldProvenance.capture(snapshot,snapshot,reviewed,schema,Map.of(),null,false)));
+        var values=RegistrationFieldProvenance.readBatch(shop,List.of(plan)).get(key);
+        var consent=RegistrationSourceConsent.prepare(shop,UUID.randomUUID(),List.of(plan),Map.of(key,RegistrationSourceConsent.forIdentity("",null)),Map.of(),Map.of(key,values),false);
+        String run=UUID.randomUUID().toString();new ZnackRegistrationBatchStore().create(shop,run,List.of(current()),requested.autoSign(),"",consent);
+        var direct=new ZnackCardRegistrationWorkflow(repository,ignored->session,executor,strict,(owner,nm,id,gtin)->false,RegistrationWorkflowTestFixtures::emptyLookup,(owner,product)->snapshot);
+        directIntent=new RegistrationIntent(run,0);assertTrue(direct.submitOnly(shop,current(),reviewed,listener,RegistrationWorkflowTestFixtures.emptyLookup(),session,directIntent));
+        return direct;
+    }
     @Test void existingRegisterActionUsesV3JournalWithoutANewScreen()throws Exception {
-        assertTrue(workflow.start(shop,current(),draft,null));
+        assertTrue(startReviewed(draft));
         assertEquals(Status.PUBLISHED,current().status());
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT action,state,receipt FROM znack_v3_dispatches ORDER BY rowid");var r=p.executeQuery()){
             assertTrue(r.next());assertEquals("ALLOCATE_GTIN",r.getString(1));assertEquals("ACKNOWLEDGED",r.getString(2));assertEquals(current().gtin(),r.getString(3));
@@ -54,7 +107,7 @@ class ZnackCardRegistrationWorkflowTest {
         var session=fixtureSession();
         var scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings());
         var scoped=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession(session.token(),session.catalog(),scope),Runnable::run);
-        assertTrue(scoped.start(shop,current(),automaticDraft().withAutoSign(false),null));
+        assertTrue(startReviewed(automaticDraft().withAutoSign(false)));
         assertNotEquals(Status.PUBLISHED,current().status());assertTrue(current().errorMessage().contains("CATALOG_PUBLICATION_NOT_CONFIRMED"));
         assertEquals(1,api.submissions.get());var saved=current();
         api.staleCardContent=false;assertTrue(scoped.refreshStatusWithoutSigning(shop,saved));assertEquals(Status.PUBLISHED,current().status());
@@ -62,17 +115,18 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @Test void failedAllocationReadBeforeMutationRetriesNormallyWithoutRequestingAnotherIdentity()throws Exception {
         api.failGeneratedReadNumber=1;
-        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(0,api.allocations.get());
+        assertTrue(startReviewed(draft));assertEquals(0,api.allocations.get());
         try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT state FROM znack_v3_dispatches WHERE action='ALLOCATE_GTIN'")){
             assertTrue(r.next());assertEquals("REJECTED",r.getString(1));
         }
         api.failGeneratedReadNumber=0;
         assertEquals(Status.PREFLIGHT_ERROR,current().status());
         assertFalse(workflow.requestNewGtin(shop,current(),draft,true,null),"No uncertain allocation needs a replacement identity");
-        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_registration_batches SET retry_at=NULL WHERE id=?")){p.setString(1,reviewedBatch.latest(shop).runId());p.executeUpdate();}
+        assertTrue(reviewedBatch.resumePending(shop));assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void explicitRejectedReplacementAdvancesGenerationInsideTheArchiveTransaction()throws Exception {
-        api.firstRejection="required attribute missing";workflow.start(shop,current(),draft,null);assertEquals(Status.ERROR,current().status());
+        api.firstRejection="required attribute missing";startReviewed(draft);assertEquals(Status.ERROR,current().status());
         var journal=new com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournal();String first=journal.allocationGeneration(1,101,11);
         assertTrue(repository.claimRejectedReplacement(1,current()));String second=journal.allocationGeneration(1,101,11);assertNotEquals(first,second);
         repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764363",draft,"").toString());
@@ -83,7 +137,7 @@ class ZnackCardRegistrationWorkflowTest {
         api.feedTimeout=true;api.moderated=true;
         var session=fixtureSession();var scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings());
         var scoped=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession(session.token(),session.catalog(),scope),Runnable::run);
-        assertTrue(scoped.start(shop,current(),automaticDraft().withAutoSign(false),null));assertFalse(current().hasFeed());assertEquals(1,api.submissions.get());
+        assertTrue(startReviewed(automaticDraft().withAutoSign(false)));assertFalse(current().hasFeed());assertEquals(1,api.submissions.get());
         repository.updateProgress(1,11,Status.FEED_REVIEW_REQUIRED,null,91L,"CATALOG_FEED_READBACK_REQUIRED",false);
         api.feedTimeout=false;assertTrue(scoped.verifySubmissionForBatch(shop,current()));assertEquals(Status.READY_TO_SIGN,current().status());
         try(var c=Database.getConnection();var q=c.createStatement();var r=q.executeQuery("SELECT state,receipt FROM znack_v3_dispatches WHERE action='SUBMIT'")){
@@ -96,43 +150,43 @@ class ZnackCardRegistrationWorkflowTest {
         api.mandatoryCountry=true;
         try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,11,'seller-existing-barcode')");}
         var before=current().barcodes();
-        assertTrue(workflow.start(shop,current(),draft,null));
+        assertTrue(startReviewed(draft));
         assertEquals(Status.PREFLIGHT_ERROR,current().status());assertTrue(current().errorMessage().contains("2630"));
         assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(0,api.signatures.get());
         assertTrue(current().gtin()==null||current().gtin().isBlank());assertEquals(before,current().barcodes());
     }
-    @Test void manualDraftWithAnUnverifiedCountryCannotAllocateAGtin(){
+    @Test void manualDraftWithAnUnverifiedCountryCannotAllocateAGtin()throws Exception{
         api.mandatoryCountry=true;
         var invalid=new Draft("6204",1,"Fixture","Brand",Map.of(1L,"Fixture",2630L,"XX"));
-        assertTrue(workflow.start(shop,current(),invalid,null));
+        assertTrue(startReviewed(invalid));
         assertEquals(Status.PREFLIGHT_ERROR,current().status());assertTrue(current().errorMessage().contains("CATALOG_COUNTRY_DICTIONARY_INVALID"));
         assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(0,api.signatures.get());
     }
-    @Test void validManualCountryIsVerifiedOnceBeforeAllocationAndReusedForSubmission(){
+    @Test void validManualCountryIsVerifiedOnceBeforeAllocationAndReusedForSubmission()throws Exception{
         api.mandatoryCountry=true;api.moderated=true;
         var valid=new Draft("6204",1,"Fixture","Brand",Map.of(1L,"Fixture",2630L,"RU"));
-        assertTrue(workflow.start(shop,current(),valid,null));assertEquals(Status.READY_TO_SIGN,current().status());
-        assertEquals(1,api.countryReads.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+        assertTrue(startReviewed(valid));assertEquals(Status.READY_TO_SIGN,current().status());
+        assertEquals(2,api.countryReads.get(),"Country dictionary is read once for seller review and once for the write; submission reuses its write-scope read");assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
         assertTrue(api.lastPayload.getAsJsonArray("good_attrs").asList().stream().map(JsonElement::getAsJsonObject)
                 .anyMatch(attribute->attribute.get("attr_id").getAsLong()==2630L&&attribute.get("attr_value").getAsString().equals("RU")));
     }
-    @Test void storedUnsentDraftMissingCurrentRequiredCountryKeepsItsIdentityWithoutSending(){
+    @Test void storedUnsentDraftMissingCurrentRequiredCountryKeepsItsIdentityWithoutSending()throws Exception{
         String stored=ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString();
         repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",stored);
         repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,null,null,false);api.mandatoryCountry=true;
-        assertTrue(workflow.resume(shop,current(),null));
+        assertTrue(startReviewed(draft));
         assertEquals(Status.PRE_SUBMIT_ERROR,current().status());assertEquals("04631993764370",current().gtin());
         assertFalse(current().hasFeed());assertEquals(stored,repository.payload(1,11));
         assertTrue(current().errorMessage().contains("2630"));assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
     }
     @Test void externallySignedCardWithLaggedFeedDoesNotSignAgain()throws Exception{
-        api.moderated=true;workflow.start(shop,current(),draft,null);assertEquals(Status.READY_TO_SIGN,current().status());
+        api.moderated=true;startReviewed(draft);assertEquals(Status.READY_TO_SIGN,current().status());
         api.signatureAccepted=true;api.laggedModeration=true;
         assertTrue(workflow.refreshStatus(shop,current()));assertEquals(Status.PUBLISHED,current().status());
         assertEquals(0,api.signatures.get());assertEquals(0,api.documents.get());assertEquals(1,api.submissions.get());
     }
     @Test void definiteRejectionAfterASigningTimeoutShowsTheReasonWithoutReplaying()throws Exception{
-        api.moderated=true;api.signTimeout=true;workflow.start(shop,current(),draft,null);
+        api.moderated=true;api.signTimeout=true;startReviewed(draft);
         RegistrationWorkflowTestFixtures.sign(workflow,shop,List.of(current()),true,null);assertEquals(Status.SIGNING,current().status());
         api.firstRejection="Permit does not cover product";assertFalse(workflow.refreshStatus(shop,current()));
         assertEquals(Status.ERROR,current().status());assertTrue(current().errorMessage().contains("Permit does not cover product"));
@@ -140,9 +194,8 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @Test void nextCardWaitsForWorkerCheckpointInsteadOfQueueAcknowledgement() throws Exception {
         var workers=new ArrayDeque<Runnable>();
-        var queued=RegistrationWorkflowTestFixtures.workflow(repository,ignored->fixtureSession(),workers::add);
         api.pendingModeration=true;
-        assertTrue(queued.start(shop,current(),draft,null));
+        var queued=reviewedDirect(draft,workers::add,null);
         var finished=queued.completion(shop,current()).toCompletableFuture();
         assertFalse(finished.isDone());assertEquals(0,api.submissions.get());
         var advanced=new AtomicInteger();
@@ -162,7 +215,7 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @Test void registeredSignedCardFlowsThroughCatalogAndRealWbCardUpdateWithReadback()throws Exception {
         com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),ZnackModels.PRODUCTION_TRUE_API);
-        api.moderated=true;assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.READY_TO_SIGN,current().status());
+        api.moderated=true;assertTrue(startReviewed(draft));assertEquals(Status.READY_TO_SIGN,current().status());
         assertTrue(RegistrationWorkflowTestFixtures.sign(workflow,shop,List.of(current()),true,null));assertEquals(Status.PUBLISHED,current().status());
         PublishedCardGtinFixture.synchronize(shop,current().gtin(),"101","11","");
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(1,api.signatures.get());
@@ -170,7 +223,7 @@ class ZnackCardRegistrationWorkflowTest {
     @Test void signedRequestWithNoPublishedCardWaitsAndResumesWithoutAllocatingAgain()throws Exception {
         com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),ZnackModels.PRODUCTION_TRUE_API);
         api.moderated=true;api.cardPublished=false;
-        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.READY_TO_SIGN,current().status());
+        assertTrue(startReviewed(draft));assertEquals(Status.READY_TO_SIGN,current().status());
         assertTrue(RegistrationWorkflowTestFixtures.sign(workflow,shop,List.of(current()),true,null));
         assertNotEquals(Status.PUBLISHED,current().status());assertFalse(current().wbUpdated());
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(1,api.signatures.get());
@@ -180,21 +233,21 @@ class ZnackCardRegistrationWorkflowTest {
         PublishedCardGtinFixture.synchronize(shop,current().gtin(),"101","11","");
     }
     @Test void legacyPublishedLabelIsReconciledWithoutReplacingItsGtinOrFeed()throws Exception {
-        assertTrue(workflow.start(shop,current(),draft,null));var saved=current();assertEquals(Status.PUBLISHED,saved.status());
+        assertTrue(startReviewed(draft));var saved=current();assertEquals(Status.PUBLISHED,saved.status());
         api.cardPublished=false;assertFalse(workflow.refreshStatus(shop,saved));assertEquals(Status.PROCESSING,current().status());
         assertEquals(saved.gtin(),current().gtin());assertEquals(saved.feedId(),current().feedId());
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
         api.cardPublished=true;assertTrue(workflow.refreshStatus(shop,current()));assertEquals(Status.PUBLISHED,current().status());
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
-    @Test void completedFeedWithoutACardCanBeExplicitlyRetriedWithTheSameGtinOnly()throws Exception {
-        api.completedWithoutCard=true;assertTrue(workflow.start(shop,current(),draft,null));var failed=current();assertEquals(Status.ERROR,failed.status());
+    @Test void completedFeedWithoutACardIsNotResubmittedWithoutRejectionEvidence()throws Exception {
+        api.completedWithoutCard=true;assertTrue(startReviewed(draft));var failed=current();assertEquals(Status.ERROR,failed.status());
         assertTrue(failed.errorMessage().contains("CATALOG_FEED_COMPLETED_WITHOUT_CARD"));assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
-        assertTrue(workflow.start(shop,failed,draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals(failed.gtin(),current().gtin());
-        assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
+        assertTrue(workflow.start(shop,failed,draft,null));assertEquals(Status.ERROR,current().status());assertEquals(failed.gtin(),current().gtin());
+        assertEquals(failed.feedId(),current().feedId());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void aSlowCatalogImportStaysPendingAndNeverBecomesAnInventedRejection()throws Exception {
-        api.pendingModeration=true;assertTrue(workflow.start(shop,current(),draft,null));
+        api.pendingModeration=true;assertTrue(startReviewed(draft));
         try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_card_registrations SET created_at='2020-01-01T00:00:00Z'");}
         api.cardMissing=true;assertFalse(workflow.refreshStatus(shop,current()));assertEquals(Status.FEED_SUBMITTED,current().status());assertEquals("CATALOG_REQUEST_ACCEPTED_CARD_PENDING",current().errorMessage());
         assertEquals(1,repository.pendingStatus(1,3).size());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
@@ -202,7 +255,7 @@ class ZnackCardRegistrationWorkflowTest {
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void temporarilyMissingSigningDocumentCannotGrantApprovalOrSignUntilExplicitReview()throws Exception {
-        api.moderated=true;assertTrue(workflow.start(shop,current(),draft,null));api.signingDocumentMissing=true;
+        api.moderated=true;assertTrue(startReviewed(draft));api.signingDocumentMissing=true;
         assertThrows(IOException.class,()->workflow.prepareApprovedSigning(shop,List.of(current())));
         assertEquals(Status.READY_TO_SIGN,current().status());assertEquals(0,api.signatures.get());
         assertFalse(RegistrationSigningConsent.allowed(shop,new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","11"),current().gtin()));
@@ -239,11 +292,11 @@ class ZnackCardRegistrationWorkflowTest {
         var prior=LicenseRuntime.service();
         try(var denied=LicenseDomainFixture.denied(temp.resolve("denied-license"))) {
             try {
-                assertTrue(workflow.start(shop,current(),draft,(status,detail)->{if(status==Status.GTIN_GENERATED)LicenseRuntime.install(denied);}));
+                var direct=reviewedDirect(draft,Runnable::run,(status,detail)->{if(status==Status.GTIN_GENERATED)LicenseRuntime.install(denied);});
                 assertEquals(Status.READY_TO_SUBMIT,current().status());assertEquals("04631993764370",current().gtin());
                 assertEquals(1,api.allocations.get());assertEquals(0,api.submissions.get());
                 assertThrows(LicenseDeniedException.class,()->workflow.resume(shop,current(),null));
-                LicenseRuntime.install(prior);assertTrue(workflow.resume(shop,current(),null));
+                LicenseRuntime.install(prior);assertTrue(direct.resumeSubmissionOnly(shop,current(),null,null,directIntent));
                 assertEquals(Status.PUBLISHED,current().status());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
             }finally{LicenseRuntime.install(prior);}
         }
@@ -261,9 +314,9 @@ class ZnackCardRegistrationWorkflowTest {
             }finally{LicenseRuntime.install(prior);}
         }
     }
-    @Test void lostAllocationResultPersistsReviewAndCannotBeRetriedNormally() {
+    @Test void lostAllocationResultPersistsReviewAndCannotBeRetriedNormally() throws Exception {
         api.allocationTimeout=true;
-        assertTrue(workflow.start(shop,current(),draft,null));
+        assertTrue(startReviewed(draft));
         Sku pending=current();
         assertEquals(Status.GTIN_REVIEW_REQUIRED,pending.status());
         assertNull(pending.gtin());
@@ -271,16 +324,16 @@ class ZnackCardRegistrationWorkflowTest {
         assertFalse(workflow.resume(shop,pending,null));
         assertEquals(1,api.allocations.get());
     }
-    @Test void failureBeforeAnyAllocationRemainsSafelyRetryable() {
+    @Test void failureBeforeAnyAllocationRemainsSafelyRetryable() throws Exception {
         var unavailable=RegistrationWorkflowTestFixtures.workflow(repository,
                 ignored->{throw new IllegalStateException("fixture authentication unavailable");},Runnable::run);
         assertTrue(unavailable.start(shop,current(),draft,null));
         assertEquals("PREFLIGHT_ERROR",current().status().name());
         assertTrue(current().canRegister());assertFalse(current().needsGtinReview());
-        assertTrue(workflow.start(shop,current(),draft,null));
+        assertTrue(startReviewed(draft));
         assertEquals(Status.PUBLISHED,current().status());assertEquals(1,api.allocations.get());
     }
-    @Test void rejectedExecutorKeepsAnUnsentFeedSafelyRetryable() {
+    @Test void rejectedExecutorKeepsAnUnsentFeedSafelyRetryable() throws Exception {
         repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",
                 ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());
         repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,null,null,null);
@@ -291,7 +344,7 @@ class ZnackCardRegistrationWorkflowTest {
         catch(java.util.concurrent.RejectedExecutionException expected) { }
         assertTrue(current().canRegister());assertFalse(current().needsFeedReview());
         assertEquals(0,api.submissions.get());assertEquals(0,api.allocations.get());
-        assertTrue(workflow.start(shop,current(),draft,null));
+        assertTrue(startReviewed(draft));
         assertEquals(Status.PUBLISHED,current().status());assertEquals(1,api.submissions.get());
         assertEquals(0,api.allocations.get());
     }
@@ -306,17 +359,16 @@ class ZnackCardRegistrationWorkflowTest {
             assertEquals("feed-existing",current().feedId());assertEquals(Status.ERROR,current().status());
         }
     }
-    @Test void freshRequestRequiresConfirmationAndDoesNotUseAnOldUnclaimedCode() throws Exception {
+    @Test void bareFreshGtinConfirmationCannotAllocateWithoutReviewedIntent() throws Exception {
         pending("CHECKING"); api.existingDraft=true;
         Sku pending=current();
         assertFalse(workflow.requestNewGtin(shop,pending,draft,false,null));
         assertEquals(0,api.allocations.get());
-        assertTrue(workflow.requestNewGtin(shop,pending,draft,true,null));
-        assertEquals(1,api.allocations.get());
-        assertEquals("04631993764370",current().gtin());
-        assertEquals(Status.PUBLISHED,current().status());
         assertFalse(workflow.requestNewGtin(shop,pending,draft,true,null));
-        assertEquals(1,api.allocations.get());
+        assertEquals(0,api.allocations.get());
+        assertFalse(current().hasIdentity());
+        assertFalse(workflow.requestNewGtin(shop,pending,draft,true,null));
+        assertEquals(0,api.allocations.get());
     }
     @Test void retryUsesExistingGtinAndFeedInsteadOfCreatingAnotherRequest() {
         repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",
@@ -361,55 +413,66 @@ class ZnackCardRegistrationWorkflowTest {
         assertEquals(0,api.submissions.get());
         assertEquals(Status.GTIN_GENERATED,current().status());
     }
-    @Test void correctedPayloadResubmitsOnlyAfterReadingADefinitivelyRejectedFeed() {
+    @Test void unrelatedMissingFieldRejectionIsNotAutomaticallyResubmitted() {
         repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",
                 ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());
         repository.updateProgress(1,11,Status.ERROR,"feed-existing",null,"required attribute missing",false);
         api.rejectExistingFeed=true;
         assertTrue(workflow.start(shop,current(),draft,null));
-        assertEquals(1,api.submissions.get());
+        assertEquals(0,api.submissions.get());
         assertEquals(0,api.allocations.get());
-        assertEquals(Status.PUBLISHED,current().status());
-        assertEquals("feed-new",current().feedId());
+        assertEquals(Status.ERROR,current().status());
+        assertEquals("feed-existing",current().feedId());
         assertEquals("04631993764370",current().gtin());
     }
-    @Test void catalogKitCorrectionUsesTheSameGtinAndIsCheckpointedBeforeItsSingleRetry(){
-        api.firstRejection="Карточка должна быть создана с типом Комплект";
-        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.PUBLISHED,current().status());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
+    @Test void catalogKitCorrectionUsesTheSameGtinAndIsCheckpointedBeforeItsSingleRetry()throws Exception{
+        var settings=new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings();var scope=ZnackRegistrationScope.fromSettings(settings);
+        var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings ignored){return "fixture-token";}};
+        var catalog=new ZnackNationalCatalogService(api,auth,(payload,context)->new com.vncode.app.integration.znack.signature.CryptoProSigningResult(new byte[]{1},""),settings);
+        workflow=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog,scope),Runnable::run);
+        api.rejectionEvidence=true;api.firstRejectedGoodId=91L;api.firstRejection="Карточка должна быть создана с типом Комплект";
+        var fullDraft=new Draft("6204420000","6204",1,"Fixture","Brand",Map.of(1L,"Fixture"));
+        assertTrue(startReviewed(fullDraft,true));assertEquals(Status.PUBLISHED,current().status(),()->current().errorMessage());assertEquals(1,api.allocations.get());assertEquals(2,api.submissions.get());
         assertTrue(JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().get("is_kit").getAsBoolean());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());
     }
     @Test void rejectedRetryPreservesItsExistingCardIdAndRefusesAnUnexpectedReplacement()throws Exception{
-        api.firstRejection="Карточка должна быть создана с типом Комплект";api.firstRejectedGoodId=90L;
-        assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.PRE_SUBMIT_ERROR,current().status());assertEquals(90L,current().goodId());assertEquals(90L,JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().get("good_id").getAsLong());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get(),"A different remote card identity must be blocked before a second POST");
-        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT good_id,payload_json FROM znack_card_registration_history")){assertTrue(r.next());assertEquals(90L,r.getLong(1));assertFalse(JsonParser.parseString(r.getString(2)).getAsJsonObject().has("is_kit"));}
+        api.firstRejection="Карточка должна быть создана с типом Комплект";api.firstRejectedGoodId=90L;api.rejectionEvidence=true;
+        assertTrue(startReviewed(draft));assertEquals(Status.ERROR,current().status());assertEquals(90L,current().goodId());
+        assertFalse(JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().has("is_kit"));assertEquals(1,api.allocations.get());
+        assertEquals(1,api.submissions.get(),"A different remote card identity must be blocked before a second POST");
     }
     @Test void reopeningAPreparedRetryPreservesTheReviewedServerCorrectedPayload()throws Exception{
         try(var c=Database.getConnection();var s=c.createStatement()){s.executeUpdate("UPDATE wb_product_cards SET subject_name='Костюмы спортивные' WHERE shop_id=1");}
         var repaired=new Draft("6112120000","6112",1,"Fixture","Fixture",draft.attributes(),Map.of(),false,true);
         repository.saveGenerated(1,current(),"04631993764370",repaired.tnved(),1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",repaired,"").toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,null,null,null);
-        assertTrue(workflow.resume(shop,current(),null));assertEquals(Status.PUBLISHED,current().status());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());assertEquals(0,api.allocations.get());assertEquals(1,api.submissions.get());
+        assertTrue(startReviewed(repaired));assertEquals(Status.PUBLISHED,current().status());assertTrue(api.lastPayload.get("is_kit").getAsBoolean());assertEquals(0,api.allocations.get());assertEquals(1,api.submissions.get());
     }
-    @Test void aLegacyUnsentEditPersistsItsKnownGoodIdBeforeSubmitting(){
+    @Test void aLegacyUnsentEditPersistsItsKnownGoodIdBeforeSubmitting()throws Exception{
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");
         repository.saveGenerated(1,current(),"04631993764370",draft.tnved(),1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());
         repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,91L,null,null);
         assertFalse(JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().has("good_id"));
-        assertTrue(workflow.resume(shop,current(),null));assertEquals(Status.PUBLISHED,current().status());
-        assertEquals(91L,api.lastPayload.get("good_id").getAsLong());assertEquals(91L,JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().get("good_id").getAsLong());assertEquals(0,api.allocations.get());assertEquals(1,api.submissions.get());
+        assertTrue(workflow.resume(shop,current(),null));assertEquals(0,api.submissions.get());assertEquals(91L,current().goodId());
+        // A fresh Catalog observation exposes the exact draft for a new seller review.
+        repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");
+        repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);
+        assertTrue(startReviewed(draft));assertEquals(91L,api.lastPayload.get("good_id").getAsLong());
+        assertEquals(91L,JsonParser.parseString(repository.payload(1,11)).getAsJsonObject().get("good_id").getAsLong());assertEquals(0,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void rejectionDoesNotResetASignatureWhoseResultStillNeedsReadback(){
         repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());repository.updateProgress(1,11,Status.READY_TO_SIGN,"feed-existing",91L,null,false);
         var document=new ZnackNationalCatalogService.SigningDocument(91L,new byte[]{1});repository.prepareSignature(1,11,"04631993764370",document);assertTrue(repository.claimSignatureSend(1,11,document.sha256()));repository.updateProgress(1,11,Status.ERROR,"feed-existing",91L,"temporary error",false);api.rejectExistingFeed=true;
         assertTrue(workflow.start(shop,current(),draft,null));assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals("SENDING",repository.signingCheckpoint(1,11).state());assertEquals("feed-existing",current().feedId());
     }
-    @Test void observerFailuresDoNotTurnSuccessfulRemoteWorkIntoAnError() {
-        assertTrue(workflow.start(shop,current(),draft,(status,detail)->{throw new IllegalStateException("fixture observer");}));
+    @Test void observerFailuresDoNotTurnSuccessfulRemoteWorkIntoAnError() throws Exception {
+        reviewedDirect(draft,Runnable::run,(status,detail)->{throw new IllegalStateException("fixture observer");});
         assertEquals(Status.PUBLISHED,current().status());
         assertEquals(1,api.allocations.get());
         assertEquals(1,api.submissions.get());
     }
-    @Test void lostFeedResultKeepsTheGtinAndDoesNotRepeatSubmission() {
+    @Test void lostFeedResultKeepsTheGtinAndDoesNotRepeatSubmission() throws Exception {
         api.feedTimeout=true;
-        assertTrue(workflow.start(shop,current(),draft,null));
+        assertTrue(startReviewed(draft));
         Sku pending=current();
         assertEquals(Status.FEED_REVIEW_REQUIRED,pending.status());
         assertEquals("04631993764370",pending.gtin());
@@ -435,19 +498,16 @@ class ZnackCardRegistrationWorkflowTest {
             queued.getFirst().run();
         }
     }
-    @Test void changedConfigurationAfterAllocationStopsFeedAndPreservesOriginalBinding() {
+    @Test void changedConfigurationAfterAllocationStopsFeedAndPreservesOriginalBinding() throws Exception {
         var settingsRepository=new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture"));
-        settingsRepository.saveSettings(ZnackRegistrationScopeTest.settings("7707083893","a".repeat(40)));
-        var owner=ZnackRegistrationScope.fromSettings(settingsRepository.getSettings());
-        var catalogSession=fixtureSession();
-        var scoped=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession(catalogSession.token(),catalogSession.catalog(),owner),Runnable::run,true,(s,n,v,g)->false);
-        assertTrue(scoped.start(shop,current(),draft,(status,detail)->{
-            if(status==Status.GTIN_GENERATED)settingsRepository.saveSettings(ZnackRegistrationScopeTest.settings("7807083893","b".repeat(40)));
-        }));
+        var original=new java.util.concurrent.atomic.AtomicReference<ZnackRegistrationScope>();
+        var scoped=reviewedDirect(draft,Runnable::run,(status,detail)->{
+            if(status==Status.GTIN_GENERATED){original.set(repository.scope(1,11));settingsRepository.saveSettings(ZnackRegistrationScopeTest.settings("7807083893","b".repeat(40)));}
+        },true);
         assertEquals(1,api.allocations.get());assertEquals(0,api.submissions.get());
-        assertEquals(owner,repository.scope(1,11));
-        assertEquals(Status.PRE_SUBMIT_ERROR,current().status());
-        assertFalse(scoped.resume(shop,current(),null)); // Feed resume is not eligible; a reviewed retry still checks the owner.
+        assertNotNull(original.get());assertEquals(original.get(),repository.scope(1,11));
+        assertTrue(Set.of(Status.READY_TO_SUBMIT,Status.PRE_SUBMIT_ERROR).contains(current().status()));
+        assertFalse(current().hasFeed());assertEquals("04631993764370",current().gtin());
         assertThrows(ZnackRegistrationScope.ScopeChangedException.class,()->scoped.start(shop,current(),draft,null));
     }
     @Test void uncertainSignatureIsNeverReplayedAndReadbackCanResolveIt() {
@@ -476,25 +536,23 @@ class ZnackCardRegistrationWorkflowTest {
         assertTrue(RegistrationWorkflowTestFixtures.sign(workflow,shop,List.of(current()),true,null));assertEquals(Status.PUBLISHED,current().status());
         assertEquals("CONFIRMED",repository.signingCheckpoint(1,11).state());assertEquals(1,api.signatures.get());
     }
-    @Test void moderatedCardReleasesWorkerAndWaitsForExplicitSigning() {
+    @Test void moderatedCardReleasesWorkerAndWaitsForExplicitSigning() throws Exception {
         api.moderated=true;
-        assertTrue(workflow.start(shop,current(),draft,null));
+        assertTrue(startReviewed(draft));
         assertEquals(Status.READY_TO_SIGN,current().status());assertEquals(0,api.signatures.get());
         assertTrue(RegistrationWorkflowTestFixtures.sign(workflow,shop,List.of(current()),true,null));
         assertEquals(1,api.signatures.get());assertEquals(Status.PUBLISHED,current().status());
     }
-    @Test void changingTnvedGroupRequiresExplicitNewCardConfirmationBeforeAllocating()throws Exception {
+    @Test void changingTnvedGroupCannotReplaceWithoutReviewedIntent()throws Exception {
         var oldDraft=new Draft("6104",1,"Fixture","Brand",Map.of(1L,"Fixture"));
         repository.saveGenerated(1,current(),"04631993764363","6104",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764363",oldDraft,"").toString());
         repository.updateProgress(1,11,Status.PUBLISHED,"old-feed",90L,null,true);var old=current();
         assertThrows(RegistrationValidationException.class,()->workflow.start(shop,old,draft,null));
         assertEquals("04631993764363",current().gtin());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
         assertFalse(workflow.registerNew(shop,old,draft,false,null));
-        assertTrue(workflow.registerNew(shop,old,draft,true,null));assertEquals(Status.PUBLISHED,current().status());assertEquals("04631993764370",current().gtin());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
-        assertEquals("04631993764363",repository.activeGtin(1,11));assertTrue(repository.claimedGtins().contains("04631993764363"));
-        try(var c=Database.getConnection();var st=c.createStatement();var r=st.executeQuery("SELECT active_gtin,active_feed_id,active_payload_json FROM znack_card_registration_replacements")){assertTrue(r.next());assertEquals("04631993764363",r.getString(1));assertEquals("old-feed",r.getString(2));assertTrue(r.getString(3).contains("6104"));}
-        assertFalse(workflow.start(shop,old,draft,null),"The old reviewed revision cannot claim the replacement card");
-        assertEquals("04631993764370",current().gtin());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+        assertFalse(workflow.registerNew(shop,old,draft,true,null));
+        assertEquals("04631993764363",current().gtin());assertEquals("old-feed",current().feedId());
+        assertTrue(repository.claimedGtins().contains("04631993764363"));assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
     }
     @Test void changingGroupOfRejectedCardRetainsTheOldCheckpointWithoutActivatingIt()throws Exception {
         var oldDraft=new Draft("6104",1,"Fixture","Brand",Map.of(1L,"Fixture"));
@@ -508,42 +566,47 @@ class ZnackCardRegistrationWorkflowTest {
         assertTrue(current().canResume());var result=new ZnackRegistrationMonitor(workflow,null).poll(shop,3);assertEquals(1,result.checked());assertEquals(1,result.published());assertEquals(Status.PUBLISHED,current().status());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(0,api.signatures.get());
     }
     @Test void confirmedAutomaticSigningSurvivesReopeningAndOnlySignsItsExactCardOnce()throws Exception {
-        api.pendingModeration=true;assertTrue(workflow.start(shop,current(),automaticDraft(),null));assertEquals(Status.PROCESSING,current().status());assertEquals(0,api.signatures.get());
+        api.pendingModeration=true;assertTrue(startReviewed(automaticDraft()));assertEquals(Status.PROCESSING,current().status());assertEquals(0,api.signatures.get());
         api.pendingModeration=false;api.moderated=true;var reopened=RegistrationWorkflowTestFixtures.workflow(repository,ignored->fixtureSession(),Runnable::run);var monitor=new ZnackRegistrationMonitor(reopened,null);
         assertEquals(1,monitor.poll(shop,3).published());assertEquals(1,api.signatures.get());assertEquals(Status.PUBLISHED,current().status());monitor.poll(shop,3);assertEquals(1,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
     @Test void automaticSigningTimeoutIsReadBackAfterRestartWithoutSendingTheSignatureAgain()throws Exception {
-        api.pendingModeration=true;workflow.start(shop,current(),automaticDraft(),null);api.pendingModeration=false;api.moderated=true;api.signTimeout=true;
+        api.pendingModeration=true;startReviewed(automaticDraft());api.pendingModeration=false;api.moderated=true;api.signTimeout=true;
         var monitor=new ZnackRegistrationMonitor(RegistrationWorkflowTestFixtures.workflow(repository,ignored->fixtureSession(),Runnable::run),null);monitor.poll(shop,3);assertEquals(Status.SIGNING,current().status());assertEquals(1,api.signatures.get());monitor.poll(shop,3);assertEquals(1,api.signatures.get());api.signatureAccepted=true;assertEquals(1,monitor.poll(shop,3).published());assertEquals(1,api.signatures.get());
     }
     @Test void backgroundMonitorReadsExistingFeedWithoutAllocatingSubmittingOrSigningAgain()throws Exception {
-        api.moderated=true;assertTrue(workflow.start(shop,current(),draft,null));
+        api.moderated=true;assertTrue(startReviewed(draft));
         var monitor=new ZnackRegistrationMonitor(workflow,null);var waiting=monitor.poll(shop,3);
         assertEquals(1,waiting.checked());assertEquals(0,waiting.published());assertFalse(waiting.pending());assertEquals(0,api.signatures.get());
         api.signatureAccepted=true;var done=monitor.poll(shop,3);assertEquals(1,done.published());assertEquals(Status.PUBLISHED,current().status());
         assertEquals(0,api.signatures.get());assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
     }
-    @Test void savedUnsentCardsContinueFromTheMonitorWithoutASecondCreateClickOrAnotherAllocation()throws Exception{
+    @Test void savedUnsentReviewedCardContinuesAfterRestartWithoutAnotherAllocation()throws Exception{
         {var state=Status.READY_TO_SUBMIT;
             repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());
             repository.updateProgress(1,11,state,null,null,null,false);
-            var before=api.submissions.get();var monitor=new ZnackRegistrationMonitor(workflow,null);
-            assertEquals(1,monitor.poll(shop,3).checked());
+            var before=api.submissions.get();var workers=new ArrayDeque<Runnable>();
+            assertTrue(startReviewed(draft,false,workers::add));String run=reviewedBatch.latest(shop).runId();
+            assertEquals(0,api.submissions.get());assertTrue(reviewedBatch.pause(shop));workers.removeFirst().run();
+            var restarted=new ZnackRegistrationBatchService(repository,reviewedWorkflow,(owner,sku,sign)->reviewedFrozen,Runnable::run,true);
+            assertTrue(restarted.resumePaused(shop));assertEquals(run,restarted.latest(shop).runId());
             assertEquals(before+1,api.submissions.get());assertEquals(0,api.allocations.get());
             assertTrue(current().hasFeed());assertNotEquals(state,current().status());
         }
     }
     @Test void temporaryValidationReadFailureContinuesAutomaticallyWithoutASecondCreateClick()throws Exception{
-        var payload=ZnackNationalCatalogService.buildPayload("04631993764370",draft,"");payload.addProperty("good_id",91);
-        repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",payload.toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,91L,null,false);
-        api.temporaryCardReads=1;assertTrue(workflow.resume(shop,current(),null));
-        assertEquals(Status.READY_TO_SUBMIT,current().status());assertEquals(0,api.submissions.get());
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");
+        repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);
+        var workers=new ArrayDeque<Runnable>();assertTrue(startReviewed(draft,false,workers::add));
+        var payload=ZnackNationalCatalogService.buildPayload("04631993764370",reviewedFrozen,"");payload.addProperty("good_id",91L);payload=ZnackNationalCatalogService.reviewedDraftPayload(shop,payload);
+        repository.saveReadyToSubmitGenerated(1,current(),"04631993764370",reviewedFrozen.tnved(),1,"Fixture",payload.toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,91L,null,false);
+        api.temporaryCardReads=1;workers.removeFirst().run();assertEquals(Status.READY_TO_SUBMIT,current().status());assertEquals(0,api.submissions.get());
         assertTrue(new com.vncode.app.features.sync.SyncStreamStore().ensure(shop,"ZNACK",java.time.Instant.now()).requested(),"Known-unsent work must wake the worker instead of waiting for its 15-minute interval");
-        new ZnackRegistrationMonitor(workflow,null).poll(shop,3);
-        assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(Status.PUBLISHED,current().status());
+        String run=reviewedBatch.latest(shop).runId();try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_registration_batches SET retry_at=NULL WHERE id=?")){p.setString(1,run);p.executeUpdate();}
+        assertTrue(reviewedBatch.resumePending(shop));workers.removeFirst().run();assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals("04631993764370",current().gtin());assertEquals(91L,current().goodId());assertEquals(Status.PROCESSING,current().status());
     }
     @Test void temporaryCard404AfterCompletedFeedKeepsTheOriginalRequestAndNeverResendsIt()throws Exception{
-        api.completedWithoutCard=true;api.cardHttp404=true;assertTrue(workflow.start(shop,current(),draft,null));
+        api.completedWithoutCard=true;api.cardHttp404=true;assertTrue(startReviewed(draft));
         assertEquals(Status.PROCESSING,current().status());assertEquals(1,api.submissions.get());
         new ZnackRegistrationMonitor(workflow,null).poll(shop,3);assertEquals(Status.PROCESSING,current().status());assertEquals(1,api.submissions.get());
         api.cardHttp404=false;api.completedWithoutCard=false;
@@ -551,9 +614,9 @@ class ZnackCardRegistrationWorkflowTest {
     }
     @Test void aQueuedContinuationKeepsTheFastPollingLoopActiveUntilItsWorkerStarts()throws Exception{
         repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,null,null,false);
-        var queued=new java.util.ArrayList<Runnable>();var later=RegistrationWorkflowTestFixtures.workflow(repository,ignored->fixtureSession(),queued::add);
+        var queued=new java.util.ArrayList<Runnable>();assertTrue(startReviewed(draft,false,queued::add));
         try{
-            var result=new ZnackRegistrationMonitor(later,null).poll(shop,3);
+            var result=new ZnackRegistrationMonitor(reviewedWorkflow,null).poll(shop,3);
             assertTrue(result.pending(),"A queued worker must not fall back to the 15-minute idle sync interval");assertEquals(0,api.submissions.get());
         }finally{queued.forEach(Runnable::run);}
         assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());
@@ -572,18 +635,12 @@ class ZnackCardRegistrationWorkflowTest {
         assertEquals(0,api.signatures.get());assertEquals(Status.READY_TO_SIGN,current().status());
         assertNull(repository.signingCheckpoint(1,11),"A document changed before POST; the exact signature was never sent");
     }
-    @Test void newCardConsumesFreshGtinOnlyAfterConfirmationAndKeepsOldUntilMarketplaceReadback() {
+    @Test void newCardCannotReplacePublishedCardWithBareConfirmation() {
         repository.saveGenerated(1,current(),"04631993764363","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764363",draft,"").toString());
         repository.updateProgress(1,11,Status.PUBLISHED,"old-feed",90L,null,true);
         Sku old=current();assertFalse(workflow.registerNew(shop,old,draft,false,null));assertEquals(0,api.allocations.get());
-        assertTrue(workflow.registerNew(shop,old,draft,true,null));assertEquals(1,api.allocations.get());
-        assertEquals("04631993764363",repository.activeGtin(1,11));assertEquals(Status.PUBLISHED,current().status());
-        assertTrue(workflow.completeReplacement(shop,current(),true,null));assertEquals("04631993764363",repository.activeGtin(1,11));
-        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(shop,"A".repeat(40),ZnackModels.PRODUCTION_TRUE_API);
-        var actual=current();var details=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of(actual.goodId().toString()),"@catalog_status",List.of("published")),List.of(),List.of());
-        new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(1,shop.getMarketplace(),List.of(new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(actual.gtin(),"PANTS","","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details)));
-        var completing=RegistrationWorkflowTestFixtures.workflow(repository,ignored->fixtureSession(),Runnable::run,false,(s,n,v,g)->g.equals("04631993764370"));
-        assertTrue(completing.completeReplacement(shop,current(),true,null));assertEquals("04631993764370",repository.activeGtin(1,11));
+        assertFalse(workflow.registerNew(shop,old,draft,true,null));assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
+        assertEquals("04631993764363",current().gtin());assertEquals("old-feed",current().feedId());assertEquals(Status.PUBLISHED,current().status());
     }
     @Test void candidateActivationRejectsAnotherCatalogIdentityAndAChangedRealWbVariant() {
         prepareActivationCandidate();var reads=new AtomicInteger();var card=activationWbCard();
@@ -698,7 +755,7 @@ class ZnackCardRegistrationWorkflowTest {
         assertTrue(current().errorMessage().contains("1"));
     }
     @Test void manualSigningShowsReadOnlyExactXmlBeforeGrantAndRejectsAChangedRevision()throws Exception{
-        api.moderated=true;workflow.start(shop,current(),draft,null);
+        api.moderated=true;startReviewed(draft);
         var key=new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","11");
         var review=workflow.prepareApprovedSigning(shop,List.of(current()));
         assertEquals(1,review.cards().size());assertEquals(91L,review.cards().getFirst().goodId());
@@ -709,42 +766,84 @@ class ZnackCardRegistrationWorkflowTest {
         assertFalse(RegistrationSigningConsent.allowed(shop,key,current().gtin()));
     }
     @Test void aLegacyEnabledFlagDoesNotKeepAnUnapprovedReadyCardPermanentlyPending()throws Exception{
-        api.moderated=true;workflow.start(shop,current(),draft,null);
+        api.moderated=true;startReviewed(draft);
         try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO znack_registration_signing_consents(shop_id,marketplace,product_id,variant_id,gtin,owner,enabled,updated_at) VALUES(1,'WILDBERRIES','101','11',?,?,1,'fixture')")){
             p.setString(1,current().gtin());p.setString(2,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop));p.executeUpdate();
         }
         var result=new ZnackRegistrationMonitor(workflow,null).poll(shop,30);
         assertEquals(Status.READY_TO_SIGN,current().status());assertFalse(result.pending());assertEquals(0,api.signatures.get());
     }
-    @Test void oldCountOnlyConfirmationCannotGrantSigningConsent(){
-        api.moderated=true;workflow.start(shop,current(),draft,null);
+    @Test void oldCountOnlyConfirmationCannotGrantSigningConsent()throws Exception{
+        api.moderated=true;startReviewed(draft);
         assertFalse(workflow.signApproved(shop,List.of(current()),true,null));assertEquals(0,api.signatures.get());
         assertFalse(RegistrationSigningConsent.allowed(shop,new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","11"),current().gtin()));
     }
     @Test void reviewedGenuineDraftUpdatesItsExistingIdentityWithoutAllocationSigningOrMarketplaceGrant()throws Exception{
-        prepareReviewedRawDraft();var reviewed=reviewedDraftWorkflow();
-        assertTrue(reviewed.start(shop,current(),draft.withAutoSign(true),null));
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");
+        // A CREATE review cannot silently become permission to edit an existing card.
+        assertTrue(startReviewed(draft));assertEquals(0,api.submissions.get());assertFalse(current().hasIdentity());
+        // Model the Catalog sync exposing the exact draft for an explicit second review.
+        repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");
+        repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);
+        assertTrue(startReviewed(draft.withAutoSign(true)));
         assertDraftUpdateOnly();assertTrue(current().hasFeed());assertEquals("feed-new",current().feedId());assertEquals(Status.PROCESSING,current().status());
     }
     @Test void adoptedNativeDraftWithoutFeedCanBeReviewedAndSubmittedOnceWithItsExistingGtin()throws Exception{
-        prepareReviewedRawDraft();repository.saveGenerated(1,current(),"04631993764370","6204",1,"Fixture","");
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");
         repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);assertTrue(current().canReviewExistingDraft());
-        assertTrue(reviewedDraftWorkflow().start(shop,current(),draft.withAutoSign(true),null));
+        assertTrue(startReviewed(draft.withAutoSign(true)));
         assertDraftUpdateOnly();assertTrue(current().hasFeed());assertEquals(Status.PROCESSING,current().status());
     }
+    @Test void reviewedDraftRejectsDifferentCatalogOwnerBeforePosting()throws Exception{
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");api.preExistingRawDraft.addProperty("owner_inn","9999999999");
+        repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);
+        assertTrue(startReviewed(draft));assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(91L,current().goodId());
+    }
+    @Test void reviewedDraftWithoutOwnerOrIndexProofCannotPost()throws Exception{
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");api.preExistingRawDraft.remove("owner_inn");
+        repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);
+        assertTrue(startReviewed(draft));assertTrue(api.ownerIndexReads>0);assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(91L,current().goodId());
+    }
+    @Test void reviewedDraftCanUseExactParticipantIndexProofWhenOwnerIsOmitted()throws Exception{
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");api.preExistingRawDraft.remove("owner_inn");api.ownerIndexContains=true;
+        repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);
+        assertTrue(startReviewed(draft));assertTrue(api.ownerIndexReads>0);assertDraftUpdateOnly();
+    }
+    @Test void createConsentCannotEditAnUnexpectedExistingDraft()throws Exception{
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");
+        assertTrue(startReviewed(draft));
+        assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertFalse(current().hasIdentity());
+        assertTrue(current().errorMessage().contains("ZNACK_SOURCE_REVIEW_REQUIRED"));
+    }
+    @Test void changedDraftIdentityAfterReviewCannotBeAdoptedOrSubmitted()throws Exception{
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");
+        repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");
+        repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);
+        var workers=new ArrayDeque<Runnable>();assertTrue(startReviewed(draft,false,workers::add));
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE znack_card_registrations SET good_id=92 WHERE shop_id=1 AND chrt_id=11");}
+        api.preExistingRawDraft.addProperty("good_id",92);workers.removeFirst().run();
+        assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertEquals(92L,current().goodId());assertFalse(current().hasFeed());
+    }
     @Test void uncertainDraftSubmissionAndStillDraftReadbackCannotReplayOrGrantAnotherAction()throws Exception{
-        prepareReviewedRawDraft();api.feedTimeout=true;var reviewed=reviewedDraftWorkflow();
-        assertTrue(reviewed.start(shop,current(),draft.withAutoSign(true),null));assertEquals(Status.FEED_REVIEW_REQUIRED,current().status());assertFalse(current().hasFeed());assertDraftUpdateOnly();
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");
+        repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);api.feedTimeout=true;
+        assertTrue(startReviewed(draft.withAutoSign(true)));var reviewed=reviewedWorkflow;
+        assertEquals(Status.FEED_REVIEW_REQUIRED,current().status());assertFalse(current().hasFeed());assertDraftUpdateOnly();
         String frozen=repository.payload(1,11);assertTrue(ZnackNationalCatalogService.hasReviewedDraft(JsonParser.parseString(frozen).getAsJsonObject()));
         assertTrue(reviewed.verifySubmissionForBatch(shop,current()));assertEquals(Status.FEED_REVIEW_REQUIRED,current().status());assertEquals(frozen,repository.payload(1,11));
         assertFalse(reviewed.resumeSubmissionOnly(shop,current(),true,null));assertFalse(reviewed.start(shop,current(),draft,null));assertEquals(1,api.submissions.get());assertEquals(0,api.allocations.get());assertEquals(0,api.signatures.get());
     }
     @Test void restartedKnownUnsentReviewedDraftDispatchesOnlyTheFrozenPayloadWithoutAutoGrants()throws Exception{
-        prepareReviewedRawDraft();var approved=new Draft("6204",1,"Frozen reviewed name","Brand",Map.of(1L,"Frozen reviewed value"));
-        var body=ZnackNationalCatalogService.buildPayload("04631993764370",approved,"");body.addProperty("good_id",91L);var checkpoint=ZnackNationalCatalogService.reviewedDraftPayload(shop,body);
-        repository.saveReadyToSubmitGenerated(1,current(),"04631993764370","6204",1,approved.goodName(),checkpoint.toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,91L,null,false);
-        String frozen=repository.payload(1,11);assertTrue(current().canResume());
-        var restarted=reviewedDraftWorkflow();assertTrue(restarted.resumeSubmissionOnly(shop,current(),true,null));assertDraftUpdateOnly();
+        prepareReviewedRawDraft();api.preExistingRawDraft.addProperty("tnved","6204420000");
+        repository.saveGenerated(1,current(),"04631993764370","6204420000",1,"Fixture","");
+        repository.updateProgress(1,11,Status.PROCESSING,null,91L,"CATALOG_CARD_DRAFT",false);
+        var approved=new Draft("6204",1,"Frozen reviewed name","Brand",Map.of(1L,"Frozen reviewed value"));
+        var workers=new ArrayDeque<Runnable>();assertTrue(startReviewed(approved,false,workers::add));
+        var body=ZnackNationalCatalogService.buildPayload("04631993764370",reviewedFrozen,"");body.addProperty("good_id",91L);var checkpoint=ZnackNationalCatalogService.reviewedDraftPayload(shop,body);
+        repository.saveReadyToSubmitGenerated(1,current(),"04631993764370",reviewedFrozen.tnved(),1,approved.goodName(),checkpoint.toString());repository.updateProgress(1,11,Status.READY_TO_SUBMIT,null,91L,null,false);
+        String frozen=repository.payload(1,11);assertTrue(current().canResume());String run=reviewedBatch.latest(shop).runId();
+        assertTrue(reviewedBatch.pause(shop));workers.removeFirst().run();
+        var restarted=new ZnackRegistrationBatchService(repository,reviewedWorkflow,(owner,sku,sign)->reviewedFrozen,Runnable::run,true);assertTrue(restarted.resumePaused(shop));assertEquals(run,restarted.latest(shop).runId());assertDraftUpdateOnly();
         assertEquals(ZnackNationalCatalogService.normalizedFeed(body),api.lastPayload);assertEquals(frozen,repository.payload(1,11));assertEquals(Status.PROCESSING,current().status());
     }
     private void prepareReviewedRawDraft()throws Exception{
@@ -756,6 +855,7 @@ class ZnackCardRegistrationWorkflowTest {
              "good_name":"Fixture","brand":"Brand","good_attrs":[{"attr_id":1,"attr_value":"Fixture"}],
              "identified_by":[{"type":"gtin","value":"04631993764370","level":"trade-unit"}]}
             """).getAsJsonObject();
+        api.preExistingRawDraft.addProperty("owner_inn",ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings()).inn());
     }
     private ZnackCardRegistrationWorkflow reviewedDraftWorkflow(){
         return new ZnackCardRegistrationWorkflow(repository,owner->{
@@ -785,17 +885,17 @@ class ZnackCardRegistrationWorkflowTest {
                 VALUES(1,11,101,?,'2026-10-06T00:00:00Z','2026-10-06T00:00:00Z')
                 """)){s.setString(1,status);s.executeUpdate();}
     }
-    @Test void sellerCanChooseANewGtinForAProvenRejectedCardWithoutLosingTheOldIdentity()throws Exception{
+    @Test void rejectedCardCannotBeReplacedByBareConfirmation()throws Exception{
         failedCardForReplacement();api.rejectExistingFeed=true;
-        assertTrue(workflow.registerNew(shop,current(),draft,true,null));assertEquals("04631993764370",current().gtin());assertEquals(Status.PUBLISHED,current().status());
-        assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
+        assertFalse(workflow.registerNew(shop,current(),draft,true,null));assertEquals("04631993764363",current().gtin());assertEquals(Status.ERROR,current().status());
+        assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT gtin,feed_id FROM znack_card_registration_history WHERE shop_id=1 AND chrt_id=11");var r=p.executeQuery()){
-            assertTrue(r.next());assertEquals("04631993764363",r.getString(1));assertEquals("feed-existing",r.getString(2));
+            assertFalse(r.next(),"An unreviewed replacement must not archive the original card");
         }
     }
     @Test void aProcessingFeedWithItemErrorsCannotConsumeANewGtinThroughRecovery(){
         failedCardForReplacement();api.rejectExistingFeed=true;api.existingFeedStatus="Processing";
-        assertTrue(workflow.registerNew(shop,current(),draft,true,null));assertEquals("04631993764363",current().gtin());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
+        assertFalse(workflow.registerNew(shop,current(),draft,true,null));assertEquals("04631993764363",current().gtin());assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());
     }
     private void failedCardForReplacement(){
         api.existingFeedGtin="04631993764363";
@@ -805,25 +905,23 @@ class ZnackCardRegistrationWorkflowTest {
     @Test void acceptedFeedSurvivesRateLimitWithoutAllocatingOrSubmittingAgain()throws Exception{temporaryReadback(429);}
     @Test void acceptedFeedSurvivesNetworkTimeoutWithoutAllocatingOrSubmittingAgain()throws Exception{temporaryReadback(-1);}
     private void temporaryReadback(int failure)throws Exception{
-        api.statusReadFailure=failure;assertTrue(workflow.start(shop,current(),draft,null));
+        api.statusReadFailure=failure;assertTrue(startReviewed(draft));
         assertEquals(Status.PROCESSING,current().status());assertEquals("CATALOG_READBACK_RETRY_PENDING",current().errorMessage());
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());
         api.statusReadFailure=0;assertTrue(workflow.refreshStatus(shop,current()));assertEquals(Status.PUBLISHED,current().status());
         assertEquals(1,api.allocations.get());assertEquals(1,api.submissions.get());assertEquals(0,api.signatures.get());
     }
-    @Test void accessDeniedRemainsAnActionableErrorInsteadOfAnAutomaticReadRetry(){
-        api.statusReadFailure=403;assertTrue(workflow.start(shop,current(),draft,null));assertEquals(Status.ERROR,current().status());assertEquals(1,api.submissions.get());
+    @Test void accessDeniedRemainsAnActionableErrorInsteadOfAnAutomaticReadRetry()throws Exception{
+        api.statusReadFailure=403;assertTrue(startReviewed(draft));assertEquals(Status.ERROR,current().status());assertEquals(1,api.submissions.get());
     }
-    @Test void preparedBatchSessionAvoidsReopeningAndRepeatingQuotaAndCategoryPreflight()throws Exception{
+    @Test void preparedSessionWithoutReviewedIntentCannotAllocateOrSubmit()throws Exception{
         var prepared=fixtureSession();prepared.catalog().preflight(draft.tnved());
         var sending=RegistrationWorkflowTestFixtures.workflow(repository,ignored->{throw new AssertionError("Reuse this card's verified session");},Runnable::run);
         try(var lookup=RegistrationWorkflowTestFixtures.emptyLookup()){
             assertTrue(sending.submitOnly(shop,current(),draft,null,lookup,prepared));
         }
-        assertNull(sending.consumeSubmissionFailure(shop,current()));assertEquals(1,api.submissions.get());
-        assertEquals(2,api.generatedReads,"Prepare plus authoritative allocation read; no duplicate preflight pool read");
-        assertEquals(1,api.categoryReads,"Send reuses the positive category result from this card's preparation");
-        assertNotNull(current().feedId());assertNotNull(current().goodId());
+        assertInstanceOf(RegistrationValidationException.class,sending.consumeSubmissionFailure(shop,current()));
+        assertEquals(0,api.allocations.get());assertEquals(0,api.submissions.get());assertFalse(current().hasIdentity());
     }
     @Test void preparedBatchSessionCannotSendAfterItsCredentialGuardChanges()throws Exception{
         var prepared=fixtureSession();prepared.catalog().preflight(draft.tnved());api.invalidReadScope=true;
@@ -836,9 +934,10 @@ class ZnackCardRegistrationWorkflowTest {
     class FixtureApi extends ZnackApiClient {
         AtomicInteger allocations=new AtomicInteger(),submissions=new AtomicInteger(),signatures=new AtomicInteger(),documents=new AtomicInteger(),countryReads=new AtomicInteger();
         boolean mandatoryCountry,staleCardContent;
-        boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected;
+        boolean allocationTimeout,feedTimeout,existingDraft,rejectExistingFeed,readRejected,rejectionEvidence;
         boolean pendingModeration,moderated,signTimeout,signatureAccepted,changeSigningDocument,delayPublication,laggedModeration;
-        int statusReadFailure,temporaryCardReads,generatedReads,failGeneratedReadNumber,categoryReads;
+        int statusReadFailure,temporaryCardReads,generatedReads,failGeneratedReadNumber,categoryReads,ownerIndexReads;
+        boolean ownerIndexContains;
         boolean invalidReadScope;
         @Override public void assertCatalogReadScope(){if(invalidReadScope)throw new SecurityException("fixture credential changed");}
         boolean cardHttp404;
@@ -869,6 +968,7 @@ class ZnackCardRegistrationWorkflowTest {
         }
         @Override public JsonElement nationalCatalogAllAttributes(String base,String token,long category){return nationalCatalogAttributes(base,token,category);}
         @Override public JsonElement nationalCatalogCountries(String base,String token){countryReads.incrementAndGet();return json("{\"apiversion\":3,\"result\":{\"_etag\":\"fixture-country-etag\",\"_list\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}}");}
+        @Override public JsonElement catalogVersions(String base,String token,String ownerInn,int offset){ownerIndexReads++;assertEquals(0,offset);return json(ownerIndexContains?"{\"result\":{\"total\":1,\"offset\":0,\"goods_count\":1,\"last_product_number\":1,\"goods\":[{\"good_id\":91}]}}":"{\"result\":{\"total\":0,\"offset\":0,\"goods_count\":0,\"last_product_number\":0,\"goods\":[]}}");}
         @Override public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement payload) throws IOException {
             assertEquals(Status.FEED_SUBMITTING,current().status(),"Checkpoint must precede feed submission");
             if(rejectExistingFeed)assertTrue(readRejected,"The old feed must be confirmed rejected before resubmitting");
@@ -879,7 +979,7 @@ class ZnackCardRegistrationWorkflowTest {
         @Override public JsonElement nationalCatalogFeedStatus(String base,String token,String feed)throws IOException {
             if(statusReadFailure==-1)throw new java.net.SocketTimeoutException("fixture readback timeout");
             if(statusReadFailure>0)throw new ZnackApiClient.ZnackApiException("fixture",statusReadFailure,"fixture status read unavailable");
-            if(firstRejection!=null&&submissions.get()==1)return json("{\"result\":{\"status\":\"Rejected\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":"+firstRejectedGoodId+",\"status_code\":400,\"message\":\""+firstRejection+"\"}]}}");
+            if(firstRejection!=null&&submissions.get()==1)return json("{\"result\":{\"feed_id\":\""+feed+"\",\"status\":\"Rejected\",\"item\":[{\"gtin\":\"04631993764370\",\"good_id\":"+firstRejectedGoodId+",\"status_code\":400,\"message\":\""+firstRejection+"\"}]}}");
             if(completedWithoutCard&&submissions.get()==1)return json("{\"result\":{\"status\":\"Done\",\"item\":[{\"gtin\":\"04631993764370\"}]}}");
             if(bulkGtins.containsKey(feed))return json("{\"result\":{\"status\":\"Signed\",\"item\":[{\"gtin\":\""+bulkGtins.get(feed)+"\",\"good_id\":"+bulkGoodIds.get(feed)+"}]}}");
             if(rejectExistingFeed && feed.equals("feed-existing")) {
@@ -895,11 +995,13 @@ class ZnackCardRegistrationWorkflowTest {
             if(preExistingRawDraft!=null){var cards=new JsonArray();cards.add(preExistingRawDraft.deepCopy());var response=new JsonObject();response.add("result",cards);return response;}
             long id=91;
             for(var entry:bulkGtins.entrySet())if(entry.getValue().equals(gtins))id=bulkGoodIds.get(entry.getKey());
-            boolean published=cardPublished&&!pendingModeration&&(!moderated||signatureAccepted);
-            String details=published?"":moderated?"notsigned":pendingModeration?"moderation":"draft";
+            boolean rejectedCard=rejectionEvidence&&firstRejection!=null&&submissions.get()==1;
+            boolean published=cardPublished&&!pendingModeration&&(!moderated||signatureAccepted)&&!rejectedCard;
+            String details=rejectedCard?"errors":published?"":moderated?"notsigned":pendingModeration?"moderation":"draft";
             JsonObject card=lastPayload==null?new JsonObject():lastPayload.deepCopy();
             if(lastPayload==null&&!repository.payload(1,11).isBlank())card=JsonParser.parseString(repository.payload(1,11)).getAsJsonObject();
             if(staleCardContent)card.addProperty("good_name","Older content");card.addProperty("good_signed",published);
+            if(rejectedCard)card.addProperty("owner_inn",ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings()).inn());
             card.addProperty("gtin",gtins);card.addProperty("good_id",id);card.addProperty("good_status",published?"published":"draft");
             var states=new JsonArray();states.add(details);card.add("good_detailed_status",states);var cards=new JsonArray();cards.add(card);var result=new JsonObject();result.add("result",cards);return result;
         }

@@ -20,6 +20,8 @@ class ZnackRegistrationBatchServiceTest {
     final Draft draft=new Draft("6204",1,"Fixture","Brand",Map.of(1L,"Fixture"));
     ZnackCardRegistrationRepository repository;
     FixtureApi api;
+    boolean approvedFixtureImage;
+    ZnackCardRegistrationWorkflow.CatalogSession session;
     ZnackCardRegistrationWorkflow workflow;
     @BeforeEach void setup()throws Exception {
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
@@ -33,7 +35,10 @@ class ZnackRegistrationBatchServiceTest {
         repository=RegistrationWorkflowTestFixtures.repository(shop);api=new FixtureApi();
         var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings settings){return "fixture-token";}};
         var catalog=new ZnackNationalCatalogService(api,auth,(payload,context)->new com.vncode.app.integration.znack.signature.CryptoProSigningResult(new byte[]{1},""),ZnackModels.Settings.empty());
-        workflow=RegistrationWorkflowTestFixtures.workflow(repository,ignored->new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog),Runnable::run);
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings());
+        session=new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog,scope);
+        workflow=new ZnackCardRegistrationWorkflow(repository,ignored->session,Runnable::run,false,(owner,nm,id,gtin)->false,RegistrationWorkflowTestFixtures::emptyLookup,(owner,key)->snapshot(key));
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     @Test @Timeout(600) void continuous117CardQueueSurvivesWriteLimitsAndDelayedReadbacksWithoutDuplicateIdentities()throws Exception{
@@ -44,9 +49,9 @@ class ZnackRegistrationBatchServiceTest {
                 s.addBatch("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+(10+i)+","+(100+i)+",'XL')");
             }s.executeBatch();c.commit();
         }
-        api.syntheticGtins=true;api.cardsVisible=false;api.readRateEvery=7;api.feedRateLimitedAttempts.addAll(Set.of(1,22,55,89,120));
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);api.syntheticGtins=true;api.cardsVisible=false;api.readRateEvery=7;api.feedRateLimitedAttempts.addAll(Set.of(1,22,55,89,120));
         var rows=repository.search(new SearchCriteria(1,"",List.of(),"ALL",1000,0));assertEquals(117,rows.size());
-        var service=service((owner,row,sign)->draft,Runnable::run);String run=service.start(shop,rows,false);int passes=1;
+        var service=service((owner,row,sign)->draft,Runnable::run);String run=startReviewed(service,rows);int passes=1;
         while(api.feedGtins.size()<117&&passes++<100){
             assertTrue(service.latest(shop).running(),()->service.latest(shop).toString());
             assertNotNull(new ZnackRegistrationBatchStore().latest(shop).retryAt());retryNow(run);assertTrue(service.resumePending(shop));
@@ -61,7 +66,7 @@ class ZnackRegistrationBatchServiceTest {
     }
     @Test void quotaReadRateLimitBeforeAllocationAutomaticallyResumesTheSameUnsentBatch()throws Exception{
         api.poolReadFailure=429;var service=service((owner,row,sign)->draft,Runnable::run);
-        String run=service.start(shop,selection(),false);
+        String run=startReviewed(service,selection());
         assertEquals(0,api.allocations.get());assertEquals(0,api.submits.get());assertEquals(3,service.latest(shop).remaining());
         assertEquals(ZnackRegistrationBatchService.State.WAITING_NETWORK,service.latest(shop).state());
         assertEquals(Status.PREFLIGHT_ERROR,selection().stream().filter(row->row.chrtId()==11).findFirst().orElseThrow().status());
@@ -74,7 +79,7 @@ class ZnackRegistrationBatchServiceTest {
     }
     @Test void allocationPost429AutomaticallyRetriesTheOriginalBatchWithoutAnUncertainWrite()throws Exception{
         api.syntheticGtins=true;api.allocationRateLimits=1;
-        var service=service((owner,row,sign)->draft,Runnable::run);String run=service.start(shop,selection(),false);
+        var service=service((owner,row,sign)->draft,Runnable::run);String run=startReviewed(service,selection());
         assertEquals(ZnackRegistrationBatchService.State.WAITING_NETWORK,service.latest(shop).state());
         assertEquals(Status.PREFLIGHT_ERROR,repository.find(1,11).status());assertEquals(0,api.submits.get());
         retryNow(run);assertTrue(service.resumePending(shop));assertEquals(run,service.latest(shop).runId());
@@ -82,7 +87,7 @@ class ZnackRegistrationBatchServiceTest {
         assertEquals(4,api.allocations.get());assertEquals(3,api.submits.get());assertEquals(3,new HashSet<>(api.feedGtins.values()).size());
     }
     @Test void serialBatchHandsEachPreparedSessionToItsOneCardWriterWithoutReopening()throws Exception{
-        workflow=RegistrationWorkflowTestFixtures.workflow(repository,ignored->{throw new AssertionError("Do not reopen the prepared Catalog connection");},Runnable::run);
+        workflow=new ZnackCardRegistrationWorkflow(repository,ignored->{throw new AssertionError("Do not reopen the prepared Catalog connection");},Runnable::run,false,(owner,nm,id,gtin)->false,RegistrationWorkflowTestFixtures::emptyLookup,(owner,key)->snapshot(key));
         var preparations=new AtomicInteger();
         var factory=new ZnackRegistrationBatchService.DraftFactory(){
             @Override public Draft prepare(Shop owner,Sku row,boolean sign){throw new AssertionError("Use preparation with its bound session");}
@@ -91,58 +96,81 @@ class ZnackRegistrationBatchServiceTest {
                 var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings settings){return "fixture-token";}};
                 var catalog=new ZnackNationalCatalogService(api,auth,(payload,context)->{throw new AssertionError("No signing");},ZnackModels.Settings.empty());
                 catalog.preflight(draft.tnved());
-                return new ZnackRegistrationBatchService.PreparedDraft(draft,new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog));
+                return new ZnackRegistrationBatchService.PreparedDraft(draft,new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog,session.scope()));
             }
         };
-        var service=service(factory,Runnable::run);service.start(shop,selection(),false);
+        var service=service(factory,Runnable::run);startReviewed(service,selection());
         assertEquals(3,preparations.get());assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());
         assertEquals(3,api.categoryReads.get());assertEquals(6,api.poolReads.get());
-        assertEquals(3,api.statusReads.get());assertEquals(3,api.cardReads.get());
+        assertEquals(3,api.statusReads.get());assertEquals(6,api.cardReads.get(),"Three card reads plus three independent reviewed-payload comparisons");
         assertEquals(3,service.latest(shop).submitted());assertEquals(0,service.latest(shop).failed());assertEquals(0,service.latest(shop).remaining());
         assertEquals(ZnackRegistrationBatchService.State.COMPLETE,service.latest(shop).state());
         assertEquals(3,selection().stream().map(Sku::feedId).distinct().count());assertEquals(3,selection().stream().map(Sku::gtin).distinct().count());
     }
+    private com.vncode.app.features.products.ProductSnapshot snapshot(com.vncode.app.features.products.ProductKey key) {
+        var variant=new com.vncode.app.features.products.ProductVariant(key.variantId(),"ARTICLE-"+(Long.parseLong(key.cardId())-100),"","XL","",false,"");
+        var media=approvedFixtureImage?List.of(new com.vncode.app.features.products.ProductMedia(java.net.URI.create("https://basket-33.wbbasket.ru/image.jpg"),"",null,null,"image/jpeg")):List.<com.vncode.app.features.products.ProductMedia>of();
+        return new com.vncode.app.features.products.ProductSnapshot(key,"fixture","Fixture","","Brand",variant.sellerArticle(),"category",media,List.of(),List.of(variant),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));
+    }
+    private String startReviewed(ZnackRegistrationBatchService service,List<Sku> rows)throws Exception {return startReviewed(service,rows,draft);}
+    private String startReviewed(ZnackRegistrationBatchService service,List<Sku> rows,Draft sellerDraft)throws Exception {
+        var schema=session.catalog().registrationAttributes(sellerDraft.categoryId(),session.token());
+        var plans=new ArrayList<RegistrationDynamicPreflight.Plan>();var targets=new HashMap<com.vncode.app.features.products.ProductKey,RegistrationSourceConsent.Target>();var images=new HashMap<com.vncode.app.features.products.ProductKey,Set<String>>();
+        var evidence=new ArrayList<RegistrationFieldProvenance.Prepared>();
+        for(var row:rows){
+            var key=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
+            var source=snapshot(key);var sourceDraft=row.status()==Status.READY_TO_SUBMIT?sellerDraft:sellerDraft.withProductCategory(row.subjectName());
+            var reviewed=ZnackCardRegistrationWorkflow.withSchemaTypes(sourceDraft,schema,row.wbSize());
+            plans.add(new RegistrationDynamicPreflight.Plan(source,reviewed,schema,null));
+            targets.put(key,RegistrationSourceConsent.forIdentity(row.gtin(),row.goodId()));
+            if(approvedFixtureImage)images.put(key,Set.of("https://basket-33.wbbasket.ru/image.jpg"));
+            evidence.add(RegistrationFieldProvenance.capture(source,source,reviewed,schema,Map.of(),null,false));
+        }
+        RegistrationFieldProvenance.save(shop,evidence);var facts=RegistrationFieldProvenance.readBatch(shop,plans);
+        var consent=RegistrationSourceConsent.prepare(shop,UUID.randomUUID(),plans,targets,images,facts,false);
+        return service.start(shop,rows,false,consent);
+    }
     List<Sku> selection(){return repository.search(new SearchCriteria(1,"",List.of(),"ALL",20,0));}
     ZnackRegistrationBatchService service(ZnackRegistrationBatchService.DraftFactory drafts,java.util.concurrent.Executor executor){return new ZnackRegistrationBatchService(repository,workflow,drafts,executor,false);}
-    @Test void freezesEveryCardAndCountsOnlyExactCardsWithoutWaitingForModeration(){
+    @Test void freezesEveryCardAndCountsOnlyExactCardsWithoutWaitingForModeration() throws Exception {
         var workers=new ArrayDeque<Runnable>();var service=service((owner,sku,sign)->draft,workers::add);
-        String run=service.start(shop,selection(),false);
+        String run=startReviewed(service,selection());
         assertEquals(0,api.submits.get());assertEquals(3,service.latest(shop).total());assertEquals(3,new SyncRunRepository().items(run,0,20).size());
         assertEquals(0,service.latest(shop).submitted());workers.remove().run();
         var progress=service.latest(shop);assertEquals(3,progress.submitted());assertEquals(0,progress.remaining());assertEquals(0,progress.failed());assertEquals(ZnackRegistrationBatchService.State.COMPLETE,progress.state());
         assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());assertEquals(3,api.statusReads.get(),"Each feed needs one immediate readback, not a moderation wait loop");
-        assertEquals(3,api.cardReads.get());
+        assertEquals(6,api.cardReads.get(),"Each of the three cards is read for status and independently matched to the reviewed payload");
         for(var row:selection()){assertEquals(Status.PROCESSING,row.status());assertTrue(row.hasFeed());assertNotNull(row.goodId());}
         assertEquals(3,new SyncRunRepository().items(run,0,20).size());assertFalse(service.resumePending(shop));
     }
     @Test void offlineQueueResumesAllRemainingCardsWithoutASecondRegisterClick()throws Exception {
         var preparations=new AtomicInteger();var first=service((owner,sku,sign)->{if(preparations.incrementAndGet()==2)throw new java.net.UnknownHostException("offline");return draft;},Runnable::run);
-        String run=first.start(shop,selection(),false);
+        String run=startReviewed(first,selection());
         assertEquals(1,first.latest(shop).submitted());assertEquals(2,first.latest(shop).remaining());assertTrue(first.latest(shop).waitingOffline());
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_registration_batches SET retry_at=NULL WHERE id=?")){p.setString(1,run);p.executeUpdate();}
         var restarted=service((owner,sku,sign)->draft,Runnable::run);assertTrue(restarted.resumePending(shop));
         assertEquals(3,restarted.latest(shop).submitted());assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
         assertEquals(run,restarted.latest(shop).runId());assertEquals(3,new SyncRunRepository().items(run,0,20).size());
     }
-    @Test void uncertainFeedIsReportedWithoutAnotherAllocationOrPost() {
-        api.failFirstFeed=true;var service=service((owner,sku,sign)->draft,Runnable::run);service.start(shop,selection(),false);
+    @Test void uncertainFeedIsReportedWithoutAnotherAllocationOrPost() throws Exception {
+        api.failFirstFeed=true;var service=service((owner,sku,sign)->draft,Runnable::run);startReviewed(service,selection());
         assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());assertEquals(2,service.latest(shop).submitted());assertEquals(1,service.latest(shop).failed());
         assertEquals(Status.FEED_REVIEW_REQUIRED,repository.find(1,11).status());
         assertFalse(service.resumePending(shop));assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
     }
-    @Test void crashAfterAllocationUsesSavedUnsentPayloadWithoutAllocatingAgain(){
+    @Test void crashAfterAllocationUsesSavedUnsentPayloadWithoutAllocatingAgain()throws Exception{
         var sku=repository.find(1,11);repository.saveReadyToSubmitGenerated(1,sku,"04631993764370","6204",1,"Fixture",ZnackNationalCatalogService.buildPayload("04631993764370",draft,"").toString());
         var service=service((owner,row,sign)->{throw new AssertionError("Must reuse the prepared exact payload");},Runnable::run);
-        service.start(shop,List.of(repository.find(1,11)),false);
+        startReviewed(service,List.of(repository.find(1,11)));
         assertEquals(1,service.latest(shop).submitted());assertEquals(0,api.allocations.get());assertEquals(1,api.submits.get());
     }
-    @Test void crashBeforeAllocationResumesCheckingWithoutClaimingAnotherGtin(){
+    @Test void crashBeforeAllocationResumesCheckingWithoutClaimingAnotherGtin()throws Exception{
         var sku=repository.find(1,11);assertTrue(repository.claim(1,sku,RegistrationAction.REGISTER));
-        var service=service((owner,row,sign)->draft,Runnable::run);service.start(shop,List.of(repository.find(1,11)),false);
+        var service=service((owner,row,sign)->draft,Runnable::run);startReviewed(service,List.of(repository.find(1,11)));
         assertEquals(1,service.latest(shop).submitted());assertEquals(1,api.allocations.get());assertEquals(1,api.submits.get());
     }
     @Test void changingMarketplaceOwnerCannotResumeTheFrozenQueue()throws Exception {
-        var workers=new ArrayDeque<Runnable>();var service=service((owner,sku,sign)->draft,workers::add);service.start(shop,selection(),false);
+        var workers=new ArrayDeque<Runnable>();var service=service((owner,sku,sign)->draft,workers::add);startReviewed(service,selection());
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE shops SET api_key='other-owner' WHERE id=1");}
         assertThrows(SecurityException.class,()->service.latest(shop));workers.remove().run();assertEquals(0,api.allocations.get());assertEquals(0,api.submits.get());
     }
@@ -150,7 +178,7 @@ class ZnackRegistrationBatchServiceTest {
     @Test void feedReceiptsWithoutCardsRemainPendingAndLateCardsResolveWithoutAnotherPost()throws Exception {
         api.cardsVisible=false;
         var first=service((owner,row,sign)->draft,Runnable::run);
-        String run=first.start(shop,selection(),false);
+        String run=startReviewed(first,selection());
 
         assertEquals(3,api.submits.get(),"A pending import must not stop later selected products being sent");
         assertEquals(0,first.latest(shop).submitted());assertEquals(3,first.latest(shop).remaining());assertEquals(0,first.latest(shop).failed());
@@ -167,18 +195,69 @@ class ZnackRegistrationBatchServiceTest {
         assertEquals(run,restarted.latest(shop).runId());
     }
 
+    @Test void legacyAcknowledgedFeedRemainsReadableWithoutSellerSourceConsent()throws Exception {
+        api.cardsVisible=false;
+        var batch=service((owner,row,sign)->draft,Runnable::run);
+        String run=startReviewed(batch,List.of(repository.find(1,11)));
+        var original=repository.find(1,11);
+        assertTrue(original.hasFeed());assertEquals(1,api.allocations.get());assertEquals(1,api.submits.get());
+        try(var c=Database.getConnection();var p=c.prepareStatement("DELETE FROM znack_source_consents WHERE run_id=?")){
+            p.setString(1,run);assertEquals(1,p.executeUpdate());
+        }
+        api.cardsVisible=true;retryNow(run);
+        assertTrue(batch.resumePending(shop));
+        assertEquals(1,batch.latest(shop).submitted());
+        var observed=repository.find(1,11);
+        assertEquals(original.gtin(),observed.gtin());assertEquals(original.feedId(),observed.feedId());
+        assertEquals(1,api.allocations.get(),"Readback must not allocate another GTIN");
+        assertEquals(1,api.submits.get(),"Readback must not send another feed");
+    }
+
+    @Test void legacyRejectedFeedIsReportedWithoutAutomaticCorrectionOrResubmission()throws Exception {
+        api.cardsVisible=false;
+        var batch=service((owner,row,sign)->draft.withKit(true),Runnable::run);
+        String run=startReviewed(batch,List.of(repository.find(1,11)),draft.withKit(true));
+        var original=repository.find(1,11);assertTrue(original.hasFeed());
+        try(var c=Database.getConnection();var p=c.prepareStatement("DELETE FROM znack_source_consents WHERE run_id=?")){
+            p.setString(1,run);assertEquals(1,p.executeUpdate());
+        }
+        api.rejectOptional=true;api.cardsVisible=true;retryNow(run);
+        assertTrue(batch.resumePending(shop));
+        assertEquals(1,batch.latest(shop).failed());assertEquals(Status.ERROR,repository.find(1,11).status());
+        assertEquals(original.gtin(),repository.find(1,11).gtin());assertEquals(original.feedId(),repository.find(1,11).feedId());
+        assertEquals(1,api.allocations.get(),"Missing source consent must not allocate again");
+        assertEquals(1,api.submits.get(),"Missing source consent must not resend a corrected payload");
+    }
+
+    @Test void legacyReceiptWithSigningConsentCannotTriggerAutomaticSigningWithoutSourceReview()throws Exception {
+        var batch=service((owner,row,sign)->draft,Runnable::run);
+        String run=startReviewed(batch,List.of(repository.find(1,11)));
+        var created=repository.find(1,11);assertNotNull(created.goodId());
+        repository.updateProgress(1,11,Status.READY_TO_SIGN,created.feedId(),created.goodId(),null,null);
+        var key=new com.vncode.app.features.products.ProductKey(1,shop.getMarketplace(),"101","11");
+        RegistrationSigningConsent.set(shop,key,created.gtin(),true);
+        assertTrue(RegistrationSigningConsent.allowed(shop,key,created.gtin()));
+        try(var c=Database.getConnection();var p=c.prepareStatement("DELETE FROM znack_source_consents WHERE run_id=?")){
+            p.setString(1,run);assertEquals(1,p.executeUpdate());
+        }
+        assertTrue(workflow.signConsented(shop,List.of(repository.find(1,11)),null));
+        assertEquals(0,api.signingDocuments.get(),"No signing document or signature request is allowed for an unreviewed legacy source");
+        assertEquals(Status.READY_TO_SIGN,repository.find(1,11).status());
+        assertEquals(1,api.submits.get());assertEquals(1,api.allocations.get());
+    }
+
     @Test void oneUnconfirmedCardDoesNotBlockOtherSelectedCards()throws Exception {
         api.hiddenGtins.add("04631993764370");
-        var batch=service((owner,row,sign)->draft,Runnable::run);String run=batch.start(shop,selection(),false);
+        var batch=service((owner,row,sign)->draft,Runnable::run);String run=startReviewed(batch,selection());
         assertEquals(3,api.submits.get());assertEquals(2,batch.latest(shop).submitted());assertEquals(1,batch.latest(shop).remaining());
         assertEquals(0,batch.latest(shop).failed());assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,batch.latest(shop).state());
         api.hiddenGtins.clear();retryNow(run);assertTrue(batch.resumePending(shop));
         assertEquals(3,batch.latest(shop).submitted());assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
     }
 
-    @Test void explicitFailedFeedWithoutErrorDetailsIsNotCountedAsCreated(){
+    @Test void explicitFailedFeedWithoutErrorDetailsIsNotCountedAsCreated()throws Exception{
         api.failedFeed="feed-1";api.failureStatus="Failed";
-        var batch=service((owner,row,sign)->draft,Runnable::run);batch.start(shop,selection(),false);
+        var batch=service((owner,row,sign)->draft,Runnable::run);startReviewed(batch,selection());
         assertEquals(3,api.submits.get());assertEquals(2,batch.latest(shop).submitted());assertEquals(1,batch.latest(shop).failed());
         assertEquals(Status.ERROR,repository.find(1,11).status());assertEquals("feed-1",repository.find(1,11).feedId());
         assertTrue(repository.find(1,11).hasGtin());assertFalse(batch.resumePending(shop));assertEquals(3,api.submits.get());
@@ -186,7 +265,7 @@ class ZnackRegistrationBatchServiceTest {
 
     @Test void readFailureAfterAcknowledgementRetainsAllIdentitiesAndRetriesOnlyReads()throws Exception {
         api.statusReadFailure=503;
-        var batch=service((owner,row,sign)->draft,Runnable::run);String run=batch.start(shop,selection(),false);
+        var batch=service((owner,row,sign)->draft,Runnable::run);String run=startReviewed(batch,selection());
         assertEquals(3,api.submits.get());assertEquals(0,batch.latest(shop).submitted());assertEquals(3,batch.latest(shop).remaining());
         for(var row:selection()){assertTrue(row.hasFeed());assertTrue(row.hasGtin());assertNotEquals(Status.FEED_REVIEW_REQUIRED,row.status());}
         api.statusReadFailure=0;retryNow(run);assertTrue(batch.resumePending(shop));
@@ -196,7 +275,7 @@ class ZnackRegistrationBatchServiceTest {
     @Test void permanentReadFailureCannotReuseAnOldNativeGoodIdAsCreatedCardProof()throws Exception {
         api.cardsVisible=false;
         var batch=service((owner,row,sign)->draft,Runnable::run);
-        String run=batch.start(shop,List.of(repository.find(1,11)),false);
+        String run=startReviewed(batch,List.of(repository.find(1,11)));
         var pending=repository.find(1,11);
         assertEquals(0,batch.latest(shop).submitted());assertTrue(pending.hasFeed());
         repository.updateProgress(1,11,Status.PROCESSING,pending.feedId(),91L,null,null);
@@ -215,7 +294,7 @@ class ZnackRegistrationBatchServiceTest {
     @Test void aConcurrentMonitorReadCannotTurnAnOldReadyCardIntoFreshSubmissionProof()throws Exception {
         api.cardsVisible=false;
         var batch=service((owner,row,sign)->draft,Runnable::run);
-        String run=batch.start(shop,List.of(repository.find(1,11)),false);
+        String run=startReviewed(batch,List.of(repository.find(1,11)));
         var pending=repository.find(1,11);
         repository.updateProgress(1,11,Status.READY_TO_SIGN,pending.feedId(),100L,null,null);
         api.cardsVisible=true;
@@ -252,37 +331,34 @@ class ZnackRegistrationBatchServiceTest {
         }
     }
 
-    @Test void oneCompleteExistingCardSnapshotIsSharedByTheWholeSelectedBatch(){
+    @Test void oneCompleteExistingCardSnapshotIsSharedByTheWholeSelectedBatch()throws Exception{
         var loads=new AtomicInteger();
-        var guarded=new ZnackCardRegistrationWorkflow(repository,owner->{
-            var auth=new ZnackAuthService(api,null){@Override public String trueApiToken(ZnackModels.Settings settings){return "fixture-token";}};
-            return new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",new ZnackNationalCatalogService(api,auth,null,ZnackModels.Settings.empty()));
-        },Runnable::run,false,(a,b,c,d)->false,()->new RegistrationExistingCards.LookupContext((owner,session)->{loads.incrementAndGet();return List.of();},(session,gtin,id)->{throw new AssertionError();},(owner,session)->"fixture"));
+        var guarded=new ZnackCardRegistrationWorkflow(repository,owner->session,Runnable::run,false,(a,b,c,d)->false,()->new RegistrationExistingCards.LookupContext((owner,connection)->{loads.incrementAndGet();return List.of();},(connection,gtin,id)->{throw new AssertionError();},(owner,connection)->"fixture"),(owner,key)->snapshot(key));
         var service=new ZnackRegistrationBatchService(repository,guarded,(owner,row,sign)->draft,Runnable::run,false);
-        service.start(shop,selection(),false);assertEquals(3,service.latest(shop).submitted());assertEquals(1,loads.get());assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());
+        startReviewed(service,selection());assertEquals(3,service.latest(shop).submitted());assertEquals(1,loads.get());assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());
     }
-    @Test void pauseBeforeWorkerIsDurableAndBlocksAnotherBatchUntilExplicitResume(){
+    @Test void pauseBeforeWorkerIsDurableAndBlocksAnotherBatchUntilExplicitResume()throws Exception{
         var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->draft,workers::add);
-        String run=service.start(shop,selection(),false);assertTrue(service.pause(shop));workers.remove().run();
+        String run=startReviewed(service,selection());assertTrue(service.pause(shop));workers.remove().run();
         assertEquals(ZnackRegistrationBatchService.State.PAUSED,service.latest(shop).state());assertFalse(service.latest(shop).running());
         assertEquals(0,api.allocations.get());assertEquals(0,api.submits.get());assertFalse(service.resumePending(shop));
-        assertThrows(IllegalStateException.class,()->service.start(shop,selection(),false));
+        assertThrows(IllegalStateException.class,()->startReviewed(service,selection()));
         assertTrue(service.resumePaused(shop));workers.remove().run();assertEquals(run,service.latest(shop).runId());
         assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.submits.get());
     }
-    @Test void aNewApprovedBatchForTheSameVariantSupersedesAnOldCancelledControl(){
+    @Test void aNewApprovedBatchForTheSameVariantSupersedesAnOldCancelledControl()throws Exception{
         var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->draft,workers::add);
-        service.start(shop,selection(),false);assertTrue(service.cancel(shop));assertTrue(service.blocksSigning(shop,selection().getFirst()));
+        startReviewed(service,selection());assertTrue(service.cancel(shop));assertTrue(service.blocksSigning(shop,selection().getFirst()));
         workers.remove().run();assertEquals(0,api.submits.get());
-        service.start(shop,selection(),false);assertFalse(service.blocksSigning(shop,selection().getFirst()));
+        startReviewed(service,selection());assertFalse(service.blocksSigning(shop,selection().getFirst()));
         workers.remove().run();assertEquals(3,api.submits.get());assertEquals(ZnackRegistrationBatchService.State.COMPLETE,service.latest(shop).state());
     }
-    @Test void cancellationDuringFirstPostRetainsItsActualReceiptAndCancelsOnlyUnsentCards(){
+    @Test void cancellationDuringFirstPostRetainsItsActualReceiptAndCancelsOnlyUnsentCards()throws Exception{
         var service=service((owner,row,sign)->draft,Runnable::run);api.onSubmit=()->{
             assertTrue(service.cancel(shop));
-            assertThrows(IllegalStateException.class,()->service.start(shop,selection().stream().filter(row->!row.hasIdentity()).toList(),false),"An in-flight cancelled request must finish before a new queue can own this shop");
+            assertThrows(IllegalStateException.class,()->startReviewed(service,selection().stream().filter(row->!row.hasIdentity()).toList()),"An in-flight cancelled request must finish before a new queue can own this shop");
         };
-        String run=service.start(shop,selection(),false);
+        String run=startReviewed(service,selection());
         assertEquals(ZnackRegistrationBatchService.State.CANCELLED,service.latest(shop).state());
         assertEquals(1,service.latest(shop).submitted());assertEquals(0,service.latest(shop).remaining());
         assertEquals(1,api.allocations.get());assertEquals(1,api.submits.get());assertFalse(service.resumePending(shop));
@@ -292,7 +368,7 @@ class ZnackRegistrationBatchServiceTest {
     }
     @Test void repeatedReadFailuresKeepWaitingAndReconcileWithoutRepeatingAcceptedFeeds()throws Exception{
         api.statusReadFailure=503;var service=service((owner,row,sign)->draft,Runnable::run);
-        String run=service.start(shop,selection(),false);
+        String run=startReviewed(service,selection());
         for(int attempt=1;attempt<12;attempt++){retryNow(run);assertTrue(service.resumePending(shop));}
         assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,service.latest(shop).state());
         assertEquals("CATALOG_READBACK_RETRY_PENDING",service.latest(shop).detail());
@@ -302,7 +378,7 @@ class ZnackRegistrationBatchServiceTest {
         assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
     }
     @Test void remainingUnsentCardsPrecedeOldReadbacksAfterACooldown()throws Exception{
-        api.statusReadFailure=429;var service=service((owner,row,sign)->draft,Runnable::run);String run=service.start(shop,selection(),false);
+        api.statusReadFailure=429;var service=service((owner,row,sign)->draft,Runnable::run);String run=startReviewed(service,selection());
         assertEquals(1,api.submits.get());assertEquals(1,service.latest(shop).acceptedFeeds());
         var firstReadAfterResume=new AtomicInteger();api.beforeFeedRead=()->firstReadAfterResume.compareAndSet(0,api.submits.get());
         api.statusReadFailure=0;retryNow(run);assertTrue(service.resumePending(shop));
@@ -310,7 +386,7 @@ class ZnackRegistrationBatchServiceTest {
         assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
     }
     @Test void upgradeRecoversOnlyTheOldAutomaticPauseAndPreservesEveryReceipt()throws Exception{
-        api.cardsVisible=false;var service=service((owner,row,sign)->draft,Runnable::run);String run=service.start(shop,selection(),false);
+        api.cardsVisible=false;var service=service((owner,row,sign)->draft,Runnable::run);String run=startReviewed(service,selection());
         var before=selection().stream().map(row->row.gtin()+"|"+row.feedId()).toList();var store=new ZnackRegistrationBatchStore();
         assertTrue(store.control(shop,run,"PAUSED","ZNACK_BATCH_RETRY_LIMIT_REACHED"));
         var reopened=service((owner,row,sign)->draft,Runnable::run);int reads=api.statusReads.get();assertTrue(reopened.resumePending(shop));
@@ -319,64 +395,64 @@ class ZnackRegistrationBatchServiceTest {
         api.cardsVisible=true;retryNow(run);assertTrue(reopened.resumePending(shop));assertEquals(3,reopened.latest(shop).submitted());
         assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());
     }
-    @Test void manualPauseAndCancellationAreNeverRecoveredAsAutomaticRetryPauses(){
-        var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->draft,workers::add);String run=service.start(shop,selection(),false);
+    @Test void manualPauseAndCancellationAreNeverRecoveredAsAutomaticRetryPauses()throws Exception{
+        var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->draft,workers::add);String run=startReviewed(service,selection());
         assertTrue(service.pause(shop));assertFalse(new ZnackRegistrationBatchStore().recoverRetryPause(shop,run));assertFalse(service.resumePending(shop));
         assertTrue(service.cancel(shop));assertFalse(new ZnackRegistrationBatchStore().recoverRetryPause(shop,run));assertFalse(service.resumePending(shop));
         workers.remove().run();assertEquals(0,api.submits.get());
     }
     @Test void aHealthySlowImportKeepsPollingWithoutAnotherRegisterClick()throws Exception{
         api.cardsVisible=false;var service=service((owner,row,sign)->draft,Runnable::run);
-        String run=service.start(shop,selection(),false);
+        String run=startReviewed(service,selection());
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_registration_batches SET waiting_since='2020-01-01T00:00:00Z',retry_at=NULL WHERE id=?")){p.setString(1,run);p.executeUpdate();}
         for(int n=0;n<8;n++){retryNow(run);assertTrue(service.resumePending(shop));}
         assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,service.latest(shop).state());
         assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());assertTrue(selection().stream().allMatch(Sku::hasFeed));
         api.cardsVisible=true;retryNow(run);assertTrue(service.resumePending(shop));assertEquals(3,service.latest(shop).submitted());assertEquals(3,api.submits.get());
     }
-    @Test void changedPreparedValuesRequireNewReviewBeforeAnyAllocation(){
+    @Test void changedPreparedValuesRequireNewReviewBeforeAnyAllocation()throws Exception{
         var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->new Draft("6204",1,"Changed","Brand",Map.of(1L,"Fixture")),workers::add);
-        String run=service.start(shop,List.of(selection().getFirst()),false);var store=new ZnackRegistrationBatchStore();
+        String run=startReviewed(service,List.of(selection().getFirst()));var store=new ZnackRegistrationBatchStore();
         store.item(shop,store.items(shop,run).getFirst(),"READY","ZNACK_CARD_READY",draft,"");workers.remove().run();
         assertEquals(ZnackRegistrationBatchService.State.NEEDS_ACTION,service.latest(shop).state());assertEquals(1,service.latest(shop).failed());
         assertEquals(0,api.allocations.get());assertEquals(0,api.submits.get());
         assertTrue(store.items(shop,run).getFirst().detail().contains("ZNACK_REVIEWED_VALUES_CHANGED"));
     }
 
-    @Test void acceptedReceiptCountAdvancesBeforeTheFirstCardReadbackReturns(){
+    @Test void acceptedReceiptCountAdvancesBeforeTheFirstCardReadbackReturns()throws Exception{
         var batch=service((owner,row,sign)->draft,Runnable::run);var reads=new java.util.concurrent.atomic.AtomicInteger();
         api.beforeFeedRead=()->{assertEquals(api.submits.get(),batch.latest(shop).acceptedFeeds());reads.incrementAndGet();};
-        batch.start(shop,selection(),false);assertEquals(3,reads.get());assertEquals(3,batch.latest(shop).submitted());
+        startReviewed(batch,selection());assertEquals(3,reads.get());assertEquals(3,batch.latest(shop).submitted());
     }
-    @Test void selectedBatchCorrectsRejectedKitAndImageAndSubmitsWithoutAnotherClick(){
-        api.rejectOptional=true;
+    @Test void selectedBatchPreservesMixedKitAndImageRejectionsForReview()throws Exception{
+        api.rejectOptional=true;approvedFixtureImage=true;
         var codes=List.of("04631993764370","04631993764363","04631993764387");
         int n=0;for(var row:selection()){
             var invalid=new Draft("6112110000","6112110000",1,"Fixture","Brand",draft.attributes(),Map.of(),false,true);
             repository.saveReadyToSubmitGenerated(1,row,codes.get(n++),invalid.tnved(),1,"Fixture",ZnackNationalCatalogService.buildPayload(codes.get(n-1),invalid,"https://basket-33.wbbasket.ru/image.jpg").toString());
         }
         var service=service((owner,row,sign)->{throw new AssertionError("Keep the assigned GTIN and saved product facts");},Runnable::run);
-        String run=service.start(shop,selection(),false);
-        assertEquals(3,service.latest(shop).submitted(),()->selection().toString());assertEquals(0,service.latest(shop).failed());assertEquals(0,service.latest(shop).remaining());
-        assertEquals(6,api.submits.get());assertEquals(0,api.allocations.get());
+        String run=startReviewed(service,selection(),new Draft("6112110000","6112110000",1,"Fixture","Brand",draft.attributes(),Map.of(),false,true));
+        assertEquals(0,service.latest(shop).submitted(),()->selection().toString());assertEquals(3,service.latest(shop).failed());assertEquals(0,service.latest(shop).remaining());
+        assertEquals(3,api.submits.get());assertEquals(0,api.allocations.get());
         for(var row:selection()){
-            var sent=api.payloads.get(row.feedId());assertFalse(sent.has("is_kit"));assertFalse(sent.has("good_images"));assertEquals("6112110000",sent.get("tnved").getAsString());
+            var sent=api.payloads.get(row.feedId());assertTrue(sent.has("is_kit"));assertTrue(sent.has("good_images"));assertEquals("6112110000",sent.get("tnved").getAsString());assertEquals(Status.ERROR,row.status());
         }
-        assertEquals(3,new SyncRunRepository().items(run,0,20).size());assertFalse(service.resumePending(shop));assertEquals(6,api.submits.get());
+        assertEquals(3,new SyncRunRepository().items(run,0,20).size());assertFalse(service.resumePending(shop));assertEquals(3,api.submits.get());
     }
-    @Test void delayedCatalogRejectionIsCorrectedByTheSameDurableBatch(){
+    @Test void delayedCatalogRejectionWithoutCardIdentityRemainsForReview()throws Exception{
         api.cardsVisible=false;
         var service=service((owner,row,sign)->draft.withKit(true),Runnable::run);
-        String run=service.start(shop,selection(),false);assertEquals(3,api.submits.get());
+        String run=startReviewed(service,selection(),draft.withKit(true));assertEquals(3,api.submits.get());
         api.rejectOptional=true;api.cardsVisible=true;
         try{retryNow(run);}catch(Exception error){throw new RuntimeException(error);}
-        assertTrue(service.resumePending(shop));assertEquals(3,service.latest(shop).submitted(),()->selection().toString());assertEquals(0,service.latest(shop).failed());
-        assertEquals(6,api.submits.get());assertEquals(3,api.allocations.get());
+        assertTrue(service.resumePending(shop));assertEquals(0,service.latest(shop).submitted(),()->selection().toString());assertEquals(3,service.latest(shop).failed());
+        assertEquals(3,api.submits.get());assertEquals(3,api.allocations.get());assertTrue(selection().stream().allMatch(row->row.goodId()==null&&row.status()==Status.ERROR));
     }
 
-    @Test void previousBuildTerminalRejectionsResumeWithTheSameGtinsWithoutAnotherRegisterClick()throws Exception {
+    @Test void previousBuildRejectionsWithoutProofDoNotAutomaticallyResend()throws Exception {
         api.cardsVisible=false;var service=service((owner,row,sign)->draft.withKit(true),Runnable::run);
-        String run=service.start(shop,selection(),false);
+        String run=startReviewed(service,selection(),draft.withKit(true));
         // Reproduce the persisted terminal result left by the previous build's read-only path.
         for(var row:selection())repository.updateProgress(1,row.chrtId(),Status.ERROR,row.feedId(),null,"CATALOG_REJECTED: Исключите параметр is_kit. is_kit не допускается",null);
         try(var c=Database.getConnection();var s=c.createStatement()){
@@ -384,8 +460,8 @@ class ZnackRegistrationBatchServiceTest {
             s.execute("UPDATE znack_registration_batch_items SET state='NEEDS_ACTION'");
         }
         api.rejectOptional=true;api.cardsVisible=true;
-        assertTrue(service.resumePending(shop));assertEquals(3,service.latest(shop).submitted(),()->selection().toString());
-        assertEquals(3,api.allocations.get());assertEquals(6,api.submits.get());assertEquals(run,service.latest(shop).runId());assertFalse(service.resumePending(shop));
+        assertFalse(service.resumePending(shop));assertEquals(0,service.latest(shop).submitted(),()->selection().toString());
+        assertEquals(3,api.allocations.get());assertEquals(3,api.submits.get());assertEquals(run,service.latest(shop).runId());
     }
 
     private void retryNow(String run)throws Exception {
@@ -394,7 +470,7 @@ class ZnackRegistrationBatchServiceTest {
 
     class FixtureApi extends ZnackApiClient {
         Runnable beforeFeedRead=()->{};
-        AtomicInteger allocations=new AtomicInteger(),submits=new AtomicInteger(),statusReads=new AtomicInteger(),cardReads=new AtomicInteger(),categoryReads=new AtomicInteger(),poolReads=new AtomicInteger();boolean failFirstFeed,cardsVisible=true;
+        AtomicInteger allocations=new AtomicInteger(),submits=new AtomicInteger(),statusReads=new AtomicInteger(),cardReads=new AtomicInteger(),categoryReads=new AtomicInteger(),poolReads=new AtomicInteger(),signingDocuments=new AtomicInteger();boolean failFirstFeed,cardsVisible=true;
         boolean rejectOptional;final Map<String,JsonObject> payloads=new HashMap<>();
         boolean syntheticGtins;int readRateEvery,allocationRateLimits;final Set<Integer> feedRateLimitedAttempts=new HashSet<>();final Map<String,Long> syntheticGoodIds=new HashMap<>();
         String failedFeed="",failureStatus="Rejected";int statusReadFailure,poolReadFailure;Runnable onSubmit;
@@ -410,6 +486,7 @@ class ZnackRegistrationBatchServiceTest {
         @Override public JsonElement nationalCatalogCategories(String base,String token,String tnved){categoryReads.incrementAndGet();return json("{\"result\":[{\"cat_id\":1,\"cat_name\":\"Clothes\",\"category_active\":true}]}");}
         @Override public JsonElement nationalCatalogAttributes(String base,String token,long id){return json("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"}]}");}
         @Override public JsonElement nationalCatalogAllAttributes(String base,String token,long id){return nationalCatalogAttributes(base,token,id);}
+        @Override public JsonElement nationalCatalogSigningDocument(String base,String token,JsonObject body){signingDocuments.incrementAndGet();throw new AssertionError("Unexpected signing request");}
         @Override public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement payload)throws IOException {
             try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM znack_registration_batch_items")){assertTrue(r.next());assertTrue(r.getInt(1)>0,"Selection must be durable before any POST");}catch(java.sql.SQLException e){throw new IOException(e);}
             int count=submits.incrementAndGet();if(onSubmit!=null&&count==1)onSubmit.run();if(failFirstFeed&&count==1)throw new IOException("response lost");if(feedRateLimitedAttempts.contains(count))throw new ZnackApiException("feed rejected by rate limit",429,"{}");payloads.put("feed-"+count,payload.getAsJsonObject().deepCopy());feedGtins.put("feed-"+count,payload.getAsJsonObject().get("gtin").getAsString());return json("{\"result\":{\"feed_id\":\"feed-"+count+"\"}}");

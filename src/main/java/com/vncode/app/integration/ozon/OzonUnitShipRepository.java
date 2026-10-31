@@ -185,13 +185,12 @@ final class OzonUnitShipRepository {
 
     private static Integer encodeSources(KizSourceSelection sources){
         if(sources==null)return null;
-        if(!sources.anySelected())throw new IllegalArgumentException("KIZ_SOURCE_REQUIRED");
         return (sources.sellerImported()?1:0)|(sources.purchased()?2:0);
     }
     private static KizSourceSelection decodeSources(Object raw){
         if(raw==null)return null;
         int mask=((Number)raw).intValue();
-        if(mask<1||mask>3)throw new IllegalStateException("OZON_SPLIT_SOURCE_INVALID");
+        if(mask<0||mask>3)throw new IllegalStateException("OZON_SPLIT_SOURCE_INVALID");
         return new KizSourceSelection((mask&1)!=0,(mask&2)!=0);
     }
 

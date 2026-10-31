@@ -77,6 +77,10 @@ public final class OzonPrintReadinessService {
             boolean mandatoryMark = mandatory.contains(item.productId());
             if (mandatoryMark) coveredMandatory.add(item.productId());
             if (!mandatoryMark && !item.sku().isBlank() && exemptSkus.contains(item.sku())) continue;
+            if(sources!=null&&!sources.anySelected()){
+                missingSkus.add("KIZ_SOURCE_REQUIRED: "+(item.sku().isBlank()?item.productId():item.sku()));
+                continue;
+            }
             if(sources!=null&&!sources.purchased()){
                 if(categoryCoverage.getOrDefault(OzonCategoryStock.key(safePosting,item.itemIndex()),0)<item.quantity())missingSkus.add("KIZ_CATEGORY_STOCK: "+item.sku());
                 continue;
@@ -120,7 +124,6 @@ public final class OzonPrintReadinessService {
     }
     public OzonPrintReadiness inspect(Shop shop,String number,KizSourceSelection sources){return inspectAll(shop,List.of(number),sources).postings().getFirst();}
     public OzonBatchPrintReadiness inspectAll(Shop shop,List<String> postingNumbers,KizSourceSelection sources){
-        if(sources!=null&&!sources.anySelected())throw new IllegalStateException("KIZ_SOURCE_REQUIRED");
         MarketplaceGuard.requireOzon(shop);
         List<String> safePostings = postingNumbers == null ? List.of() : postingNumbers.stream()
                 .map(value -> OzonApiClient.requireExternalId(value, "posting number"))

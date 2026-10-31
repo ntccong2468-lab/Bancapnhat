@@ -45,7 +45,7 @@ class SyncCoordinatorTest {
             coordinator.tick(); while (!fast.isEmpty()) fast.remove().run();
             nanos.addAndGet(Duration.ofSeconds(1).toNanos());
         }
-        assertEquals(3, queues.get(), "Visible FBS queue must refresh every ten seconds despite occupied slow workers");
+        assertEquals(9, queues.get(), "Visible FBS queue must refresh every three seconds despite occupied slow workers");
         assertEquals(1, background.size()); assertEquals(2, registry.size());
     }
     @Test void overdueOtherShopsCannotDelayTheVisibleShopsDueFbsQueue()throws Exception{
@@ -125,11 +125,60 @@ class SyncCoordinatorTest {
         }
         assertEquals(10,queues.size());assertEquals(10,gs1.size(),"Repeated visible-shop polls cannot starve GS1 of other shops");
     }
+    @Test void backgroundShopRefreshesPromptlyWithoutStarvingTheVisibleShop()throws Exception{
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO shops(id,name,api_key,marketplace) VALUES(3,'Other','fixture-token','WILDBERRIES')");
+        }
+        var other=new Shop(3,"Other",Marketplace.WILDBERRIES,null,"fixture-token");
+        var queueCalls=new HashMap<Integer,Integer>();
+        create((s,stream,cursor)->{if(stream==SyncCoordinator.Stream.FBS_QUEUE)queueCalls.merge(s.getId(),1,Integer::sum);return SyncCoordinator.Page.complete(0);});
+        coordinator.updateShops(List.of(shop,other));coordinator.selectShop(shop.getId());
+        for(int second=0;second<=13;second++){
+            coordinator.tick();while(!fast.isEmpty())fast.remove().run();while(!background.isEmpty())background.remove().run();
+            nanos.addAndGet(Duration.ofSeconds(1).toNanos());
+        }
+        assertTrue(queueCalls.getOrDefault(shop.getId(),0)>=4,"Visible shop continues frequent polling");
+        assertTrue(queueCalls.getOrDefault(other.getId(),0)>=2,"A second shop does not wait 45 seconds for refresh");
+    }
     @Test void manualRefreshCannotBypassRateLimitCooldown(){
         create((s,stream,cursor)->{throw new IllegalStateException("OZON_RATE_LIMIT");});
         var store=new SyncStreamStore();var now=Instant.now();var state=store.ensure(shop,"FBS_QUEUE",now);
         store.finish(shop,"FBS_QUEUE",state,"cursor",false,now,now.plusSeconds(120),new SyncFailure("OZON_RATE_LIMIT",Duration.ofSeconds(120),false));
         coordinator.request(shop.getId(),SyncCoordinator.Stream.FBS_QUEUE);coordinator.tick();
         assertTrue(coordinator.health(shop.getId()).stream().noneMatch(h->h.stream()==SyncCoordinator.Stream.FBS_QUEUE&&h.running()));
+    }
+    @Test void queueFreshnessRequiresACompleteSuccessfulReadAndNoPendingRefresh(){
+        create((s,stream,cursor)->SyncCoordinator.Page.complete(1));coordinator.selectShop(shop.getId());
+        assertFalse(coordinator.isQueueCurrent(shop,Duration.ofSeconds(30)));
+        coordinator.tick();assertFalse(coordinator.isQueueCurrent(shop,Duration.ofSeconds(30)),"In-flight read is not complete");
+        fast.remove().run();assertTrue(coordinator.isQueueCurrent(shop,Duration.ofSeconds(30)));
+        coordinator.request(shop.getId(),SyncCoordinator.Stream.FBS_QUEUE);
+        assertFalse(coordinator.isQueueCurrent(shop,Duration.ofSeconds(30)),"A requested refresh must finish first");
+    }
+    @Test void queueFreshnessRejectsPartialCheckpointOrFailure(){
+        create((s,stream,cursor)->new SyncCoordinator.Page("{\"pages\":2,\"after\":\"private-cursor\"}",false,1));coordinator.selectShop(shop.getId());
+        coordinator.tick();fast.remove().run();
+        assertFalse(coordinator.isQueueCurrent(shop,Duration.ofSeconds(30)));
+        var progress=coordinator.queueProgress(shop);assertEquals(2,progress.pages());assertFalse(progress.toString().contains("private-cursor"));
+    }
+    @Test void incompleteOzonDetailsPermitMembershipOnlyWithFreshCompleteOwnerBoundScan() throws Exception {
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);
+        create((s,stream,cursor)->{
+            if(stream==SyncCoordinator.Stream.FBS_QUEUE){
+                try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_fbs_queue_scans(shop_id,owner,completed_at,incomplete) VALUES(?,?,?,1)")){
+                    p.setInt(1,s.getId());p.setString(2,com.vncode.app.integration.listing.ListingIdentity.fingerprint(s));p.setString(3,Instant.now().toString());p.executeUpdate();
+                }
+                return new SyncCoordinator.Page("",true,2,new SyncFailure("FBS_INCOMPLETE_POSTING",Duration.ofSeconds(3),false));
+            }
+            return SyncCoordinator.Page.complete(0);
+        });
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("CREATE TABLE IF NOT EXISTS ozon_fbs_queue_scans(shop_id INTEGER PRIMARY KEY,owner TEXT NOT NULL,completed_at TEXT NOT NULL,incomplete INTEGER NOT NULL)");
+        }
+        coordinator.updateShops(List.of(ozon));coordinator.selectShop(ozon.getId());coordinator.tick();fast.remove().run();
+        assertFalse(coordinator.isQueueCurrent(ozon,Duration.ofSeconds(30)));
+        assertTrue(coordinator.isQueueMembershipCurrent(ozon,Duration.ofSeconds(30)));
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_fbs_queue_scans SET completed_at='2000-01-01T00:00:00Z'");}
+        assertFalse(coordinator.isQueueMembershipCurrent(ozon,Duration.ofSeconds(30)),"Old scan cannot prove the latest attempt");
     }
 }

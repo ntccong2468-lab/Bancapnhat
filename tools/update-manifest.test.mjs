@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { generateKeyPairSync, verify } from "node:crypto";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { createHash, generateKeyPairSync, verify } from "node:crypto";
+import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -39,6 +39,43 @@ test("builds a canonical envelope whose signed MSI fields verify independently",
       "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.2.3/VN-code.msi",
     );
     assert.equal(verify(null, payloadBytes, keys.publicKey, Buffer.from(envelope.signature, "base64")), true);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("signs the exact versioned baseline MSI and rejects another version or symlink", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "vncode-baseline-manifest-"));
+  try {
+    const fileName = "VN-code-1.6.0-Windows-x64.msi";
+    const installer = path.join(directory, fileName);
+    const bytes = Buffer.alloc(1024 * 1024, 0x31);
+    await writeFile(installer, bytes);
+    const keys = generateKeyPairSync("ed25519");
+    const common = {
+      installer, version: "1.6.0", publishedAt: "2026-10-31T00:00:00Z",
+      mandatory: false, notes: [],
+      privateKey: keys.privateKey.export({ type: "pkcs8", format: "der" }).toString("base64"),
+      publicKey: keys.publicKey.export({ type: "spki", format: "der" }).toString("base64"),
+    };
+    const envelope = JSON.parse(await buildSignedUpdateManifest(common));
+    const payloadBytes = Buffer.from(envelope.payload, "base64");
+    const payload = JSON.parse(payloadBytes.toString("utf8"));
+    assert.equal(verify(null, payloadBytes, keys.publicKey, Buffer.from(envelope.signature, "base64")), true);
+    assert.equal(payload.version, "1.6.0");
+    assert.equal(payload.assets[0].fileName, fileName);
+    assert.equal(payload.assets[0].size, bytes.length);
+    assert.equal(payload.assets[0].sha256, createHash("sha256").update(bytes).digest("hex"));
+    assert.equal(payload.assets[0].url,
+      `https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.0/${fileName}`);
+    await assert.rejects(() => buildSignedUpdateManifest({ ...common, version: "1.6.1" }));
+    if (process.platform !== "win32") {
+      const aliasDirectory = path.join(directory, "alias");
+      await mkdir(aliasDirectory);
+      const alias = path.join(aliasDirectory, fileName);
+      await symlink(installer, alias);
+      await assert.rejects(() => buildSignedUpdateManifest({ ...common, installer: alias }));
+    }
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

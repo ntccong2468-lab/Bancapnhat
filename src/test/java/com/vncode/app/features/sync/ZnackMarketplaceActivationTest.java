@@ -94,12 +94,6 @@ class ZnackMarketplaceActivationTest {
             previews.add(new GtinSyncModels.Preview(before,GtinSyncModels.Operation.ADD,"",gtin,new GtinSyncModels.Capability(true,false,"")));
         }
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);gtins.saveCatalog(shop.getId(),shop.getMarketplace(),observations);
-        // Both POSTs were acknowledged before shutdown; only readback may run after restart.
-        UUID queue=gtins.createJob(previews);for(var item:gtins.jobItems(queue)){
-            assertTrue(gtins.transition(item.id(),GtinSyncModels.Status.QUEUED,GtinSyncModels.Status.VALIDATING,null));
-            assertTrue(gtins.transition(item.id(),GtinSyncModels.Status.VALIDATING,GtinSyncModels.Status.SENDING,null));
-            assertTrue(gtins.transition(item.id(),GtinSyncModels.Status.SENDING,GtinSyncModels.Status.AWAITING_VERIFICATION,""));
-        }
         GtinMarketplaceAdapter adapter=new GtinMarketplaceAdapter(){
             public GtinSyncModels.Capability capability(GtinSyncModels.ProductKey key){return new GtinSyncModels.Capability(true,false,"");}
             public GtinSyncModels.ProductSnapshot read(GtinSyncModels.ProductKey key){var p=products.get(new ProductKey(key.shopId(),key.marketplace(),key.productId(),key.variantId()));return new GtinSyncModels.ProductSnapshot(key,p.vendorArticle(),"Blue",p.variants().getFirst().size(),actual.get(key),"after-"+key.productId(),Instant.now());}
@@ -115,9 +109,20 @@ class ZnackMarketplaceActivationTest {
         });
         var rows=new ArrayList<Row>();for(int i=0;i<count;i++){
             var preview=previews.get(i);var snapshot=products.get(new ProductKey(1,Marketplace.WILDBERRIES,preview.before().key().productId(),preview.before().key().variantId()));String identity=GtinProductIdentity.fingerprint(snapshot);
-            rows.add(new Row(UUID.randomUUID().toString(),preview.before().key(),observations.get(i),preview.before().barcodes(),List.of(new Diff("identity",List.of(identity),List.of(identity),"",false)),null,Map.of(),"",queue.toString(),State.GTIN_PENDING,""));
+            rows.add(new Row(UUID.randomUUID().toString(),preview.before().key(),observations.get(i),preview.before().barcodes(),List.of(new Diff("identity",List.of(identity),List.of(identity),"",false)),null,Map.of(),"","",State.READY,""));
         }
-        plan=UUID.randomUUID().toString();var child=new Job(plan,1,Marketplace.WILDBERRIES.name(),ListingIdentity.fingerprint(shop),Set.of(Field.GTIN),Instant.now(),true,false,rows);plans.insert(child);plans.confirm(shop,plan);
+        // Confirm the actual READY preview before creating its durable child checkpoint.
+        // Inserting GTIN_PENDING before consent cannot occur in the production workflow.
+        plan=UUID.randomUUID().toString();var previewJob=new Job(plan,1,Marketplace.WILDBERRIES.name(),ListingIdentity.fingerprint(shop),Set.of(Field.GTIN),Instant.now(),false,false,rows);
+        plans.insert(previewJob);plans.confirm(shop,plan);assertTrue(plans.read(shop,plan).confirmed());
+        // Both POSTs were acknowledged after confirmation and before shutdown; only readback may run after restart.
+        UUID queue=gtins.createJob(previews);for(var item:gtins.jobItems(queue)){
+            assertTrue(gtins.transition(item.id(),GtinSyncModels.Status.QUEUED,GtinSyncModels.Status.VALIDATING,null));
+            assertTrue(gtins.transition(item.id(),GtinSyncModels.Status.VALIDATING,GtinSyncModels.Status.SENDING,null));
+            assertTrue(gtins.transition(item.id(),GtinSyncModels.Status.SENDING,GtinSyncModels.Status.AWAITING_VERIFICATION,""));
+        }
+        plans.updateBatch(shop,plan,rows.stream().map(row->row.next(State.GTIN_PENDING,queue.toString(),"")).toList());
+        var child=plans.read(shop,plan);assertTrue(child.rows().stream().allMatch(row->row.state()==State.GTIN_PENDING&&row.gtinJob().equals(queue.toString())));
         run=reports.begin(shop,"znack_marketplace","MATCHING");for(int i=0;i<count;i++){
             var preview=previews.get(i);reportItems.add(new SyncRunRepository.Item(UUID.randomUUID().toString(),run,preview.before().key().productId(),preview.before().key().variantId(),"",preview.before().article(),"Blue",preview.before().size(),preview.newGtin(),"AWAITING_CONFIRMATION","MATCHING","","","{}"));
         }

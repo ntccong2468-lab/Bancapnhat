@@ -4,6 +4,29 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationDiagnosticsTest {
+    @Test void legacyRepairWarningKeepsTheOriginalReasonAndRedactsSecrets(){
+        for(var language:com.vncode.app.shared.AppLanguage.values()){
+            var bundle=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",language.toLocale());
+            assertFalse(bundle.getString("znack.registration.reason.CATALOG_LEGACY_REPAIR_REVIEW_REQUIRED").isBlank());
+            assertFalse(bundle.getString("znack.registration.reason.CATALOG_CORRECTING_OPTIONAL_FIELDS").isBlank());
+        }
+        var text=RegistrationDiagnostics.reason("CATALOG_LEGACY_REPAIR_REVIEW_REQUIRED: original Catalog rejection; token=fixture-secret");
+        assertTrue(text.contains("original Catalog rejection"));assertFalse(text.contains("fixture-secret"));assertFalse(text.contains("CATALOG_LEGACY_REPAIR_REVIEW_REQUIRED"));
+    }
+    @Test void reviewAndFeedReadbackWarningsAreTranslatedWithoutClaimingSubmission(){
+        var i18n=com.vncode.app.shared.I18nService.getInstance();
+        for(String code:new String[]{"CATALOG_EXISTING_IMAGES_NOT_VERIFIED","CATALOG_FEED_READBACK_REQUIRED","ZNACK_SOURCE_REVIEW_REQUIRED","ZNACK_SOURCE_REVIEW_READ_FAILED"}){
+            for(var language:com.vncode.app.shared.AppLanguage.values()){
+                var bundle=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",language.toLocale());
+                assertFalse(bundle.getString("znack.registration.reason."+code).isBlank());
+            }
+            assertEquals(i18n.tr("znack.registration.reason."+code),RegistrationDiagnostics.reason(code));
+        }
+        var vietnamese=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",com.vncode.app.shared.AppLanguage.VI.toLocale());
+        assertTrue(vietnamese.getString("znack.registration.reason.CATALOG_FEED_READBACK_REQUIRED").contains("Chưa rõ"));
+        assertTrue(vietnamese.getString("znack.registration.reason.CATALOG_EXISTING_IMAGES_NOT_VERIFIED").contains("giữ nguyên"));
+        assertTrue(vietnamese.getString("znack.registration.reason.ZNACK_SOURCE_REVIEW_READ_FAILED").contains("chưa gửi"));
+    }
     @Test void aFeedReceiptDoesNotShowModerationUntilTheCardIsObserved(){
         var submitted=com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.FEED_SUBMITTED;
         var processing=com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.PROCESSING;

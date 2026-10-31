@@ -49,14 +49,15 @@ class RegistrationVerifiedDefaultsTest {
         var selected=RegistrationVerifiedDefaults.apply(draft(Map.of(999L,"A")),List.of(parent),Map.of(13836L,REGULATION),null);
         assertEquals(REGULATION,selected.attributes().get(13836L));
     }
-    @Test void productionCountryDefaultsToAdvertisedRussiaIndependentlyOfVerifiedPermitFields(){
+    @Test void missingProductionCountryIsNeverGuessedAndExistingReviewedValueIsPreserved(){
         var country=new Attribute(2630,"Страна производства","text",true,false,false,false,List.of("RU","CN"));
         var schema=List.of(country);var before=draft(Map.of());
-        String resolved=RegistrationVerifiedDefaults.productionCountry(null,schema,(source,model)->{assertEquals("Россия",source);return "RU";});
+        String resolved=RegistrationVerifiedDefaults.productionCountry(null,schema,(source,model)->{throw new AssertionError("No source country must not invoke dictionary lookup");});
         var after=RegistrationVerifiedDefaults.applyProductionCountry(before,schema,resolved);
-        assertEquals("RU",after.attributes().get(2630L));assertEquals("",after.attributeTypes().get(2630L));assertFalse(after.attributes().containsKey(13836L));
+        assertFalse(after.attributes().containsKey(2630L));assertFalse(after.attributes().containsKey(13836L));
+        var reviewed=draft(Map.of(2630L,"CN"));assertSame(reviewed,RegistrationVerifiedDefaults.applyProductionCountry(reviewed,schema,resolved));
         assertSame(before,RegistrationVerifiedDefaults.applyProductionCountry(before,List.of(),"RU"));
-        assertEquals("",RegistrationVerifiedDefaults.productionCountry(null,schema,(source,model)->""),"The owner default must not bypass an unavailable dictionary");
+        assertEquals("",RegistrationVerifiedDefaults.productionCountry(null,schema,(source,model)->""));
         assertEquals("",RegistrationVerifiedDefaults.productionCountry(null,List.of(new Attribute(2630,"Country","text",true,false,false,false,List.of("CN"))),(source,model)->""));
     }
     @Test void explicitCountryIsCanonicalizedAndUnknownOrConflictingCountriesNeverBecomeRussia(){
@@ -72,7 +73,7 @@ class RegistrationVerifiedDefaultsTest {
         var country=new Attribute(2630,"Страна производства","text",true,false,false,false,List.of("RU","CN"));
         var source=new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"101","201"),"read","Name","","Brand","Article","1",List.of(),
                 List.of(new ProductAttribute("size","Российский размер",List.of("52"),"")),List.of(),null,List.of(),Instant.now());
-        assertEquals("RU",RegistrationVerifiedDefaults.productionCountry(source,List.of(country),(value,model)->{assertEquals("Россия",value,"Only the explicit owner default may be resolved, never the size");return "RU";}));
+        assertEquals("",RegistrationVerifiedDefaults.productionCountry(source,List.of(country),(value,model)->{throw new AssertionError("A size is not a country");}));
     }
     @Test void conflictingExplicitCountriesRemoveTheUnreviewedFirstMapperMatchButAllowSellerOverride(){
         var country=new Attribute(2630,"Страна производства","text",true,false,false,false,List.of("RU","CN"));var schema=List.of(country);
@@ -89,7 +90,7 @@ class RegistrationVerifiedDefaultsTest {
         java.util.function.BiFunction<String,List<Attribute>,String> resolve=(value,model)->Map.of("Россия","RU","Китай","CN","Германия","DE","Япония","JP").getOrDefault(value,"");
         var otherRoles=List.of(new ProductAttribute("origin","Страна происхождения",List.of("Китай"),""),new ProductAttribute("legal","Страна регистрации изготовителя",List.of("Германия"),""),new ProductAttribute("country","Country",List.of("Япония"),""),new ProductAttribute("2630","Unrelated marketplace attribute",List.of("Япония"),""));
         var source=new ProductSnapshot(new ProductKey(1,Marketplace.WILDBERRIES,"101","201"),"read","Name","","Brand","Article","1",List.of(),otherRoles,List.of(),null,List.of(),Instant.now());
-        assertEquals("RU",RegistrationVerifiedDefaults.productionCountry(source,schema,resolve),"Other country roles do not replace the explicitly configured manufacturing-country default");
+        assertEquals("",RegistrationVerifiedDefaults.productionCountry(source,schema,resolve),"Other country roles are not evidence of manufacturing country");
         var explicit=new ArrayList<>(otherRoles);explicit.add(new ProductAttribute("manufacture","Страна производства",List.of("Китай"),""));
         var actual=new ProductSnapshot(source.key(),"read","Name","","Brand","Article","1",List.of(),explicit,List.of(),null,List.of(),Instant.now());
         assertEquals("CN",RegistrationVerifiedDefaults.productionCountry(actual,schema,resolve));

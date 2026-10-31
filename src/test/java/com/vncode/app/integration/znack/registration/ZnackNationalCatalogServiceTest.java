@@ -19,6 +19,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackNationalCatalogServiceTest {
+    @Test void reusableGtinPassesTheConsentBoundaryWithoutAnAllocationPost()throws Exception{
+        var called=new AtomicInteger();var api=new ZnackApiClient(){
+            @Override public JsonElement generatedGtins(String b,String t){return JsonParser.parseString("{\"result\":{\"drafts\":[{\"gtin\":\"04631993764363\"}]}}");}
+            @Override public JsonElement generateGtins(String b,String t,int q){throw new AssertionError("No allocation POST for a reusable draft");}
+        };
+        assertEquals("04631993764363",service(api).generateOne("token",Set.of(),called::incrementAndGet));assertEquals(1,called.get());
+    }
+    @Test void readback429AfterSuccessfulAllocationIsNotARejectedPost(){
+        var reads=new AtomicInteger();var api=new ZnackApiClient(){
+            @Override public JsonElement generatedGtins(String b,String t)throws IOException{if(reads.getAndIncrement()==0)return JsonParser.parseString("{\"result\":{\"drafts\":[]}}");throw new ZnackApiClient.ZnackApiException("rate limit",429,"");}
+            @Override public JsonElement generateGtins(String b,String t,int q){return JsonParser.parseString("{\"result\":{}}");}
+        };
+        IOException error=assertThrows(IOException.class,()->service(api).generateFreshOne("token",Set.of(),()->{}));
+        assertEquals("GTIN_ALLOCATION_READBACK_REQUIRED",error.getMessage());assertInstanceOf(ZnackApiClient.ZnackApiException.class,error.getCause());assertFalse(CatalogFeedback.rateLimitRejectedRequest(error));
+    }
     @Test void existingLegacyFourDigitDraftReadsOnlyCategoriesAndNeverRequestsGs1Quota()throws Exception{
         var lookups=new ArrayList<String>();var api=new ZnackApiClient(){
             @Override public JsonElement generatedGtins(String base,String token){throw new AssertionError("Existing-card review cannot inspect allocation quota");}

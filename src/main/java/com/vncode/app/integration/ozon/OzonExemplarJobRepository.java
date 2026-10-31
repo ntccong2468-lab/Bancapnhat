@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 
@@ -576,6 +577,21 @@ public final class OzonExemplarJobRepository {
     /** Consumes locally reserved KIZ only after the printable PDF has been published successfully. */
     /** Marks the completed label batch in one shop-scoped transaction, without loading raw KIZ. */
     public void consumePrintedBatch(int shopId, Collection<String> postingNumbers) {
+        consumePrintedBatch(shopId,postingNumbers,Map.of(),()->{});
+    }
+
+    public record BindingProof(int itemIndex,String productId,String exemplarId,int exemplarIndex,long kizId,String codeDigest) {}
+    public record PrintProof(long jobId,List<BindingProof> bindings) {public PrintProof {bindings=List.copyOf(bindings);}}
+    public static PrintProof printProof(OzonExemplarJob job,List<KizBinding> bindings){
+        return new PrintProof(job.id(),bindings.stream().map(b->new BindingProof(b.itemIndex(),b.productId(),b.exemplarId(),b.exemplarIndex(),b.kizId(),digest(b.rawCode()))).toList());
+    }
+    private static String digest(String value){try{return java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)));}catch(java.security.NoSuchAlgorithmException impossible){throw new IllegalStateException(impossible);}}
+
+    /** The supplied proofs identify the exact reservation and bytes rendered into each PDF. */
+    public void consumePrintedKizBatch(int shopId,Map<String,PrintProof> proofs){consumePrintedKizBatch(shopId,proofs,()->{});}
+    public void consumePrintedKizBatch(int shopId,Map<String,PrintProof> proofs,Runnable beforeConsume){consumePrintedBatch(shopId,proofs.keySet(),proofs,java.util.Objects.requireNonNull(beforeConsume));}
+
+    private void consumePrintedBatch(int shopId, Collection<String> postingNumbers,Map<String,PrintProof> proofs,Runnable beforeConsume) {
         if (shopId <= 0 || postingNumbers == null || postingNumbers.size() > 10_000) {
             throw new IllegalArgumentException("Invalid Ozon printed selection");
         }
@@ -585,15 +601,31 @@ public final class OzonExemplarJobRepository {
             transaction.execute("BEGIN IMMEDIATE");
             try {
                 List<Long> validated = new ArrayList<>();
+                Set<String> matched = new java.util.HashSet<>();
                 for (int start = 0; start < numbers.size(); start += 500) {
                     List<String> chunk = numbers.subList(start, Math.min(start + 500, numbers.size()));
                     String marks = String.join(",", java.util.Collections.nCopies(chunk.size(), "?"));
                     try (PreparedStatement selected = connection.prepareStatement(
-                            "SELECT id,stage FROM ozon_exemplar_jobs WHERE shop_id=? AND posting_number IN (" + marks + ")")) {
+                            "SELECT id,stage,posting_number FROM ozon_exemplar_jobs WHERE shop_id=? AND posting_number IN (" + marks + ")")) {
                         selected.setInt(1, shopId);
                         for (int index = 0; index < chunk.size(); index++) selected.setString(index + 2, chunk.get(index));
                         try (ResultSet result = selected.executeQuery()) {
                             while (result.next()) {
+                                String posting=result.getString(3);matched.add(posting);
+                                if(!proofs.isEmpty()){
+                                    PrintProof expected=proofs.get(posting);
+                                    if(expected==null||expected.jobId()!=result.getLong(1)||expected.bindings().isEmpty())throw new IllegalStateException("Ozon KIZ proof no longer matches the printed job.");
+                                    var current=new ArrayList<BindingProof>();
+                                    try(var proofQuery=connection.prepareStatement("SELECT e.item_index,e.product_id,e.exemplar_id,e.exemplar_index,e.kiz_id,k.raw_code,k.status,k.reservation_token FROM ozon_exemplars e LEFT JOIN kiz_codes k ON k.id=e.kiz_id AND k.shop_id=? WHERE e.job_id=? ORDER BY e.item_index,e.exemplar_index")){
+                                        proofQuery.setInt(1,shopId);proofQuery.setLong(2,expected.jobId());try(var rows=proofQuery.executeQuery()){while(rows.next()){
+                                            if(rows.getObject(5)==null || rows.getString(6)==null)throw new IllegalStateException("Ozon KIZ binding is missing before publication.");
+                                            String status=rows.getString(7),token=rows.getString(8);
+                                            if(!"CONSUMED".equals(status)&&!("VALIDATED".equals(result.getString(2))&&"RESERVED".equals(status)&&("ozon:"+expected.jobId()).equals(token)))throw new IllegalStateException("Ozon KIZ reservation changed before publication.");
+                                            current.add(new BindingProof(rows.getInt(1),rows.getString(2),rows.getString(3),rows.getInt(4),rows.getLong(5),digest(rows.getString(6))));
+                                        }}
+                                    }
+                                    if(!expected.bindings().equals(current))throw new IllegalStateException("Ozon KIZ bindings changed after PDF rendering.");
+                                }
                                 OzonExemplarJobStage stage = OzonExemplarJobStage.valueOf(result.getString(2));
                                 if (stage == OzonExemplarJobStage.VALIDATED) validated.add(result.getLong(1));
                                 else if (stage != OzonExemplarJobStage.ACCEPTED) {
@@ -603,6 +635,8 @@ public final class OzonExemplarJobRepository {
                         }
                     }
                 }
+                if(!proofs.isEmpty()&&(matched.size()!=numbers.size()||!matched.containsAll(numbers)))throw new IllegalStateException("An Ozon KIZ print job is missing before marking printed.");
+                beforeConsume.run();
                 String now = Instant.now().toString();
                 for (int start = 0; start < validated.size(); start += 500) {
                     List<Long> chunk = validated.subList(start, Math.min(start + 500, validated.size()));

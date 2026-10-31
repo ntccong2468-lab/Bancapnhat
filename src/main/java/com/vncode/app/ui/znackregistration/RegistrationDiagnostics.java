@@ -44,6 +44,10 @@ final class RegistrationDiagnostics {
     }
     static String reason(String raw){
         String value=raw==null?"":raw;
+        for(String code:new String[]{"ZNACK_TNVED_CONFLICT","ZNACK_MISSING_TNVED","OZON_SIZE_CONFLICT","V3_SANDBOX_AUTH_UNVERIFIED","CATALOG_LEGACY_REPAIR_REVIEW_REQUIRED","CATALOG_OWNER_UNCONFIRMED","CATALOG_OWNER_LOOKUP_TIMEOUT","ZNACK_SOURCE_REVIEW_REQUIRED","ZNACK_SOURCE_IMAGE_REVIEW_REQUIRED","ZNACK_SOURCE_REVIEW_READ_FAILED","CATALOG_EXISTING_IMAGES_NOT_VERIFIED","ZNACK_OPTIONAL_IMAGE_NOT_REVIEWED_OMITTED"}){
+            String key="znack.registration.reason."+code,translated=I18nService.getInstance().tr(key);
+            if(!translated.equals(key))value=value.replace(code,translated);
+        }
         for(String suffix:new String[]{"CARD_IDENTITY_CHANGED","CARD_GTIN_MISSING","CARD_GTIN_INVALID","CARD_PENDING","GTIN_AMBIGUOUS","RANGE_INVALID","INVALID","CHANGED","STORAGE"}){
             String code="CATALOG_INDEX_"+suffix,key="znack.registration.reason."+code;
             String translated=I18nService.getInstance().tr(key);if(!translated.equals(key))value=value.replace(code,translated);

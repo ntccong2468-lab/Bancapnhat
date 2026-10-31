@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OzonAcceptanceKizTest {
     @TempDir Path directory;
-    MockWebServer server;Shop shop;boolean multi,pending,rejected,foreign,optional;
+    MockWebServer server;Shop shop;boolean multi,pending,rejected,foreign,optional,optionalNoMarks,requirementsMissing;
     final Map<String,JsonObject> sent=new ConcurrentHashMap<>();
     final Set<String> shipped=ConcurrentHashMap.newKeySet(),accepted=ConcurrentHashMap.newKeySet();
     final List<String> trace=new CopyOnWriteArrayList<>();
@@ -137,6 +137,21 @@ class OzonAcceptanceKizTest {
         optional=true;assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
         assertEquals(1,sent.size());assertTrue(trace.indexOf("/v6/fbs/posting/product/exemplar/set")<trace.indexOf("/v4/posting/fbs/ship"));
     }
+    @Test void optionalMarkWithoutChosenSourceDoesNotBlockOrAllocateKiz()throws Exception {
+        optional=true;optionalNoMarks=true;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,new com.vncode.app.features.kiz.KizSourceSelection(false,false)).status());
+        assertTrue(sent.isEmpty());assertEquals(1,shipped.size());
+        assertEquals(new com.vncode.app.features.kiz.KizSourceSelection(false,false),new OzonUnitShipRepository().find(shop,"PARENT").sources());
+    }
+    @Test void mandatoryMarkWithoutChosenSourceStopsOnlyThatPosting()throws Exception {
+        var failure=assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true,new com.vncode.app.features.kiz.KizSourceSelection(false,false)));
+        assertEquals("OZON_ACCEPT_KIZ_SOURCE_REQUIRED",failure.getMessage());assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+    }
+    @Test void missingRequirementsAreNeverTreatedAsProofOfNoMarking()throws Exception {
+        requirementsMissing=true;optionalNoMarks=true;
+        var failure=assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true,new com.vncode.app.features.kiz.KizSourceSelection(false,false)));
+        assertEquals("OZON_ACCEPT_KIZ_REQUIREMENTS_UNVERIFIED",failure.getMessage());assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+    }
     @Test void sellerExemptionSkipsOptionalMarksButNeverMandatoryMarks()throws Exception {
         var mandatory=OzonJson.requirePostingDetail(JsonParser.parseString(posting("PARENT")).getAsJsonObject(),"PARENT");
         new OzonProductKizPolicyRepository().setRequired(1,"101",false);
@@ -250,13 +265,13 @@ class OzonAcceptanceKizTest {
             }
             if(!pending&&!rejected)accepted.add(number);return json(raw.toString());
         }
-        if(path.equals("/v4/posting/fbs/ship")) {assertTrue(accepted.contains(number));shipped.add(number);return json("{\"result\":[\""+number+"\"]}");}
+        if(path.equals("/v4/posting/fbs/ship")) {assertTrue(accepted.contains(number)||optionalNoMarks);shipped.add(number);return json("{\"result\":[\""+number+"\"]}");}
         return new MockResponse().setResponseCode(404);
     }
     private String posting(String number) {
         String status=shipped.contains(number)?"awaiting_deliver":"awaiting_packaging";
         int product=number.equals("UNMAPPED")?202:101;
-        return "{\"result\":{\"posting_number\":\""+number+"\",\"order_id\":\""+(foreign&&number.equals("CHILD-B")?"FOREIGN":"ORDER")+"\",\"delivery_method\":{\"warehouse_id\":\"WH\"},\"status\":\""+status+"\",\"products\":[{\"sku\":"+product+",\"offer_id\":\"fixture\",\"name\":\"Fixture\",\"quantity\":"+(multi&&number.equals("PARENT")?2:1)+"}],"+(optional?"\"requirements\":{},\"optional\":{\"products_with_possible_mandatory_mark\":["+product+"]},":"\"requirements\":{\"products_requiring_mandatory_mark\":[\""+product+"\"]},")+"\"available_actions\":"+(accepted.contains(number)?"[\"ship\"]":"[]")+",\"ship_available\":"+accepted.contains(number)+"}}";
+        return "{\"result\":{\"posting_number\":\""+number+"\",\"order_id\":\""+(foreign&&number.equals("CHILD-B")?"FOREIGN":"ORDER")+"\",\"delivery_method\":{\"warehouse_id\":\"WH\"},\"status\":\""+status+"\",\"products\":[{\"sku\":"+product+",\"offer_id\":\"fixture\",\"name\":\"Fixture\",\"quantity\":"+(multi&&number.equals("PARENT")?2:1)+"}],"+(requirementsMissing?"":optional?"\"requirements\":{\"products_requiring_mandatory_mark\":[]},\"optional\":{\"products_with_possible_mandatory_mark\":["+product+"]},":"\"requirements\":{\"products_requiring_mandatory_mark\":[\""+product+"\"]},")+"\"available_actions\":"+(accepted.contains(number)||optionalNoMarks?"[\"ship\"]":"[]")+",\"ship_available\":"+(accepted.contains(number)||optionalNoMarks)+"}}";
     }
     private static MockResponse json(String value){return new MockResponse().setHeader("Content-Type","application/json").setBody(value);}
 }

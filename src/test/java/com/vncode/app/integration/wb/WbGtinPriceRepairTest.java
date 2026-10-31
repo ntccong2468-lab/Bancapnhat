@@ -23,6 +23,27 @@ class WbGtinPriceRepairTest {
         shop=new Shop(1,"test",Marketplace.WILDBERRIES,null,"token");fixture=new Fixture();service=new WbGtinPriceRepair(shop,fixture);
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
+    @Test void batchPrefetchRejectsMissingDuplicateAndForeignProducts()throws Exception {
+        for(String fault:List.of("missing","duplicate","foreign")){
+            ListingTransport bad=(path,body,mutation)->{var items=new JsonArray();if(!fault.equals("missing"))items.add(priceRow(fault.equals("foreign")?"999":"101",100));if(fault.equals("duplicate"))items.add(priceRow("101",100));return priceResponse(items);};
+            assertThrows(IOException.class,()->new WbGtinPriceRepair(shop,bad).prefetch(List.of("101"),()->{}),fault);
+        }
+    }
+    @Test void batchRateLimitAndCancellationStopBeforeAnyMutation()throws Exception {
+        var calls=new AtomicInteger();ListingTransport api=(path,body,mutation)->{assertFalse(mutation);calls.incrementAndGet();throw new ListingRateLimitException(new Headers.Builder().add("Retry-After","10").build());};
+        var batch=new WbGtinPriceRepair(shop,api);assertEquals("WB_PRICE_READBACK_PENDING",assertThrows(IOException.class,()->batch.verifyReady(List.of("101"),()->{})).getMessage());assertThrows(ListingRateLimitException.class,()->batch.prefetch(List.of("101"),()->{}));assertEquals(1,calls.get());
+        assertThrows(IllegalStateException.class,()->batch.prefetch(List.of("101"),()->{throw new IllegalStateException("cancelled");}));assertEquals(1,calls.get());
+    }
+    @Test void batchesAtMostThousandAndChecksFreshPriceBeforeDispatch()throws Exception {
+        var calls=new AtomicInteger();var amount=new AtomicInteger(100);ListingTransport api=(path,body,mutation)->{
+            assertFalse(mutation);assertEquals("api/v2/list/goods/filter",path);var ids=body.getAsJsonObject().getAsJsonArray("nmList");assertTrue(ids.size()<=1000);calls.incrementAndGet();var list=new JsonArray();for(var id:ids)list.add(priceRow(id.getAsString(),amount.get()));return priceResponse(list);
+        };
+        var batch=new WbGtinPriceRepair(shop,api);var ids=new ArrayList<String>();for(int i=1;i<=1001;i++)ids.add(Integer.toString(i));batch.prefetch(ids,()->{});assertEquals(2,calls.get());
+        assertEquals(WbGtinPriceRepair.State.READY,batch.repair("101","batch",Set.of(11L),()->{},()->{}).state());batch.verifyReady(List.of("101"),()->{});
+        amount.set(200);assertEquals("WB_PRICE_CHANGED",assertThrows(IOException.class,()->batch.verifyReady(List.of("101"),()->{})).getMessage());
+    }
+    private static JsonObject priceRow(String id,int price){var size=new JsonObject();size.addProperty("sizeID",11);size.addProperty("price",price);var sizes=new JsonArray();sizes.add(size);var row=new JsonObject();row.addProperty("nmID",Long.parseLong(id));row.addProperty("currencyIsoCode4217","RUB");row.addProperty("editableSizePrice",false);row.add("sizes",sizes);return row;}
+    private static JsonObject priceResponse(JsonArray rows){var data=new JsonObject();data.add("listGoods",rows);var result=new JsonObject();result.add("data",data);result.addProperty("error",false);return result;}
     @Test void averagesAllSizesAndDoesNotPublishBeforeActualReadback()throws Exception {
         fixture.prices.put(11L,100);fixture.prices.put(12L,201);
         assertEquals(WbGtinPriceRepair.State.PENDING,service.repair("101","job-1",Set.of(11L,12L),()->{},()->{}).state());
@@ -47,9 +68,11 @@ class WbGtinPriceRepairTest {
     }
     @Test void baseOrUnknownTokenStopsBeforePriceReadsAndWrites()throws Exception {
         fixture.prices.put(11L,100);fixture.prices.put(12L,200);
-        var result=new WbGtinPriceRepair(shop,fixture,true).repair("101","slow-token",Set.of(11L,12L),()->{},()->{});
+        var paced=new WbGtinPriceRepair(shop,fixture,true);paced.prefetch(List.of("101"),()->{});
+        var result=paced.repair("101","slow-token",Set.of(11L,12L),()->{},()->{});
         assertEquals(WbGtinPriceRepair.State.FAILED,result.state());
         assertEquals("WB_PRICE_TOKEN_LIMIT",result.code());assertEquals(0,fixture.reads.get());assertEquals(0,fixture.writes.get());
+        assertEquals("WB_PRICE_TOKEN_LIMIT",assertThrows(IOException.class,()->paced.verifyReady(List.of("101"),()->{})).getMessage());assertEquals(0,fixture.reads.get());
     }
     @Test void rejectedRateLimitCanRetryButChangedSellerPriceBlocksOverwrite()throws Exception {
         fixture.prices.put(11L,100);fixture.prices.put(12L,200);fixture.rate=true;

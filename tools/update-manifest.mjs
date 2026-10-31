@@ -1,6 +1,6 @@
 import { createHash, createPrivateKey, createPublicKey, sign, verify } from "node:crypto";
 import { createReadStream } from "node:fs";
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { lstat, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -48,14 +48,20 @@ export async function buildSignedUpdateManifest({
   privateKey,
   publicKey,
 }) {
-  if (typeof installer !== "string" || path.basename(installer) !== "VN-code.msi" || !VERSION.test(version)) {
+  if (typeof installer !== "string" || !VERSION.test(version)) {
+    throw new Error("release identity is invalid");
+  }
+  const fileName = path.basename(installer);
+  // Only these exact names are accepted: the original release workflow and the
+  // versioned artifact emitted by the verified Windows baseline workflow.
+  if (fileName !== "VN-code.msi" && fileName !== `VN-code-${version}-Windows-x64.msi`) {
     throw new Error("release identity is invalid");
   }
   if (typeof mandatory !== "boolean") throw new Error("mandatory must be a boolean");
   validateNotes(notes);
-  const file = await stat(installer);
+  const file = await lstat(installer);
   if (!file.isFile() || file.size < MIN_INSTALLER_BYTES || file.size > MAX_INSTALLER_BYTES) {
-    throw new Error("VN-code.msi has an invalid size");
+    throw new Error("installer is not a regular file of valid size");
   }
 
   let signingKey;
@@ -79,10 +85,10 @@ export async function buildSignedUpdateManifest({
     assets: [{
       platform: "windows-x64",
       kind: "msi",
-      fileName: "VN-code.msi",
+      fileName,
       size: file.size,
       sha256: await sha256(installer),
-      url: `https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v${version}/VN-code.msi`,
+      url: `https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v${version}/${fileName}`,
     }],
   };
   const payloadBytes = Buffer.from(JSON.stringify(payload), "utf8");
@@ -102,7 +108,7 @@ export async function buildSignedUpdateManifest({
 
 async function main() {
   const [installer, output, version] = process.argv.slice(2);
-  if (!installer || !output || !version) throw new Error("usage: update-manifest.mjs <VN-code.msi> <output> <version>");
+  if (!installer || !output || !version) throw new Error("usage: update-manifest.mjs <VN-code MSI> <output> <version>");
   let notes;
   try {
     notes = JSON.parse(process.env.RELEASE_NOTES_JSON ?? "[]");

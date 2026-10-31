@@ -21,7 +21,7 @@ public final class ZnackMappingReviewDialog {
         var hint=new Label(item.product()+" / "+item.variant()+" · SKU "+item.sku()+" · "+item.article()+" · "+item.size()+" · "+item.color());hint.setWrapText(true);
         var choices=new ComboBox<GtinSyncModels.RegisteredGtin>();choices.setMaxWidth(Double.MAX_VALUE);choices.setPromptText(tr("jobs.choose_gtin"));choices.setDisable(true);
         choices.setConverter(new javafx.util.StringConverter<>(){public String toString(GtinSyncModels.RegisteredGtin g){return g==null?"":g.gtin()+" · "+g.article()+" · "+g.size()+" · "+g.color();}public GtinSyncModels.RegisteredGtin fromString(String s){throw new UnsupportedOperationException();}});
-        var pane=new CatalogSyncPane();pane.setOnMutationResult((shop,result)->new SyncRunRepository().linkReviewed(shop,report.id(),result));
+        var pane=new CatalogSyncPane();pane.setOnMutationResult((shop,result,approved)->new SyncRunRepository().linkReviewed(shop,report.id(),result,approved));
         var body=new VBox(10,hint,choices,pane);VBox.setVgrow(pane,Priority.ALWAYS);dialog.getDialogPane().setContent(body);dialog.getDialogPane().setPrefSize(1100,720);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);DialogLayout.install(dialog.getDialogPane());
         boolean[] closed={false};dialog.setOnHidden(e->{closed[0]=true;pane.dispose();});
         AppTaskExecutor.execute(new javafx.concurrent.Task<Loaded>(){

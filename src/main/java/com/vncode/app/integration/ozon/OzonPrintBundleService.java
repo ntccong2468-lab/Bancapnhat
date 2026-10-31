@@ -76,21 +76,29 @@ public final class OzonPrintBundleService {
                 OzonExemplarService.PrintBatch batch = service.openPrintBatch(shop,sources);
                 return new Preparation() {
                     private final Map<String,OzonPreparationResult> prepared=new LinkedHashMap<>();
+                    private final Map<String,String> failures=new LinkedHashMap<>();
+                    private final Map<String,OzonApiException> apiFailures=new LinkedHashMap<>();
                     @Override public OzonPreparationResult prepare(Shop selected, String number) throws IOException {
                         MarketplaceGuard.requireOzon(selected);
                         if (selected.getId() != shop.getId()) throw new IOException("Ozon print shop changed.");
+                        OzonApiException apiFailure=apiFailures.remove(number);
+                        String failure=failures.remove(number);
+                        if(apiFailure!=null)throw apiFailure;
+                        if(failure!=null)throw new IOException(failure);
                         OzonPreparationResult result=prepared.remove(number);
                         if(result!=null)return result;
                         return batch.stageForPrint(number);
                     }
                     @Override public void prefetch(Shop selected,List<String> numbers)throws IOException {
                         MarketplaceGuard.requireOzon(selected);
-                        if(selected.getId()!=shop.getId()||numbers.size()>OzonExemplarService.READ_AHEAD||!prepared.isEmpty())throw new IOException("Ozon print window changed.");
+                        if(selected.getId()!=shop.getId()||numbers.size()>OzonExemplarService.READ_AHEAD||!prepared.isEmpty()||!failures.isEmpty())throw new IOException("Ozon print window changed.");
                         if(numbers.isEmpty())return;
                         var result=batch.stageForPrintBatch(numbers);
-                        if(!result.failed().isEmpty())throw new IOException("An Ozon posting in the print window needs review.");
                         for(var value:result.results())prepared.put(value.postingNumber(),value);
+                        failures.putAll(result.failed());
+                        apiFailures.putAll(result.apiFailures());
                     }
+                    @Override public void discard(String number){prepared.remove(number);failures.remove(number);apiFailures.remove(number);}
                     @Override public boolean refreshEveryNewPrint() { return true; }
                     @Override public boolean validateShopOwner() { return true; }
                 };
@@ -208,6 +216,7 @@ public final class OzonPrintBundleService {
         List<OzonExemplarJobRepository.ExemplarSummary> summaries = printable(job)
                 ? jobs.summaries(job.id()) : List.of();
         validatePrintableJob(job, bindings, summaries);
+        if(context!=null&&!bindings.isEmpty())context.printProofs.put(safePosting,OzonExemplarJobRepository.printProof(job,bindings));
 
         File officialStaging = null;
         File labelStaging = null;
@@ -289,6 +298,7 @@ public final class OzonPrintBundleService {
                 .equals(pickingTarget.toPath().toAbsolutePath().normalize())) {
             throw new IllegalArgumentException("Ozon label batch and picking batch must use different files.");
         }
+        if(Files.exists(labelTarget.toPath())&&Files.exists(pickingTarget.toPath())&&Files.isSameFile(labelTarget.toPath(),pickingTarget.toPath()))throw new IllegalArgumentException("Ozon label batch and picking batch must use different files.");
         Map<String, OzonPostingDto> selected = postings.findMany(frozenShop.getId(), safePostings);
         if (selected.size() != safePostings.size()) {
             throw new IOException("An Ozon posting from the confirmed selection is not available in this shop.");
@@ -350,8 +360,119 @@ public final class OzonPrintBundleService {
         }
     }
 
+    /**
+     * Export individually verified postings while preserving failures for review. Each posting is
+     * composed in an isolated in-memory document before its pages enter the final file, so a
+     * failed posting cannot leak a partial label or consume its reserved KIZ.
+     */
+    public AvailableBatchExportResult exportAvailable(Shop shop,List<String> postingNumbers,
+            File labelTarget,File pickingTarget,IntConsumer completed)throws IOException {
+        MarketplaceGuard.requireOzon(shop);
+        Shop frozen=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
+        requirePdfTarget(labelTarget,"label batch");requirePdfTarget(pickingTarget,"picking batch");
+        if(postingNumbers==null||postingNumbers.size()>10_000)throw new IllegalArgumentException("Invalid Ozon print batch size.");
+        List<String> selected=postingNumbers.stream().map(value->OzonApiClient.requireExternalId(value,"posting number")).distinct().toList();
+        if(selected.isEmpty())throw new IllegalArgumentException("At least one Ozon posting is required.");
+        if(labelTarget.toPath().toAbsolutePath().normalize().equals(pickingTarget.toPath().toAbsolutePath().normalize()))
+            throw new IllegalArgumentException("Ozon label batch and picking batch must use different files.");
+        if(Files.exists(labelTarget.toPath())&&Files.exists(pickingTarget.toPath())&&Files.isSameFile(labelTarget.toPath(),pickingTarget.toPath()))throw new IllegalArgumentException("Ozon label batch and picking batch must use different files.");
+        var selectedPostings=postings.findMany(frozen.getId(),selected);
+        var selectedJobs=jobs.findMany(frozen.getId(),selected);
+        boolean containsNewPrint=selected.stream().anyMatch(number->!accepted(selectedJobs.get(number)));
+        if(containsNewPrint)LicenseRuntime.require(Permission.PRINT_NEW);
+        var context=new PrintContext(selectedPostings,selectedJobs,policies.findExemptSkus(frozen.getId()),
+                catalogFor(frozen,selectedPostings.values()),preparation.forBatch(frozen));
+        context.labels=labels.forBatch(frozen,selected);
+        var successful=new ArrayList<String>();var successfulWithKiz=new LinkedHashMap<String,OzonExemplarJobRepository.PrintProof>();var failures=new LinkedHashMap<String,String>();var waiting=new java.util.LinkedHashSet<String>();
+        File labelStaging=null,pickingStaging=null;
+        int totalPages=0,kizPages=0;
+        try(var databaseSession=Database.openBatchSession()) {
+            labelStaging=AtomicFilePublisher.stagingFile(labelTarget,".available.pdf");
+            pickingStaging=AtomicFilePublisher.stagingFile(pickingTarget,".available-picking.pdf");
+            try(var destination=new PdfDocument(new PdfWriter(labelStaging))) {
+                for(int index=0;index<selected.size();index++) {
+                    requireNotInterrupted();String number=selected.get(index);
+                    if(index%OzonExemplarService.READ_AHEAD==0&&context.preparation.refreshEveryNewPrint()) {
+                        var window=selected.subList(index,Math.min(index+OzonExemplarService.READ_AHEAD,selected.size())).stream()
+                                .filter(n->context.postings.containsKey(n)&&!accepted(context.jobs.get(n))).toList();
+                        long started=OzonPrintTiming.tick();
+                        try{context.preparation.prefetch(frozen,window);}finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PREPARATION,started);}
+                    }
+                    java.io.ByteArrayOutputStream bytes=new java.io.ByteArrayOutputStream();ExportResult result;
+                    try {
+                        if(!context.postings.containsKey(number))throw new IOException("OZON_POSTING_NOT_AVAILABLE_LOCALLY");
+                        try(var part=new PdfDocument(new PdfWriter(bytes))) {
+                            result=exportInternal(frozen,number,labelTarget,null,false,context,part);
+                        }
+                    } catch(IOException error) {
+                        requireNotInterrupted();
+                        failures.put(number,com.vncode.app.shared.FriendlyErrorService.format(error));
+                        if(error instanceof OzonApiException apiError&&(apiError.statusCode()==429||apiError.statusCode()==401||apiError.statusCode()==403)) {
+                            if(apiError.statusCode()==429)waiting.add(number);
+                            for(int next=index+1;next<selected.size();next++){String pending=selected.get(next);failures.put(pending,com.vncode.app.shared.FriendlyErrorService.format(error));if(apiError.statusCode()==429)waiting.add(pending);}
+                            break;
+                        }
+                        continue;
+                    } finally {
+                        context.preparation.discard(number);
+                        if(completed!=null)completed.accept(index+1);
+                    }
+                    // A copy failure is a whole-file failure: it may have partially changed the destination.
+                    try(var source=new PdfDocument(new PdfReader(new java.io.ByteArrayInputStream(bytes.toByteArray())))) {
+                        if(source.getNumberOfPages()!=result.totalPages())throw new IOException("OZON_LABEL_PAGE_COUNT_MISMATCH");
+                        source.copyPagesTo(1,source.getNumberOfPages(),destination);
+                        destination.flushCopiedObjects(source);
+                    }
+                    successful.add(number);if(result.kizPages()>0){var proof=context.printProofs.get(number);if(proof==null)throw new IOException("OZON_PRINT_KIZ_PROOF_MISSING");successfulWithKiz.put(number,proof);}totalPages+=result.totalPages();kizPages+=result.kizPages();
+                }
+            }
+            if(successful.isEmpty())return new AvailableBatchExportResult(null,null,List.of(),Map.copyOf(failures),Set.copyOf(waiting),0,0);
+            requireNotInterrupted();
+            var printed=successful.stream().map(context.postings::get).toList();
+            pickingLists.exportBatch(pickingStaging,frozen,printed);
+            File finishedLabels=labelStaging,finishedPicking=pickingStaging;
+            List<String> frozenSuccess=List.copyOf(successful);var frozenKizSuccess=Map.copyOf(successfulWithKiz);
+            ownedPublish(frozen,context.preparation.validateShopOwner(),containsNewPrint,()->{
+                boolean[] published={false};
+                try {
+                    if(frozenKizSuccess.isEmpty()){
+                        publishPdfPair(finishedPicking,pickingTarget,finishedLabels,labelTarget);published[0]=true;
+                    }else jobs.consumePrintedKizBatch(frozen.getId(),frozenKizSuccess,()->{
+                        try{publishPdfPair(finishedPicking,pickingTarget,finishedLabels,labelTarget);published[0]=true;}
+                        catch(IOException failed){throw new java.io.UncheckedIOException(failed);}
+                    });
+                    new OzonPrintReceiptRepository().record(frozen,frozenSuccess);
+                } catch(java.io.UncheckedIOException fileFailure){
+                    throw fileFailure.getCause();
+                } catch(RuntimeException storageFailure) {
+                    throw new IOException(published[0]?"OZON_PDF_PUBLISHED_RECONCILIATION_REQUIRED":"OZON_PRINT_KIZ_PROOF_CHANGED",storageFailure);
+                }
+            });
+            labelStaging=null;pickingStaging=null;
+            return new AvailableBatchExportResult(labelTarget,pickingTarget,List.copyOf(successful),Map.copyOf(failures),Set.copyOf(waiting),totalPages,kizPages);
+        } finally {
+            context.labels.close();AtomicFilePublisher.deleteQuietly(labelStaging);AtomicFilePublisher.deleteQuietly(pickingStaging);
+        }
+    }
+
     private static void requireNotInterrupted() throws IOException {
         if (Thread.currentThread().isInterrupted()) throw new IOException("Ozon print export was interrupted.");
+    }
+
+    private static void publishPdfPair(File pickingStage,File pickingTarget,File labelStage,File labelTarget)throws IOException {
+        Path picking=pickingTarget.toPath().toAbsolutePath(),label=labelTarget.toPath().toAbsolutePath();
+        if(Files.isDirectory(picking)||Files.isDirectory(label))throw new IOException("OZON_PDF_TARGET_IS_DIRECTORY");
+        File backup=null;boolean existed=Files.exists(picking);
+        try {
+            if(existed){backup=AtomicFilePublisher.stagingFile(pickingTarget,".previous.pdf");Files.copy(picking,backup.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+            AtomicFilePublisher.publish(pickingStage,pickingTarget);
+            try { AtomicFilePublisher.publish(labelStage,labelTarget); }
+            catch(IOException failure) {
+                try { if(existed)AtomicFilePublisher.publish(backup,pickingTarget);else Files.deleteIfExists(picking); }
+                catch(IOException rollbackFailure){failure.addSuppressed(rollbackFailure);}
+                throw failure;
+            }
+        } finally { if(backup!=null)AtomicFilePublisher.deleteQuietly(backup); }
     }
 
     @FunctionalInterface private interface PublishAction {void run()throws IOException;}
@@ -381,6 +502,7 @@ public final class OzonPrintBundleService {
         final Map<String, OzonExemplarJob> jobs;
         final Set<String> exemptions;
         final Map<String, OzonProductDto> products;
+        final Map<String,OzonExemplarJobRepository.PrintProof> printProofs=new LinkedHashMap<>();
         final Preparation preparation;
         OfficialLabelDownloader labels;
         PrintContext(Map<String, OzonPostingDto> postings, Map<String, OzonExemplarJob> jobs,
@@ -495,6 +617,7 @@ public final class OzonPrintBundleService {
         default Preparation forBatch(Shop shop) { return this; }
         default boolean validateShopOwner(){return false;}
         default void prefetch(Shop shop,List<String> numbers)throws IOException {}
+        default void discard(String number) {}
     }
 
     @FunctionalInterface
@@ -525,4 +648,6 @@ public final class OzonPrintBundleService {
             int totalPages,
             int kizPages) {
     }
+    public record AvailableBatchExportResult(File labelFile,File pickingFile,List<String> successful,
+            Map<String,String> failures,Set<String> waiting,int totalPages,int kizPages) {}
 }

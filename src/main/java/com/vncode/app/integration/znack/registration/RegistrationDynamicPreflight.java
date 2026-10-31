@@ -30,15 +30,17 @@ public final class RegistrationDynamicPreflight {
         return read(shop,snapshots,entered,acknowledgedDocuments,Map.of());
     }
     public Review read(Shop shop,List<ProductSnapshot> snapshots,Map<ProductKey,Map<Long,RegistrationReviewedValues.Value>> entered,Map<ProductKey,String> acknowledgedDocuments,Map<ProductKey,Long> categories)throws Exception{
-        CatalogSession session=null;ZnackNationalCatalogService.CountryReadScope countryRead=null;var preflights=new HashMap<String,ZnackNationalCatalogService.Preflight>();var schemas=new HashMap<Long,List<Attribute>>();var plans=new ArrayList<Plan>();var missing=new ArrayList<Missing>();var warnings=new ArrayList<DocumentWarning>();var blocked=new ArrayList<Blocked>();var documentsCache=new HashMap<String,ZnackRegistrationDocuments.Selection>();
+        CatalogSession session=null;ZnackNationalCatalogService.CountryReadScope countryRead=null;var preflights=new HashMap<String,ZnackNationalCatalogService.Preflight>();var schemas=new HashMap<Long,List<Attribute>>();var plans=new ArrayList<Plan>();var provenance=new ArrayList<RegistrationFieldProvenance.Prepared>();var missing=new ArrayList<Missing>();var warnings=new ArrayList<DocumentWarning>();var blocked=new ArrayList<Blocked>();var documentsCache=new HashMap<String,ZnackRegistrationDocuments.Selection>();
         var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
         var draftCandidates=new DraftCandidates(shop,catalogRows.apply(shop));
         try{
         for(var original:snapshots){
             var snapshot=shop.getMarketplace()==Marketplace.OZON?new com.vncode.app.integration.ozon.OzonShopBrand().apply(shop,original):original;
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_PREFLIGHT_CANCELLED");ListingIdentity.require(shop,snapshot.key());
+            if(shop.getMarketplace()==Marketplace.OZON&&"true".equals(snapshot.metadata().get("source.size.conflict"))){blocked.add(new Blocked(snapshot.key(),snapshot.vendorArticle(),"size","OZON_SIZE_CONFLICT",List.of()));continue;}
             if(session==null){session=catalogs.open(shop);countryRead=session.catalog().registrationCountryReadScope();}session.scope().assertCurrent(shop);
-            String tnved=ProductFieldNames.tnvedCode(snapshot.attributes().stream().filter(a->ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).findFirst().orElse(""));
+            String tnved;
+            try{tnved=sourceTnved(snapshot);}catch(RegistrationValidationException invalid){blocked.add(new Blocked(snapshot.key(),snapshot.vendorArticle(),"tnved",invalid.getMessage(),List.of()));continue;}
             boolean existingDraft=draftCandidates.matches(shop,snapshot);String preflightKey=tnved+"/"+existingDraft;
             var checked=preflights.get(preflightKey);if(checked==null){checked=existingDraft?session.catalog().preflightExisting(tnved,session.token()):session.catalog().preflight(tnved);preflights.put(preflightKey,checked);}
             var selectedDocuments=ZnackRegistrationDocuments.select(snapshot,settings,LocalDate.now());String documentKey=tnved+"/"+selectedDocuments.source()+"/"+RegistrationReviewedValues.permitRevision(selectedDocuments);var documents=documentsCache.get(documentKey);if(documents==null){documents=session.catalog().reviewDocuments(session.token(),selectedDocuments,tnved);documentsCache.put(documentKey,documents);}
@@ -57,11 +59,18 @@ public final class RegistrationDynamicPreflight {
                 var preparation=OzonCardRegistrationWorkflow.reviewedPreparation(shop,snapshot,checked,resolved.id(),schema,documents,session);
                 draft=OzonCardRegistrationWorkflow.draftForReview(preparation,false);schema=preparation.required();
             }
+            var inferred=new HashMap<Long,String>();
+            if(shop.getMarketplace()==Marketplace.WILDBERRIES&&!draft.attributes().getOrDefault(14013L,"").isBlank()
+                    &&original.attributes().stream().noneMatch(a->explicitGender(a.name())&&a.values().stream().anyMatch(v->v!=null&&!v.isBlank())))
+                inferred.put(14013L,draft.attributes().get(14013L));
             draft=RegistrationVerifiedDefaults.applyAutomatic(draft,schema,session.catalog(),documents.automatic(),snapshot);
             try{draft=RegistrationReviewedValues.apply(shop,snapshot,draft,schema);}catch(RegistrationValidationException changed){if(changed.getMessage()==null||!changed.getMessage().contains("ZNACK_REVIEWED_VALUES_CHANGED"))throw changed;/* Rebuild the proposal from fresh facts; worker loads remain strict. */}
             draft=RegistrationReviewedValues.apply(draft,entered.getOrDefault(snapshot.key(),Map.of()));
             var plan=new Plan(snapshot,draft,schema,documents);plans.add(plan);missing.addAll(inspect(plan));
+            var countryMapping=RegistrationFieldProvenance.countryMapping(original,draft,schema,session.catalog());
+            provenance.add(RegistrationFieldProvenance.capture(original,snapshot,draft,schema,entered.getOrDefault(snapshot.key(),Map.of()),documents,categories.containsKey(snapshot.key()),inferred,countryMapping));
         }
+        RegistrationFieldProvenance.save(shop,provenance);
         return new Review(plans,missing,warnings,blocked);
         }finally{if(countryRead!=null)countryRead.close();}
     }
@@ -123,4 +132,14 @@ public final class RegistrationDynamicPreflight {
         return List.copyOf(approvals);
     }
     private static String normalized(String value){return Normalizer.normalize(value,Normalizer.Form.NFKC).strip().toLowerCase(Locale.ROOT).replace('ё','е');}
+    static String sourceTnved(ProductSnapshot snapshot){
+        var values=snapshot.attributes().stream().filter(a->a.complexId()==null||a.complexId().isBlank()||a.complexId().equals("0"))
+                .filter(a->ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream())
+                .filter(v->v!=null&&!v.isBlank()).map(String::strip).toList();
+        if(values.isEmpty())throw new RegistrationValidationException("ZNACK_MISSING_TNVED");
+        var codes=values.stream().map(ProductFieldNames::tnvedCode).filter(v->!v.isBlank()).distinct().toList();
+        if(codes.size()!=1||values.stream().anyMatch(v->ProductFieldNames.tnvedCode(v).isBlank()))throw new RegistrationValidationException("ZNACK_TNVED_CONFLICT");
+        return codes.getFirst();
+    }
+    private static boolean explicitGender(String name){return Set.of("пол","целевойпол","длякого","назначение","целеваяаудитория").contains(normalized(Objects.toString(name,"")).replaceAll("[^\\p{L}\\p{N}]",""));}
 }

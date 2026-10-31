@@ -308,6 +308,25 @@ public final class OzonSchemaSupport {
             statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_products_shop_article ON ozon_products(shop_id,article)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_article_gtin ON ozon_article_gtin_mappings(shop_id,gtin)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_postings_shop_status ON ozon_postings(shop_id,status,shipment_at)");
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS ozon_fbs_status_observations(
+                        shop_id INTEGER NOT NULL,
+                        posting_number TEXT NOT NULL,
+                        pass_started TEXT NOT NULL,
+                        observed_at TEXT NOT NULL,
+                        PRIMARY KEY(shop_id,posting_number),
+                        FOREIGN KEY(shop_id,posting_number) REFERENCES ozon_postings(shop_id,posting_number) ON DELETE CASCADE
+                    )
+                    """);
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS ozon_fbs_queue_scans(
+                        shop_id INTEGER PRIMARY KEY,
+                        owner TEXT NOT NULL,
+                        completed_at TEXT NOT NULL,
+                        incomplete INTEGER NOT NULL CHECK(incomplete IN (0,1)),
+                        FOREIGN KEY(shop_id) REFERENCES shops(id) ON DELETE CASCADE
+                    )
+                    """);
             statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_posting_items_shop_sku ON ozon_posting_items(shop_id,sku)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_exemplar_jobs_stage ON ozon_exemplar_jobs(shop_id,stage,updated_at)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_action_log_shop_created ON ozon_action_log(shop_id,created_at DESC)");

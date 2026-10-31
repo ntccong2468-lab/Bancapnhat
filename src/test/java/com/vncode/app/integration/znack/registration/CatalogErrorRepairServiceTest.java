@@ -32,10 +32,14 @@ class CatalogErrorRepairServiceTest {
         RegistrationSourceFixture.ready(shop);scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings());
         snapshot=new ProductSnapshot(key,"live:fixture","Костюм размер 52","","Fixture","SUIT","1",List.of(),List.of(new ProductAttribute("1","ТН ВЭД",List.of("6112110000"),""),new ProductAttribute("2","Состав",List.of("80% хлопок, 20% полиэстер"),""),new ProductAttribute("3","Пол",List.of("Мужской"),"")),List.of(new ProductVariant("201","SUIT","ЧЕРНЫЙ","52","",false,"52")),null,List.of(new ProductDocument("doc","CONFORMITY_DECLARATION","FIXTURE-PERMIT",LocalDate.of(2026,1,1),LocalDate.of(2029,1,1),"","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null)),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop),"source.category.name","Костюмы спортивные"));
         raw=JsonParser.parseString("{\"gtin\":\"00000000000017\",\"good_id\":91,\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"],\"good_name\":\"Костюм размер 1\",\"good_attrs\":[{\"attr_id\":13933,\"attr_value\":\"6112110000\"},{\"attr_id\":35,\"attr_value\":\"1\",\"attr_value_type\":\"РОССИЯ\"},{\"attr_id\":23557,\"attr_value\":\"OLD:::2026-01-01\"}]}").getAsJsonObject();
-        api=new FixtureApi();var catalog=new ZnackNationalCatalogService(api,new ZnackAuthService(api,null){public String trueApiToken(ZnackModels.Settings s){return "fixture";}},null,ZnackModels.Settings.empty());session=new ZnackCardRegistrationWorkflow.CatalogSession("fixture",catalog,scope);
-        service=new CatalogErrorRepairService(s->session,(s,k)->snapshot,(s,k,cs,progress)->{
-            var repo=new ZnackCardRegistrationRepository();var workflow=RegistrationWorkflowTestFixtures.workflow(repo,x->cs,Runnable::run,true,(a,b,c,d)->false);
-            assertTrue(workflow.resume(s,repo.find(s.getId(),Long.parseLong(k.variantId())),false,(status,detail)->progress.accept(status)));
+        raw.addProperty("owner_inn","7700000000");raw.add("good_images",new JsonArray());
+        api=new FixtureApi();var catalog=new ZnackNationalCatalogService(api,new ZnackAuthService(api,null){public String trueApiToken(ZnackModels.Settings s){return "fixture";}},null,new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings());session=new ZnackCardRegistrationWorkflow.CatalogSession("fixture",catalog,scope);
+        service=new CatalogErrorRepairService(s->session,(s,k)->snapshot,new CatalogErrorRepairService.Dispatch(){
+            public void resume(Shop s,ProductKey k,ZnackCardRegistrationWorkflow.CatalogSession cs,java.util.function.Consumer<Status> progress){throw new AssertionError("Seller intent required");}
+            public void resumeReviewed(Shop s,ProductKey k,ZnackCardRegistrationWorkflow.CatalogSession cs,RegistrationIntent intent,java.util.function.Consumer<Status> progress){
+                var repo=new ZnackCardRegistrationRepository();var workflow=new ZnackCardRegistrationWorkflow(repo,x->cs,Runnable::run,true,(a,b,c,d)->false,RegistrationWorkflowTestFixtures::emptyLookup,(a,b)->snapshot);
+                assertTrue(workflow.resumeSubmissionOnly(s,repo.find(s.getId(),Long.parseLong(k.variantId())),false,(status,detail)->progress.accept(status),intent));
+            }
         });
     }
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
@@ -46,7 +50,7 @@ class CatalogErrorRepairServiceTest {
     }
     @Test void applyUsesSameGtinAndCheckpointsActualFeedThenReportsModeration()throws Exception{
         var p=service.prepare(shop,card(),key);var progress=new ArrayList<CatalogErrorRepairService.Progress>();String run=service.apply(shop,List.of(p),List.of(CatalogErrorRepairService.validate(p,p.draft())),progress::add);
-        assertEquals(1,api.writes.get());assertEquals(0,api.allocations.get());assertEquals(gtin,api.sent.get("gtin").getAsString());assertEquals(91L,api.sent.get("good_id").getAsLong());assertTrue(api.sent.toString().contains("FIXTURE-PERMIT"));assertFalse(api.sent.toString().contains("OLD:::"));
+        assertEquals(1,api.writes.get(),()->progress.toString());assertEquals(0,api.allocations.get());assertEquals(gtin,api.sent.get("gtin").getAsString());assertEquals(91L,api.sent.get("good_id").getAsLong());assertTrue(api.sent.toString().contains("FIXTURE-PERMIT"));assertFalse(api.sent.toString().contains("OLD:::"));
         var row=new ZnackCardRegistrationRepository().find(1,201);assertEquals(gtin,row.gtin());assertEquals("fixture-feed",row.feedId());assertEquals(Status.PROCESSING,row.status());assertEquals("WAITING_REMOTE",new SyncRunRepository().find(run).orElseThrow().state());assertEquals(1,progress.getLast().completed());
         assertThrows(IllegalStateException.class,()->session.catalog().rejectedCard("fixture",gtin,91L));
         var second=service.apply(shop,List.of(p),List.of(p.draft()),ignored->{});assertEquals(1,api.writes.get());assertEquals("PARTIAL",new SyncRunRepository().find(second).orElseThrow().state());
@@ -119,7 +123,13 @@ class CatalogErrorRepairServiceTest {
         RegistrationSourceFixture.ready(ozon);var nativeSnapshot=new ProductSnapshot(nativeKey,"live:fixture",snapshot.title(),"",snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),List.of(),snapshot.attributes(),List.of(new ProductVariant("offer-501","SUIT","ЧЕРНЫЙ","52","",false,"52")),null,List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(ozon),"source.category.name","Костюмы спортивные","sku","9001"));
         var settings=new ZnackRepository(new ZnackModels.ShopContext(2,"Fixture"));settings.saveSettings(settings.getSettings().withDefaultGoodsDocument("CONFORMITY_DECLARATION","FIXTURE-PERMIT","01.01.2026"));
         var oscope=ZnackRegistrationScope.fromSettings(settings.getSettings());var cs=new ZnackCardRegistrationWorkflow.CatalogSession("fixture",session.catalog(),oscope);
-        var service=new CatalogErrorRepairService(s1->cs,(s1,k)->nativeSnapshot,(s1,k,catalog,progress)->{var workflow=new OzonCardRegistrationWorkflow(new OzonCardRegistrationRepository(),s2->catalog,(s2,k2)->nativeSnapshot,Runnable::run,(a,b,c,d)->false);assertTrue(workflow.resume(s1,k,false,(status,detail)->progress.accept(status)));});
+        var service=new CatalogErrorRepairService(s1->cs,(s1,k)->nativeSnapshot,new CatalogErrorRepairService.Dispatch(){
+            public void resume(Shop s,ProductKey k,ZnackCardRegistrationWorkflow.CatalogSession catalog,java.util.function.Consumer<Status> progress){throw new AssertionError("Seller intent required");}
+            public void resumeReviewed(Shop s,ProductKey k,ZnackCardRegistrationWorkflow.CatalogSession catalog,RegistrationIntent intent,java.util.function.Consumer<Status> progress){
+                var workflow=new OzonCardRegistrationWorkflow(new OzonCardRegistrationRepository(),s2->catalog,(s2,k2)->nativeSnapshot,Runnable::run,(a,b,c,d)->false);
+                assertTrue(workflow.resumeForBatch(s,k,false,(status,detail)->progress.accept(status),intent));
+            }
+        });
         var row=new ProductRow(nativeKey,"Suit","SUIT","9001","Костюмы спортивные","Fixture","ЧЕРНЫЙ","52",List.of(),"","","хлопок","6112110000",DocumentState.UNVERIFIED,"Мужской",true,"52");
         var card=new CatalogErrorRepairService.ErrorCard(gtin,"SUIT","ЧЕРНЫЙ","1","CATALOG_CARD_ERRORS",List.of(row));if(feedOnly){
             var initial=service.prepare(ozon,card,nativeKey);
@@ -128,7 +138,7 @@ class CatalogErrorRepairServiceTest {
             api.noCard=true;
         }
         var proposal=service.prepare(ozon,card,nativeKey);String run=service.apply(ozon,List.of(proposal),List.of(proposal.draft()),ignored->{});
-        var stored=new OzonCardRegistrationRepository().find(nativeKey);assertEquals("9001",stored.sku());assertEquals(gtin,stored.gtin());assertEquals("fixture-feed",stored.feedId());assertEquals(feedOnly?Status.FEED_SUBMITTED:Status.PROCESSING,stored.status());assertEquals("WAITING_REMOTE",new SyncRunRepository().find(run).orElseThrow().state());assertEquals(1,api.writes.get());assertEquals(0,api.allocations.get());
+        var stored=new OzonCardRegistrationRepository().find(nativeKey);assertEquals("9001",stored.sku());assertEquals(gtin,stored.gtin());assertEquals("fixture-feed",stored.feedId(),()->stored.status()+" / "+stored.error());assertEquals(feedOnly?Status.FEED_SUBMITTED:Status.PROCESSING,stored.status());assertEquals("WAITING_REMOTE",new SyncRunRepository().find(run).orElseThrow().state());assertEquals(1,api.writes.get());assertEquals(0,api.allocations.get());
         var revisions=new OzonCardRegistrationRepository().reviewedRevisions(nativeKey);assertEquals(2,revisions.size());assertTrue(revisions.stream().allMatch(value->value.matches("[0-9a-f]{64}")),"Repair approval must bind both current marketplace source and Catalog schema");
         var expected=ZnackNationalCatalogService.buildPayload(gtin,proposal.draft(),"");if(!feedOnly)expected.addProperty("good_id",91L);assertEquals(expected,JsonParser.parseString(stored.payload()));assertEquals(expected,api.sent,"Review stamping must not rebuild or silently replace the approved repair attributes");
         assertFalse(CatalogRepairCheckpoint.prepare(ozon,nativeKey,"9001",gtin,91,"{}",proposal.draft(),oscope));
@@ -164,7 +174,7 @@ class CatalogErrorRepairServiceTest {
             ]}
             """);}
         public JsonElement submitNationalCatalogFeed(String b,String t,JsonElement request){writes.incrementAndGet();sent=request.getAsJsonObject().deepCopy();raw.add("good_detailed_status",JsonParser.parseString("[\"moderation\"]"));return JsonParser.parseString("{\"result\":{\"feed_id\":\"fixture-feed\"}}");}
-        public JsonElement nationalCatalogFeedStatus(String b,String t,String feed){if(feed.equals("rejected-feed")&&rejected)return JsonParser.parseString("{\"result\":{\"status\":\"Rejected\",\"error_details\":{\"commonError\":[\"invalid title\"]}}}");return JsonParser.parseString("{\"result\":{\"status\":\"Received\"}}");}
+        public JsonElement nationalCatalogFeedStatus(String b,String t,String feed){if(feed.equals("rejected-feed")&&rejected)return JsonParser.parseString("{\"result\":{\"feed_id\":\"rejected-feed\",\"status\":\"Rejected\",\"item\":[{\"gtin\":\""+gtin+"\",\"status_code\":400,\"message\":\"invalid title\"}]}}");return JsonParser.parseString("{\"result\":{\"status\":\"Received\"}}");}
     }
     @Test void reportExcludesLocalPreflightAndUncertainOperations()throws Exception {
         var repo=new ZnackCardRegistrationRepository();

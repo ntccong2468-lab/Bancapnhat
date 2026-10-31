@@ -25,6 +25,22 @@ class GtinSyncCoordinatorTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     Preview preview()throws Exception{return new GtinPreviewService(repo,k->adapter).create(adapter.product.key(),Operation.REPLACE,"old","00000000000017");}
+    @Test void overlappingRunsOnTheSameBatchAdapterCannotSharePriceSnapshots()throws Exception {
+        var entered=new java.util.concurrent.CountDownLatch(1);var release=new java.util.concurrent.CountDownLatch(1);
+        class Batch extends GtinPreviewServiceTest.Adapter implements GtinBatchAdapter {
+            public void prepareBatch(java.util.Collection<ProductKey> keys){}
+            public void validateRegistrations(java.util.Collection<String> gtins){}
+            public java.util.List<java.util.List<Preview>> partition(java.util.List<Preview> previews){return List.of(previews);}
+            public void preparePriceBatch(java.util.List<JobItem> items,Runnable guard)throws Exception{guard.run();entered.countDown();if(!release.await(10,java.util.concurrent.TimeUnit.SECONDS))throw new IllegalStateException("test_timeout");}
+            public java.util.Map<ProductKey,Submission> submitBatch(java.util.List<Preview> previews,Runnable guard){guard.run();var result=new java.util.HashMap<ProductKey,Submission>();for(var p:previews)result.put(p.before().key(),new Submission("task"));return result;}
+            public java.util.Map<ProductKey,VerificationResult> verifyBatch(java.util.List<JobItem> items){var result=new java.util.HashMap<ProductKey,VerificationResult>();for(var i:items)result.put(i.preview().before().key(),new VerificationResult(Verification.APPLIED,""));return result;}
+        }
+        var batch=new Batch();var coordinator=new GtinSyncCoordinator(repo,k->batch,Clock.systemUTC(),1,Duration.ZERO,cohort->{});var addition=new GtinPreviewService(repo,k->batch).create(batch.product.key(),Operation.ADD,"","00000000000017");var job=coordinator.confirm(List.of(addition));
+        var pool=java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {var first=pool.submit(()->coordinator.runJob(job));assertTrue(entered.await(10,java.util.concurrent.TimeUnit.SECONDS));var second=pool.submit(()->coordinator.runJob(job));
+            assertThrows(java.util.concurrent.TimeoutException.class,()->second.get(200,java.util.concurrent.TimeUnit.MILLISECONDS));release.countDown();first.get(15,java.util.concurrent.TimeUnit.SECONDS);second.get(15,java.util.concurrent.TimeUnit.SECONDS);
+        }finally{release.countDown();pool.shutdownNow();}
+    }
     @Test void migrationCreatesPriceReceiptTableBeforeCancellingOldQueuedJob()throws Exception {
         var job=repo.createJob(List.of(preview()));
         try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("DROP TABLE wb_gtin_price_repairs");}

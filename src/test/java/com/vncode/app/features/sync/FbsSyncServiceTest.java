@@ -95,11 +95,13 @@ class FbsSyncServiceTest {
         assertEquals(List.of("Z","A","Z","B","Y","C"),read,"Changing the visible shipment must preempt the scan, then resume it");
     }
     @Test void ozonActivePostingLeavingUnfulfilledQueueIsReconciledByDetailStatus()throws Exception{
-        var service=ozon();server.enqueue(new MockResponse().setBody("{\"postings\":[{\"posting_number\":\"101-1-1\",\"status\":\"awaiting_packaging\",\"products\":[]}],\"has_next\":false}"));
+        var service=ozon();var initial=new JsonArray();initial.add(unitPosting("101-1-1","ORDER","awaiting_packaging",1).getAsJsonObject("result"));var queue=new JsonObject();queue.add("postings",initial);queue.addProperty("has_next",false);server.enqueue(new MockResponse().setBody(queue.toString()));
         assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"").complete());
-        server.enqueue(new MockResponse().setBody("{\"result\":{\"posting_number\":\"101-1-1\",\"status\":\"cancelled\",\"products\":[]}}"));
-        assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"").complete());assertEquals(1,count("SELECT count(*) FROM ozon_postings WHERE shop_id=2 AND status='cancelled'"));
-        assertEquals("/v4/posting/fbs/unfulfilled/list",server.takeRequest().getPath());assertEquals("/v3/posting/fbs/get",server.takeRequest().getPath());
+        server.enqueue(new MockResponse().setBody("{\"postings\":[],\"has_next\":false}"));
+        var first=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");assertFalse(first.complete());
+        server.enqueue(new MockResponse().setBody(unitPosting("101-1-1","ORDER","cancelled",1).toString()));
+        assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_STATUS,first.checkpoint()).complete());assertEquals(1,count("SELECT count(*) FROM ozon_postings WHERE shop_id=2 AND status='cancelled'"));
+        assertEquals("/v4/posting/fbs/unfulfilled/list",server.takeRequest().getPath());assertEquals("/v4/posting/fbs/list",server.takeRequest().getPath());assertEquals("/v3/posting/fbs/get",server.takeRequest().getPath());
     }
     @Test void foreignPendingSplitChildDoesNotBlockIndependentHealthyStatusRefresh()throws Exception{
         var service=ozon();
@@ -134,21 +136,25 @@ class FbsSyncServiceTest {
         var unexpected=new java.util.concurrent.atomic.AtomicReference<Throwable>();
         server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request){
             try{
-                assertEquals("POST",request.getMethod());assertEquals("/v3/posting/fbs/get",request.getPath(),"Status sync must not submit shipping requests");
+                assertEquals("POST",request.getMethod());
+                if(request.getPath().equals("/v4/posting/fbs/list"))return new MockResponse().setBody("{\"postings\":[],\"has_next\":false}");
+                assertEquals("/v3/posting/fbs/get",request.getPath(),"Status sync must not submit shipping requests");
                 var body=JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject();
                 String number=body.get("posting_number").getAsString();read.add(number);
                 JsonObject result=switch(number){
-                    case "BROKEN-CHILD"->unitPosting(number,"FOREIGN-ORDER","awaiting_deliver",1);
+                    case "BROKEN-CHILD","OTHER-CHILD"->unitPosting(number,"FOREIGN-ORDER","awaiting_deliver",1);
                     case "HEALTHY"->unitPosting(number,"HEALTHY-ORDER","awaiting_deliver",1);
                     default->throw new AssertionError("Unexpected posting read: "+number);
                 };
                 return new MockResponse().setHeader("Content-Type","application/json").setBody(result.toString());
             }catch(Throwable failure){unexpected.compareAndSet(null,failure);return new MockResponse().setResponseCode(422).setBody("{}");}
         }});
-        var page=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");
+        var listPage=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");
+        var page=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,listPage.checkpoint());
         assertNull(unexpected.get(),()->"HTTP fixture failed: "+unexpected.get());
-        assertEquals(List.of("BROKEN-CHILD","HEALTHY"),read);
-        assertTrue(server.getRequestCount()<=4,"At most three receipt reads plus the ordinary healthy status read");
+        assertEquals(3,read.size());assertTrue(read.contains("HEALTHY"));
+        assertTrue(read.stream().filter(number->!number.equals("HEALTHY")).allMatch(number->number.equals("BROKEN-CHILD")||number.equals("OTHER-CHILD")));
+        assertTrue(server.getRequestCount()<=5,"Two bounded receipt reads, one list, and one healthy status read");
         assertTrue(page.complete());assertEquals(1,page.changed());
         assertEquals("awaiting_deliver",repository.find(shop.getId(),"HEALTHY").status());
         assertNotNull(repository.find(shop.getId(),"PARENT"),"Preserve the unresolved source cache/history");
@@ -160,7 +166,7 @@ class FbsSyncServiceTest {
         var response=JsonParser.parseString("""
                 {"result":{"posting_number":"fixture","order_id":"fixture","order_number":"ORDER-NO",
                   "status":"awaiting_packaging","delivery_method":{"warehouse_id":"WH"},
-                  "products":[{"sku":101,"quantity":1}],"requirements":{},"available_actions":["ship"]}}
+                  "products":[{"sku":101,"quantity":1}],"requirements":{"products_requiring_mandatory_mark":[]},"optional":{"products_with_possible_mandatory_mark":[]},"barcodes":{"lower_barcode":"","upper_barcode":""},"available_actions":["ship"]}}
                 """).getAsJsonObject();
         var posting=response.getAsJsonObject("result");posting.addProperty("posting_number",number);
         posting.addProperty("order_id",order);posting.addProperty("status",status);
@@ -169,5 +175,125 @@ class FbsSyncServiceTest {
     @Test void missingOzonPostingListIsAnErrorRatherThanSuccessfulEmptySnapshot()throws Exception{
         var service=ozon();server.enqueue(new MockResponse().setBody("{}"));
         assertEquals("FBS_INVALID_RESPONSE",assertThrows(java.io.IOException.class,()->service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"")).getMessage());
+    }
+    @Test void ozonMissingStatusDoesNotOverwriteVerifiedOrderOrClaimFullMembership()throws Exception{
+        var service=ozon();
+        var valid=unitPosting("101-1-1","ORDER","awaiting_packaging",1).getAsJsonObject("result");var validRows=new JsonArray();validRows.add(valid);var validResponse=new JsonObject();validResponse.add("postings",validRows);validResponse.addProperty("has_next",false);server.enqueue(new MockResponse().setBody(validResponse.toString()));
+        assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"").complete());
+        String oldScan;try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT completed_at FROM ozon_fbs_queue_scans WHERE shop_id=2")){assertTrue(r.next());oldScan=r.getString(1);}
+        server.enqueue(new MockResponse().setBody("{\"postings\":[{\"posting_number\":\"101-1-1\",\"products\":[]}],\"has_next\":true,\"cursor\":\"page-2\"}"));
+        server.enqueue(new MockResponse().setResponseCode(404).setBody("{}"));
+        var first=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"");assertFalse(first.complete());
+        server.enqueue(new MockResponse().setBody("{\"postings\":[],\"has_next\":false}"));
+        var last=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,first.checkpoint());assertTrue(last.complete());assertEquals("FBS_STATUS_UNCLASSIFIED",last.warning().code());
+        assertEquals(1,count("SELECT count(*) FROM ozon_postings WHERE shop_id=2 AND status='awaiting_packaging'"));
+        assertEquals(0,count("SELECT count(*) FROM ozon_postings WHERE shop_id=2 AND status='unknown'"));
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT completed_at FROM ozon_fbs_queue_scans WHERE shop_id=2")){assertTrue(r.next());assertEquals(oldScan,r.getString(1));}
+    }
+    @Test void ozonStatusPassUsesPagesAndPreservesProductAndKizDetails()throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();var cached=new ArrayList<OzonPostingDto>();
+        var first=new JsonArray();var second=new JsonArray();
+        for(int i=0;i<102;i++){
+            String id=String.format("P-%03d",i);
+            var before=unitPosting(id,"ORDER-"+i,"awaiting_packaging",1);
+            var item=before.getAsJsonObject("result");
+            if(i==0){var barcodes=new JsonObject();barcodes.addProperty("lower_barcode","KEEP-LABEL");item.add("barcodes",barcodes);}
+            cached.add(OzonJson.parsePostingDetail(before));
+            var current=unitPosting(id,"ORDER-"+i,"awaiting_deliver",5).getAsJsonObject("result");
+            if(i<100)first.add(current);else second.add(current);
+        }
+        repository.upsertPage(shop.getId(),cached);
+        var body1=new JsonObject();body1.add("postings",first);body1.addProperty("has_next",true);body1.addProperty("cursor","page-2");
+        var body2=new JsonObject();body2.add("postings",second);body2.addProperty("has_next",false);
+        server.enqueue(new MockResponse().setBody(body1.toString()));server.enqueue(new MockResponse().setBody(body2.toString()));
+        var page1=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");assertFalse(page1.complete());
+        var page2=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,page1.checkpoint());assertFalse(page2.complete());
+        var done=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,page2.checkpoint());assertTrue(done.complete());
+        assertEquals(102,count("SELECT count(*) FROM ozon_postings WHERE shop_id=2 AND status='awaiting_deliver'"));
+        assertEquals(1,repository.find(shop.getId(),"P-000").items().getFirst().quantity());
+        assertEquals("KEEP-LABEL",repository.find(shop.getId(),"P-000").lowerBarcode());
+        assertEquals(2,server.getRequestCount(),"Orders seen in a complete list pass do not need individual status reads");
+        assertEquals("desc",JsonParser.parseString(server.takeRequest().getBody().readUtf8()).getAsJsonObject().get("sort_dir").getAsString());
+    }
+    @Test void ozonSlowListCannotOverwriteNewerAcceptedOrderOrClaimComplete()throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        var before=OzonJson.parsePostingDetail(unitPosting("P-1","ORDER","awaiting_packaging",1));repository.upsertDetail(shop.getId(),before);
+        server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request){
+            repository.upsertDetail(shop.getId(),OzonJson.parsePostingDetail(unitPosting("P-1","ORDER","awaiting_deliver",1)));
+            var stale=unitPosting("P-1","ORDER","awaiting_packaging",1).getAsJsonObject("result");
+            var list=new JsonArray();list.add(stale);var body=new JsonObject();body.add("postings",list);body.addProperty("has_next",false);return new MockResponse().setBody(body.toString());
+        }});
+        var page=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"");
+        assertEquals("awaiting_deliver",repository.find(shop.getId(),"P-1").status());
+        assertNotNull(page.warning());assertEquals("FBS_CONCURRENT_REFRESH",page.warning().code());
+        assertTrue(page.complete());assertEquals("",page.checkpoint(),"Retry a fresh complete scan after the race");
+    }
+    @Test void ozonMarkedOrderStillGetsDetailRefreshAfterStatusList()throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        var response=unitPosting("P-MARK","ORDER","awaiting_packaging",1);
+        var requirements=new JsonObject();var marked=new JsonArray();marked.add(101);requirements.add("products_requiring_mandatory_mark",marked);
+        response.getAsJsonObject("result").add("requirements",requirements);repository.upsertDetail(shop.getId(),OzonJson.parsePostingDetail(response));
+        var list=new JsonArray();list.add(response.getAsJsonObject("result"));var body=new JsonObject();body.add("postings",list);body.addProperty("has_next",false);
+        server.enqueue(new MockResponse().setBody(body.toString()));server.enqueue(new MockResponse().setBody(response.toString()));
+        var first=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");assertFalse(first.complete());
+        assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_STATUS,first.checkpoint()).complete());
+        assertEquals("/v4/posting/fbs/list",server.takeRequest().getPath());assertEquals("/v3/posting/fbs/get",server.takeRequest().getPath());
+    }
+    @Test void ozonIncompleteQueueDoesNotEraseKizOrLabelsAndKeepsNewOrderVisibleButBlocked()throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        var old=unitPosting("P-OLD","ORDER","awaiting_packaging",1);
+        var oldItem=old.getAsJsonObject("result");oldItem.getAsJsonObject("barcodes").addProperty("lower_barcode","KEEP");
+        oldItem.getAsJsonObject("requirements").getAsJsonArray("products_requiring_mandatory_mark").add(101);
+        repository.upsertDetail(shop.getId(),OzonJson.parsePostingDetail(old));
+        var missing=unitPosting("P-OLD","ORDER","awaiting_packaging",1).getAsJsonObject("result");missing.remove("requirements");missing.remove("barcodes");
+        var newPartial=unitPosting("P-NEW","ORDER-2","awaiting_packaging",1).getAsJsonObject("result");newPartial.remove("available_actions");
+        var complete=unitPosting("P-OK","ORDER-3","awaiting_packaging",1).getAsJsonObject("result");
+        var list=new JsonArray();list.add(missing);list.add(newPartial);list.add(complete);
+        var response=new JsonObject();response.add("postings",list);response.addProperty("has_next",false);server.enqueue(new MockResponse().setBody(response.toString()));
+        var firstDetail=new JsonObject();firstDetail.add("result",missing);server.enqueue(new MockResponse().setBody(firstDetail.toString()));
+        var secondDetail=new JsonObject();secondDetail.add("result",newPartial);server.enqueue(new MockResponse().setBody(secondDetail.toString()));
+        var result=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"");
+        assertEquals("FBS_INCOMPLETE_POSTING",result.warning().code());
+        assertEquals("KEEP",repository.find(shop.getId(),"P-OLD").lowerBarcode());
+        assertEquals(List.of("101"),repository.find(shop.getId(),"P-OLD").requirements().mandatoryMarkProductIds());
+        assertTrue(repository.find(shop.getId(),"P-NEW").requirements().blocksPreparation());
+        assertFalse(repository.find(shop.getId(),"P-NEW").canShip());
+        assertFalse(repository.find(shop.getId(),"P-OK").requirements().blocksPreparation());
+        assertEquals(1,count("SELECT count(*) FROM ozon_fbs_queue_scans WHERE shop_id=2 AND incomplete=1"));
+    }
+    @Test void ozonQueueRejectsNonAdjacentCursorCycleAcrossRestartAndRetainsOrders()throws Exception{
+        var service=ozon();
+        for(int i=0;i<3;i++){
+            var list=new JsonArray();list.add(unitPosting("P-"+i,"ORDER-"+i,"awaiting_packaging",1).getAsJsonObject("result"));
+            var response=new JsonObject();response.add("postings",list);response.addProperty("has_next",true);response.addProperty("cursor",i==1?"B":"A");server.enqueue(new MockResponse().setBody(response.toString()));
+        }
+        var first=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"");
+        var second=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,first.checkpoint());
+        // Cursor history is persisted in the checkpoint, so a new service instance can detect the cycle too.
+        var resumed=new FbsSyncService(s->new OzonApiClient(s.getId(),new OzonCredentials(s.getClientId(),s.getApiKey()),server.url("/"),new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(3)).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))),()->{throw new AssertionError("Not WB");});
+        assertEquals("FBS_INVALID_CURSOR",assertThrows(java.io.IOException.class,()->resumed.step(shop,SyncCoordinator.Stream.FBS_QUEUE,second.checkpoint())).getMessage());
+        assertEquals(3,count("SELECT count(*) FROM ozon_postings WHERE shop_id=2"));
+    }
+    @Test void ozonPartialReactivatedOrderRemainsVisibleAndUnblocksAfterFullDetail()throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        var old=unitPosting("P-OLD","ORDER","cancelled",1);old.getAsJsonObject("result").getAsJsonObject("barcodes").addProperty("lower_barcode","KEEP");
+        repository.upsertDetail(shop.getId(),OzonJson.parsePostingDetail(old));
+        var partial=unitPosting("P-OLD","ORDER","awaiting_packaging",1).getAsJsonObject("result");partial.remove("requirements");
+        var rows=new JsonArray();rows.add(partial);var page=new JsonObject();page.add("postings",rows);page.addProperty("has_next",false);
+        server.enqueue(new MockResponse().setBody(page.toString()));server.enqueue(new MockResponse().setResponseCode(404).setBody("{}"));
+        var first=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"");
+        assertEquals("FBS_INCOMPLETE_POSTING",first.warning().code());
+        var preserved=repository.find(shop.getId(),"P-OLD");assertEquals("awaiting_packaging",preserved.status());assertEquals("KEEP",preserved.lowerBarcode());assertTrue(preserved.requirements().blocksPreparation());assertFalse(preserved.canShip());
+        server.enqueue(new MockResponse().setBody(page.toString()));server.enqueue(new MockResponse().setBody(unitPosting("P-OLD","ORDER","awaiting_packaging",1).toString()));
+        var second=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"");assertNull(second.warning());assertFalse(repository.find(shop.getId(),"P-OLD").requirements().blocksPreparation());assertTrue(repository.find(shop.getId(),"P-OLD").canShip());
+    }
+    @Test void ozonEmptyProductsInAnActiveOrderCannotEraseExistingProducts()throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        var old=unitPosting("P-EMPTY","ORDER","awaiting_packaging",1);repository.upsertDetail(shop.getId(),OzonJson.parsePostingDetail(old));
+        var partial=unitPosting("P-EMPTY","ORDER","awaiting_packaging",1).getAsJsonObject("result");partial.add("products",new JsonArray());
+        var rows=new JsonArray();rows.add(partial);var page=new JsonObject();page.add("postings",rows);page.addProperty("has_next",false);
+        server.enqueue(new MockResponse().setBody(page.toString()));server.enqueue(new MockResponse().setResponseCode(404).setBody("{}"));
+        var result=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"");assertEquals("FBS_INCOMPLETE_POSTING",result.warning().code());
+        var saved=repository.find(shop.getId(),"P-EMPTY");assertEquals(1,saved.items().size());assertTrue(saved.requirements().blocksPreparation());
     }
 }

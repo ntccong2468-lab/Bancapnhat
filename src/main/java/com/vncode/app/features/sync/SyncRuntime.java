@@ -28,6 +28,15 @@ public final class SyncRuntime implements AutoCloseable {
     public void request(Shop shop,SyncCoordinator.Stream stream){coordinator.request(shop.getId(),stream);}
     public void refreshShop(Shop shop){for(var stream:SyncCoordinator.Stream.values())if(stream!=SyncCoordinator.Stream.FINANCE)request(shop,stream);}
     public static boolean requestIfRunning(Shop shop,SyncCoordinator.Stream stream){var runtime=current;if(runtime==null)return false;runtime.request(shop,stream);return true;}
+    /** Wake the existing read-only supply/status workers after an accepted WB write. */
+    public static boolean prioritizeSupplyReadbackIfRunning(Shop shop,String supplyId){
+        var runtime=current;if(runtime==null||shop==null||supplyId==null||supplyId.isBlank())return false;
+        runtime.selectSupply(shop.getId(),supplyId);runtime.request(shop,SyncCoordinator.Stream.SUPPLY_CONTENT);runtime.request(shop,SyncCoordinator.Stream.FBS_STATUS);return true;
+    }
+    /** Check an already completed queue read; call on a worker, never on FX. */
+    public static boolean isQueueCurrent(Shop shop,java.time.Duration maxAge){var runtime=current;return runtime!=null&&runtime.coordinator.isQueueCurrent(shop,maxAge);}
+    public static boolean isQueueMembershipCurrent(Shop shop,java.time.Duration maxAge){var runtime=current;return runtime!=null&&runtime.coordinator.isQueueMembershipCurrent(shop,maxAge);}
+    public static SyncCoordinator.QueueProgress queueProgress(Shop shop){var runtime=current;return runtime==null?new SyncCoordinator.QueueProgress(0,"SYNC_UNAVAILABLE",null,false,false):runtime.coordinator.queueProgress(shop);}
     public static boolean hasActiveWrites(){var runtime=current;return runtime!=null&&runtime.coordinator.running(SyncCoordinator.Stream.ZNACK);}
     private SyncCoordinator.Page run(Shop shop,SyncCoordinator.Stream stream,String checkpoint)throws Exception {
         if(stream!=SyncCoordinator.Stream.GS1)LicenseRuntime.require(Permission.SELLER_API);

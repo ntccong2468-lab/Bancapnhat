@@ -66,6 +66,19 @@ public class WbApiClient {
         return getJson(apiKey, url, WbOrdersResponse.class);
     }
 
+    /** WB's authoritative list of assembly orders requiring re-shipment. */
+    public WbReshipmentResponse getReshipments(String apiKey) throws IOException {
+        return getJson(apiKey, "https://marketplace-api.wildberries.ru/api/v3/supplies/orders/reshipment", WbReshipmentResponse.class);
+    }
+
+    public WbArchiveOrdersResponse getArchiveOrders(String apiKey, int year, int month, long next, int limit) throws IOException {
+        if (year < 2000 || month < 1 || month > 12 || next < 0 || limit < 100 || limit > 1000)
+            throw new IllegalArgumentException("WB_ARCHIVE_INVALID_CURSOR");
+        String url = "https://marketplace-api.wildberries.ru/api/marketplace/v3/fbs/orders/archive?year=" + year
+                + "&month=" + month + "&next=" + next + "&limit=" + limit;
+        return getJson(apiKey, url, WbArchiveOrdersResponse.class);
+    }
+
     public WbOrdersResponse getOrders(String apiKey, long next, int limit, Long dateFrom, Long dateTo) throws IOException {
         StringBuilder url = new StringBuilder("https://marketplace-api.wildberries.ru/api/v3/orders?limit=")
                 .append(limit)
@@ -248,14 +261,15 @@ public class WbApiClient {
         try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = ("GET".equals(request.method()) ? CLIENT : MUTATION_CLIENT).newCall(request).execute()) {
             String body = com.vncode.app.shared.BoundedHttpBody.utf8(response.body(),20*1024*1024);
             if (!response.isSuccessful()) {
+                Duration retryAfter = null;
                 if (isContentApiRateLimited(request.url(), response.code())) {
                     WbContentApiRateLimiter.registerRateLimit(apiKey, response.headers());
                 } else if (isMarketplaceApiRateLimited(request.url(), response.code())) {
-                    WbMarketplaceApiRateLimiter.registerRateLimit(apiKey, response.headers());
+                    retryAfter = WbMarketplaceApiRateLimiter.registerRateLimit(apiKey, response.headers());
                 }
                 String message = extractErrorMessage(request.url(), response.code(), body);
                 LOGGER.warn("WB API request failed: {} {} -> {} {}", request.method(), request.url(), response.code(), message);
-                throw new WbApiException(message, response.code(), body);
+                throw new WbApiException(message, response.code(), body, retryAfter);
             }
             if (type == Void.class) {
                 return null;

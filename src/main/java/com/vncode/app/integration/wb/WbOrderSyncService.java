@@ -41,11 +41,12 @@ public class WbOrderSyncService {
         LicenseRuntime.require(SELLER_API);
         long runId = syncRunRepository.startSyncRun(shop.getId(), "orders_new");
         try {
+            Instant requestedAt = Instant.now();
             WbOrdersResponse response = apiClient.getNewOrders(shop.getApiKey());
             WbFbsResponseValidator.orders(response);
             com.vncode.app.integration.listing.ListingIdentity.require(shop);
             int count = response.getOrders().size();
-            orderRepository.saveCurrentNewOrdersSnapshot(shop.getId(), response.getOrders());
+            orderRepository.saveCurrentNewOrdersSnapshot(shop.getId(), response.getOrders(), requestedAt);
             syncRunRepository.finishSyncRun(runId, true, count, count, null, null);
             return count;
         } catch (LicenseDeniedException paused) {
@@ -118,11 +119,12 @@ public class WbOrderSyncService {
             for (int i = 0; i < orderIds.size(); i += STATUS_BATCH_SIZE) {
                 LicenseRuntime.require(SELLER_API);
                 List<Long> batch = orderIds.subList(i, Math.min(i + STATUS_BATCH_SIZE, orderIds.size()));
+                Instant requestedAt = Instant.now();
                 WbOrderStatusesResponse response = apiClient.getOrderStatuses(shop.getApiKey(), batch);
                 WbFbsResponseValidator.statuses(response, batch);
                 com.vncode.app.integration.listing.ListingIdentity.require(shop);
                 int count = response.getOrders().size();
-                orderRepository.updateOrderStatuses(shop.getId(), response.getOrders());
+                orderRepository.updateOrderStatuses(shop.getId(), response.getOrders(), requestedAt);
                 written += count;
             }
             syncRunRepository.finishSyncRun(runId, true, orderIds.size(), written, null, null);
@@ -141,10 +143,12 @@ public class WbOrderSyncService {
         LicenseRuntime.require(SELLER_API);
         long runId = syncRunRepository.startSyncRun(shop.getId(), "supply_orders");
         try {
+            Instant requestedAt = Instant.now();
             WbSupplyOrderIdsResponse response = apiClient.getSupplyOrderIds(shop.getApiKey(), supplyId);
             List<Long> orderIds = new ArrayList<>(WbFbsResponseValidator.supplyIds(response));
             com.vncode.app.integration.listing.ListingIdentity.require(shop);
-            orderRepository.replaceSupplyOrders(shop.getId(), supplyId, orderIds);
+            if (!orderRepository.replaceSupplyOrders(shop.getId(), supplyId, orderIds, requestedAt))
+                throw new IOException("FBS_STALE_SUPPLY_SNAPSHOT");
             supplyRepository.updateSupplyOrderCount(shop.getId(), supplyId, orderIds.size());
             syncRunRepository.finishSyncRun(runId, true, orderIds.size(), orderIds.size(), null, null);
             return orderIds.size();

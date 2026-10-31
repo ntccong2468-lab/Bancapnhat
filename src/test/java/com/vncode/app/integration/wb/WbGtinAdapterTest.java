@@ -95,6 +95,43 @@ class WbGtinAdapterTest {
         var codes=transport.card.getAsJsonArray("sizes").get(0).getAsJsonObject();var replaced=new JsonArray();replaced.add(GTIN);codes.add("skus",replaced);
         assertEquals(Verification.UNKNOWN,adapter.verify(p,submitted));
     }
+    @Test void readbackCannotClaimSuccessIfAnUnselectedSizeAttributeOrDocumentWasLost()throws Exception {
+        var p=preview();var sent=adapter.submit(p);assertEquals(Verification.APPLIED,adapter.verify(p,sent));var intact=transport.card.deepCopy();
+        transport.card.getAsJsonArray("sizes").get(1).getAsJsonObject().getAsJsonArray("skus").remove(0);
+        assertEquals(Verification.UNKNOWN,adapter.verify(p,sent));
+        transport.card=intact.deepCopy();transport.card.getAsJsonArray("characteristics").remove(0);
+        assertEquals(Verification.UNKNOWN,adapter.verify(p,sent));
+        transport.card=intact.deepCopy();transport.card.getAsJsonObject("documents").getAsJsonArray("items").remove(0);
+        assertEquals(Verification.UNKNOWN,adapter.verify(p,sent));
+        transport.card=intact.deepCopy();transport.card.addProperty("description","changed after upload");
+        assertEquals(Verification.UNKNOWN,adapter.verify(p,sent));assertEquals(1,transport.writes.get());
+    }
+    @Test void persistedSameDispatchRestoresEverySelectedSizeForFullCardReadback()throws Exception {
+        var repo=new GtinSyncRepository();var first=repo.catalogItem(1,Marketplace.WILDBERRIES,GTIN);
+        String secondCode="00000000000024";repo.mergeCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(secondCode,"Fixture","Black","L",true,true,first.source(),Instant.now(),first.details())));
+        var other=new ProductKey(1,Marketplace.WILDBERRIES,"101","12");
+        var second=new GtinPreviewService(repo,k->adapter).create(other,Operation.ADD,"",secondCode);
+        var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview(),second),true);runner.runJob(job);
+        var rows=repo.jobItems(job);assertEquals(2,rows.size());assertTrue(rows.stream().allMatch(i->i.status()==Status.SUCCEEDED));
+        assertEquals(1,transport.writes.get());assertEquals(2,repo.dispatchedBatch(rows.getFirst()).size());assertFalse(rows.getFirst().dispatchId().isBlank());
+        assertEquals(rows.getFirst().dispatchId(),new GtinSyncRepository().jobItems(job).getFirst().dispatchId());
+        for(var row:rows)assertEquals(Verification.APPLIED,adapter.verifyBatch(List.of(row)).get(row.preview().before().key()).outcome());
+        // A later dispatch can have the same timestamp on Windows; only its UUID and latest event count.
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO gtin_sync_events(item_id,status,created_at,dispatch_id) VALUES(?,'DISPATCHED',?,?)")){
+            p.setString(1,rows.getLast().id().toString());p.setString(2,rows.getFirst().dispatchedAt().toString());p.setString(3,java.util.UUID.randomUUID().toString());p.executeUpdate();
+        }
+        rows=repo.jobItems(job);assertEquals(1,repo.dispatchedBatch(rows.getFirst()).size());
+        for(var row:rows)assertEquals(Verification.UNKNOWN,adapter.verifyBatch(List.of(row)).get(row.preview().before().key()).outcome());
+        transport.card.getAsJsonObject("documents").getAsJsonArray("items").remove(0);
+        for(var row:rows)assertEquals(Verification.UNKNOWN,adapter.verifyBatch(List.of(row)).get(row.preview().before().key()).outcome());
+    }
+    @Test void legacyPreviewsWithoutPostWriteEvidenceRemainUsableWhenPreimageIsExact()throws Exception {
+        var p=preview();var original=p.before();var legacy=new ProductSnapshot(original.key(),original.article(),original.color(),original.size(),original.barcodes(),original.fingerprint(),original.fetchedAt());
+        var old=new Preview(legacy,p.operation(),p.oldGtin(),p.newGtin(),p.capability());var sent=adapter.submit(old);
+        assertEquals(Verification.APPLIED,adapter.verify(old,sent));
+        transport.card.addProperty("brand","changed");assertEquals(Verification.UNKNOWN,adapter.verify(old,sent));
+    }
     @Test void timeoutIsReconciledWithoutAnotherMutation()throws Exception {
         var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
         var job=runner.confirm(List.of(preview()));transport.loseResponse=true;
@@ -144,6 +181,27 @@ class WbGtinAdapterTest {
         var prices=new WbGtinPriceRepair(shop,transport);
         assertThrows(IllegalStateException.class,()->prices.repair("101",job.toString(),java.util.Set.of(11L,12L),()->repo.requireValidatingBatch(claimed),()->{repo.requireWbPriceConsent(claimed);runner.cancelQueued(job);},c->repo.requirePriceDispatch(c,claimed)));
         assertEquals(0,transport.priceWrites.get());assertEquals(Status.CANCELLED,repo.jobItems(job).getFirst().status());
+    }
+    @Test void sellerEditingTheCardDuringUnequalPricePreflightStopsThePriceAndGtinWrites()throws Exception {
+        var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});
+        var job=runner.confirm(List.of(preview()),true);transport.firstPrice=900;transport.secondPrice=1100;
+        transport.beforeSend=()->transport.card.addProperty("description","Seller changed before price dispatch");runner.runJob(job);
+        assertEquals(0,transport.priceWrites.get());assertEquals(0,transport.writes.get());
+        assertNotEquals(Status.SUCCEEDED,repo.jobItems(job).getFirst().status());
+    }
+    @Test void slowPriceTokenWithAReadyReceiptCannotSendOrReportAnAppliedGtin()throws Exception {
+        ListingTransport upstream=(path,body,mutation)->{
+            if(path.equals("content/v2/get/cards/trash"))return JsonParser.parseString("{\"cards\":[],\"cursor\":{\"total\":0}}");
+            if(path.equals("content/v2/get/cards/list")&&!body.getAsJsonObject().getAsJsonObject("settings").getAsJsonObject("filter").has("textSearch")){
+                var cards=new JsonArray();cards.add(transport.card.deepCopy());var cursor=new JsonObject();cursor.addProperty("total",1);var result=new JsonObject();result.add("cards",cards);result.add("cursor",cursor);return result;
+            }return transport.call(path,body,mutation);
+        };
+        try(var content=new com.vncode.app.integration.listing.GtinBatchTransport(shop,upstream)){
+            var prices=new WbGtinPriceRepair(shop,transport,true);var bulkAdapter=new WbGtinAdapter(shop,content,prices);content.prepare(List.of(key));
+            var repository=new GtinSyncRepository();var plan=new GtinPreviewService(repository,k->bulkAdapter).create(key,Operation.ADD,"",GTIN);var runner=new GtinSyncCoordinator(repository,k->bulkAdapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});var job=runner.confirm(List.of(plan),true);
+            assertEquals(WbGtinPriceRepair.State.READY,new WbGtinPriceRepair(shop,transport).repair("101",job.toString(),java.util.Set.of(11L,12L),()->{},()->{}).state());
+            runner.runJob(job);var item=repository.jobItems(job).getFirst();assertNotEquals(Status.SUCCEEDED,item.status());assertEquals(0,transport.writes.get());assertEquals("WB_PRICE_TOKEN_LIMIT",repository.issue(item.id()));assertTrue(repository.paused(job));
+        }
     }
     @Test void cancelAfterPriceClaimStillReconcilesPriceWithoutGtinAfterRestart()throws Exception {
         var repo=new GtinSyncRepository();var runner=new GtinSyncCoordinator(repo,k->adapter,Clock.systemUTC(),1,Duration.ZERO,requested->{});

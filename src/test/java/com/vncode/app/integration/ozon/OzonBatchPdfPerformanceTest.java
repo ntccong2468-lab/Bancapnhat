@@ -60,8 +60,12 @@ class OzonBatchPdfPerformanceTest {
 
     @Test void benchmarkOneHundredOrders() throws Exception { benchmark(100); }
     @Test void benchmarkOneThousandOrders() throws Exception { benchmark(1000); }
+    @Test void benchmarkOneThousandOrdersWithPartialRecovery() throws Exception { benchmark(1000,true); }
 
     private void benchmark(int count) throws Exception {
+        benchmark(count,false);
+    }
+    private void benchmark(int count,boolean allowPartial) throws Exception {
         List<String> numbers=java.util.stream.IntStream.range(0,count)
                 .mapToObj(i->"96000000-"+String.format("%04d",i)+"-1").toList();
         var postings=numbers.stream().map(number->new OzonPostingDto(number,number,number,"awaiting_deliver",
@@ -95,10 +99,12 @@ class OzonBatchPdfPerformanceTest {
                 (owner,number)->new OzonPreparationResult(number,"NOT_REQUIRED",0,true,false,""),downloader);
         Path labels=temp.resolve("labels.pdf"),picking=temp.resolve("picking.pdf");
         long started=System.nanoTime();
-        var result=exporter.exportAll(shop,numbers,labels.toFile(),picking.toFile());
+        var partial=allowPartial?exporter.exportAvailable(shop,numbers,labels.toFile(),picking.toFile(),null):null;
+        var result=allowPartial?null:exporter.exportAll(shop,numbers,labels.toFile(),picking.toFile());
         long millis=TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started);
-        System.out.printf("OZON_EXPORT_ALL_LOCAL_BENCHMARK orders=%d elapsed_ms=%d api=localhost images=none kiz=none preparation=mock%n",count,millis);
-        assertEquals(count,result.postingCount());assertEquals(count,result.totalPages());
+        System.out.printf("OZON_EXPORT_ALL_LOCAL_BENCHMARK orders=%d elapsed_ms=%d partial=%s api=localhost images=none kiz=none preparation=mock%n",count,millis,allowPartial);
+        if(allowPartial){assertEquals(count,partial.successful().size());assertTrue(partial.failures().isEmpty());assertEquals(count,partial.totalPages());}
+        else {assertEquals(count,result.postingCount());assertEquals(count,result.totalPages());}
         assertEquals(3,server.getRequestCount(),"Single create, poll and download for each local benchmark");
         var request=server.takeRequest(1,TimeUnit.SECONDS);
         assertEquals("/v3/posting/fbs/package-label/create",request.getPath());

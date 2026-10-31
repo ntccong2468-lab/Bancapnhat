@@ -32,15 +32,19 @@ public class PackingWorkflow {
     private static final int ADD_ORDER_BATCH_SIZE = 100;
     private static final DateTimeFormatter SHIPMENT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-    private final WbApiClient apiClient = new WbApiClient();
+    private final WbApiClient apiClient;
     private final WbOrderRepository orderRepository = new WbOrderRepository();
     private final WbProductSyncService productSyncService = new WbProductSyncService();
     private final WbSupplyRepository supplyRepository = new WbSupplyRepository();
     private final WbSupplyWorkflow supplyWorkflow = new WbSupplyWorkflow();
-    private final WbSyncWorkflow syncWorkflow = new WbSyncWorkflow();
+    private final WbSyncWorkflow syncWorkflow;
     private final WbOrderSyncService orderSyncService = new WbOrderSyncService();
     private final PrintHistoryService printHistoryService = new PrintHistoryService();
     private final WbActionLogRepository actionLogRepository = new WbActionLogRepository();
+
+    public PackingWorkflow() { this(new WbApiClient(),new WbSyncWorkflow()); }
+    PackingWorkflow(WbApiClient apiClient) { this(apiClient,new WbSyncWorkflow()); }
+    PackingWorkflow(WbApiClient apiClient,WbSyncWorkflow syncWorkflow) { this.apiClient = java.util.Objects.requireNonNull(apiClient);this.syncWorkflow=java.util.Objects.requireNonNull(syncWorkflow); }
 
     public PackingBoard loadBoard(Shop shop) {
         MarketplaceGuard.requireWildberries(shop);
@@ -111,25 +115,21 @@ public class PackingWorkflow {
     public void addOrdersToSupply(Shop shop, String supplyId, List<Long> orderIds) throws IOException {
         MarketplaceGuard.requireWildberries(shop);
         LicenseRuntime.require(Permission.PACKING);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         List<Long> safeOrderIds = orderIds == null ? List.of() : new ArrayList<>(orderIds);
+        if(safeOrderIds.isEmpty())return;
         validateSupplyB2bCompatibility(shop.getId(), supplyId, safeOrderIds);
         try {
             for (int i = 0; i < safeOrderIds.size(); i += ADD_ORDER_BATCH_SIZE) {
                 List<Long> batch = safeOrderIds.subList(i, Math.min(i + ADD_ORDER_BATCH_SIZE, safeOrderIds.size()));
                 LicenseRuntime.require(Permission.PACKING);
+                com.vncode.app.integration.listing.ListingIdentity.require(shop);
                 apiClient.addOrdersToSupply(shop.getApiKey(), supplyId, batch);
+                com.vncode.app.integration.listing.ListingIdentity.require(shop);
+                // WB's 204 confirms this entire batch. Keep previously added orders
+                // and persist each confirmed batch before sending the next one.
+                orderRepository.appendConfirmedSupplyOrders(shop.getId(), supplyId, batch);
                 actionLogRepository.record(shop.getId(), "ADD_ORDERS_TO_SUPPLY", supplyId, batch, "success", "{\"orders\":" + batch + "}", null, null);
-            }
-            // Reflect successful WB assignment locally even if follow-up sync is slow.
-            orderRepository.replaceSupplyOrders(shop.getId(), supplyId, safeOrderIds);
-            try {
-                syncWorkflow.syncSupplyOrdersAndStatuses(shop, supplyId);
-            } catch (LicenseDeniedException deniedRefresh) {
-                // The assignment succeeded; a newly forbidden refresh cannot undo that result.
-            } catch (IOException ex) {
-                if (!isTimeout(ex)) {
-                    throw ex;
-                }
             }
         } catch (LicenseDeniedException denial) {
             throw denial;
@@ -137,6 +137,25 @@ public class PackingWorkflow {
             actionLogRepository.record(shop.getId(), "ADD_ORDERS_TO_SUPPLY", supplyId, safeOrderIds, "failed", "{\"orders\":" + safeOrderIds + "}", null, ex.getMessage());
             throw ex;
         }
+        // The write was acknowledged and checkpointed. A failed readback is
+        // not a failed assignment and must never trigger a second PATCH.
+        try {
+            syncWorkflow.syncSupplyOrdersAndStatuses(shop, supplyId);
+        } catch (IOException | RuntimeException pending) {
+            scheduleSupplyReadback(shop,supplyId);
+            throw new com.vncode.app.integration.wb.WbReadbackPendingException(supplyId,pending);
+        }
+    }
+
+    private static void scheduleSupplyReadback(Shop shop,String supplyId) {
+        try {
+            var store=new com.vncode.app.features.sync.SyncStreamStore();
+            store.request(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.SUPPLY_CONTENT.name());
+            store.request(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.FBS_STATUS.name());
+        } catch(RuntimeException unavailable) {
+            org.slf4j.LoggerFactory.getLogger(PackingWorkflow.class).warn("WB supply readback remains pending; scheduler will retry after recovery: {}",unavailable.getClass().getSimpleName());
+        }
+        com.vncode.app.features.sync.SyncRuntime.prioritizeSupplyReadbackIfRunning(shop,supplyId);
     }
 
     public void deliverSupply(Shop shop, WbSupplySummary supply) throws IOException {

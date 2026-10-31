@@ -11,6 +11,10 @@ public interface GtinMarketplaceAdapter {
     default void validateIdentity(ProductSnapshot target,RegisteredGtin source) throws Exception {
         throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
     }
+    /** Persist marketplace-specific pre-dispatch identity evidence along with the preview. */
+    default ProductSnapshot prepareIdentity(ProductSnapshot target,RegisteredGtin source)throws Exception {
+        validateIdentity(target,source);return target;
+    }
     Submission submit(Preview preview) throws Exception;
     Verification verify(Preview preview,Submission submission) throws Exception;
 }

@@ -24,5 +24,11 @@ class OzonFbsPrintReportTest {
   assertTrue(reports.items(waiting.id(),0,100).stream().allMatch(i->i.state().equals("WAITING_REMOTE")&&i.error().equals("KIZ_PURCHASE_PENDING")));
   var done=new OzonFbsPrintReport(shop,List.of("P-3"));done.finish(shop,true);
   var item=reports.items(done.id(),0,100).getFirst();assertEquals("SUCCEEDED",item.state());assertEquals("FBS_PDF_CREATED",item.step());assertTrue(item.evidence().contains("\"remoteKizConfirmedByThisTask\":false"));assertFalse(item.evidence().contains("secret-fixture"));
+  var partial=new OzonFbsPrintReport(shop,List.of("P-6","P-7"));partial.finishAvailable(shop,Set.of("P-6"),Map.of("P-7","Nhãn chưa sẵn sàng"));
+  assertEquals("PARTIAL",reports.find(partial.id()).orElseThrow().state());
+  var rows=reports.items(partial.id(),0,100);assertEquals("SUCCEEDED",rows.stream().filter(r->r.productId().equals("P-6")).findFirst().orElseThrow().state());
+  var bad=rows.stream().filter(r->r.productId().equals("P-7")).findFirst().orElseThrow();assertEquals("NEEDS_ACTION",bad.state());assertTrue(bad.evidence().contains("Nhãn chưa sẵn sàng"));
+  var limited=new OzonFbsPrintReport(shop,List.of("P-8"));limited.finishAvailable(shop,Set.of(),Map.of("P-8","Ozon 429"),Set.of("P-8"));
+  assertEquals("WAITING_REMOTE",reports.find(limited.id()).orElseThrow().state());assertEquals("WAITING_REMOTE",reports.items(limited.id(),0,100).getFirst().state());
  }
 }

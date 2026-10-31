@@ -45,7 +45,7 @@ public final class OzonRetryPolicy {
         }
         try {
             long seconds = Long.parseLong(value.strip());
-            return seconds > 0 ? Duration.ofSeconds(Math.min(seconds, 60)) : null;
+            return seconds > 0 ? Duration.ofSeconds(seconds) : null;
         } catch (NumberFormatException ignored) {
             return null;
         }

@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ZnackReviewedDraftSubmissionTest {
     @TempDir Path directory;private String prior;private Shop shop;private HttpServer server;
     private final AtomicInteger posts=new AtomicInteger();private final AtomicReference<JsonObject> wire=new AtomicReference<>();
-    private JsonObject card;private int status=200;private ZnackModels.Settings settings;private ZnackApiClient api;
+    private JsonObject card;private int status=200;private boolean indexContainsCard;private final AtomicInteger indexReads=new AtomicInteger();private ZnackModels.Settings settings;private ZnackApiClient api;
     @BeforeEach void setup()throws Exception{
         prior=System.getProperty("vncode.appdata.dir");System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
         shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
@@ -32,11 +32,12 @@ class ZnackReviewedDraftSubmissionTest {
         });server.start();
         GtinWriteTestFixture.saveSettings(shop,GtinWriteTestFixture.CERTIFICATE,"http://127.0.0.1:"+server.getAddress().getPort());
         settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
-        card=payload();card.addProperty("good_status","draft");card.add("good_detailed_status",JsonParser.parseString("[\"draft\"]"));card.addProperty("good_signed",false);
+        card=payload();card.addProperty("good_status","draft");card.add("good_detailed_status",JsonParser.parseString("[\"draft\"]"));card.addProperty("good_signed",false);card.addProperty("owner_inn",ZnackRegistrationScope.fromSettings(settings).inn());
         api=new ZnackApiClient(){
             @Override public JsonElement productCards(String base,String token,String gtin){var root=new JsonObject();var rows=new JsonArray();rows.add(card.deepCopy());root.add("result",rows);return root;}
             @Override public JsonElement nationalCatalogAttributes(String base,String token,long category){return model();}
             @Override public JsonElement nationalCatalogAllAttributes(String base,String token,long category){return model();}
+            @Override public JsonElement catalogVersions(String base,String token,String inn,int offset){indexReads.incrementAndGet();assertEquals(0,offset);return JsonParser.parseString(indexContainsCard?"{\"result\":{\"total\":1,\"offset\":0,\"goods_count\":1,\"last_product_number\":1,\"goods\":[{\"good_id\":91}]}}":"{\"result\":{\"total\":0,\"offset\":0,\"goods_count\":0,\"last_product_number\":0,\"goods\":[]}}");}
             private JsonElement model(){return JsonParser.parseString("{\"result\":[{\"attr_id\":1,\"attr_name\":\"Fixture\",\"attr_field_type\":\"text\"}]}");}
         };
     }
@@ -79,6 +80,19 @@ class ZnackReviewedDraftSubmissionTest {
         var marked=ZnackNationalCatalogService.reviewedDraftPayload(shop,payload());
         assertThrows(RegistrationValidationException.class,()->service().submit("fixture-token",marked,()->fail("No dispatch checkpoint")));
         assertEquals(0,posts.get());
+    }
+    @Test void anotherOwnerCannotReceiveAReviewedDraftFeed(){
+        card.addProperty("owner_inn","9999999999");
+        assertThrows(Exception.class,()->service().submitReviewedDraft(shop,"fixture-token",ZnackNationalCatalogService.reviewedDraftPayload(shop,payload()),()->fail("No dispatch checkpoint")));
+        assertEquals(0,posts.get());
+    }
+    @Test void omittedOwnerRequiresPositiveParticipantIndexProof()throws Exception{
+        card.remove("owner_inn");
+        assertThrows(Exception.class,()->service().submitReviewedDraft(shop,"fixture-token",ZnackNationalCatalogService.reviewedDraftPayload(shop,payload()),()->fail("No dispatch checkpoint")));
+        assertTrue(indexReads.get()>0);assertEquals(0,posts.get());
+        indexContainsCard=true;
+        assertEquals("accepted-fixture",service().submitReviewedDraft(shop,"fixture-token",ZnackNationalCatalogService.reviewedDraftPayload(shop,payload()),()->{}));
+        assertEquals(1,posts.get());assertEquals(91,wire.get().get("good_id").getAsLong());
     }
     @Test void failedNonIdempotentPostIsNeverReplayed(){
         status=503;var marked=ZnackNationalCatalogService.reviewedDraftPayload(shop,payload());var checkpoint=new AtomicInteger();

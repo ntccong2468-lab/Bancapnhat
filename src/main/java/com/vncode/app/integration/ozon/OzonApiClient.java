@@ -184,6 +184,15 @@ public final class OzonApiClient {
     }
 
     public JsonObject listPostings(String since, String to, String cursor, int limit) throws IOException {
+        return listPostings(since,to,cursor,limit,"asc");
+    }
+
+    /** Latest orders first for the interactive status refresh; the cursor retains its direction. */
+    public JsonObject listPostingsNewestFirst(String since,String to,String cursor,int limit)throws IOException {
+        return listPostings(since,to,cursor,limit,"desc");
+    }
+
+    private JsonObject listPostings(String since, String to, String cursor, int limit,String direction) throws IOException {
         if (since == null || since.isBlank() || to == null || to.isBlank()) {
             throw new IllegalArgumentException("A bounded Ozon posting window is required");
         }
@@ -201,7 +210,7 @@ public final class OzonApiClient {
         JsonObject request = new JsonObject();
         request.add("filter", filter);
         request.add("with", with);
-        request.addProperty("sort_dir", "asc");
+        request.addProperty("sort_dir", direction);
         request.addProperty("cursor", cursor == null ? "" : cursor);
         request.addProperty("limit", limit);
         return postJson("v4/posting/fbs/list", request, "postings");
@@ -313,7 +322,7 @@ public final class OzonApiClient {
     }
 
     public JsonObject splitWithoutAssembly(JsonObject request) throws IOException {
-        return mutateJson("v1/posting/fbs/split", request, "ship");
+        return shipMutation("v1/posting/fbs/split", request);
     }
 
     public JsonObject exemplarStatus(JsonObject request) throws IOException {
@@ -321,11 +330,26 @@ public final class OzonApiClient {
     }
 
     public JsonObject ship(JsonObject request) throws IOException {
-        return mutateJson("v4/posting/fbs/ship", request, "ship");
+        return shipMutation("v4/posting/fbs/ship", request);
+    }
+
+    /** An explicit HTTP 429 refuses this request; timeouts and 5xx remain ambiguous. */
+    private JsonObject shipMutation(String path, JsonObject request) throws IOException {
+        try { return mutateJson(path, request, "ship"); }
+        catch (OzonApiException failure) {
+            if (failure.statusCode() != 429) throw failure;
+            throw new OzonApiException("rate_limited", 429, true, false, failure,
+                    failure.retryAfter(), failure.upstreamCode());
+        }
     }
 
     public JsonObject createBatchLabelJob(JsonObject request) throws IOException {
-        return mutateJson("v3/posting/fbs/package-label/create", request, "labels");
+        try{return mutateJson("v3/posting/fbs/package-label/create", request, "labels");}
+        catch(OzonApiException failure){
+            // An explicit HTTP 429 rejects the request; a timeout or 5xx remains ambiguous.
+            if(failure.statusCode()!=429)throw failure;
+            throw new OzonApiException("rate_limited",429,true,false,failure,failure.retryAfter(),failure.upstreamCode());
+        }
     }
     public JsonObject getBatchLabelJob(JsonObject request) throws IOException {
         return postJson("v2/posting/fbs/package-label/get", request, "labels");
@@ -474,7 +498,7 @@ public final class OzonApiClient {
             int status = response.code();
             if (!response.isSuccessful()) {
                 boolean retryable = retryPolicy.isRetryableStatus(status);
-                Duration retryAfter = !mutation && retryable
+                Duration retryAfter = retryable
                         ? OzonRetryPolicy.parseRetryAfter(response.header("Retry-After")) : null;
                 String upstreamCode = safeUpstreamCode(response.body());
                 throw new OzonApiException(

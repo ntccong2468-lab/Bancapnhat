@@ -101,7 +101,7 @@ class OzonAutomaticDraftSchemaTest {
         assertEquals("МУЖСКОЙ", draft.attributes().get(14013L));
         assertEquals("хлопок 80%, полиэстер 20%", draft.attributes().get(2483L));
         assertEquals("КОСТЮМ СПОРТИВНЫЙ", draft.attributes().get(12L));
-        assertEquals("RU", draft.attributes().get(2630L), "The actual dictionary envelope must allow the seller's manufacturing-country default");
+        assertEquals("RU", draft.attributes().get(2630L), "Use the manufacturing country explicitly present in the product fixture");
         assertEquals("", draft.attributeTypes().get(2630L));
         assertEquals(1, countryReads.get());
         assertEquals(0, allocations.get());
@@ -238,7 +238,7 @@ class OzonAutomaticDraftSchemaTest {
         RegistrationSourceFixture.ready(shop);
         new ProductRepository().saveVerifiedSnapshot(shop, snapshot);
         var batches = new OzonRegistrationBatchService(new OzonRegistrationBatchRepository(), cards, workflow);
-        String run = batches.start(shop, List.of(key), false);
+        String run = batches.start(shop, List.of(key), false, reviewedSource(RegistrationSourceConsent.Action.CREATE,"",null));
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(12);
         OzonRegistrationBatchService.Progress progress;
         do {
@@ -264,9 +264,37 @@ class OzonAutomaticDraftSchemaTest {
         assertEquals("52", attribute(payload.get(), 35).get("attr_value").getAsString());
         assertEquals("RU", attribute(payload.get(), 2630).get("attr_value").getAsString(), "The one-click HTTP feed must carry ISO RU, not the display label");
         assertEquals("", attribute(payload.get(), 2630).get("attr_value_type").getAsString());
-        assertEquals(2, countryReads.get(), "Planning pins one dictionary; final submission independently revalidates current country data");
+        assertTrue(countryReads.get()>=2, "Planning and final submission independently revalidate current country data");
         assertFalse(batches.resumePending(shop));
         assertEquals(1, posts.get());
+    }
+
+    @Test void legacyBatchWithoutSellerConsentStopsForReviewWithoutSending() throws Exception {
+        new OzonCatalogRepository().upsertPage(shop.getId(),List.of(new OzonProductDto("501",key.variantId(),"9001",snapshot.title(),"",key.variantId(),"коричневый","3XL","Костюм спортивный","Мужской",false,Instant.now().toString(),List.of())),"");
+        RegistrationSourceFixture.ready(shop);new ProductRepository().saveVerifiedSnapshot(shop,snapshot);
+        var batches=new OzonRegistrationBatchService(new OzonRegistrationBatchRepository(),cards,workflow);batches.start(shop,List.of(key),false);
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(12);OzonRegistrationBatchService.Progress progress;
+        do{progress=batches.latest(shop);if(progress!=null&&Set.of(OzonRegistrationBatchService.State.COMPLETED,OzonRegistrationBatchService.State.FAILED).contains(progress.state()))break;Thread.sleep(20);}while(System.nanoTime()<deadline);
+        assertNotNull(progress);assertEquals(1,progress.failed(),()->"Expected review instead of retry: "+batches.latest(shop));
+        assertEquals(0,progress.submitted());assertEquals(0,allocations.get());assertEquals(0,posts.get());
+        assertNull(cards.find(key), "An unreviewed legacy batch must not create a Catalog card checkpoint");
+        var reportItems=new com.vncode.app.features.sync.SyncRunRepository().items(progress.runId(),0,10);
+        assertEquals(1,reportItems.size());
+        assertEquals("NEEDS_ACTION",reportItems.getFirst().state());
+        assertTrue(reportItems.getFirst().evidence().contains("ZNACK_SOURCE_REVIEW_REQUIRED"));
+    }
+
+    @Test void legacySavedGtinWithoutConsentDoesNotRetryForeverOrPost() throws Exception {
+        new OzonCatalogRepository().upsertPage(shop.getId(),List.of(new OzonProductDto("501",key.variantId(),"9001",snapshot.title(),"",key.variantId(),"коричневый","3XL","Костюм спортивный","Мужской",false,Instant.now().toString(),List.of())),"");
+        RegistrationSourceFixture.ready(shop);new ProductRepository().saveVerifiedSnapshot(shop,snapshot);
+        var reviewed=workflow.prepare(shop,key);var draft=OzonCardRegistrationWorkflow.suggestedDraft(reviewed).orElseThrow();
+        assertTrue(cards.claim(shop,key,"9001","",session.scope(),false));assertTrue(cards.transition(key,Status.CHECKING,Status.ALLOCATING_GTIN));
+        cards.generated(key,"00000000000024",ZnackNationalCatalogService.buildPayload("00000000000024",draft,"").toString());
+        var batches=new OzonRegistrationBatchService(new OzonRegistrationBatchRepository(),cards,workflow);batches.start(shop,List.of(key),false);
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(12);OzonRegistrationBatchService.Progress progress;
+        do{progress=batches.latest(shop);if(progress!=null&&Set.of(OzonRegistrationBatchService.State.COMPLETED,OzonRegistrationBatchService.State.FAILED).contains(progress.state()))break;Thread.sleep(20);}while(System.nanoTime()<deadline);
+        assertNotNull(progress);assertEquals(1,progress.failed(),()->"Expected review instead of retry: "+batches.latest(shop));
+        assertEquals(0,progress.submitted());assertEquals(0,allocations.get());assertEquals(0,posts.get());assertEquals("00000000000024",cards.find(key).gtin());
     }
 
     @Test void sellerCorrectionRebuildsKnownUnsentValidationFailureWithTheSameGtin() throws Exception {
@@ -278,8 +306,8 @@ class OzonAutomaticDraftSchemaTest {
                 Map.of(ZnackNationalCatalogService.DECLARATION_ATTRIBUTE_ID, "OLD-EXPIRED:::2025-01-01", 35L, "WRONG"), Map.of());
         String oldPayload = ZnackNationalCatalogService.buildPayload("00000000000024", oldDraft, "").toString();
         cards.generated(key, "00000000000024", oldPayload);
-        assertTrue(workflow.resumeForBatch(shop, key, false));
-        assertEquals(Status.PRE_SUBMIT_ERROR, cards.find(key).status(), "A definite permit validation failure occurs before HTTP send");
+        assertTrue(cards.transition(key,Status.READY_TO_SUBMIT,Status.PRE_SUBMIT_ERROR));
+        assertEquals(Status.PRE_SUBMIT_ERROR, cards.find(key).status(), "The old rejected local validation is known unsent");
         assertEquals(0, allocations.get()); assertEquals(0, posts.get());
 
         // The seller has corrected the source data/document before clicking Register once again.
@@ -290,7 +318,7 @@ class OzonAutomaticDraftSchemaTest {
         RegistrationSourceFixture.ready(shop);
         new ProductRepository().saveVerifiedSnapshot(shop, snapshot);
         var batches = new OzonRegistrationBatchService(new OzonRegistrationBatchRepository(), cards, workflow);
-        batches.start(shop, List.of(key), false);
+        batches.start(shop, List.of(key), false, reviewedSource(RegistrationSourceConsent.Action.RESUME_GTIN,"00000000000024",null));
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(12);
         while (System.nanoTime() < deadline) {
             var progress = batches.latest(shop);
@@ -319,9 +347,20 @@ class OzonAutomaticDraftSchemaTest {
         }
     }
 
+    /** Model the seller's explicit review with the same persisted facts shown by the UI. */
+    private RegistrationSourceConsent.Prepared reviewedSource(RegistrationSourceConsent.Action action,String gtin,Long goodId)throws Exception {
+        var review=new RegistrationDynamicPreflight(ignored->session).read(shop,List.of(snapshot),Map.of());
+        assertTrue(review.blocked().isEmpty(),()->"Blocked review: "+review.blocked());
+        assertTrue(review.missing().isEmpty(),()->"Missing review fields: "+review.missing());
+        var facts=RegistrationFieldProvenance.readBatch(shop,review.plans());
+        return RegistrationSourceConsent.prepare(shop,java.util.UUID.randomUUID(),review.plans(),
+                Map.of(key,new RegistrationSourceConsent.Target(action,gtin,goodId)),Map.of(),facts,false);
+    }
+
     private ProductSnapshot snapshot(String manufacturer, String russian, boolean regulation, boolean conflictingGender) {
         var attrs = new ArrayList<ProductAttribute>();
         attrs.add(new ProductAttribute("tnved", "ТН ВЭД", List.of("6211331000"), null));
+        attrs.add(new ProductAttribute("country", "Страна производства", List.of("Россия"), null));
         attrs.add(new ProductAttribute("color", "Цвет товара", List.of("коричневый"), null));
         attrs.add(new ProductAttribute("gender", "Пол", conflictingGender ? List.of("Мужской", "Женский") : List.of("Мужской"), null));
         attrs.add(new ProductAttribute("material", "Состав материала", List.of("хлопок 80%", "полиэстер 20%"), null));

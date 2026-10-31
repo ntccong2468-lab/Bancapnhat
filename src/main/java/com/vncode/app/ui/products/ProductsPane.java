@@ -94,7 +94,10 @@ public final class ProductsPane extends BorderPane {
         issue.setConverter(new StringConverter<>(){public String toString(ProductIssueFilter v){return v==null?"":tr("products.issue."+v.name())+(issueCounts.containsKey(v)?" ("+issueCounts.get(v)+")":"");}public ProductIssueFilter fromString(String v){return ProductIssueFilter.ALL;}});
         pageSelection.setId("productSelectAll");
         pageSelection.setMinWidth(Region.USE_PREF_SIZE);category.setMinWidth(100);document.setMinWidth(200);
-        var filters=new HBox(14,pageSelection,search,category,document);filters.setId("productFilters");filters.setAlignment(Pos.CENTER_LEFT);
+        // Filters are also shown beside the app's sidebar.  At narrower window
+        // widths an HBox kept the document filter beyond the right edge, so let
+        // the controls wrap without shrinking their labels below usable widths.
+        var filters=new FlowPane(14,8,pageSelection,search,category,document);filters.setId("productFilters");filters.setAlignment(Pos.CENTER_LEFT);filters.setMinWidth(0);
         needsFix.getStyleClass().add("text-muted");issueBar.getChildren().add(needsFix);issueBar.setAlignment(Pos.CENTER_LEFT);
         for(var kind:List.of(ProductIssueFilter.INVALID_TNVED,ProductIssueFilter.MISSING_BRAND,ProductIssueFilter.MISSING_MATERIAL)){
             var chip=new ToggleButton();chip.setId("productIssue_"+kind.name());chip.getStyleClass().add("product-issue-chip");chip.setOnAction(e->issue.setValue(issue.getValue()==kind?ProductIssueFilter.ALL:kind));issueChips.put(kind,chip);issueBar.getChildren().add(chip);

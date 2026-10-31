@@ -12,9 +12,12 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     private final Map<String,List<String>> membership=new LinkedHashMap<>();
     private final Set<List<String>> loaded=new HashSet<>();
     private final Set<List<String>> isolated=new HashSet<>();
+    private final Map<List<String>,IOException> failed=new HashMap<>();
     private final Map<String,List<Integer>> pages=new HashMap<>();
     private final Map<String,PdfDocument> documents=new HashMap<>();
     private final List<Path> temporaryFiles=new ArrayList<>();
+    private int rejectedSplits;
+    private static final int MAX_REJECTED_SPLITS=16;
     OzonBatchLabelDownloader(OzonLabelService service,Shop shop,List<String> numbers) {
         this.service=service;
         var known=new LinkedHashMap<String,List<String>>();var fresh=new ArrayList<String>();var repo=new OzonLabelRepository();
@@ -34,8 +37,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
         known.values().forEach(group->{var frozen=List.copyOf(group);frozen.forEach(number->membership.put(number,frozen));});
     }
     @Override public File download(Shop shop,String number,File target)throws IOException {
-        var group=membership.get(number);if(group==null)throw new IOException("OZON_LABEL_BATCH_SELECTION_CHANGED");
-        if(!isolated.contains(group)&&!loaded.contains(group))load(shop,group);
+        var group=groupFor(shop,number);
         if(isolated.contains(group)) {
             OzonPrintTiming.isolatedLabel();long started=OzonPrintTiming.tick();
             try { return service.downloadIsolatedPdf(shop,number,target); }
@@ -46,13 +48,47 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
         return target;
     }
     @Override public OzonPrintBundleService.VerifiedCarrierPage verifiedCarrierPage(Shop shop,String number)throws IOException {
-        var group=membership.get(number);if(group==null)throw new IOException("OZON_LABEL_BATCH_SELECTION_CHANGED");
-        if(!isolated.contains(group)&&!loaded.contains(group))load(shop,group);
+        var group=groupFor(shop,number);
         if(isolated.contains(group))return null;
         var selected=pages.get(number);
         // Multi-page/product-page filtering keeps the existing isolated-file path.
         if(selected==null||selected.size()!=1)return null;
         return new OzonPrintBundleService.VerifiedCarrierPage(documents.get(number),selected.getFirst());
+    }
+    private List<String> groupFor(Shop shop,String number)throws IOException {
+        for(;;){var group=membership.get(number);if(group==null)throw new IOException("OZON_LABEL_BATCH_SELECTION_CHANGED");
+            ensureLoaded(shop,group);if(group.equals(membership.get(number)))return group;}
+    }
+    private void ensureLoaded(Shop shop,List<String> group)throws IOException {
+        IOException previous=failed.get(group);
+        if(previous!=null)throw previous;
+        if(isolated.contains(group)||loaded.contains(group))return;
+        for(int attempt=0;;attempt++) {
+            try { load(shop,group); return; }
+            catch(IOException error) {
+                if(error instanceof OzonApiException api&&!api.ambiguousMutation()&&(api.statusCode()==400||api.statusCode()==422)
+                        &&group.size()>1&&rejectedSplits<MAX_REJECTED_SPLITS&&definitivelyRejected(shop,group)) {
+                    int middle=group.size()/2;
+                    var left=List.copyOf(group.subList(0,middle));var right=List.copyOf(group.subList(middle,group.size()));
+                    left.forEach(number->membership.put(number,left));right.forEach(number->membership.put(number,right));rejectedSplits++;
+                    return;
+                }
+                if(attempt==0 && error instanceof OzonApiException api && api.statusCode()==429 && !api.ambiguousMutation()) {
+                    java.time.Duration retry=api.retryAfter()==null?java.time.Duration.ofSeconds(2):api.retryAfter();
+                    // Do not retry earlier than Ozon requested. A long cooldown remains pending for the seller.
+                    if(!retry.isNegative()&&retry.compareTo(java.time.Duration.ofSeconds(30))<=0) {
+                        try { Thread.sleep(Math.max(1,retry.toMillis())); }
+                        catch(InterruptedException interrupted) {Thread.currentThread().interrupt();throw new java.io.InterruptedIOException("OZON_LABEL_BATCH_INTERRUPTED");}
+                        continue;
+                    }
+                }
+                failed.put(group,error);throw error;
+            }
+        }
+    }
+    private static boolean definitivelyRejected(Shop shop,List<String> group){
+        var rows=new OzonLabelRepository().findMany(shop.getId(),group);
+        return rows.size()==group.size()&&group.stream().allMatch(number->{var job=rows.get(number);return job!=null&&"FAILED".equals(job.status())&&(job.taskId()==null||job.taskId().isBlank());});
     }
     private void load(Shop shop,List<String> group)throws IOException {
         Path file=Files.createTempFile("vncode-ozon-label-batch-",".pdf");temporaryFiles.add(file);
@@ -92,6 +128,6 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     @Override public void close() {
         for(var pdf:new HashSet<>(documents.values()))try{pdf.close();}catch(RuntimeException ignored){}
         for(var file:temporaryFiles)try{Files.deleteIfExists(file);}catch(IOException ignored){}
-        documents.clear();pages.clear();temporaryFiles.clear();loaded.clear();isolated.clear();
+        documents.clear();pages.clear();temporaryFiles.clear();loaded.clear();isolated.clear();failed.clear();
     }
 }

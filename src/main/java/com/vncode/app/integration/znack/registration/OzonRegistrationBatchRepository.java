@@ -35,19 +35,30 @@ public final class OzonRegistrationBatchRepository {
         boolean hasFeed=false;try(var q=c.createStatement();var rows=q.executeQuery("PRAGMA table_info(ozon_registration_batch_items)")){while(rows.next())hasFeed|="feed_id".equals(rows.getString("name"));}
         if(!hasFeed)try(var alter=c.createStatement()){alter.execute("ALTER TABLE ozon_registration_batch_items ADD COLUMN feed_id TEXT NOT NULL DEFAULT ''");}
         ensureColumn(c,"retry_count","INTEGER NOT NULL DEFAULT 0");ensureColumn(c,"next_retry_at","TEXT");ensureColumn(c,"correction_resumed","INTEGER NOT NULL DEFAULT 0");
+        boolean checkedFeed=false;try(var q=c.createStatement();var rows=q.executeQuery("PRAGMA table_info(ozon_registration_batch_items)")){while(rows.next())checkedFeed|="correction_checked_feed".equals(rows.getString("name"));}
+        if(!checkedFeed)try(var p=c.createStatement()){
+            p.execute("ALTER TABLE ozon_registration_batch_items ADD COLUMN correction_checked_feed TEXT NOT NULL DEFAULT ''");
+            // Legacy history does not record whether an Ozon feed was actually
+            // rejected; do not infer an automatic retry from that ambiguity.
+            p.execute("UPDATE ozon_registration_batch_items SET correction_checked_feed=feed_id,detail='CATALOG_LEGACY_REPAIR_REVIEW_REQUIRED: '||detail WHERE state='FAILED' AND EXISTS(SELECT 1 FROM ozon_registration_batches b WHERE b.run_id=ozon_registration_batch_items.run_id AND b.correction_resumed<>0)");
+        }
     }
     private static void ensureColumn(Connection c,String name,String definition)throws SQLException{boolean found=false;try(var p=c.createStatement();var rows=p.executeQuery("PRAGMA table_info(ozon_registration_batches)")){while(rows.next())found|=name.equals(rows.getString("name"));}if(!found)try(var p=c.createStatement()){p.execute("ALTER TABLE ozon_registration_batches ADD COLUMN "+name+" "+definition);}}
     public String create(Shop shop,List<ProductKey> keys,boolean autoSign,ZnackRegistrationScope scope) {
         return create(shop,keys,autoSign,scope,UUID.randomUUID().toString());
     }
     public String create(Shop shop,List<ProductKey> keys,boolean autoSign,ZnackRegistrationScope scope,String run) {
+        return create(shop,keys,autoSign,scope,run,null);
+    }
+    String create(Shop shop,List<ProductKey> keys,boolean autoSign,ZnackRegistrationScope scope,String run,RegistrationSourceConsent.Prepared consent) {
         ListingIdentity.require(shop);scope.assertCurrent(shop);
         var frozen=List.copyOf(new LinkedHashSet<>(keys));
         if(frozen.isEmpty()||frozen.size()>100000||frozen.stream().anyMatch(k->k.shopId()!=shop.getId()||k.marketplace()!=Marketplace.OZON))throw new IllegalArgumentException("invalid_selection");
-        return write(c->{initialize(c);var old=latest(c,shop.getId());if(old!=null&&!Set.of("COMPLETED","FAILED","CANCELLED").contains(old.state()))return old.id();
+        return write(c->{initialize(c);var old=latest(c,shop.getId());if(old!=null&&!Set.of("COMPLETED","FAILED","CANCELLED").contains(old.state()))throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
             String id=run,now=Instant.now().toString();
             try(var p=c.prepareStatement("INSERT INTO ozon_registration_batches(run_id,shop_id,owner,scope_json,auto_sign,state,detail,created_at,updated_at) VALUES(?,?,?,?,?,'QUEUED','',?,?)")){p.setString(1,id);p.setInt(2,shop.getId());p.setString(3,ListingIdentity.fingerprint(shop));p.setString(4,new Gson().toJson(scope));p.setBoolean(5,autoSign);p.setString(6,now);p.setString(7,now);p.executeUpdate();}
             try(var p=c.prepareStatement("INSERT INTO ozon_registration_batch_items(run_id,position,product_id,offer_id) VALUES(?,?,?,?)")){int n=0;for(var key:frozen){p.setString(1,id);p.setInt(2,n++);p.setString(3,key.cardId());p.setString(4,key.variantId());p.addBatch();if(n%500==0)p.executeBatch();}p.executeBatch();}
+            if(consent!=null)RegistrationSourceConsent.persist(c,shop,id,frozen,consent);
             return id;});
     }
     /** The exact frozen native product belongs to an unfinished submission batch. */
@@ -65,13 +76,15 @@ public final class OzonRegistrationBatchRepository {
     public Item next(Batch batch){return read(c->{try(var p=c.prepareStatement("SELECT * FROM ozon_registration_batch_items WHERE run_id=? AND state IN ('PENDING','RUNNING') ORDER BY position LIMIT 1")){p.setString(1,batch.id());try(var r=p.executeQuery()){return r.next()?new Item(batch.id(),r.getInt("position"),new ProductKey(batch.shopId(),Marketplace.OZON,r.getString("product_id"),r.getString("offer_id")),r.getString("state"),r.getString("detail")):null;}}});}
     public List<Item> waitingReadback(Batch batch){return read(c->{var items=new ArrayList<Item>();try(var p=c.prepareStatement("SELECT * FROM ozon_registration_batch_items WHERE run_id=? AND state='WAITING_REMOTE' ORDER BY position")){p.setString(1,batch.id());try(var r=p.executeQuery()){while(r.next())items.add(new Item(batch.id(),r.getInt("position"),new ProductKey(batch.shopId(),Marketplace.OZON,r.getString("product_id"),r.getString("offer_id")),r.getString("state"),r.getString("detail")));}}return List.copyOf(items);});}
     List<Item> failedItems(Batch batch){return read(c->{var items=new ArrayList<Item>();try(var p=c.prepareStatement("SELECT * FROM ozon_registration_batch_items WHERE run_id=? AND state='FAILED' ORDER BY position")){p.setString(1,batch.id());try(var r=p.executeQuery()){while(r.next())items.add(new Item(batch.id(),r.getInt("position"),new ProductKey(batch.shopId(),Marketplace.OZON,r.getString("product_id"),r.getString("offer_id")),r.getString("state"),r.getString("detail")));}}return List.copyOf(items);});}
-    /** Only schedule fresh readback of deterministic saved rejections, once per old batch. */
+    /** Schedule readback at most once for each rejected feed, rather than once for the whole batch. */
     boolean reopenRejected(Shop shop,Batch expected,List<Item> eligible){
         if(eligible.isEmpty())return false;ListingIdentity.require(shop);
         return write(c->{var latest=latest(c,shop.getId());if(latest==null||!latest.id().equals(expected.id())||!latest.owner().equals(ListingIdentity.fingerprint(shop)))return false;
             new Gson().fromJson(latest.scope(),ZnackRegistrationScope.class).assertCurrent(shop);
-            try(var p=c.prepareStatement("UPDATE ozon_registration_batches SET state='QUEUED',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',retry_count=0,next_retry_at=NULL,correction_resumed=1,updated_at=? WHERE run_id=? AND state IN ('COMPLETED','FAILED') AND correction_resumed=0")){p.setString(1,Instant.now().toString());p.setString(2,expected.id());if(p.executeUpdate()!=1)return false;}
-            try(var p=c.prepareStatement("UPDATE ozon_registration_batch_items SET state='WAITING_REMOTE',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS' WHERE run_id=? AND position=? AND state='FAILED'")){for(var item:eligible){if(!item.run().equals(expected.id()))throw new IllegalArgumentException("batch_mismatch");p.setString(1,item.run());p.setInt(2,item.position());p.addBatch();}p.executeBatch();}return true;
+            boolean changed=false;
+            try(var p=c.prepareStatement("UPDATE ozon_registration_batch_items SET state='WAITING_REMOTE',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',correction_checked_feed=feed_id WHERE run_id=? AND position=? AND state='FAILED' AND feed_id<>'' AND correction_checked_feed<>feed_id AND EXISTS(SELECT 1 FROM ozon_registration_batches b WHERE b.run_id=ozon_registration_batch_items.run_id AND b.state IN ('COMPLETED','FAILED'))")){for(var item:eligible){if(!item.run().equals(expected.id()))throw new IllegalArgumentException("batch_mismatch");p.setString(1,item.run());p.setInt(2,item.position());changed|=p.executeUpdate()==1;}}
+            if(!changed)return false;
+            try(var p=c.prepareStatement("UPDATE ozon_registration_batches SET state='QUEUED',detail='CATALOG_CORRECTING_OPTIONAL_FIELDS',retry_count=0,next_retry_at=NULL,updated_at=? WHERE run_id=? AND state IN ('COMPLETED','FAILED')")){p.setString(1,Instant.now().toString());p.setString(2,expected.id());if(p.executeUpdate()!=1)throw new IllegalStateException("REGISTRATION_BATCH_CHANGED");}return true;
         });
     }
     public Item lastSubmitted(Batch batch){return read(c->{try(var p=c.prepareStatement("SELECT * FROM ozon_registration_batch_items WHERE run_id=? AND state='SUBMITTED' ORDER BY position DESC LIMIT 1")){p.setString(1,batch.id());try(var r=p.executeQuery()){return r.next()?new Item(batch.id(),r.getInt("position"),new ProductKey(batch.shopId(),Marketplace.OZON,r.getString("product_id"),r.getString("offer_id")),r.getString("state"),r.getString("detail")):null;}}});}
@@ -88,6 +101,7 @@ public final class OzonRegistrationBatchRepository {
             if(next.equals("QUEUED")?!batch.state().equals("PAUSED"):Set.of("COMPLETED","FAILED","CANCELLED").contains(batch.state()))return false;
             try(var p=c.prepareStatement("UPDATE ozon_registration_batches SET state=?,detail=?,retry_count=CASE WHEN ?='QUEUED' THEN 0 ELSE retry_count END,next_retry_at=NULL,updated_at=? WHERE run_id=?")){p.setString(1,next);p.setString(2,next.equals("QUEUED")?"":next.equals("PAUSED")?"REGISTRATION_BATCH_PAUSED":"REGISTRATION_BATCH_CANCELLED");p.setString(3,next);p.setString(4,Instant.now().toString());p.setString(5,batch.id());p.executeUpdate();}
             if(next.equals("CANCELLED"))try(var p=c.prepareStatement("UPDATE ozon_registration_batch_items SET state='CANCELLED',detail='REGISTRATION_BATCH_CANCELLED' WHERE run_id=? AND state='PENDING' AND NOT EXISTS(SELECT 1 FROM ozon_card_registrations r WHERE r.shop_id=? AND r.product_id=ozon_registration_batch_items.product_id AND r.offer_id=ozon_registration_batch_items.offer_id AND (r.feed_id<>'' OR r.good_id IS NOT NULL OR r.status IN ('ALLOCATING_GTIN','FEED_SUBMITTING','GTIN_REVIEW_REQUIRED','FEED_REVIEW_REQUIRED')))")){p.setString(1,batch.id());p.setInt(2,shop.getId());p.executeUpdate();}
+            if(next.equals("CANCELLED"))RegistrationSourceConsentGuard.cancel(c,batch.id());
             return true;
         });
     }

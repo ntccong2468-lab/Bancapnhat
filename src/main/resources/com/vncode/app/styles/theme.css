@@ -93,7 +93,7 @@
 
     -text-primary: #24212B;    /* Charcoal text (matches Wildberries) */
     -text-secondary: #374151;  /* Slate text */
-    -text-muted: #6B7280;      /* Grey text */
+    -text-muted: #687080;      /* Grey text with readable contrast on light surfaces */
 
     -accent: #8B2EC5;          /* VN code light theme */
     -accent-hover: #C071FA;
@@ -851,6 +851,11 @@
 #packingOrdersTable .table-row-cell,
 #deliveringOrdersTable .table-row-cell {
     -fx-cell-size: 76px;
+}
+
+/* Debt rows contain two WB status fields. Let the row grow for wrapped text. */
+#debtOrdersTable .table-row-cell {
+    -fx-cell-size: -1;
 }
 
 /* 3. Compact FBS preparation/dispatch tables -> 60px height */

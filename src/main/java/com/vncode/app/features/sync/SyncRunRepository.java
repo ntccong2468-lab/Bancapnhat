@@ -126,18 +126,30 @@ public final class SyncRunRepository {
         }); }catch(SQLException e){throw storage(e);}
     }
     public void linkReviewed(Shop shop,String run,com.vncode.app.features.catalogsync.CatalogSyncModels.Job child){
+        linkReviewed(shop,run,child,true);
+    }
+    /** Background-generated confirmation must never masquerade as a seller UI review. */
+    public void linkReviewed(Shop shop,String run,com.vncode.app.features.catalogsync.CatalogSyncModels.Job child,boolean sellerReviewed){
         if(!child.confirmed()||!child.fields().contains(com.vncode.app.features.catalogsync.CatalogSyncModels.Field.GTIN)||child.shopId()!=shop.getId()||!child.owner().equals(ListingIdentity.fingerprint(shop)))throw new SecurityException("SYNC_REVIEW_OWNER_CHANGED");
         var dispatched=new HashMap<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey,Boolean>();
         var details=new HashMap<com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey,String>();var seenJobs=new HashSet<String>();var queue=new com.vncode.app.features.gtinsync.GtinSyncRepository();
         for(var row:child.rows())if(row.gtinJob()!=null&&!row.gtinJob().isBlank()&&seenJobs.add(row.gtinJob())){details.putAll(queue.issueDetails(UUID.fromString(row.gtinJob())));for(var item:queue.jobItems(UUID.fromString(row.gtinJob())))dispatched.put(item.preview().before().key(),item.dispatchedAt()!=null||Set.of("AWAITING_VERIFICATION","RECONCILE_REQUIRED","SUCCEEDED").contains(item.status().name()));}
         try { SqliteWriteTransaction.run(c->{
             require(c,shop,run);
+            // A reviewed marker belongs to exactly one child job, never to a
+            // newer plan for the same product loaded from history.
+            try(var p=c.prepareStatement("UPDATE sync_run_items SET evidence_json=json_set(CASE WHEN json_valid(evidence_json) THEN evidence_json ELSE '{}' END,'$.gtinApproval','') WHERE run_id=? AND product_id=? AND variant_id=? AND COALESCE(child_job,'')<>? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
+                for(var row:child.rows()){p.setString(1,run);p.setString(2,row.key().productId());p.setString(3,row.key().variantId());p.setString(4,child.id());p.addBatch();}p.executeBatch();
+            }
             try(var p=c.prepareStatement("UPDATE sync_run_items SET gtin=?,child_job=?,state=?,step='READBACK',error_code=?,updated_at=?,evidence_json=json_set(CASE WHEN json_valid(evidence_json) THEN evidence_json ELSE '{}' END,'$.marketplaceVerified',json(?),'$.marketplaceSubmitted',json(?),'$.syncResult',?,'$.nextAction',?,'$.reason',COALESCE(?,json_extract(CASE WHEN json_valid(evidence_json) THEN evidence_json ELSE '{}' END,'$.reason'),'')) WHERE run_id=? AND product_id=? AND variant_id=? AND state NOT IN ('SUCCEEDED','UNCHANGED')")){
               for(var row:child.rows()){
                     // Let the sync worker activate the native registration candidate after
                     // the confirmed child has verified the target. UI callbacks cannot skip it.
                     p.setString(1,row.catalog().gtin());p.setString(2,child.id());p.setString(3,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"NEEDS_ACTION":"WAITING_REMOTE");p.setString(4,code(row.issue()));p.setString(5,Instant.now().toString());p.setString(6,row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.SUCCEEDED?"true":"false");boolean applied=row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.SUCCEEDED;boolean sent=applied||dispatched.getOrDefault(row.key(),false);p.setString(7,sent?"true":"false");p.setString(8,applied?"APPLIED":row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"FAILED":sent?"PENDING":"NOT_SUBMITTED");p.setString(9,applied?"GTIN_READBACK_COMPLETE":row.state()==com.vncode.app.features.catalogsync.CatalogSyncModels.State.BLOCKED?"GTIN_REVIEW_SOURCE":"GTIN_WAIT_READBACK");p.setString(10,applied?"":details.get(row.key()));p.setString(11,run);p.setString(12,row.key().productId());p.setString(13,row.key().variantId());p.addBatch();
               }p.executeBatch();
+            }
+            try(var p=c.prepareStatement("UPDATE sync_run_items SET evidence_json=json_set(CASE WHEN json_valid(evidence_json) THEN evidence_json ELSE '{}' END,'$.gtinApproval',CASE WHEN ?=1 THEN 'SELLER_REVIEWED' WHEN json_extract(CASE WHEN json_valid(evidence_json) THEN evidence_json ELSE '{}' END,'$.gtinApproval')='SELLER_REVIEWED' THEN 'SELLER_REVIEWED' ELSE 'REGISTRATION_AUTO' END) WHERE run_id=? AND child_job=?")){
+                p.setBoolean(1,sellerReviewed);p.setString(2,run);p.setString(3,child.id());p.executeUpdate();
             }
             try(var p=c.prepareStatement("UPDATE sync_runs SET state='RUNNING',step='READBACK',finished_at=NULL,updated_at=? WHERE id=?")){p.setString(1,Instant.now().toString());p.setString(2,run);p.executeUpdate();}
             SyncStreamStore.request(c,shop.getId(),"ZNACK");return null;

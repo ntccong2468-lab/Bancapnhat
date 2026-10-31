@@ -45,12 +45,28 @@ final class OzonUnitShipService {
         LicenseRuntime.require(Permission.PACKING);
         var raw=api.getPosting(number,true,true);
         var source=OzonJson.requirePostingDetail(raw,number);
+        // A missing field in the API response is unknown, not proof that the
+        // product is exempt from marking. Verify fresh data before any ship.
+        var nested=OzonJson.object(raw,"result");var detail=nested.isEmpty()?raw:nested;
+        if(!detail.has("requirements")||!detail.get("requirements").isJsonObject())
+            throw new IOException("OZON_ACCEPT_KIZ_REQUIREMENTS_UNVERIFIED");
+        var requirements=detail.getAsJsonObject("requirements");
+        var mandatory=requirements.get("products_requiring_mandatory_mark");
+        var optional=OzonJson.object(detail,"optional").get("products_with_possible_mandatory_mark");
+        if(optional==null)optional=requirements.get("products_requiring_optional_mark");
+        if(!validMarkIds(mandatory))
+            throw new IOException("OZON_ACCEPT_KIZ_REQUIREMENTS_UNVERIFIED");
+        if(optional==null||!optional.isJsonArray()) {
+            var mandatoryIds=new HashSet<>(OzonJson.strings(mandatory));
+            if(source.items().stream().anyMatch(item->!mandatoryIds.contains(item.productId())))
+                throw new IOException("OZON_ACCEPT_KIZ_REQUIREMENTS_UNVERIFIED");
+        } else if(!validMarkIds(optional))throw new IOException("OZON_ACCEPT_KIZ_REQUIREMENTS_UNVERIFIED");
         // A split response can be lost before children are recorded. If this
         // posting shares the unfinished parent order/warehouse, keep it pending
         // until the original split is reconciled instead of allocating anew.
         if(receipts.pendingParentForPosting(shop,source)!=null)
             throw new OzonApiException("reconcile_required",0,false,true,null);
-        if(OzonAcceptanceKizService.requiredBeforeAccept(shop,source)) {
+        if(OzonAcceptanceKizService.requiredBeforeAccept(shop,source,sources)) {
             if(OzonPackageBuilder.unitCount(source)>1)return startMarkedSplit(shop,api,source,raw,sources);
             new OzonAcceptanceKizService(jobs).ensure(shop,source,api,sources);
             source=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
@@ -284,6 +300,16 @@ final class OzonUnitShipService {
         }
         if(value.isJsonArray())for(var code:value.getAsJsonArray())if(hasCode(code))return true;
         if(value.isJsonObject())throw new IllegalStateException("OZON_SPLIT_MARK_DATA_INVALID");return false;
+    }
+    private static boolean validMarkIds(JsonElement value) {
+        if(value==null||!value.isJsonArray())return false;
+        for(var item:value.getAsJsonArray()) {
+            if(item==null||!item.isJsonPrimitive()||item.getAsJsonPrimitive().isBoolean())return false;
+            String id=item.getAsString();
+            if(!id.matches("[1-9][0-9]{0,18}"))return false;
+            try { if(Long.parseLong(id)<=0)return false; } catch(NumberFormatException invalid){return false;}
+        }
+        return true;
     }
     private static OzonApiException pending(String code,Throwable cause){return new OzonApiException("reconcile_required",0,false,true,cause,null,code);}
     private static String hash(String value){try{return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));}catch(java.security.NoSuchAlgorithmException impossible){throw new IllegalStateException(impossible);}}
