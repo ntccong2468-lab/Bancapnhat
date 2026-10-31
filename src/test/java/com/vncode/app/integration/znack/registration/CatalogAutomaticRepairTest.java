@@ -94,7 +94,15 @@ class CatalogAutomaticRepairTest {
 
     @Test void concurrentConnectionsCannotReserveMoreThanTwoRounds() throws Exception {
         var proposal=CatalogAutomaticRepair.packing(rejected(REFUSAL),payload(),GTIN,123,true);
-        var path=dir.resolve("concurrent.sqlite");var workers=java.util.concurrent.Executors.newFixedThreadPool(3);
+        var path=dir.resolve("concurrent.sqlite");
+        // Production opens and initializes its database in WAL mode before work is
+        // dispatched. Do the same here, while leaving the correction budget empty.
+        try(var db=DriverManager.getConnection("jdbc:sqlite:"+path);var sql=db.createStatement()){
+            sql.execute("PRAGMA journal_mode=WAL");sql.execute("BEGIN IMMEDIATE");
+            assertTrue(CatalogAutomaticRepairLedger.reserve(db,scope(ZnackModels.PRODUCTION_TRUE_API),GTIN,"fixture-schema",proposal));
+            assertEquals(1,sql.executeUpdate("DELETE FROM catalog_automatic_repairs"));sql.execute("COMMIT");
+        }
+        var workers=java.util.concurrent.Executors.newFixedThreadPool(3);
         var ready=new java.util.concurrent.CountDownLatch(3);var start=new java.util.concurrent.CountDownLatch(1);
         var results=new java.util.ArrayList<java.util.concurrent.Future<Boolean>>();
         try {
@@ -111,6 +119,16 @@ class CatalogAutomaticRepairTest {
             assertTrue(ready.await(10,java.util.concurrent.TimeUnit.SECONDS));start.countDown();
             int accepted=0;for(var result:results)if(result.get(15,java.util.concurrent.TimeUnit.SECONDS))accepted++;
             assertEquals(2,accepted);
-        } finally {start.countDown();workers.shutdownNow();}
+            try(var db=DriverManager.getConnection("jdbc:sqlite:"+path);var sql=db.createStatement();var rows=sql.executeQuery("SELECT COUNT(*) FROM catalog_automatic_repairs")){
+                assertTrue(rows.next());assertEquals(2,rows.getInt(1));
+            }
+        } finally {
+            start.countDown();workers.shutdown();
+            // JDBC calls can still be completing after one Future fails. Do not
+            // let @TempDir remove files while another connection owns them.
+            if(!workers.awaitTermination(20,java.util.concurrent.TimeUnit.SECONDS)){
+                workers.shutdownNow();assertTrue(workers.awaitTermination(15,java.util.concurrent.TimeUnit.SECONDS),"SQLite workers did not close");
+            }
+        }
     }
 }

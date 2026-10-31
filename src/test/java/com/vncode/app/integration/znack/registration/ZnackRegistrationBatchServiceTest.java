@@ -331,6 +331,21 @@ class ZnackRegistrationBatchServiceTest {
         }
     }
 
+    @Test void pendingJobsAreScopedToTheCurrentAppDataProfile()throws Exception{
+        var workers=new ArrayDeque<Runnable>();var batch=service((owner,row,sign)->draft,workers::add);
+        startReviewed(batch,List.of(repository.find(1,11)));String original=System.getProperty("vncode.appdata.dir");
+        try{
+            assertTrue(ZnackRegistrationBatchService.hasPendingJobs(),"The current profile's queued job must prevent premature exit");
+            System.setProperty("vncode.appdata.dir",directory.resolve("other-profile").toString());
+            assertFalse(ZnackRegistrationBatchService.hasPendingJobs(),"Another profile must not inherit this queue");
+            System.setProperty("vncode.appdata.dir",original);
+            assertTrue(ZnackRegistrationBatchService.hasPendingJobs(),"Switching back must reveal the still-pending job");
+        }finally{
+            System.setProperty("vncode.appdata.dir",original);batch.pause(shop);workers.removeFirst().run();
+        }
+        assertFalse(ZnackRegistrationBatchService.hasPendingJobs());
+    }
+
     @Test void oneCompleteExistingCardSnapshotIsSharedByTheWholeSelectedBatch()throws Exception{
         var loads=new AtomicInteger();
         var guarded=new ZnackCardRegistrationWorkflow(repository,owner->session,Runnable::run,false,(a,b,c,d)->false,()->new RegistrationExistingCards.LookupContext((owner,connection)->{loads.incrementAndGet();return List.of();},(connection,gtin,id)->{throw new AssertionError();},(owner,connection)->"fixture"),(owner,key)->snapshot(key));

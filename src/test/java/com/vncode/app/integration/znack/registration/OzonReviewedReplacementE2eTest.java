@@ -40,7 +40,10 @@ class OzonReviewedReplacementE2eTest {
         RegistrationFieldProvenance.save(fixture.shop,List.of(RegistrationFieldProvenance.capture(plan.snapshot(),plan.snapshot(),draft,plan.schema(),Map.of(),null,false)));
         review=new RegistrationDynamicPreflight.Review(List.of(plan),List.of());service=new OzonRegistrationBatchService(new OzonRegistrationBatchRepository(),fixture.repository,fixture.workflow);
     }
-    @AfterEach void cleanup(){try{service.cancel(fixture.shop);}catch(RuntimeException ignored){}fixture.clear();}
+    @AfterEach void cleanup()throws Exception {
+        try { OzonRegistrationTestCleanup.cancelAndAwait(service,fixture.workflow,fixture.shop); }
+        finally { fixture.clear(); }
+    }
 
     private RegistrationSourceConsent.Prepared reviewReplacement() throws Exception {return reviewReplacement(false);}
     private RegistrationSourceConsent.Prepared reviewReplacement(boolean conflict) throws Exception {

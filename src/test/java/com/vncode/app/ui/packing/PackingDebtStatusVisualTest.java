@@ -79,7 +79,7 @@ class PackingDebtStatusVisualTest {
                 assertEquals(Color.web("#4b3020"), shipmentBadge.getBackground().getFills().getFirst().getFill());
                 assertEquals(Color.web("#ffad70"), shipmentBadge.getTextFill());
                 assertFalse(shipmentBadge.getText().isBlank());
-                save(root, "/tmp/vncode-debt-shipment-preview.png");
+                save(root, appData.resolve("vncode-debt-shipment-preview.png"));
 
                 var show = PackingController.class.getDeclaredMethod("showDebtOrders", WbDebtShipmentService.Shipment.class);
                 show.setAccessible(true); show.invoke(controller, shipment);
@@ -95,7 +95,7 @@ class PackingDebtStatusVisualTest {
                 assertEquals(Color.web("#292f39"), unknownBadge.getBackground().getFills().getFirst().getFill());
                 assertEquals(Color.web("#cbd2dd"), unknownBadge.getTextFill());
                 assertFalse(unknownBadge.getText().isBlank());
-                save(root, "/tmp/vncode-debt-orders-preview.png");
+                save(root, appData.resolve("vncode-debt-orders-preview.png"));
                 for (AppLanguage language : AppLanguage.values()) {
                     I18nService.getInstance().setLanguage(language);
                     for (int[] size : List.of(new int[]{1280, 900}, new int[]{940, 650})) {
@@ -131,13 +131,13 @@ class PackingDebtStatusVisualTest {
                 .findFirst().orElseThrow(() -> new AssertionError("Status badge is not rendered for row " + index));
     }
 
-    private static void save(Parent root, String file) throws Exception {
+    private static void save(Parent root, Path file) throws Exception {
         WritableImage image = root.snapshot(null, null);
         int width = (int) image.getWidth(), height = (int) image.getHeight();
         BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         int[] pixels = new int[width * height];
         image.getPixelReader().getPixels(0, 0, width, height, javafx.scene.image.PixelFormat.getIntArgbInstance(), pixels, 0, width);
         result.setRGB(0, 0, width, height, pixels, 0, width);
-        ImageIO.write(result, "png", Path.of(file).toFile());
+        assertTrue(ImageIO.write(result, "png", file.toFile()), "PNG screenshot writer must be available");
     }
 }

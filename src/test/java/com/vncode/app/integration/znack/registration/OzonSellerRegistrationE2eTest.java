@@ -36,7 +36,7 @@ class OzonSellerRegistrationE2eTest {
         review=new RegistrationDynamicPreflight.Review(List.of(plan),List.of());
         service=new OzonRegistrationBatchService(new OzonRegistrationBatchRepository(),fixture.repository,fixture.workflow);
     }
-    @AfterEach void cleanup(){try{service.cancel(fixture.shop);}catch(RuntimeException ignored){}fixture.clear();}
+    @AfterEach void cleanup()throws Exception{OzonRegistrationTestCleanup.cancelAndAwait(service,fixture.workflow,fixture.shop);fixture.clear();}
 
     private RegistrationSourceConsent.Prepared sellerReview(boolean accept) throws Exception {
         Class<?> dialog=Class.forName("com.vncode.app.ui.znackregistration.RegistrationSourceReviewDialog");

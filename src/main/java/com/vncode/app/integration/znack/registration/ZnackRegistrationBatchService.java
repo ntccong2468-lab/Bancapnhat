@@ -55,7 +55,10 @@ public final class ZnackRegistrationBatchService {
         this.registrations=registrations;this.workflow=workflow;this.drafts=drafts;this.executor=executor;this.strictScope=strictScope;
     }
     /** Nonblocking close-to-tray predicate; offline queues remain pending between retries. */
-    public static boolean hasPendingJobs(){return !PENDING.isEmpty();}
+    public static boolean hasPendingJobs(){
+        String prefix=AppPaths.appDataDir().toAbsolutePath().normalize()+":";
+        return PENDING.stream().anyMatch(key->key.startsWith(prefix));
+    }
     private String key(Shop shop){return directory+":"+shop.getId();}
     /** Called on a worker after the full-selection review. All identities are durable before dispatch. */
     public String start(Shop requested,List<Sku> selected,boolean autoSign){
