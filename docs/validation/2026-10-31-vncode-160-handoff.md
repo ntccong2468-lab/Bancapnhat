@@ -1,8 +1,9 @@
 # Bàn giao kiểm tra VN Code 1.6.0 — 31.10.2026
 
-- Mã ứng viên ứng dụng: `354c0e7f4d127db5750f2f4b23f6e6666aa3065e` trên nhánh `release/vn-code-1.6.0`.
-- Lượt Windows kiểm thử và tạo bộ cài từ commit này: [GitHub Actions 41242700851](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41242700851). Lượt này chưa hoàn tất tại thời điểm ghi bàn giao; không coi bộ cài hoặc nâng cấp là đã xác minh.
-- Lượt hồi quy Linux trên mã ứng viên, không gồm lớp GTIN khối lượng lớn chạy riêng: 3.605 ca, không thất bại, 2 ca bỏ qua vì chỉ chạy trên Windows. Lớp GTIN khối lượng lớn đạt 14/14 trên cùng mã nghiệp vụ, trước bản sửa kiểm tra quyền đọc chi tiết Ozon.
+- Mã ứng viên ứng dụng: `170ac4b3d95f9a1067cb857416393812d2bc495c` trên nhánh `release/vn-code-1.6.0`.
+- Lượt Windows kiểm thử và tạo bộ cài từ commit này: [GitHub Actions 41249585685](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41249585685). Lượt này chưa hoàn tất tại thời điểm ghi bàn giao; không coi bộ cài hoặc nâng cấp là đã xác minh.
+- Lượt Windows trước trên commit `354c0e7` thất bại với 1 ca thất bại và 10 lỗi. Các sửa đổi tương ứng được chạy gộp 65/65 ca trên Linux; vẫn cần xác nhận trên Windows. Trường hợp SQLite `READONLY` chưa có nguyên nhân gốc được chứng minh.
+- Lượt hồi quy Linux trên commit `354c0e7`, không gồm lớp GTIN khối lượng lớn chạy riêng: 3.605 ca, không thất bại, 2 ca bỏ qua vì chỉ chạy trên Windows. Lớp GTIN khối lượng lớn đạt 14/14 trên cùng mã nghiệp vụ, trước bản sửa kiểm tra quyền đọc chi tiết Ozon. Các sửa bổ sung trong `170ac4b` được kiểm thử có mục tiêu, chưa được chạy lại toàn bộ trên Linux.
 - Lượt mô phỏng 10.000 GTIN Ozon xác minh 10.000 dòng, mất khoảng 11 phút 58 giây sau khi dựng dữ liệu, với 60.000 lượt đọc giấy tờ giả lập. Kết quả không bao gồm thời gian mạng hoặc giới hạn API thật; hiệu năng danh mục lớn vẫn cần cải thiện.
 - Các kiểm thử Catalog, ký, GTIN, FBS và PDF trong lượt này dùng dữ liệu/API giả lập. Chưa nghiệm thu một thẻ công bố thật, sửa thẻ thật, ký CryptoPro thật hoặc ghi GTIN đúng biến thể trên sàn thật.
 - Lượt kiểm thử tổng trước sửa có một ca khởi động không ổn định; ca này đạt trong lượt tích hợp sau sửa và trong một nhóm 477 ca độc lập. Nguyên nhân ban đầu chưa được chứng minh.
