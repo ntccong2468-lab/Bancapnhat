@@ -55,12 +55,41 @@ class ZnackCardBatchSigningTest {
             String gtin = gtin(id);
             identities.put(gtin, id);
             var sku = repository.find(shop.getId(), id);
-            repository.saveGenerated(shop.getId(), sku, gtin, "6204", 1, "Fixture",
-                    ZnackNationalCatalogService.buildPayload(gtin, draft, "").toString());
+            var payload=ZnackNationalCatalogService.buildPayload(gtin, draft, "");payload.addProperty("good_id",id);
+            repository.saveGenerated(shop.getId(), sku, gtin, "6204", 1, "Fixture",payload.toString());
             repository.updateProgress(shop.getId(), id, Status.READY_TO_SIGN, "feed-" + id, id, "", false);
             RegistrationSigningConsent.set(shop, key(id), gtin, consent);
         }
-        return current();
+        var rows=current();reviewedSources(rows,draft);return rows;
+    }
+
+    /** Model prior explicitly reviewed feeds through real source consent/checkpoint APIs. */
+    void reviewedSources(List<Sku> rows,Draft draft)throws Exception {
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var plans=new ArrayList<RegistrationDynamicPreflight.Plan>();
+        var facts=new ArrayList<RegistrationFieldProvenance.Prepared>();
+        var targets=new LinkedHashMap<ProductKey,RegistrationSourceConsent.Target>();
+        for(var row:rows){
+            var key=key(row.chrtId());var variant=new com.vncode.app.features.products.ProductVariant(key.variantId(),row.vendorCode(),"","XL","",false,"");
+            var snapshot=new com.vncode.app.features.products.ProductSnapshot(key,"fixture","Fixture","","Brand",row.vendorCode(),"category",List.of(),List.of(),List.of(variant),null,List.of(),java.time.Instant.now(),Map.of("owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));
+            plans.add(new RegistrationDynamicPreflight.Plan(snapshot,draft,List.of(),null));
+            facts.add(RegistrationFieldProvenance.capture(snapshot,snapshot,draft,List.of(),Map.of(),null,false));
+            targets.put(key,RegistrationSourceConsent.forIdentity(row.gtin(),row.goodId()));
+        }
+        RegistrationFieldProvenance.save(shop,facts);
+        var reviewed=RegistrationFieldProvenance.readBatch(shop,plans);
+        var consent=RegistrationSourceConsent.prepare(shop,UUID.randomUUID(),plans,targets,Map.of(),reviewed,false);
+        var scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings());
+        String run=UUID.randomUUID().toString();var store=new ZnackRegistrationBatchStore();store.create(shop,run,rows,true,new Gson().toJson(scope),consent);
+        var items=store.items(shop,run);
+        for(int i=0;i<rows.size();i++){
+            var row=rows.get(i);var plan=plans.get(i);var intent=new RegistrationIntent(run,i);
+            var payload=JsonParser.parseString(repository.payload(shop.getId(),row.chrtId())).getAsJsonObject();
+            com.vncode.app.config.SqliteWriteTransaction.run(c->{RegistrationSourceConsentGuard.claimSubmission(c,shop,intent,plan.snapshot(),plan.schema(),payload);RegistrationSourceConsentGuard.acceptedSubmission(c,intent,plan.snapshot().key(),payload);return null;});
+            store.item(shop,items.get(i),"SUBMITTED","fixture accepted",null,row.feedId());
+        }
+        store.state(shop,run,"COMPLETE","fixture accepted",null);
+        for(var row:rows)assertTrue(WbSourceConsentPolicy.permitsAutomatic(shop,key(row.chrtId()),row.gtin()));
     }
 
     List<Sku> current() { return identities.values().stream().map(id -> repository.find(shop.getId(), id)).toList(); }
@@ -167,6 +196,14 @@ class ZnackCardBatchSigningTest {
             assertEquals(Status.READY_TO_SIGN, row(id).status());
             assertFalse(RegistrationSigningConsent.allowed(shop, key(id), row(id).gtin()));
         }
+    }
+
+    @Test void legacySigningConsentWithoutReviewedSourceCannotSign()throws Exception {
+        seed(3,true);
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("DELETE FROM znack_source_consents");}
+        assertTrue(workflow.signConsented(shop,current(),null));
+        assertTrue(api.batchSizes.isEmpty());assertEquals(0,api.signedDocuments);
+        assertTrue(current().stream().allMatch(row->row.status()==Status.READY_TO_SIGN));
     }
 
     @Test void unknownSignatureWithTemporarilyMissingCardReturnsToTheMonitorWithoutAnotherPost()throws Exception {

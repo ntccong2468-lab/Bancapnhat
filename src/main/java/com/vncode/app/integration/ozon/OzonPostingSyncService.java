@@ -135,6 +135,9 @@ public final class OzonPostingSyncService {
             if(!posting.status().equals("unknown")&&OzonJson.hasCompletePostingDetails(items.get(i).getAsJsonObject(),posting))usable.add(posting);
             else {
                 try {
+                    // Permission can be revoked while the list request is in flight. Check
+                    // again before each extra detail request, not just before each list page.
+                    LicenseRuntime.require(SELLER_API);
                     var detail=api.getPosting(posting.postingNumber(),false);
                     var full=OzonJson.requirePostingDetail(detail,posting.postingNumber());
                     var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;

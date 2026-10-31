@@ -69,10 +69,18 @@ class LicenseReadBoundaryTest {
         assertEquals(0,calls.get());assertTrue(service.cached(NewsScope.forShop(wb)).isEmpty());
     }
     @Test void revokeBetweenOzonPagesPreservesFirstPageWithoutSecondHttpOrApiError()throws Exception {
-        server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request){deny();return new MockResponse().setHeader("Content-Type","application/json").setBody("{\"postings\":[{\"posting_number\":\"0001-01-1\",\"order_id\":\"1\",\"status\":\"awaiting_packaging\",\"products\":[]}],\"cursor\":\"page2\",\"has_next\":true}");}});
+        server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request){deny();return new MockResponse().setHeader("Content-Type","application/json").setBody("{\"postings\":[{\"posting_number\":\"0001-01-1\",\"order_id\":\"1\",\"status\":\"awaiting_packaging\",\"products\":[{\"sku\":\"101\",\"offer_id\":\"offer-1\",\"quantity\":1}],\"requirements\":{\"products_requiring_mandatory_mark\":[]},\"optional\":{\"products_with_possible_mandatory_mark\":[]},\"barcodes\":{\"lower_barcode\":\"\",\"upper_barcode\":\"\"},\"available_actions\":[]}],\"cursor\":\"page2\",\"has_next\":true}");}});
         assertThrows(LicenseGate.LicenseDeniedException.class,()->new OzonPostingSyncService(2,api).sync());
         assertEquals(1,server.getRequestCount());
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM ozon_postings WHERE shop_id=2")){r.next();assertEquals(1,r.getInt(1));}
         var state=new OzonSyncStateRepository().find(2);assertEquals("",state.postingsChangedSince());assertTrue(state.lastError()==null||state.lastError().isBlank(),"License pause must not turn into API failure");
+    }
+    @Test void revokedBeforeOzonPostingDetailMakesNoSecondHttpRequest()throws Exception {
+        server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request){deny();return new MockResponse().setHeader("Content-Type","application/json").setBody("{\"postings\":[{\"posting_number\":\"0001-01-1\",\"order_id\":\"1\",\"status\":\"awaiting_packaging\",\"products\":[]}],\"cursor\":\"page2\",\"has_next\":true}");}});
+        assertThrows(LicenseGate.LicenseDeniedException.class,()->new OzonPostingSyncService(2,api).sync());
+        assertEquals(1,server.getRequestCount(),"A revoked license must prevent the posting-detail request");
+        var state=new OzonSyncStateRepository().find(2);
+        assertEquals("",state.postingsChangedSince());
+        assertTrue(state.lastError()==null||state.lastError().isBlank(),"License pause must not turn into API failure");
     }
 }

@@ -4,6 +4,8 @@ import com.google.gson.*;
 import com.vncode.app.config.Database;
 import com.vncode.app.features.gtinsync.GtinWriteTestFixture;
 import com.vncode.app.features.products.ProductKey;
+import com.vncode.app.features.products.ProductSnapshot;
+import com.vncode.app.features.products.ProductVariant;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.znack.*;
 import com.vncode.app.integration.znack.signature.CryptoProSigningResult;
@@ -11,6 +13,7 @@ import com.vncode.app.models.Shop;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
@@ -37,16 +40,32 @@ class OzonCardBatchSigningTest {
         var catalog=new ZnackNationalCatalogService(api,auth,(xml,context)->{duringSigning.run();return new CryptoProSigningResult(new byte[]{1},"");},settings);
         return new ZnackCardRegistrationWorkflow.CatalogSession("fixture-token",catalog,ZnackRegistrationScope.fromSettings(settings));
     }
-    List<ProductKey> seed(int count,boolean consent){
+    List<ProductKey> seed(int count,boolean consent)throws Exception{return seed(count,consent,true);}
+    List<ProductKey> seed(int count,boolean consent,boolean reviewedSource)throws Exception{
         var scope=session().scope();var draft=new Draft("6204430000","6204",1,"Fixture","Brand",Map.of(13933L,"6204430000"),Map.of());
+        var schema=List.of(new Attribute(13933L,"TN VED","text",false,false,true,false,List.of()));
+        var snapshots=new LinkedHashMap<ProductKey,ProductSnapshot>();var plans=new ArrayList<RegistrationDynamicPreflight.Plan>();var targets=new HashMap<ProductKey,RegistrationSourceConsent.Target>();
         for(long id=1;id<=count;id++){
             var key=new ProductKey(shop.getId(),Marketplace.OZON,Long.toString(500+id),"offer-"+id);String gtin=gtin(id);
             keys.put(id,key);identities.put(gtin,id);
+            var snapshot=new ProductSnapshot(key,"live:fixture-"+id,"Fixture","","Brand",key.variantId(),"1:2",List.of(),List.of(),List.of(new ProductVariant(key.variantId(),key.variantId(),"","","",false)),null,List.of(),Instant.now(),Map.of("sku",Long.toString(9000+id),"owner",com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop)));
+            snapshots.put(key,snapshot);plans.add(new RegistrationDynamicPreflight.Plan(snapshot,draft,schema));targets.put(key,new RegistrationSourceConsent.Target(RegistrationSourceConsent.Action.RESUME_GTIN,gtin,null));
+            RegistrationFieldProvenance.save(shop,List.of(RegistrationFieldProvenance.capture(snapshot,snapshot,draft,schema,Map.of(),null,false)));
             assertTrue(repository.claim(shop,key,Long.toString(9000+id),"",scope,false));assertTrue(repository.transition(key,Status.CHECKING,Status.ALLOCATING_GTIN));
             repository.generated(key,gtin,ZnackNationalCatalogService.buildPayload(gtin,draft,"").toString());
             assertTrue(repository.transition(key,Status.READY_TO_SUBMIT,Status.FEED_SUBMITTING));repository.submitted(key,"feed-"+id);
             repository.progress(key,Status.READY_TO_SIGN,id);RegistrationSigningConsent.set(shop,key,gtin,consent);
         }
+        if(!reviewedSource)return List.copyOf(keys.values());
+        var approved=RegistrationSourceConsent.prepare(shop,UUID.randomUUID(),plans,targets,Map.of(),RegistrationFieldProvenance.readBatch(shop,plans),false);
+        var queue=new OzonRegistrationBatchRepository();String run=UUID.randomUUID().toString();var selected=List.copyOf(keys.values());queue.create(shop,selected,false,scope,run,approved);
+        for(int position=0;position<selected.size();position++){
+            var key=selected.get(position);var intent=new RegistrationIntent(run,position);var payload=JsonParser.parseString(repository.find(key).payload()).getAsJsonObject();
+            com.vncode.app.config.SqliteWriteTransaction.run(c->{RegistrationSourceConsentGuard.claimSubmission(c,shop,intent,snapshots.get(key),schema,payload);RegistrationSourceConsentGuard.acceptedSubmission(c,intent,key,payload);return null;});
+            queue.item(new OzonRegistrationBatchRepository.Item(run,position,key,"PENDING",""),"SUBMITTED","");
+            assertTrue(OzonSourceConsentPolicy.permitsAutomatic(shop,key,repository.find(key).gtin()));
+        }
+        queue.state(run,"COMPLETED","");
         return List.copyOf(keys.values());
     }
     static String gtin(long id){
@@ -55,9 +74,13 @@ class OzonCardBatchSigningTest {
         return digits+(10-sum%10)%10;
     }
     @Test void twentyFiveApprovedCardsUseThreeRealArrayPostsOfTenTenFive()throws Exception{
-        var selected=seed(25,false);var review=workflow.prepareApprovedSigning(shop,selected);assertEquals(25,review.cards().size());assertEquals(0,api.signedDocuments);assertTrue(workflow.signApprovedReviewed(shop,review,null));
+        var selected=seed(25,false,false);for(var key:selected)assertFalse(OzonSourceConsentPolicy.permitsAutomatic(shop,key,repository.find(key).gtin()));var review=workflow.prepareApprovedSigning(shop,selected);assertEquals(25,review.cards().size());assertEquals(0,api.signedDocuments);assertTrue(workflow.signApprovedReviewed(shop,review,null));
         assertEquals(List.of(10,10,5),api.batchSizes);assertEquals(25,api.signedDocuments);
         for(var key:selected){var row=repository.find(key);assertEquals(Status.PUBLISHED,row.status());assertEquals("CONFIRMED",row.signatureState());assertTrue(RegistrationSigningConsent.allowed(shop,key,row.gtin()));}
+    }
+    @Test void missingSourceReviewBlocksAutomaticEvenWhenOldSigningConsentExists()throws Exception{
+        var selected=seed(3,true,false);assertTrue(workflow.signConsented(shop,selected,null));assertTrue(api.batchSizes.isEmpty());assertEquals(0,api.signedDocuments);
+        for(var key:selected){var row=repository.find(key);assertEquals(Status.READY_TO_SIGN,row.status());assertTrue(RegistrationSigningConsent.allowed(shop,key,row.gtin()));assertFalse(OzonSourceConsentPolicy.permitsAutomatic(shop,key,row.gtin()));}
     }
     @Test void signatureReceiptAloneNeverMarksCardsPublished()throws Exception{
         var selected=seed(3,true);api.publishOnPost=false;assertTrue(workflow.signConsented(shop,selected,null));
@@ -67,7 +90,7 @@ class OzonCardBatchSigningTest {
         api.published.addAll(keys.keySet());for(var key:selected)assertTrue(workflow.refreshStatusWithoutSigning(shop,key));
         assertEquals(List.of(3),api.batchSizes);
     }
-    @Test void unknownArrayPostRetainsEveryFrozenDocumentAndNeverReplaysIt(){
+    @Test void unknownArrayPostRetainsEveryFrozenDocumentAndNeverReplaysIt()throws Exception{
         var selected=seed(10,true);api.timeout=true;assertTrue(workflow.signConsented(shop,selected,null));
         var hashes=new HashMap<ProductKey,String>();
         for(var key:selected){var row=repository.find(key);assertEquals(Status.SIGNING,row.status());assertEquals("RECONCILE_REQUIRED",row.signatureState());assertTrue(row.signatureXml().length>0);hashes.put(key,row.signatureHash());}
@@ -76,41 +99,41 @@ class OzonCardBatchSigningTest {
         api.published.addAll(keys.keySet());assertTrue(workflow.signConsented(shop,selected,null));
         for(var key:selected)assertEquals(Status.PUBLISHED,repository.find(key).status());assertEquals(List.of(10),api.batchSizes);
     }
-    @Test void oneMissingSigningDocumentDoesNotBlockTheOtherSelectedCards(){
+    @Test void oneMissingSigningDocumentDoesNotBlockTheOtherSelectedCards()throws Exception{
         var selected=seed(3,true);api.missingDocument=2;assertTrue(workflow.signConsented(shop,selected,null));
         assertEquals(List.of(2),api.batchSizes);assertEquals(Set.of(1L,3L),api.published);
         assertNotEquals(Status.PUBLISHED,repository.find(keys.get(2L)).status());
         assertTrue(repository.find(keys.get(2L)).error().contains("CATALOG_SIGNING_DOCUMENT_PENDING"));
     }
-    @Test void documentDisappearingDuringCollectiveRecheckOnlySkipsThatMember(){
+    @Test void documentDisappearingDuringCollectiveRecheckOnlySkipsThatMember()throws Exception{
         var selected=seed(3,true);api.missingOnRecheck=2;assertTrue(workflow.signConsented(shop,selected,null));
         assertEquals(List.of(2),api.batchSizes);assertEquals(Set.of(1L,3L),api.published);
         assertEquals("PREPARED",repository.find(keys.get(2L)).signatureState());
     }
-    @Test void changedXmlInOneCardCannotBeSignedWithItsOldCheckpoint(){
+    @Test void changedXmlInOneCardCannotBeSignedWithItsOldCheckpoint()throws Exception{
         var selected=seed(3,true);api.changedOnRecheck=2;assertTrue(workflow.signConsented(shop,selected,null));
         assertEquals(List.of(2),api.batchSizes);assertEquals(Set.of(1L,3L),api.published);
         var changed=repository.find(keys.get(2L));assertEquals(Status.READY_TO_SIGN,changed.status());assertEquals("PREPARED",changed.signatureState());assertTrue(changed.error().contains("SIGNING_DOCUMENT_CHANGED"));
     }
-    @Test void rateLimitedFirstPostStopsBeforeAnyLaterGroup(){
+    @Test void rateLimitedFirstPostStopsBeforeAnyLaterGroup()throws Exception{
         var selected=seed(25,true);api.rateLimited=true;assertTrue(workflow.signConsented(shop,selected,null));
         assertEquals(List.of(10),api.batchSizes);
         for(long id=1;id<=25;id++)assertEquals(id<=10?Status.SIGNING:Status.READY_TO_SIGN,repository.find(keys.get(id)).status());
         assertEquals(10,api.signedDocuments);assertTrue(api.published.isEmpty());
         assertNotNull(RegistrationCatalogCooldown.warning(shop));assertFalse(workflow.signConsented(shop,selected,null));assertEquals(List.of(10),api.batchSizes);
     }
-    @Test void legacyOneCardRateLimitHandsOffCooldownWithoutAnImmediateReadback(){
+    @Test void legacyOneCardRateLimitHandsOffCooldownWithoutAnImmediateReadback()throws Exception{
         var selected=seed(1,true);api.rateLimited=true;
         assertThrows(ZnackApiClient.ZnackApiException.class,()->workflow.refreshStatus(shop,selected.getFirst()));
         var row=repository.find(selected.getFirst());assertEquals(Status.SIGNING,row.status());assertEquals("RECONCILE_REQUIRED",row.signatureState());
         assertNotNull(RegistrationCatalogCooldown.warning(shop));assertEquals(api.readsAtPost,api.statusReads,"A 429 must stop before another Catalog GET");
     }
-    @Test void automaticAggregationUsesOnlyExistingExactCardConsent(){
+    @Test void automaticAggregationUsesOnlyExistingExactCardConsent()throws Exception{
         var selected=seed(3,false);var allowed=repository.find(keys.get(3L));RegistrationSigningConsent.set(shop,allowed.key(),allowed.gtin(),true);
         assertTrue(workflow.signConsented(shop,selected,null));assertEquals(List.of(1),api.batchSizes);assertEquals(Set.of(3L),api.published);
         for(long id=1;id<=2;id++){var row=repository.find(keys.get(id));assertEquals(Status.READY_TO_SIGN,row.status());assertFalse(RegistrationSigningConsent.allowed(shop,row.key(),row.gtin()));}
     }
-    @Test void revokedConsentDuringCryptographicSigningCannotReachThePost(){
+    @Test void revokedConsentDuringCryptographicSigningCannotReachThePost()throws Exception{
         var selected=seed(3,true);var revoked=repository.find(keys.get(2L));
         duringSigning=()->RegistrationSigningConsent.set(shop,revoked.key(),revoked.gtin(),false);
         assertTrue(workflow.signConsented(shop,selected,null));assertEquals(List.of(2),api.batchSizes);assertEquals(Set.of(1L,3L),api.published);

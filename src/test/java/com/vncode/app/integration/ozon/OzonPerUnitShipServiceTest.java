@@ -307,6 +307,29 @@ class OzonPerUnitShipServiceTest {
         assertEquals(0, count("SELECT count(*) FROM ozon_unit_ship_receipts"));
     }
 
+    @Test void missingMarkRequirementsCannotAuthorizeAutomaticSplit() throws Exception {
+        var source = JsonParser.parseString(source(false)).getAsJsonObject();
+        source.getAsJsonObject("result").getAsJsonObject("requirements")
+                .remove("products_requiring_mandatory_mark");
+        enqueue(source.toString());
+        var failure = assertThrows(java.io.IOException.class,
+                () -> service().shipPerUnit(shop, "PARENT", true));
+        assertEquals("OZON_ACCEPT_KIZ_REQUIREMENTS_UNVERIFIED", failure.getMessage());
+        assertEquals(0, shipRequests.get());
+        assertEquals(0, count("SELECT count(*) FROM ozon_unit_ship_receipts"));
+    }
+
+    @Test void missingOptionalMarkRequirementsCannotAuthorizeAutomaticSplit() throws Exception {
+        var source = JsonParser.parseString(source(false)).getAsJsonObject();
+        source.getAsJsonObject("result").remove("optional");
+        enqueue(source.toString());
+        var failure = assertThrows(java.io.IOException.class,
+                () -> service().shipPerUnit(shop, "PARENT", true));
+        assertEquals("OZON_ACCEPT_KIZ_REQUIREMENTS_UNVERIFIED", failure.getMessage());
+        assertEquals(0, shipRequests.get());
+        assertEquals(0, count("SELECT count(*) FROM ozon_unit_ship_receipts"));
+    }
+
     private void assertUnitPackages(long... skus) {
         var request = sentPackages.get();
         assertNotNull(request);
@@ -376,7 +399,12 @@ class OzonPerUnitShipServiceTest {
         var actions = new JsonArray();
         if ("awaiting_packaging".equals(status)) actions.add("ship");
         posting.add("available_actions", actions);
-        posting.add("requirements", new JsonObject());
+        var requirements = new JsonObject();
+        requirements.add("products_requiring_mandatory_mark", new JsonArray());
+        posting.add("requirements", requirements);
+        var optional = new JsonObject();
+        optional.add("products_with_possible_mandatory_mark", new JsonArray());
+        posting.add("optional", optional);
         posting.add("product_exemplars", new JsonObject());
         var related = new JsonObject();
         related.add("related_posting_numbers", new JsonArray());

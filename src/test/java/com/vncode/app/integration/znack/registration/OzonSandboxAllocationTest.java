@@ -17,9 +17,9 @@ class OzonSandboxAllocationTest {
     }
     @AfterEach void cleanup(){fixture.clear();}
     @Test void sandboxDoesNotAllocateWhileItsContractIsUnverified(){
-        assertTrue(fixture.workflow.register(fixture.shop,fixture.key,fixture.draft,true,false,null));
+        fixture.reviewedStart(fixture.draft);
         assertEquals(0,fixture.api.allocations.get());assertEquals(0,fixture.api.submissions.get());
         assertNotNull(fixture.workflow.failure(fixture.shop));
-        assertTrue(fixture.workflow.failure(fixture.shop).getMessage().contains("V3_SANDBOX_AUTH_UNVERIFIED"));
+        assertTrue(fixture.workflow.failure(fixture.shop).getMessage().contains("V3_SANDBOX_AUTH_UNVERIFIED"),()->fixture.workflow.failure(fixture.shop).toString());
     }
 }
