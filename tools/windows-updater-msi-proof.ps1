@@ -136,9 +136,13 @@ try {
         Where-Object { Select-String -LiteralPath $_.FullName -Pattern '^reason=signed-update-install$' -Quiet })
     if ($snapshotMeta.Count -lt 1) { throw 'Updater did not persist its update rollback snapshot.' }
     Write-Host 'Rollback snapshot persisted; waiting for MSI upgrade and relaunch.'
-    $deadline = [DateTime]::UtcNow.AddMinutes(5); $ready = $false
+    $deadline = [DateTime]::UtcNow.AddMinutes(5); $ready = $false; $lastState = ''
     while ([DateTime]::UtcNow -lt $deadline) {
         $registrations = @(Registrations); $running = @(AppProcesses $launcher)
+        $versions = @($registrations | ForEach-Object { [string]$_.DisplayVersion }) -join ','
+        $msiProcesses = @(Get-Process -Name 'msiexec' -ErrorAction SilentlyContinue).Count
+        $state = "registrations=$($registrations.Count); versions=$versions; appProcesses=$($running.Count); msiexecProcesses=$msiProcesses"
+        if ($state -cne $lastState) { Write-Host "Updater progress: $state"; $lastState = $state }
         if ($registrations.Count -eq 1 -and $registrations[0].DisplayVersion -ceq $Version -and $running.Count -eq 1) {
             $app = Get-Process -Id ([int]$running[0].ProcessId) -ErrorAction Stop
             [void](Wait-VncodeWindow -Process $app -Version $Version)
