@@ -811,7 +811,7 @@ public class HomeController implements Initializable {
         if(checkingUpdate){pendingManualCheck|=manual;return;}
         checkingUpdate=true;pendingManualCheck=manual;
         Task<UpdateService.CheckResult> task=new Task<>() {
-            protected UpdateService.CheckResult call(){return updateService.check(manual);}
+            protected UpdateService.CheckResult call(){return updateService.check(manual,this::isCancelled);}
         };
         updateCheckTask=task;
         java.util.function.Consumer<Throwable> failed=error->{

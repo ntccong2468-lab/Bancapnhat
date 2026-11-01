@@ -216,7 +216,8 @@ public final class OzonPrintBundleService {
         List<OzonExemplarJobRepository.ExemplarSummary> summaries = printable(job)
                 ? jobs.summaries(job.id()) : List.of();
         validatePrintableJob(job, bindings, summaries);
-        if(context!=null&&!bindings.isEmpty())context.printProofs.put(safePosting,OzonExemplarJobRepository.printProof(job,bindings));
+        var proof=bindings.isEmpty()?null:OzonExemplarJobRepository.printProof(job,bindings);
+        if(context!=null&&proof!=null)context.printProofs.put(safePosting,proof);
 
         File officialStaging = null;
         File labelStaging = null;
@@ -253,12 +254,11 @@ public final class OzonPrintBundleService {
                 try { pickingLists.export(pickingStaging, shop, posting); }
                 finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted); }
             }
-            File finishedLabels=labelStaging,finishedPicking=pickingStaging;OzonExemplarJob finishedJob=job;
+            File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             if(destination==null)ownedPublish(shop,operation.validateShopOwner(),newPrint,()->{
-                AtomicFilePublisher.publish(finishedLabels,labelTarget);
-                if(consumeAfterPublish&&!bindings.isEmpty())consumePrinted(finishedJob);
-                if(finishedPicking!=null)AtomicFilePublisher.publish(finishedPicking,pickingTarget);
-                if(consumeAfterPublish)new OzonPrintReceiptRepository().record(shop,List.of(safePosting));
+                if(consumeAfterPublish)publishPrintedBundle(shop,List.of(safePosting),
+                        proof==null?Map.of():Map.of(safePosting,proof),finishedPicking,pickingTarget,finishedLabels,labelTarget);
+                else AtomicFilePublisher.publish(finishedLabels,labelTarget);
             });
             labelStaging=null;pickingStaging=null;
             return new ExportResult(
@@ -343,11 +343,9 @@ public final class OzonPrintBundleService {
             finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted); }
             requireNotInterrupted();
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
+            var frozenProofs=Map.copyOf(context.printProofs);
             ownedPublish(frozenShop,context.preparation.validateShopOwner(),containsNewPrint,()->{
-                AtomicFilePublisher.publish(finishedLabels,labelTarget);
-                jobs.consumePrintedBatch(frozenShop.getId(),safePostings);
-                AtomicFilePublisher.publish(finishedPicking,pickingTarget);
-                new OzonPrintReceiptRepository().record(frozenShop,safePostings);
+                publishPrintedBundle(frozenShop,safePostings,frozenProofs,finishedPicking,pickingTarget,finishedLabels,labelTarget);
             });
             labelStaging=null;pickingStaging=null;
             return new BatchExportResult(labelTarget, pickingTarget, safePostings.size(), totalPages, kizPages);
@@ -433,20 +431,7 @@ public final class OzonPrintBundleService {
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             List<String> frozenSuccess=List.copyOf(successful);var frozenKizSuccess=Map.copyOf(successfulWithKiz);
             ownedPublish(frozen,context.preparation.validateShopOwner(),containsNewPrint,()->{
-                boolean[] published={false};
-                try {
-                    if(frozenKizSuccess.isEmpty()){
-                        publishPdfPair(finishedPicking,pickingTarget,finishedLabels,labelTarget);published[0]=true;
-                    }else jobs.consumePrintedKizBatch(frozen.getId(),frozenKizSuccess,()->{
-                        try{publishPdfPair(finishedPicking,pickingTarget,finishedLabels,labelTarget);published[0]=true;}
-                        catch(IOException failed){throw new java.io.UncheckedIOException(failed);}
-                    });
-                    new OzonPrintReceiptRepository().record(frozen,frozenSuccess);
-                } catch(java.io.UncheckedIOException fileFailure){
-                    throw fileFailure.getCause();
-                } catch(RuntimeException storageFailure) {
-                    throw new IOException(published[0]?"OZON_PDF_PUBLISHED_RECONCILIATION_REQUIRED":"OZON_PRINT_KIZ_PROOF_CHANGED",storageFailure);
-                }
+                publishPrintedBundle(frozen,frozenSuccess,frozenKizSuccess,finishedPicking,pickingTarget,finishedLabels,labelTarget);
             });
             labelStaging=null;pickingStaging=null;
             return new AvailableBatchExportResult(labelTarget,pickingTarget,List.copyOf(successful),Map.copyOf(failures),Set.copyOf(waiting),totalPages,kizPages);
@@ -459,20 +444,79 @@ public final class OzonPrintBundleService {
         if (Thread.currentThread().isInterrupted()) throw new IOException("Ozon print export was interrupted.");
     }
 
-    private static void publishPdfPair(File pickingStage,File pickingTarget,File labelStage,File labelTarget)throws IOException {
-        Path picking=pickingTarget.toPath().toAbsolutePath(),label=labelTarget.toPath().toAbsolutePath();
-        if(Files.isDirectory(picking)||Files.isDirectory(label))throw new IOException("OZON_PDF_TARGET_IS_DIRECTORY");
-        File backup=null;boolean existed=Files.exists(picking);
+    /** Check frozen KIZ bindings inside the write transaction before publishing either PDF. */
+    private void publishPrintedBundle(Shop shop,List<String> postings,
+            Map<String,OzonExemplarJobRepository.PrintProof> proofs,File pickingStage,File pickingTarget,
+            File labelStage,File labelTarget)throws IOException {
+        boolean[] published={false};
         try {
-            if(existed){backup=AtomicFilePublisher.stagingFile(pickingTarget,".previous.pdf");Files.copy(picking,backup.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
-            AtomicFilePublisher.publish(pickingStage,pickingTarget);
-            try { AtomicFilePublisher.publish(labelStage,labelTarget); }
-            catch(IOException failure) {
-                try { if(existed)AtomicFilePublisher.publish(backup,pickingTarget);else Files.deleteIfExists(picking); }
-                catch(IOException rollbackFailure){failure.addSuppressed(rollbackFailure);}
+            if(proofs.isEmpty()){
+                publishPdfPair(pickingStage,pickingTarget,labelStage,labelTarget);published[0]=true;
+            }else jobs.consumePrintedKizBatch(shop.getId(),proofs,()->{
+                try{publishPdfPair(pickingStage,pickingTarget,labelStage,labelTarget);published[0]=true;}
+                catch(IOException failed){throw new java.io.UncheckedIOException(failed);}
+            });
+            new OzonPrintReceiptRepository().record(shop,postings);
+        } catch(java.io.UncheckedIOException fileFailure){
+            throw fileFailure.getCause();
+        } catch(RuntimeException storageFailure) {
+            throw new IOException(published[0]?"OZON_PDF_PUBLISHED_RECONCILIATION_REQUIRED":"OZON_PRINT_KIZ_PROOF_CHANGED",storageFailure);
+        }
+    }
+
+    private static void publishPdfPair(File pickingStage,File pickingTarget,File labelStage,File labelTarget)throws IOException {
+        publishPdfPair(pickingStage,pickingTarget,labelStage,labelTarget,AtomicFilePublisher::publish);
+    }
+
+    @FunctionalInterface interface PdfFilePublisher {void publish(File staging,File target)throws IOException;}
+    static void publishPdfPair(File pickingStage,File pickingTarget,File labelStage,File labelTarget,PdfFilePublisher publisher)throws IOException {
+        Path picking=pickingTarget.toPath().toAbsolutePath().normalize(),label=labelTarget.toPath().toAbsolutePath().normalize();
+        if(Files.isDirectory(picking)||Files.isDirectory(label))throw new IOException("OZON_PDF_TARGET_IS_DIRECTORY");
+        if(picking.equals(label)
+                || (Files.exists(picking)&&Files.exists(label)&&Files.isSameFile(picking,label))
+                || (picking.getFileName().equals(label.getFileName())&&Files.isSameFile(picking.getParent(),label.getParent())))
+            throw new IOException("OZON_PDF_TARGETS_MUST_DIFFER");
+        File pickingBackup=null,labelBackup=null;
+        boolean pickingExisted=Files.exists(picking),labelExisted=Files.exists(label);
+        boolean keepPickingBackup=false,keepLabelBackup=false;
+        try {
+            if(pickingExisted){pickingBackup=AtomicFilePublisher.stagingFile(pickingTarget,".previous.pdf");Files.copy(picking,pickingBackup.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+            if(labelExisted){labelBackup=AtomicFilePublisher.stagingFile(labelTarget,".previous.pdf");Files.copy(label,labelBackup.toPath(),java.nio.file.StandardCopyOption.REPLACE_EXISTING);}
+            try {publisher.publish(pickingStage,pickingTarget);}
+            catch(IOException failure){
+                // A failed non-atomic move may already have changed the destination.
+                if(pickingBackup!=null&&Files.exists(pickingBackup.toPath())){
+                    keepPickingBackup=true;
+                    throw new IOException("OZON_PDF_PUBLISH_FAILED: Previous picking PDF retained at "
+                            +pickingBackup.toPath().toAbsolutePath(),failure);
+                }
+                if(!pickingExisted)try{Files.deleteIfExists(picking);}catch(IOException cleanupFailure){failure.addSuppressed(cleanupFailure);}
                 throw failure;
             }
-        } finally { if(backup!=null)AtomicFilePublisher.deleteQuietly(backup); }
+            try { publisher.publish(labelStage,labelTarget); }
+            catch(IOException failure) {
+                StringBuilder recovery=new StringBuilder();boolean rollbackFailed=false;
+                try { if(pickingExisted)publisher.publish(pickingBackup,pickingTarget);else Files.deleteIfExists(picking); }
+                catch(IOException rollbackFailure){
+                    failure.addSuppressed(rollbackFailure);rollbackFailed=true;
+                    if(pickingBackup!=null&&Files.exists(pickingBackup.toPath())){
+                        keepPickingBackup=true;recovery.append(" Picking backup: ").append(pickingBackup.toPath().toAbsolutePath());
+                    }
+                }
+                try { if(labelExisted)publisher.publish(labelBackup,labelTarget);else Files.deleteIfExists(label); }
+                catch(IOException rollbackFailure){
+                    failure.addSuppressed(rollbackFailure);rollbackFailed=true;
+                    if(labelBackup!=null&&Files.exists(labelBackup.toPath())){
+                        keepLabelBackup=true;recovery.append(" Label backup: ").append(labelBackup.toPath().toAbsolutePath());
+                    }
+                }
+                if(rollbackFailed)throw new IOException("OZON_PDF_RESTORE_FAILED:"+recovery,failure);
+                throw failure;
+            }
+        } finally {
+            if(pickingBackup!=null&&!keepPickingBackup)AtomicFilePublisher.deleteQuietly(pickingBackup);
+            if(labelBackup!=null&&!keepLabelBackup)AtomicFilePublisher.deleteQuietly(labelBackup);
+        }
     }
 
     @FunctionalInterface private interface PublishAction {void run()throws IOException;}
@@ -579,16 +623,6 @@ public final class OzonPrintBundleService {
                     "passed".equalsIgnoreCase(value.checkStatus())
                             || "printed".equalsIgnoreCase(value.checkStatus()));
             if (!allCompleted) throw new IOException("Only completed Ozon KIZ labels can be reprinted.");
-        }
-    }
-
-    private void consumePrinted(OzonExemplarJob job) throws IOException {
-        if (job == null) throw new IOException("The durable Ozon KIZ print job is missing.");
-        try {
-            jobs.consumePrinted(job);
-        } catch (RuntimeException exception) {
-            throw new IOException(
-                    "The Ozon label PDF was created, but VN code could not mark its KIZ as printed.", exception);
         }
     }
 

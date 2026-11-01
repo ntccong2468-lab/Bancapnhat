@@ -1,0 +1,83 @@
+package com.vncode.app.features.shop;
+
+import static org.junit.jupiter.api.Assertions.*;
+import com.vncode.app.config.Database;
+import com.vncode.app.features.license.LicenseDomainFixture;
+import com.vncode.app.features.license.LicenseRuntime;
+import com.vncode.app.features.license.LicenseService;
+import com.vncode.app.integration.listing.ListingIdentity;
+import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.models.Shop;
+import com.vncode.app.shared.credential.PrototypeCredentialAccess;
+import com.vncode.app.shared.credential.PrototypeCredentialCodec;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.Base64;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
+
+/** Synthetic prototype only; the fake codec is reversible and offers no protection. */
+class PrototypeShopConsumerTest {
+    @TempDir Path directory;
+    private LicenseService previous, fixture;
+    private AutoCloseable scope;
+    private FakeCodec codec;
+    private ShopRepository repository;
+    @BeforeEach void setUp() throws Exception {
+        System.setProperty("vncode.appdata.dir",directory.toString());
+        Database.initDatabase();
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("CREATE TABLE prototype_credential_formats(kind TEXT NOT NULL,owner_id INTEGER NOT NULL,format TEXT NOT NULL,PRIMARY KEY(kind,owner_id))");
+        }
+        previous=LicenseRuntime.service();fixture=LicenseDomainFixture.active(directory.resolve("license-fixture"));LicenseRuntime.install(fixture);
+        codec=new FakeCodec();scope=PrototypeCredentialAccess.withCodecForTest(codec);repository=new ShopRepository();
+    }
+    @AfterEach void tearDown() throws Exception {
+        if(scope!=null)scope.close();if(previous!=null)LicenseRuntime.install(previous);if(fixture!=null)fixture.close();
+        System.clearProperty("vncode.appdata.dir");
+    }
+    @Test void insertAndRotationAreAtomicAndOwnerFingerprintRemainsBasedOnPlainCredential() throws Exception {
+        var original=new Shop(0,"synthetic",Marketplace.OZON,"seller-test","fixture-key-before");
+        assertEquals(1,repository.insert(original));
+        var current=repository.findAll().getFirst();int id=current.getId();
+        assertEquals("fixture-key-before",current.getApiKey());
+        assertNotEquals(current.getApiKey(),stored(id));
+        String fingerprint=ListingIdentity.fingerprint(current);
+        try(var c=Database.getConnection()) { assertEquals(fingerprint,ListingIdentity.fingerprint(c,id,Marketplace.OZON)); }
+        codec.failProtect=true;
+        assertThrows(PrototypeShopSecrets.CredentialUnavailableException.class,()->repository.update(id,new Shop(id,"synthetic",Marketplace.OZON,"seller-test","fixture-key-after")));
+        codec.failProtect=false;
+        assertEquals("fixture-key-before",repository.findById(id).getApiKey());
+        assertDoesNotThrow(()->ListingIdentity.require(current));
+        assertEquals(1,repository.update(id,new Shop(id,"synthetic",Marketplace.OZON,"seller-test","fixture-key-after")));
+        assertThrows(SecurityException.class,()->ListingIdentity.require(current));
+        assertEquals("fixture-key-after",repository.findById(id).getApiKey());
+    }
+    @Test void failedEncryptionNeverCommitsShopOrCredentialMetadata() throws Exception {
+        codec.failProtect=true;
+        assertThrows(PrototypeShopSecrets.CredentialUnavailableException.class,()->repository.insert(new Shop(0,"synthetic",Marketplace.WILDBERRIES,null,"fixture-key")));
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT (SELECT count(*) FROM shops),(SELECT count(*) FROM prototype_credential_formats)")){
+            assertTrue(r.next());assertEquals(0,r.getInt(1));assertEquals(0,r.getInt(2));
+        }
+    }
+    @Test void batchChecksReuseDecryptionButObserveCredentialAndMetadataChanges() throws Exception {
+        repository.insert(new Shop(0,"synthetic",Marketplace.WILDBERRIES,null,"fixture-before"));
+        var original=repository.findAll().getFirst();
+        try(var batch=ListingIdentity.batchChecks(original)){
+            int before=codec.reveals;
+            for(int i=0;i<100;i++)ListingIdentity.require(original);
+            assertTrue(codec.reveals-before<=1,"Stable batch must avoid repeated decryptions");
+            try(var c=Database.getConnection();var p=c.prepareStatement("DELETE FROM prototype_credential_formats WHERE kind='SHOP_API_KEY' AND owner_id=?")){
+                p.setInt(1,original.getId());p.executeUpdate();
+            }
+            assertThrows(RuntimeException.class,()->ListingIdentity.require(original),"Missing metadata must invalidate the cached credential");
+        }
+    }
+    private String stored(int id)throws Exception{try(var c=Database.getConnection();var p=c.prepareStatement("SELECT api_key FROM shops WHERE id=?")){p.setInt(1,id);try(var r=p.executeQuery()){assertTrue(r.next());return r.getString(1);}}}
+    private static final class FakeCodec implements PrototypeCredentialCodec {
+        int reveals; boolean failProtect;
+        public String protect(String value)throws IOException{if(failProtect)throw new IOException("fixture failure");return "fake:"+Base64.getEncoder().encodeToString(value.getBytes(StandardCharsets.UTF_8));}
+        public String reveal(String value)throws IOException{reveals++;if(!value.startsWith("fake:"))throw new IOException("fixture invalid");return new String(Base64.getDecoder().decode(value.substring(5)),StandardCharsets.UTF_8);}
+    }
+}

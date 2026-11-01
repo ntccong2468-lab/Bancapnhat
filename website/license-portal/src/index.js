@@ -57,9 +57,30 @@ function sessionCookie(request, token, maxAge=SESSION_SECONDS) {
   return `${cookieName(request)}=${token}; Path=/; HttpOnly; SameSite=Strict; ${dev?'':'Secure; '}Max-Age=${maxAge}`;
 }
 async function bodyJson(request) {
-  if (Number(request.headers.get('content-length')||0) > 12000) throw new Error('Dữ liệu quá lớn');
-  const body = await request.text();
-  if (body.length > 12000) throw new Error('Dữ liệu quá lớn');
+  // Preserve the existing 12,000 UTF-16-code-unit limit while bounding the
+  // encoded input even when Content-Length is missing or incorrect.
+  const maxChars=12000, maxBytes=maxChars*4;
+  const tooLarge=()=>new Error('BODY_TOO_LARGE');
+  if (Number(request.headers.get('content-length')||0)>maxBytes) {
+    request.body?.cancel().catch(()=>{});
+    throw tooLarge();
+  }
+  let body='', bytes=0;
+  if (request.body) {
+    const reader=request.body.getReader(), decoder=new TextDecoder();
+    try {
+      for (;;) {
+        const part=await reader.read();
+        if (part.done) break;
+        bytes+=part.value.byteLength;
+        if (bytes>maxBytes) {reader.cancel().catch(()=>{});throw tooLarge();}
+        body+=decoder.decode(part.value,{stream:true});
+        if (body.length>maxChars) {reader.cancel().catch(()=>{});throw tooLarge();}
+      }
+      body+=decoder.decode();
+      if (body.length>maxChars) throw tooLarge();
+    } finally {reader.releaseLock();}
+  }
   try {const value=JSON.parse(body);if(!value||Array.isArray(value)||typeof value!=='object')throw new Error();return value;} catch {throw new Error('INVALID_JSON');}
 }
 function emailOf(v) {return typeof v==='string' ? v.trim().toLowerCase() : '';}
@@ -344,7 +365,7 @@ export default {
   async fetch(request,env){
     const path=new URL(request.url).pathname;
     if(!path.startsWith('/api/'))return env.ASSETS.fetch(request);
-    try {return await api(request,env);} catch(e){if(e.message==='INVALID_JSON')return fail('Dữ liệu JSON không hợp lệ',400);console.error('VNCode API error');return fail('Lỗi máy chủ. Vui lòng thử lại.',500);}
+    try {return await api(request,env);} catch(e){if(e.message==='INVALID_JSON')return fail('Dữ liệu JSON không hợp lệ',400);if(e.message==='BODY_TOO_LARGE')return fail('Dữ liệu quá lớn',413);console.error('VNCode API error');return fail('Lỗi máy chủ. Vui lòng thử lại.',500);}
   },
   async scheduled(_event,env,ctx){
     const cleanup=cleanupExpired(env).catch(()=>{console.error('VNCode expired credential maintenance failed');});

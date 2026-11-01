@@ -527,6 +527,89 @@ class OzonPrintBundleServiceTest {
         assertEquals("existing-label",Files.readString(labels));assertEquals("existing-picking",Files.readString(picking));assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
     }
 
+    @Test void singleExportWithoutPickingTargetRejectsBeforeTouchingReservedKiz() throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        Path labels=temporaryDirectory.resolve("no-picking-kiz.pdf");
+        assertThrows(IllegalArgumentException.class,()->service(new AtomicBoolean()).export(shop,"POST-1",labels.toFile(),null));
+        assertFalse(Files.exists(labels));
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("VALIDATED",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void unmarkedSingleExportWithoutPickingTargetRejectsBeforeWriting() throws Exception {
+        seedUnmarkedPosting("POST-2","SKU-2","offer-2");
+        new OzonProductKizPolicyRepository().setRequired(1,"SKU-2",false);
+        Path labels=temporaryDirectory.resolve("no-picking-unmarked.pdf");
+        assertThrows(IllegalArgumentException.class,()->service(new AtomicBoolean()).export(shop,"POST-2",labels.toFile(),null));
+        assertFalse(Files.exists(labels));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void batchAllPickingFailureMustPreservePreviousLabelAndReservedKiz() throws Exception {
+        seedPosting(1); seedValidatedExemplar(RAW_KIZ);
+        Path labels=temporaryDirectory.resolve("already-batch.pdf"),picking=temporaryDirectory.resolve("blocked-batch.pdf");
+        Files.writeString(labels,"original-label");Files.createDirectory(picking);Files.writeString(picking.resolve("keep"),"keep");
+        assertThrows(IOException.class,()->service(new AtomicBoolean()).exportAll(shop,List.of("POST-1"),labels.toFile(),picking.toFile()));
+        org.junit.jupiter.api.Assertions.assertAll(
+                ()->assertArrayEquals("original-label".getBytes(java.nio.charset.StandardCharsets.UTF_8),Files.readAllBytes(labels)),
+                ()->assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100")),
+                ()->assertEquals("VALIDATED",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51")),
+                ()->assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts")));
+    }
+
+    @Test void singleLabelTargetDirectoryKeepsPickingAndKizReserved() throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        Path labels=temporaryDirectory.resolve("blocked-label.pdf"),picking=temporaryDirectory.resolve("existing-picking.pdf");
+        Files.createDirectory(labels);Files.writeString(labels.resolve("keep"),"keep");Files.writeString(picking,"original-picking");
+        assertThrows(IOException.class,()->service(new AtomicBoolean()).export(shop,"POST-1",labels.toFile(),picking.toFile()));
+        assertEquals("keep",Files.readString(labels.resolve("keep")));
+        assertEquals("original-picking",Files.readString(picking));
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("VALIDATED",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void singleDatabaseFailureAfterPdfPublishRequiresReconciliation() throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("CREATE TRIGGER fail_ozon_single_consume BEFORE UPDATE OF status ON kiz_codes WHEN NEW.status='CONSUMED' BEGIN SELECT RAISE(ABORT,'simulated storage failure'); END");
+        }
+        Path labels=temporaryDirectory.resolve("published-single.pdf"),picking=temporaryDirectory.resolve("published-single-pick.pdf");
+        var error=assertThrows(IOException.class,()->service(new AtomicBoolean()).export(shop,"POST-1",labels.toFile(),picking.toFile()));
+        assertEquals("OZON_PDF_PUBLISHED_RECONCILIATION_REQUIRED",error.getMessage());
+        assertTrue(Files.isRegularFile(labels));assertTrue(Files.isRegularFile(picking));
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
+    @Test void singleExportPickingFailureMustPreservePreviousLabelAndReservedKiz() throws Exception {
+        seedPosting(1); seedValidatedExemplar(RAW_KIZ);
+        Path labels=temporaryDirectory.resolve("already-single.pdf"),picking=temporaryDirectory.resolve("blocked-single.pdf");
+        Files.writeString(labels,"original-label"); Files.createDirectory(picking); Files.writeString(picking.resolve("keep"),"keep");
+        assertThrows(IOException.class,()->service(new AtomicBoolean()).export(shop,"POST-1",labels.toFile(),picking.toFile()));
+        org.junit.jupiter.api.Assertions.assertAll(
+                ()->assertArrayEquals("original-label".getBytes(java.nio.charset.StandardCharsets.UTF_8),Files.readAllBytes(labels)),
+                ()->assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100")),
+                ()->assertEquals("VALIDATED",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51")),
+                ()->assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts")));
+    }
+
+    @Test void singleExportChangedKizDuringRenderMustNotPublishOrConsume() throws Exception {
+        seedPosting(1); seedValidatedExemplar(RAW_KIZ);
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Existing reservation must not be replaced");},
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);
+                    try(var c=Database.getConnection();var statement=c.prepareStatement("UPDATE kiz_codes SET raw_code=? WHERE id=100")){
+                        statement.setString(1,"changed-mark");statement.executeUpdate();
+                    }catch(java.sql.SQLException error){throw new IOException(error);}return target;});
+        Path labels=temporaryDirectory.resolve("changed-single.pdf"),picking=temporaryDirectory.resolve("changed-single-pick.pdf");
+        assertThrows(IOException.class,()->exporter.export(shop,"POST-1",labels.toFile(),picking.toFile()));
+        assertFalse(Files.exists(labels));assertFalse(Files.exists(picking));
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
+    }
+
     @Test void pickingFilePublishFailureKeepsExistingLabelAndDoesNotConsumeKiz()throws Exception{
         seedPosting(1);seedValidatedExemplar(RAW_KIZ);
         Path labels=temporaryDirectory.resolve("already.pdf"),picking=temporaryDirectory.resolve("blocked.pdf");

@@ -41,4 +41,46 @@ class TableRowsTest {
   var duplicate=List.of(new NullableRow(1,"one"),new NullableRow(1,"two"));TableRows.merge(nullable,duplicate,NullableRow::id);assertEquals(duplicate,nullable);
   var withNull=List.of(new NullableRow(null,"missing"),new NullableRow(2,"two"));TableRows.merge(nullable,withNull,NullableRow::id);assertEquals(withNull,nullable);
  }
+ @Test void largeReorderingUsesPermutationWithoutRescanningOrReplacingRows(){
+  var original=java.util.stream.IntStream.range(0,10_000).mapToObj(i->new Row(i,"value")).toList();
+  var rows=FXCollections.observableArrayList(original);var incoming=new ArrayList<>(original);Collections.reverse(incoming);
+  var lookups=new AtomicInteger();var permutations=new AtomicInteger();var replaced=new AtomicInteger();
+  rows.addListener((ListChangeListener<Row>)change->{while(change.next()){if(change.wasPermutated())permutations.incrementAndGet();if(change.wasRemoved()||change.wasAdded())replaced.incrementAndGet();}});
+  assertEquals(9_999,TableRows.merge(rows,incoming,row->{lookups.incrementAndGet();return row.id();}));
+  assertEquals(incoming,rows);for(int i=0;i<original.size();i++)assertSame(original.get(i),rows.get(original.size()-1-i));
+  assertEquals(1,permutations.get(),"Existing rows should move as one observable permutation");
+  assertEquals(0,replaced.get(),"Reordering should not replace existing rows");
+  assertTrue(lookups.get()<500_000,"Reordering must not scan the remainder for each row: "+lookups.get());
+ }
+ @Test void permutationCountsOnlyMovesOrUpdatesWithoutDoubleCounting(){
+  var original=java.util.stream.IntStream.range(0,100).mapToObj(i->new Row(i,"old")).toList();
+  var rows=FXCollections.observableArrayList(original);var incoming=new ArrayList<>(original);
+  var permutations=new AtomicInteger();rows.addListener((ListChangeListener<Row>)change->{while(change.next())if(change.wasPermutated())permutations.incrementAndGet();});
+  incoming.removeLast();incoming.addFirst(new Row(99,"changed while moved"));incoming.set(30,new Row(29,"changed in place"));
+  assertEquals(2,TableRows.merge(rows,incoming,Row::id));
+  assertEquals(0,permutations.get(),"Changed rows must use the existing incremental path");
+  assertEquals(incoming,rows);assertSame(original.get(0),rows.get(1));assertNotSame(original.get(99),rows.getFirst());
+ }
+ @Test void customObservableListKeepsConservativeReorderBehavior(){
+  var original=java.util.stream.IntStream.range(0,100).mapToObj(i->new Row(i,"value")).toList();
+  var rows=FXCollections.observableList(new LinkedList<>(original));var incoming=new ArrayList<>(original);Collections.reverse(incoming);
+  assertEquals(99,TableRows.merge(rows,incoming,Row::id));assertEquals(incoming,rows);
+  for(int i=0;i<original.size();i++)assertSame(original.get(i),rows.get(original.size()-1-i));
+ }
+ @Test void unchangedLargeQueueDoesNotPayForReorderingIndex(){
+  var source=java.util.stream.IntStream.range(0,10_000).mapToObj(i->new Row(i,"value")).toList();
+  var rows=FXCollections.observableArrayList(source);var lookups=new AtomicInteger();var events=new AtomicInteger();
+  rows.addListener((ListChangeListener<Row>)change->events.incrementAndGet());
+  assertEquals(0,TableRows.merge(rows,source,row->{lookups.incrementAndGet();return row.id();}));
+  assertEquals(0,events.get());assertTrue(lookups.get()<=50_000,"Unchanged data should not build a reorder index: "+lookups.get());
+ }
+ @Test void trackedFbsRowsPreserveIdentityWhenOnlyTheirOrderChanges(){
+  var original=java.util.stream.IntStream.range(0,1000).mapToObj(i->new Row(i,"value")).toList();
+  var rows=FXCollections.observableArrayList(original);var tracked=new TableRows.Tracked<Row,Integer>();
+  tracked.merge(rows,original,Row::id,Row::value);
+  var events=new AtomicInteger();rows.addListener((ListChangeListener<Row>)change->{while(change.next())if(change.wasPermutated())events.incrementAndGet();});
+  var incoming=original.stream().map(row->new Row(row.id(),row.value())).collect(java.util.stream.Collectors.toCollection(ArrayList::new));Collections.reverse(incoming);
+  assertEquals(999,tracked.merge(rows,incoming,Row::id,Row::value));assertEquals(1,events.get());
+  for(int i=0;i<original.size();i++)assertSame(original.get(i),rows.get(original.size()-1-i));
+ }
 }

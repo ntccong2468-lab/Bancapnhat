@@ -40,15 +40,21 @@ public class UpdateApiClient {
     UpdateApiClient(OkHttpClient http,String pinnedUpdateKey){this.http=http;this.pinnedUpdateKey=pinnedUpdateKey;}
 
     public UpdateInfo fetchLatestVersion() throws IOException {
-        return fetchWithRetry(0);
+        return fetchLatestVersion(() -> false);
+    }
+
+    UpdateInfo fetchLatestVersion(java.util.function.BooleanSupplier cancelled) throws IOException {
+        return fetchWithRetry(0, cancelled);
     }
 
     public String resolveConfiguredSource() {
         return normalizeUpdateSource(getEffectiveUpdateUrl());
     }
 
-    private UpdateInfo fetchWithRetry(int attempt) throws IOException {
+    private UpdateInfo fetchWithRetry(int attempt, java.util.function.BooleanSupplier cancelled) throws IOException {
+        ensureActive(cancelled);
         String sourceUrl = resolveConfiguredSource();
+        ensureActive(cancelled);
         if (sourceUrl == null || sourceUrl.isBlank()) {
             return null;
         }
@@ -65,6 +71,7 @@ public class UpdateApiClient {
                 .build();
 
         try (Response response = http.newCall(request).execute()) {
+            ensureActive(cancelled);
             if (response.code() == 204) {
                 return null;
             }
@@ -89,9 +96,10 @@ public class UpdateApiClient {
                     : parseGitHubRelease(body);
             return verifySignedIfConfigured(info,testChannel);
         } catch (IOException e) {
+            ensureActive(cancelled);
             if (attempt < 1 && (e.getMessage()==null||!e.getMessage().startsWith("UPDATE_"))) {
                 LOGGER.debug("Update check attempt {} failed, retrying...", attempt + 1);
-                return fetchWithRetry(attempt + 1);
+                return fetchWithRetry(attempt + 1, cancelled);
             }
             if (e instanceof UnknownHostException) {
                 LOGGER.info("Update endpoint unavailable: {}", sourceUrl);
@@ -101,6 +109,12 @@ public class UpdateApiClient {
             throw e;
         } catch(RuntimeException malformed) {
             throw new IOException("UPDATE_INVALID_RESPONSE");
+        }
+    }
+
+    static void ensureActive(java.util.function.BooleanSupplier cancelled) throws IOException {
+        if (Thread.currentThread().isInterrupted() || cancelled.getAsBoolean()) {
+            throw new java.io.InterruptedIOException("UPDATE_CANCELLED");
         }
     }
 

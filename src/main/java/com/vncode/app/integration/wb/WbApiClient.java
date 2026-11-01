@@ -267,9 +267,11 @@ public class WbApiClient {
                 } else if (isMarketplaceApiRateLimited(request.url(), response.code())) {
                     retryAfter = WbMarketplaceApiRateLimiter.registerRateLimit(apiKey, response.headers());
                 }
-                String message = extractErrorMessage(request.url(), response.code(), body);
-                LOGGER.warn("WB API request failed: {} {} -> {} {}", request.method(), request.url(), response.code(), message);
-                throw new WbApiException(message, response.code(), body, retryAfter);
+                String message = safeDiagnostic(extractErrorMessage(request.url(), response.code(), body), apiKey);
+                // Response bodies and query strings are untrusted and may contain a seller's
+                // credential or marking codes. Do not retain or log the raw response.
+                LOGGER.warn("WB API request failed: {} {} -> {}", request.method(), safeRequestUrl(request.url(), apiKey), response.code());
+                throw new WbApiException(message, response.code(), "", retryAfter);
             }
             if (type == Void.class) {
                 return null;
@@ -277,13 +279,25 @@ public class WbApiClient {
             try {
                 return GSON.fromJson(body, type);
             } catch (com.google.gson.JsonSyntaxException ex) {
-                LOGGER.error("GSON parsing failed for WB API response: {} {} as {}: {}",
-                        request.method(), request.url(), type.getSimpleName(), ex.getMessage(), ex);
-                throw ex;
+                LOGGER.error("GSON parsing failed for WB API response: {} {} as {}",
+                        request.method(), safeRequestUrl(request.url(), apiKey), type.getSimpleName());
+                // Gson's original cause may include data from the remote response.
+                throw new com.google.gson.JsonSyntaxException("Invalid WB API JSON response");
             }
         } catch (InterruptedIOException ex) {
             throw new IOException("Wildberries system response timed out. Please try again.", ex);
         }
+    }
+
+    private static String safeRequestUrl(HttpUrl url, String apiKey) {
+        return safeDiagnostic(url.newBuilder().query(null).fragment(null).build().toString(), apiKey);
+    }
+
+    private static String safeDiagnostic(String value, String apiKey) {
+        String safe = value == null ? "" : value;
+        if (apiKey != null && !apiKey.isBlank()) safe = safe.replace(apiKey, "[REDACTED]");
+        if (safe.length() > 4096) safe = safe.substring(0, 4096);
+        return com.vncode.app.integration.znack.ZnackSanitizer.message(safe);
     }
 
     private String extractErrorMessage(HttpUrl url, int statusCode, String body) {
@@ -329,9 +343,9 @@ public class WbApiClient {
                 return object.get("code").getAsString();
             }
         } catch (Exception ignored) {
-            // fall back to raw body
+            // Malformed or unexpected error payloads get a generic safe message.
         }
-        return body;
+        return "WB API request failed";
     }
 
     private String extractMetaValidationMessage(int statusCode, JsonObject object) {

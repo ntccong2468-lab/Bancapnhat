@@ -1,0 +1,50 @@
+# Đề xuất bảo vệ credential và di chuyển dữ liệu
+
+**Trạng thái: chủ dự án đã duyệt triển khai và kiểm thử trên nhánh PR với dữ liệu giả; chưa duyệt áp dụng vào dữ liệu seller hoặc phát hành.** Tài liệu này không thay đổi cơ sở dữ liệu, cấu hình, credential hay quyền truy cập. Không thu thập hoặc đưa giá trị khóa, OMS connection hay KIZ thật vào báo cáo, log, test fixture hoặc hội thoại.
+
+## Mục tiêu và giới hạn
+
+Giảm rủi ro khi một bản sao cơ sở dữ liệu hoặc bản sao lưu bị đọc ngoài ý muốn, đồng thời giữ nguyên danh tính cửa hàng, cấu hình Znack và khả năng tiếp tục các lô đang chạy. DPAPI theo người dùng Windows giúp bảo vệ dữ liệu khi người khác chỉ có tệp; nó **không** bảo vệ chống mã độc hoặc tiến trình đã chạy dưới đúng tài khoản Windows của seller. Credential vẫn phải được giải mã ngắn hạn để gọi API; không hứa xóa tuyệt đối mọi bản sao trong bộ nhớ Java.
+
+## Hiện trạng đã đối chiếu trong mã
+
+- `src/main/java/com/vncode/app/features/shop/ShopRepository.java` ghi và đọc `shops.api_key` trực tiếp; `Database.java` định nghĩa trường này là `TEXT NOT NULL`, schema hiện tại `user_version = 6`. `Shop.validateForCreate()` không đặt cùng giới hạn 8.192 byte như bộ bảo vệ hiện tại; một số đường WB chấp nhận token tới 16.384 ký tự. Không được giả định hay cắt ngắn giá trị đang có.
+- `src/main/java/com/vncode/app/integration/znack/ZnackRepository.java` ghi và đọc `znack_settings.oms_connection` trực tiếp. Cùng repository lưu `Settings` theo từng pipeline trong `znack_pipeline_connections.settings_json` (`bindPipelineConnections`, `pipelineSettings`, `enqueuePrintPipeline`); bản sao lịch sử có thể chứa OMS connection. `ZnackSchemaSupport` còn có đường nhập cấu hình legacy. Phải thống kê các bản sao và đường đọc/ghi thực tế trước khi chốt phạm vi, không chỉ sửa trường cấu hình hiện hành.
+- `ListingIdentity`, `KizService`, `KizWarehouseRepository`, `ListingCopyService`, `ProductRepository`, `OzonProductGtinMappingRepository` và `OzonCardRegistrationRepository` có SQL đọc hoặc so sánh trực tiếp `shops.api_key`. Thay dữ liệu sang ciphertext mà không chuyển các đường này sẽ làm sai kiểm tra chủ sở hữu, fingerprint, tìm cửa hàng và phục hồi hàng đợi.
+- `WindowsSecretProtector` hiện dùng DPAPI `CurrentUser`, truyền dữ liệu qua stdin PowerShell và chỉ cho phép purpose đã khai báo cho mail, license và Catalog. `CatalogCredentialRepository` đã dùng purpose riêng để bảo vệ Catalog key; không thay hoặc giải mã lại dữ liệu Catalog/mail/license sẵn có trong đề xuất này.
+- `LocalDataMigrationGate` lấy `AppDataLock`, phục hồi sự cố và tạo snapshot đã xác minh trước khi đổi schema; `LocalDataSnapshotService` dùng SQLite backup, checksum và kiểm tra toàn vẹn. Các snapshot trước chuyển đổi chứa bản sao dữ liệu cũ, vì vậy vẫn có thể chứa credential dạng rõ. Schema mới hơn bị bản cũ từ chối mở; điều này không tự bảo đảm rollback bảo toàn các dữ liệu ghi sau khi nâng cấp.
+
+## Thiết kế đề xuất, cần chốt trước khi viết mã
+
+1. **Phạm vi:** bảo vệ WB/Ozon API key, OMS connection hiện hành và từng bản sao OMS connection thuộc pipeline; giữ nguyên Client ID/OMS ID là định danh trừ khi khảo sát bổ sung chứng minh cần bảo vệ chúng. Rà toàn bộ nơi tuần tự hóa, sao chép hoặc ghi log trước khi chốt danh mục; không giả định danh sách trên đã đầy đủ.
+2. **Kho credential có phiên bản:** đề xuất bảng/vùng lưu riêng có `format_version`, loại, chủ sở hữu và ciphertext; tách metadata có cấu trúc khỏi ciphertext, không suy đoán một giá trị cũ là ciphertext chỉ vì nó bắt đầu bằng `dpapi:`. Thêm purpose DPAPI riêng cho marketplace và OMS sau khi thiết kế giới hạn độ dài theo dữ liệu đang hỗ trợ; tuyệt đối không tái sử dụng entropy của license, mail hay Catalog. Không dùng khóa hard-code, mã hóa đảo ngược đơn giản hoặc dự phòng plaintext âm thầm.
+3. **Bảo toàn nghiệp vụ:** mọi nơi so sánh credential phải thông qua một ranh giới truy cập thống nhất. Giữ hành vi so sánh, chủ cửa hàng, marketplace và fingerprint đã lưu; kiểm tra token thay đổi, nhiều shop và công việc tồn đọng. Các truy vấn hiện tìm theo API key phải được thiết kế lại, có đối chiếu danh tính và kiểm tra trùng; nếu cần chỉ mục tìm kiếm xác định, xem xét HMAC với khóa riêng được DPAPI bảo vệ và xác nhận lại giá trị sau khi tìm. Không dùng raw key, hash không khóa của credential yếu hoặc ciphertext DPAPI ngẫu nhiên làm khóa tìm kiếm.
+4. **Pipeline KIZ:** bảo vệ từng OMS connection được đóng băng theo `pipeline_id`; không thay bằng cấu hình OMS mới nhất của shop. Lưu phiên bản định dạng và chủ sở hữu, hỗ trợ đọc an toàn định dạng legacy trong giai đoạn được duyệt. Nếu thiếu, hỏng hoặc không giải mã được credential của một lô, dừng riêng lô đó và yêu cầu đối soát; không tạo lại lệnh mua, không đổi chủ, không bỏ qua bước xác minh.
+5. **Không Windows:** DPAPI hiện chỉ hỗ trợ Windows. Trước khi áp dụng rộng, phải chọn và kiểm chứng giải pháp keychain/vault phù hợp cho macOS và nền tảng khác, hoặc duy trì luồng phiên bản hiện tại có cảnh báo rõ và chưa nhận chuyển đổi. Không âm thầm lưu ciphertext giả, khóa trong source hoặc làm app mất khả năng mở/đọc dữ liệu trên các nền tảng đang hỗ trợ.
+
+## Trình tự chuyển đổi đề xuất
+
+1. Sau khi `AppDataLock` được sở hữu, hoàn tất khôi phục giao dịch dang dở và chặn tác vụ dùng credential khởi chạy trong thời gian chuyển đổi. Tạo snapshot SQLite hiện hành bằng cơ chế đang có, xác minh checksum, integrity và đủ dung lượng. Kiểm tra ACL/thư mục backup theo nền tảng; nếu không đạt thì dừng an toàn và giữ nguyên dữ liệu.
+2. Đọc dữ liệu legacy có giới hạn; bảo vệ từng giá trị bằng purpose phù hợp và thử giải mã đối chiếu chính xác trong bộ nhớ. Không ghi giá trị rõ vào tệp tạm, command line, thông báo lỗi hoặc telemetry. Nếu bất kỳ giá trị nào vượt giới hạn, DPAPI lỗi hoặc không thể xác minh bản sao, dừng chuyển đổi và giữ nguyên dữ liệu.
+3. Trước khi triển khai migration, mã của mọi đường đọc/ghi liên quan phải được cập nhật và kiểm thử cùng nhau. Khi chạy migration, dùng một giao dịch SQLite có kiểm tra đồng thời (`BEGIN IMMEDIATE`) để kiểm tra lại từng giá trị và chủ sở hữu chưa thay đổi, ghi ciphertext/metadata, chuyển các bản sao pipeline và ghi dấu phiên bản hoàn tất **trong cùng giao dịch**. Chỉ tăng schema khi toàn bộ thay đổi đã nhất quán; thử nghiệm cơ chế `user_version` và crash recovery thực tế trước khi chốt mã migration. Không tự chạy lệnh dọn dẹp phá hủy hoặc xóa backup.
+4. Xác minh sau commit bằng cách đọc lại/giải mã và so sánh, kiểm tra integrity, trạng thái lô và snapshot; sau đó mới cho các tác vụ tiếp tục. Khi bị ngắt ở bất cứ điểm nào, lần khởi động lại phải xác định rõ đã commit hay chưa, chạy lại an toàn và không gửi trùng yêu cầu từ hàng đợi.
+5. Phân tách việc xóa dấu vết plaintext trên trang SQLite, WAL, snapshot và bản sao lưu thành quyết định riêng. `secure_delete`, checkpoint hoặc VACUUM không bảo đảm xóa vật lý trên SSD, snapshot hệ thống hay backup ngoài app; không tuyên bố đã xóa hoàn toàn. Giữ bản rollback theo chính sách và chỉ dọn theo chính sách đã được chủ dự án phê duyệt, không xóa tự động ngoài cơ chế hiện có.
+
+## Tương thích, rollback và khôi phục
+
+- Nếu schema được nâng từ 6, bản 1.6.0 cũ sẽ từ chối schema mới; không để bản cũ coi ciphertext là token và gửi lên sàn. Chốt trước trải nghiệm thông báo và phương án hạ cấp.
+- Khôi phục snapshot **trước** chuyển đổi có thể đưa lại credential dạng rõ và làm mất mọi thay đổi phát sinh sau snapshot. Không tự ghi đè dữ liệu mới; thông báo mốc thời gian và yêu cầu xác nhận riêng. Nếu cần giữ dữ liệu phát sinh sau đó, phải thiết kế và kiểm thử xuất/nhập dữ liệu tương thích có đối soát; chưa khẳng định đã có đường downgrade không mất dữ liệu.
+- DPAPI `CurrentUser` không phải cơ chế chuyển credential sang tài khoản/máy Windows khác. Khi đổi user, cài lại Windows, hỏng profile hoặc không còn khóa DPAPI, giữ ciphertext và dữ liệu kinh doanh; báo credential cần nhập lại trên máy đích, xác minh đúng doanh nghiệp/cửa hàng bằng yêu cầu đọc khi được phép, rồi tiếp tục từng lô sau đối soát. Không xóa ciphertext cũ, không gửi bí mật cho hỗ trợ và không thử lặp các giao dịch có kết quả chưa rõ.
+- Khôi phục snapshot **sau** chuyển đổi phải được thử trên cùng user và user khác. Sao lưu ciphertext mà không sao lưu được ngữ cảnh DPAPI có thể khôi phục dữ liệu nhưng không khôi phục được credential; truyền thông rõ và cho nhập lại.
+
+## Kiểm thử bắt buộc trước khi cho phép phát hành
+
+- Unit/contract với dữ liệu giả: mục đích và giới hạn byte, giá trị Unicode/dài, giá trị có tiền tố giống ciphertext, rỗng/null, shop WB/Ozon trùng token, xoay token, hỏng ciphertext và không rò token trong log/lỗi; xác minh các fingerprint cũ và quyền sở hữu không đổi chỉ do chuyển định dạng.
+- SQLite integration: tất cả đường SQL so sánh trực tiếp, pipeline chứa OMS cũ/mới, job đang gửi/chờ/kết quả không rõ, schema legacy, hai cửa hàng và thay đổi đồng thời; đảm bảo không mua KIZ, gửi Catalog hay ghi sàn thật trong test tự động.
+- Tái hiện crash trước/sau snapshot, mã hóa, từng cập nhật, commit và marker; thiếu dung lượng/ACL, SQLite rollback, WAL, restore và chạy migration lại. So sánh toàn vẹn dữ liệu nghiệp vụ và không phát lại giao dịch.
+- Windows runner/máy thử cô lập: DPAPI thật cùng tài khoản, tài khoản khác và tình huống không truy cập được key; nâng cấp từ 1.6.0 với dữ liệu giả, mở lại, snapshot/rollback, rồi kiểm tra các API bằng server giả. Ghi rõ PASS/FAIL/NOT RUN cho từng hệ điều hành; Linux/mock không chứng minh được DPAPI Windows.
+- Kiểm thử tương thích/khôi phục trên macOS hoặc nền tảng hỗ trợ khác theo giải pháp đã chọn; đối chiếu luồng nâng cấp, đổi thiết bị/tài khoản và UI nhập lại credential.
+
+## Các quyết định cần chủ dự án phê duyệt
+
+Trước áp dụng vào dữ liệu thật hoặc phát hành, cần thống nhất phạm vi credential và nền tảng, trải nghiệm khi DPAPI không khả dụng hoặc đổi máy, phương án rollback khi có dữ liệu mới, và thời gian/biện pháp bảo vệ bản sao legacy chứa plaintext. Phê duyệt hiện tại chỉ dành cho triển khai và kiểm thử trên nhánh PR với dữ liệu giả. Đây là thay đổi nhạy cảm, có thể ảnh hưởng lô mua KIZ và khả năng khôi phục; đề xuất hiện chưa phải bằng chứng rằng mọi bản cài hoặc mọi nguồn dữ liệu đã được bảo vệ.
