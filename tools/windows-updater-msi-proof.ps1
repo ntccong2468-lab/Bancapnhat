@@ -100,6 +100,10 @@ try {
     [void](Wait-VncodeWindow -Process $app -Version '1.5.19')
     Stop-Process -Id $app.Id -Force
     $app.WaitForExit(); $app = $null
+    $baselineIds = @((AppProcesses $launcher) | ForEach-Object { [int]$_.ProcessId })
+    foreach ($baselineId in $baselineIds) { Stop-Process -Id $baselineId -Force -ErrorAction SilentlyContinue }
+    foreach ($baselineId in $baselineIds) { Wait-Process -Id $baselineId -Timeout 20 -ErrorAction SilentlyContinue }
+    if (@(AppProcesses $launcher).Count -ne 0) { throw 'An old baseline process is still running before the updater test.' }
     Write-Host '1.5.19 startup succeeded; preparing fake local data.'
     $oldClasspath = "$program\app\*;$program\app\lib\*"
     & javac --add-modules jdk.httpserver -cp $oldClasspath -d $root (Join-Path $PSScriptRoot 'WindowsDataProbe.java') (Join-Path $PSScriptRoot 'WindowsUpgradeDataProbe.java') (Join-Path $PSScriptRoot 'UpdaterMsiProbe.java')
@@ -150,7 +154,8 @@ try {
         # process trees rather than falsely treating a parent/child pair as two apps.
         $ids = @($running | ForEach-Object { [int]$_.ProcessId })
         $roots = @($running | Where-Object { $ids -notcontains [int]$_.ParentProcessId })
-        $state = "registrations=$($registrations.Count); versions=$versions; appProcesses=$($running.Count); appTrees=$($roots.Count); msiexecProcesses=$msiProcesses"
+        $relations = @($running | ForEach-Object { "$($_.ProcessId):$($_.ParentProcessId)" }) -join ','
+        $state = "registrations=$($registrations.Count); versions=$versions; appProcesses=$($running.Count); appTrees=$($roots.Count); appPidParents=$relations; msiexecProcesses=$msiProcesses"
         if ($state -cne $lastState) { Write-Host "Updater progress: $state"; $lastState = $state }
         if ($registrations.Count -eq 1 -and $registrations[0].DisplayVersion -ceq $Version -and $roots.Count -eq 1) {
             $app = Get-Process -Id ([int]$roots[0].ProcessId) -ErrorAction Stop
