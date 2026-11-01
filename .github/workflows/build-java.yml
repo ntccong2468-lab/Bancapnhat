@@ -24,7 +24,6 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       BUILD_RUN_ID: ${{ inputs.reuse_verified_java_run_id }}
       EXPECTED_SOURCE: ${{ inputs.recover_fixture_failure_run_id }}
-      LOCALAPPDATA: ${{ runner.temp }}\vncode-updater-proof-${{ github.run_id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
@@ -58,6 +57,8 @@ jobs:
           "CANDIDATE_DIR=$candidate" >> $env:GITHUB_ENV
       - name: Exercise installed 1.5.19 updater and exact MSI without seller credentials
         shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-updater-proof-${{ github.run_id }}
         run: |
           $ErrorActionPreference = 'Stop'
           $evidence = Join-Path $env:RUNNER_TEMP 'vncode-updater-msi-evidence'
