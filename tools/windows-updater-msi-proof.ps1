@@ -12,10 +12,10 @@ if ($env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_OS -cne 'Windows' -or $env:R
 if ($Version -cne '1.6.0' -or $ExpectedSource -notmatch '^[a-f0-9]{40}$' -or $ExpectedRunId -le 0) {
     throw 'Invalid candidate identity.'
 }
-$runnerTemp = [IO.Path]::GetFullPath($env:RUNNER_TEMP).TrimEnd('\') + '\'
-$localAppData = [IO.Path]::GetFullPath($env:LOCALAPPDATA).TrimEnd('\') + '\'
-if (-not $localAppData.StartsWith($runnerTemp, [StringComparison]::OrdinalIgnoreCase)) {
-    throw 'LOCALAPPDATA must be isolated below RUNNER_TEMP.'
+$localAppData = [IO.Path]::GetFullPath($env:LOCALAPPDATA).TrimEnd('\')
+$profileLocal = [IO.Path]::GetFullPath([Environment]::GetFolderPath('LocalApplicationData')).TrimEnd('\')
+if (-not $localAppData.Equals($profileLocal, [StringComparison]::OrdinalIgnoreCase)) {
+    throw 'The disposable runner must use its actual LocalAppData installation directory.'
 }
 . (Join-Path $PSScriptRoot 'windows-smoke-common.ps1')
 $candidate = (Resolve-Path -LiteralPath $CandidateRoot).Path
@@ -81,7 +81,9 @@ $app = $null; $installed = $false; $firewallInstalled = $false
 try {
     Msi '/i' $oldMsi
     $installed = $true
-    if (@(Registrations).Count -ne 1 -or @(Registrations)[0].DisplayVersion -cne '1.5.19' -or -not (Test-Path -LiteralPath $launcher)) {
+    $baselineRegistrations = @(Registrations)
+    Write-Host ("Baseline registrations: {0}; expected launcher exists: {1}" -f $baselineRegistrations.Count, (Test-Path -LiteralPath $launcher))
+    if ($baselineRegistrations.Count -ne 1 -or $baselineRegistrations[0].DisplayVersion -cne '1.5.19' -or -not (Test-Path -LiteralPath $launcher)) {
         throw 'Official 1.5.19 installation was not registered as expected.'
     }
     # The app has no need for network in this proof. The Java probe's loopback

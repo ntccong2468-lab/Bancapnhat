@@ -57,8 +57,6 @@ jobs:
           "CANDIDATE_DIR=$candidate" >> $env:GITHUB_ENV
       - name: Exercise installed 1.5.19 updater and exact MSI without seller credentials
         shell: pwsh
-        env:
-          LOCALAPPDATA: ${{ runner.temp }}\vncode-updater-proof-${{ github.run_id }}
         run: |
           $ErrorActionPreference = 'Stop'
           $evidence = Join-Path $env:RUNNER_TEMP 'vncode-updater-msi-evidence'
