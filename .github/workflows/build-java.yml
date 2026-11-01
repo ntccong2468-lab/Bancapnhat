@@ -21,7 +21,6 @@ jobs:
     runs-on: windows-2022
     timeout-minutes: 45
     env:
-      GH_TOKEN: ${{ github.token }}
       BUILD_RUN_ID: ${{ inputs.reuse_verified_java_run_id }}
       EXPECTED_SOURCE: ${{ inputs.recover_fixture_failure_run_id }}
     steps:
@@ -32,6 +31,8 @@ jobs:
           distribution: oracle
       - name: Download and verify the exact previously tested candidate
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
           if ($env:BUILD_RUN_ID -cnotmatch '^[0-9]+$' -or $env:EXPECTED_SOURCE -cnotmatch '^[0-9a-f]{40}$') { throw 'Invalid run or source identifier.' }

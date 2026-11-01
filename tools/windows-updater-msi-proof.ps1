@@ -9,6 +9,11 @@ $ErrorActionPreference = 'Stop'
 if ($env:GITHUB_ACTIONS -cne 'true' -or $env:RUNNER_OS -cne 'Windows' -or $env:RUNNER_ENVIRONMENT -cne 'github-hosted') {
     throw 'This installer probe requires a disposable GitHub-hosted Windows runner.'
 }
+# The candidate has already been downloaded. No token, secret, credential or
+# email belongs in the environment inherited by the old or new application.
+foreach ($entry in @(Get-ChildItem Env: | Where-Object { $_.Name -match '(?i)(TOKEN|SECRET|PASS(WOR)?D|API[_-]?KEY|CREDENTIAL|EMAIL|GMAIL)' })) {
+    [Environment]::SetEnvironmentVariable($entry.Name, $null, 'Process')
+}
 if ($Version -cne '1.6.0' -or $ExpectedSource -notmatch '^[a-f0-9]{40}$' -or $ExpectedRunId -le 0) {
     throw 'Invalid candidate identity.'
 }
@@ -141,17 +146,24 @@ try {
         $registrations = @(Registrations); $running = @(AppProcesses $launcher)
         $versions = @($registrations | ForEach-Object { [string]$_.DisplayVersion }) -join ','
         $msiProcesses = @(Get-Process -Name 'msiexec' -ErrorAction SilentlyContinue).Count
-        $state = "registrations=$($registrations.Count); versions=$versions; appProcesses=$($running.Count); msiexecProcesses=$msiProcesses"
+        # A jpackage launcher and its child may share the executable path. Count
+        # process trees rather than falsely treating a parent/child pair as two apps.
+        $ids = @($running | ForEach-Object { [int]$_.ProcessId })
+        $roots = @($running | Where-Object { $ids -notcontains [int]$_.ParentProcessId })
+        $state = "registrations=$($registrations.Count); versions=$versions; appProcesses=$($running.Count); appTrees=$($roots.Count); msiexecProcesses=$msiProcesses"
         if ($state -cne $lastState) { Write-Host "Updater progress: $state"; $lastState = $state }
-        if ($registrations.Count -eq 1 -and $registrations[0].DisplayVersion -ceq $Version -and $running.Count -eq 1) {
-            $app = Get-Process -Id ([int]$running[0].ProcessId) -ErrorAction Stop
+        if ($registrations.Count -eq 1 -and $registrations[0].DisplayVersion -ceq $Version -and $roots.Count -eq 1) {
+            $app = Get-Process -Id ([int]$roots[0].ProcessId) -ErrorAction Stop
             [void](Wait-VncodeWindow -Process $app -Version $Version)
             $ready = $true; break
         }
         Start-Sleep -Milliseconds 500
     }
     if (-not $ready) { throw 'Updater did not install and relaunch the expected candidate.' }
-    Stop-Process -Id $app.Id -Force; $app.WaitForExit(); $app = $null
+    $appIds = @((AppProcesses $launcher) | ForEach-Object { [int]$_.ProcessId })
+    foreach ($appId in $appIds) { Stop-Process -Id $appId -Force -ErrorAction SilentlyContinue }
+    foreach ($appId in $appIds) { Wait-Process -Id $appId -Timeout 20 -ErrorAction SilentlyContinue }
+    $app = $null
     $newClasspath = "$root;$program\app\*;$program\app\lib\*"
     $after = & java --enable-native-access=ALL-UNNAMED -cp $newClasspath WindowsUpgradeDataProbe fingerprint $data
     if ($LASTEXITCODE -ne 0 -or $after -cne $before) { throw 'Existing fake seller data changed during the updater handoff.' }
