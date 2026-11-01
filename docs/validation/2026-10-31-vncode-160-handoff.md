@@ -1,7 +1,9 @@
 # Bàn giao kiểm tra VN Code 1.6.0 — 31.10.2026
 
-- Mã ứng viên ứng dụng: `170ac4b3d95f9a1067cb857416393812d2bc495c` trên nhánh `release/vn-code-1.6.0`.
-- Lượt Windows kiểm thử và tạo bộ cài từ commit này: [GitHub Actions 41249585685](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41249585685). Lượt này chưa hoàn tất tại thời điểm ghi bàn giao; không coi bộ cài hoặc nâng cấp là đã xác minh.
+- Mã ứng viên ứng dụng: `07e2b7dd7225b283131574050287e3ab24ec7394` trên nhánh `release/vn-code-1.6.0`.
+- Lượt Windows kiểm thử và tạo bộ cài từ commit này: [GitHub Actions 41276029647](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41276029647). Lượt này chưa hoàn tất tại thời điểm ghi bàn giao; không coi bộ cài hoặc nâng cấp là đã xác minh.
+- Lượt Windows trước trên `170ac4b` đã qua 3.620/3.622 ca, 2 ca bỏ qua do không phù hợp hệ điều hành; tạo bộ cài và nâng cấp EXE từ 1.5.19 với dữ liệu mẫu thành công. Bộ cài này không chứa các tối ưu giao diện trong commit `07e2b7d`.
+- Các tối ưu thao tác mới cho ảnh thu nhỏ, lựa chọn sản phẩm, cuộn, danh sách FBS và bộ lọc Znack đạt 120/120 kiểm thử tích hợp JavaFX trên Linux/Xvfb. Các phép đo cục bộ không đại diện tốc độ trên máy seller.
 - Lượt Windows trước trên commit `354c0e7` thất bại với 1 ca thất bại và 10 lỗi. Các sửa đổi tương ứng được chạy gộp 65/65 ca trên Linux; vẫn cần xác nhận trên Windows. Trường hợp SQLite `READONLY` chưa có nguyên nhân gốc được chứng minh.
 - Lượt hồi quy Linux trên commit `354c0e7`, không gồm lớp GTIN khối lượng lớn chạy riêng: 3.605 ca, không thất bại, 2 ca bỏ qua vì chỉ chạy trên Windows. Lớp GTIN khối lượng lớn đạt 14/14 trên cùng mã nghiệp vụ, trước bản sửa kiểm tra quyền đọc chi tiết Ozon. Các sửa bổ sung trong `170ac4b` được kiểm thử có mục tiêu, chưa được chạy lại toàn bộ trên Linux.
 - Lượt mô phỏng 10.000 GTIN Ozon xác minh 10.000 dòng, mất khoảng 11 phút 58 giây sau khi dựng dữ liệu, với 60.000 lượt đọc giấy tờ giả lập. Kết quả không bao gồm thời gian mạng hoặc giới hạn API thật; hiệu năng danh mục lớn vẫn cần cải thiện.
