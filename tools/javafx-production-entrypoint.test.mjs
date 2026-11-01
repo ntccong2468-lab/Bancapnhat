@@ -164,7 +164,7 @@ test("Znack registration test EXE is isolated, has its own update channel, and c
   assert.match(appPaths, /VNcodeZnackRegistrationTestData/);
   assert.match(appPaths, /legacyAppDataDirs\(\)\s*\{[\s\S]*?return List\.of\(\);/);
   assert.doesNotMatch(updateService, /isZnackRegistrationTestProfile/);
-  assert.match(updateClient, /https:\/\/api\.github\.com\/repos\/ntccong2468-lab\/Vncode/);
+  assert.match(updateClient, /^\s*static final String ZNACK_TEST_UPDATE_SOURCE\s*=\s*"https:\/\/api\.github\.com\/repos\/ntccong2468-lab\/Vncode";\s*$/m);
   assert.match(updateClient, /znack-registration-test-v/);
   assert.match(workflow, /github\.repository == 'ntccong2468-lab\/Vncode'/,
     'the isolated publisher must match the actual client update repository');

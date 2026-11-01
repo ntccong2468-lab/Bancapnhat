@@ -52,6 +52,16 @@ class TnvedCatalogTest {
         Path backup=c.snapshot();assertTrue(java.nio.file.Files.size(backup)>0);
         var restored=new TnvedCatalog(backup);assertEquals("future-fixture",restored.activeVersion());
     }
+    @Test void snapshotPreservesCatalogWhenDataDirectoryContainsQuote() throws Exception {
+        Path quoted=dir.resolve("seller's synthetic directory");
+        java.nio.file.Files.createDirectories(quoted);
+        var c=new TnvedCatalog(quoted.resolve("tnved.sqlite"));c.initialize();
+        c.importVersion(version("quoted-fixture"),List.of(node("01","I",false,null)),true);
+        Path backup=c.snapshot();
+        assertTrue(backup.startsWith(quoted));
+        assertEquals("quoted-fixture",new TnvedCatalog(backup).activeVersion());
+        assertEquals("01",new TnvedCatalog(backup).children("I").getFirst().code());
+    }
     @Test void effectiveSearchExcludesInactiveAncestors() throws Exception {
         var c=catalog();c.importVersion(version("inactive-parent-fixture"),List.of(
                 new Node("01","I","CHAPTER","I","Fixture","Fixture","","",false,false,date,null,version("x").sourceUrl()),

@@ -111,8 +111,9 @@ public final class TnvedCatalog {
     public synchronized Path snapshot() throws Exception {
         Path directory=database.getParent().resolve("tnved").resolve("backups");Files.createDirectories(directory);
         Path destination=directory.resolve("catalog-"+UUID.randomUUID()+".sqlite");
-        try(var c=connect();var statement=c.createStatement()) {
-            statement.execute("VACUUM INTO '"+destination.toString().replace("'","''")+"'");
+        try(var c=connect();var statement=c.prepareStatement("VACUUM INTO ?")) {
+            statement.setString(1,destination.toString());
+            statement.execute();
         }
         try(var c=DriverManager.getConnection("jdbc:sqlite:"+destination);var statement=c.createStatement();var rows=statement.executeQuery("PRAGMA integrity_check")) {
             if(!rows.next()||!"ok".equals(rows.getString(1)))throw new SQLException("Invalid TN VED snapshot.");
