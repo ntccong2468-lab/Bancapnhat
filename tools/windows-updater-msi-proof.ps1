@@ -90,10 +90,12 @@ try {
     # server runs under java.exe, a different executable from this blocked app.
     New-NetFirewallRule -Name $ruleName -DisplayName 'VN code isolated updater proof' -Direction Outbound -Program $launcher -Action Block -Enabled True | Out-Null
     $firewallInstalled = $true
+    Write-Host 'Launching isolated 1.5.19 with outbound network blocked.'
     $app = Start-Process -FilePath $launcher -PassThru
     [void](Wait-VncodeWindow -Process $app -Version '1.5.19')
     Stop-Process -Id $app.Id -Force
     $app.WaitForExit(); $app = $null
+    Write-Host '1.5.19 startup succeeded; preparing fake local data.'
     $oldClasspath = "$program\app\*;$program\app\lib\*"
     & javac --add-modules jdk.httpserver -cp $oldClasspath -d $root (Join-Path $PSScriptRoot 'WindowsDataProbe.java') (Join-Path $PSScriptRoot 'WindowsUpgradeDataProbe.java') (Join-Path $PSScriptRoot 'UpdaterMsiProbe.java')
     if ($LASTEXITCODE -ne 0) { throw 'Cannot compile isolated old-version probes.' }
@@ -104,11 +106,20 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Cannot seed isolated fake data.' }
     $before = & java --enable-native-access=ALL-UNNAMED -cp $classpath WindowsUpgradeDataProbe fingerprint $data
     if ($LASTEXITCODE -ne 0 -or $before -notmatch '^[a-f0-9]{64}$') { throw 'Invalid pre-upgrade fingerprint.' }
+    Write-Host 'Fake data seeded and fingerprinted; starting old updater harness.'
     $probeOut = Join-Path $root 'updater-probe.stdout.log'
     $probeErr = Join-Path $root 'updater-probe.stderr.log'
     $java = Join-Path $env:JAVA_HOME 'bin\java.exe'
     $args = @('--add-modules','jdk.httpserver','--enable-native-access=ALL-UNNAMED','-cp',"`"$classpath`"",'com.vncode.app.integration.update.UpdaterMsiProbe',"`"$newMsi`"",$newMsiHash,[string]$newMsiBytes)
-    $probe = Start-Process -FilePath $java -ArgumentList $args -Wait -PassThru -RedirectStandardOutput $probeOut -RedirectStandardError $probeErr
+    # Start-Process -Wait can wait for the entire descendant tree, including
+    # the newly relaunched app. Wait only for this harness PID to exit.
+    $probe = Start-Process -FilePath $java -ArgumentList $args -PassThru -RedirectStandardOutput $probeOut -RedirectStandardError $probeErr
+    if (-not $probe.WaitForExit(180000)) {
+        $probe.Kill($true)
+        $probe.WaitForExit()
+        throw 'The updater harness did not exit within its deadline.'
+    }
+    Write-Host 'The old updater harness exited; inspecting its handoff.'
     if ($probe.ExitCode -ne 0 -or -not (Select-String -LiteralPath $probeOut -SimpleMatch 'UPDATER_MSI_HANDOFF_STARTED' -Quiet)) {
         if (Test-Path -LiteralPath $probeErr) { Get-Content -LiteralPath $probeErr -Tail 40 | Write-Host }
         throw 'The installed 1.5.19 updater did not complete its verified handoff.'
@@ -124,6 +135,7 @@ try {
     $snapshotMeta = @(Get-ChildItem -LiteralPath (Join-Path $data 'snapshots') -Recurse -File -Filter 'snapshot.properties' -ErrorAction SilentlyContinue |
         Where-Object { Select-String -LiteralPath $_.FullName -Pattern '^reason=signed-update-install$' -Quiet })
     if ($snapshotMeta.Count -lt 1) { throw 'Updater did not persist its update rollback snapshot.' }
+    Write-Host 'Rollback snapshot persisted; waiting for MSI upgrade and relaunch.'
     $deadline = [DateTime]::UtcNow.AddMinutes(5); $ready = $false
     while ([DateTime]::UtcNow -lt $deadline) {
         $registrations = @(Registrations); $running = @(AppProcesses $launcher)
