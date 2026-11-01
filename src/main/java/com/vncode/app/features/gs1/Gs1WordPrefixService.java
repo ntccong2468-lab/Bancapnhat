@@ -397,15 +397,24 @@ public final class Gs1WordPrefixService {
             loaded.put(key, font); return font;
         }
         private static Path serifFont(boolean bold, boolean italic) {
-            String root = System.getenv("SystemRoot");
-            String windows = bold && italic ? "timesbi.ttf" : bold ? "timesbd.ttf" : italic ? "timesi.ttf" : "times.ttf";
-            if (root != null) { Path path = Path.of(root, "Fonts", windows); if (Files.isRegularFile(path)) return path; }
-            String style = bold && italic ? "BoldItalic" : bold ? "Bold" : italic ? "Italic" : "Regular";
-            for (String folder : List.of("/usr/share/fonts/truetype/liberation", "/usr/share/fonts/truetype/liberation2")) {
-                Path path = Path.of(folder, "LiberationSerif-" + style + ".ttf"); if (Files.isRegularFile(path)) return path;
-            }
-            return null;
+            return findSerifFont(System.getenv("SystemRoot"),
+                    List.of(Path.of("/usr/share/fonts/truetype/liberation"), Path.of("/usr/share/fonts/truetype/liberation2")),
+                    List.of(Path.of("/System/Library/Fonts/Supplemental"), Path.of("/Library/Fonts")), bold, italic);
         }
+    }
+    /** Existing Windows/Linux fonts remain preferred; macOS supplies Times in Supplemental. */
+    static Path findSerifFont(String windowsRoot, List<Path> linuxDirectories, List<Path> macDirectories, boolean bold, boolean italic) {
+        String windows = bold && italic ? "timesbi.ttf" : bold ? "timesbd.ttf" : italic ? "timesi.ttf" : "times.ttf";
+        if (windowsRoot != null) { Path path = Path.of(windowsRoot, "Fonts", windows); if (Files.isRegularFile(path)) return path; }
+        String style = bold && italic ? "BoldItalic" : bold ? "Bold" : italic ? "Italic" : "Regular";
+        for (Path folder : linuxDirectories) {
+            Path path = folder.resolve("LiberationSerif-" + style + ".ttf"); if (Files.isRegularFile(path)) return path;
+        }
+        String macStyle = bold && italic ? " Bold Italic" : bold ? " Bold" : italic ? " Italic" : "";
+        for (Path folder : macDirectories) {
+            Path path = folder.resolve("Times New Roman" + macStyle + ".ttf"); if (Files.isRegularFile(path)) return path;
+        }
+        return null;
     }
     private static Color color(String value) { if (!value.matches("[0-9a-fA-F]{6}")) throw invalid("unsupported_layout"); return new Color(Integer.parseInt(value, 16)); }
     private static String field(String value, int limit) { if (value == null || value.isBlank() || value.length() > limit || value.chars().anyMatch(Character::isISOControl)) throw invalid("fields"); return value.strip(); }

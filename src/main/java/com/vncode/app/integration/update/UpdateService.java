@@ -14,8 +14,12 @@ public class UpdateService {
     public UpdateService(){this(new UpdateApiClient(),BuildConfig::getAppVersion,ConfigService::getSkippedVersion);}
     UpdateService(UpdateApiClient api,Supplier<String> current,Supplier<String> skipped){apiClient=api;currentVersion=current;skippedVersion=skipped;}
     public CheckResult check(boolean manual) {
+        return check(manual, null);
+    }
+    public CheckResult check(boolean manual, java.util.function.BooleanSupplier cancelled) {
         try {
-            UpdateInfo info = apiClient.fetchLatestVersion();
+            UpdateInfo info = cancelled == null ? apiClient.fetchLatestVersion() : apiClient.fetchLatestVersion(cancelled);
+            if (cancelled != null) UpdateApiClient.ensureActive(cancelled);
             if(info==null)return new CheckResult(Status.NO_RELEASE,null,"");
             if(info.getVersion()==null||!info.getVersion().matches("[0-9]{1,5}\\.[0-9]{1,5}\\.[0-9]{1,5}"))throw new IOException("UPDATE_INVALID_RESPONSE");
             if(VersionComparator.compare(info.getVersion(),currentVersion.get())<=0)return new CheckResult(Status.CURRENT,null,"");

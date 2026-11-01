@@ -53,7 +53,7 @@ public final class KizWarehouseService {
                 var verdicts=inspect(pending,scope.inn(),api.cisesInfo(settings.resolvedTrueApiBaseUrl(),token,body));
                 if(!scope.equals(RegisteredGtinProof.current(shop)))throw new SecurityException("KIZ_OWNER_CHANGED");
                 repository.verified(shop,scope.source(),pending,verdicts);
-                ready+=verdicts.values().stream().filter(Verdict::ready).count();checked+=pending.size();cursor=pending.getLast().id();progress.accept(checked);
+                ready=Math.addExact(ready,Math.toIntExact(verdicts.values().stream().filter(Verdict::ready).count()));checked+=pending.size();cursor=pending.getLast().id();progress.accept(checked);
             }
             return ready;
         });

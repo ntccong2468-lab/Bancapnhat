@@ -26,6 +26,13 @@ public final class TableRows {
         var keys=new HashSet<K>();
         for(var row:next)if(key.apply(row)==null||!keys.add(key.apply(row))){rows.setAll(next);return next.size();}
         if(rows.isEmpty()){rows.setAll(next);return next.size();}
+        if(rows.size()==next.size()){
+            boolean sameOrder=true;
+            for(int i=0;i<next.size();i++)if(!Objects.equals(key.apply(rows.get(i)),key.apply(next.get(i)))){sameOrder=false;break;}
+            if(sameOrder){int changed=0;for(int i=0;i<next.size();i++)if(!same.test(rows.get(i),next.get(i))){rows.set(i,next.get(i));changed++;}return changed;}
+        }
+        Integer reordered=permuteExistingRows(rows,next,key,same);
+        if(reordered!=null)return reordered;
         int changed=rows.size();rows.removeIf(row->!keys.contains(key.apply(row)));changed-=rows.size();
         // Broadening a filter often inserts keys that are absent from the old view.
         // Index those keys once instead of scanning all remaining rows per insertion.
@@ -45,6 +52,31 @@ public final class TableRows {
             changed++;
         }
         if(rows.size()>next.size()){changed+=rows.size()-next.size();rows.remove(next.size(),rows.size());}
+        return changed;
+    }
+
+    /**
+     * The default JavaFX table/list backing array emits a single permutation on sort,
+     * allowing selection models to follow the same objects. Other ObservableList
+     * implementations may implement sort by setAll (a destructive replacement), so
+     * retain the conservative existing path for those and for membership changes.
+     */
+    private static <T,K> Integer permuteExistingRows(ObservableList<T> rows,List<T> next,Function<T,K> key,BiPredicate<T,T> same){
+        if(rows.size()<64||rows.size()!=next.size()||!rows.getClass().getName().equals("com.sun.javafx.collections.ObservableListWrapper"))return null;
+        var oldIndex=new HashMap<K,Integer>();
+        for(int i=0;i<rows.size();i++){K id=key.apply(rows.get(i));if(id==null||oldIndex.putIfAbsent(id,i)!=null)return null;}
+        var rank=new HashMap<K,Integer>();var consumed=new boolean[rows.size()];
+        int first=0,changed=0;
+        for(int i=0;i<next.size();i++){
+            K id=key.apply(next.get(i));Integer old=oldIndex.get(id);if(old==null)return null;
+            // Replacing a selected TableView item can clear selection.  Keep the
+            // existing incremental path if any displayed value also changed.
+            if(!same.test(rows.get(old),next.get(i)))return null;
+            rank.put(id,i);if(old!=first)changed++;
+            consumed[old]=true;while(first<consumed.length&&consumed[first])first++;
+        }
+        if(changed==0)return null;
+        rows.sort(Comparator.comparingInt(row->rank.get(key.apply(row))));
         return changed;
     }
 }

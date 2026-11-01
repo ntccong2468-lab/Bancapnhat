@@ -1,5 +1,5 @@
 // Runs only on the owner's machine. Never print or upload private-key material.
-import {readFileSync,statSync} from 'node:fs';
+import {closeSync,constants,fstatSync,openSync,readSync} from 'node:fs';
 import {createPrivateKey,createPublicKey,sign,verify} from 'node:crypto';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -7,8 +7,23 @@ import {DESKTOP_PIN} from '../src/license-diagnostics.js';
 
 export function checkSigningKey(file,pin=DESKTOP_PIN) {
  try {
-  if(!statSync(file).isFile()||statSync(file).size>8192)throw new Error();
-  const material=readFileSync(file,'utf8').trim();
+  // Open once: a later path lookup could resolve to a different or unbounded file.
+  // Nonblocking open avoids hanging on a substituted FIFO on POSIX; fstat then
+  // rejects anything other than a regular file. Windows uses its normal flags.
+  const fd=openSync(file,constants.O_RDONLY|(process.platform==='win32'?0:constants.O_NONBLOCK));
+  let material;
+  try {
+   const stat=fstatSync(fd);
+   if(!stat.isFile()||stat.size>8192)throw new Error();
+   const buffer=Buffer.alloc(8193);let used=0;
+   while(used<buffer.length){
+    const count=readSync(fd,buffer,used,buffer.length-used,null);
+    if(count===0)break;
+    used+=count;
+   }
+   if(used>8192)throw new Error();
+   material=buffer.subarray(0,used).toString('utf8').trim();
+  } finally {closeSync(fd);}
   if(!/^[A-Za-z0-9_-]+$/.test(material))throw new Error();
   const bytes=Buffer.from(material,'base64url');
   if(bytes.toString('base64url')!==material)throw new Error();

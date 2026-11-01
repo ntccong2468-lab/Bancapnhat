@@ -26,7 +26,8 @@ concurrency:
 jobs:
   baseline:
     runs-on: windows-latest
-    timeout-minutes: 75
+    # Recent complete Windows runs took 68–89 minutes, including installer smoke tests.
+    timeout-minutes: 180
     env:
       GH_TOKEN: ${{ github.token }}
       EXPECTED_SOURCE: ${{ inputs.source_commit || github.sha }}

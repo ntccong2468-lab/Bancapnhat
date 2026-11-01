@@ -685,8 +685,8 @@ public final class ZnackCardRegistrationController {
                 if(backgroundRefresh&&visibleExtent>PAGE_SIZE){
                     var rows=new java.util.LinkedHashMap<Long,Sku>();var details=new java.util.LinkedHashMap<Long,ZnackRegistrationQueryRepository.Details>();
                     page.rows().forEach(row->rows.put(row.chrtId(),row));details.putAll(page.details());
-                    for(int offset=PAGE_SIZE;offset<visibleExtent&&offset<page.filtered();offset+=PAGE_SIZE){
-                        var next=query.page(new SearchCriteria(criteria.shopId(),criteria.query(),criteria.subjects(),criteria.status(),Math.min(PAGE_SIZE,visibleExtent-offset),offset));
+                    for(long offset=PAGE_SIZE;offset<visibleExtent&&offset<page.filtered();offset+=PAGE_SIZE){
+                        var next=query.page(new SearchCriteria(criteria.shopId(),criteria.query(),criteria.subjects(),criteria.status(),Math.toIntExact(Math.min(PAGE_SIZE,visibleExtent-offset)),Math.toIntExact(offset)));
                         next.rows().forEach(row->rows.put(row.chrtId(),row));details.putAll(next.details());
                         if(next.rows().isEmpty())break;
                     }
