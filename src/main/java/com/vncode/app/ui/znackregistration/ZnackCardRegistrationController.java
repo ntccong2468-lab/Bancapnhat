@@ -101,6 +101,7 @@ public final class ZnackCardRegistrationController {
     private Shop shop;
     private boolean loading;
     private boolean preparing;
+    private boolean resettingFilters;
     private Task<?> registrationPreflightTask;
     private Task<?> signingReviewTask;
     private record DocumentChoice(List<ZnackModels.GoodsDocument> candidates,String tnved,List<String> issues){}
@@ -194,8 +195,9 @@ public final class ZnackCardRegistrationController {
                 });
         statusFilter.getItems().setAll(StatusFilter.values());
         statusFilter.getSelectionModel().select(StatusFilter.ALL);
-        statusFilter.valueProperty().addListener((obs, old, value) -> reload());
+        statusFilter.valueProperty().addListener((obs, old, value) -> {if(!resettingFilters)reload();});
         searchField.textProperty().addListener((obs, old, value) -> {
+            if(resettingFilters)return;
             debounce.setOnFinished(event -> reload());
             debounce.playFromStart();
         });
@@ -591,10 +593,14 @@ public final class ZnackCardRegistrationController {
 
     @FXML
     private void onClearFilters() {
-        searchField.clear();
-        selectedSubjects.clear();
-        subjectChecks.forEach(check -> check.setSelected(false));
-        statusFilter.getSelectionModel().select(StatusFilter.ALL);
+        debounce.stop();
+        resettingFilters=true;
+        try {
+            searchField.clear();
+            selectedSubjects.clear();
+            subjectChecks.forEach(check -> check.setSelected(false));
+            statusFilter.getSelectionModel().select(StatusFilter.ALL);
+        } finally {resettingFilters=false;}
         updateCategoryText();
         reload();
     }
@@ -623,7 +629,7 @@ public final class ZnackCardRegistrationController {
             check.selectedProperty().addListener((obs, old, selected) -> {
                 if (selected) selectedSubjects.add(subject); else selectedSubjects.remove(subject);
                 updateCategoryText();
-                reload();
+                if(!resettingFilters)reload();
             });
             subjectChecks.add(check);
             box.getChildren().add(check);
@@ -1080,6 +1086,8 @@ public final class ZnackCardRegistrationController {
             private final MenuButton publishedActions=new MenuButton();
             private final MenuItem newCard=new MenuItem(),switchCard=new MenuItem(),retryOriginal=new MenuItem();
             { button.setWrapText(true);button.setMinWidth(0);button.prefWidthProperty().bind(actionColumn.widthProperty().subtract(24));button.getStyleClass().add("btn-primary");button.setOnAction(event->createCard(getItem()));
+              var buttonTooltip=new Tooltip();buttonTooltip.textProperty().bind(button.textProperty());button.setTooltip(buttonTooltip);
+              var menuTooltip=new Tooltip();menuTooltip.textProperty().bind(publishedActions.textProperty());publishedActions.setTooltip(menuTooltip);
               publishedActions.getStyleClass().add("btn-secondary");publishedActions.getItems().setAll(newCard,switchCard,retryOriginal);retryOriginal.setOnAction(event->createCard(getItem()));
               newCard.setOnAction(event->replaceCard(getItem()));switchCard.setOnAction(event->completeReplacement(getItem())); }
             @Override protected void updateItem(Sku item, boolean empty) {

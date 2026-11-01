@@ -18,13 +18,22 @@ public final class TableScrollLoader {
                 return;
             }
         };
+        // Scroll events and scrollbar value changes may arrive together for one gesture.
+        // Inspect the final position once on the next FX turn instead of queuing a
+        // lookup for every event in the burst.
+        boolean[] checkQueued={false};
+        Runnable scheduleCheck=()->{
+            if(checkQueued[0])return;
+            checkQueued[0]=true;
+            Platform.runLater(()->{checkQueued[0]=false;check.run();});
+        };
         Runnable attach=()->{
             for(var node:table.lookupAll(".scroll-bar"))if(node instanceof ScrollBar bar&&bar.getOrientation()==Orientation.VERTICAL&&bar.getProperties().putIfAbsent(TableScrollLoader.class,Boolean.TRUE)==null)
-                bar.valueProperty().addListener((o,a,b)->Platform.runLater(check));
+                bar.valueProperty().addListener((o,a,b)->scheduleCheck.run());
         };
         table.skinProperty().addListener((o,a,b)->Platform.runLater(attach));
-        table.addEventHandler(ScrollEvent.SCROLL,event->Platform.runLater(check));
-        table.addEventHandler(javafx.scene.input.KeyEvent.KEY_RELEASED,event->Platform.runLater(check));
+        table.addEventHandler(ScrollEvent.SCROLL,event->scheduleCheck.run());
+        table.addEventHandler(javafx.scene.input.KeyEvent.KEY_RELEASED,event->scheduleCheck.run());
         Platform.runLater(attach);
     }
 }

@@ -14,6 +14,17 @@ import static org.junit.jupiter.api.Assertions.*;
 class TableScrollLoaderTest {
     @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     private static <T>T fx(Callable<T> work)throws Exception{var task=new FutureTask<>(work);Platform.runLater(task);return task.get(10,TimeUnit.SECONDS);}
+    @Test void burstOfNavigationEventsSchedulesOnlyOnePageCheck()throws Exception {
+        var checks=new AtomicInteger();var table=fx(TableView<Integer>::new);
+        fx(()->{TableScrollLoader.install(table,()->{checks.incrementAndGet();return false;},()->fail("No page available"));return null;});
+        fx(()->null);
+        fx(()->{for(int n=0;n<1000;n++)table.fireEvent(new javafx.scene.input.KeyEvent(javafx.scene.input.KeyEvent.KEY_RELEASED,"","",javafx.scene.input.KeyCode.DOWN,false,false,false,false));return null;});
+        fx(()->null);
+        assertEquals(1,checks.get(),"A burst should perform one check on the next FX turn");
+        fx(()->{table.fireEvent(new javafx.scene.input.KeyEvent(javafx.scene.input.KeyEvent.KEY_RELEASED,"","",javafx.scene.input.KeyCode.DOWN,false,false,false,false));return null;});
+        fx(()->null);
+        assertEquals(2,checks.get(),"A later gesture must still be able to request the next page");
+    }
     @Test void draggingTheRealScrollbarLoadsOnePageAndStopsWhenThereIsNoNextPage()throws Exception {
         var requests=new AtomicInteger();var busy=new AtomicBoolean();var next=new AtomicBoolean(true);var stage=new Stage[1];var table=new TableView<Integer>();
         try {

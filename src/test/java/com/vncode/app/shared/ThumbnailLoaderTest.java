@@ -14,6 +14,22 @@ import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ThumbnailLoaderTest {
+    @Test void independentCopiesOfTheSameImageReuseOneDecodedThumbnail()throws Exception {
+        var output=new ByteArrayOutputStream();ImageIO.write(new BufferedImage(800,1200,BufferedImage.TYPE_INT_RGB),"png",output);
+        byte[] bytes=output.toByteArray();
+        try(var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,new TestClock())){
+            var pending=new java.util.ArrayList<CompletableFuture<Image>>();
+            for(int i=0;i<12;i++)pending.add(loader.loadBytes(bytes.clone(),96,128));
+            var first=pending.getFirst().get(10,TimeUnit.SECONDS);
+            for(var future:pending)assertSame(first,future.get(10,TimeUnit.SECONDS),"Identical image bytes from separate reads should be decoded once");
+            assertEquals((long)first.getWidth()*(long)first.getHeight()*4,loader.retainedBytes(),"One image should occupy one cache entry");
+            assertSame(first,loader.loadBytes(bytes.clone(),96,128).get(10,TimeUnit.SECONDS));
+            assertNotSame(first,loader.loadBytes(bytes.clone(),48,64).get(10,TimeUnit.SECONDS),"Different thumbnail sizes must not share decoded images");
+            var changed=new BufferedImage(800,1200,BufferedImage.TYPE_INT_RGB);changed.setRGB(0,0,0xffffff);
+            output.reset();ImageIO.write(changed,"png",output);
+            assertNotSame(first,loader.loadBytes(output.toByteArray(),96,128).get(10,TimeUnit.SECONDS),"Different image contents must not share a cached image");
+        }
+    }
     @Test void cachedBytesDecodeOnImageWorkersAtThumbnailSize()throws Exception {
         var entered=new CountDownLatch(2);var release=new CountDownLatch(1);
         try(var reads=new ShopReadCoordinator(2,64);var loader=loader(reads,new TestClock())){

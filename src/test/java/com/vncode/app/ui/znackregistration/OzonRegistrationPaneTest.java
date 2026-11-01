@@ -81,6 +81,23 @@ class OzonRegistrationPaneTest {
             try(var r=s.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertEquals(0,r.getInt(1));}
         }
     }
+    @Test void clearingSearchAndStatusStartsOneFinalRead()throws Exception {
+        var afterClear=new java.util.concurrent.atomic.AtomicLong();
+        fx(()->{
+            stopBatchPolling();
+            @SuppressWarnings("unchecked") var filter=(javafx.scene.control.ComboBox<String>)pane.lookup("#ozonRegistrationStatusFilter");
+            filter.setValue("NOT_CREATED");
+            var search=OzonRegistrationPane.class.getDeclaredField("search");search.setAccessible(true);((javafx.scene.control.TextField)search.get(pane)).setText("fixture");
+            var generation=OzonRegistrationPane.class.getDeclaredField("generation");generation.setAccessible(true);long before=generation.getLong(pane);
+            var filters=(javafx.scene.layout.FlowPane)pane.getChildren().get(2);
+            ((Button)filters.getChildren().get(3)).fire();
+            assertEquals(before+1,generation.getLong(pane),"Clearing controls should perform one final query");
+            afterClear.set(generation.getLong(pane));
+            assertEquals("ALL",filter.getValue());assertEquals("",((javafx.scene.control.TextField)search.get(pane)).getText());return null;
+        });awaitIdle();
+        Thread.sleep(500);awaitIdle();
+        fx(()->{var generation=OzonRegistrationPane.class.getDeclaredField("generation");generation.setAccessible(true);assertEquals(afterClear.get(),generation.getLong(pane),"The previous search debounce must not issue another query");assertEquals(300,table().getItems().size());return null;});
+    }
     @Test void loadMoreUsesTheNativeCursorAndReachesAllThousandRowsWithoutDuplicateKeys()throws Exception {
         for(int count:new int[]{600,900,1000}){fx(()->{button("more").fire();return null;});awaitRows(count);}
         fx(()->{assertEquals(1000,table().getItems().stream().map(ProductRow::key).distinct().count());assertFalse(button("more").isVisible());return null;});

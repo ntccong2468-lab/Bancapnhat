@@ -58,6 +58,40 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{assertEquals(1,table().getItems().size());assertEquals(3,table().getItems().getFirst().chrtId());return null;});
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM sync_runs WHERE kind='registration_sources'")){assertEquals(1,r.getInt(1),"Opening or filtering saved data must not start another network sync");}
     }
+    @Test void clearingMultipleFiltersStartsOneFinalRead()throws Exception{
+        var afterClear=new java.util.concurrent.atomic.AtomicLong();
+        fx(()->{
+            var controller=(ZnackCardRegistrationController)loader.getController();
+            var build=controller.getClass().getDeclaredMethod("buildSubjectMenu",java.util.List.class);build.setAccessible(true);build.invoke(controller,java.util.List.of("Category A","Category B"));
+            var subjectChecks=controller.getClass().getDeclaredField("subjectChecks");subjectChecks.setAccessible(true);
+            @SuppressWarnings("unchecked") var checks=(java.util.List<CheckBox>)subjectChecks.get(controller);
+            checks.forEach(check->check.setSelected(true));
+            var status=(ComboBox<?>)loader.getNamespace().get("statusFilter");status.getSelectionModel().select(status.getItems().stream().filter(value->value instanceof Enum<?> item&&item.name().equals("ERROR")).mapToInt(value->status.getItems().indexOf(value)).findFirst().orElseThrow());
+            ((TextField)loader.getNamespace().get("searchField")).setText("fixture");
+            var sequence=controller.getClass().getDeclaredField("loadSequence");sequence.setAccessible(true);long before=sequence.getLong(controller);
+            button("clearFiltersButton").fire();
+            assertEquals(before+1,sequence.getLong(controller),"Clearing all controls should perform one final query");
+            afterClear.set(sequence.getLong(controller));
+            assertTrue(checks.stream().noneMatch(CheckBox::isSelected));assertEquals("ALL",((Enum<?>)status.getValue()).name());assertEquals("",((TextField)loader.getNamespace().get("searchField")).getText());return null;
+        });awaitTasks();
+        Thread.sleep(500);awaitTasks();
+        fx(()->{var controller=(ZnackCardRegistrationController)loader.getController();var sequence=controller.getClass().getDeclaredField("loadSequence");sequence.setAccessible(true);assertEquals(afterClear.get(),sequence.getLong(controller),"The previous search debounce must not issue another query");assertEquals(3,table().getItems().size());return null;});
+    }
+    @Test void rowActionTooltipsFollowTheReusedControlText()throws Exception{
+        fx(()->{
+            @SuppressWarnings("unchecked") var column=(TableColumn<Sku,Sku>)loader.getNamespace().get("actionColumn");
+            var cell=column.getCellFactory().call(column);var update=cell.getClass().getDeclaredMethod("updateItem",Sku.class,boolean.class);update.setAccessible(true);
+            int checked=0;
+            for(var row:table().getItems()){
+                update.invoke(cell,row,false);
+                if(cell.getGraphic() instanceof Button action){assertNotNull(action.getTooltip());assertEquals(action.getText(),action.getTooltip().getText());checked++;}
+            }
+            assertTrue(checked>=2,"Reused row actions must expose their complete labels");
+            var menuField=cell.getClass().getDeclaredField("publishedActions");menuField.setAccessible(true);var menu=(MenuButton)menuField.get(cell);
+            menu.setText("Kiểm tra thao tác");assertNotNull(menu.getTooltip());assertEquals(menu.getText(),menu.getTooltip().getText());
+            menu.setText("Thao tác mới");assertEquals(menu.getText(),menu.getTooltip().getText(),"The tooltip must follow a reused cell");return null;
+        });
+    }
     @Test void registrationProgressCountsAcceptedFeedsAndDoesNotLockBrowsing()throws Exception{
         fx(()->{
             var controller=(ZnackCardRegistrationController)loader.getController();

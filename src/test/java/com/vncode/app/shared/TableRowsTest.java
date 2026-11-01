@@ -22,4 +22,23 @@ class TableRowsTest {
  @Test void wbValueComparisonDetectsStatusKizAndImageChangesWithoutChangingOrderIdentity(){
   var first=new com.vncode.app.models.Order();first.setId(1L);var same=new com.vncode.app.models.Order();same.setId(1L);assertTrue(FbsRowValues.sameOrder(first,same));same.setRequiresKiz(true);assertFalse(FbsRowValues.sameOrder(first,same));same.setRequiresKiz(false);same.setImage(new byte[]{1});assertFalse(FbsRowValues.sameOrder(first,same));
  }
+ @Test void broadeningLargeFilteredQueueDoesNotRescanOldRowsForEveryInsertion(){
+  var old=java.util.stream.IntStream.range(0,10_000).filter(i->i%2==1).mapToObj(i->new Row(i,"value")).toList();
+  var rows=FXCollections.observableArrayList(old);var incoming=java.util.stream.IntStream.range(0,10_000).mapToObj(i->new Row(i,"value")).toList();
+  var lookups=new AtomicInteger();var removed=new java.util.concurrent.atomic.AtomicBoolean();
+  rows.addListener((ListChangeListener<Row>)change->{while(change.next())if(change.wasRemoved())removed.set(true);});
+  assertEquals(5_000,TableRows.merge(rows,incoming,row->{lookups.incrementAndGet();return row.id();}));
+  assertEquals(incoming,rows);assertFalse(removed.get(),"Restoring filtered rows must not replace existing rows");
+  for(int i=0;i<old.size();i++)assertSame(old.get(i),rows.get(2*i+1));
+  assertTrue(lookups.get()<100_000,"New rows should not repeatedly scan the filtered list: "+lookups.get());
+ }
+ @Test void reorderingKeepsEqualRowIdentityAndDuplicateOrNullKeysKeepFallback(){
+  var a=new Row(1,"a");var b=new Row(2,"b");var c=new Row(3,"c");var rows=FXCollections.observableArrayList(a,b,c);
+  var next=List.of(new Row(4,"d"),new Row(3,"c"),new Row(1,"a"));TableRows.merge(rows,next,Row::id);
+  assertEquals(next,rows);assertSame(c,rows.get(1));assertSame(a,rows.get(2));
+  record NullableRow(Integer id,String value){};
+  var nullable=FXCollections.observableArrayList(new NullableRow(1,"old"));
+  var duplicate=List.of(new NullableRow(1,"one"),new NullableRow(1,"two"));TableRows.merge(nullable,duplicate,NullableRow::id);assertEquals(duplicate,nullable);
+  var withNull=List.of(new NullableRow(null,"missing"),new NullableRow(2,"two"));TableRows.merge(nullable,withNull,NullableRow::id);assertEquals(withNull,nullable);
+ }
 }

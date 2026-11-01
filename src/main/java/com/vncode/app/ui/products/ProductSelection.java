@@ -9,6 +9,8 @@ public final class ProductSelection {
     public void selectPage(List<ProductKey> page){for(var key:page)requireOwner(key);keys.addAll(page);}
     public void setSelected(ProductKey key,boolean selected){requireOwner(key);if(selected)keys.add(key);else keys.remove(key);}
     public boolean contains(ProductKey key){return keys.contains(key);}
+    public int size(){return keys.size();}
+    public boolean isEmpty(){return keys.isEmpty();}
     public List<ProductKey> freeze(){return List.copyOf(keys);}
     public void clear(){keys.clear();}
     private void requireOwner(ProductKey key){if(key.shopId()!=shopId||key.marketplace()!=marketplace)throw new SecurityException("Selection owner mismatch");}

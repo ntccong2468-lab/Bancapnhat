@@ -67,7 +67,7 @@ public final class OzonRegistrationPane extends VBox {
     private List<ProductKey> frozen=List.of();
     private String cursor;
     private long total,generation;
-    private boolean busy,disposed,programmaticSelection,batchReviewing,deferredReload,selectionPreparing;
+    private boolean busy,disposed,programmaticSelection,batchReviewing,deferredReload,selectionPreparing,resettingFilters;
     private volatile long lastBatchProgress;
     private Task<RegistrationBatchPreflight.Review> registrationPreflightTask;
     private Task<?> signingReviewTask;
@@ -95,8 +95,10 @@ public final class OzonRegistrationPane extends VBox {
         title.setContextMenu(options);title.setFocusTraversable(true);title.setTooltip(new Tooltip(owner.getName()+"\n"+tr("znack.registration.more_actions_hint")));
         statusFilter.getItems().setAll("ALL","NOT_CREATED","IN_PROGRESS","GTIN_REVIEW_REQUIRED","FEED_REVIEW_REQUIRED","COMPLETED","ERROR","MATCH_REVIEW");statusFilter.setValue("ALL");statusFilter.setId("ozonRegistrationStatusFilter");statusFilter.setPrefWidth(220);
         statusFilter.setConverter(new javafx.util.StringConverter<>(){public String toString(String value){return tr("znack.registration.filter."+(value==null?"all":value.toLowerCase(java.util.Locale.ROOT)));}public String fromString(String value){throw new UnsupportedOperationException();}});
-        statusFilter.valueProperty().addListener((observable,previous,current)->reload());
-        var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{search.clear();categories.clear();statusFilter.setValue("ALL");reload();});
+        statusFilter.valueProperty().addListener((observable,previous,current)->{if(!resettingFilters)reload();});
+        var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{
+            debounce.stop();resettingFilters=true;try{search.clear();categories.clear();statusFilter.setValue("ALL");}finally{resettingFilters=false;}reload();
+        });
         var brandConfig=new Button(tr("ozon.brand.configure"));brandConfig.setId("ozonConfigureBrand");brandConfig.setOnAction(e->configureBrand());
         wbLink.setId("ozonWbGtinLink");wbLink.setOnAction(e->WbOzonGtinLinkDialog.show(getScene()==null?null:getScene().getWindow(),owner));
         categoryFilter.setId("ozonRegistrationCategoryFilter");var filters=new FlowPane(6,6,search,categoryFilter,statusFilter,clearFilters,connection,provenance,wbLink);autoSign.setSelected(true);autoSign.setWrapText(true);autoSign.setId("ozonRegistrationAutoSign");search.setPrefWidth(230);categoryFilter.setPrefWidth(140);statusFilter.setPrefWidth(180);
@@ -110,7 +112,7 @@ public final class OzonRegistrationPane extends VBox {
         connection.setOnAction(e->RegistrationConnectionDialog.show(getScene()==null?null:getScene().getWindow(),owner));provenance.setOnAction(e->RegistrationProvenanceDialog.show(getScene()==null?null:getScene().getWindow(),owner,List.copyOf(selected())));documents.setOnAction(e->configureDocuments());refresh.setOnAction(e->reload());sync.setOnAction(e->syncCatalog());sign.setOnAction(e->signApproved());gtin.setOnAction(e->{if(ready()&&!busy)this.openGtin.run();});report.setOnAction(e->RegistrationSyncReportDialog.show(getScene()==null?null:getScene().getWindow(),owner,lastActionRun,this::prepareConfirmedConflict));
         stopBatch.setOnAction(e->{cancelBatch.set(true);stopBatch.setDisable(true);status.setText(tr("znack.registration.batch_stopping"));});all.setOnAction(e->selectAll());clear.setOnAction(e->{frozen=List.of();table.getSelectionModel().clearSelection();buttons();});
         register.setOnAction(e->{if("ERROR".equals(statusFilter.getValue())||table.getSelectionModel().getSelectedItems().stream().anyMatch(row->view(row).status().equals("source.errors")))openErrorRepair(selected().isEmpty());else registerSelection();});newCards.setOnAction(e->registerBatch(true));more.setOnAction(e->load(true));
-        debounce.setOnFinished(e->reload());refreshDebounce.setOnFinished(e->refreshBatchRows());batchRowsRefresh.setOnFinished(e->refreshBatchRows());search.textProperty().addListener((o,a,b)->debounce.playFromStart());
+        debounce.setOnFinished(e->reload());refreshDebounce.setOnFinished(e->refreshBatchRows());batchRowsRefresh.setOnFinished(e->refreshBatchRows());search.textProperty().addListener((o,a,b)->{if(!resettingFilters)debounce.playFromStart();});
         applyTranslations();reload();batchRefresh.setCycleCount(javafx.animation.Animation.INDEFINITE);batchRefresh.play();readBatchProgress();
     }
     public void refreshLocal(){if(GtinBackgroundStatus.holdsRows((StackPane)table.getParent()))return;if(!busy&&!batchReviewing)refreshDebounce.playFromStart();else deferredReload=true;}

@@ -5,6 +5,8 @@
 - Điều chỉnh bộ lọc và thanh thao tác ở Sản phẩm, Đăng ký Znack và FBS WB/Ozon để phù hợp hơn với cửa sổ hẹp; tăng không gian cho danh sách thẻ Znack.
 - Tên doanh nghiệp, trạng thái và thông tin kết nối ở GS1 và Znack có thể xuống dòng; tên shipment dài có thể xem đầy đủ. Thanh bên thu gọn vẫn cho biết trạng thái license qua biểu tượng và nội dung hỗ trợ.
 - Cải thiện độ tương phản của một số trạng thái, nút và viền khi điều hướng bằng bàn phím.
+- Giảm xử lý lặp khi chọn sản phẩm, cuộn để tải thêm và xóa bộ lọc Znack; ảnh thu nhỏ có cùng nội dung được dùng lại trong giới hạn bộ nhớ cache. Danh sách FBS khôi phục các dòng sau khi bỏ lọc với ít lượt tìm kiếm lặp hơn.
+- Ở Sản phẩm, ảnh đang hiển thị được giữ khi thay đổi lựa chọn; khi đang chờ kết quả tìm kiếm mới, các thao tác chọn và sửa tạm ngưng để tránh thao tác nhầm trên kết quả cũ. Nút thao tác Znack WB hiển thị đầy đủ nhãn qua tooltip khi bị rút gọn.
 
 ## License và khởi động
 

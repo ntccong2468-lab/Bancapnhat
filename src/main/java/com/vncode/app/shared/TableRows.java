@@ -27,12 +27,17 @@ public final class TableRows {
         for(var row:next)if(key.apply(row)==null||!keys.add(key.apply(row))){rows.setAll(next);return next.size();}
         if(rows.isEmpty()){rows.setAll(next);return next.size();}
         int changed=rows.size();rows.removeIf(row->!keys.contains(key.apply(row)));changed-=rows.size();
+        // Broadening a filter often inserts keys that are absent from the old view.
+        // Index those keys once instead of scanning all remaining rows per insertion.
+        var existingKeys=new HashSet<K>();
+        for(var row:rows)existingKeys.add(key.apply(row));
         for(int i=0;i<next.size();i++){
             var value=next.get(i);var id=key.apply(value);
             if(i<rows.size()&&Objects.equals(id,key.apply(rows.get(i)))){
                 if(!same.test(rows.get(i),value)){rows.set(i,value);changed++;}
                 continue;
             }
+            if(!existingKeys.contains(id)){rows.add(i,value);existingKeys.add(id);changed++;continue;}
             int existing=-1;
             for(int j=i+1;j<rows.size();j++)if(Objects.equals(id,key.apply(rows.get(j)))){existing=j;break;}
             if(existing>=0){var previous=rows.remove(existing);rows.add(i,same.test(previous,value)?previous:value);}
