@@ -14,4 +14,4 @@ Lượt này tách phép tính thumbprint vào một hàm riêng và ghi nhận 
 
 Các cảnh báo mức medium về thư mục tạm, đường dẫn PowerShell và khóa ký vẫn cần được đánh giá tiếp; không tuyên bố audit không còn phát hiện. Prototype migration credential chưa được tích hợp vào runtime hay áp dụng vào dữ liệu seller. Dependency Review của PR trước không chạy được do GitHub Dependency Graph chưa bật; không tự thay đổi cài đặt repo để bỏ qua.
 
-Kết quả quét lại và kiểm thử Windows cuối cùng được ghi riêng trong báo cáo phát hành, sau khi công việc hoàn tất.
+Quét lại trên `df10e5c`, run `41709620634`: JavaScript/lint/audit đạt; Java vẫn trả 8 cảnh báo, gồm 1 high ở thumbprint SHA-1. Annotation không loại cảnh báo khỏi SARIF của cấu hình này; gate vẫn báo thất bại và không được sửa để trở thành xanh. Rà soát mục đích sử dụng ở trên phân loại điểm này là định danh tương thích Windows/CryptoPro, không phải thuật toán ký cần thay. Báo cáo phát hành phải giữ kết quả quét này, không ghi “CodeQL đạt toàn bộ”. Các biên nhận Windows/native/nâng cấp là kiểm tra riêng.
