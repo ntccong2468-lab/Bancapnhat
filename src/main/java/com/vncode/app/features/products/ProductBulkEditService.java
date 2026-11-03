@@ -22,7 +22,7 @@ public final class ProductBulkEditService {
     }
     public record ProductEditPreview(String id,int shopId,String owner,List<ProductKey> keys,ProductBulkEdit edit,List<EditItem> items){
         public ProductEditPreview{keys=List.copyOf(keys);items=List.copyOf(items);}
-        public boolean publishable(){return !items.isEmpty()&&items.stream().allMatch(i->i.preview().preview().publishable());}
+        public boolean publishable(){return items.stream().anyMatch(i->i.preview().preview().publishable());}
     }
     public record ProductEditResult(String id,List<EditItem> items,boolean documentsVerified){public ProductEditResult{items=List.copyOf(items);}}
     public record Progress(String step,int completed,int total,int succeeded,int failed,int pending){

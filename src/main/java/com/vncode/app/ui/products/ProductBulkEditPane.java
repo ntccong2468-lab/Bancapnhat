@@ -164,6 +164,7 @@ public final class ProductBulkEditPane extends BorderPane {
         }));
     }
     private ProductBulkEdit edit(){
+        if(compact&&field.equals("material"))commitMaterialPercentages();
         if(!field.equals("documents"))return new ProductBulkEdit(field,Arrays.stream(value.getText().split("\\|",-1)).map(String::strip).toList(),null,field.equals("tnved")?perProductTnved:Map.of(),expectedRevisions);
         DocumentDateInput.commit(from);if(!endless.isSelected())DocumentDateInput.commit(until);
         if(number.getText().isBlank()||type.getText().isBlank()||(!existingOzonDocument()&&(from.getValue()==null||(!endless.isSelected()&&until.getValue()==null))))throw new IllegalArgumentException("Document metadata missing");
@@ -222,7 +223,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private static boolean pending(ProductEditResult r){return r.items().stream().anyMatch(i->i.state()==CopyState.REMOTE_PROCESSING||i.state()==CopyState.RECONCILE_REQUIRED);}
     private void render(ProductEditResult result){
         jobId=result.id();TableRows.merge(results.getItems(),result.items(),i->i.key().cardId());
-        ready=!result.items().isEmpty()&&result.items().stream().allMatch(i->i.state()==CopyState.AWAITING_CONFIRMATION&&i.preview().preview().publishable());
+        ready=result.items().stream().anyMatch(i->i.state()==CopyState.AWAITING_CONFIRMATION&&i.preview().preview().publishable());
         boolean saved=!result.items().isEmpty()&&result.items().stream().allMatch(i->i.state()==CopyState.RECONCILED);
         confirm.setSelected(false);results.getSelectionModel().selectFirst();
         status.setText(tr(saved?"edit.saved":pending(result)?"edit.readback_pending":ready?(compact?"bulk.validating":"edit.review"):"edit.result_needs_action")+" · "+counts(result));
@@ -353,6 +354,15 @@ public final class ProductBulkEditPane extends BorderPane {
     }
     private static String documentType(String value){return switch(Objects.toString(value,"").strip().toLowerCase(Locale.ROOT)){case "1","certificate","certificate_of_conformity"->"certificate";case "2","declaration"->"declaration";default->Objects.toString(value,"").strip().toLowerCase(Locale.ROOT);};}
     private void addMaterial(VBox rows,Label total,Label output){addMaterial(rows,total,output,"",0);}
+    private void commitMaterialPercentages(){
+        if(compactForm==null)return;
+        for(var node:compactForm.lookupAll("#bulkMaterialPercent")){
+            @SuppressWarnings("unchecked")var spinner=(Spinner<Integer>)node;
+            int typed=Integer.parseInt(spinner.getEditor().getText().strip());
+            if(typed<0||typed>100)throw new IllegalArgumentException("Invalid material percentage");
+            spinner.commitValue();
+        }
+    }
     private void addMaterial(VBox rows,Label total,Label output,String initial,int amount){
         var material=new ComboBox<String>();material.setEditable(true);material.setId("bulkMaterialName");material.setMinWidth(0);material.setMaxWidth(Double.MAX_VALUE);material.getItems().setAll(suggestions.getItems());
         var percent=new Spinner<Integer>(0,100,Math.clamp(amount,0,100));percent.setId("bulkMaterialPercent");percent.setEditable(true);percent.setPrefWidth(100);percent.getEditor().focusedProperty().addListener((o,a,b)->{if(!b)percent.commitValue();});

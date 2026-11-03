@@ -145,8 +145,27 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
     public RemoteSubmission submit(Shop s,CopyPreview p)throws IOException{requirePreview(s,p);if(!p.operation().equals("CREATE"))throw new SecurityException("Wrong listing operation");for(String a:p.articles())if(!find(s,a).isEmpty())throw new IOException("Destination article now exists");return send(s,p);}
     private RemoteSubmission send(Shop s,CopyPreview p)throws IOException{String task=text(obj(call(s,"v3/product/import",JsonParser.parseString(p.requestJson()),true),"result"),"task_id");if(!task.matches("[1-9][0-9]{0,18}"))throw new IOException("Import task unavailable; reconciliation required");return submitted(p,task);}
     public RemoteResult reconcile(Shop s,RemoteSubmission r)throws IOException{
-        owner(s,r);if(r.taskId()!=null){var b=new JsonObject();b.addProperty("task_id",new BigInteger(r.taskId()));var items=array(obj(call(s,"v1/product/import/info",b,false),"result"),"items");for(String article:r.articles()){
-                var matches=items.asList().stream().map(ListingJson::object).filter(i->text(i,"offer_id").equals(article)).toList();if(matches.isEmpty())return RemoteResult.pending();if(matches.size()!=1)throw new IOException("Import owner identity mismatch");var item=matches.getFirst();if(!array(item,"errors").isEmpty()){String reason=array(item,"errors").asList().stream().map(ListingJson::object).map(error->text(error,"code")+": "+text(error,"message")).collect(java.util.stream.Collectors.joining("; "));return new RemoteResult(CopyState.FAILED,List.of(),List.of(new CopyIssue("IMPORT_REJECTED",ListingRejectedException.safe(s,article+": "+reason),true)),Map.of());}if(!text(item,"status").equals("imported"))return RemoteResult.pending();}}
+        owner(s,r);
+        if(r.taskId()!=null){
+            var b=new JsonObject();b.addProperty("task_id",new BigInteger(r.taskId()));
+            var items=array(obj(call(s,"v1/product/import/info",b,false),"result"),"items");
+            for(String article:r.articles()){
+                var matches=items.asList().stream().map(ListingJson::object).filter(i->text(i,"offer_id").equals(article)).toList();
+                if(matches.isEmpty())return RemoteResult.pending();
+                if(matches.size()!=1)throw new IOException("Import owner identity mismatch");
+                var item=matches.getFirst();String status=text(item,"status");var errors=array(item,"errors");
+                if(status.equals("failed")||!errors.isEmpty()){
+                    String reason=errors.asList().stream().map(ListingJson::object)
+                            .map(error->text(error,"code")+": "+text(error,"message"))
+                            .collect(java.util.stream.Collectors.joining("; "));
+                    if(reason.isBlank())reason="Ozon reported a failed product update without error details";
+                    return new RemoteResult(CopyState.FAILED,List.of(),List.of(new CopyIssue("IMPORT_REJECTED",ListingRejectedException.safe(s,article+": "+reason),true)),Map.of());
+                }
+                // Ozon uses skipped when the request contains no new changes. It is
+                // terminal, but only fresh field readback below can confirm success.
+                if(!Set.of("imported","skipped").contains(status))return RemoteResult.pending();
+            }
+        }
         var ids=new LinkedHashMap<String,String>();for(var e:array(object(JsonParser.parseString(r.requestJson())),"items")){var want=object(e);String article=text(want,"offer_id");var found=find(s,article);if(found.size()!=1)return RemoteResult.pending();var info=found.getFirst();String id=text(info,"id");if(!id.matches("[1-9][0-9]*"))throw new IOException("Destination product identity unavailable");if(r.identities().containsKey(article)&&!id.equals(r.identities().get(article)))throw new IOException("Destination product identity changed");
             var filter=new JsonObject();var array=new JsonArray();array.add(id);filter.add("product_id",array);var b=new JsonObject();b.add("filter",filter);b.addProperty("limit",1);var attrs=array(call(s,"v4/product/info/attributes",b,false),"result");if(attrs.size()!=1||!text(object(attrs.get(0)),"id").equals(id)||!matches(want,info,object(attrs.get(0))))return RemoteResult.pending();if(!urls(r.mediaJson()).isEmpty()&&!imagesMatch(r.mediaJson(),OzonListingImages.ordered(info,object(attrs.get(0)))))return RemoteResult.pending();ids.put(article,id);ids.put("sku:"+article,text(info,"sku"));
         }

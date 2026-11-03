@@ -23,4 +23,9 @@ class ListingRateLimitExceptionTest {
         assertEquals(Duration.ofSeconds(60),ListingRateLimitException.delay(new Headers.Builder().add("Retry-After","invalid").build()));
         assertEquals(Duration.ofMillis(1),ListingRateLimitException.delay(new Headers.Builder().add("Retry-After","0").build()));
     }
+    @Test void ozonItemQuotaIsInMinutesAndCannotBeShortenedByTheGenericHeader(){
+        assertEquals(Duration.ofMinutes(120),ListingRateLimitException.delay(new Headers.Builder().add("Item-Retry-After","120").build()));
+        assertEquals(Duration.ofSeconds(150),ListingRateLimitException.delay(new Headers.Builder().add("Item-Retry-After","2.5").add("Retry-After","10").build()));
+        assertEquals(Duration.ofMinutes(4),ListingRateLimitException.delay(new Headers.Builder().add("Item-Retry-After","2").add("Retry-After","240").build()));
+    }
 }

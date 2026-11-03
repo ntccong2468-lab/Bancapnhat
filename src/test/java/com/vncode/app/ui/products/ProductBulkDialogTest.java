@@ -19,18 +19,20 @@ import java.util.*;
 import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 class ProductBulkDialogTest {
+ AppLanguage captureLanguage;
  @TempDir Path root;Shop shop=new Shop(1,"Fixture shop","fixture");ShopReadCoordinator reads;ProductBulkEditPane pane;Adapter adapter;ProductBulkEditService service;List<ProductAttribute> fixtureAttributes=List.of();String fixtureBrand="Old";
  List<ProductKey> keys=List.of(new ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"123",""),new ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"124",""));
  @BeforeAll static void start(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
  static <T>T fx(Callable<T> f)throws Exception{var task=new FutureTask<>(f);Platform.runLater(task);return task.get(10,TimeUnit.SECONDS);}
  @BeforeEach void setup()throws Exception{
   System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Fixture shop','fixture')");}
+  if(System.getProperty("vncode.product.editor.capture")!=null){captureLanguage=I18nService.getInstance().getCurrentLanguage();fx(()->{I18nService.getInstance().setLanguage(AppLanguage.VI);return null;});}
   reads=new ShopReadCoordinator(2,64);adapter=new Adapter();ProductSnapshotReader reader=(s,k)->snapshot(k);service=new ProductBulkEditService(new ProductEditRepository(),reader,s->adapter);
   var suggestions=new ProductSuggestionService(reader,s->adapter,k->Optional.of(snapshot(k)));fx(()->{pane=new ProductBulkEditPane(service,reads,suggestions);new Scene(pane,850,580);return null;});
  }
  ProductSnapshot snapshot(ProductKey key){return new ProductSnapshot(key,"live:fixture","Fixture","Keep description",fixtureBrand,"article-"+key.cardId(),"9",List.of(),fixtureAttributes,List.of(),new PackageDimensions(null,null,null,null),List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop)));}
  void idle()throws Exception{int stable=0;for(int i=0;i<500;i++){Thread.sleep(10);fx(()->null);if(reads.activeCount()==0&&reads.pendingCount()==0&&SellerMutationExecutor.activeCount()==0){if(++stable==3)return;}else stable=0;}fail("Batch edit did not settle");}
- @AfterEach void clean()throws Exception{fx(()->{pane.dispose();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+ @AfterEach void clean()throws Exception{fx(()->{pane.dispose();if(captureLanguage!=null)I18nService.getInstance().setLanguage(captureLanguage);return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
  @Test void defaultProposalNeedsOnlyApplyForWb()throws Exception{defaultProposalNeedsOnlyApply(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);}
  @Test void defaultProposalNeedsOnlyApplyForOzon()throws Exception{defaultProposalNeedsOnlyApply(com.vncode.app.integration.marketplace.Marketplace.OZON);}
  void defaultProposalNeedsOnlyApply(com.vncode.app.integration.marketplace.Marketplace marketplace)throws Exception{
@@ -91,6 +93,30 @@ class ProductBulkDialogTest {
   fx(()->{pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();var box=(ComboBox<String>)pane.lookup("#bulkMaterialName");box.getEditor().setText("хлопок");((Spinner<Integer>)pane.lookup("#bulkMaterialPercent")).getValueFactory().setValue(80);return null;});
   Thread.sleep(450);idle();fx(()->{var box=(ComboBox<String>)pane.lookup("#bulkMaterialName");assertTrue(box.getItems().contains("полиэстер"));assertEquals("хлопок",box.getEditor().getText());return null;});
  }
+ @Test void applyingCompositionCommitsTheTypedPercentageWithoutRequiringFocusToLeave()throws Exception{
+  fx(()->{pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{
+   ((ComboBox<String>)pane.lookup("#bulkMaterialName")).getEditor().setText("хлопок");
+   var spinner=(Spinner<Integer>)pane.lookup("#bulkMaterialPercent");
+   spinner.getEditor().setText("87");
+   assertEquals(0,spinner.getValue());
+   ((Button)pane.lookup("#editApply")).fire();return null;
+  });idle();
+  assertEquals(2,adapter.sent.size());
+  assertTrue(adapter.sent.stream().allMatch(payload->payload.contains("87%")),"Send the percentage visible in the editor");
+ }
+ @org.junit.jupiter.params.ParameterizedTest
+ @org.junit.jupiter.params.provider.ValueSource(strings={"-1","101","abc",""})
+ void invalidTypedMaterialPercentageCannotSendThePreviouslyStoredValue(String typed)throws Exception{
+  fx(()->{pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{
+   ((ComboBox<String>)pane.lookup("#bulkMaterialName")).getEditor().setText("хлопок");
+   ((Spinner<Integer>)pane.lookup("#bulkMaterialPercent")).getEditor().setText(typed);
+   ((Button)pane.lookup("#editApply")).fire();return null;
+  });idle();
+  assertTrue(adapter.sent.isEmpty());
+  fx(()->{assertEquals(I18nService.getInstance().tr("edit.needs_data"),((Label)pane.lookup("#editStatus")).getText());return null;});
+ }
  @Test void acceptedBatchFreezesInputsUntilTheWriteCompletes()throws Exception{
   adapter.entered=new CountDownLatch(1);adapter.release=new CountDownLatch(1);
   try{
@@ -143,9 +169,21 @@ class ProductBulkDialogTest {
      case "documents"->{((TextField)pane.lookup("#editDocumentNumber")).setText("NEW-DOC");((DatePicker)pane.lookup("#editDocumentFrom")).setValue(java.time.LocalDate.now().minusDays(1));((DatePicker)pane.lookup("#editDocumentUntil")).setValue(java.time.LocalDate.now().plusYears(1));}
      default->throw new AssertionError(field);
     }
-    assertFalse(apply.isDisabled(),field+" apply must accept complete input");apply.fire();return null;
+    assertFalse(apply.isDisabled(),field+" apply must accept complete input");capture(dialog,marketplace.name().toLowerCase(java.util.Locale.ROOT)+"-"+field);apply.fire();return null;
    });idle();assertEquals(2,adapter.sent.size(),marketplace+" "+field);assertTrue(service.result(shop,service.list(shop).getFirst()).items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
   }finally{fx(()->{for(var window:List.copyOf(javafx.stage.Window.getWindows()))if(window!=owner&&window.getScene()!=null&&window.getScene().getRoot() instanceof DialogPane dialog&&"productBulkEditDialog".equals(dialog.getId()))((Button)dialog.lookupButton(dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow())).fire();owner.close();return null;});}
+ }
+ private static void capture(DialogPane dialog,String name)throws Exception{
+  String folder=System.getProperty("vncode.product.editor.capture");if(folder==null)return;
+  var previous=ThemeService.getCurrentTheme();
+  for(String theme:List.of("dark","light")){
+   ThemeService.switchTheme(theme);ThemeService.applyTheme(dialog.getScene());dialog.applyCss();dialog.layout();
+   var image=dialog.getScene().snapshot(null);int w=(int)image.getWidth(),h=(int)image.getHeight();
+   var png=new java.awt.image.BufferedImage(w,h,java.awt.image.BufferedImage.TYPE_INT_ARGB);
+   image.getPixelReader().getPixels(0,0,w,h,javafx.scene.image.PixelFormat.getIntArgbInstance(),((java.awt.image.DataBufferInt)png.getRaster().getDataBuffer()).getData(),0,w);
+   java.nio.file.Files.createDirectories(Path.of(folder));javax.imageio.ImageIO.write(png,"png",Path.of(folder,"editor-"+name+"-"+theme+".png").toFile());
+  }
+  ThemeService.setCurrentTheme(previous);ThemeService.applyTheme(dialog.getScene());
  }
  @Test void existingOzonDocumentRetainsItsRemoteIdentityForTheRealAdapter()throws Exception{
   shop=new Shop(1,"Fixture shop",com.vncode.app.integration.marketplace.Marketplace.OZON,"fixture-client","fixture");keys=List.of(new ProductKey(1,shop.getMarketplace(),"123",""));

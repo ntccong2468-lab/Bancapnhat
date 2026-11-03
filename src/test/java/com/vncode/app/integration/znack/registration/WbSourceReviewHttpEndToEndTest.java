@@ -33,10 +33,12 @@ class WbSourceReviewHttpEndToEndTest {
     final AtomicInteger allocations=new AtomicInteger(),posts=new AtomicInteger();
     final AtomicReference<String> sentGtin=new AtomicReference<>();
     final AtomicReference<Throwable> serverFailure=new AtomicReference<>();
+    com.vncode.app.shared.AppLanguage captureLanguage;
     volatile boolean changed; volatile String feedFailure="",oldFeedStatus="Completed",oldOwner="7700000000"; volatile int oldFeedHttp=200,oldCardHttp=200;
     @BeforeAll static void initFx() throws Exception {try{Platform.startup(()->{});}catch(IllegalStateException already){} fx(()->{Platform.setImplicitExit(false);return null;});}
     @BeforeEach void setup()throws Exception{
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();
+        if(System.getProperty("vncode.registration.review.capture")!=null){captureLanguage=com.vncode.app.shared.I18nService.getInstance().getCurrentLanguage();fx(()->{com.vncode.app.shared.I18nService.getInstance().setLanguage(com.vncode.app.shared.AppLanguage.VI);return null;});}
         try(var c=Database.getConnection();var s=c.createStatement()){
             s.execute("INSERT INTO shops(id,name,marketplace,api_key) VALUES(1,'Fixture WB','WILDBERRIES','fixture')");
             s.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,101,'ARTICLE','Fixture','2026-10-06T00:00:00Z')");
@@ -73,7 +75,7 @@ class WbSourceReviewHttpEndToEndTest {
         var workflow=new ZnackCardRegistrationWorkflow(repository,ignored->session,Runnable::run,false,(owner,nm,variantId,gtin)->false,RegistrationWorkflowTestFixtures::emptyLookup,(owner,product)->changed?new ProductSnapshot(snapshot.key(),snapshot.revision(),"Changed title",snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),snapshot.variants(),snapshot.dimensions(),snapshot.documents(),snapshot.checkedAt(),snapshot.metadata()):snapshot);
         batch=new ZnackRegistrationBatchService(repository,workflow,(owner,row,sign)->draft,Runnable::run,false);
     }
-    @AfterEach void cleanup(){if(server!=null)server.stop(0);if(serverWorkers!=null)serverWorkers.shutdownNow();System.clearProperty("vncode.appdata.dir");}
+    @AfterEach void cleanup()throws Exception{if(server!=null)server.stop(0);if(serverWorkers!=null)serverWorkers.shutdownNow();if(captureLanguage!=null)fx(()->{com.vncode.app.shared.I18nService.getInstance().setLanguage(captureLanguage);return null;});System.clearProperty("vncode.appdata.dir");}
     private RegistrationSourceConsent.Prepared review(boolean approve)throws Exception{
         return review(approve,RegistrationSourceConsent.forIdentity("",null));
     }
@@ -81,10 +83,29 @@ class WbSourceReviewHttpEndToEndTest {
         var result=new CompletableFuture<RegistrationSourceConsent.Prepared>();
         Platform.runLater(()->{try{var cls=Class.forName("com.vncode.app.ui.znackregistration.RegistrationSourceReviewDialog");var m=cls.getDeclaredMethod("show",Window.class,Shop.class,UUID.class,RegistrationDynamicPreflight.Review.class,Map.class);m.setAccessible(true);result.complete((RegistrationSourceConsent.Prepared)m.invoke(null,null,shop,UUID.randomUUID(),review,Map.of(key,target)));}catch(Throwable e){result.completeExceptionally(e);}});
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(15);boolean done=false;
-        while(System.nanoTime()<deadline&&!done){done=fx(()->{for(var w:List.copyOf(Window.getWindows())){if(!w.isShowing()||w.getScene()==null)continue;var pane=w.getScene().getRoot().lookup(".dialog-pane");if(pane==null||pane.lookup("#registrationSourceReviewTable")==null)continue;if(!approve){((DialogPane)pane).lookupButton(((DialogPane)pane).getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow()).fireEvent(new javafx.event.ActionEvent());return true;}var box=(CheckBox)pane.lookup("#registrationSourceConfirm");var button=(Button)pane.lookup("#registrationSourceReviewApply");if(!box.isSelected())box.fire();if(!button.isDisabled()){button.fire();return true;}}return false;});if(!done)Thread.sleep(20);}
+        while(System.nanoTime()<deadline&&!done){done=fx(()->{for(var w:List.copyOf(Window.getWindows())){if(!w.isShowing()||w.getScene()==null)continue;var pane=w.getScene().getRoot().lookup(".dialog-pane");if(pane==null||pane.lookup("#registrationSourceReviewTable")==null)continue;
+            assertTrue(((DialogPane)pane).getStylesheets().stream().anyMatch(style->style.endsWith("theme.css")),"The source review must use the app theme");
+            var table=(TableView<?>)pane.lookup("#registrationSourceReviewTable");
+            assertEquals(target.action()==RegistrationSourceConsent.Action.REPLACE?5:4,table.getColumns().size(),"Only show identity columns relevant to this action");
+            if(!approve){((DialogPane)pane).lookupButton(((DialogPane)pane).getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow()).fireEvent(new javafx.event.ActionEvent());return true;}var box=(CheckBox)pane.lookup("#registrationSourceConfirm");var button=(Button)pane.lookup("#registrationSourceReviewApply");if(!box.isSelected())box.fire();if(!button.isDisabled()){capture(w.getScene());button.fire();return true;}}return false;});if(!done)Thread.sleep(20);}
         assertTrue(done,"Source review dialog did not become actionable");return result.get(15,TimeUnit.SECONDS);
     }
     private static <T>T fx(Callable<T> c)throws Exception{var t=new FutureTask<>(c);Platform.runLater(t);return t.get(10,TimeUnit.SECONDS);}
+    private static void capture(javafx.scene.Scene scene)throws Exception{
+        String folder=System.getProperty("vncode.registration.review.capture");if(folder==null)return;
+        var theme=com.vncode.app.shared.ThemeService.getCurrentTheme();
+        for(String paint:List.of("dark","light")){
+            com.vncode.app.shared.ThemeService.switchTheme(paint);com.vncode.app.shared.ThemeService.applyTheme(scene);
+            scene.getRoot().applyCss();scene.getRoot().layout();
+            var hint=(Label)scene.lookup("#registrationSourceReviewHint");
+            assertNotNull(hint);assertTrue(hint.getHeight()+1>=hint.prefHeight(hint.getWidth()),"Source review guidance must remain readable in both themes");
+            var image=scene.snapshot(null);
+            var png=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);
+            image.getPixelReader().getPixels(0,0,(int)image.getWidth(),(int)image.getHeight(),javafx.scene.image.PixelFormat.getIntArgbInstance(),((java.awt.image.DataBufferInt)png.getRaster().getDataBuffer()).getData(),0,(int)image.getWidth());
+            java.nio.file.Files.createDirectories(Path.of(folder));javax.imageio.ImageIO.write(png,"png",Path.of(folder,"registration-review-"+paint+".png").toFile());
+        }
+        com.vncode.app.shared.ThemeService.setCurrentTheme(theme);com.vncode.app.shared.ThemeService.applyTheme(scene);
+    }
     @Test void sellerReviewPersistsAndPostsOneRealHttpFeed()throws Exception{
         var consent=review(true);assertNotNull(consent);String run=batch.start(shop,List.of(repository.find(1,11)),false,consent);
         assertNull(serverFailure.get(),()->"loopback server: "+serverFailure.get());assertEquals(1,allocations.get());assertEquals(1,posts.get());
