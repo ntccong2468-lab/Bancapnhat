@@ -17,6 +17,7 @@ import com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels
 import com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.WbCharacteristic;
 import com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository;
 import com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflow;
+import com.vncode.app.integration.znack.registration.RegistrationDynamicPreflight;
 import com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService;
 import com.vncode.app.integration.znack.registration.ZnackNationalCatalogService;
 import com.vncode.app.integration.znack.registration.ZnackWbAttributeMapper;
@@ -778,9 +779,7 @@ public final class ZnackCardRegistrationController {
                         ||!com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner).equals(snapshot.metadata().get("owner")))
                     snapshot=new com.vncode.app.integration.wb.WbProductSnapshotReader().readForSynchronization(owner,key);
                 var productInputs=com.vncode.app.integration.znack.registration.RegistrationProductInputs.from(sku,snapshot);
-                List<WbCharacteristic> characteristics=productInputs.characteristics();tnved=ZnackWbAttributeMapper.findTnved(characteristics);
-                var code=snapshot.attributes().stream().filter(a->com.vncode.app.features.products.ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream()).filter(v->v.matches("[0-9]{4,10}")).distinct().toList();
-                if(code.size()==1)tnved=code.getFirst();
+                List<WbCharacteristic> characteristics=productInputs.characteristics();tnved=RegistrationDynamicPreflight.sourceTnved(snapshot);
                 if(tnved.isBlank())throw new RegistrationInputException("ZNACK_MISSING_TNVED",java.text.MessageFormat.format(tr("znack.registration.missing_tnved"),sku.vendorCode(),first(sku.sourceBarcode(),Long.toString(sku.chrtId())),sku.subjectName()));
                 var documents=ZnackRegistrationDocuments.select(snapshot,current,LocalDate.now());
                 if(documents.candidates().isEmpty())throw new RegistrationInputException("ZNACK_MISSING_PRODUCT_DOCUMENT",tr("znack.registration.missing_product_document"));

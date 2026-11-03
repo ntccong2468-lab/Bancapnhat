@@ -1274,6 +1274,24 @@
     -fx-font-size: 14px; -fx-min-height: 32; -fx-padding: 5 9;
 }
 
+#productBulkEditPane .titled-pane > .title {
+    -fx-background-color: -bg-secondary;
+    -fx-background-radius: 6;
+    -fx-padding: 8 10;
+}
+#productBulkEditPane .titled-pane > .title > .text { -fx-fill: -text-primary; }
+#productBulkEditPane .titled-pane > .title .arrow { -fx-background-color: -text-primary; }
+#productBulkEditPane .titled-pane > .content {
+    -fx-background-color: -bg-primary;
+    -fx-border-color: -border-color;
+}
+#productBulkEditPane .combo-box-base > .arrow-button,
+#productBulkEditPane .spinner > .increment-arrow-button,
+#productBulkEditPane .spinner > .decrement-arrow-button { -fx-background-color: -bg-secondary; }
+#productBulkEditPane .combo-box-base > .arrow-button .arrow,
+#productBulkEditPane .spinner .increment-arrow,
+#productBulkEditPane .spinner .decrement-arrow { -fx-background-color: -text-primary; }
+
 /* Permit state stays readable on every glass opacity. */
 .document-pending { -fx-text-fill: #b86800; -fx-icon-color: #b86800; }
 .document-rejected { -fx-text-fill: #cf263e; -fx-icon-color: #cf263e; }

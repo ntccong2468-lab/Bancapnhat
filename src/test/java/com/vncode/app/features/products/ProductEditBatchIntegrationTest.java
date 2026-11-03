@@ -34,6 +34,25 @@ class ProductEditBatchIntegrationTest {
     }
     @Test void wbOneThousandProductEditsUseTenWritesAndPageReadback()throws Exception{large(Marketplace.WILDBERRIES);}
     @Test void ozonOneThousandProductEditsUseTenPartialAttributeTasksWithoutPrices()throws Exception{large(Marketplace.OZON);}
+    @ParameterizedTest @ValueSource(strings={"brand","material","gender","tnved"})
+    void oneInvalidCategoryDoesNotPreventUpdatingTheOtherSelectedProduct(String field)throws Exception{
+        var keys=configure(Marketplace.OZON,2);
+        api.attrs.get("100001").addProperty("description_category_id",11);
+        ListingTransport transport=(path,body,mutation)->
+                path.equals("v1/description-category/attribute")&&text(body.getAsJsonObject(),"description_category_id").equals("11")
+                        ?JsonParser.parseString("{\"result\":[]}"):api.call(path,body,mutation);
+        service=new ProductBulkEditService(new ProductEditRepository(),(owner,selected)->ProductEditApiSession.open(owner,selected,transport,true));
+        String proposed=switch(field){case "gender"->"Мужской";case "material"->"хлопок 100%";case "tnved"->"6112110000";default->"Updated";};
+        var preview=service.preview(shop,keys,new ProductBulkEdit(field,List.of(proposed),null,Map.of()));
+        assertEquals(1,preview.items().stream().filter(i->i.state()==CopyState.NEEDS_DATA).count());
+        assertTrue(preview.publishable(),"A valid selected product must remain actionable");
+        service.apply(shop,preview.id(),true);
+        var result=service.reconcile(shop,preview.id());
+        assertEquals(1,api.writes);assertEquals(1,api.maxItems);
+        assertEquals(1,result.items().stream().filter(i->i.state()==CopyState.RECONCILED).count());
+        assertEquals(1,result.items().stream().filter(i->i.state()==CopyState.NEEDS_DATA).count());
+        assertEquals("Old",text(api.attrs.get("100001").getAsJsonArray("attributes").get(0).getAsJsonObject().getAsJsonArray("values").get(0).getAsJsonObject(),"value"));
+    }
     @ParameterizedTest
     @CsvSource({"brand,1","brand,19","brand,20","material,20","gender,20","tnved,20","documents,20"})
     void wbProductPageBatchUsesCardIdentitiesForAllFiveEditors(String field,int count)throws Exception{

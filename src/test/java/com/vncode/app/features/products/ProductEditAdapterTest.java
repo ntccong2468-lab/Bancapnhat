@@ -79,6 +79,23 @@ class ProductEditAdapterTest {
         var r=new RemoteSubmission(2,Marketplace.OZON,ListingIdentity.fingerprint(s),"hash",null,List.of("own"),"{\"items\":[{\"offer_id\":\"own\",\"attributes\":[{\"id\":22232,\"values\":[{\"dictionary_value_id\":444,\"value\":\"6103420001\"}]}]}]}","[]","[]","CARD",Map.of());
         assertEquals(CopyState.RECONCILED,adapter.reconcile(s,r).state());id.set(445);assertEquals(CopyState.REMOTE_PROCESSING,adapter.reconcile(s,r).state());
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({"skipped,New,RECONCILED","skipped,Old,REMOTE_PROCESSING","pending,New,REMOTE_PROCESSING","failed,New,FAILED","imported,New,RECONCILED"})
+    void ozonTaskOutcomeRequiresActualReadbackAndDoesNotPollTerminalFailuresForever(String status,String value,CopyState expected)throws Exception{
+        var shop=new Shop(2,"Ozon",Marketplace.OZON,"22","fixture");
+        var adapter=new OzonListingAdapter(owner->(path,body,mutation)->{
+            assertFalse(mutation);
+            return JsonParser.parseString(switch(path){
+                case "v1/product/import/info" -> "{\"result\":{\"items\":[{\"offer_id\":\"own\",\"product_id\":123,\"status\":\""+status+"\",\"errors\":[]}]}}";
+                case "v3/product/info/list" -> "{\"items\":[{\"id\":123,\"offer_id\":\"own\",\"sku\":22}]}";
+                case "v4/product/info/attributes" -> "{\"result\":[{\"id\":123,\"offer_id\":\"own\",\"attributes\":[{\"id\":85,\"values\":[{\"value\":\""+value+"\"}]}]}]}";
+                default -> throw new AssertionError("Unexpected readback route");
+            });
+        },image->{throw new java.io.IOException();});
+        var submission=new RemoteSubmission(2,Marketplace.OZON,ListingIdentity.fingerprint(shop),"hash","11",List.of("own"),
+                "{\"items\":[{\"offer_id\":\"own\",\"attributes\":[{\"id\":85,\"values\":[{\"value\":\"New\"}]}]}]}","[]","[]","CARD",Map.of("own","123"));
+        assertEquals(expected,adapter.reconcile(shop,submission).state());
+    }
     @Test void rejectedBulkDocumentBlocksAllWrites()throws Exception{invalidBulkDocumentBlocksAllWrites(DocumentState.REJECTED);}
     private void invalidBulkDocumentBlocksAllWrites(DocumentState state)throws Exception{
         var file=root.resolve("certificate.pdf");java.nio.file.Files.writeString(file,"%PDF-1.7\nfixture");

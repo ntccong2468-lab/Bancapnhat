@@ -132,7 +132,8 @@ public final class RegistrationDynamicPreflight {
         return List.copyOf(approvals);
     }
     private static String normalized(String value){return Normalizer.normalize(value,Normalizer.Form.NFKC).strip().toLowerCase(Locale.ROOT).replace('ё','е');}
-    static String sourceTnved(ProductSnapshot snapshot){
+    /** The same marketplace tariff identity is used by review, document verification and dispatch. */
+    public static String sourceTnved(ProductSnapshot snapshot){
         var values=snapshot.attributes().stream().filter(a->a.complexId()==null||a.complexId().isBlank()||a.complexId().equals("0"))
                 .filter(a->ProductFieldNames.matches("tnved",a.name())).flatMap(a->a.values().stream())
                 .filter(v->v!=null&&!v.isBlank()).map(String::strip).toList();
