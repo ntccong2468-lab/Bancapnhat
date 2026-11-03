@@ -193,6 +193,17 @@ public final class OzonApiClient {
     }
 
     private JsonObject listPostings(String since, String to, String cursor, int limit,String direction) throws IOException {
+        return listPostings(since,to,cursor,limit,direction,List.of());
+    }
+
+    /** v4 accepts up to 100 native order numbers; use exact posting IDs from its fresh result. */
+    public JsonObject listPostingsForPrint(String since,String to,String cursor,List<String> orderNumbers)throws IOException {
+        if(orderNumbers==null||orderNumbers.isEmpty()||orderNumbers.size()>100||orderNumbers.stream().distinct().count()!=orderNumbers.size())throw new IllegalArgumentException("Invalid Ozon print order selection");
+        for(String number:orderNumbers)requireExternalId(number,"order number");
+        return listPostings(since,to,cursor,100,"asc",orderNumbers);
+    }
+
+    private JsonObject listPostings(String since,String to,String cursor,int limit,String direction,List<String> orderNumbers)throws IOException {
         if (since == null || since.isBlank() || to == null || to.isBlank()) {
             throw new IllegalArgumentException("A bounded Ozon posting window is required");
         }
@@ -202,6 +213,7 @@ public final class OzonApiClient {
         JsonObject filter = new JsonObject();
         filter.addProperty("since", since);
         filter.addProperty("to", to);
+        if(!orderNumbers.isEmpty()){var numbers=new JsonArray();orderNumbers.forEach(numbers::add);filter.add("order_numbers",numbers);}
         JsonObject with = new JsonObject();
         with.addProperty("analytics_data", false);
         with.addProperty("barcodes", true);

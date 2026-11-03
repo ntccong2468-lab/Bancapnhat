@@ -42,6 +42,7 @@ public final class OzonExemplarService {
     private static final Duration POLL_DELAY = Duration.ofMillis(250);
     private static final ConcurrentMap<String, PostingLock> POSTING_LOCKS = new ConcurrentHashMap<>();
     static final int READ_AHEAD = 4;
+    static final int PRINT_BATCH_SIZE = 100;
     private static final ThreadPoolExecutor DETAIL_READERS = new ThreadPoolExecutor(
             4, 4, 30, TimeUnit.SECONDS, new ArrayBlockingQueue<>(32), runnable -> {
                 Thread thread = new Thread(runnable, "vncode-ozon-detail-read");
@@ -137,13 +138,16 @@ public final class OzonExemplarService {
         Map<String, OzonApiException> apiFailures = new LinkedHashMap<>();
         int done = 0;
         try (var databaseSession = Database.openBatchSession()) {
+            var fresh=batch.readBatchDetails(selected);
             for (int start = 0; start < selected.size(); start += READ_AHEAD) {
                 requireNotInterrupted();
                 List<String> window = selected.subList(start, Math.min(start + READ_AHEAD, selected.size()));
                 List<Future<OzonPostingDto>> reads = new ArrayList<>();
                 try {
                     for (String number : window) {
-                        reads.add(DETAIL_READERS.submit(() -> batch.readDetail(number)));
+                        var detail=fresh.get(number);
+                        reads.add(detail==null?DETAIL_READERS.submit(() -> batch.readDetail(number)):
+                                java.util.concurrent.CompletableFuture.completedFuture(detail));
                     }
                     for (int index = 0; index < window.size(); index++) {
                         requireNotInterrupted();
@@ -216,6 +220,44 @@ public final class OzonExemplarService {
 
         public BatchPreparationResult stageForPrintBatch(List<String> postingNumbers) throws IOException {
             return OzonExemplarService.this.stageForPrintBatch(this, postingNumbers, null);
+        }
+
+        /** Fresh paginated reads, filtered by native order number. Missing/legacy rows use get. */
+        private Map<String,OzonPostingDto> readBatchDetails(List<String> numbers)throws IOException {
+            var local=postings.findMany(shop.getId(),numbers);var selected=new ArrayList<OzonPostingDto>();
+            var times=new java.util.HashMap<String,java.time.Instant>();
+            for(String number:numbers){var posting=local.get(number);if(posting==null||posting.orderNumber().isBlank())continue;
+                try{times.put(number,java.time.Instant.parse(posting.inProcessAt()));selected.add(posting);}
+                catch(java.time.format.DateTimeParseException legacy){/* No reliable date window: keep exact get. */}
+            }
+            var fresh=new LinkedHashMap<String,OzonPostingDto>();var until=java.time.Instant.now().plusSeconds(60);
+            for(int start=0;start<selected.size();start+=PRINT_BATCH_SIZE){
+                var chunk=selected.subList(start,Math.min(start+PRINT_BATCH_SIZE,selected.size()));
+                var since=chunk.stream().map(p->times.get(p.postingNumber())).min(java.util.Comparator.naturalOrder()).orElseThrow().minusSeconds(86400);
+                if(since.isBefore(until.minusSeconds(365L*86400))||!since.isBefore(until))continue;
+                var orders=chunk.stream().map(OzonPostingDto::orderNumber).distinct().toList();
+                var wanted=chunk.stream().map(OzonPostingDto::postingNumber).collect(java.util.stream.Collectors.toSet());
+                var cursors=new java.util.HashSet<String>();String cursor="";
+                for(int page=0;page<100;page++){
+                    requireNotInterrupted();ListingIdentity.require(shop);
+                    var response=api.listPostingsForPrint(since.toString(),until.toString(),cursor,orders);
+                    var parsed=OzonJson.requirePostingPage(response);var result=response.has("result")?OzonJson.object(response,"result"):response;
+                    var rows=OzonJson.array(result,"postings");
+                    for(int i=0;i<parsed.postings().size();i++){
+                        var posting=parsed.postings().get(i);var raw=rows.get(i).getAsJsonObject();
+                        if(!orders.contains(posting.orderNumber()))throw new IOException("OZON_PRINT_FOREIGN_ORDER");
+                        if(!wanted.contains(posting.postingNumber()))continue;
+                        if(!raw.has("requirements")||!raw.get("requirements").isJsonObject()
+                                ||!raw.has("optional")||!raw.get("optional").isJsonObject())continue;
+                        if(fresh.putIfAbsent(posting.postingNumber(),posting.withTrackingOwner(api.syncOwnerFingerprint(shop.getId())))!=null)
+                            throw new IOException("OZON_PRINT_DUPLICATE_POSTING");
+                    }
+                    if(fresh.keySet().containsAll(wanted)||!parsed.hasNext())break;
+                    if(!cursors.add(parsed.cursor())||page==99)throw new IOException("OZON_PRINT_CURSOR_INCOMPLETE");
+                    cursor=parsed.cursor();
+                }
+            }
+            return fresh;
         }
 
         private OzonPostingDto readDetail(String number) throws IOException {

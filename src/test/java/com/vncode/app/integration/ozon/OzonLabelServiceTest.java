@@ -336,15 +336,16 @@ class OzonLabelServiceTest {
         assertEquals("v3:7001",new OzonLabelRepository().find(1,numbers.getFirst()).taskId());
     }
 
-    @Test void definiteBadRequestSplitsOneBadPostingFromOneHundredWithoutRepeatingSuccessfulTasks()throws Exception {
-        var numbers=java.util.stream.IntStream.range(0,100).mapToObj(i->"93000000-"+String.format("%04d",i)+"-1").toList();
+    @org.junit.jupiter.params.ParameterizedTest @org.junit.jupiter.params.provider.ValueSource(ints={1,16})
+    void definiteBadRequestsIsolateEveryRejectedPostingWithoutDroppingValidOnes(int badCount)throws Exception {
+        var numbers=java.util.stream.IntStream.range(0,badCount==1?100:32).mapToObj(i->"93000000-"+String.format("%04d",i)+"-1").toList();
         try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO ozon_postings(shop_id,posting_number,status,synced_at) VALUES(1,?,'awaiting_deliver','2026-08-18T00:00:00Z')")){for(String number:numbers){p.setString(1,number);p.addBatch();}p.executeBatch();}
-        String bad=numbers.get(47);var created=new java.util.concurrent.ConcurrentHashMap<Long,byte[]>();var counter=new java.util.concurrent.atomic.AtomicLong(1000);var successfulGroups=new java.util.concurrent.ConcurrentHashMap<String,Integer>();
+        var bad=badCount==1?java.util.Set.of(numbers.get(47)):java.util.stream.IntStream.range(0,16).mapToObj(i->numbers.get(i*2)).collect(java.util.stream.Collectors.toSet());var created=new java.util.concurrent.ConcurrentHashMap<Long,byte[]>();var counter=new java.util.concurrent.atomic.AtomicLong(1000);var successfulGroups=new java.util.concurrent.ConcurrentHashMap<String,Integer>();
         server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){public MockResponse dispatch(RecordedRequest request){
             try{
                 if(request.getPath().equals("/v3/posting/fbs/package-label/create")){
                     var ids=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_numbers").asList().stream().map(com.google.gson.JsonElement::getAsString).toList();
-                    if(ids.contains(bad))return new MockResponse().setResponseCode(400).setBody("{}");
+                    if(ids.stream().anyMatch(bad::contains))return new MockResponse().setResponseCode(400).setBody("{}");
                     successfulGroups.merge(String.join(",",ids),1,Integer::sum);long task=counter.incrementAndGet();created.put(task,textPdf(ids.toArray(String[]::new)));return json("{\"task_id\":"+task+"}");
                 }
                 if(request.getPath().equals("/v2/posting/fbs/package-label/get")){
@@ -356,7 +357,7 @@ class OzonLabelServiceTest {
         }});
         var failed=new java.util.ArrayList<String>();
         try(var batch=batch(numbers)){for(String number:numbers){try{assertEquals(number,pageText(batch.download(owner(),number,temporaryDirectory.resolve("split-label.pdf").toFile())));}catch(OzonApiException rejected){failed.add(number);}}}
-        assertEquals(java.util.List.of(bad),failed);assertTrue(successfulGroups.values().stream().allMatch(count->count==1));assertTrue(successfulGroups.size()<=7);
+        assertEquals(numbers.stream().filter(bad::contains).toList(),failed);assertTrue(successfulGroups.values().stream().allMatch(count->count==1));assertTrue(successfulGroups.size()<=(badCount==1?7:16));
     }
     @Test void rejectedPollingOfAnExistingTaskNeverSplitsOrCreatesAnotherTask()throws Exception{
         var numbers=twoPostings();server.enqueue(json("{\"task_id\":7001}"));server.enqueue(new MockResponse().setResponseCode(400).setBody("{}"));
@@ -366,6 +367,57 @@ class OzonLabelServiceTest {
         }
         assertEquals(2,server.getRequestCount());
         assertEquals("v3:7001",new OzonLabelRepository().find(1,numbers.getFirst()).taskId());
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints={100,1000})
+    void requestedCarrierBatchPrintsEveryLabelWithOneTaskEvenWhenAllLocalKizChecksAreBlocked(int count)throws Exception {
+        var numbers=java.util.stream.IntStream.range(0,count).mapToObj(i->"96000000-"+String.format("%04d",i)+"-1").toList();
+        var selected=numbers.stream().map(number->new OzonPostingDto(number,number,number,"awaiting_deliver","","","","","","",
+                new OzonRequirements(java.util.List.of(),java.util.List.of(),java.util.List.of()),java.util.List.of(),false,
+                java.util.List.of(new OzonPostingItemDto(0,"product","sku","offer","Product",1,"RUB","1")))).toList();
+        new OzonPostingRepository().upsertPage(1,selected);
+        var reversed=new java.util.ArrayList<>(numbers);java.util.Collections.reverse(reversed);byte[] pdfBytes=textPdf(reversed.toArray(String[]::new));
+        server.enqueue(json("{\"task_id\":7001}"));
+        server.enqueue(json("{\"status\":{\"code\":\"completed\",\"postings_count\":"+count+",\"printed_postings_count\":"+count+"},\"file_url\":\""+server.url("/cdn/requested.pdf")+"\"}"));
+        server.enqueue(new MockResponse().setBody(new okio.Buffer().write(pdfBytes)));
+        var labelService=new OzonLabelService(new OzonLabelRepository(),this::client);
+        var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
+            public java.io.File download(Shop shop,String number,java.io.File target){throw new AssertionError("Do not download a label per posting");}
+            public OzonPrintBundleService.OfficialLabelDownloader forBatch(Shop shop,java.util.List<String> all){return new OzonBatchLabelDownloader(labelService,shop,all);}
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (shop,number)->{throw new AssertionError("Missing local KIZ must not gate official labels or reserve stock");},downloader);
+        var blocked=numbers.stream().collect(java.util.stream.Collectors.toMap(n->n,n->"KIZ_MAPPING_MISSING"));
+        var output=temporaryDirectory.resolve("requested-"+count+".pdf");OzonPrintBundleService.AvailableBatchExportResult result;OzonPrintTiming.Summary timing;
+        try(var timer=OzonPrintTiming.begin()){
+            result=exporter.exportRequested(owner(),numbers,output.toFile(),temporaryDirectory.resolve("requested-pick-"+count+".pdf").toFile(),null,blocked);timing=timer.snapshot();
+        }
+        assertEquals(numbers,result.successful());assertEquals(blocked,result.carrierOnly());assertTrue(result.failures().isEmpty());assertEquals(count,result.totalPages());assertEquals(0,result.kizPages());
+        assertEquals(1,timing.labelGroups());assertEquals(0,timing.isolatedLabels());assertEquals(3,server.getRequestCount());
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(output.toFile()))){
+            assertEquals(count,pdf.getNumberOfPages());for(int i=0;i<count;i++)assertEquals(reversed.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(i+1)).strip());
+        }
+        var create=server.takeRequest(1,TimeUnit.SECONDS);assertEquals("/v3/posting/fbs/package-label/create",create.getPath());assertEquals(count,com.google.gson.JsonParser.parseString(create.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_numbers").size());
+        assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());assertEquals("/cdn/requested.pdf",server.takeRequest(1,TimeUnit.SECONDS).getPath());
+        String benchmark=System.getProperty("vncode.ozon.pdf.benchmark");if(benchmark!=null){
+            var value=new com.google.gson.JsonObject();value.addProperty("synthetic",true);value.addProperty("orders",count);value.addProperty("pages",result.totalPages());value.addProperty("totalMillis",timing.totalMillis());value.addProperty("labelGroups",timing.labelGroups());value.addProperty("isolatedLabels",timing.isolatedLabels());value.addProperty("httpRequests",3);value.addProperty("independentSyntheticPageIdentitiesChecked",true);value.addProperty("appVerifiesTaskMembershipAndCounts",true);value.addProperty("nativePageOrderPreserved",true);value.addProperty("appPairsEachPageToKiz",false);
+            for(var stage:OzonPrintTiming.Stage.values())value.addProperty(stage.name().toLowerCase()+"Millis",timing.millis(stage));
+            java.nio.file.Files.writeString(java.nio.file.Path.of(benchmark+"-"+count+".json"),value.toString());
+        }
+    }
+
+    @Test void opaqueTransportAndProductPagesKeepOneWholeTaskInsteadOfCreatingIndividualTasks()throws Exception{
+        var numbers=twoPostings();byte[] bytes=textPdf("OPAQUE TRANSPORT A","PRODUCT A","OPAQUE TRANSPORT B","PRODUCT B");
+        server.enqueue(json("{\"task_id\":7001}"));server.enqueue(json("{\"status\":{\"code\":\"completed\",\"postings_count\":2,\"printed_postings_count\":2},\"file_url\":\""+server.url("/cdn/opaque.pdf")+"\"}"));server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes)));
+        var service=new OzonLabelService(new OzonLabelRepository(),this::client);
+        try(var batch=new OzonBatchLabelDownloader(service,owner(),numbers)){
+            var whole=batch.wholeBatch(owner(),numbers.getFirst());assertEquals(numbers,whole.members());assertEquals(java.util.List.of(1,2,3,4),whole.pages());assertTrue(whole.unprinted().isEmpty());
+            assertEquals(whole,batch.wholeBatch(owner(),numbers.getLast()));
+            assertEquals(1,new OzonLabelRepository().findMany(1,numbers).values().stream().map(OzonLabelRepository.LabelJob::taskId).distinct().count());
+            assertTrue(new OzonLabelRepository().find(1,numbers.getFirst()).taskId().startsWith("v3:"));
+        }
+        assertEquals(3,server.getRequestCount(),"One creation, one poll, one PDF; no isolated tasks for opaque pages");
     }
 
     @Test void printAllOneHundredOrdersCreatesOneSharedLabelTaskAndMapsEveryPage() throws Exception {

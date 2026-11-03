@@ -1,0 +1,162 @@
+{
+  "recordedAtUtc": "2026-11-03T19:18:40.624548+00:00",
+  "implementationSourceCommit": "8b28133b28f57c53486aece15b0ca26c219d313d",
+  "environment": "Linux managed Codex; production services/real APIs in isolated test data; signed test license authority",
+  "sourceApiAvailableWindow": {
+    "unfulfilledRows": 348,
+    "delivering": 326,
+    "awaitingPackaging": 21,
+    "awaitingDeliver": 1
+  },
+  "liveNewTaskExport": {
+    "phase": "LIVE_PDF_VERIFIED",
+    "sourceCommit": "6f302cf2883e528b146f01e16e5bf256b51242d0",
+    "orders": 1,
+    "successful": 1,
+    "failed": 0,
+    "pages": 2,
+    "kizPages": 0,
+    "labelGroups": 1,
+    "isolatedLabels": 0,
+    "totalMillis": 6111,
+    "localKizJobs": 0,
+    "taskMode": "whole native batch PDF; KIZ appendix",
+    "orderStatusUnchanged": true,
+    "stockMillis": 0,
+    "preparationMillis": 0,
+    "label_networkMillis": 3347,
+    "page_identityMillis": 0,
+    "compositionMillis": 6,
+    "pickingMillis": 2633
+  },
+  "liveKnownTaskReprints": [
+    {
+      "phase": "KNOWN_TASK_REPRINT_VERIFIED",
+      "mode": "prime",
+      "sourceCommit": "8b28133b28f57c53486aece15b0ca26c219d313d",
+      "orders": 1,
+      "successful": 1,
+      "pages": 2,
+      "labelGroups": 1,
+      "isolatedLabels": 0,
+      "totalMillis": 6523,
+      "labelPollCalls": 1,
+      "documentDownloadCalls": 1,
+      "apiMutations": 0,
+      "unchangedKnownTask": true,
+      "thumbnailCountBefore": 0,
+      "thumbnailCountAfter": 1,
+      "stockMillis": 0,
+      "preparationMillis": 0,
+      "label_networkMillis": 4541,
+      "page_identityMillis": 0,
+      "compositionMillis": 7,
+      "pickingMillis": 1846
+    },
+    {
+      "phase": "KNOWN_TASK_REPRINT_VERIFIED",
+      "mode": "cached",
+      "sourceCommit": "8b28133b28f57c53486aece15b0ca26c219d313d",
+      "orders": 1,
+      "successful": 1,
+      "pages": 2,
+      "labelGroups": 1,
+      "isolatedLabels": 0,
+      "totalMillis": 4989,
+      "labelPollCalls": 1,
+      "documentDownloadCalls": 1,
+      "apiMutations": 0,
+      "unchangedKnownTask": true,
+      "thumbnailCountBefore": 1,
+      "thumbnailCountAfter": 1,
+      "stockMillis": 0,
+      "preparationMillis": 0,
+      "label_networkMillis": 4505,
+      "page_identityMillis": 0,
+      "compositionMillis": 8,
+      "pickingMillis": 302
+    }
+  ],
+  "syntheticBenchmarks": [
+    {
+      "synthetic": true,
+      "orders": 100,
+      "pages": 100,
+      "totalMillis": 183,
+      "labelGroups": 1,
+      "isolatedLabels": 0,
+      "httpRequests": 3,
+      "independentSyntheticPageIdentitiesChecked": true,
+      "appVerifiesTaskMembershipAndCounts": true,
+      "nativePageOrderPreserved": true,
+      "appPairsEachPageToKiz": false,
+      "stockMillis": 0,
+      "preparationMillis": 0,
+      "label_networkMillis": 102,
+      "page_identityMillis": 0,
+      "compositionMillis": 1,
+      "pickingMillis": 59
+    },
+    {
+      "synthetic": true,
+      "orders": 1000,
+      "pages": 1000,
+      "totalMillis": 506,
+      "labelGroups": 1,
+      "isolatedLabels": 0,
+      "httpRequests": 3,
+      "independentSyntheticPageIdentitiesChecked": true,
+      "appVerifiesTaskMembershipAndCounts": true,
+      "nativePageOrderPreserved": true,
+      "appPairsEachPageToKiz": false,
+      "stockMillis": 0,
+      "preparationMillis": 0,
+      "label_networkMillis": 79,
+      "page_identityMillis": 0,
+      "compositionMillis": 17,
+      "pickingMillis": 345
+    }
+  ],
+  "syntheticLimitations": "localhost HTTP/text PDFs, carrier-only; no 1000 live orders, no 1000 KIZ generation, no seller machine prediction",
+  "regression": {
+    "focusedFinal": {
+      "tests": 142,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "uiLayoutRecheck": {
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "thumbnailAndPdfRecheck": {
+      "tests": 48,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "setsOverlap": true,
+    "splitReproduction": {
+      "tests": 2,
+      "failures": 1
+    },
+    "thumbnailReproduction": {
+      "tests": 3,
+      "failures": 1
+    }
+  },
+  "wholeBatchVerification": "exact authenticated task membership + completed/count/unprinted readback; preserves all Ozon pages; no page-position KIZ association",
+  "notPerformed": [
+    "physical printer output",
+    "100 or 1000 live-order export",
+    "new live KIZ assignment or stock consumption",
+    "seller order acceptance",
+    "paid KIZ purchase",
+    "production license activation",
+    "native Windows installer test",
+    "release or Latest update"
+  ],
+  "sellerDataIncluded": false
+}
