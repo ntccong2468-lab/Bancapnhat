@@ -1,0 +1,52 @@
+name: Verify 1.6.1 Catalog yielding on unchanged runtime
+on:
+  push:
+    branches: [release/publish-vn-code-1.6.1]
+    paths:
+      - .github/workflows/verify-vncode-161-cooldown.yml
+      - src/test/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchHttpIntegrationTest.java
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cooldown:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    env:
+      APPLICATION_SOURCE: 01b87d3d929d6e775ad60178e2e4553885bb912b
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: '25'
+          distribution: oracle
+          cache: maven
+      - name: Verify production inputs are unchanged
+        shell: pwsh
+        run: |
+          git diff --exit-code $env:APPLICATION_SOURCE HEAD -- src/main pom.xml build.bat build.sh .mvn mvnw mvnw.cmd
+          if($LASTEXITCODE -ne 0){throw 'Supplementary fixture must use unchanged release application sources.'}
+      - name: Verify transport-budget cooldown and wrapper integrity
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-161-cooldown-${{ github.run_id }}
+        run: |
+          .\mvnw.cmd -B '-Dtest=MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest' test
+          if($LASTEXITCODE -ne 0){throw 'Supplementary Windows verification failed.'}
+          $tests=0;$failures=0;$errors=0;$skipped=0
+          foreach($report in Get-ChildItem target/surefire-reports -Filter 'TEST-*.xml'){
+            [xml]$xml=Get-Content $report.FullName -Raw
+            $tests+=[int]$xml.testsuite.tests;$failures+=[int]$xml.testsuite.failures;$errors+=[int]$xml.testsuite.errors;$skipped+=[int]$xml.testsuite.skipped
+          }
+          if($tests -ne 11 -or $failures -ne 0 -or $errors -ne 0 -or $skipped -ne 0){throw 'Incomplete supplementary evidence.'}
+          @{applicationSource=$env:APPLICATION_SOURCE;verificationSource=$env:GITHUB_SHA;runId=[long]$env:GITHUB_RUN_ID;platform='windows';runtimeSourcesUnchanged=$true;retryAfterSeconds=120;workerTimeoutSeconds=30;tests=$tests;failures=$failures;errors=$errors;skipped=$skipped} | ConvertTo-Json | Set-Content target/cooldown-verification.json -Encoding utf8NoBOM
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: VN-code-1.6.1-cooldown-windows
+          path: |
+            target/cooldown-verification.json
+            target/surefire-reports/TEST-*.xml
+          if-no-files-found: error
