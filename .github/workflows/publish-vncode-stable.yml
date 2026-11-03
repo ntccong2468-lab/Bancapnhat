@@ -20,7 +20,7 @@ on:
         required: true
         default: prepare
         type: choice
-        options: [prepare, publish, owner-approved-1416, owner-approved-1418, owner-approved-1419, owner-requested-150, owner-requested-151, owner-requested-152, owner-requested-153, owner-requested-154, owner-requested-155, owner-requested-157, owner-requested-158]
+        options: [prepare, publish, owner-approved-1416, owner-approved-1418, owner-approved-1419, owner-requested-150, owner-requested-151, owner-requested-152, owner-requested-153, owner-requested-154, owner-requested-155, owner-requested-157, owner-requested-158, owner-requested-161]
 permissions:
   contents: write
   actions: read
@@ -50,6 +50,15 @@ jobs:
         run: |
           if [ "$RELEASE_MODE" = "owner-approved-1416" ]; then
             node tools/publish-owner-approved-1416.mjs
+          elif [ "$RELEASE_MODE" = "owner-requested-161" ]; then
+            node tools/publish-vncode-161.mjs
           else
             node tools/publish-vncode-stable.mjs "$RELEASE_BUILD_RUN" "$RELEASE_BUILD_SOURCE" "$RELEASE_MODE"
           fi
+      - name: Preserve 1.6.1 publication receipt
+        if: inputs.mode == 'owner-requested-161'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VN-code-1.6.1-publication
+          path: publication-1.6.1.json
+          if-no-files-found: error
