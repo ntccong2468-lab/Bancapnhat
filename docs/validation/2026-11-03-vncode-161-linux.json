@@ -1,0 +1,29 @@
+{
+  "version": "1.6.1",
+  "sourceCommit": "24f9761f14cc1c60f1274620bb860aa35df2fc90",
+  "platform": "Linux/Xvfb",
+  "command": "clean verify",
+  "result": "passed",
+  "tests": {
+    "tests": 3813,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "classes": 518,
+  "skippedCases": [
+    {
+      "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "method": "separatesLicenseAndExistingMailEntropyOnWindows",
+      "reason": "Disabled on operating system: Linux"
+    },
+    {
+      "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "method": "refusesNtfsJunctionDirectoryAndAncestors",
+      "reason": "Disabled on operating system: Linux"
+    }
+  ],
+  "totalTime": "35:03 min",
+  "completedAt": "2026-11-03T21:13:43Z",
+  "liveMarketplaceMutations": false
+}
