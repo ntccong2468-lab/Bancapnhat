@@ -47,7 +47,7 @@ public final class CryptoProSignedCertificateReader {
                 matched = candidate;
             }
             if (matched == null) throw invalid();
-            String fingerprint = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(matched.getEncoded("DER")));
+            String fingerprint = windowsCertificateThumbprint(matched);
             if (!fingerprint.equalsIgnoreCase(expected)) throw invalid();
             String subject = subject(matched.getSubject());
             String inn = CryptoProCertificateInfo.enterpriseInn(subject);
@@ -57,6 +57,18 @@ public final class CryptoProSignedCertificateReader {
                     true, "CryptoPro CMS signer", "");
         } catch (CryptoProException invalid) { throw invalid; }
         catch (Exception invalid) { throw invalid(); }
+    }
+
+    /**
+     * CryptoPro/certmgr selects a Windows certificate by its 40-hex SHA-1
+     * thumbprint. This is that external store identifier, not a signature or
+     * content-integrity algorithm. Replacing it with SHA-256 would select no
+     * existing certificate. The CMS signer is matched by issuer and serial above;
+     * CZ/Catalog authenticates the CMS signature and certificate on receipt.
+     */
+    @SuppressWarnings("codeql[java/potentially-weak-cryptographic-algorithm] Windows certificate-store identifier; never a signing algorithm")
+    private static String windowsCertificateThumbprint(Certificate certificate) throws Exception {
+        return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(certificate.getEncoded("DER")));
     }
 
     private static String subject(X500Name name) {

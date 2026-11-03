@@ -17,6 +17,15 @@ class OzonAcceptanceSourceSnapshotTest {
     private OzonShipService service;
     @BeforeEach void setup() throws Exception {
         fixture=new OzonAcceptanceKizTest();fixture.directory=root;fixture.setup();
+        // Seller stock resolves by category, independently of purchased-stock GTIN mappings.
+        // Establish that identity without importing any marks, so the first attempt
+        // reaches the stock shortage and the retry can exercise the frozen source.
+        new OzonCatalogRepository().upsertPage(fixture.shop.getId(),java.util.List.of(
+                new OzonProductDto("9001","fixture","101","Fixture","",false,"",java.util.List.of())),"cursor");
+        var categories=new com.vncode.app.features.kiz.KizStockCategoryRepository();
+        var category=categories.create(fixture.shop,"Synthetic source snapshot category");
+        categories.assignProducts(fixture.shop,category.id(),java.util.List.of(
+                new com.vncode.app.features.products.ProductKey(fixture.shop.getId(),fixture.shop.getMarketplace(),"9001","")));
         service=new OzonShipService(new OzonPostingRepository(),new OzonProductGtinMappingRepository(),new OzonExemplarJobRepository(),
                 (id,credentials)->new OzonApiClient(id,credentials,fixture.server.url("/"),new OkHttpClient.Builder().readTimeout(1,java.util.concurrent.TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));
     }
