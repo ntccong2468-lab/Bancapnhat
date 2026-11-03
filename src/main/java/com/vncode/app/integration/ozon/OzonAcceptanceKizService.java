@@ -51,7 +51,11 @@ final class OzonAcceptanceKizService {
         // Already reserved category bindings must remain valid even if the seller
         // selects another source on a later retry; they are never reallocated.
         categorySkus.addAll(OzonCategoryStock.reservedCategorySkus(shop.getId(),posting,prior));
-        var plan=OzonRequirementGuard.plan(posting,new OzonProductGtinMappingRepository().findResolvedBySku(shop.getId()),
+        // Seller-imported category stock is independent of Catalog/SKU GTIN mappings.
+        // Read those mappings only when bought stock may actually be used.
+        var skuMappings=sources!=null&&!sources.purchased()?Map.<String,String>of():
+                new OzonProductGtinMappingRepository().findResolvedBySku(shop.getId());
+        var plan=OzonRequirementGuard.plan(posting,skuMappings,
                 new OzonProductKizPolicyRepository().findExemptSkus(shop.getId()),categorySkus);
         var local=jobs.stageLocalForPrint(shop.getId(),plan,sources,()->{ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);},
                 ()->OzonRequirementGuard.requireCurrentPurchasedMappings(shop.getId(),plan,sources));

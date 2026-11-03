@@ -54,6 +54,33 @@ class OzonAcceptanceKizTest {
         assertEquals(1,sent.size());assertEquals(1,shipped.size());
         assertEquals("ACCEPTED",new OzonExemplarJobRepository().find(1,"PARENT").stage().name());
     }
+    @Test void sellerImportedCategoryAcceptsWithoutProductGtinAndKeepsPurchasedCodesUnused()throws Exception {
+        new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto("9001","fixture","101","Fixture","",false,"",List.of())),"");
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",directory,1);
+        var result=service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY);
+        assertEquals("awaiting_deliver",result.status());
+        assertEquals(Set.of("PARENT"),shipped);
+        assertEquals(1,sent.size());
+        try(var c=Database.getConnection();var s=c.createStatement()) {
+            try(var r=s.executeQuery("SELECT k.gtin,k.status FROM ozon_exemplars e JOIN kiz_codes k ON k.id=e.kiz_id")) {
+                assertTrue(r.next());assertEquals(com.vncode.app.testsupport.CategoryStockFixture.GTIN,r.getString(1));
+                assertEquals("CONSUMED",r.getString(2));
+            }
+            try(var r=s.executeQuery("SELECT count(*) FROM kiz_codes WHERE order_id=1 AND status='AVAILABLE'")) {
+                assertTrue(r.next());assertEquals(2,r.getInt(1));
+            }
+        }
+    }
+    @Test void purchasedAcceptanceStillRequiresProductGtinEvenWhenImportedCategoryHasStock()throws Exception {
+        new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto("9001","fixture","101","Fixture","",false,"",List.of())),"");
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",directory,1);
+        assertThrows(OzonRequirementGuard.MissingMappingException.class,()->
+                service().shipPerUnit(shop,"PARENT",true,new com.vncode.app.features.kiz.KizSourceSelection(false,true)));
+        assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
+        assertFalse(trace.contains("/v6/fbs/posting/product/exemplar/set"));
+    }
     @Test void existingJobWithoutAcceptanceHistoryCanBeAccepted()throws Exception {
         var posting=OzonJson.requirePostingDetail(JsonParser.parseString(posting("PARENT")).getAsJsonObject(),"PARENT");
         new OzonPostingRepository().upsertDetail(1,posting);
