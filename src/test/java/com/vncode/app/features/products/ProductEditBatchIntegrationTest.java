@@ -34,14 +34,16 @@ class ProductEditBatchIntegrationTest {
     }
     @Test void wbOneThousandProductEditsUseTenWritesAndPageReadback()throws Exception{large(Marketplace.WILDBERRIES);}
     @Test void ozonOneThousandProductEditsUseTenPartialAttributeTasksWithoutPrices()throws Exception{large(Marketplace.OZON);}
-    @Test void oneInvalidCategoryDoesNotPreventUpdatingTheOtherSelectedProduct()throws Exception{
+    @ParameterizedTest @ValueSource(strings={"brand","material","gender","tnved"})
+    void oneInvalidCategoryDoesNotPreventUpdatingTheOtherSelectedProduct(String field)throws Exception{
         var keys=configure(Marketplace.OZON,2);
         api.attrs.get("100001").addProperty("description_category_id",11);
         ListingTransport transport=(path,body,mutation)->
                 path.equals("v1/description-category/attribute")&&text(body.getAsJsonObject(),"description_category_id").equals("11")
                         ?JsonParser.parseString("{\"result\":[]}"):api.call(path,body,mutation);
         service=new ProductBulkEditService(new ProductEditRepository(),(owner,selected)->ProductEditApiSession.open(owner,selected,transport,true));
-        var preview=service.preview(shop,keys,new ProductBulkEdit("brand",List.of("Updated"),null,Map.of()));
+        String proposed=switch(field){case "gender"->"Мужской";case "material"->"хлопок 100%";case "tnved"->"6112110000";default->"Updated";};
+        var preview=service.preview(shop,keys,new ProductBulkEdit(field,List.of(proposed),null,Map.of()));
         assertEquals(1,preview.items().stream().filter(i->i.state()==CopyState.NEEDS_DATA).count());
         assertTrue(preview.publishable(),"A valid selected product must remain actionable");
         service.apply(shop,preview.id(),true);

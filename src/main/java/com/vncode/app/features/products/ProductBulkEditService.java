@@ -76,7 +76,13 @@ public final class ProductBulkEditService {
             for(var key:group){String expected=edit.expectedRevisions().get(key);if(expected!=null&&!expected.equals(
                     expected.startsWith("live:proposal:")?ProductSuggestionService.proposalRevision(shop,fresh,edit.field()):fresh.revision()))throw new IllegalStateException("PRODUCT_PROPOSAL_CHANGED");}
             if(edit.field().equals("documents"))changes=Map.of();else if(edit.field().equals("brand"))changes=Map.of("brand",values);else{
-                var candidates=ProductFieldNames.targets(edit.field(),adapter.attributes(shop,fresh.categoryId()));if(candidates.size()!=1)throw new IllegalStateException("Field dictionary is missing or ambiguous");changes=Map.of("attribute:"+candidates.getFirst().id(),values);
+                var candidates=ProductFieldNames.targets(edit.field(),adapter.attributes(shop,fresh.categoryId()));
+                if(candidates.size()!=1){
+                    items.add(blockedField(fresh,edit.field(),values));
+                    progress(listener,"VALIDATING",items.size(),groups.size());
+                    continue;
+                }
+                changes=Map.of("attribute:"+candidates.getFirst().id(),values);
             }
             List<ProductDocument> documents=edit.documents();if(documents!=null){for(var d:documents)if(d.marketplace()!=shop.getMarketplace())throw new IllegalArgumentException("Foreign document");if(shop.getMarketplace()==Marketplace.WILDBERRIES){var merged=new ArrayList<>(fresh.documents());for(var d:documents){merged.removeIf(old->!d.number().isBlank()&&d.number().equals(old.number())&&d.type().equals(old.type()));merged.add(d);}documents=List.copyOf(merged);}}
             var before=edit.field().equals("brand")?List.of(Objects.toString(fresh.brand(),"")):edit.field().equals("documents")?fresh.documents().stream().map(ProductDocument::number).toList():fresh.attributes().stream().filter(a->changes.containsKey("attribute:"+a.id())).flatMap(a->a.values().stream()).toList();
@@ -90,6 +96,16 @@ public final class ProductBulkEditService {
             progress(listener,"VALIDATING",items.size(),groups.size());
         }
         var p=new ProductEditPreview(UUID.randomUUID().toString(),shop.getId(),ListingIdentity.fingerprint(shop),frozen,edit,items);repo.insert(p);return p;
+    }
+    private static EditItem blockedField(ProductSnapshot fresh,String field,List<String> values){
+        var key=fresh.key();String owner=fresh.metadata().get("owner"),body="{}",operation="UPDATE_BLOCKED";
+        var changes=Map.of(field,values);
+        var options=new CopyOptions(Set.of(field),Set.of(),fresh.categoryId(),Map.of(),changes,Map.of(),null,"RUB",List.of(),null);
+        var issues=List.of(new CopyIssue("FOREIGN_TARGET_ATTRIBUTE",field,true));
+        var preview=new CopyPreview(key.shopId(),key.marketplace(),owner,key,fresh.revision(),
+                CopyPreview.hash(body,"[]","[]",owner,fresh.revision(),operation),body,"[]","[]",Map.of(),issues,List.of(fresh.vendorArticle()),options,operation);
+        var before=ProductFieldNames.sourceAttributes(field,fresh.attributes()).stream().flatMap(a->a.values().stream()).toList();
+        return new EditItem(key,changes,null,new ListingTargetAdapter.ProductEditPreview(key,fresh.revision(),preview),null,CopyState.NEEDS_DATA,issues,before);
     }
     /** A complete, already resolved multi-field card patch for the Catalog sync workflow. */
     public ProductEditPreview previewPatch(Shop shop,ProductSnapshot fresh,Map<String,List<String>> changes,List<ProductDocument> documents)throws IOException {

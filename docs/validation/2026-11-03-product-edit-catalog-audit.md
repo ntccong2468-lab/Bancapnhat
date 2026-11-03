@@ -5,7 +5,7 @@ Scope: the five product editors on WB/Ozon, registration preflight, source revie
 ## Confirmed problems and changes
 
 - Ozon import tasks with `skipped` stayed pending forever. Official `GetImportProductsInfoResponseResultItem` defines this as no changes. It now proceeds to fresh product/attribute readback; success still requires exact expected values. A terminal `failed` task with an empty error array now reports failure instead of polling indefinitely.
-- A category-specific invalid product preview blocked valid products in the same selection. Only publishable items are sent; invalid items remain in the same durable report. Tests assert the invalid product receives no write.
+- A category-specific invalid product preview blocked valid products in the same selection. Only publishable items are sent; invalid items remain in the same durable report. Missing/ambiguous attribute dictionaries produce a blocked per-product preview rather than aborting the selection. Tests cover brand, composition, gender and TN VED and assert the invalid product receives no write.
 - An editable material percentage spinner could send its previous value when Apply was invoked before losing focus. The editor now commits the visible percentage before preparing its payload and blocks non-numeric/out-of-range input.
 - Ozon's `Item-Retry-After` is measured in minutes. Product HTTP cooldown calculation now honors it and takes the longest applicable server header.
 - Document verification in registration had a digits-only TN VED extraction that rejected Ozon's code-plus-description labels. Document checks and dispatch now use the same marketplace tariff parser, which rejects conflicting or invalid source values rather than deriving a code from documents.
@@ -24,6 +24,8 @@ Scope: the five product editors on WB/Ozon, registration preflight, source revie
 The new task-outcome tests first reproduced two failures. The new mixed-validity and percentage tests each reproduced a failure before correction. After correction, a focused pass completed 128 tests; a subsequent pass including the final UI wrapping changes completed 120 tests with no failures, errors or skips. Four cooldown tests also passed.
 
 An additional 25 HTTP/dialog tests passed while capturing the source review and all five product editors in Vietnamese. A final 22-test pass after the scoped dark-control CSS fix passed as well. Screenshots contain synthetic data, not seller values; 22 captures cover both themes for five WB editors, five Ozon editors and the source review.
+
+After extending mixed-validity handling to missing/ambiguous material, gender and TN VED dictionaries, the final product regression run passed 88 tests with no failures, errors or skips.
 
 Catalog integration tests exercise actual HTTP requests against localhost, feed receipts, later card visibility, rejection, throttling, response loss and restart/reconciliation. These are not production Catalog writes. UI evidence is rendered under JavaFX/Xvfb with synthetic data, not a Windows installer test.
 
