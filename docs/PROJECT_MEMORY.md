@@ -1,6 +1,16 @@
 # Bộ nhớ dự án VNCode
 
 
+## PDF Ozon theo lô — 03.11.2026, chưa phát hành
+
+- Nhánh `fix/ozon-batch-pdf-20261103`, kế thừa PR #17; nguồn cuối `8b28133` (PDF whole-task `6f302cf`). Đọc nguồn mới qua v4 list với tối đa 100 `order_numbers` thật, phân trang/kiểm tra đúng posting; thiếu metadata mới fallback get. API nhãn v3 create/v2 get tối đa 1.000 đơn đã có trước; bottleneck là đọc chi tiết từng đơn và nhận diện trang khiến task chuyển sang tải riêng.
+- Giữ nguyên PDF của đúng task completed, membership và số lượng/unprinted đã đối soát; KIZ đúng binding được thêm ở cuối tệp, không ghép theo vị trí trang. PDF Ozon có thể có cả trang vận đơn và trang sản phẩm. Thiếu KIZ/mapping không loại nhãn vận đơn API đã cấp; báo rõ chưa kèm KIZ, không trừ kho phần chưa in. In một phần task cũ vẫn cần lọc đúng trang hoặc đường dự phòng, không in lẫn đơn khác.
+- Bỏ cap chia lô lỗi 16, giữ số chia theo tập chọn và chỉ chia sau từ chối chắc chắn không có task. Receipt/timeout chưa rõ không tạo lại. Cache thumbnail riêng được lưu xuống đĩa, không ghi đè ảnh độ phân giải đầy đủ; app báo riêng bước phiếu nhặt hàng.
+- Thật: một đơn awaiting_deliver, 2 trang, một nhóm/0 tải riêng, 6,111 giây ở `6f302cf`; không KIZ/đổi trạng thái đơn. In lại cùng task ở `8b28133` với chặn mọi mutation API: 6,523s trước cache đĩa và 4,989s ở tiến trình mới dùng cache; riêng phiếu nhặt hàng 1,846s → 0,302s. Chỉ có một đơn đủ trạng thái cấp nhãn, chưa có benchmark thật 100/1.000. Lô localhost 100/1.000 đủ trang và 3 request, 0,183/0,506s, không dùng làm dự báo seller.
+- Hồi quy 142 ca đạt; UI chữ bố cục chạy lại 7 ca, cache ảnh/PDF 48 ca đạt (các tập giao nhau). Red reproductions: chia lô 1/2 thất bại, cache 1/3 thất bại. Private PDF/journal/raw ở `/tmp/vncode-ozon-pdf-live-20261103`, không chạy lại trước đọc journal; không commit seller data. Lượt driver đầu serialize File lỗi sau export đã được đối soát từ PDF/DB, không coi là app không xuất được hoặc gửi lặp.
+- API mới tạo nhãn chỉ cho awaiting_deliver, khuyến nghị 45–60s sau lắp ráp. Không hứa in được đơn sàn từ chối. Không nhận đơn, mua/gán KIZ, kích hoạt license thật hoặc triển khai bộ cài. [Bàn giao](validation/2026-11-03-ozon-batch-pdf-audit.md), [biên nhận](validation/2026-11-03-ozon-batch-pdf-verify.json).
+
+
 ## Nghiệm thu API thật sản phẩm/Catalog — 03.11.2026, PR #17
 
 - Nhánh `fix/product-edits-catalog-20261103`, nguồn sửa `f69f125`, stacked trên PR #16. Đã ghi thật 10/10 lượt cho 5 trường WB/Ozon và đọc lại xác nhận; gửi lại giá trị đang có, chưa thử đổi sang giá trị kinh doanh mới. Không dùng kết quả này khẳng định mọi danh mục hay UI Windows đều đã nghiệm thu.
