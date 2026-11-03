@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+
+## Nghiệm thu API thật sản phẩm/Catalog — 03.11.2026, PR #17
+
+- Nhánh `fix/product-edits-catalog-20261103`, nguồn sửa `f69f125`, stacked trên PR #16. Đã ghi thật 10/10 lượt cho 5 trường WB/Ozon và đọc lại xác nhận; gửi lại giá trị đang có, chưa thử đổi sang giá trị kinh doanh mới. Không dùng kết quả này khẳng định mọi danh mục hay UI Windows đều đã nghiệm thu.
+- Lượt thật phát hiện hash Ozon đổi vì moderation và thứ tự thuộc tính đơn; giữ response nguyên gốc, hash bỏ riêng metadata server và chuẩn hóa thứ tự theo ID. Nội dung thực/nhóm phức hợp vẫn làm đổi revision. Test đỏ 1/9 trước sửa, xanh 82/82 sau sửa; bốn trường Ozon tiếp theo ghi thật thành công. Preview chưa gửi từ hash cũ có thể cần xem lại, không phát lại yêu cầu đã gửi.
+- Đọc đủ chi tiết 1.379 thẻ, chuẩn bị hồ sơ từ đúng biến thể WB và registry, xin 1 GTIN, gửi 1 `POST /v3/feed`, lưu receipt. Thẻ mới được service và client độc lập đọc lại đúng danh tính, trạng thái `draft / moderation`, chưa ký/công bố. 404 lúc vừa có receipt không phải lý do gửi lại; chỉ đọc/đối soát rồi xác nhận. Country gửi ISO nhưng Catalog trả tên từ điển: so ngữ nghĩa đã xác minh thay vì byte thô.
+- Private journal/DB/raw ở `/tmp/vncode-live-acceptance-20261103`; không commit mã hàng/GTIN/feed/key. Không chạy lại runner allocation/feed khi chưa đọc journal; `/tmp` không phải kho bền vững sau thay môi trường. Authority license test trong profile riêng; không kích hoạt production, mua KIZ hay nhận đơn.
+- Chưa test kết nối chứng thư/owner CryptoPro bằng UI, nút đăng ký Windows, ký/công bố, đẩy GTIN mới hoặc bộ cài. Chưa đổi Latest. [Biên bản và bàn giao](validation/2026-11-03-product-edit-catalog-live-acceptance.md), [biên nhận đã bỏ dữ liệu seller](validation/2026-11-03-product-edit-catalog-live-verify.json).
+
 ## Sửa null khi nhận Ozon — 29.10.2026 (chưa phát hành)
 
 - Nhánh `fix/ozon-accept-null-action`, nguồn `7878832176cd3bf3f2550f050de4d74cd161f3e7`, nền 1.5.19. `latestActionStatus` có thể null khi có job KIZ cũ nhưng chưa có `accept_kiz`; chuẩn hóa cục bộ thành chuỗi rỗng, giữ kiểm tra `mutationAttemptedAt` để đối soát trước khi gửi lại. Không đổi hợp đồng repository, không giải phóng KIZ chưa rõ kết quả.

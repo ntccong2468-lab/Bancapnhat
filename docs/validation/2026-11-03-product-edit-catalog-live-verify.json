@@ -1,0 +1,166 @@
+{
+  "recordedAtUtc": "2026-11-03T18:38:51.978425+00:00",
+  "sourceCommit": "f69f125d533e0f093c52a7650963195f3527c49c",
+  "environment": "Linux Codex Cloud; production services and real external APIs; isolated app data; signed test license authority",
+  "authorizedScope": "resubmit existing values for five fields per marketplace; one new Catalog card; no automatic signing or paid actions",
+  "marketplace": {
+    "operations": [
+      {
+        "market": "WB",
+        "field": "brand",
+        "state": "RECONCILED",
+        "sourceCommit": "97a021c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "WB",
+        "field": "material",
+        "state": "RECONCILED",
+        "sourceCommit": "97a021c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "WB",
+        "field": "gender",
+        "state": "RECONCILED",
+        "sourceCommit": "97a021c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "WB",
+        "field": "tnved",
+        "state": "RECONCILED",
+        "sourceCommit": "97a021c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "WB",
+        "field": "documents",
+        "state": "RECONCILED",
+        "sourceCommit": "97a021c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "OZON",
+        "field": "brand",
+        "state": "RECONCILED",
+        "sourceCommit": "97a021c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "OZON",
+        "field": "material",
+        "state": "RECONCILED",
+        "sourceCommit": "f69f125d533e0f093c52a7650963195f3527c49c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "OZON",
+        "field": "gender",
+        "state": "RECONCILED",
+        "sourceCommit": "f69f125d533e0f093c52a7650963195f3527c49c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "OZON",
+        "field": "tnved",
+        "state": "RECONCILED",
+        "sourceCommit": "f69f125d533e0f093c52a7650963195f3527c49c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      },
+      {
+        "market": "OZON",
+        "field": "documents",
+        "state": "RECONCILED",
+        "sourceCommit": "f69f125d533e0f093c52a7650963195f3527c49c",
+        "writeCalls": 1,
+        "readbackVerified": true
+      }
+    ],
+    "totalWriteCalls": 10,
+    "verifiedOperations": 10,
+    "businessValueChangeTested": false,
+    "finalProtectedReadback": {
+      "WB": {
+        "key": true,
+        "title": true,
+        "description": true,
+        "brand": true,
+        "vendorArticle": true,
+        "categoryId": true,
+        "media": true,
+        "dimensions": true,
+        "attribute_values": true,
+        "documents": true,
+        "variants_and_barcodes": true,
+        "prices": true
+      },
+      "OZON": {
+        "key": true,
+        "title": true,
+        "description": true,
+        "brand": true,
+        "vendorArticle": true,
+        "categoryId": true,
+        "media": true,
+        "dimensions": true,
+        "attribute_values": true,
+        "documents": true,
+        "variants_and_barcodes": true,
+        "prices": true
+      }
+    }
+  },
+  "catalog": {
+    "indexCardsChecked": 1379,
+    "duplicateIdentityMatches": 0,
+    "newGtinAllocations": 1,
+    "feedPosts": 1,
+    "feedReceiptSavedPrivately": true,
+    "cardExists": true,
+    "identityVerified": true,
+    "state": "draft",
+    "progressStatus": "CardModeration",
+    "independentFeedHttp": 200,
+    "independentCardHttp": 200,
+    "allSubmittedAttributesMatchSemantically": true,
+    "countryRepresentation": "ISO submitted; dictionary name returned; matches verified product source",
+    "optionalImageIncluded": false,
+    "signed": false,
+    "published": false,
+    "initialRead404RecoveredWithoutReplay": true,
+    "supplementalDictionaryRead429Observed": true
+  },
+  "regression": {
+    "red": {
+      "tests": 9,
+      "failures": 1,
+      "errors": 0
+    },
+    "green": {
+      "tests": 82,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "notPerformed": [
+    "production license activation",
+    "paid KIZ purchase",
+    "seller order acceptance",
+    "CryptoPro certificate connection or signing",
+    "new GTIN push to marketplace",
+    "Windows installer or UI live-write acceptance",
+    "release or Latest update"
+  ],
+  "sellerIdentifiersIncluded": false
+}
