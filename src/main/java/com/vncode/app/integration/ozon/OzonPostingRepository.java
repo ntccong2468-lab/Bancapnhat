@@ -249,6 +249,7 @@ public final class OzonPostingRepository {
             connection.setAutoCommit(false);
             try {
                 for (OzonPostingDto posting : postings) upsert(connection, shopId, posting);
+                OzonPostingTrackingStore.recordAll(connection, shopId, postings);
                 connection.commit();
                 return postings.size();
             } catch (RuntimeException | SQLException exception) {
@@ -268,7 +269,7 @@ public final class OzonPostingRepository {
         try(Connection connection=Database.getConnection()){
             connection.setAutoCommit(false);
             try(var lookup=connection.prepareStatement("SELECT p.synced_at,seen.observed_at FROM ozon_postings p LEFT JOIN ozon_fbs_status_observations seen ON seen.shop_id=p.shop_id AND seen.posting_number=p.posting_number WHERE p.shop_id=? AND p.posting_number=?")){
-                int changed=0;
+                int changed=0;var tracked=new ArrayList<OzonPostingDto>();
                 for(OzonPostingDto posting:postings){
                     lookup.setInt(1,shopId);lookup.setString(2,posting.postingNumber());
                     try(var result=lookup.executeQuery()){
@@ -276,8 +277,9 @@ public final class OzonPostingRepository {
                             if(newerThan(result.getString(1),requestStarted)||newerThan(result.getString(2),requestStarted))continue;
                         }
                     }
-                    upsert(connection,shopId,posting);changed++;
+                    upsert(connection,shopId,posting);tracked.add(posting);changed++;
                 }
+                OzonPostingTrackingStore.recordAll(connection,shopId,tracked);
                 connection.commit();return changed;
             }catch(RuntimeException|SQLException error){connection.rollback();throw error;}
             finally{connection.setAutoCommit(true);}
@@ -303,6 +305,7 @@ public final class OzonPostingRepository {
                         update.setString(1,posting.status());update.setString(2,posting.status());update.setString(3,posting.status());update.setString(4,posting.substatus());update.setString(5,GSON.toJson(blocked));update.setString(6,Instant.now().toString());update.setInt(7,shopId);update.setString(8,posting.postingNumber());update.executeUpdate();
                     }
                 }
+                if(!exists||!newer)OzonPostingTrackingStore.recordAll(connection,shopId,List.of(posting.withTrackingOwner(null)));
                 connection.commit();
             }catch(RuntimeException|SQLException error){connection.rollback();throw error;}
             finally{connection.setAutoCommit(true);}
@@ -317,7 +320,7 @@ public final class OzonPostingRepository {
             try(var lookup=connection.prepareStatement("SELECT p.synced_at,seen.observed_at FROM ozon_postings p LEFT JOIN ozon_fbs_status_observations seen ON seen.shop_id=p.shop_id AND seen.posting_number=p.posting_number WHERE p.shop_id=? AND p.posting_number=?");
                 var update=connection.prepareStatement("UPDATE ozon_postings SET status=?,substatus=? WHERE shop_id=? AND posting_number=?");
                 var mark=connection.prepareStatement("INSERT INTO ozon_fbs_status_observations(shop_id,posting_number,pass_started,observed_at) VALUES(?,?,?,?) ON CONFLICT(shop_id,posting_number) DO UPDATE SET pass_started=excluded.pass_started,observed_at=excluded.observed_at")){
-                int changed=0;
+                int changed=0;var tracked=new ArrayList<OzonPostingDto>();
                 for(OzonPostingDto posting:postings){
                     lookup.setInt(1,shopId);lookup.setString(2,posting.postingNumber());
                     boolean exists;boolean newer=false;
@@ -326,10 +329,11 @@ public final class OzonPostingRepository {
                         if(exists)newer=newerThan(result.getString(1),requestStarted)||newerThan(result.getString(2),requestStarted);
                     }
                     if(!exists)continue;
-                    if(!newer){update.setString(1,posting.status());update.setString(2,posting.substatus());update.setInt(3,shopId);update.setString(4,posting.postingNumber());changed+=update.executeUpdate();}
+                    if(!newer){update.setString(1,posting.status());update.setString(2,posting.substatus());update.setInt(3,shopId);update.setString(4,posting.postingNumber());changed+=update.executeUpdate();tracked.add(posting);}
                     // A newer full/detail read is also sufficient evidence for this pass.
                     mark.setInt(1,shopId);mark.setString(2,posting.postingNumber());mark.setString(3,passStarted.toString());mark.setString(4,Instant.now().toString());mark.executeUpdate();
                 }
+                OzonPostingTrackingStore.recordAll(connection,shopId,tracked);
                 connection.commit();return changed;
             }catch(RuntimeException|SQLException error){connection.rollback();throw error;}
             finally{connection.setAutoCommit(true);}

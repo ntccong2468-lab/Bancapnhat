@@ -72,11 +72,13 @@ public final class KizStockReplenisher {
                 var buyer=purchases.apply(shop);
                 for(var entry:toBuy.entrySet())buyer.validate(entry.getKey(),entry.getValue());
                 int enqueued=0;
-                for(var entry:toBuy.entrySet()){
-                    // The shared purchase coordinator accepts one canonical UUID per paid request.
-                    ListingIdentity.require(shop);KizPrintPurchaseSession.requesting(entry.getKey(),entry.getValue());buyer.enqueue(entry.getKey(),entry.getValue(),UUID.randomUUID().toString());enqueued++;
-                }
-                if(enqueued>0)buyer.resume();
+                try{
+                    for(var entry:toBuy.entrySet()){
+                        // Validation may involve I/O; recheck this identity immediately before enqueue.
+                        purchaseProof.accept(Map.of(entry.getKey(),entry.getValue()));
+                        ListingIdentity.require(shop);KizPrintPurchaseSession.requesting(entry.getKey(),entry.getValue());buyer.enqueue(entry.getKey(),entry.getValue(),UUID.randomUUID().toString());enqueued++;
+                    }
+                }finally{if(enqueued>0)buyer.resume();}
                 return new Result(missing,enqueued,!missing.isEmpty(),"queued");
             });
         }

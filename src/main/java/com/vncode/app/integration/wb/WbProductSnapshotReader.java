@@ -18,6 +18,8 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
     public WbProductSnapshotReader(Function<Shop,ListingTransport> clients){this(clients,clients);}
     public WbProductSnapshotReader(Function<Shop,ListingTransport> clients,Function<Shop,ListingTransport> prices){this.clients=clients;this.prices=prices;}
     public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{return read(shop,key,true);}
+    /** Complete identity observation without replacing the seller's cached documents. */
+    public ProductSnapshot readForIdentityProof(Shop shop,ProductKey key)throws IOException{return read(shop,key,true,false,true);}
     public ProductSnapshot readForSynchronization(Shop shop,ProductKey key)throws IOException{return read(shop,key,false);}
     /** The GTIN-only path does not replace the complete product-page snapshot cache. */
     public ProductSnapshot readForGtinSync(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false,false);}

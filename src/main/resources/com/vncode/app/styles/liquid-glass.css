@@ -53,7 +53,7 @@
     -glass-line: rgba(255,255,255,.62);
     -glass-highlight: rgba(255,255,255,.36);
     -glass-selected: rgba(54,117,190,.20);
-    -glass-canvas: linear-gradient(from 0% 0% to 100% 100%, #91d7f3 0%, #78c4ed 24%, #5baadc 55%, #7ec9e7 79%, #a7deed 100%);
+    -glass-canvas: #f3f6f9;
     -text-primary: #112b40;
     -text-secondary: #1c354a;
     -text-muted: #20394e;
@@ -135,6 +135,9 @@
 .liquid-glass .tab-pane > .tab-header-area > .headers-region > .tab:selected { -fx-background-color: -glass-selected; }
 .liquid-glass .tab .tab-label { -fx-text-fill: -text-secondary; }
 .liquid-glass .tab:selected .tab-label { -fx-text-fill: -text-primary; }
+.root.liquid-glass .packing-tabs > .tab-header-area > .headers-region > .tab:selected .tab-label {
+    -fx-text-fill: -text-primary;
+}
 .liquid-glass .titled-pane > .title { -fx-background-color: -glass-surface; -fx-background-radius: 16; }
 .liquid-glass .titled-pane > .title > .text { -fx-fill: -text-primary; }
 .liquid-glass .titled-pane > .content { -fx-background-color: -glass-surface; -fx-border-color: -glass-line; -fx-background-radius: 0 0 16 16; -fx-border-radius: 0 0 16 16; }
@@ -234,6 +237,31 @@
     -fx-text-fill: -text-primary;
     -fx-effect: dropshadow(gaussian,rgba(8,60,110,.24),9,.10,0,3);
 }
+.root.liquid-glass .surface, .root.liquid-glass .card,
+.root.liquid-glass .table-view, .root.liquid-glass .list-view {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+.root.liquid-glass .sidebar .button.nav-item {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-effect: null;
+}
+.root.liquid-glass .sidebar .button.nav-item:hover { -fx-background-color: rgba(105,67,184,.08); }
+.root.liquid-glass .sidebar .button.nav-selected {
+    -fx-background-color: rgba(105,67,184,.12);
+    -fx-border-color: transparent transparent transparent #6943b8;
+    -fx-text-fill: #1b2632;
+}
+.root.liquid-glass .sidebar .button.add-shop {
+    -fx-background-color: #6943b8;
+    -fx-border-color: transparent;
+    -fx-text-fill: white;
+}
+.root.liquid-glass .sidebar .button.add-shop .ikonli-font-icon { -fx-icon-color: -text-primary; }
+.root.liquid-glass .combo-box > .list-cell { -fx-background-color: transparent; }
 .root.liquid-glass .button:hover, .root.liquid-glass .menu-button:hover,
 .root.liquid-glass .toggle-button:hover {
     -fx-background-color: -glass-button,
@@ -243,7 +271,8 @@
 .root.liquid-glass .button:pressed, .root.liquid-glass .menu-button:showing,
 .root.liquid-glass .toggle-button:selected {
     -fx-background-color: -glass-selected;
-    -fx-effect: innershadow(gaussian,rgba(8,60,110,.25),7,.08,0,2);
+    -fx-text-fill: -text-primary;
+    -fx-effect: null;
 }
 .root.liquid-glass .button:focused, .root.liquid-glass .menu-button:focused,
 .root.liquid-glass .toggle-button:focused {
@@ -320,3 +349,11 @@
     -fx-text-fill: -text-primary;
 }
 .root.liquid-glass #productsPane .products-bulk .button.btn-primary .ikonli-font-icon { -fx-icon-color: -text-primary; }
+
+/* Compact task controls stay inside the viewport without shadow overflow. */
+.root.liquid-glass .button, .root.liquid-glass .menu-button,
+.root.liquid-glass .toggle-button {
+    -fx-effect: null;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}

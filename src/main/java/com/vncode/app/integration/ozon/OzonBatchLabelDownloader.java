@@ -13,6 +13,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     private final Set<List<String>> loaded=new HashSet<>();
     private final Set<List<String>> isolated=new HashSet<>();
     private final Map<List<String>,IOException> failed=new HashMap<>();
+    private final Set<String> unprinted=new HashSet<>();
     private final Map<String,List<Integer>> pages=new HashMap<>();
     private final Map<String,PdfDocument> documents=new HashMap<>();
     private final List<Path> temporaryFiles=new ArrayList<>();
@@ -38,6 +39,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     }
     @Override public File download(Shop shop,String number,File target)throws IOException {
         var group=groupFor(shop,number);
+        if(unprinted.contains(number))throw new IOException("OZON_LABEL_UNPRINTED");
         if(isolated.contains(group)) {
             OzonPrintTiming.isolatedLabel();long started=OzonPrintTiming.tick();
             try { return service.downloadIsolatedPdf(shop,number,target); }
@@ -49,6 +51,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     }
     @Override public OzonPrintBundleService.VerifiedCarrierPage verifiedCarrierPage(Shop shop,String number)throws IOException {
         var group=groupFor(shop,number);
+        if(unprinted.contains(number))throw new IOException("OZON_LABEL_UNPRINTED");
         if(isolated.contains(group))return null;
         var selected=pages.get(number);
         // Multi-page/product-page filtering keeps the existing isolated-file path.
@@ -95,8 +98,13 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
         var job=new OzonLabelRepository().find(shop.getId(),group.getFirst());
         boolean legacy=group.size()==1&&job!=null&&job.taskId()!=null&&!job.taskId().isBlank()&&!job.taskId().startsWith("v3:");
         OzonPrintTiming.labelGroup();long downloadStarted=OzonPrintTiming.tick();
-        try { if(legacy)service.downloadOfficialPdf(shop,group.getFirst(),file.toFile());else service.downloadOfficialBatchPdf(shop,group,file.toFile()); }
+        OzonLabelService.BatchPdf result=null;
+        try { if(legacy)service.downloadOfficialPdf(shop,group.getFirst(),file.toFile());else result=service.downloadOfficialBatchPdfDetailed(shop,group,file.toFile()); }
         finally { OzonPrintTiming.add(OzonPrintTiming.Stage.LABEL_NETWORK,downloadStarted); }
+        if(result!=null) {
+            unprinted.addAll(result.unprinted());
+            if(result.file()==null){loaded.add(group);return;}
+        }
         var pdf=new PdfDocument(new PdfReader(file.toFile()));
         boolean retained=false;
         try {
@@ -114,10 +122,11 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
                         var matches=identities.postingNumbers(page);
                         if(matches.size()!=1){verified=false;break;}
                         String number=matches.iterator().next();
+                        if(unprinted.contains(number))throw new IOException("OZON_LABEL_BATCH_INVALID_STATUS");
                         if(selectedNumbers.contains(number))detected.computeIfAbsent(number,k->new ArrayList<>()).add(page);
                     }
                 } finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PAGE_IDENTITY,identityStarted); }
-                if(!verified||group.stream().anyMatch(number->!detected.containsKey(number))){
+                if(!verified||group.stream().filter(number->!unprinted.contains(number)).anyMatch(number->!detected.containsKey(number))){
                     isolated.add(group);return;
                 }
                 pages.putAll(detected);
@@ -128,6 +137,6 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     @Override public void close() {
         for(var pdf:new HashSet<>(documents.values()))try{pdf.close();}catch(RuntimeException ignored){}
         for(var file:temporaryFiles)try{Files.deleteIfExists(file);}catch(IOException ignored){}
-        documents.clear();pages.clear();temporaryFiles.clear();loaded.clear();isolated.clear();failed.clear();
+        documents.clear();pages.clear();temporaryFiles.clear();loaded.clear();isolated.clear();failed.clear();unprinted.clear();
     }
 }

@@ -220,7 +220,8 @@ public final class OzonExemplarService {
 
         private OzonPostingDto readDetail(String number) throws IOException {
             ListingIdentity.require(shop);
-            OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(number, true),number);
+            OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(number, true),number)
+                    .withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
             if (!number.equals(posting.postingNumber())) {
                 throw new IOException("Ozon returned a different posting from the confirmed selection.");
             }
@@ -273,7 +274,7 @@ public final class OzonExemplarService {
                             shop.getId(), plan, operation.sources, () -> {
                                 LicenseRuntime.require(Permission.PRINT_NEW);
                                 ListingIdentity.require(shop);
-                            });
+                            }, () -> OzonRequirementGuard.requireCurrentPurchasedMappings(shop.getId(), plan, operation.sources));
                     return result(reservation.job(), plan.exemplarCount(), reservation.ready());
                 });
             } finally {
@@ -291,7 +292,8 @@ public final class OzonExemplarService {
             Shop shop, String postingNumber, boolean stopAfterValidation) throws IOException {
         OzonApiClient api = apiClients.apply(
                 shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()));
-        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, true),postingNumber);
+        OzonPostingDto posting = OzonJson.requirePostingDetail(api.getPosting(postingNumber, true),postingNumber)
+                .withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
         postings.upsertDetail(shop.getId(), posting);
         Map<String, String> skuMappings = mappings.findResolvedBySku(shop.getId());
         OzonRequirementGuard.PreparationPlan plan = OzonRequirementGuard.plan(

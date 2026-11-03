@@ -104,7 +104,7 @@ public final class OzonApiClient {
     }
 
     /** Fingerprint of the exact credentials captured by this client; never exposes credentials. */
-    String syncOwnerFingerprint(int expectedShop) {
+    public String syncOwnerFingerprint(int expectedShop) {
         if (shopId != expectedShop) throw new SecurityException("SYNC_OWNER_CHANGED");
         return com.vncode.app.integration.listing.ListingIdentity.fingerprint(new com.vncode.app.models.Shop(shopId, "",
                 com.vncode.app.integration.marketplace.Marketplace.OZON, credentials.clientId(), credentials.apiKey()));

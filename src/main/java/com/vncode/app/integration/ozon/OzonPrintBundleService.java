@@ -257,7 +257,7 @@ public final class OzonPrintBundleService {
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             if(destination==null)ownedPublish(shop,operation.validateShopOwner(),newPrint,()->{
                 if(consumeAfterPublish)publishPrintedBundle(shop,List.of(safePosting),
-                        proof==null?Map.of():Map.of(safePosting,proof),finishedPicking,pickingTarget,finishedLabels,labelTarget);
+                        proof==null?Map.of():Map.of(safePosting,proof),finishedPicking,pickingTarget,finishedLabels,labelTarget,operation.validateShopOwner());
                 else AtomicFilePublisher.publish(finishedLabels,labelTarget);
             });
             labelStaging=null;pickingStaging=null;
@@ -345,7 +345,7 @@ public final class OzonPrintBundleService {
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             var frozenProofs=Map.copyOf(context.printProofs);
             ownedPublish(frozenShop,context.preparation.validateShopOwner(),containsNewPrint,()->{
-                publishPrintedBundle(frozenShop,safePostings,frozenProofs,finishedPicking,pickingTarget,finishedLabels,labelTarget);
+                publishPrintedBundle(frozenShop,safePostings,frozenProofs,finishedPicking,pickingTarget,finishedLabels,labelTarget,context.preparation.validateShopOwner());
             });
             labelStaging=null;pickingStaging=null;
             return new BatchExportResult(labelTarget, pickingTarget, safePostings.size(), totalPages, kizPages);
@@ -431,7 +431,7 @@ public final class OzonPrintBundleService {
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             List<String> frozenSuccess=List.copyOf(successful);var frozenKizSuccess=Map.copyOf(successfulWithKiz);
             ownedPublish(frozen,context.preparation.validateShopOwner(),containsNewPrint,()->{
-                publishPrintedBundle(frozen,frozenSuccess,frozenKizSuccess,finishedPicking,pickingTarget,finishedLabels,labelTarget);
+                publishPrintedBundle(frozen,frozenSuccess,frozenKizSuccess,finishedPicking,pickingTarget,finishedLabels,labelTarget,context.preparation.validateShopOwner());
             });
             labelStaging=null;pickingStaging=null;
             return new AvailableBatchExportResult(labelTarget,pickingTarget,List.copyOf(successful),Map.copyOf(failures),Set.copyOf(waiting),totalPages,kizPages);
@@ -447,12 +447,13 @@ public final class OzonPrintBundleService {
     /** Check frozen KIZ bindings inside the write transaction before publishing either PDF. */
     private void publishPrintedBundle(Shop shop,List<String> postings,
             Map<String,OzonExemplarJobRepository.PrintProof> proofs,File pickingStage,File pickingTarget,
-            File labelStage,File labelTarget)throws IOException {
+            File labelStage,File labelTarget,boolean validateOwner)throws IOException {
         boolean[] published={false};
         try {
             if(proofs.isEmpty()){
                 publishPdfPair(pickingStage,pickingTarget,labelStage,labelTarget);published[0]=true;
             }else jobs.consumePrintedKizBatch(shop.getId(),proofs,()->{
+                if(validateOwner)com.vncode.app.integration.listing.ListingIdentity.require(shop);
                 try{publishPdfPair(pickingStage,pickingTarget,labelStage,labelTarget);published[0]=true;}
                 catch(IOException failed){throw new java.io.UncheckedIOException(failed);}
             });

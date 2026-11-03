@@ -210,7 +210,12 @@ public final class OzonJson {
                 requirements,
                 actions,
                 shipAvailable,
-                items));
+                items,
+                posting.has("tracking_number") && !posting.get("tracking_number").isJsonNull()
+                        && posting.get("tracking_number").isJsonPrimitive()
+                        && posting.getAsJsonPrimitive("tracking_number").isString()
+                        ? posting.get("tracking_number").getAsString() : null,
+                null));
     }
 
     public static OzonRequirements parseRequirements(JsonObject requirements) {

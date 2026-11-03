@@ -44,7 +44,7 @@ final class OzonUnitShipService {
         if(receipt!=null&&!receipt.state().equals("REJECTED"))return splitOnly(receipt)?finishMarkedSplit(shop,api,receipt):reconcile(shop,api,receipt,true);
         LicenseRuntime.require(Permission.PACKING);
         var raw=api.getPosting(number,true,true);
-        var source=OzonJson.requirePostingDetail(raw,number);
+        var source=OzonJson.requirePostingDetail(raw,number).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
         // A missing field in the API response is unknown, not proof that the
         // product is exempt from marking. Verify fresh data before any ship.
         var nested=OzonJson.object(raw,"result");var detail=nested.isEmpty()?raw:nested;
@@ -69,7 +69,7 @@ final class OzonUnitShipService {
         if(OzonAcceptanceKizService.requiredBeforeAccept(shop,source,sources)) {
             if(OzonPackageBuilder.unitCount(source)>1)return startMarkedSplit(shop,api,source,raw,sources);
             new OzonAcceptanceKizService(jobs).ensure(shop,source,api,sources);
-            source=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
+            source=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
         }
         if(!source.canShip()||!"awaiting_packaging".equals(source.status()))throw new IllegalStateException("OZON_SPLIT_NOT_SHIPPABLE");
         if(source.orderId().isBlank()||source.warehouseId().isBlank())throw new IllegalStateException("OZON_SPLIT_MISSING_IDENTITY");
@@ -127,7 +127,7 @@ final class OzonUnitShipService {
     private OzonShipResult finishMarkedSplit(Shop shop,OzonApiClient api,OzonUnitShipRepository.Receipt receipt)throws IOException {
         var source=receipt.source();int expected=OzonPackageBuilder.unitCount(source);var numbers=new LinkedHashSet<>(receipt.children());
         if(numbers.size()!=expected) {
-            var raw=api.getPosting(source.postingNumber(),true,true);var parent=OzonJson.requirePostingDetail(raw,source.postingNumber());
+            var raw=api.getPosting(source.postingNumber(),true,true);var parent=OzonJson.requirePostingDetail(raw,source.postingNumber()).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
             if(!parent.orderId().equals(source.orderId()))throw pending("OZON_SPLIT_FOREIGN_CHILD",null);
             for(var value:OzonJson.array(OzonJson.object(OzonJson.object(raw,"result"),"related_postings"),"related_posting_numbers"))numbers.add(childNumber(value));
             if(OzonPackageBuilder.unitCount(parent)==1)numbers.add(parent.postingNumber());
@@ -158,7 +158,7 @@ final class OzonUnitShipService {
             try {
                 for(String number:window)reads.add(CHILD_READERS.submit(()->{
                     ListingIdentity.require(shop);
-                    return OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
+                    return OzonJson.requirePostingDetail(api.getPosting(number,true,true),number).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
                 }));
                 for(var read:reads)try {result.add(read.get());}
                 catch(InterruptedException stopped){Thread.currentThread().interrupt();throw pending("OZON_SPLIT_READBACK_REQUIRED",stopped);}
@@ -181,7 +181,7 @@ final class OzonUnitShipService {
         try{
             if(numbers.size()!=expected){
                 var raw=api.getPosting(source.postingNumber(),true,true);
-                var parent=OzonJson.requirePostingDetail(raw,source.postingNumber());
+                var parent=OzonJson.requirePostingDetail(raw,source.postingNumber()).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
                 if(!parent.orderId().equals(source.orderId()))throw pending("OZON_SPLIT_FOREIGN_CHILD",null);
                 var related=OzonJson.object(OzonJson.object(raw,"result"),"related_postings").get("related_posting_numbers");
                 if(related!=null){
@@ -196,7 +196,7 @@ final class OzonUnitShipService {
             for(String child:numbers){
                 ListingIdentity.require(shop);
                 var posting=fresh.get(child);
-                if(posting==null)posting=OzonJson.requirePostingDetail(api.getPosting(child,true,true),child);
+                if(posting==null)posting=OzonJson.requirePostingDetail(api.getPosting(child,true,true),child).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
                 if(!source.orderId().equals(posting.orderId())||!source.warehouseId().equals(posting.warehouseId())||OzonPackageBuilder.unitCount(posting)!=1)throw pending("OZON_SPLIT_FOREIGN_CHILD",null);
                 if("ship_failed".equals(posting.substatus()))throw pending("OZON_SPLIT_SHIP_FAILED",null);
                 if(!Set.of("awaiting_deliver","delivering","delivered").contains(posting.status()))throw pending("OZON_SPLIT_READBACK_REQUIRED",null);
@@ -225,7 +225,7 @@ final class OzonUnitShipService {
                 if(numbers.size()!=expected){
                     remaining--;
                     var raw=api.getPosting(source.postingNumber(),true,true);
-                    var parent=OzonJson.requirePostingDetail(raw,source.postingNumber());
+                    var parent=OzonJson.requirePostingDetail(raw,source.postingNumber()).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
                     if(!source.orderId().equals(parent.orderId()))throw pending("OZON_SPLIT_FOREIGN_CHILD",null);
                     var related=OzonJson.object(OzonJson.object(raw,"result"),"related_postings").get("related_posting_numbers");
                     if(related!=null){
@@ -241,7 +241,7 @@ final class OzonUnitShipService {
                     String number=ordered.get(Math.floorMod(next,ordered.size()));next=Math.floorMod(next+1,ordered.size());visited++;
                     if(readbacks.containsKey(number))continue;
                     remaining--;ListingIdentity.require(shop);
-                    var child=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number);
+                    var child=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
                     if(validReadyChild(source,child))readbacks.put(number,child);
                 }
                 if(readbacks.keySet().equals(numbers)){

@@ -1,5 +1,7 @@
 package com.vncode.app.integration.ozon;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -212,7 +214,7 @@ class OzonPrintBundleServiceTest {
             assertEquals(1, document.getNumberOfPages());
             String text = new PDFTextStripper().getText(document);
             assertFalse(text.contains("OZON FBS - PICKING LIST"));
-            assertFalse(text.contains("POST-1"));
+            assertTrue(text.contains("POST-1"), "The picking row must identify its Ozon posting");
             assertFalse(text.contains("100001"));
             assertFalse(text.contains("Posting:"));
             assertFalse(text.contains("Shop:"));
@@ -694,7 +696,7 @@ class OzonPrintBundleServiceTest {
     }
 
     @Test
-    void batchPickingListContainsAllFortyOneItemsInTheFiveRequestedColumns() throws Exception {
+    void batchPickingListContainsAllFortyOneItemsWithTheirPostingNumbers() throws Exception {
         for (int index = 1; index <= 41; index++) {
             seedUnmarkedPosting("POST-" + index, "SKU-" + index, "article-black-" + (40 + index));
         }
@@ -708,8 +710,8 @@ class OzonPrintBundleServiceTest {
         try (PDDocument document = Loader.loadPDF(picking.toFile())) {
             String text = new PDFTextStripper().getText(document);
             assertTrue(document.getNumberOfPages() > 1);
-            assertFalse(text.contains("POST-1"));
-            assertFalse(text.contains("POST-41"));
+            assertTrue(text.contains("POST-1"));
+            assertTrue(text.contains("POST-41"));
             assertTrue(text.contains("Product SKU-41"));
             assertTrue(text.contains("article-black-81"));
             assertPickingColumnOrder(text);
@@ -952,6 +954,7 @@ class OzonPrintBundleServiceTest {
     private static void assertPickingColumnOrder(String text) {
         List<String> headers = List.of(
                 I18nService.getInstance().tr("ozon.picking.column.index"),
+                I18nService.getInstance().tr("ozon.picking.column.posting"),
                 I18nService.getInstance().tr("ozon.dashboard.col.image"),
                 I18nService.getInstance().tr("ozon.picking.column.name"),
                 I18nService.getInstance().tr("ozon.dashboard.item.article"),
@@ -1012,6 +1015,11 @@ class OzonPrintBundleServiceTest {
             statement.execute("INSERT INTO ozon_exemplar_jobs(id,shop_id,posting_number,stage,created_at,updated_at) "
                     + "VALUES(51,1,'POST-1','VALIDATED','2026-08-19T00:00:00Z','2026-08-19T00:00:00Z')");
         }
+        // The current purchased-KIZ guard requires the actual SKU/GTIN mapping;
+        // seeding only a reservation does not prove which product the code belongs to.
+        var posting = new OzonPostingRepository().find(1, "POST-1");
+        assertNotNull(posting);
+        new OzonProductGtinMappingRepository().put(1, posting.items().getFirst().sku(), "04645588781154");
         try (Connection connection = Database.getConnection();
                 PreparedStatement kiz = connection.prepareStatement("""
                         INSERT INTO kiz_codes(id,shop_id,order_id,raw_code,display_code,gtin,status,

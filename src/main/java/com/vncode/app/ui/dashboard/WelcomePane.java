@@ -13,6 +13,7 @@ public final class WelcomePane extends ScrollPane {
     private final HBox wide=new HBox(24);
     private final GridPane cards=new GridPane();
     private final VBox news;
+    private javafx.scene.Node dashboard;
     private final List<Button> buttons=new java.util.ArrayList<>();
     private final List<Label> names=new java.util.ArrayList<>(),summaries=new java.util.ArrayList<>();
     private final VBox onboarding=new VBox(10);
@@ -52,6 +53,14 @@ public final class WelcomePane extends ScrollPane {
         for(int i=0;i<buttons.size();i++)cards.add(buttons.get(i),i%columns,i/columns);
         if(compact){news.setPrefWidth(-1);news.setMaxWidth(Double.MAX_VALUE);body.getChildren().setAll(introduction,news);}
         else {news.setPrefWidth(420);news.setMaxWidth(480);HBox.setHgrow(introduction,Priority.ALWAYS);HBox.setHgrow(news,Priority.SOMETIMES);wide.getChildren().setAll(introduction,news);body.getChildren().setAll(wide);}
+        if(dashboard!=null)body.getChildren().add(0,dashboard);
+    }
+    /** Show the shop dashboard on the real welcome route while retaining shortcuts and news. */
+    public void setDashboard(javafx.scene.Node dashboard) {
+        if(this.dashboard!=null)body.getChildren().remove(this.dashboard);
+        this.dashboard=java.util.Objects.requireNonNull(dashboard);
+        if(dashboard instanceof Region region){region.setMinWidth(0);region.setMinHeight(420);region.setPrefHeight(480);}
+        body.getChildren().add(0,dashboard);
     }
     public void applyTranslations(){translateOnboarding();var i=I18nService.getInstance();title.setText(i.tr("welcome.title"));description.setText(i.tr("welcome.description"));features.setText(i.tr("welcome.features"));for(int n=0;n<6;n++){names.get(n).setText(i.tr("welcome."+KEYS[n]+".title"));summaries.get(n).setText(i.tr("welcome."+KEYS[n]+".description"));buttons.get(n).setAccessibleText(names.get(n).getText());}}
     public boolean isCompact(){return compact;}

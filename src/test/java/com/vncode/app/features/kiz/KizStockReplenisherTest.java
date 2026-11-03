@@ -115,6 +115,13 @@ class KizStockReplenisherTest {
         assertTrue(stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,2),rejected).missing().isEmpty());assertEquals(0,checks.get());
         assertThrows(KizAssignmentException.class,()->stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,5),rejected));assertEquals(1,checks.get());assertEquals(0,buyer.bought);assertEquals(0,buyer.resumes);
     }
+    @Test void changedProofAfterPrerequisiteValidationDoesNotEnqueuePurchase()throws Exception {
+        new KizWarehouseRepository().autoPurchase(shop,true);var checks=new java.util.concurrent.atomic.AtomicInteger();
+        assertThrows(KizAssignmentException.class,()->stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,5),missing->{
+            if(checks.incrementAndGet()==2)throw new KizAssignmentException("KIZ_GTIN_MAPPING_MISSING","","");
+        }));
+        assertEquals(2,checks.get());assertEquals(0,buyer.bought);assertEquals(0,buyer.resumes);
+    }
     @Test void twoSimultaneousPrintActionsCannotBuyTheSameDeficitTwice()throws Exception {
         new KizWarehouseRepository().autoPurchase(shop,true);var executor=Executors.newFixedThreadPool(2);
         try{var a=executor.submit(()->stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,1000)));var b=executor.submit(()->stock.ensure(shop,Map.of(KizWarehouseTest.GTIN,1000)));assertEquals(1,a.get(10,TimeUnit.SECONDS).enqueued()+b.get(10,TimeUnit.SECONDS).enqueued());assertEquals(998,buyer.bought);}finally{executor.shutdownNow();}

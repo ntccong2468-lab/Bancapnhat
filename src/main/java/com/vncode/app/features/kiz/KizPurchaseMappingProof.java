@@ -13,13 +13,27 @@ public final class KizPurchaseMappingProof {
     public static void require(Shop shop,List<Product> products,Set<String> toBuy){
         var requested=new HashSet<String>();for(var gtin:toBuy)requested.add(GtinNormalizer.normalize(gtin));
         var selected=products.stream().filter(p->p.gtin()!=null&&requested.contains(GtinNormalizer.normalize(p.gtin()))).toList();
-        var resolved=resolve(shop,selected);var covered=new HashSet<String>();
+        var resolved=resolve(shop,selected,true);var covered=new HashSet<String>();
         for(var product:selected){String gtin=resolved.get(product);if(gtin==null||!gtin.equals(GtinNormalizer.normalize(product.gtin())))throw missing(product);covered.add(gtin);}
         if(!covered.containsAll(requested))throw missing();
+        // A reviewed cross-market link may be changed concurrently with enqueue or
+        // the later asynchronous paid request. Until its evidence can be pinned
+        // atomically for that whole lifecycle, it can select existing stock only.
+        if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON){
+            var direct=resolve(shop,selected,false);
+            for(var product:selected)if(!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(direct.get(product),resolved.get(product)))
+                throw new KizAssignmentException("KIZ_CROSS_PURCHASE_REVIEW_REQUIRED",product.order(),Objects.toString(product.nativeId(),"")+"-"+Objects.toString(product.sku(),""));
+        }
     }
     /** Resolve exact native variants for printing, including GTIN barcodes entered outside VNCode.
      * A legacy category rule is deliberately not evidence for this view. */
     public static Map<Product,String> resolve(Shop shop,List<Product> selected){
+        // The live link can change between a planner snapshot and stock reservation.
+        // Do not expose cross-only identity to either reservation or printing until
+        // link evidence is pinned and revalidated atomically in those transactions.
+        return resolve(shop,selected,false);
+    }
+    private static Map<Product,String> resolve(Shop shop,List<Product> selected,boolean allowCross){
         var pending=new KizRegistrationIdentityRepository().readForPurchase(shop);
         var resolved=new LinkedHashMap<Product,String>();
         var references=new LinkedHashMap<Product,FboProductSku>();
@@ -36,7 +50,18 @@ public final class KizPurchaseMappingProof {
             references.put(product,new FboProductSku(1,"","","","","","","",product.sku(),"",true,product.sku(),"","",product.nativeId()));
         }
         var verified=references.isEmpty()?Map.<FboProductSku,String>of():new FboVerifiedGtinRepository().resolve(shop.getId(),shop.getMarketplace(),references.values().stream().distinct().toList());
-        references.forEach((product,reference)->{String gtin=verified.get(reference);if(gtin!=null)resolved.put(product,GtinNormalizer.normalize(gtin));});
+        var links=allowCross&&shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON&&!references.isEmpty()
+                ?KizCrossMarketplaceProof.resolve(shop,references.keySet().stream().map(Product::sku).distinct().toList())
+                :Map.<KizCrossMarketplaceProof.Variant,String>of();
+        references.forEach((product,reference)->{
+            String direct=verified.get(reference),cross=links.get(new KizCrossMarketplaceProof.Variant(product.nativeId(),product.sku()));
+            if(direct!=null&&cross!=null&&!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(direct,cross))throw missing(product);
+            String gtin=direct!=null?direct:cross;if(gtin!=null)resolved.put(product,GtinNormalizer.normalize(gtin));
+        });
+        var identityByVariant=new HashMap<KizCrossMarketplaceProof.Variant,String>();
+        resolved.forEach((product,gtin)->identityByVariant.put(new KizCrossMarketplaceProof.Variant(product.nativeId(),product.sku()),gtin));
+        var conflicts=KizCrossMarketplaceProof.conflictsWithReviewedLinks(shop,identityByVariant);
+        for(var product:resolved.keySet())if(conflicts.contains(new KizCrossMarketplaceProof.Variant(product.nativeId(),product.sku())))throw missing(product);
         return Map.copyOf(resolved);
     }
     private static KizAssignmentException missing(){return new KizAssignmentException("KIZ_GTIN_MAPPING_MISSING","","");}

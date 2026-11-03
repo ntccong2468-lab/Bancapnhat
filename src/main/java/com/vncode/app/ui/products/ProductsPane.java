@@ -78,11 +78,11 @@ public final class ProductsPane extends BorderPane {
     public ProductsPane(Function<ProductQuery,ProductPage> reader,ShopReadCoordinator reads,ProductRefreshService refreshService) {
         this.reader=reader==null?repository::loadProductPage:reader;this.reads=Objects.requireNonNull(reads);
         this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
-        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(16));
-        rows.setId("productRows");rows.setFixedCellSize(92);rows.setCellFactory(list->new ProductCell());
+        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(12));
+        rows.setId("productRows");rows.setFixedCellSize(84);rows.setCellFactory(list->new ProductCell());
         rows.skinProperty().addListener((o,a,b)->Platform.runLater(this::installScrollPaging));
         var headingSpacer=new Region();HBox.setHgrow(headingSpacer,Priority.ALWAYS);
-        var heading=new HBox(12,title,count,headingSpacer,reload);heading.setAlignment(Pos.CENTER_LEFT);heading.setMinHeight(42);
+        var heading=new HBox(10,title,count,headingSpacer,reload);heading.setAlignment(Pos.CENTER_LEFT);heading.setMinHeight(36);
         title.getStyleClass().add("h2");count.getStyleClass().add("text-muted");reload.setGraphic(new FontIcon("fth-refresh-cw"));
         search.setId("productSearch");search.setMinWidth(180);search.setPrefWidth(375);
         category.setPrefWidth(134);document.setPrefWidth(263);
@@ -97,7 +97,7 @@ public final class ProductsPane extends BorderPane {
         // Filters are also shown beside the app's sidebar.  At narrower window
         // widths an HBox kept the document filter beyond the right edge, so let
         // the controls wrap without shrinking their labels below usable widths.
-        var filters=new FlowPane(14,8,pageSelection,search,category,document);filters.setId("productFilters");filters.setAlignment(Pos.CENTER_LEFT);filters.setMinWidth(0);
+        var filters=new FlowPane(10,8,pageSelection,search,category,document);filters.setId("productFilters");filters.setAlignment(Pos.CENTER_LEFT);filters.setMinWidth(0);
         needsFix.getStyleClass().add("text-muted");issueBar.getChildren().add(needsFix);issueBar.setAlignment(Pos.CENTER_LEFT);
         for(var kind:List.of(ProductIssueFilter.INVALID_TNVED,ProductIssueFilter.MISSING_BRAND,ProductIssueFilter.MISSING_MATERIAL)){
             var chip=new ToggleButton();chip.setId("productIssue_"+kind.name());chip.getStyleClass().add("product-issue-chip");chip.setOnAction(e->issue.setValue(issue.getValue()==kind?ProductIssueFilter.ALL:kind));issueChips.put(kind,chip);issueBar.getChildren().add(chip);
@@ -216,15 +216,15 @@ public final class ProductsPane extends BorderPane {
         private final HBox box;private final VBox right=new VBox(1),taxonomy=new VBox(1);private long imageRequest;
         ProductCell(){
             for(var label:List.of(meta,material,tnved,genderText))label.getStyleClass().add("text-muted");
-            image.setFitWidth(56);image.setFitHeight(76);image.setPreserveRatio(true);
-            var photo=new StackPane(image);photo.setMinSize(56,76);photo.setMaxSize(56,76);photo.getStyleClass().add("product-photo");
+            image.setFitWidth(50);image.setFitHeight(68);image.setPreserveRatio(true);
+            var photo=new StackPane(image);photo.setMinSize(50,68);photo.setMaxSize(50,68);photo.getStyleClass().add("product-photo");
             name.setWrapText(false);name.setMaxWidth(Double.MAX_VALUE);name.getStyleClass().add("product-name");
             var middle=new VBox(1,name,meta,article,barcode);HBox.setHgrow(middle,Priority.ALWAYS);middle.setMinWidth(120);middle.setPrefWidth(580);
             for(var label:List.of(meta,article,barcode))label.setMaxWidth(Double.MAX_VALUE);
             right.getChildren().setAll(paper,material);right.setMinWidth(170);right.setPrefWidth(280);right.setMaxWidth(280);material.setWrapText(true);
             taxonomy.setMinWidth(210);taxonomy.setPrefWidth(235);taxonomy.setMaxWidth(235);
-            box=new HBox(14,check,photo,middle,right);box.setAlignment(Pos.TOP_LEFT);box.getStyleClass().add("product-row");box.prefWidthProperty().bind(widthProperty().subtract(32));
-            check.setMinWidth(24);check.setMaxWidth(24);HBox.setMargin(check,new Insets(24,0,0,0));
+            box=new HBox(10,check,photo,middle,right);box.setAlignment(Pos.TOP_LEFT);box.getStyleClass().add("product-row");box.prefWidthProperty().bind(widthProperty().subtract(24));
+            check.setMinWidth(24);check.setMaxWidth(24);HBox.setMargin(check,new Insets(22,0,0,0));
             check.setOnAction(e->{var row=getItem();if(row!=null){selection.setSelected(row.key(),check.isSelected());updateSelection();}});
             setOnMouseClicked(e->{if(e.getClickCount()==2&&getItem()!=null)details(getItem());});widthProperty().addListener((o,a,b)->adaptRow());
         }

@@ -84,20 +84,20 @@
 }
 
 .root.theme-light {
-    -bg-primary: #F5F6FA;      /* Soft light grey background */
-    -bg-secondary: #FFFFFF;    /* Pure white cards/tables (matches Wildberries) */
-    -bg-tertiary: #FFFFFF;     /* White/light panel background */
-    -bg-odd-row: #F9FAFB;      /* Light grey alternating row (matches Wildberries) */
-    -border-color: #E5E7EB;    /* Light grey border */
-    -border-color-hover: #D1D5DB;
+    -bg-primary: #F3F6F9;
+    -bg-secondary: #FFFFFF;
+    -bg-tertiary: #EDF1F5;
+    -bg-odd-row: #FFFFFF;
+    -border-color: #D8E0E8;
+    -border-color-hover: #AEBBC8;
 
-    -text-primary: #24212B;    /* Charcoal text (matches Wildberries) */
-    -text-secondary: #374151;  /* Slate text */
-    -text-muted: #687080;      /* Grey text with readable contrast on light surfaces */
+    -text-primary: #1B2632;
+    -text-secondary: #344453;
+    -text-muted: #566778;
 
-    -accent: #8B2EC5;          /* VN code light theme */
-    -accent-hover: #C071FA;
-    -accent-active: #9F45E3;
+    -accent: #6943B8;
+    -accent-hover: #7953C6;
+    -accent-active: #5934A6;
     -accent-transparent: rgba(139, 92, 246, 0.12);
 
     -danger: #EF4444;
@@ -1209,6 +1209,7 @@
 .app-page .h1 { -fx-font-size: 22px; -fx-font-weight: bold; }
 .app-page .h2 { -fx-font-size: 18px; -fx-font-weight: bold; }
 .app-page .h3, .app-page .text-bold, .app-page .product-name { -fx-font-weight: bold; }
+.dashboard-workspace .dashboard-metric { -fx-padding: 8; }
 .app-page .button, .app-page .menu-button, .header .button, .header .menu-button {
     -fx-font-size: 13px; -fx-font-weight: normal; -fx-padding: 7 11; -fx-background-radius: 7; -fx-border-radius: 7;
 }

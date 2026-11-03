@@ -31,6 +31,26 @@ class FriendlyErrorCodeTest {
    assertTrue(text.contains("[VN_NETWORK]"));assertFalse(text.contains("private-host"));assertFalse(text.contains("secret-value"));assertFalse(text.contains("error.network"));}}
   finally{i18n.setLanguage(previous);}
  }
+ @Test void ozonRejectedLabelsHaveLocalizedSafeAdviceInEveryLanguage(){
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);
+   for(String code:java.util.List.of("OZON_LABEL_UNPRINTED","OZON_LABEL_BATCH_INVALID_STATUS")){
+    String key="ozon.flow."+code,expected=i18n.tr(key);assertNotEquals(key,expected);assertFalse(expected.isBlank());
+    String text=FriendlyErrorService.format(new java.io.IOException("private response token=secret-value",new java.io.IOException(code)));
+    assertEquals(expected+"\n["+code+"]",text);assertFalse(text.contains("secret-value"));
+   }
+  }}finally{i18n.setLanguage(previous);}
+ }
+ @Test void crossMarketplacePurchaseReviewIsLocalizedInEveryLanguage(){
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);String key="kiz.error.cross_purchase_review",message=i18n.tr(key);
+   assertNotEquals(key,message);assertFalse(message.isBlank());
+   String actual=FriendlyErrorService.format(new com.vncode.app.features.kiz.KizAssignmentException("KIZ_CROSS_PURCHASE_REVIEW_REQUIRED","ORDER","1-1002"));
+   assertTrue(actual.contains(message));assertTrue(actual.contains("KIZ_CROSS_PURCHASE_REVIEW_REQUIRED"));
+  }}finally{i18n.setLanguage(previous);}
+ }
  @Test void kizMappingErrorsKeepOrderContextAndShowTheCodeOnceWithoutEmptyRows(){
   var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
   try{for(var language:AppLanguage.values()){

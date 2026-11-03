@@ -90,10 +90,19 @@ public final class OzonLabelService {
         String remote=current?taskId.substring(SINGLE_V3.length()):taskId;
         if(remote.matches("[0-9]+"))get.addProperty("task_id",numericId(remote));else get.addProperty("task_id",remote);
         for (int attempt = 0; attempt < MAX_POLLS; attempt++) {
-            LabelPoll poll = labelPoll(current?api.getBatchLabelJob(get):api.getLabelJob(get));
+            JsonObject raw=current?api.getBatchLabelJob(get):api.getLabelJob(get);
+            LabelPoll poll = labelPoll(raw);
             if (poll.failed()) {
                 labels.update(shop.getId(), postingNumber, taskId, "FAILED", null, "label_failed");
                 throw new IOException("Ozon could not generate the official shipping label.");
+            }
+            if(current&&java.util.Set.of("pending","in_progress").contains(statusCode(raw))) {
+                if(attempt+1<MAX_POLLS)waiter.await(Duration.ofSeconds(1));
+                continue;
+            }
+            if(current&&unprintedPostings(raw,List.of(postingNumber)).contains(postingNumber)&&completed(raw)) {
+                labels.update(shop.getId(),postingNumber,taskId,"FAILED",null,"OZON_LABEL_UNPRINTED");
+                throw new IOException("OZON_LABEL_UNPRINTED");
             }
             if (!poll.fileUrl().isBlank()) {
                 byte[] bytes = api.downloadOfficialDocument(poll.fileUrl());
@@ -124,6 +133,13 @@ public final class OzonLabelService {
 
     /** One durable task for up to 1,000 postings. Existing uncertain tasks are never recreated. */
     File downloadOfficialBatchPdf(Shop shop,List<String> numbers,File target)throws IOException {
+        BatchPdf result=downloadOfficialBatchPdfDetailed(shop,numbers,target);
+        if(result.file()==null||!result.unprinted().isEmpty())throw new IOException("OZON_LABEL_UNPRINTED");
+        return result.file();
+    }
+
+    /** The current API can return a PDF for only part of a task, with rejected posting IDs. */
+    BatchPdf downloadOfficialBatchPdfDetailed(Shop shop,List<String> numbers,File target)throws IOException {
         MarketplaceGuard.requireOzon(shop);com.vncode.app.integration.listing.ListingIdentity.require(shop);
         if(numbers.isEmpty()||numbers.size()>MAX_BATCH_POSTINGS||numbers.stream().distinct().count()!=numbers.size())throw new IllegalArgumentException("OZON_LABEL_BATCH_LIMIT");
         var api=apiClients.apply(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey()));
@@ -163,22 +179,83 @@ public final class OzonLabelService {
             for(String number:numbers)if(!task.equals(existing.get(number).taskId()))throw new IOException("OZON_LABEL_BATCH_TASK_CHANGED");
         }
         var request=new JsonObject();request.addProperty("task_id",numericId(task.substring(3)));
+        var taskMembers=labels.taskPostings(shop.getId(),task);
+        if(!new java.util.HashSet<>(taskMembers).containsAll(numbers))throw new IOException("OZON_LABEL_BATCH_TASK_CHANGED");
         for(int attempt=0;attempt<MAX_POLLS;attempt++) {
-            var poll=labelPoll(api.getBatchLabelJob(request));
+            var raw=api.getBatchLabelJob(request);
+            var poll=labelPoll(raw);
             if(poll.failed()){
                 labels.updateBatch(shop.getId(),numbers,task,"FAILED","label_failed");
                 throw new IOException("OZON_LABEL_BATCH_FAILED");
+            }
+            if(java.util.Set.of("pending","in_progress").contains(statusCode(raw))) {
+                if(attempt+1<MAX_POLLS)waiter.await(Duration.ofSeconds(1));
+                continue;
+            }
+            var unprinted=unprintedPostings(raw,taskMembers);
+            var rejected=numbers.stream().filter(unprinted::contains).toList();
+            if(rejected.size()==numbers.size()&&completed(raw)) {
+                labels.updateBatchResult(shop.getId(),numbers,task,unprinted);
+                return new BatchPdf(null,unprinted);
             }
             if(!poll.fileUrl().isBlank()) {
                 byte[] pdf=api.downloadOfficialDocument(poll.fileUrl());
                 if(!isPdf(pdf))throw new IOException("OZON_LABEL_BATCH_INVALID_PDF");
                 Files.write(target.toPath(),pdf);
-                labels.updateBatch(shop.getId(),numbers,task,"READY",null);
-                return target;
+                labels.updateBatchResult(shop.getId(),numbers,task,unprinted);
+                return new BatchPdf(target,unprinted);
             }
             if(attempt+1<MAX_POLLS)waiter.await(Duration.ofSeconds(1));
         }
         throw new IOException("OZON_LABEL_BATCH_PENDING");
+    }
+
+    record BatchPdf(File file,java.util.Set<String> unprinted) {
+        BatchPdf { unprinted=java.util.Set.copyOf(unprinted); }
+    }
+
+    private static boolean completed(JsonObject response) {
+        return "completed".equals(statusCode(response));
+    }
+
+    private static String statusCode(JsonObject response) {
+        JsonObject result=response.has("result")?OzonJson.object(response,"result"):response;
+        var status=result.get("status");
+        String value=status!=null&&status.isJsonObject()?OzonJson.text(status.getAsJsonObject(),"code"):OzonJson.text(result,"status");
+        return value.toLowerCase(java.util.Locale.ROOT);
+    }
+
+    /** Validate IDs and counts before using Ozon's partial-result list; never infer pages by order. */
+    static java.util.Set<String> unprintedPostings(JsonObject response,List<String> members)throws IOException {
+        JsonObject result=response.has("result")?OzonJson.object(response,"result"):response;
+        var element=result.get("status");
+        if(element==null||!element.isJsonObject())return java.util.Set.of();
+        JsonObject status=element.getAsJsonObject();
+        var rejected=status.get("unprinted_postings");
+        var unprinted=new java.util.LinkedHashSet<String>();
+        if(rejected!=null) {
+            if(!rejected.isJsonArray())throw new IOException("OZON_LABEL_BATCH_INVALID_STATUS");
+            var allowed=java.util.Set.copyOf(members);
+            for(var item:rejected.getAsJsonArray()) {
+                if(!item.isJsonObject())throw new IOException("OZON_LABEL_BATCH_INVALID_STATUS");
+                String number=OzonJson.text(item.getAsJsonObject(),"posting_number");
+                if(!allowed.contains(number)||!unprinted.add(number))throw new IOException("OZON_LABEL_BATCH_INVALID_STATUS");
+            }
+        }
+        Integer count=nonNegativeCount(status,"postings_count"),printed=nonNegativeCount(status,"printed_postings_count");
+        if(count!=null&&count!=members.size()||printed!=null&&printed>members.size()
+                ||count!=null&&printed!=null&&printed>count
+                ||completed(response)&&printed!=null&&printed+unprinted.size()!=members.size())
+            throw new IOException("OZON_LABEL_BATCH_INVALID_STATUS");
+        return java.util.Set.copyOf(unprinted);
+    }
+
+    private static Integer nonNegativeCount(JsonObject status,String name)throws IOException {
+        var value=status.get(name);if(value==null)return null;
+        try {
+            if(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isNumber())throw new NumberFormatException();
+            int result=value.getAsBigDecimal().intValueExact();if(result<0)throw new NumberFormatException();return result;
+        }catch(ArithmeticException|NumberFormatException malformed){throw new IOException("OZON_LABEL_BATCH_INVALID_STATUS");}
     }
 
     /** A PDF without page identities is fetched again through a task for exactly one posting.
@@ -212,11 +289,13 @@ public final class OzonLabelService {
         String receipt=bigLabelTaskId(response);numericId(receipt);return receipt;
     }
     static boolean requiresNewTask(OzonLabelRepository.LabelJob job){
-        return "ISOLATE_REQUIRED".equals(job.status())||"FAILED".equals(job.status())&&"label_failed".equals(job.safeErrorCode());
+        return "ISOLATE_REQUIRED".equals(job.status())||"FAILED".equals(job.status())&&("label_failed".equals(job.safeErrorCode())||"OZON_LABEL_UNPRINTED".equals(job.safeErrorCode()));
     }
     static boolean canRegroup(OzonLabelRepository.LabelJob job) {
-        return job!=null&&"READY".equals(job.status())&&job.taskId()!=null
-                &&job.taskId().startsWith(SINGLE_V3)&&job.safeErrorCode()==null;
+        return job!=null&&job.taskId()!=null&&(
+                "READY".equals(job.status())&&job.taskId().startsWith(SINGLE_V3)&&job.safeErrorCode()==null
+                ||"FAILED".equals(job.status())&&"OZON_LABEL_UNPRINTED".equals(job.safeErrorCode())
+                &&(job.taskId().startsWith("v3:")||job.taskId().startsWith(SINGLE_V3)));
     }
 
     static boolean isPdf(byte[] value) {

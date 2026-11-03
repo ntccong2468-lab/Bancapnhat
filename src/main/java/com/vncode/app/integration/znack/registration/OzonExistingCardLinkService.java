@@ -49,6 +49,9 @@ public final class OzonExistingCardLinkService {
         if(codes.size()!=1||catalogCodes.size()!=1||!codes.getFirst().matches("[0-9]{10}")||!codes.getFirst().equals(catalogCodes.getFirst()))throw new IllegalStateException("GTIN_TNVED_GROUP_CHANGED");
         guard.run();String revision=RegistrationReviewedValues.productRevision(product);
         String catalogRevision=ListingIdentity.hash(new com.google.gson.Gson().toJson(card.details())+"\n"+card.article()+"\n"+card.color()+"\n"+card.size()+"\n"+id);
+        // Keep a minimal KIZ identity observation and its scoped Catalog readback;
+        // do not replace the seller's product snapshot or certificates/documents.
+        com.vncode.app.features.kiz.KizCrossMarketplaceProof.cacheObservedOzonSnapshot(shop,product,card,id);guard.run();
         return new Review(key,card.gtin(),id,sku,product.title(),product.vendorArticle(),variant.color(),size,card.article(),card.color(),card.size(),codes.getFirst(),owner,scope.source(),revision,catalogRevision);
     }
     /** Called only after seller explicitly reviews this exact pair; it does not post to Ozon. */
