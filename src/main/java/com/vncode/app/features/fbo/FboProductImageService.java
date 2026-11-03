@@ -33,10 +33,15 @@ public class FboProductImageService {
         synchronized(FAILED){var until=FAILED.get(key);if(until!=null){if(clock.instant().isBefore(until))return CompletableFuture.completedFuture(null);FAILED.remove(key);}}
         return IMAGES.submit(new ShopReadCoordinator.Key(1,"product-image",key),true,()->{
             try {
-                var source=repository.findImage(fullKey);boolean downloaded=source==null||source.length==0;
+                var source=repository.findImage(key);boolean cached=source!=null&&source.length>0;
+                if(!cached&&thumbnail)source=repository.findImage(fullKey);
+                boolean downloaded=source==null||source.length==0;
                 if(downloaded)source=MarketplaceMedia.download(client,uri,policy);
                 byte[] result=MarketplaceMedia.png(source,thumbnail?96:0,thumbnail?128:0);
-                MEMORY.put(key,result);if(downloaded&&!thumbnail)repository.saveImage(fullKey,url,result,"image/png");return result;
+                MEMORY.put(key,result);
+                // Persist small screen/picking thumbnails separately. They must never replace
+                // full-resolution print/history images, or require another download after restart.
+                if(!cached&&(thumbnail||downloaded))repository.saveImage(key,url,result,"image/png");return result;
             }catch(Exception invalid){synchronized(FAILED){while(FAILED.size()>=256)FAILED.remove(FAILED.keySet().iterator().next());FAILED.put(key,clock.instant().plusSeconds(300));}return null;}
         }).exceptionally(error->null);
     }

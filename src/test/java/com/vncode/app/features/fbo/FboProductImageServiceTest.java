@@ -25,6 +25,20 @@ class FboProductImageServiceTest {
         new com.vncode.app.features.print.history.ImageCacheRepository().saveImage(url,url,body.toByteArray(),"image/png");
         assertNotNull(new FboProductImageService().loadImage(url).get(5,TimeUnit.SECONDS));
     }
+    @Test void thumbnailSurvivesMemoryEvictionWithoutReplacingTheFullResolutionCache()throws Exception{
+        try(var server=new MockWebServer()){
+            var body=new ByteArrayOutputStream();ImageIO.write(new BufferedImage(600,900,BufferedImage.TYPE_INT_RGB),"png",body);
+            server.enqueue(new MockResponse().setBody(new okio.Buffer().write(body.toByteArray())).setHeader("Content-Type","image/png"));
+            String url=server.url("/durable-thumbnail").toString();var service=new FboProductImageService(new OkHttpClient(),allow(server),Clock.systemUTC());
+            byte[] first=service.loadThumbnailBytes(url).get(5,TimeUnit.SECONDS);assertNotNull(first);
+            String full=com.vncode.app.features.print.history.PrintHistoryService.imageCacheKey(url);
+            var cache=new com.vncode.app.features.print.history.ImageCacheRepository();assertArrayEquals(first,cache.findImage(full+":thumbnail96x128"));assertNull(cache.findImage(full));
+            com.vncode.app.shared.EncodedImageCache.shared().clear();server.shutdown();
+            var offline=new FboProductImageService(new OkHttpClient(),uri->false,Clock.systemUTC());
+            byte[] second=offline.loadThumbnailBytes(url).get(5,TimeUnit.SECONDS);assertArrayEquals(first,second);
+            var image=ImageIO.read(new ByteArrayInputStream(second));assertTrue(image.getWidth()<=96);assertTrue(image.getHeight()<=128);
+        }
+    }
     @Test void thumbnailsStaySmallButPrintImagesKeepFullResolution() throws Exception {
         try(var server=new MockWebServer()) {
             var body=new ByteArrayOutputStream();ImageIO.write(new BufferedImage(600,900,BufferedImage.TYPE_INT_RGB),"png",body);
