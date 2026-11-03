@@ -74,9 +74,10 @@ export async function findReport(runnerTemp) {
     reports.push(join(folder, 'scan.json'));
   }
   if (reports.length !== 1) fail(reports.length ? 'multiple-reports' : 'missing-report');
-  const stat = await lstat(reports[0]).catch(e => { if (e.code === 'ENOENT') fail('missing-report'); throw e; });
-  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > reportLimit) fail('invalid-report-file');
-  const handle = await open(reports[0], constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+  // Open the final component without following a symlink, then inspect that
+  // same descriptor. A path check before open would have a race window.
+  const handle = await open(reports[0], constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0))
+    .catch(e => { if (e.code === 'ENOENT') fail('missing-report'); if (e.code === 'ELOOP') fail('invalid-report-file'); throw e; });
   try {
     const opened = await handle.stat();
     if (!opened.isFile() || opened.size > reportLimit) fail('invalid-report-file');
