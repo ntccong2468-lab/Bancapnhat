@@ -31,4 +31,16 @@ class OzonFbsPrintReportTest {
   var limited=new OzonFbsPrintReport(shop,List.of("P-8"));limited.finishAvailable(shop,Set.of(),Map.of("P-8","Ozon 429"),Set.of("P-8"));
   assertEquals("WAITING_REMOTE",reports.find(limited.id()).orElseThrow().state());assertEquals("WAITING_REMOTE",reports.items(limited.id(),0,100).getFirst().state());
  }
+ @Test void pendingPurchaseKeepsPreflightBlockedPostingsSeparate()throws Exception{
+  System.setProperty("vncode.appdata.dir",dir.toString());Database.initDatabase();
+  try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Fixture','OZON','11','synthetic')");}
+  var shop=new Shop(1,"Fixture",Marketplace.OZON,"11","synthetic");var reports=new SyncRunRepository();
+  var report=new OzonFbsPrintReport(shop,List.of("P-READY","P-BLOCKED"));
+  report.waitingForStock(shop,Map.of("P-BLOCKED","Thiếu thông tin"));
+  var rows=reports.items(report.id(),0,100);
+  var blocked=rows.stream().filter(i->i.productId().equals("P-BLOCKED")).findFirst().orElseThrow();
+  var pending=rows.stream().filter(i->i.productId().equals("P-READY")).findFirst().orElseThrow();
+  assertEquals("NEEDS_ACTION",blocked.state());assertTrue(blocked.evidence().contains("Thiếu thông tin"));
+  assertEquals("WAITING_REMOTE",pending.state());assertEquals("KIZ_PURCHASE_PENDING",pending.error());
+ }
 }

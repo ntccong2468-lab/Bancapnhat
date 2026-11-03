@@ -16,7 +16,16 @@ public record OzonPostingDto(
         OzonRequirements requirements,
         List<String> availableActions,
         boolean shipAvailable,
-        List<OzonPostingItemDto> items) {
+        List<OzonPostingItemDto> items,
+        String trackingNumber,
+        String trackingOwner) {
+    /** Compatibility for locally created and older persisted postings with no tracking observation. */
+    public OzonPostingDto(String postingNumber, String orderId, String orderNumber, String status, String substatus,
+            String warehouseId, String shipmentAt, String inProcessAt, String lowerBarcode, String upperBarcode,
+            OzonRequirements requirements, List<String> availableActions, boolean shipAvailable, List<OzonPostingItemDto> items) {
+        this(postingNumber, orderId, orderNumber, status, substatus, warehouseId, shipmentAt, inProcessAt,
+                lowerBarcode, upperBarcode, requirements, availableActions, shipAvailable, items, null, null);
+    }
     public OzonPostingDto {
         postingNumber = OzonApiClient.requireExternalId(postingNumber, "posting number");
         orderId = safe(orderId, 256);
@@ -36,6 +45,18 @@ public record OzonPostingDto(
                 .limit(100)
                 .toList();
         items = items == null ? List.of() : List.copyOf(items);
+        if (trackingNumber != null) {
+            if (trackingNumber.length() > 512 || trackingNumber.codePoints().anyMatch(Character::isISOControl)) trackingNumber = null;
+            else trackingNumber = trackingNumber.strip();
+        }
+        if (trackingOwner == null || !trackingOwner.matches("[0-9a-f]{64}")) trackingOwner = null;
+    }
+
+    /** Bind a tracking observation to the exact credentials that produced the response. */
+    public OzonPostingDto withTrackingOwner(String owner) {
+        return new OzonPostingDto(postingNumber, orderId, orderNumber, status, substatus, warehouseId, shipmentAt,
+                inProcessAt, lowerBarcode, upperBarcode, requirements, availableActions, shipAvailable, items,
+                trackingNumber, owner);
     }
 
     public boolean isSinglePackageSupported() {

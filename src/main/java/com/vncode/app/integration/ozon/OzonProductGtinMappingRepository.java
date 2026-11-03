@@ -182,11 +182,19 @@ public final class OzonProductGtinMappingRepository {
             legacy.forEach(resolved::putIfAbsent);
             // A reviewed native candidate switches exactly one SKU. A broad article rule must
             // not override that completed choice or alter sibling sizes using the same article.
-            verifiedBarcodeMappings(connection,shopId).forEach(resolved::put);
-            com.vncode.app.features.kizmapping.VerifiedKizMappings.read(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON).forEach(resolved::put);
-            activeNativeMappings(connection,shopId).forEach(resolved::put);
+            var barcodeProof=verifiedBarcodeMappings(connection,shopId);
+            var writtenProof=com.vncode.app.features.kizmapping.VerifiedKizMappings.read(connection,shopId,com.vncode.app.integration.marketplace.Marketplace.OZON);
+            var nativeProof=activeNativeMappings(connection,shopId);
+            barcodeProof.forEach(resolved::put);writtenProof.forEach(resolved::put);nativeProof.forEach(resolved::put);
             var shop=new com.vncode.app.features.shop.ShopRepository().findById(shopId);
-            if(shop!=null)new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().readForPurchase(shop).applyTo(resolved);
+            if(shop!=null){
+                var pending=new com.vncode.app.features.kiz.KizRegistrationIdentityRepository().readForPurchase(shop);
+                pending.applyTo(resolved);
+                // A reviewed cross-market link is not yet an atomic reservation proof.
+                // Do not inject it into the mapping used to reserve or print stock.
+                var direct=new java.util.LinkedHashMap<String,String>();barcodeProof.forEach(direct::put);writtenProof.forEach(direct::put);nativeProof.forEach(direct::put);pending.applyTo(direct);
+                com.vncode.app.features.kiz.KizCrossMarketplaceProof.unsafeReviewedSkus(shop,resolved,direct).forEach(resolved::remove);
+            }
             return Map.copyOf(resolved);
         } catch (SQLException exception) {
             throw new RuntimeException(exception);

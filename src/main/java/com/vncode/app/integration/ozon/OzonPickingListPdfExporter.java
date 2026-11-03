@@ -11,6 +11,7 @@ import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.HorizontalAlignment;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
@@ -30,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 final class OzonPickingListPdfExporter {
     private static final int IMAGE_READ_AHEAD = 16;
     private static final int MAX_IMAGE_OBJECTS = 128;
+    private record PickingRow(String postingNumber, OzonPostingTrackingStore.Tracking tracking, OzonPostingItemDto item) {}
     private final OzonCatalogRepository catalog = new OzonCatalogRepository();
     private final FboProductImageService images;
 
@@ -50,16 +52,20 @@ final class OzonPickingListPdfExporter {
         List<OzonPostingDto> safePostings = postings == null ? List.of() : postings.stream()
                 .filter(java.util.Objects::nonNull)
                 .toList();
+        final Map<String, OzonPostingTrackingStore.Tracking> tracking;
+        try { tracking = OzonPostingTrackingStore.forExport(shop, safePostings); }
+        catch (java.sql.SQLException error) { throw new IOException("OZON_TRACKING_READ_FAILED", error); }
         try (PdfWriter writer = new PdfWriter(target);
                 PdfDocument pdf = new PdfDocument(writer);
                 Document document = new Document(pdf, PageSize.A4)) {
             document.setMargins(24, 24, 24, 24);
             document.setFont(GenerateBarcode.getArialFont());
             var products = catalog.findBySkus(shop.getId(),safePostings.stream().flatMap(p->p.items().stream()).map(OzonPostingItemDto::sku).distinct().toList());
-            float[] widths = new float[]{32, 76, 270, 118, 48};
+            float[] widths = new float[]{30, 115, 60, 200, 100, 35};
             Table table = new Table(widths, true);
             table.setWidth(UnitValue.createPercentValue(100));
             header(table, tr("ozon.picking.column.index"));
+            header(table, tr("ozon.picking.column.posting"));
             header(table, tr("ozon.dashboard.col.image"));
             header(table, tr("ozon.picking.column.name"));
             header(table, tr("ozon.dashboard.item.article"));
@@ -68,19 +74,24 @@ final class OzonPickingListPdfExporter {
             document.add(table);
             // Images are independent reads. Schedule a bounded window ahead so the existing
             // image coordinator can use its two network workers while rows remain ordered.
-            List<OzonPostingItemDto> items = safePostings.stream().flatMap(p -> p.items().stream()).toList();
+            List<PickingRow> rows = safePostings.stream()
+                    .flatMap(posting -> posting.items().stream()
+                            .map(item -> new PickingRow(posting.postingNumber(), tracking.get(posting.postingNumber()), item)))
+                    .toList();
             Map<String,PdfImageXObject> imageObjects = new LinkedHashMap<>(16, 0.75f, true) {
                 @Override protected boolean removeEldestEntry(Map.Entry<String,PdfImageXObject> eldest) {
                     return size() > MAX_IMAGE_OBJECTS;
                 }
             };
             int rowNumber = 0;
-            for (int offset = 0; offset < items.size(); offset += IMAGE_READ_AHEAD) {
-                List<OzonPostingItemDto> window = items.subList(offset, Math.min(offset + IMAGE_READ_AHEAD, items.size()));
+            for (int offset = 0; offset < rows.size(); offset += IMAGE_READ_AHEAD) {
+                List<PickingRow> window = rows.subList(offset, Math.min(offset + IMAGE_READ_AHEAD, rows.size()));
                 Map<String,CompletableFuture<byte[]>> prefetched = prefetchImages(window, products, imageObjects);
-                for (OzonPostingItemDto item : window) {
+                for (PickingRow row : window) {
+                    OzonPostingItemDto item = row.item();
                     OzonProductDto product = products.get(item.sku());
                     table.addCell(cell(String.valueOf(++rowNumber), TextAlignment.CENTER));
+                    table.addCell(postingCell(row.postingNumber(), row.tracking()));
                     table.addCell(imageCell(imageObject(product, prefetched, imageObjects)));
                     table.addCell(cell(first(item.name(), product == null ? "" : product.name()), TextAlignment.LEFT));
                     table.addCell(cell(first(
@@ -93,13 +104,13 @@ final class OzonPickingListPdfExporter {
         }
     }
 
-    private Map<String,CompletableFuture<byte[]>> prefetchImages(List<OzonPostingItemDto> items,
+    private Map<String,CompletableFuture<byte[]>> prefetchImages(List<PickingRow> rows,
             Map<String,OzonProductDto> products, Map<String,PdfImageXObject> imageObjects) {
         Map<String,CompletableFuture<byte[]>> reads = new LinkedHashMap<>();
         // The shared coordinator prioritises the most recently scheduled interactive read.
         // Submit in reverse order so the first row is ready first.
-        for (int i = items.size() - 1; i >= 0; i--) {
-            OzonProductDto product = products.get(items.get(i).sku());
+        for (int i = rows.size() - 1; i >= 0; i--) {
+            OzonProductDto product = products.get(rows.get(i).item().sku());
             String url = product == null ? "" : product.primaryImageUrl();
             if (url != null && !url.isBlank() && !imageObjects.containsKey(url) && !reads.containsKey(url)) {
                 try {
@@ -161,6 +172,16 @@ final class OzonPickingListPdfExporter {
 
     private static Cell cell(String value, TextAlignment alignment) {
         return cell(value, alignment, false);
+    }
+
+    private static Cell postingCell(String postingNumber, OzonPostingTrackingStore.Tracking tracking) {
+        Paragraph paragraph = new Paragraph().setFontSize(9).add(new Text(safe(postingNumber)));
+        if (tracking != null) {
+            String label = tr(tracking.verified() ? "ozon.picking.tracking" : "ozon.picking.tracking.stale");
+            paragraph.add(new Text("\n" + label + ": " + safe(tracking.number())).setFontSize(8));
+        } else paragraph.add(new Text("\n" + tr("ozon.picking.tracking.missing")).setFontSize(8));
+        return new Cell().add(paragraph).setKeepTogether(true)
+                .setTextAlignment(TextAlignment.LEFT).setVerticalAlignment(VerticalAlignment.MIDDLE);
     }
 
     private static Cell cell(String value, TextAlignment alignment, boolean bold) {

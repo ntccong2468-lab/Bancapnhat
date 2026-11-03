@@ -182,6 +182,7 @@ public class HomeController implements Initializable {
     private VBox financeDashboardView;
     private com.vncode.app.ui.news.NewsPane newsPane;
     private com.vncode.app.ui.dashboard.WelcomePane welcomePane;
+    private com.vncode.app.ui.dashboard.DashboardController overviewDashboardController;
     private com.vncode.app.ui.license.LicensePane licensePane;
     private AutoCloseable licenseSubscription;
     private VBox printHistoryView;
@@ -301,6 +302,9 @@ public class HomeController implements Initializable {
             welcomePane=new com.vncode.app.ui.dashboard.WelcomePane(newsPane.preview(),java.util.List.of(
                 this::showPacking,this::showZnackAutomation,this::showZnackRegistration,this::showFboPacking,
                 () -> onSettings(new ActionEvent()),this::showPrintHistory));
+            FXMLLoader dashboardLoader=FxmlViewLoader.loader(com.vncode.app.ui.dashboard.DashboardController.class,"dashboard-view.fxml");
+            welcomePane.setDashboard(FxmlViewLoader.load(dashboardLoader));
+            overviewDashboardController=dashboardLoader.getController();
             welcomePane.setOnboardingActions(java.util.List.of(
                 ()->workspaceNavigator.show("license"),()->onAddShop(new ActionEvent()),this::showZnackAutomation,this::showProducts));
             welcomePane.sceneProperty().addListener((observable,oldScene,newScene) -> {
@@ -433,6 +437,7 @@ public class HomeController implements Initializable {
     private void showDashboard() {
         clearKizDraft();
         workspaceNavigator.show("welcome");
+        if(overviewDashboardController!=null)overviewDashboardController.setShop(state.getSelectedShop(),false);
     }
     private void showFinance() {
         clearKizDraft();workspaceNavigator.show("finance");financeDashboardController.setShop(state.getSelectedShop());
@@ -524,6 +529,9 @@ public class HomeController implements Initializable {
     }
 
     private void refreshDashboard(boolean forceRefresh) {
+        if (overviewDashboardController != null && isDisplayed(welcomePane)) {
+            overviewDashboardController.setShop(state.getSelectedShop(), forceRefresh);
+        }
         if (financeDashboardController != null && isDashboardVisible()) {
             financeDashboardController.setShop(state.getSelectedShop());
         }
@@ -1400,6 +1408,7 @@ public class HomeController implements Initializable {
         boolean dashboardVisible = isDashboardVisible();
         pendingSyncViews.clear();syncUiDebounce.stop();
         state.setSelectedShop(shop);
+        if(overviewDashboardController!=null)overviewDashboardController.setShop(shop,false);
         if(syncRuntime!=null)syncRuntime.selectShop(shop.getId());
         if(newsPane!=null)newsPane.setShop(shop);
         shopSidebarController.setMarketplace(shop.getMarketplace());
@@ -1878,6 +1887,7 @@ public class HomeController implements Initializable {
         printTemplateDesignerService.applyEmbeddedTranslations();
         if(newsPane!=null)newsPane.applyTranslations();
         if(welcomePane!=null)welcomePane.applyTranslations();
+        if(overviewDashboardController!=null)overviewDashboardController.applyTranslations();
         if (disposed) {
             return;
         }
@@ -2407,6 +2417,7 @@ public class HomeController implements Initializable {
         if(updateDownloadTask!=null)updateDownloadTask.cancel(true);
         updateExecutor.shutdownNow();
         if (licensePane != null) licensePane.dispose();
+        if (overviewDashboardController != null) overviewDashboardController.setShop(null, false);
         if(guidesPane!=null)guidesPane.dispose();
         if(workspaceHeaderController!=null)workspaceHeaderController.dispose();
         if(wbShippingPane!=null)wbShippingPane.dispose();

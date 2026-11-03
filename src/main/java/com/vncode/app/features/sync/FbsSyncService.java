@@ -58,14 +58,15 @@ public final class FbsSyncService {
                 var page=OzonJson.requirePostingPage(raw);
                 if(page.hasNext()&&(page.postings().isEmpty()||page.cursor().isBlank()||page.cursor().equals(pageCursor)))throw new IOException("FBS_INVALID_CURSOR");
                 ListingIdentity.require(shop);
-                int changed=repository.updateStatusPageIfUnchanged(shop.getId(),page.postings(),Instant.parse(cursor.to()),started);
+                String trackingOwner=api.syncOwnerFingerprint(shop.getId());
+                int changed=repository.updateStatusPageIfUnchanged(shop.getId(),page.postings().stream().map(p->p.withTrackingOwner(trackingOwner)).toList(),Instant.parse(cursor.to()),started);
                 return nextOzon(cursor,page.hasNext()?"L:"+page.cursor():"D:",false,changed+readbacks,cursor.concurrentRead(),cursor.incomplete(),cursor.unclassified());
             }
             // A checkpoint from a previous app version contains the bare detail cursor.
             String detailAfter=after.startsWith("D:")?after.substring(2):after;
             var ids=repository.findStatusNumbersAfter(shop.getId(),detailAfter,3,Instant.parse(cursor.to()));
             SyncFailure warning=null;
-            for(String id:ids){var started=Instant.now();var detail=api.getPosting(id,false);var item=OzonJson.requirePostingDetail(detail,id);if(!id.equals(item.postingNumber()))throw new IOException("FBS_FOREIGN_POSTING");var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;if(!OzonJson.hasCompletePostingDetails(object,item)){if(OzonJson.isTerminalPosting(item)){ListingIdentity.require(shop);repository.updateStatusPageIfUnchanged(shop.getId(),List.of(item),Instant.parse(cursor.to()),started);}else warning=new SyncFailure("FBS_INCOMPLETE_POSTING",Duration.ofSeconds(15),false);continue;}ListingIdentity.require(shop);if(repository.upsertPageIfUnchanged(shop.getId(),List.of(item),started)==0)continue;try{if(kn3!=null)kn3.ozon(shop,item,api);}catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}}
+            for(String id:ids){var started=Instant.now();var detail=api.getPosting(id,false);var item=OzonJson.requirePostingDetail(detail,id).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));if(!id.equals(item.postingNumber()))throw new IOException("FBS_FOREIGN_POSTING");var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;if(!OzonJson.hasCompletePostingDetails(object,item)){if(OzonJson.isTerminalPosting(item)){ListingIdentity.require(shop);repository.updateStatusPageIfUnchanged(shop.getId(),List.of(item),Instant.parse(cursor.to()),started);}else warning=new SyncFailure("FBS_INCOMPLETE_POSTING",Duration.ofSeconds(15),false);continue;}ListingIdentity.require(shop);if(repository.upsertPageIfUnchanged(shop.getId(),List.of(item),started)==0)continue;try{if(kn3!=null)kn3.ozon(shop,item,api);}catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}}
             return warning(nextOzon(cursor,ids.isEmpty()?"":"D:"+ids.getLast(),ids.size()<3,ids.size()+readbacks,cursor.concurrentRead(),cursor.incomplete(),cursor.unclassified()),warning);
         }
         if(stream==SyncCoordinator.Stream.SUPPLIES||stream==SyncCoordinator.Stream.SUPPLY_CONTENT)return SyncCoordinator.Page.complete(0);
@@ -98,7 +99,8 @@ public final class FbsSyncService {
                 }
             }
         }
-        ListingIdentity.require(shop);int written=repository.upsertPageIfUnchanged(shop.getId(),usable,started);
+        ListingIdentity.require(shop);String trackingOwner=api.syncOwnerFingerprint(shop.getId());
+        int written=repository.upsertPageIfUnchanged(shop.getId(),usable.stream().map(p->p.withTrackingOwner(trackingOwner)).toList(),started);
         boolean concurrent=cursor.concurrentRead()||written<usable.size();boolean incomplete=cursor.incomplete()||partial>0;
         if(!page.hasNext()){
             if(stream==SyncCoordinator.Stream.FBS_QUEUE&&!concurrent&&!unclassified)repository.markQueueMembershipComplete(shop,incomplete);

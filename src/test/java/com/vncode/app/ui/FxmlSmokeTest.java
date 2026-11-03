@@ -463,6 +463,46 @@ class FxmlSmokeTest {
             }finally {home.dispose();}return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
+    @Test void realWelcomeRouteContainsPenaltyReportAndTracksShopSwitches() throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()) {
+            s.execute("INSERT OR REPLACE INTO shops(id,name,marketplace,client_id,api_key) VALUES(81,'Overview A','OZON','81','fixture-a')");
+            s.execute("INSERT OR REPLACE INTO shops(id,name,marketplace,client_id,api_key) VALUES(82,'Overview B','OZON','82','fixture-b')");
+        }
+        var task=new java.util.concurrent.FutureTask<Void>(() -> {
+            var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");
+            Parent root=FxmlViewLoader.load(loader);var home=(HomeController)loader.getController();
+            new javafx.scene.Scene(root,1100,760);root.applyCss();root.layout();
+            stopAutomaticSync(home);
+            try {
+                var navField=HomeController.class.getDeclaredField("workspaceNavigator");navField.setAccessible(true);
+                var nav=(com.vncode.app.ui.workspace.WorkspaceNavigator)navField.get(home);
+                nav.show("welcome");assertEquals("welcome",nav.currentRoute());
+                var welcomeField=HomeController.class.getDeclaredField("welcomePane");welcomeField.setAccessible(true);
+                var welcome=(com.vncode.app.ui.dashboard.WelcomePane)welcomeField.get(home);
+                assertNotNull(welcome.lookup("#penaltyTable"),"The actual overview must contain the finance report");
+                assertEquals(6,welcome.lookupAll(".feature-card").size(),"Existing actions must remain available");
+                var controllerField=HomeController.class.getDeclaredField("overviewDashboardController");controllerField.setAccessible(true);
+                var controller=(DashboardController)controllerField.get(home);
+                var selected=DashboardController.class.getDeclaredField("shop");selected.setAccessible(true);
+                var select=HomeController.class.getDeclaredMethod("selectShop",Shop.class);select.setAccessible(true);
+                @SuppressWarnings("unchecked") var table=(TableView<com.vncode.app.features.finance.FinancePenaltyEntry>)welcome.lookup("#penaltyTable");
+                var oldRow=new com.vncode.app.features.finance.FinancePenaltyEntry("fixture",java.time.LocalDate.now(),"RUB","fixture","order","product","article","sku",10);
+                select.invoke(home,new Shop(81,"Overview A",com.vncode.app.integration.marketplace.Marketplace.OZON,"81","fixture-a"));
+                assertEquals(81,((Shop)selected.get(controller)).getId());
+                table.getItems().add(oldRow);
+                select.invoke(home,new Shop(82,"Overview B",com.vncode.app.integration.marketplace.Marketplace.OZON,"82","fixture-b"));
+                assertEquals(82,((Shop)selected.get(controller)).getId());
+                assertTrue(table.getItems().isEmpty(),"Old owner rows must clear synchronously");
+                table.getItems().add(oldRow);
+                select.invoke(home,new Shop(82,"Overview B",com.vncode.app.integration.marketplace.Marketplace.OZON,"82","fixture-new-key"));
+                assertEquals("fixture-new-key",((Shop)selected.get(controller)).getApiKey());
+                assertTrue(table.getItems().isEmpty(),"Changing credentials for the same shop must hide old rows synchronously");
+                welcome.resize(600,700);welcome.layout();
+                assertNotNull(welcome.lookup("#penaltyTable"),"Responsive relayout must retain the report");
+            } finally {home.dispose();}
+            return null;
+        });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
+    }
     @Test void dashboardCardsHaveUsableRenderedHeightsWithProductionThemes() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var item=new com.vncode.app.features.news.NewsItem("layout",java.time.Instant.now(),"Wildberries và Ozon: cập nhật thông tin sản phẩm", "Đồng bộ đơn hàng, kiểm tra GTIN và in nhãn theo cấu hình của từng cửa hàng. Xem chi tiết để chuẩn bị lô hàng.");

@@ -14,6 +14,7 @@ public final class KizErrorMessages {
             case "KIZ_OTHER_CODE_PRESENT"->"other_code";
             case "KIZ_REMOTE_REJECTED"->"remote_rejected";
             case "KIZ_GTIN_MAPPING_MISSING"->"mapping";
+            case "KIZ_CROSS_PURCHASE_REVIEW_REQUIRED"->"cross_purchase_review";
             case "KIZ_INVENTORY_SHORTAGE"->"shortage";
             case "KIZ_PURCHASE_PENDING"->"purchase_pending";
             case "KIZ_PRINT_PURCHASE_NEEDS_ACTION"->"print_purchase_action";

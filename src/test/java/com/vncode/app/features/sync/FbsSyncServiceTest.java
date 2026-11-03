@@ -74,6 +74,18 @@ class FbsSyncServiceTest {
         shop=GtinWriteTestFixture.shop(Marketplace.OZON);server=new MockWebServer();server.start();
         return new FbsSyncService(s->new OzonApiClient(s.getId(),new OzonCredentials(s.getClientId(),s.getApiKey()),server.url("/"),new OkHttpClient.Builder().callTimeout(Duration.ofSeconds(3)).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))),()->{throw new AssertionError("Not WB");});
     }
+    @Test void ozonQueueSyncPreservesTrackingAndMarksItUnverifiedWhenTheNextResponseOmitsIt()throws Exception{
+        var service=ozon();
+        var posting=unitPosting("P-TRACK","ORDER","awaiting_packaging",1).getAsJsonObject("result");
+        posting.addProperty("tracking_number","TRACK-SYNTHETIC");
+        var rows=new JsonArray();rows.add(posting);var page=new JsonObject();page.add("postings",rows);page.addProperty("has_next",false);
+        server.enqueue(new MockResponse().setBody(page.toString()));
+        assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"").complete());
+        assertEquals(1,count("SELECT count(*) FROM app_config WHERE key LIKE 'ozon_posting_tracking.v1:%' AND json_extract(value,'$.number')='TRACK-SYNTHETIC' AND json_extract(value,'$.verified')=1"));
+        posting.remove("tracking_number");server.enqueue(new MockResponse().setBody(page.toString()));
+        assertTrue(service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"").complete());
+        assertEquals(1,count("SELECT count(*) FROM app_config WHERE key LIKE 'ozon_posting_tracking.v1:%' AND json_extract(value,'$.number')='TRACK-SYNTHETIC' AND json_extract(value,'$.verified')=0"));
+    }
     @Test void activeShipmentIsRefreshedDuringALongScanAndChangingItDoesNotLoseBackgroundPosition()throws Exception{
         shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_supplies(shop_id,supply_id,done,synced_at) VALUES(1,'A',0,'now'),(1,'B',0,'now'),(1,'C',0,'now'),(1,'Y',0,'now'),(1,'Z',0,'now')");}

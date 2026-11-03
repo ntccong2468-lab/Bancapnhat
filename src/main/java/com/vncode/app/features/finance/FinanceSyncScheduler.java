@@ -1,6 +1,8 @@
 package com.vncode.app.features.finance;
 
 import com.vncode.app.features.print.KizAttachmentCoordinator;
+import com.vncode.app.features.shop.ShopOperationCoordinator;
+import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.integration.wb.finance.WbAdvertisingApiClient;
 import com.vncode.app.integration.wb.finance.WbAnalyticsApiException;
 import com.vncode.app.integration.wb.finance.WbFinanceApiClient;
@@ -46,11 +48,15 @@ public final class FinanceSyncScheduler {
     private final WbAdvertisingApiClient advertisingClient;
     private final OzonFinanceApiClient ozonFinanceClient;
     private final FinanceSyncPlanner planner = new FinanceSyncPlanner();
+    private final FinancePenaltySyncStore penaltySync = new FinancePenaltySyncStore();
     private final Clock clock;
     private final Map<Integer, Shop> shops = new ConcurrentHashMap<>();
     private volatile Path shopsDatabasePath;
     private final AtomicBoolean started = new AtomicBoolean();
     private final AtomicBoolean workRunning = new AtomicBoolean();
+    private Runnable afterOwnerCheckedBeforeCheckpoint = () -> {};
+
+    void setAfterOwnerCheckedBeforeCheckpoint(Runnable callback) { afterOwnerCheckedBeforeCheckpoint = java.util.Objects.requireNonNull(callback); }
 
     FinanceSyncScheduler(FinanceAnalyticsRepository repository, WbFinanceApiClient financeClient,
                          WbAdvertisingApiClient advertisingClient, OzonFinanceApiClient ozonFinanceClient,
@@ -84,7 +90,9 @@ public final class FinanceSyncScheduler {
             Instant now = clock.instant();
             LocalDate today = LocalDate.now(clock.withZone(WeeklyFinanceSchedule.VIETNAM_ZONE));
             for (Shop shop : snapshots.values()) {
-                repository.ensureShopState(shop.getId(), shop.getMarketplace(), today, now);
+                try { ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
+                    ListingIdentity.require(shop); repository.ensureShopState(shop.getId(), shop.getMarketplace(), today, now); return null;
+                }); } catch (SecurityException | ShopOperationCoordinator.ShopUnavailableException changed) { /* old owner */ }
             }
         });
         if(ownScheduler)start();
@@ -142,17 +150,39 @@ public final class FinanceSyncScheduler {
         LicenseRuntime.require(SELLER_API);
         Instant now = clock.instant();
         LocalDate today = LocalDate.now(clock.withZone(WeeklyFinanceSchedule.VIETNAM_ZONE));
+        // User-requested penalty ranges have their own persisted cursor. The same
+        // seller/family budget is checked before either this or legacy finance.
+        for (Shop shop : shops.values().stream().sorted(Comparator.comparingInt(Shop::getId)).toList()) {
+            if (shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES) continue;
+            try {
+                var job=penaltySync.due(shop,now);
+                if(job==null)continue;
+                Instant legacy=repository.familyNextAllowedAt(shop.getId(),"FINANCE");
+                Instant shared=penaltySync.nextAllowed(shop.getId(),"FINANCE");
+                if ((legacy!=null&&legacy.isAfter(now))||(shared!=null&&shared.isAfter(now)))continue;
+                syncPenalty(shop,job,now);
+                return;
+            } catch (SecurityException | ShopOperationCoordinator.ShopUnavailableException changed) { /* old owner */ }
+        }
         List<PlannedShopWork> candidates = new ArrayList<>();
         for (Shop shop : shops.values()) {
-            repository.ensureShopState(shop.getId(), shop.getMarketplace(), today, now);
-            planner.next(repository.loadStates(shop.getId()), now, today)
-                    .ifPresent(work -> candidates.add(new PlannedShopWork(shop, work)));
+            try { ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
+                ListingIdentity.require(shop);
+                repository.ensureShopState(shop.getId(), shop.getMarketplace(), today, now);
+                planner.next(repository.loadStates(shop.getId()), now, today)
+                        .ifPresent(work -> candidates.add(new PlannedShopWork(shop, work)));
+                return null;
+            }); } catch (SecurityException | ShopOperationCoordinator.ShopUnavailableException changed) { /* old owner */ }
         }
         candidates.sort(Comparator.comparingInt(candidate -> candidate.work().priority()));
         for (PlannedShopWork candidate : candidates) {
             FinanceSyncState state = candidate.work().state();
             Instant allowed = repository.familyNextAllowedAt(candidate.shop().getId(), state.apiFamily());
             if (allowed != null && allowed.isAfter(now)) continue;
+            if ("FINANCE".equals(state.apiFamily())) {
+                Instant penaltyAllowed=penaltySync.nextAllowed(candidate.shop().getId(),"FINANCE");
+                if(penaltyAllowed!=null&&penaltyAllowed.isAfter(now))continue;
+            }
             execute(candidate.shop(), candidate.work(), now);
             return; // At most one HTTP request per scheduler tick: never burst analytics calls.
         }
@@ -160,21 +190,29 @@ public final class FinanceSyncScheduler {
 
     private void execute(Shop shop, FinanceWorkItem work, Instant now) {
         LicenseRuntime.require(SELLER_API);
-        FinanceSyncState state = work.state();
-        if (work.newWindow()) {
-            repository.startWindow(state, work.phase(), work.from(), work.to(), now);
-            state = repository.loadState(shop.getId(), state.streamName());
-            if (state == null) return; // Shop/checkpoint may have been removed while work was queued.
-        }
-        Duration interval = switch (state.apiFamily()) {
+        Duration interval = switch (work.state().apiFamily()) {
             case "FINANCE" -> FINANCE_INTERVAL;
             case "ADVERTISING" -> ADVERTISING_INTERVAL;
             case "OZON_FINANCE" -> OZON_FINANCE_INTERVAL;
-            default -> throw new IllegalStateException("Unsupported finance API family: " + state.apiFamily());
+            default -> throw new IllegalStateException("Unsupported finance API family: " + work.state().apiFamily());
         };
         Instant nextAllowed = now.plus(interval);
-        repository.markAttempt(shop.getId(), state.streamName(), nextAllowed);
-        state = repository.loadState(shop.getId(), state.streamName());
+        FinanceSyncState state;
+        try {
+            state = ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
+                ListingIdentity.require(shop);
+                afterOwnerCheckedBeforeCheckpoint.run();
+                FinanceSyncState current = work.state();
+                if (work.newWindow()) {
+                    repository.startWindow(current, work.phase(), work.from(), work.to(), now);
+                    current = repository.loadState(shop.getId(), current.streamName());
+                    if (current == null) return null;
+                }
+                repository.markAttempt(shop.getId(), current.streamName(), nextAllowed);
+                if("FINANCE".equals(current.apiFamily())) penaltySync.extendRate(shop.getId(),"FINANCE",nextAllowed);
+                return repository.loadState(shop.getId(), current.streamName());
+            });
+        } catch (SecurityException | ShopOperationCoordinator.ShopUnavailableException changed) { return; }
         if (state == null) return;
         try {
             LicenseRuntime.require(SELLER_API);
@@ -186,38 +224,85 @@ public final class FinanceSyncScheduler {
             }
         } catch (LicenseDeniedException paused) {
             throw paused;
+        } catch (SecurityException | ShopOperationCoordinator.ShopUnavailableException changed) {
+            // The page/checkpoint belongs to an old owner. Never save it under the new one.
+            return;
         } catch (RuntimeException exception) {
-            handleFailure(state, exception, now);
+            FinanceSyncState failedState=state;
+            try { ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
+                ListingIdentity.require(shop); handleFailure(failedState, exception, now); return null;
+            }); } catch (SecurityException | ShopOperationCoordinator.ShopUnavailableException changed) { /* old owner */ }
         }
     }
 
     private void syncFinance(Shop shop, FinanceSyncState state, Instant nextAllowed, Instant now) {
+        requireCurrentOwner(shop);
         String period = "FINANCE_WEEKLY".equals(state.streamName()) ? "weekly" : "daily";
         WbFinancePage page = financeClient.loadPage(
                 shop.getApiKey(), state.windowFrom(), state.windowTo(), state.cursor(), period);
-        repository.upsertFinanceRows(shop.getId(), page.rows());
-        if (page.endOfReport()) {
-            finishWindow(state, now);
-        } else {
-            repository.saveProgress(state, page.nextCursor(), nextAllowed, now);
-        }
+        ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
+            ListingIdentity.require(shop);
+            repository.upsertFinanceRows(shop.getId(), page.rows());
+            new FinancePenaltyRepository().recordVerifiedPage(shop, page.rows(), clock.instant());
+            if (page.endOfReport()) finishWindow(state, now);
+            else repository.saveProgress(state, page.nextCursor(), nextAllowed, now);
+            return null;
+        });
     }
 
     private void syncAdvertising(Shop shop, FinanceSyncState state, Instant nextAllowed, Instant now) {
-        repository.upsertAdvertisingRows(shop.getId(),
-                advertisingClient.loadCosts(shop.getApiKey(), state.windowFrom(), state.windowTo()));
-        finishWindow(state, now);
+        requireCurrentOwner(shop);
+        var rows=advertisingClient.loadCosts(shop.getApiKey(), state.windowFrom(), state.windowTo());
+        ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
+            ListingIdentity.require(shop); repository.upsertAdvertisingRows(shop.getId(),rows); finishWindow(state, now); return null;
+        });
     }
 
     private void syncOzonFinance(Shop shop, FinanceSyncState state, Instant nextAllowed, Instant now) {
+        requireCurrentOwner(shop);
         OzonFinancePage page = ozonFinanceClient.loadPage(
                 new OzonCredentials(shop.getClientId(), shop.getApiKey()),
                 state.windowFrom(), state.windowTo(), state.cursor());
-        repository.upsertFinanceRows(shop.getId(), page.rows());
-        if (page.endOfReport()) {
-            finishWindow(state, now);
-        } else {
-            repository.saveProgress(state, page.nextCursor(), nextAllowed, now);
+        ShopOperationCoordinator.withActiveShop(shop.getId(), () -> {
+            ListingIdentity.require(shop);
+            repository.upsertFinanceRows(shop.getId(), page.rows());
+            new FinancePenaltyRepository().recordVerifiedPage(shop, page.rows(), clock.instant());
+            if (page.endOfReport()) finishWindow(state, now);
+            else repository.saveProgress(state, page.nextCursor(), nextAllowed, now);
+            return null;
+        });
+    }
+
+    private static void requireCurrentOwner(Shop shop) {
+        ShopOperationCoordinator.withActiveShop(shop.getId(), () -> { ListingIdentity.require(shop); return null; });
+    }
+
+    private void syncPenalty(Shop shop, FinancePenaltySyncStore.Job job, Instant now) {
+        requireCurrentOwner(shop);
+        var attempt=penaltySync.begin(shop,job,now,now.plus(FINANCE_INTERVAL));
+        if(attempt==null)return;
+        try {
+            requireCurrentOwner(shop);
+            WbFinancePage page=financeClient.loadPage(shop.getApiKey(),attempt.from(),attempt.to(),attempt.cursor(),"daily");
+            requireCurrentOwner(shop);
+            if(page.confirmedTerminal()) penaltySync.commitPage(shop,attempt,page.rows(),page.nextCursor(),true,clock.instant());
+            else if(page.endOfReport()) penaltySync.defer(shop,attempt,clock.instant().plus(FINANCE_INTERVAL),"WB_EMPTY_PAGE_UNCONFIRMED");
+            else penaltySync.commitPage(shop,attempt,page.rows(),page.nextCursor(),false,clock.instant());
+        } catch (SecurityException | ShopOperationCoordinator.ShopUnavailableException changed) {
+            // Keep old-owner checkpoint isolated; a late response is never committed.
+        } catch (RuntimeException failure) {
+            Duration delay=Duration.ofMinutes(15); String code="WB_FINANCE_UNAVAILABLE";
+            if(failure instanceof WbAnalyticsApiException api) {
+                if(api.statusCode()==429) {
+                    Duration declared=api.retryAfter();
+                    delay=declared==null?Duration.ofHours(12):(declared.compareTo(FINANCE_INTERVAL)<0?FINANCE_INTERVAL:declared);
+                    code=declared==null?"WB_429_DELAY_UNKNOWN":"WB_429_RETRY_AFTER";
+                } else if(api.statusCode()==401||api.statusCode()==403) {
+                    delay=Duration.ofHours(6); code="WB_FINANCE_PERMISSION";
+                }
+            } else if(failure instanceof IllegalArgumentException) code="WB_FINANCE_INVALID_PAGE";
+            try { penaltySync.defer(shop,attempt,safeRetryAt(clock.instant(),delay),code); }
+            catch (SecurityException | ShopOperationCoordinator.ShopUnavailableException changed) { /* old owner */ }
         }
     }
 
@@ -270,7 +355,11 @@ public final class FinanceSyncScheduler {
             } else if (apiException.statusCode() == 429) {
                 Duration declared = apiException.retryAfter();
                 Duration floor = "FINANCE".equals(state.apiFamily()) ? FINANCE_INTERVAL : Duration.ofMinutes(1);
-                delay = declared == null || declared.compareTo(floor) < 0 ? floor : declared;
+                // WB Base tokens may be limited to one request per 12 hours.
+                // Do not infer token type: apply the conservative delay only after
+                // a real 429 without a declared retry interval.
+                delay = declared == null && "FINANCE".equals(state.apiFamily()) ? Duration.ofHours(12)
+                        : declared == null || declared.compareTo(floor) < 0 ? floor : declared;
             }
         } else if (exception instanceof OzonFinanceApiException apiException) {
             if (apiException.statusCode() == 401 || apiException.statusCode() == 403) {
@@ -281,12 +370,20 @@ public final class FinanceSyncScheduler {
                         ? Duration.ofMinutes(1) : declared;
             }
         }
-        repository.markError(state, now.plus(delay), exception.getMessage());
+        repository.markError(state, safeRetryAt(now,delay), exception.getMessage());
         LOGGER.warn("Analytics sync deferred for shop {}, stream {}: {}", state.shopId(), state.streamName(), exception.getMessage());
     }
 
     private static Shop snapshot(Shop source) {
         return new Shop(source.getId(), source.getName(), source.getMarketplace(), source.getClientId(), source.getApiKey());
+    }
+
+    static Instant safeRetryAt(Instant now,Duration delay) {
+        try { return now.plus(delay); }
+        catch (java.time.DateTimeException | ArithmeticException overflow) {
+            // Use a sortable far-future ISO instant rather than retrying early on malformed input.
+            return Instant.parse("9999-12-31T23:59:59Z");
+        }
     }
 
     private record PlannedShopWork(Shop shop, FinanceWorkItem work) {

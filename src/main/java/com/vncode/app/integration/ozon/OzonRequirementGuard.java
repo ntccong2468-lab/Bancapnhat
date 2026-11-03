@@ -64,6 +64,20 @@ public final class OzonRequirementGuard {
                 || item.sku().isBlank() || !exemptions.contains(item.sku()));
     }
 
+    /** Recheck a captured plan while the caller holds SQLite's write reservation. */
+    static void requireCurrentPurchasedMappings(int shopId, PreparationPlan plan,
+                                                 com.vncode.app.features.kiz.KizSourceSelection sources) {
+        if (sources != null && !sources.purchased()) return;
+        if (plan.items().stream().noneMatch(item -> item.gtin() != null && !item.gtin().isBlank())) return;
+        Map<String, String> current = new OzonProductGtinMappingRepository().findResolvedBySku(shopId);
+        for (RequiredItem item : plan.items()) {
+            if (item.gtin() == null || item.gtin().isBlank()) continue;
+            if (!Objects.equals(item.gtin(), current.get(item.sku()))) {
+                throw new IllegalStateException("OZON_KIZ_MAPPING_CHANGED: SKU-to-GTIN mapping changed before reservation; refresh and retry.");
+            }
+        }
+    }
+
     public record RequiredItem(
             int itemIndex, String productId, String sku, String gtin, int quantity, boolean mandatory) {
     }

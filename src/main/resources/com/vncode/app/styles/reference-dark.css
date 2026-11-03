@@ -1,11 +1,11 @@
 /* Seller's Wbcode screenshots: opaque black canvas, charcoal controls, violet actions. */
 .root.reference-dark, .reference-dark.dialog-pane    {
-    -bg-primary: #101318;
-    -bg-secondary: #181d24;
-    -bg-tertiary: #232831;
-    -bg-odd-row: #181d24;
-    -border-color: #2c323c;
-    -border-color-hover: #454d5a;
+    -bg-primary: #11161d;
+    -bg-secondary: #19212b;
+    -bg-tertiary: #202a35;
+    -bg-odd-row: #19212b;
+    -border-color: #33404e;
+    -border-color-hover: #526171;
     -text-primary: #f1f3f6;
     -text-secondary: #bcc4d0;
     -text-muted: #929baa;
@@ -22,17 +22,17 @@
     -glass-popup: #1d222a;
     -glass-line: #2c323c;
     -glass-selected: rgba(137,82,246,.15);
-    -fx-background-color: #101318;
+    -fx-background-color: #11161d;
     -fx-background-radius: 0;
     -fx-font-family: "Inter";
-    -fx-font-size: 16px;
+    -fx-font-size: 14px;
 }
 .reference-dark .label, .reference-dark .text-input    { -fx-text-fill: #f1f3f6; }
 .reference-dark .text-muted    { -fx-text-fill: #929baa; }
-.reference-dark .h2    { -fx-font-size: 24px; -fx-font-weight: bold; }
-.reference-dark .h3    { -fx-font-size: 20px; -fx-font-weight: bold; }
+.reference-dark .h2    { -fx-font-size: 20px; -fx-font-weight: bold; }
+.reference-dark .h3    { -fx-font-size: 16px; -fx-font-weight: bold; }
 .reference-dark .sidebar, .reference-dark .header    {
-    -fx-background-color: #101318;
+    -fx-background-color: #11161d;
     -fx-background-radius: 0;
     -fx-border-radius: 0;
     -fx-border-color: #2c323c;
@@ -40,34 +40,34 @@
 .reference-dark .card, .reference-dark .surface, .reference-dark .feature-card,
 .reference-dark .copy-card, .reference-dark .news-card, .reference-dark .guide-section,
 .reference-dark .products-bulk, .reference-dark .supply-detail, .reference-dark .gtin-inventory-card    {
-    -fx-background-color: #181d24;
-    -fx-background-radius: 20;
-    -fx-border-radius: 20;
-    -fx-border-color: #2c323c;
+    -fx-background-color: #19212b;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #33404e;
     -fx-border-width: 1;
     -fx-effect: null;
 }
 .reference-dark .button, .reference-dark .menu-button, .reference-dark .toggle-button,
 .reference-dark .combo-box, .reference-dark .choice-box, .reference-dark .text-input,
 .reference-dark .date-picker, .reference-dark .spinner    {
-    -fx-background-color: #232831;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
+    -fx-background-color: #26323e;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
     -fx-border-color: transparent;
     -fx-border-width: 1;
-    -fx-min-height: 40;
-    -fx-padding: 8 15;
+    -fx-min-height: 34;
+    -fx-padding: 6 12;
     -fx-text-fill: #f1f3f6;
     -fx-effect: null;
-    -fx-font-size: 16px;
+    -fx-font-size: 14px;
 }
 .reference-dark .button, .reference-dark .menu-button    { -fx-font-weight: bold; }
 .reference-dark .text-input, .reference-dark .combo-box, .reference-dark .choice-box    {
-    -fx-background-color: #1e232b;
-    -fx-border-color: #383f4b;
+    -fx-background-color: #1d2732;
+    -fx-border-color: #3d4a59;
     -fx-prompt-text-fill: #929baa;
-    -fx-min-height: 38;
-    -fx-padding: 7 14;
+    -fx-min-height: 34;
+    -fx-padding: 5 10;
 }
 .reference-dark .combo-box > .list-cell    { -fx-padding: 0; -fx-text-fill: #f1f3f6; }
 .reference-dark .menu-button > .label    { -fx-padding: 0; }
@@ -90,38 +90,38 @@
 .reference-dark .btn-icon    { -fx-min-width: 38; -fx-min-height: 38; -fx-padding: 8; -fx-background-radius: 10; -fx-border-radius: 10; }
 .reference-dark .button .ikonli-font-icon, .reference-dark .menu-button .ikonli-font-icon    { -fx-icon-color: #f1f3f6; }
 .reference-dark .text-input:focused, .reference-dark .combo-box:focused    { -fx-border-color: #8952f6; }
-.reference-dark .check-box    { -fx-text-fill: #f1f3f6; -fx-font-size: 16px; }
-.reference-dark .check-box > .box    { -fx-background-color: #181d24; -fx-border-color: #3a424e; -fx-border-width: 2; -fx-background-radius: 7; -fx-border-radius: 7; -fx-padding: 3; -fx-min-width: 24; -fx-min-height: 24; }
+.reference-dark .check-box    { -fx-text-fill: #f1f3f6; -fx-font-size: 14px; }
+.reference-dark .check-box > .box    { -fx-background-color: #19212b; -fx-border-color: #637184; -fx-border-width: 1; -fx-background-radius: 4; -fx-border-radius: 4; -fx-padding: 3; -fx-min-width: 20; -fx-min-height: 20; }
 .reference-dark .check-box:selected > .box, .reference-dark .check-box:indeterminate > .box    { -fx-background-color: #8952f6; -fx-border-color: #8952f6; }
 .reference-dark .check-box:selected > .box > .mark, .reference-dark .check-box:indeterminate > .box > .mark    { -fx-background-color: white; }
 .reference-dark .table-view, .reference-dark .list-view    {
-    -fx-background-color: #181d24;
-    -fx-border-color: #2c323c;
-    -fx-border-radius: 20;
-    -fx-background-radius: 20;
+    -fx-background-color: #19212b;
+    -fx-border-color: #33404e;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
     -fx-padding: 1;
 }
-.reference-dark .table-view .column-header-background    { -fx-background-color: #181d24; -fx-background-radius: 20 20 0 0; }
-.reference-dark .table-view .column-header    { -fx-background-color: transparent; -fx-size: 56; -fx-border-color: #2c323c; -fx-border-width: 0 0 1 0; }
-.reference-dark .table-view .column-header .label    { -fx-text-fill: #bcc4d0; -fx-font-size: 16px; -fx-font-weight: bold; }
+.reference-dark .table-view .column-header-background    { -fx-background-color: #19212b; -fx-background-radius: 8 8 0 0; }
+.reference-dark .table-view .column-header    { -fx-background-color: transparent; -fx-size: 40; -fx-border-color: #33404e; -fx-border-width: 0 0 1 0; }
+.reference-dark .table-view .column-header .label    { -fx-text-fill: #c4cdda; -fx-font-size: 13px; -fx-font-weight: bold; }
 .reference-dark .table-row-cell, .reference-dark .table-row-cell:odd, .reference-dark .list-cell    { -fx-background-color: transparent; }
 .reference-dark .table-row-cell:selected, .reference-dark .list-cell:selected    { -fx-background-color: rgba(137,82,246,.14); }
-.reference-dark .table-cell    { -fx-border-width: 0 0 1 0; -fx-border-color: #2c323c; -fx-padding: 9 12; -fx-font-size: 16px; -fx-alignment: CENTER_LEFT; -fx-text-fill: #f1f3f6; }
+.reference-dark .table-cell    { -fx-border-width: 0 0 1 0; -fx-border-color: #33404e; -fx-padding: 6 9; -fx-font-size: 14px; -fx-alignment: CENTER_LEFT; -fx-text-fill: #f1f3f6; }
 .reference-dark .scroll-bar, .reference-dark .scroll-bar .track    { -fx-background-color: transparent; }
 .reference-dark .scroll-bar:vertical    { -fx-pref-width: 12; }
 .reference-dark .scroll-bar .thumb    { -fx-background-color: #2a303a; -fx-background-radius: 8; -fx-background-insets: 2; }
 .reference-dark .scroll-bar .increment-button, .reference-dark .scroll-bar .decrement-button    { -fx-padding: 0; }
 .reference-dark .scroll-bar .increment-arrow, .reference-dark .scroll-bar .decrement-arrow    { -fx-shape: ""; -fx-padding: 0; }
-.reference-dark .tab-pane > .tab-header-area > .tab-header-background    { -fx-background-color: #232831; -fx-background-radius: 16; }
-.reference-dark .tab-pane > .tab-header-area > .headers-region > .tab    { -fx-background-color: transparent; -fx-padding: 12 15; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-width: 1; -fx-border-color: transparent; }
-.reference-dark .tab-pane > .tab-header-area > .headers-region > .tab:selected    { -fx-background-color: #181d24; -fx-border-color: #3a414d; }
-.reference-dark .tab .tab-label    { -fx-font-size: 16px; }
-.reference-dark .task-status-pill    { -fx-background-color: #101318; -fx-border-color: #303642; -fx-border-width: 1; -fx-border-radius: 999; -fx-background-radius: 999; -fx-padding: 12 20; -fx-effect: null; }
+.reference-dark .tab-pane > .tab-header-area > .tab-header-background    { -fx-background-color: #19212b; -fx-background-radius: 6 6 0 0; }
+.reference-dark .tab-pane > .tab-header-area > .headers-region > .tab    { -fx-background-color: transparent; -fx-padding: 8 13; -fx-background-radius: 0; -fx-border-width: 0 0 2 0; -fx-border-color: transparent; }
+.reference-dark .tab-pane > .tab-header-area > .headers-region > .tab:selected    { -fx-background-color: transparent; -fx-border-color: #a783ff; }
+.reference-dark .tab .tab-label    { -fx-font-size: 14px; }
+.reference-dark .task-status-pill    { -fx-background-color: #11161d; -fx-border-color: #3d4a59; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 8 12; -fx-effect: null; }
 .reference-dark .dialog-pane    { -fx-background-color: #181d24; -fx-background-radius: 20; -fx-border-radius: 20; }
 .reference-dark #productsPane ,
-.reference-dark#productsPane    { -fx-background-color: #101318; -fx-font-family: "Inter"; }
+.reference-dark#productsPane    { -fx-background-color: #11161d; -fx-font-family: "Inter"; }
 .reference-dark #productsPane .list-view ,
-.reference-dark#productsPane .list-view    { -fx-background-color: #101318; -fx-border-radius: 10; -fx-background-radius: 10; }
+.reference-dark#productsPane .list-view    { -fx-background-color: #11161d; -fx-border-radius: 8; -fx-background-radius: 8; }
 .reference-dark #productsPane .product-row ,
 .reference-dark#productsPane .product-row    { -fx-border-color: #2c323c; -fx-border-width: 0 0 1 0; }
 .reference-dark #productsPane .product-issue-chip ,
@@ -198,4 +198,32 @@
 .reference-dark .table-row-cell:empty .table-cell { -fx-border-width: 0; }
 .reference-dark #productsPane .product-row,
 .reference-dark#productsPane .product-row { -fx-border-width: 0; }
-.reference-dark #productRows .list-cell:selected { -fx-background-color: #101318; }
+.reference-dark #productRows .list-cell:selected { -fx-background-color: #11161d; }
+
+/* Bulk actions have equal weight; selection, not every button, carries the accent. */
+.reference-dark #productsPane .products-bulk .button.btn-primary,
+.reference-dark#productsPane .products-bulk .button.btn-primary {
+    -fx-background-color: #26323e;
+    -fx-border-color: #526171;
+    -fx-text-fill: #f1f3f6;
+}
+.reference-dark #productsPane .products-bulk .button.btn-primary:hover,
+.reference-dark#productsPane .products-bulk .button.btn-primary:hover {
+    -fx-background-color: #344352;
+}
+
+/* Navigation is quiet so working lists remain the visual focus. */
+.reference-dark .sidebar .button.nav-item {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-weight: normal;
+    -fx-text-fill: #c4cdda;
+}
+.reference-dark .sidebar .button.nav-item:hover { -fx-background-color: #26323e; }
+.reference-dark .sidebar .button.nav-selected {
+    -fx-background-color: #26323e;
+    -fx-border-color: transparent transparent transparent #a783ff;
+    -fx-text-fill: #f1f3f6;
+    -fx-font-weight: bold;
+}
+.reference-dark .sidebar .button.nav-selected .ikonli-font-icon { -fx-icon-color: #f1f3f6; }

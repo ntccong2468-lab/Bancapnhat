@@ -103,11 +103,11 @@ public final class ThemeService {
         // The left end is clear water; increasing the slider adds the frosted material.
         // Keep alpha in paints, never on a parent Node (which also dims its text).
         double alpha=.005+amount*.00995;
-        String tint=theme==Theme.LIGHT?"199,226,246":"22,48,75";
-        String elevated=theme==Theme.LIGHT?"226,241,252":"33,64,94";
-        String ink=theme==Theme.LIGHT?"0,5,12":"249,252,255";
+        String tint=theme==Theme.LIGHT?"235,239,245":"22,48,75";
+        String elevated=theme==Theme.LIGHT?"252,253,255":"33,64,94";
+        String ink=theme==Theme.LIGHT?"27,38,50":"249,252,255";
         double frost=amount/100.0;
-        String paint=String.format(Locale.ROOT,"-glass-surface:rgba(%s,%.3f);-glass-elevated:rgba(%s,%.3f);-glass-row:rgba(%s,%.3f);-glass-button:rgba(%s,%.3f);-glass-highlight:rgba(255,255,255,%.3f);-glass-control-highlight:rgba(255,255,255,%.3f);-glass-control-shadow:rgba(20,94,158,%.3f);-glass-selected:rgba(%s,%.3f);-text-primary:rgb(%s);",tint,alpha,elevated,Math.min(1,alpha+.045*frost),tint,alpha*.55,elevated,Math.min(1,alpha+.035*frost),.015+(theme==Theme.LIGHT?.36:.14)*frost,.025+.22*frost,.005+.12*frost,theme==Theme.LIGHT?"54,117,190":"110,180,242",.035+.22*frost,ink);
+        String paint=String.format(Locale.ROOT,"-glass-surface:rgba(%s,%.3f);-glass-elevated:rgba(%s,%.3f);-glass-row:rgba(%s,%.3f);-glass-button:rgba(%s,%.3f);-glass-highlight:rgba(255,255,255,%.3f);-glass-control-highlight:rgba(255,255,255,%.3f);-glass-control-shadow:rgba(20,94,158,%.3f);-glass-selected:rgba(%s,%.3f);-text-primary:rgb(%s);",tint,alpha,elevated,Math.min(1,alpha+.045*frost),tint,alpha*.55,elevated,Math.min(1,alpha+.035*frost),.015+(theme==Theme.LIGHT?.36:.14)*frost,.025+.22*frost,.005+.12*frost,theme==Theme.LIGHT?"105,67,184":"110,180,242",.035+.22*frost,ink);
         root.setStyle(root.getProperties().get(ORIGINAL_STYLE)+(theme==Theme.LIGHT?";"+paint:""));
         root.getProperties().put("glass.transparency",amount);
     }

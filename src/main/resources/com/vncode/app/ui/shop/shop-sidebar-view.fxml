@@ -35,7 +35,7 @@
                 </Label>
             </children>
         </HBox>
-        <Button fx:id="sidebarToggleButton" onAction="#onToggleSidebar" maxWidth="1.7976931348623157E308" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-chevrons-left" iconSize="16"/></graphic></Button>
+        <Button fx:id="sidebarToggleButton" onAction="#onToggleSidebar" maxWidth="42" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-chevrons-left" iconSize="16"/></graphic></Button>
         <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="40" prefWidth="190.0" text=" Добавить магазин" maxWidth="1.7976931348623157E308" styleClass="button,add-shop">
             <graphic>
                 <FontIcon iconLiteral="fth-plus" iconSize="16" />

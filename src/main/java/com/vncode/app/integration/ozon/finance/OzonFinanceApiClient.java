@@ -122,6 +122,8 @@ public final class OzonFinanceApiClient {
             double itemQuantity = number(item.getAsJsonObject(), "quantity");
             quantity += itemQuantity == 0 ? 1 : Math.abs(itemQuantity);
         }
+        // An item on a penalty operation identifies the affected product, not a sale.
+        if (penaltyOperation) quantity = 0;
 
         double accrual = number(operation, "accruals_for_sale");
         double amount = number(operation, "amount");
@@ -136,18 +138,24 @@ public final class OzonFinanceApiClient {
         for (JsonElement serviceElement : services) {
             if (!serviceElement.isJsonObject()) continue;
             JsonObject service = serviceElement.getAsJsonObject();
-            double cost = Math.abs(number(service, "price"));
+            double signedPrice = number(service, "price");
+            double cost = Math.abs(signedPrice);
             String serviceProbe = normalize(text(service, "name"));
-            if (containsAny(serviceProbe, "штраф", "penalty", "fine")) penalty += cost;
+            if (containsAny(serviceProbe, "штраф", "penalty", "fine")) {
+                // A positive service amount on a positive penalty transaction is a refund.
+                if (!(penaltyOperation && amount > 0 && signedPrice > 0)) penalty += cost;
+            }
             else if (containsAny(serviceProbe, "реклам", "advert", "marketing", "продвиж")) advertising += cost;
             else if (containsAny(serviceProbe, "достав", "delivery", "логист", "logistic")) logistics += cost;
             else other += cost;
         }
 
-        boolean merchandiseOperation = Math.abs(accrual) > 0.000001 || !items.isEmpty();
+        boolean merchandiseOperation = !penaltyOperation && (Math.abs(accrual) > 0.000001 || !items.isEmpty());
         if (!merchandiseOperation && amount < 0) {
             double operationCost = Math.abs(amount);
-            if (penaltyOperation) penalty = Math.max(penalty, operationCost);
+            // Prefer an explicitly itemized penalty over the total transaction amount,
+            // which may also contain separately classified fees.
+            if (penaltyOperation) { if (penalty == 0) penalty = operationCost; }
             else if (advertisingOperation) advertising = Math.max(advertising, operationCost);
             else if (logisticsOperation) logistics = Math.max(logistics, operationCost);
             else other = Math.max(other, operationCost);
@@ -170,7 +178,7 @@ public final class OzonFinanceApiClient {
                 text(firstItem, "sku"),
                 quantity,
                 returned,
-                Math.abs(accrual),
+                penaltyOperation ? 0 : Math.abs(accrual),
                 forPay,
                 commission,
                 0,

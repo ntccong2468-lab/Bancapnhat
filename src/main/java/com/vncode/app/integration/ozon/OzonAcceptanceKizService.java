@@ -53,7 +53,8 @@ final class OzonAcceptanceKizService {
         categorySkus.addAll(OzonCategoryStock.reservedCategorySkus(shop.getId(),posting,prior));
         var plan=OzonRequirementGuard.plan(posting,new OzonProductGtinMappingRepository().findResolvedBySku(shop.getId()),
                 new OzonProductKizPolicyRepository().findExemptSkus(shop.getId()),categorySkus);
-        var local=jobs.stageLocalForPrint(shop.getId(),plan,sources,()->{ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);});
+        var local=jobs.stageLocalForPrint(shop.getId(),plan,sources,()->{ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);},
+                ()->OzonRequirementGuard.requireCurrentPurchasedMappings(shop.getId(),plan,sources));
         var job=local.job();
         if(!local.ready())throw new IOException("OZON_ACCEPT_KIZ_STOCK_REQUIRED");
         var remote=api.createOrGetExemplars(OzonExemplarService.createRequest(posting));
@@ -69,6 +70,7 @@ final class OzonAcceptanceKizService {
         var payload=OzonExemplarService.exemplarPayload(posting.postingNumber(),bindings,true);
         String fingerprint=ListingIdentity.hash(payload.toString());
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
+        jobs.requireCurrentBindingsBeforeSend(shop,posting.postingNumber(),job.id());
         if(!jobs.tryBeginAction(shop.getId(),"accept_kiz",posting.postingNumber(),fingerprint)){
             verify(shop,posting,api,job);return;
         }

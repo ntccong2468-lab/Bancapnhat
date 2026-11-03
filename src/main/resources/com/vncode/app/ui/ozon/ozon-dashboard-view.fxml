@@ -24,8 +24,8 @@
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox minWidth="0" spacing="8.0" styleClass="ozon-fbs-workspace,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.ozon.OzonDashboardController">
-    <padding><Insets bottom="16.0" left="16.0" right="16.0" top="16.0" /></padding>
+<VBox minWidth="0" minHeight="0" spacing="6.0" styleClass="ozon-fbs-workspace,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.ozon.OzonDashboardController">
+    <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0" /></padding>
     <children>
         <FlowPane alignment="CENTER_LEFT" hgap="10.0" vgap="6.0">
             <children>
@@ -36,12 +36,12 @@
                 </VBox>
                 <ProgressIndicator fx:id="loadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" visible="false" />
                 <Button fx:id="cancelSelectionButton" onAction="#onCancelSelection" text="%ozon.batch.cancel_selection" visible="false" managed="false" />
-                <Button fx:id="kizInventoryButton" onAction="#onOpenKizInventory" text="%kiz.shipment.title" styleClass="btn-secondary" prefHeight="46"/>
+                <Button fx:id="kizInventoryButton" onAction="#onOpenKizInventory" text="%kiz.shipment.title" styleClass="btn-secondary" prefHeight="36"/>
                 <Button fx:id="addAgainKizButton" visible="false" managed="false" onAction="#onAddAgainKiz" text="%kn3.batch.title" styleClass="btn-primary"/>
-<Button fx:id="printAllButton" disable="true" mnemonicParsing="false" onAction="#onPrintAll" prefHeight="46.0" styleClass="btn-success" text="Print all">
+<Button fx:id="printAllButton" disable="true" mnemonicParsing="false" onAction="#onPrintAll" prefHeight="36.0" styleClass="btn-success" text="Print all">
                                                     <graphic><FontIcon iconLiteral="fth-printer" iconSize="16" /></graphic>
                                                 </Button>
-                <Button fx:id="refreshButton" prefHeight="46" mnemonicParsing="false" onAction="#onRefresh" text="Refresh"><graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15" /></graphic></Button>
+                <Button fx:id="refreshButton" prefHeight="36" mnemonicParsing="false" onAction="#onRefresh" text="Refresh"><graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15" /></graphic></Button>
                 <Label fx:id="pageStatusLabel" styleClass="text-muted" />
                 <Button fx:id="previousPageButton" onAction="#onPreviousPage" text="Previous" />
                 <Button fx:id="nextPageButton" onAction="#onNextPage" text="Next" />

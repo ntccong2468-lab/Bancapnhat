@@ -150,7 +150,8 @@ public final class OzonPostingSyncService {
                 }
             }
         }
-        api.requireSyncOwner(shopId);return postings.upsertPageIfUnchanged(shopId,usable,started)==usable.size()&&complete;
+        api.requireSyncOwner(shopId);String trackingOwner=api.syncOwnerFingerprint(shopId);
+        return postings.upsertPageIfUnchanged(shopId,usable.stream().map(p->p.withTrackingOwner(trackingOwner)).toList(),started)==usable.size()&&complete;
     }
 
     public OzonPostingDto refresh(String postingNumber, boolean withExemplars) throws IOException {
@@ -158,7 +159,7 @@ public final class OzonPostingSyncService {
         api.requireSyncOwner(shopId);
         Instant started=Instant.now();
         var raw=api.getPosting(postingNumber, withExemplars);
-        OzonPostingDto posting = OzonJson.requirePostingDetail(raw,postingNumber);
+        OzonPostingDto posting = OzonJson.requirePostingDetail(raw,postingNumber).withTrackingOwner(api.syncOwnerFingerprint(shopId));
         api.requireSyncOwner(shopId);
         var object=raw.has("result")&&raw.get("result").isJsonObject()?raw.getAsJsonObject("result"):raw;
         if(!OzonJson.hasCompletePostingDetails(object,posting)){

@@ -79,8 +79,12 @@ class OzonPerUnitShipServiceTest {
     @Test void sameSkuUnitsAreShippedSeparatelyAndEachActualChildIsPersisted() throws Exception {
         enqueue(source(false));
         enqueue("{\"result\":[\"CHILD-A\",\"CHILD-B\"]}");
-        enqueue(child("CHILD-A", "ORDER", "WH", 101, "awaiting_deliver", "posting_transferring_to_delivery"));
-        enqueue(child("CHILD-B", "ORDER", "WH", 101, "awaiting_deliver", "posting_transferring_to_delivery"));
+        var firstChild = JsonParser.parseString(child("CHILD-A", "ORDER", "WH", 101, "awaiting_deliver", "posting_transferring_to_delivery")).getAsJsonObject();
+        var secondChild = JsonParser.parseString(child("CHILD-B", "ORDER", "WH", 101, "awaiting_deliver", "posting_transferring_to_delivery")).getAsJsonObject();
+        firstChild.getAsJsonObject("result").addProperty("tracking_number", "TRACK-CHILD-A");
+        secondChild.getAsJsonObject("result").addProperty("tracking_number", "TRACK-CHILD-B");
+        enqueue(firstChild.toString());
+        enqueue(secondChild.toString());
         var result = service().shipPerUnit(shop, "PARENT", true);
 
         assertEquals("awaiting_deliver", result.status());
@@ -92,6 +96,9 @@ class OzonPerUnitShipServiceTest {
         assertNotNull(postings.find(1, "CHILD-A"));
         assertNotNull(postings.find(1, "CHILD-B"));
         assertEquals(1, postings.find(1, "CHILD-A").items().getFirst().quantity());
+        var tracking = OzonPostingTrackingStore.forExport(shop, List.of(postings.find(1, "CHILD-A"), postings.find(1, "CHILD-B")));
+        assertEquals(new OzonPostingTrackingStore.Tracking("TRACK-CHILD-A", true), tracking.get("CHILD-A"));
+        assertEquals(new OzonPostingTrackingStore.Tracking("TRACK-CHILD-B", true), tracking.get("CHILD-B"));
         assertEquals(0, count("SELECT count(*) FROM kn3_marks"), "Shipping cannot fabricate accepted KIZ");
     }
 

@@ -33,13 +33,13 @@ class ThemeServiceTest {
     var root=new VBox(18,new Label("VNCode — Liquid Glass"),card);root.setStyle("-fx-padding:24;");
     var stage=new Stage();stage.setScene(new Scene(root,700,420));ThemeService.applyTheme(stage.getScene());stage.show();root.applyCss();root.layout();
     assertEquals(1,root.getOpacity());assertEquals(1,label.getOpacity());assertEquals(1,input.getOpacity());assertEquals(1,stage.getOpacity());
-    assertTrue(card.getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius()>=18);
+    assertEquals(8,card.getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius(),"Panels use the compact desktop radius");
     assertTrue(((Color)label.getTextFill()).getOpacity()>=.959);
-    var background=theme==ThemeService.Theme.DARK?Color.web("#101318"):Color.web("#74a6dc");
+    var background=theme==ThemeService.Theme.DARK?Color.web("#11161d"):Color.web("#f3f6f9");
     var fill=(Color)card.getBackground().getFills().getFirst().getFill();var blended=over(fill,background);
     assertTrue(contrast(over((Color)label.getTextFill(),blended),blended)>=7,"Primary text contrast: "+theme+" "+amount);
     assertTrue(contrast((Color)muted.getTextFill(),blended)>=4.5,"Secondary text contrast: "+theme+" "+amount);
-    var strongestCanvas=theme==ThemeService.Theme.DARK?Color.web("#101318"):Color.web("#74a6dc");
+    var strongestCanvas=theme==ThemeService.Theme.DARK?Color.web("#11161d"):Color.web("#f3f6f9");
     assertTrue(contrast((Color)label.getTextFill(),strongestCanvas)>=4.5,"Primary text directly on canvas");
     assertTrue(contrast((Color)muted.getTextFill(),strongestCanvas)>=4.5,"Secondary text directly on canvas");
     var buttonPaint=(Color)button.getBackground().getFills().getFirst().getFill();var buttonBackground=over(buttonPaint,blended);

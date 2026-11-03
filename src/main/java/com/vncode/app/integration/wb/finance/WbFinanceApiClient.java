@@ -56,7 +56,7 @@ public class WbFinanceApiClient {
                 "rrdId", "reportId", "currency", "nmId", "vendorCode", "sku",
                 "docTypeName", "sellerOperName", "quantity", "retailAmount", "forPay",
                 "ppvzSalesCommission", "acquiringFee", "deliveryService", "paidStorage",
-                "paidAcceptance", "penalty", "deduction", "additionalPayment", "orderId",
+                "paidAcceptance", "penalty", "bonusTypeName", "deduction", "additionalPayment", "orderId",
                 "orderUid", "srid", "saleDt", "rrDate")) {
             fields.add(field);
         }
@@ -69,7 +69,7 @@ public class WbFinanceApiClient {
                 .build();
         try (var slot=com.vncode.app.shared.MarketplaceRequestBudget.acquire(); Response response = client.newCall(request).execute()) {
             if (response.code() == 204) {
-                return new WbFinancePage(List.of(), cursor, true);
+                return new WbFinancePage(List.of(), cursor, true, true);
             }
             String body = com.vncode.app.shared.BoundedHttpBody.utf8(response.body(),20*1024*1024);
             if (!response.isSuccessful()) {
@@ -103,6 +103,10 @@ public class WbFinanceApiClient {
         }
         String docType = firstText(object, "docTypeName", "doc_type_name");
         String operation = firstText(object, "sellerOperName", "supplierOperName", "supplier_oper_name");
+        String deductionReason = firstText(object, "bonusTypeName", "bonus_type_name");
+        double penalty = number(object, "penalty");
+        String description = penalty != 0 && deductionReason != null && !deductionReason.isBlank()
+                ? deductionReason : operation;
         String returnProbe = ((docType == null ? "" : docType) + " " + (operation == null ? "" : operation))
                 .toLowerCase(Locale.ROOT);
         boolean returned = returnProbe.contains("возврат") || returnProbe.contains("return");
@@ -114,7 +118,7 @@ public class WbFinanceApiClient {
                         "createDate", "rr_dt", "sale_dt", "order_dt"),
                 defaultText(firstText(object, "currency", "currencyName", "currency_name"), "RUB"),
                 docType,
-                operation,
+                description,
                 orderId,
                 firstText(object, "nmId", "nm_id"),
                 firstText(object, "vendorCode", "sa_name"),
@@ -128,7 +132,7 @@ public class WbFinanceApiClient {
                 number(object, "deliveryService", "deliveryRub", "delivery_rub"),
                 number(object, "paidStorage", "storage_fee"),
                 number(object, "paidAcceptance", "acceptance"),
-                number(object, "penalty"),
+                penalty,
                 number(object, "deduction"),
                 number(object, "additionalPayment", "additional_payment"),
                 0,
@@ -148,10 +152,12 @@ public class WbFinanceApiClient {
 
     static WbAnalyticsApiException apiError(Response response, String body, String apiName) {
         Duration retryAfter = null;
-        String header = response.header("Retry-After");
-        if (header != null) {
+        for (String name : List.of("Retry-After", "X-Ratelimit-Retry")) {
+            String header = response.header(name);
+            if (header == null) continue;
             try {
-                retryAfter = Duration.ofSeconds(Math.max(1, Long.parseLong(header.strip())));
+                Duration declared = Duration.ofSeconds(Math.max(1, Long.parseLong(header.strip())));
+                if (retryAfter == null || declared.compareTo(retryAfter) > 0) retryAfter = declared;
             } catch (NumberFormatException ignored) {
                 // Scheduler uses its conservative fallback.
             }

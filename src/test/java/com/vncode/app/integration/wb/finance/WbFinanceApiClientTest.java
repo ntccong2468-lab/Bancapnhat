@@ -80,11 +80,32 @@ class WbFinanceApiClientTest {
     }
 
     @Test
+    void requestsAndPreservesTheWbDeductionReasonForPenaltyRows() throws Exception {
+        server.enqueue(new MockResponse().setResponseCode(200).setBody("""
+                [{"rrdId":111,"sellerOperName":"Штраф","bonusTypeName":"Невыполненный заказ",
+                  "penalty":"231.35","orderId":"123","currency":"RUB"},
+                 {"rrdId":112,"sellerOperName":"Операция","bonusTypeName":"  ","penalty":"20"},
+                 {"rrdId":113,"sellerOperName":"Продажа","bonusTypeName":"Другая корректировка","penalty":"0"}]
+                """));
+        var client = new WbFinanceApiClient(new OkHttpClient(), server.url("/finance").toString());
+        var page = client.loadPage("synthetic-token", LocalDate.of(2026,1,1), LocalDate.of(2026,1,2), "0");
+        assertEquals("Невыполненный заказ", page.rows().get(0).operationName());
+        assertEquals(231.35, page.rows().get(0).penaltyCost(), 0.001);
+        assertEquals("Операция", page.rows().get(1).operationName());
+        assertEquals("Продажа", page.rows().get(2).operationName());
+        var request = JsonParser.parseString(server.takeRequest().getBody().readUtf8()).getAsJsonObject();
+        assertTrue(request.getAsJsonArray("fields").asList().stream()
+                .anyMatch(field -> "bonusTypeName".equals(field.getAsString())));
+    }
+
+    @Test
     void treats204AsCheckpointCompletionAndNeverRetries429() throws Exception {
         server.enqueue(new MockResponse().setResponseCode(204));
         WbFinanceApiClient client = new WbFinanceApiClient(new OkHttpClient.Builder()
                 .retryOnConnectionFailure(false).build(), server.url("/finance").toString());
-        assertTrue(client.loadPage("token", LocalDate.now(), LocalDate.now(), "42").endOfReport());
+        var end = client.loadPage("token", LocalDate.now(), LocalDate.now(), "42");
+        assertTrue(end.endOfReport());
+        assertTrue(end.confirmedTerminal());
         assertEquals(1, server.getRequestCount());
 
         server.enqueue(new MockResponse().setResponseCode(429).setHeader("Retry-After", "75").setBody("rate limit"));
@@ -93,6 +114,16 @@ class WbFinanceApiClientTest {
         assertEquals(429, error.statusCode());
         assertEquals(75, error.retryAfter().toSeconds());
         assertEquals(2, server.getRequestCount());
+    }
+
+    @Test void honorsTheLongerOfWbAndStandardRetryHeaders() {
+        server.enqueue(new MockResponse().setResponseCode(429).setHeader("Retry-After", "75")
+                .setHeader("X-Ratelimit-Retry", "3600").setBody("rate limit"));
+        var client = new WbFinanceApiClient(new OkHttpClient(),server.url("/finance").toString());
+        var error = assertThrows(WbAnalyticsApiException.class,
+                () -> client.loadPage("fixture-token",LocalDate.of(2026,1,1),LocalDate.of(2026,1,2),"0"));
+        assertEquals(3600,error.retryAfter().toSeconds());
+        assertEquals(1,server.getRequestCount());
     }
 
     @Test
@@ -106,6 +137,7 @@ class WbFinanceApiClientTest {
                 "token", LocalDate.now(), LocalDate.now(), "42");
 
         assertTrue(page.endOfReport());
+        assertFalse(page.confirmedTerminal());
         assertEquals("42", page.nextCursor());
         assertEquals(1, server.getRequestCount());
     }

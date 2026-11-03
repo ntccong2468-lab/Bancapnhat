@@ -74,6 +74,41 @@ class OzonFinanceApiClientTest {
     }
 
     @Test
+    void classifiesPenaltyOperationsEvenWhenOzonProvidesProductDetails() {
+        var row = OzonFinanceApiClient.parseRow(JsonParser.parseString("""
+                {"operation_id":125,"operation_type":"OperationMarketplaceServiceItemPenalty",
+                 "operation_type_name":"Штраф за заказ","amount":-75,"accruals_for_sale":1000,"type":"services",
+                 "posting":{"posting_number":"200-1"},
+                 "items":[{"sku":555,"offer_id":"ART-1","quantity":1}],"services":[]}
+                """).getAsJsonObject(), LocalDate.of(2026, 1, 1));
+        assertEquals(75, row.penaltyCost(), 0.001);
+        assertEquals(0, row.forPay(), 0.001);
+        assertEquals(0, row.retailAmount(), 0.001);
+        assertEquals("200-1", row.orderId());
+        assertEquals("ART-1", row.vendorCode());
+        assertEquals(0, row.quantity(), 0.001);
+    }
+
+    @Test
+    void doesNotDoubleCountPenaltyAmountAndServiceOrTreatRefundAsNewPenalty() {
+        var charged = OzonFinanceApiClient.parseRow(JsonParser.parseString("""
+                {"operation_id":126,"operation_type":"Penalty","amount":-100,
+                 "items":[{"sku":555}],"services":[{"name":"Штраф","price":-75},
+                 {"name":"доставка","price":-25}]}
+                """).getAsJsonObject(), LocalDate.of(2026, 1, 1));
+        assertEquals(75, charged.penaltyCost(), 0.001);
+        assertEquals(25, charged.logisticsCost(), 0.001);
+        assertEquals(0, charged.forPay(), 0.001);
+        var refunded = OzonFinanceApiClient.parseRow(JsonParser.parseString("""
+                {"operation_id":127,"operation_type":"Penalty","amount":75,
+                 "items":[{"sku":555}],"services":[{"name":"Штраф","price":75}]}
+                """).getAsJsonObject(), LocalDate.of(2026, 1, 1));
+        assertEquals(0, refunded.penaltyCost(), 0.001);
+        assertEquals(75, refunded.additionalPayment(), 0.001);
+        assertEquals(0, refunded.forPay(), 0.001);
+    }
+
+    @Test
     void enforcesOneMonthWindowAndDoesNotRetryRateLimit() {
         OzonFinanceApiClient client = new OzonFinanceApiClient(
                 new OkHttpClient.Builder().retryOnConnectionFailure(false).build(),

@@ -210,6 +210,7 @@ final class OzonUnitShipRepository {
         var numbers=children.stream().map(OzonPostingDto::postingNumber).toList();
         try{SqliteWriteTransaction.run(connection->{requireOwner(connection,shop);
             for(var child:children)OzonPostingRepository.upsert(connection,shop.getId(),child);
+            OzonPostingTrackingStore.recordAll(connection,shop.getId(),children);
             try(var statement=connection.prepareStatement("UPDATE ozon_unit_ship_receipts SET state='COMPLETE',children_json=?,parent_in_children=?,updated_at=? WHERE shop_id=? AND posting_number=? AND owner=?")){
                 statement.setString(1,JSON.toJson(numbers));statement.setInt(2,numbers.contains(posting)?1:0);statement.setString(3,Instant.now().toString());
                 statement.setInt(4,shop.getId());statement.setString(5,posting);statement.setString(6,ListingIdentity.fingerprint(shop));

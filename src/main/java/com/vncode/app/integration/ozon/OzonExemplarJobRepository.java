@@ -240,6 +240,9 @@ public final class OzonExemplarJobRepository {
         return stageLocalForPrint(shopId,plan,null,authorizeNewPrint);
     }
     public LocalPrintReservation stageLocalForPrint(int shopId,OzonRequirementGuard.PreparationPlan plan,KizSourceSelection sources,Runnable authorizeNewPrint) {
+        return stageLocalForPrint(shopId, plan, sources, authorizeNewPrint, () -> {});
+    }
+    public LocalPrintReservation stageLocalForPrint(int shopId,OzonRequirementGuard.PreparationPlan plan,KizSourceSelection sources,Runnable authorizeNewPrint,Runnable verifyMapping) {
         if (shopId <= 0 || plan == null || plan.exemplarCount() <= 0) {
             throw new IllegalArgumentException("A shop-owned Ozon print plan is required.");
         }
@@ -253,6 +256,9 @@ public final class OzonExemplarJobRepository {
                     return new LocalPrintReservation(job, true);
                 }
                 authorizeNewPrint.run();
+                // BEGIN IMMEDIATE keeps other SQLite writers out until reservation commits.
+                // The verifier performs local reads only; it must never call a remote API.
+                verifyMapping.run();
                 if (job == null) {
                     String now = Instant.now().toString();
                     try (PreparedStatement insert = connection.prepareStatement("""
@@ -366,18 +372,25 @@ public final class OzonExemplarJobRepository {
         var nativeProducts=OzonCategoryStock.nativeProducts(connection,job.shopId(),plan.items().stream().map(OzonRequirementGuard.RequiredItem::sku).toList());
         int count = 0;
         try (PreparedStatement statement = connection.prepareStatement("""
-                SELECT e.item_index,e.product_id,e.exemplar_index,e.kiz_id,k.shop_id,k.gtin,k.status,k.reservation_token
+                SELECT e.item_index,e.product_id,e.exemplar_index,e.kiz_id,k.shop_id,k.gtin,k.status,k.reservation_token,
+                    EXISTS(SELECT 1 FROM kiz_stock_category_reservations proof WHERE proof.code_id=e.kiz_id AND proof.token='ozon:'||e.job_id),
+                    %s
                 FROM ozon_exemplars e LEFT JOIN kiz_codes k ON k.id=e.kiz_id
                 WHERE e.job_id=? ORDER BY e.item_index,e.exemplar_index
-                """)) {
-            statement.setLong(1, job.id());
+                """.formatted(com.vncode.app.features.kiz.KizWarehouseRepository.eligibleExact("k")))) {
+            statement.setString(1, owner);
+            statement.setLong(2, job.id());
             try (ResultSet rows = statement.executeQuery()) {
                 while (rows.next()) {
                     OzonRequirementGuard.RequiredItem expected = items.get(rows.getInt(1));
+                    boolean category = rows.getInt(9) != 0;
+                    boolean validSource = expected != null && (category
+                            ? com.vncode.app.features.kiz.KizCategoryAllocator.hasProof(connection,job.shopId(),owner,rows.getLong(4),rows.getString(8),OzonCategoryStock.key(plan.postingNumber(),expected.itemIndex()),nativeProducts.get(expected.sku()))
+                            : rows.getInt(10) != 0 && expected.gtin().equals(rows.getString(6)));
                     if (expected == null || !expected.productId().equals(rows.getString(2))
                             || rows.getInt(3) < 0 || rows.getInt(3) >= expected.quantity()
                             || rows.getObject(4) == null || rows.getInt(5) != job.shopId()
-                            || (!expected.gtin().equals(rows.getString(6)) && !com.vncode.app.features.kiz.KizCategoryAllocator.hasProof(connection,job.shopId(),owner,rows.getLong(4),rows.getString(8),OzonCategoryStock.key(plan.postingNumber(),expected.itemIndex()),nativeProducts.get(expected.sku())))
+                            || !validSource
                             || !"RESERVED".equals(rows.getString(7))
                             || !("ozon:" + job.id()).equals(rows.getString(8))) {
                         throw new IllegalStateException("Existing Ozon KIZ links differ from the refreshed posting; reconciliation is required.");
@@ -601,6 +614,7 @@ public final class OzonExemplarJobRepository {
             transaction.execute("BEGIN IMMEDIATE");
             try {
                 List<Long> validated = new ArrayList<>();
+                List<String> validatedPostings = new ArrayList<>();
                 Set<String> matched = new java.util.HashSet<>();
                 for (int start = 0; start < numbers.size(); start += 500) {
                     List<String> chunk = numbers.subList(start, Math.min(start + 500, numbers.size()));
@@ -627,7 +641,10 @@ public final class OzonExemplarJobRepository {
                                     if(!expected.bindings().equals(current))throw new IllegalStateException("Ozon KIZ bindings changed after PDF rendering.");
                                 }
                                 OzonExemplarJobStage stage = OzonExemplarJobStage.valueOf(result.getString(2));
-                                if (stage == OzonExemplarJobStage.VALIDATED) validated.add(result.getLong(1));
+                                if (stage == OzonExemplarJobStage.VALIDATED) {
+                                    validated.add(result.getLong(1));
+                                    validatedPostings.add(posting);
+                                }
                                 else if (stage != OzonExemplarJobStage.ACCEPTED) {
                                     throw new IllegalStateException("An Ozon print job changed before the batch was marked printed.");
                                 }
@@ -636,6 +653,16 @@ public final class OzonExemplarJobRepository {
                     }
                 }
                 if(!proofs.isEmpty()&&(matched.size()!=numbers.size()||!matched.containsAll(numbers)))throw new IllegalStateException("An Ozon KIZ print job is missing before marking printed.");
+                if (!proofs.isEmpty() && !validatedPostings.isEmpty()) {
+                    // Re-read the current mapping only once for the whole PDF batch while
+                    // BEGIN IMMEDIATE excludes mapping writers. Historic ACCEPTED jobs are
+                    // reprints and deliberately retain their original immutable bindings.
+                    Map<String,String> currentMappings = new OzonProductGtinMappingRepository().findResolvedBySku(shopId);
+                    for (String posting : validatedPostings) {
+                        OzonExemplarJob currentJob = find(connection, shopId, posting);
+                        requireCurrentPrintBindings(connection, currentJob, currentMappings);
+                    }
+                }
                 beforeConsume.run();
                 String now = Instant.now().toString();
                 for (int start = 0; start < validated.size(); start += 500) {
@@ -697,6 +724,62 @@ public final class OzonExemplarJobRepository {
             }
         } catch (SQLException exception) {
             throw new IllegalStateException("Cannot mark the selected Ozon batch printed", exception);
+        }
+    }
+
+    private static void requireCurrentPrintBindings(Connection connection, OzonExemplarJob job,
+                                                     Map<String,String> currentMappings) throws SQLException {
+        if (job == null) throw new IllegalStateException("Ozon print job disappeared.");
+        var items = new ArrayList<OzonRequirementGuard.RequiredItem>();
+        try (var query = connection.prepareStatement("""
+                SELECT DISTINCT item.item_index,item.product_id,item.sku,item.quantity
+                FROM ozon_posting_items item JOIN ozon_exemplars exemplar
+                  ON exemplar.shop_id=item.shop_id AND exemplar.posting_number=item.posting_number
+                 AND exemplar.item_index=item.item_index
+                WHERE exemplar.job_id=? AND item.shop_id=? ORDER BY item.item_index
+                """)) {
+            query.setLong(1, job.id()); query.setInt(2, job.shopId());
+            try (var rows = query.executeQuery()) {
+                while (rows.next()) {
+                    String product = java.util.Objects.requireNonNullElse(rows.getString(2), "");
+                    String sku = java.util.Objects.requireNonNullElse(rows.getString(3), "");
+                    items.add(new OzonRequirementGuard.RequiredItem(rows.getInt(1), product, sku,
+                            currentMappings.getOrDefault(sku, ""), rows.getInt(4), true));
+                }
+            }
+        }
+        if (items.isEmpty()) throw new IllegalStateException("Ozon KIZ product details are missing before publication.");
+        requireMatchingBindings(connection, job, new OzonRequirementGuard.PreparationPlan(job.postingNumber(), List.copyOf(items)));
+    }
+
+    /** Best-effort preflight before a new remote KIZ submission; no HTTP occurs while locked. */
+    public void requireCurrentBindingsBeforeSend(int shopId, String postingNumber, long expectedJobId) {
+        requireCurrentBindingsBeforeSend(shopId, postingNumber, expectedJobId, () -> {});
+    }
+    public void requireCurrentBindingsBeforeSend(com.vncode.app.models.Shop shop, String postingNumber, long expectedJobId) {
+        requireCurrentBindingsBeforeSend(shop.getId(), postingNumber, expectedJobId,
+                () -> com.vncode.app.integration.listing.ListingIdentity.require(shop));
+    }
+    private void requireCurrentBindingsBeforeSend(int shopId, String postingNumber, long expectedJobId, Runnable verifyOwner) {
+        try (Connection connection = Database.getConnection(); Statement transaction = connection.createStatement()) {
+            transaction.execute("BEGIN IMMEDIATE");
+            try {
+                verifyOwner.run();
+                OzonExemplarJob job = find(connection, shopId, postingNumber);
+                if (job == null || job.id() != expectedJobId)
+                    throw new IllegalStateException("Ozon KIZ job changed before submission.");
+                // An ACCEPTED job can have been printed before Ozon acceptance.
+                // Its consumed marks are historical and must not be reassigned.
+                if (job.stage() == OzonExemplarJobStage.ACCEPTED) { transaction.execute("COMMIT"); return; }
+                if (job.stage() != OzonExemplarJobStage.VALIDATED)
+                    throw new IllegalStateException("Ozon KIZ job changed before submission.");
+                requireCurrentPrintBindings(connection, job, new OzonProductGtinMappingRepository().findResolvedBySku(shopId));
+                transaction.execute("COMMIT");
+            } catch (RuntimeException | SQLException failure) {
+                transaction.execute("ROLLBACK"); throw failure;
+            }
+        } catch (SQLException failure) {
+            throw new IllegalStateException("Cannot verify Ozon KIZ mapping before submission", failure);
         }
     }
 

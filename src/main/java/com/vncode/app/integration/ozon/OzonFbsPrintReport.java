@@ -18,8 +18,20 @@ public final class OzonFbsPrintReport {
  }
  public String id(){return run;}
  public void waitingForStock(Shop shop){
-  var out=items.stream().map(item->new SyncRunRepository.Item(item.id(),run,item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),item.gtin(),"WAITING_REMOTE","FBS_PRINT","KIZ_PURCHASE_PENDING","","{\"pdfBatchComplete\":false,\"remoteKizConfirmedByThisTask\":false}")).toList();
-  reports.updateBatch(shop,run,out);reports.stage(shop,run,"WAITING_REMOTE","FBS_PRINT","KIZ_PURCHASE_PENDING");
+  waitingForStock(shop,Map.of());
+ }
+ /** Preserve preflight rejections if another posting is waiting for a purchase. */
+ public void waitingForStock(Shop shop,Map<String,String> blocked){
+  var failures=Map.copyOf(blocked);var requested=items.stream().map(SyncRunRepository.Item::productId).collect(java.util.stream.Collectors.toSet());
+  if(!requested.containsAll(failures.keySet()))throw new IllegalArgumentException("OZON_PRINT_REPORT_SELECTION_CHANGED");
+  var out=items.stream().map(item->{
+   String reason=failures.get(item.productId());var evidence=new JsonObject();
+   evidence.addProperty("pdfBatchComplete",false);evidence.addProperty("remoteKizConfirmedByThisTask",false);
+   if(reason!=null)evidence.addProperty("reason",reason);
+   return new SyncRunRepository.Item(item.id(),run,item.productId(),item.variantId(),item.sku(),item.article(),item.color(),item.size(),item.gtin(),
+           reason==null?"WAITING_REMOTE":"NEEDS_ACTION","FBS_PRINT",reason==null?"KIZ_PURCHASE_PENDING":"FBS_PRINT_NOT_COMPLETED","",evidence.toString());
+  }).toList();
+  reports.updateBatch(shop,run,out);reports.stage(shop,run,failures.isEmpty()?"WAITING_REMOTE":"PARTIAL","FBS_PRINT","KIZ_PURCHASE_PENDING");
  }
  public void finish(Shop shop,boolean completed){
   finishAvailable(shop,completed?items.stream().map(SyncRunRepository.Item::productId).collect(java.util.stream.Collectors.toSet()):Set.of(),Map.of());
