@@ -4,6 +4,7 @@ import com.vncode.app.config.Database;
 import com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.*;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.AppTaskExecutor;
+import com.vncode.app.shared.FxmlViewLoader;
 import com.vncode.app.shared.I18nService;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -43,7 +44,7 @@ class ZnackCardRegistrationControllerTest {
             new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("04631993764370","SKU-3","Blue","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now())));
         fx(()->{
             if(System.getProperty("vncode.item4.capture.dir")!=null)I18nService.getInstance().setLanguage(com.vncode.app.shared.AppLanguage.VI);
-            loader=new FXMLLoader(ZnackCardRegistrationController.class.getResource("znack-card-registration-view.fxml"));
+            loader=FxmlViewLoader.loader(ZnackCardRegistrationController.class,"znack-card-registration-view.fxml");
             loader.load();((ZnackCardRegistrationController)loader.getController()).setShop(new Shop(1,"Fixture","fixture"));return null;
         });
         awaitTasks();
@@ -52,7 +53,7 @@ class ZnackCardRegistrationControllerTest {
     @Test void reopeningAfterAWeekRestoresSavedRowsAndFiltersWithoutASourceSync()throws Exception{
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,3,'04631993764370')");}
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET finished_at=? WHERE kind='registration_sources'")){p.setString(1,java.time.Instant.now().minusSeconds(7*86400).toString());p.executeUpdate();}
-        fx(()->{((ZnackCardRegistrationController)loader.getController()).dispose();loader=new FXMLLoader(ZnackCardRegistrationController.class.getResource("znack-card-registration-view.fxml"));loader.load();((ZnackCardRegistrationController)loader.getController()).setShop(new Shop(1,"Fixture","fixture"));return null;});awaitTasks();
+        fx(()->{((ZnackCardRegistrationController)loader.getController()).dispose();loader=FxmlViewLoader.loader(ZnackCardRegistrationController.class,"znack-card-registration-view.fxml");loader.load();((ZnackCardRegistrationController)loader.getController()).setShop(new Shop(1,"Fixture","fixture"));return null;});awaitTasks();
         fx(()->{assertEquals(3,table().getItems().size());assertTrue(button("updateWbButton").isDisabled());assertTrue(button("registerSelectedButton").isDisabled());assertTrue(((Label)loader.getNamespace().get("readinessLabel")).getText().contains("SOURCE_SYNC_EXPIRED"));
             var filter=(ComboBox<?>)loader.getNamespace().get("statusFilter");filter.getSelectionModel().select(filter.getItems().stream().filter(value->value instanceof Enum<?> item&&item.name().equals("COMPLETED")).mapToInt(value->filter.getItems().indexOf(value)).findFirst().orElseThrow());return null;});awaitTasks();
         fx(()->{assertEquals(1,table().getItems().size());assertEquals(3,table().getItems().getFirst().chrtId());return null;});
