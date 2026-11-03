@@ -1,0 +1,13 @@
+{
+  "tests": 11,
+  "verificationSource": "4fa8e6a0356298baafbf7a4bf974136c99841987",
+  "errors": 0,
+  "platform": "windows",
+  "runtimeSourcesUnchanged": true,
+  "applicationSource": "01b87d3d929d6e775ad60178e2e4553885bb912b",
+  "skipped": 0,
+  "failures": 0,
+  "workerTimeoutSeconds": 30,
+  "runId": 41736451413,
+  "retryAfterSeconds": 120
+}
