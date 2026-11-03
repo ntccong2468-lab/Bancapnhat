@@ -65,6 +65,16 @@ test('does not treat an untrusted configured scanner as covered', () => {
   assert.throws(()=>inspectScan(s),/scanner-incomplete/);
 });
 
+test('rejects custom scanner labels containing control characters or exceeding the bound', () => {
+  for (const label of ['', '\u0000', '\u001f', '\u007f', 'x'.repeat(129)]) {
+    const s=healthy(); s.selection.push({scanner:`custom:${label}`,wanted:false});
+    assert.throws(()=>inspectScan(s),/invalid-selection/);
+  }
+  const s=healthy(); s.selection.push({scanner:'custom:allowed',wanted:false});
+  s.scanners.push({scanner:'custom:allowed',status:'no_matching_files',reason:null});
+  assert.equal(inspectScan(s).status,'complete');
+});
+
 test('finds one Action report, ignoring its plan directory', async t => {
   const d=await temp(t); await mkdir(join(d,'openqodex-AbC123'));
   await report(d,'openqodex-DeF456',healthy());

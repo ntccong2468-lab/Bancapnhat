@@ -17,7 +17,14 @@ class GateError extends Error {
   }
 }
 const fail = (code, scanner, status) => { throw new GateError(code, scanner, status); };
-const scannerName = value => typeof value === 'string' && (builtins.has(value) || /^custom:[^\x00-\x1f\x7f]{1,128}$/.test(value));
+const scannerName = value => {
+  if (typeof value !== 'string') return false;
+  if (builtins.has(value)) return true;
+  if (!value.startsWith('custom:')) return false;
+  const label = value.slice('custom:'.length);
+  return label.length > 0 && label.length <= 128 &&
+    [...label].every(ch => { const code = ch.codePointAt(0); return code > 31 && code !== 127; });
+};
 
 /** Inspect health only. Findings' paths, messages, and reasons are never returned. */
 export function inspectScan(scan) {
