@@ -1,7 +1,7 @@
 # Bàn giao bản gộp VN Code 1.6.1 — 03.11.2026
 
 <!-- PUBLICATION_START -->
-Tình trạng: đang kiểm tra Windows; chưa công bố Latest. Mã đóng gói cố định `01b87d3d929d6e775ad60178e2e4553885bb912b`, Windows build [41724251562](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41724251562). Runtime ứng dụng giống `24f9761`; nguồn mới sửa hai fixture và thêm Windows preflight. Bản mới là 1.6.1 vì 1.6.0 đã công bố; không ghi đè binary/tag 1.6.0.
+Tình trạng: đang kiểm tra Windows; chưa công bố Latest. Mã đóng gói cố định `1786c2c30e38c975523f9b678c4e77d203b5a7cb`, Windows build [41738169431](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41738169431). Runtime ứng dụng giống `24f9761`; nguồn cuối gồm cả fixture cooldown 120 giây và sửa bước khóa SQLite của kiểm thử giao diện. Hai lượt Windows trước còn lỗi fixture nên không được dùng để phát hành. Bản mới là 1.6.1 vì 1.6.0 đã công bố; không ghi đè binary/tag 1.6.0.
 <!-- PUBLICATION_END -->
 
 ## Phạm vi đã gom
@@ -25,6 +25,7 @@ Tất cả nhánh sửa liên quan đều là tổ tiên của mã ứng dụng 
 - Linux/Xvfb trên đúng `24f9761`: `clean verify` **3.813 ca, 0 thất bại, 0 lỗi, 2 bỏ qua theo OS**, 518 lớp, 35 phút 03 giây. Hai ca bỏ qua yêu cầu Windows DPAPI/NTFS junction; [biên nhận](2026-11-03-vncode-161-linux.json).
 - Linux trên `01b87d3`: 11/11 ca mục tiêu cho hai fixture Windows đạt; không chạy lại full Linux vì `src/main`, POM, wrapper và build script không đổi. Full Windows vẫn chạy lại toàn bộ trên nguồn chốt. [Chi tiết nguyên nhân và sửa](2026-11-03-windows-release-fixtures.md).
 - Kiểm tra bổ sung fixture trên nhánh xuất bản: Retry-After 120 giây trong ngân sách transport, worker phải nhả trong 30 giây, giữ deadline và chống lặp; 11/11 Linux đạt. Windows bổ sung [41736451413](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41736451413) đạt 11/11 trên nguồn kiểm thử `4fa8e6a`, ca cooldown 7,008 giây; CI bắt buộc runtime/build inputs giống nguồn bộ cài01b. [Biên nhận](2026-11-03-vncode-161-cooldown-windows.json). Kết quả này bổ sung, không thay full Windows của01b. [Phân biệt hai nhánh cooldown](2026-11-03-windows-release-fixtures.md).
+- Linux sau sửa thiết lập khóa SQLite: **58/58** kiểm thử FXML đạt, không lỗi/bỏ qua; 38,607 giây gồm Maven. Giữ giới hạn 300 ms cho thao tác giao diện dưới khóa.
 - Công cụ phát hành Node **138/138**, Python search skill **39/39**. Các kiểm thử mục tiêu UI trước full suite: 143 ca riêng biệt, 26 view/pane × bốn ngôn ngữ × hai theme × hai cỡ, thêm năm danh sách có dữ liệu ở ba cỡ. Không cộng các nhóm mục tiêu này vào tổng full suite vì có giao nhau.
 - 92 ảnh là view JavaFX thật dùng dữ liệu tổng hợp; không phải chứng cứ đã ghi API thành công. Các danh sách tăng đúng chiều cao vùng làm việc; kiểm tra giá Ozon, focus, giữ dữ liệu/lựa chọn khi tiến trình hiện/ẩn.
 <!-- WINDOWS_START -->
