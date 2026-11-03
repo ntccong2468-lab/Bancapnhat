@@ -143,10 +143,17 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         }
     }
     @Test void aLongCatalogCooldownYieldsTheWorkerAndResumesTheSameSavedBatch()throws Exception{
-        cardReadFailure=429;readRetryAfter="30";var batch=batch();
-        String run=assertTimeoutPreemptively(java.time.Duration.ofSeconds(5),()->startReviewed(batch,selection()));
+        cardReadFailure=429;readRetryAfter="3600";var batch=batch();
+        Instant started=Instant.now();
+        // Exercise yielding, not a five-second SQLite/HTTP microbenchmark. Windows
+        // can need more than five seconds to persist the pre-send checkpoints.
+        // A worker that sleeps for the real one-hour Retry-After still fails here.
+        String run=assertTimeoutPreemptively(java.time.Duration.ofSeconds(30),()->startReviewed(batch,selection()));
+        assertNull(serverFailure.get());
         assertEquals(1,posts.get());assertEquals(1,batch.latest(shop).acceptedFeeds());assertEquals(0,batch.latest(shop).submitted());
         assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE,batch.latest(shop).state());
+        assertTrue(new ZnackRegistrationBatchStore().latest(shop).retryAt().isAfter(started.plusSeconds(3590)));
+        assertTrue(batch.resumePending(shop));assertEquals(1,posts.get(),"Resuming before the saved deadline cannot submit another card");
         cardReadFailure=0;retryNow(run);assertTrue(batch.resumePending(shop));
         assertEquals(3,posts.get());assertEquals(3,batch.latest(shop).submitted());assertEquals(3,new java.util.HashSet<>(postedGtins).size());
     }

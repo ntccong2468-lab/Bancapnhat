@@ -2,8 +2,11 @@ package com.vncode.app.shared;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.sun.net.httpserver.HttpServer;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,6 +14,7 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.zip.ZipEntry;
@@ -19,7 +23,7 @@ import javax.tools.ToolProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-/** Offline, synthetic distributions exercise the checked-in wrapper's real bootstrap. */
+/** Loopback-only synthetic distributions exercise the checked-in wrapper's real HTTP bootstrap. */
 class MavenWrapperIntegrityTest {
     @TempDir Path temp;
 
@@ -39,21 +43,41 @@ class MavenWrapperIntegrityTest {
         assertTrue(Files.isRegularFile(wrapper), "The tracked wrapper JAR must be available");
         byte[] original = syntheticDistribution();
         String digest = HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(original));
-        Path valid = temp.resolve("valid.zip");
-        Path changed = temp.resolve("changed.zip");
-        Files.write(valid, original);
         byte[] altered = java.util.Arrays.copyOf(original, original.length + 1);
         altered[altered.length - 1] = 42; // Still an ordinary ZIP, but not the pinned artifact.
-        Files.write(changed, altered);
+        // The pinned wrapper supports HTTP(S) distributions, as used by this project.
+        // Its upstream file-URI handling treats /C:/... as a path on Windows; do not
+        // make a distribution-integrity test depend on that unrelated local-file mode.
+        var downloads = new AtomicInteger();
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange -> {
+            byte[] body = switch (exchange.getRequestURI().getPath()) {
+                case "/valid.zip" -> original;
+                case "/changed.zip" -> altered;
+                default -> null;
+            };
+            try (exchange) {
+                if (body == null) { exchange.sendResponseHeaders(404, -1); return; }
+                downloads.incrementAndGet();
+                exchange.sendResponseHeaders(200, body.length);
+                exchange.getResponseBody().write(body);
+            }
+        });
+        server.start();
+        try {
+            URI base = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/");
+            Result accepted = invokeWrapper(wrapper, base.resolve("valid.zip"), digest, "valid");
+            assertEquals(0, accepted.exitCode(), accepted.output());
+            assertTrue(accepted.output().contains("SYNTHETIC_MAVEN_LAUNCHED"), accepted.output());
 
-        Result accepted = invokeWrapper(wrapper, valid, digest, "valid");
-        assertEquals(0, accepted.exitCode(), accepted.output());
-        assertTrue(accepted.output().contains("SYNTHETIC_MAVEN_LAUNCHED"), accepted.output());
-
-        Result rejected = invokeWrapper(wrapper, changed, digest, "changed");
-        assertNotEquals(0, rejected.exitCode(), rejected.output());
-        assertTrue(rejected.output().contains("Failed to validate Maven distribution SHA-256"), rejected.output());
-        assertFalse(rejected.output().contains("SYNTHETIC_MAVEN_LAUNCHED"), rejected.output());
+            Result rejected = invokeWrapper(wrapper, base.resolve("changed.zip"), digest, "changed");
+            assertNotEquals(0, rejected.exitCode(), rejected.output());
+            assertTrue(rejected.output().contains("Failed to validate Maven distribution SHA-256"), rejected.output());
+            assertFalse(rejected.output().contains("SYNTHETIC_MAVEN_LAUNCHED"), rejected.output());
+            assertEquals(2, downloads.get(), "Both archives must actually be downloaded and validated");
+        } finally {
+            server.stop(0);
+        }
     }
 
     private byte[] syntheticDistribution() throws IOException {
@@ -83,14 +107,14 @@ class MavenWrapperIntegrityTest {
         return zipBytes.toByteArray();
     }
 
-    private Result invokeWrapper(Path wrapper, Path distribution, String digest, String name) throws Exception {
+    private Result invokeWrapper(Path wrapper, URI distribution, String digest, String name) throws Exception {
         Path project = temp.resolve(name);
         Path properties = project.resolve(".mvn/wrapper/maven-wrapper.properties");
         Files.createDirectories(properties.getParent());
         Path localWrapper = properties.resolveSibling("maven-wrapper.jar");
         Files.copy(wrapper, localWrapper);
         var values = new Properties();
-        values.setProperty("distributionUrl", distribution.toUri().toString());
+        values.setProperty("distributionUrl", distribution.toString());
         values.setProperty("distributionSha256Sum", digest);
         try (var writer = Files.newBufferedWriter(properties, StandardCharsets.ISO_8859_1)) { values.store(writer, null); }
         Path java = Path.of(System.getProperty("java.home"), "bin", isWindows() ? "java.exe" : "java");
