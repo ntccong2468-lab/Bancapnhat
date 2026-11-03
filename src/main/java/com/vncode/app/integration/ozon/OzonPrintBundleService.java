@@ -91,7 +91,7 @@ public final class OzonPrintBundleService {
                     }
                     @Override public void prefetch(Shop selected,List<String> numbers)throws IOException {
                         MarketplaceGuard.requireOzon(selected);
-                        if(selected.getId()!=shop.getId()||numbers.size()>OzonExemplarService.READ_AHEAD||!prepared.isEmpty()||!failures.isEmpty())throw new IOException("Ozon print window changed.");
+                        if(selected.getId()!=shop.getId()||numbers.size()>OzonExemplarService.PRINT_BATCH_SIZE||!prepared.isEmpty()||!failures.isEmpty())throw new IOException("Ozon print window changed.");
                         if(numbers.isEmpty())return;
                         var result=batch.stageForPrintBatch(numbers);
                         for(var value:result.results())prepared.put(value.postingNumber(),value);
@@ -172,6 +172,12 @@ public final class OzonPrintBundleService {
     }
     private ExportResult exportInternal(Shop shop,String postingNumber,File labelTarget,File pickingTarget,
             boolean consumeAfterPublish,PrintContext context,PdfDocument destination)throws IOException {
+        var prepared=preparePrint(shop,postingNumber,context);
+        return composePrepared(shop,labelTarget,pickingTarget,consumeAfterPublish,context,destination,prepared);
+    }
+    private record PreparedPrint(OzonPostingDto posting,List<OzonExemplarJobRepository.KizBinding> bindings,
+            OzonExemplarJobRepository.PrintProof proof,boolean newPrint,Preparation operation){}
+    private PreparedPrint preparePrint(Shop shop,String postingNumber,PrintContext context)throws IOException {
         String safePosting = OzonApiClient.requireExternalId(postingNumber, "posting number");
         OzonPostingDto posting = context == null ? postings.find(shop.getId(), safePosting)
                 : context.postings.get(safePosting);
@@ -218,6 +224,13 @@ public final class OzonPrintBundleService {
         validatePrintableJob(job, bindings, summaries);
         var proof=bindings.isEmpty()?null:OzonExemplarJobRepository.printProof(job,bindings);
         if(context!=null&&proof!=null)context.printProofs.put(safePosting,proof);
+        return new PreparedPrint(posting,bindings,proof,newPrint,operation);
+
+    }
+    private ExportResult composePrepared(Shop shop,File labelTarget,File pickingTarget,boolean consumeAfterPublish,
+            PrintContext context,PdfDocument destination,PreparedPrint prepared)throws IOException {
+        var posting=prepared.posting();var bindings=prepared.bindings();var proof=prepared.proof();
+        boolean newPrint=prepared.newPrint();var operation=prepared.operation();String safePosting=posting.postingNumber();
 
         File officialStaging = null;
         File labelStaging = null;
@@ -323,8 +336,8 @@ public final class OzonPrintBundleService {
             try (PdfDocument destination = new PdfDocument(new PdfWriter(labelStaging))) {
                 for (int index = 0; index < safePostings.size(); index++) {
                     requireNotInterrupted();
-                    if(index%OzonExemplarService.READ_AHEAD==0&&context.preparation.refreshEveryNewPrint()) {
-                        List<String> window=safePostings.subList(index,Math.min(index+OzonExemplarService.READ_AHEAD,safePostings.size())).stream()
+                    if(index%OzonExemplarService.PRINT_BATCH_SIZE==0&&context.preparation.refreshEveryNewPrint()) {
+                        List<String> window=safePostings.subList(index,Math.min(index+OzonExemplarService.PRINT_BATCH_SIZE,safePostings.size())).stream()
                                 .filter(number->!accepted(context.jobs.get(number))).toList();
                         long prepareStarted=OzonPrintTiming.tick();
                         try { context.preparation.prefetch(frozenShop,window); }
@@ -365,6 +378,15 @@ public final class OzonPrintBundleService {
      */
     public AvailableBatchExportResult exportAvailable(Shop shop,List<String> postingNumbers,
             File labelTarget,File pickingTarget,IntConsumer completed)throws IOException {
+        return exportAvailableInternal(shop,postingNumbers,labelTarget,pickingTarget,completed,Map.of(),false);
+    }
+    /** Try every selected carrier label, keeping unavailable KIZ out of the PDF and its consumption. */
+    public AvailableBatchExportResult exportRequested(Shop shop,List<String> postingNumbers,
+            File labelTarget,File pickingTarget,IntConsumer completed,Map<String,String> carrierOnlyReasons)throws IOException {
+        return exportAvailableInternal(shop,postingNumbers,labelTarget,pickingTarget,completed,carrierOnlyReasons,true);
+    }
+    private AvailableBatchExportResult exportAvailableInternal(Shop shop,List<String> postingNumbers,
+            File labelTarget,File pickingTarget,IntConsumer completed,Map<String,String> carrierOnlyReasons,boolean allowCarrierFallback)throws IOException {
         MarketplaceGuard.requireOzon(shop);
         Shop frozen=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         requirePdfTarget(labelTarget,"label batch");requirePdfTarget(pickingTarget,"picking batch");
@@ -374,6 +396,8 @@ public final class OzonPrintBundleService {
         if(labelTarget.toPath().toAbsolutePath().normalize().equals(pickingTarget.toPath().toAbsolutePath().normalize()))
             throw new IllegalArgumentException("Ozon label batch and picking batch must use different files.");
         if(Files.exists(labelTarget.toPath())&&Files.exists(pickingTarget.toPath())&&Files.isSameFile(labelTarget.toPath(),pickingTarget.toPath()))throw new IllegalArgumentException("Ozon label batch and picking batch must use different files.");
+        var carrierOnly=new LinkedHashMap<>(carrierOnlyReasons);
+        if(!selected.containsAll(carrierOnly.keySet()))throw new IllegalArgumentException("OZON_PRINT_REPORT_SELECTION_CHANGED");
         var selectedPostings=postings.findMany(frozen.getId(),selected);
         var selectedJobs=jobs.findMany(frozen.getId(),selected);
         boolean containsNewPrint=selected.stream().anyMatch(number->!accepted(selectedJobs.get(number)));
@@ -390,24 +414,41 @@ public final class OzonPrintBundleService {
             try(var destination=new PdfDocument(new PdfWriter(labelStaging))) {
                 for(int index=0;index<selected.size();index++) {
                     requireNotInterrupted();String number=selected.get(index);
-                    if(index%OzonExemplarService.READ_AHEAD==0&&context.preparation.refreshEveryNewPrint()) {
-                        var window=selected.subList(index,Math.min(index+OzonExemplarService.READ_AHEAD,selected.size())).stream()
-                                .filter(n->context.postings.containsKey(n)&&!accepted(context.jobs.get(n))).toList();
+                    if(index%OzonExemplarService.PRINT_BATCH_SIZE==0&&context.preparation.refreshEveryNewPrint()) {
+                        var window=selected.subList(index,Math.min(index+OzonExemplarService.PRINT_BATCH_SIZE,selected.size())).stream()
+                                .filter(n->context.postings.containsKey(n)&&!carrierOnly.containsKey(n)&&!accepted(context.jobs.get(n))).toList();
                         long started=OzonPrintTiming.tick();
-                        try{context.preparation.prefetch(frozen,window);}finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PREPARATION,started);}
+                        try{context.preparation.prefetch(frozen,window);}
+                        catch(IOException failure){
+                            if(!allowCarrierFallback||deferredLabelFailure(failure))throw failure;
+                            for(String pending:window)carrierOnly.put(pending,com.vncode.app.shared.FriendlyErrorService.format(failure));
+                        }finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PREPARATION,started);}
                     }
-                    java.io.ByteArrayOutputStream bytes=new java.io.ByteArrayOutputStream();ExportResult result;
+                    byte[] partBytes=null;ExportResult result;VerifiedCarrierPage direct=null;
                     try {
                         if(!context.postings.containsKey(number))throw new IOException("OZON_POSTING_NOT_AVAILABLE_LOCALLY");
-                        try(var part=new PdfDocument(new PdfWriter(bytes))) {
-                            result=exportInternal(frozen,number,labelTarget,null,false,context,part);
+                        PreparedPrint prepared=null;
+                        if(!carrierOnly.containsKey(number))try{prepared=preparePrint(frozen,number,context);}
+                        catch(IOException failure){
+                            if(!allowCarrierFallback||deferredLabelFailure(failure))throw failure;
+                            carrierOnly.put(number,com.vncode.app.shared.FriendlyErrorService.format(failure));
+                        }
+                        if(prepared==null||prepared.bindings().isEmpty())direct=context.labels.verifiedCarrierPage(frozen,number);
+                        if(direct!=null)result=new ExportResult(labelTarget,null,1,0,1);
+                        else {
+                            var bytes=new java.io.ByteArrayOutputStream();
+                            try(var part=new PdfDocument(new PdfWriter(bytes))) {
+                                result=prepared==null?composeCarrierOnly(frozen,number,labelTarget,context,part):
+                                        composePrepared(frozen,labelTarget,null,false,context,part,prepared);
+                            }
+                            partBytes=bytes.toByteArray();
                         }
                     } catch(IOException error) {
                         requireNotInterrupted();
                         failures.put(number,com.vncode.app.shared.FriendlyErrorService.format(error));
-                        if(error instanceof OzonApiException apiError&&(apiError.statusCode()==429||apiError.statusCode()==401||apiError.statusCode()==403)) {
-                            if(apiError.statusCode()==429)waiting.add(number);
-                            for(int next=index+1;next<selected.size();next++){String pending=selected.get(next);failures.put(pending,com.vncode.app.shared.FriendlyErrorService.format(error));if(apiError.statusCode()==429)waiting.add(pending);}
+                        if(deferredLabelFailure(error)) {
+                            if(error instanceof OzonApiException apiError&&apiError.statusCode()==429)waiting.add(number);
+                            for(int next=index+1;next<selected.size();next++){String pending=selected.get(next);failures.put(pending,com.vncode.app.shared.FriendlyErrorService.format(error));if(error instanceof OzonApiException apiError&&apiError.statusCode()==429)waiting.add(pending);}
                             break;
                         }
                         continue;
@@ -415,29 +456,49 @@ public final class OzonPrintBundleService {
                         context.preparation.discard(number);
                         if(completed!=null)completed.accept(index+1);
                     }
-                    // A copy failure is a whole-file failure: it may have partially changed the destination.
-                    try(var source=new PdfDocument(new PdfReader(new java.io.ByteArrayInputStream(bytes.toByteArray())))) {
-                        if(source.getNumberOfPages()!=result.totalPages())throw new IOException("OZON_LABEL_PAGE_COUNT_MISMATCH");
-                        source.copyPagesTo(1,source.getNumberOfPages(),destination);
-                        destination.flushCopiedObjects(source);
-                    }
+                    // Copy failures abort the whole file; never continue after a partially copied page.
+                    long copiedAt=OzonPrintTiming.tick();
+                    try {
+                        if(direct!=null){
+                            direct.source().copyPagesTo(direct.page(),direct.page(),destination);
+                            destination.getLastPage().flush();
+                        }else try(var source=new PdfDocument(new PdfReader(new java.io.ByteArrayInputStream(partBytes)))) {
+                            if(source.getNumberOfPages()!=result.totalPages())throw new IOException("OZON_LABEL_PAGE_COUNT_MISMATCH");
+                            source.copyPagesTo(1,source.getNumberOfPages(),destination);destination.flushCopiedObjects(source);
+                        }
+                    }finally{OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,copiedAt);}
                     successful.add(number);if(result.kizPages()>0){var proof=context.printProofs.get(number);if(proof==null)throw new IOException("OZON_PRINT_KIZ_PROOF_MISSING");successfulWithKiz.put(number,proof);}totalPages+=result.totalPages();kizPages+=result.kizPages();
                 }
             }
-            if(successful.isEmpty())return new AvailableBatchExportResult(null,null,List.of(),Map.copyOf(failures),Set.copyOf(waiting),0,0);
+            if(successful.isEmpty())return new AvailableBatchExportResult(null,null,List.of(),Map.copyOf(failures),Set.copyOf(waiting),0,0,Map.of());
             requireNotInterrupted();
             var printed=successful.stream().map(context.postings::get).toList();
-            pickingLists.exportBatch(pickingStaging,frozen,printed);
+            long pickingStarted=OzonPrintTiming.tick();
+            try{pickingLists.exportBatch(pickingStaging,frozen,printed);}
+            finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted);}
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             List<String> frozenSuccess=List.copyOf(successful);var frozenKizSuccess=Map.copyOf(successfulWithKiz);
             ownedPublish(frozen,context.preparation.validateShopOwner(),containsNewPrint,()->{
                 publishPrintedBundle(frozen,frozenSuccess,frozenKizSuccess,finishedPicking,pickingTarget,finishedLabels,labelTarget,context.preparation.validateShopOwner());
             });
             labelStaging=null;pickingStaging=null;
-            return new AvailableBatchExportResult(labelTarget,pickingTarget,List.copyOf(successful),Map.copyOf(failures),Set.copyOf(waiting),totalPages,kizPages);
+            carrierOnly.keySet().retainAll(successful);
+            return new AvailableBatchExportResult(labelTarget,pickingTarget,List.copyOf(successful),Map.copyOf(failures),Set.copyOf(waiting),totalPages,kizPages,Map.copyOf(carrierOnly));
         } finally {
             context.labels.close();AtomicFilePublisher.deleteQuietly(labelStaging);AtomicFilePublisher.deleteQuietly(pickingStaging);
         }
+    }
+
+    private static boolean deferredLabelFailure(IOException failure){
+        return failure instanceof OzonApiException api&&(api.statusCode()==401||api.statusCode()==403||api.statusCode()==429);
+    }
+    private ExportResult composeCarrierOnly(Shop shop,String number,File target,PrintContext context,PdfDocument destination)throws IOException {
+        var staging=AtomicFilePublisher.stagingFile(target,".carrier.pdf");
+        try{
+            context.labels.download(shop,number,staging);
+            int pages=composeInto(staging,destination,shop,context.postings.get(number),List.of(),context.products);
+            return new ExportResult(target,null,pages,0,pages);
+        }finally{AtomicFilePublisher.deleteQuietly(staging);}
     }
 
     private static void requireNotInterrupted() throws IOException {
@@ -684,5 +745,7 @@ public final class OzonPrintBundleService {
             int kizPages) {
     }
     public record AvailableBatchExportResult(File labelFile,File pickingFile,List<String> successful,
-            Map<String,String> failures,Set<String> waiting,int totalPages,int kizPages) {}
+            Map<String,String> failures,Set<String> waiting,int totalPages,int kizPages,Map<String,String> carrierOnly) {
+        public AvailableBatchExportResult(File labels,File picking,List<String> successful,Map<String,String> failures,Set<String> waiting,int totalPages,int kizPages){this(labels,picking,successful,failures,waiting,totalPages,kizPages,Map.of());}
+    }
 }

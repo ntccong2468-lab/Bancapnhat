@@ -489,6 +489,31 @@ class OzonPrintBundleServiceTest {
         }
     }
 
+    @Test void requestedCarrierLabelsAreNotExcludedByMissingKizOrUnsupportedLocalReadiness()throws Exception {
+        var reasons=java.util.Map.of("POST-1","MAPPING_MISSING","POST-2","KIZ_STOCK_SHORTAGE","POST-3","REQUIREMENT_UNSUPPORTED");
+        for(int i=1;i<=3;i++)seedUnmarkedPosting("POST-"+i,"SKU-"+i,"offer-"+i);
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Carrier-only export must not reserve, validate or consume KIZ");},
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        var labels=temporaryDirectory.resolve("carrier-only.pdf");var picking=temporaryDirectory.resolve("carrier-only-picking.pdf");
+        var result=exporter.exportRequested(shop,List.of("POST-1","POST-2","POST-3"),labels.toFile(),picking.toFile(),null,reasons);
+        assertEquals(List.of("POST-1","POST-2","POST-3"),result.successful());assertEquals(reasons,result.carrierOnly());assertTrue(result.failures().isEmpty());assertEquals(0,result.kizPages());
+        try(var pdf=Loader.loadPDF(labels.toFile())){assertEquals(result.totalPages(),pdf.getNumberOfPages());assertEquals(6,pdf.getNumberOfPages());}
+        assertEquals("3",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));assertEquals("0",scalar("SELECT count(*) FROM ozon_exemplar_jobs"));
+        try(var pdf=Loader.loadPDF(picking.toFile())){String text=new PDFTextStripper().getText(pdf);for(int i=1;i<=3;i++)assertTrue(text.contains("offer-"+i));}
+    }
+    @Test void newlyDetectedKizPreparationFailureStillExportsTheOfficialCarrierLabel()throws Exception {
+        seedUnmarkedPosting("POST-1","SKU-1","offer-1");
+        var operation=new OzonPrintBundleService.Preparation(){
+            public boolean refreshEveryNewPrint(){return true;}
+            public OzonPreparationResult prepare(Shop owner,String number)throws IOException{throw new IOException("mapping_missing");}
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),operation,
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        var result=exporter.exportRequested(shop,List.of("POST-1"),temporaryDirectory.resolve("fresh-carrier.pdf").toFile(),temporaryDirectory.resolve("fresh-pick.pdf").toFile(),null,java.util.Map.of());
+        assertEquals(List.of("POST-1"),result.successful());assertTrue(result.carrierOnly().containsKey("POST-1"));assertEquals(0,result.kizPages());assertTrue(result.failures().isEmpty());
+    }
+
     @Test void availableBatchPublishesOnlyCompletePostingsAndReportsTheFailedOrder() throws Exception {
         for(int i=1;i<=3;i++) {seedUnmarkedPosting("POST-"+i,"SKU-"+i,"offer-"+i);new OzonProductKizPolicyRepository().setRequired(1,"SKU-"+i,false);}
         var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),

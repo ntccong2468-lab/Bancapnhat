@@ -40,9 +40,12 @@ public final class OzonFbsPrintReport {
   finishAvailable(shop,successful,failures,Set.of());
  }
  public void finishAvailable(Shop shop,Set<String> successful,Map<String,String> failures,Set<String> waiting){
+  finishAvailable(shop,successful,failures,waiting,Map.of());
+ }
+ public void finishAvailable(Shop shop,Set<String> successful,Map<String,String> failures,Set<String> waiting,Map<String,String> carrierOnly){
   var safeSuccess=Set.copyOf(successful);var safeFailures=Map.copyOf(failures);var safeWaiting=Set.copyOf(waiting);
   var requested=items.stream().map(SyncRunRepository.Item::productId).collect(java.util.stream.Collectors.toSet());
-  if(!requested.containsAll(safeSuccess)||!requested.containsAll(safeFailures.keySet())||!safeFailures.keySet().containsAll(safeWaiting)||!Collections.disjoint(safeSuccess,safeFailures.keySet()))throw new IllegalArgumentException("OZON_PRINT_REPORT_SELECTION_CHANGED");
+  if(!safeSuccess.containsAll(carrierOnly.keySet())||!requested.containsAll(safeSuccess)||!requested.containsAll(safeFailures.keySet())||!safeFailures.keySet().containsAll(safeWaiting)||!Collections.disjoint(safeSuccess,safeFailures.keySet()))throw new IllegalArgumentException("OZON_PRINT_REPORT_SELECTION_CHANGED");
   var jobs=new OzonExemplarJobRepository().findMany(shop.getId(),items.stream().map(SyncRunRepository.Item::productId).toList());
   var out=new ArrayList<SyncRunRepository.Item>();
   try(var c=Database.getConnection()){
@@ -58,10 +61,11 @@ public final class OzonFbsPrintReport {
      if(job!=null){var value=counts.getOrDefault(job.id(),new int[3]);codes=value[0];imported=value[1];printed=value[2];}
      boolean completed=safeSuccess.contains(item.productId());
      var evidence=new JsonObject();evidence.addProperty("localStage",job==null?"NOT_STARTED":job.stage().name());evidence.addProperty("imported",imported);evidence.addProperty("purchased",codes-imported);evidence.addProperty("printed",printed);evidence.addProperty("pdfBatchComplete",completed);evidence.addProperty("remoteKizConfirmedByThisTask",false);
-     String reason=safeFailures.get(item.productId());if(reason!=null)evidence.addProperty("reason",reason);
+     boolean onlyCarrier=carrierOnly.containsKey(item.productId());evidence.addProperty("carrierOnly",onlyCarrier);
+     String reason=onlyCarrier?carrierOnly.get(item.productId()):safeFailures.get(item.productId());if(reason!=null)evidence.addProperty("reason",reason);
      boolean delayed=safeWaiting.contains(item.productId());
      String error=completed?"":delayed?"OZON_RATE_LIMITED":job!=null&&job.safeErrorCode()!=null&&!job.safeErrorCode().isBlank()?"FBS_"+job.safeErrorCode().toUpperCase(Locale.ROOT):"FBS_PRINT_NOT_COMPLETED";
-     out.add(new SyncRunRepository.Item(item.id(),run,item.productId(),"","","","","","",completed?"SUCCEEDED":delayed?"WAITING_REMOTE":"NEEDS_ACTION",completed?"FBS_PDF_CREATED":"FBS_PRINT",error,"",evidence.toString()));
+     out.add(new SyncRunRepository.Item(item.id(),run,item.productId(),"","","","","","",completed?"SUCCEEDED":delayed?"WAITING_REMOTE":"NEEDS_ACTION",completed?(onlyCarrier?"FBS_CARRIER_PDF_CREATED":"FBS_PDF_CREATED"):"FBS_PRINT",error,"",evidence.toString()));
     }
    c.commit();
   }catch(java.sql.SQLException failure){throw new IllegalStateException("FBS_REPORT_STORAGE",failure);}

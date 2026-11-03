@@ -31,6 +31,14 @@ class OzonFbsPrintReportTest {
   var limited=new OzonFbsPrintReport(shop,List.of("P-8"));limited.finishAvailable(shop,Set.of(),Map.of("P-8","Ozon 429"),Set.of("P-8"));
   assertEquals("WAITING_REMOTE",reports.find(limited.id()).orElseThrow().state());assertEquals("WAITING_REMOTE",reports.items(limited.id(),0,100).getFirst().state());
  }
+ @Test void carrierOnlyOutcomeDoesNotClaimThatKizWasPrintedOrRemotelyAccepted()throws Exception{
+  System.setProperty("vncode.appdata.dir",dir.toString());Database.initDatabase();
+  try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Fixture','OZON','11','synthetic')");}
+  var shop=new Shop(1,"Fixture",Marketplace.OZON,"11","synthetic");var report=new OzonFbsPrintReport(shop,List.of("P-1"));
+  report.finishAvailable(shop,Set.of("P-1"),Map.of(),Set.of(),Map.of("P-1","MAPPING_MISSING"));
+  var item=new SyncRunRepository().items(report.id(),0,100).getFirst();assertEquals("SUCCEEDED",item.state());assertEquals("FBS_CARRIER_PDF_CREATED",item.step());
+  var data=com.google.gson.JsonParser.parseString(item.evidence()).getAsJsonObject();assertTrue(data.get("carrierOnly").getAsBoolean());assertFalse(data.get("remoteKizConfirmedByThisTask").getAsBoolean());assertEquals(0,data.get("printed").getAsInt());assertEquals("MAPPING_MISSING",data.get("reason").getAsString());
+ }
  @Test void pendingPurchaseKeepsPreflightBlockedPostingsSeparate()throws Exception{
   System.setProperty("vncode.appdata.dir",dir.toString());Database.initDatabase();
   try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Fixture','OZON','11','synthetic')");}

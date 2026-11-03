@@ -18,9 +18,12 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     private final Map<String,PdfDocument> documents=new HashMap<>();
     private final List<Path> temporaryFiles=new ArrayList<>();
     private int rejectedSplits;
-    private static final int MAX_REJECTED_SPLITS=16;
+    private final int maxRejectedSplits;
     OzonBatchLabelDownloader(OzonLabelService service,Shop shop,List<String> numbers) {
         this.service=service;
+        // A binary partition of N selected postings needs at most N-1 splits. A fixed
+        // limit of 16 could leave valid postings trapped with several rejected ones.
+        this.maxRejectedSplits=Math.max(0,numbers.size()-1);
         var known=new LinkedHashMap<String,List<String>>();var fresh=new ArrayList<String>();var repo=new OzonLabelRepository();
         var jobs=repo.findMany(shop.getId(),numbers);
         long batchable=numbers.stream().filter(number->{var job=jobs.get(number);return job==null||job.taskId()==null||job.taskId().isBlank()||OzonLabelService.canRegroup(job);}).count();
@@ -70,7 +73,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
             try { load(shop,group); return; }
             catch(IOException error) {
                 if(error instanceof OzonApiException api&&!api.ambiguousMutation()&&(api.statusCode()==400||api.statusCode()==422)
-                        &&group.size()>1&&rejectedSplits<MAX_REJECTED_SPLITS&&definitivelyRejected(shop,group)) {
+                        &&group.size()>1&&rejectedSplits<maxRejectedSplits&&definitivelyRejected(shop,group)) {
                     int middle=group.size()/2;
                     var left=List.copyOf(group.subList(0,middle));var right=List.copyOf(group.subList(middle,group.size()));
                     left.forEach(number->membership.put(number,left));right.forEach(number->membership.put(number,right));rejectedSplits++;
