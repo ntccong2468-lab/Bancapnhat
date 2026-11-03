@@ -196,22 +196,31 @@ public final class OzonLabelService {
             var rejected=numbers.stream().filter(unprinted::contains).toList();
             if(rejected.size()==numbers.size()&&completed(raw)) {
                 labels.updateBatchResult(shop.getId(),numbers,task,unprinted);
-                return new BatchPdf(null,unprinted);
+                return new BatchPdf(null,unprinted,wholeTaskConfirmed(raw,taskMembers));
             }
             if(!poll.fileUrl().isBlank()) {
                 byte[] pdf=api.downloadOfficialDocument(poll.fileUrl());
                 if(!isPdf(pdf))throw new IOException("OZON_LABEL_BATCH_INVALID_PDF");
                 Files.write(target.toPath(),pdf);
                 labels.updateBatchResult(shop.getId(),numbers,task,unprinted);
-                return new BatchPdf(target,unprinted);
+                return new BatchPdf(target,unprinted,wholeTaskConfirmed(raw,taskMembers));
             }
             if(attempt+1<MAX_POLLS)waiter.await(Duration.ofSeconds(1));
         }
         throw new IOException("OZON_LABEL_BATCH_PENDING");
     }
 
-    record BatchPdf(File file,java.util.Set<String> unprinted) {
+    record BatchPdf(File file,java.util.Set<String> unprinted,boolean wholeTaskConfirmed) {
+        BatchPdf(File file,java.util.Set<String> unprinted){this(file,unprinted,false);}
         BatchPdf { unprinted=java.util.Set.copyOf(unprinted); }
+    }
+
+    /** Whole-task copying needs explicit completion/counts, not merely a successful HTTP call. */
+    static boolean wholeTaskConfirmed(JsonObject response,List<String> members)throws IOException {
+        JsonObject result=response.has("result")?OzonJson.object(response,"result"):response;
+        var raw=result.get("status");if(raw==null||!raw.isJsonObject()||!completed(response))return false;
+        var status=raw.getAsJsonObject();var count=nonNegativeCount(status,"postings_count");var printed=nonNegativeCount(status,"printed_postings_count");
+        return count!=null&&printed!=null&&count==members.size()&&printed+unprintedPostings(response,members).size()==members.size();
     }
 
     private static boolean completed(JsonObject response) {

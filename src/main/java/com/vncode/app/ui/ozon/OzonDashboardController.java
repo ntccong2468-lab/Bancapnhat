@@ -829,7 +829,7 @@ public final class OzonDashboardController {
             String done=output.postingNumbers().stream().map(n->n+" · "+(output.carrierOnly().containsKey(n)
                     ?MessageFormat.format(tr("ozon.fbs.pdf_created_carrier_only"),output.carrierOnly().get(n)):tr("ozon.fbs.pdf_created"))).collect(java.util.stream.Collectors.joining("\n"));
             String failures=output.failures().entrySet().stream().map(e->e.getKey()+" · "+tr(output.waiting().contains(e.getKey())?"ozon.batch.wait_rate_limit":"ozon.fbs.batch_incomplete")+" · "+e.getValue()).collect(java.util.stream.Collectors.joining("\n"));
-            batchResultsArea.setText(readinessTimingText(preflightMillis)+printTimingText(timingResult.get())+done+(done.isBlank()||failures.isBlank()?"":"\n")+failures);
+            batchResultsArea.setText(readinessTimingText(preflightMillis)+printTimingText(timingResult.get())+(output.postingNumbers().isEmpty()?"":tr("ozon.fbs.pdf_batch_layout")+"\n\n")+done+(done.isBlank()||failures.isBlank()?"":"\n")+failures);
             batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);batchResultsPanel.setExpanded(true);
             offsets.put("printed_awaiting_deliver",0);
             if(!output.postingNumbers().isEmpty()&&orderStatusTabs.getSelectionModel().getSelectedItem()!=printedOrdersTab)orderStatusTabs.getSelectionModel().select(printedOrdersTab);else loadLocal();

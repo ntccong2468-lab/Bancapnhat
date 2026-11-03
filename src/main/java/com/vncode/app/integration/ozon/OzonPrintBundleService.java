@@ -404,7 +404,9 @@ public final class OzonPrintBundleService {
         if(containsNewPrint)LicenseRuntime.require(Permission.PRINT_NEW);
         var context=new PrintContext(selectedPostings,selectedJobs,policies.findExemptSkus(frozen.getId()),
                 catalogFor(frozen,selectedPostings.values()),preparation.forBatch(frozen));
-        context.labels=labels.forBatch(frozen,selected);
+        context.labels=labels.forBatch(frozen,allowCarrierFallback?selected.stream().filter(context.postings::containsKey).toList():selected);
+        if(allowCarrierFallback&&context.labels.supportsWholeBatches())
+            return exportWholeRequested(frozen,selected,labelTarget,pickingTarget,completed,carrierOnly,context,containsNewPrint);
         var successful=new ArrayList<String>();var successfulWithKiz=new LinkedHashMap<String,OzonExemplarJobRepository.PrintProof>();var failures=new LinkedHashMap<String,String>();var waiting=new java.util.LinkedHashSet<String>();
         File labelStaging=null,pickingStaging=null;
         int totalPages=0,kizPages=0;
@@ -487,6 +489,101 @@ public final class OzonPrintBundleService {
         } finally {
             context.labels.close();AtomicFilePublisher.deleteQuietly(labelStaging);AtomicFilePublisher.deleteQuietly(pickingStaging);
         }
+    }
+
+    /** Preserve the whole official task PDF, then append independently identified KIZ labels.
+     * No positional assumption links an opaque transport page to a KIZ. */
+    private AvailableBatchExportResult exportWholeRequested(Shop shop,List<String> selected,File labelTarget,File pickingTarget,
+            IntConsumer completed,Map<String,String> initialCarrierOnly,PrintContext context,boolean containsNewPrint)throws IOException {
+        var carrierOnly=new LinkedHashMap<>(initialCarrierOnly);var prepared=new LinkedHashMap<String,PreparedPrint>();
+        var failures=new LinkedHashMap<String,String>();var waiting=new java.util.LinkedHashSet<String>();
+        var successful=new java.util.LinkedHashSet<String>();var processed=new java.util.HashSet<String>();
+        var proofs=new LinkedHashMap<String,OzonExemplarJobRepository.PrintProof>();File labelStaging=null,pickingStaging=null;
+        int totalPages=0,kizPages=0;
+        try(var session=Database.openBatchSession()){
+            var available=selected.stream().filter(context.postings::containsKey).toList();
+            for(String number:selected)if(!context.postings.containsKey(number))failures.put(number,"OZON_POSTING_NOT_AVAILABLE_LOCALLY");
+            for(int start=0;start<available.size();start+=OzonExemplarService.PRINT_BATCH_SIZE){
+                requireNotInterrupted();var window=available.subList(start,Math.min(start+OzonExemplarService.PRINT_BATCH_SIZE,available.size()));
+                var needsRefresh=window.stream().filter(n->!carrierOnly.containsKey(n)&&!accepted(context.jobs.get(n))).toList();
+                long started=OzonPrintTiming.tick();
+                try{
+                    if(context.preparation.refreshEveryNewPrint())context.preparation.prefetch(shop,needsRefresh);
+                }catch(IOException failure){
+                    if(deferredLabelFailure(failure)){
+                        for(String number:selected){failures.put(number,com.vncode.app.shared.FriendlyErrorService.format(failure));if(failure instanceof OzonApiException api&&api.statusCode()==429)waiting.add(number);}
+                        return new AvailableBatchExportResult(null,null,List.of(),Map.copyOf(failures),Set.copyOf(waiting),0,0,Map.of());
+                    }
+                    for(String number:needsRefresh)carrierOnly.put(number,com.vncode.app.shared.FriendlyErrorService.format(failure));
+                }finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PREPARATION,started);}
+                for(String number:window)try{
+                    if(!carrierOnly.containsKey(number))prepared.put(number,preparePrint(shop,number,context));
+                }catch(IOException failure){
+                    if(deferredLabelFailure(failure)){
+                        for(String pending:selected){failures.put(pending,com.vncode.app.shared.FriendlyErrorService.format(failure));if(failure instanceof OzonApiException api&&api.statusCode()==429)waiting.add(pending);}
+                        return new AvailableBatchExportResult(null,null,List.of(),Map.copyOf(failures),Set.copyOf(waiting),0,0,Map.of());
+                    }
+                    carrierOnly.put(number,com.vncode.app.shared.FriendlyErrorService.format(failure));
+                }finally{context.preparation.discard(number);}
+            }
+            labelStaging=AtomicFilePublisher.stagingFile(labelTarget,".whole-batch.pdf");
+            pickingStaging=AtomicFilePublisher.stagingFile(pickingTarget,".whole-picking.pdf");
+            try(var destination=new PdfDocument(new PdfWriter(labelStaging))){
+                for(String number:available){
+                    if(processed.contains(number))continue;requireNotInterrupted();WholeCarrierBatch batch;
+                    try{batch=context.labels.wholeBatch(shop,number);}
+                    catch(IOException failure){
+                        failures.put(number,com.vncode.app.shared.FriendlyErrorService.format(failure));processed.add(number);
+                        if(deferredLabelFailure(failure)){
+                            for(String pending:available)if(!processed.contains(pending)){failures.put(pending,com.vncode.app.shared.FriendlyErrorService.format(failure));if(failure instanceof OzonApiException api&&api.statusCode()==429)waiting.add(pending);}
+                            if(failure instanceof OzonApiException api&&api.statusCode()==429)waiting.add(number);break;
+                        }
+                        continue;
+                    }
+                    if(batch==null||batch.members().isEmpty()||new java.util.HashSet<>(batch.members()).size()!=batch.members().size()
+                            ||!available.containsAll(batch.members())||!java.util.Collections.disjoint(processed,batch.members())
+                            ||!batch.members().containsAll(batch.unprinted()))throw new IOException("OZON_LABEL_BATCH_SELECTION_CHANGED");
+                    var printed=batch.members().stream().filter(n->!batch.unprinted().contains(n)).toList();
+                    if(!printed.isEmpty()&&(batch.source()==null||batch.pages().isEmpty()))throw new IOException("OZON_LABEL_BATCH_INVALID_PDF");
+                    long copied=OzonPrintTiming.tick();
+                    try{if(batch.source()!=null){batch.source().copyPagesTo(batch.pages(),destination);destination.flushCopiedObjects(batch.source());}}
+                    finally{OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,copied);}
+                    totalPages+=batch.pages().size();successful.addAll(printed);processed.addAll(batch.members());
+                    for(String rejected:batch.unprinted())failures.put(rejected,"OZON_LABEL_UNPRINTED");
+                }
+                int done=0;
+                for(String number:selected){
+                    requireNotInterrupted();var plan=prepared.get(number);
+                    if(successful.contains(number)&&plan!=null&&!plan.bindings().isEmpty()){
+                        byte[] bytes=null;int appended=0;long composed=OzonPrintTiming.tick();
+                        try{
+                            var buffer=new java.io.ByteArrayOutputStream();
+                            try(var part=new PdfDocument(new PdfWriter(buffer))){appended=kizLabels.append(part,shop,plan.posting(),plan.bindings(),context.products);}
+                            if(appended!=plan.bindings().size())throw new IOException("OZON_KIZ_LABEL_COUNT_MISMATCH");bytes=buffer.toByteArray();
+                        }catch(IOException failure){carrierOnly.put(number,com.vncode.app.shared.FriendlyErrorService.format(failure));}
+                        finally{OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,composed);}
+                        if(bytes!=null){
+                            try(var part=new PdfDocument(new PdfReader(new java.io.ByteArrayInputStream(bytes)))){
+                                if(part.getNumberOfPages()!=appended)throw new IOException("OZON_KIZ_LABEL_COUNT_MISMATCH");
+                                part.copyPagesTo(1,appended,destination);destination.flushCopiedObjects(part);
+                            }
+                            proofs.put(number,plan.proof());kizPages+=appended;totalPages+=appended;
+                        }
+                    }
+                    if(completed!=null)completed.accept(++done);
+                }
+            }
+            if(successful.isEmpty())return new AvailableBatchExportResult(null,null,List.of(),Map.copyOf(failures),Set.copyOf(waiting),0,0,Map.of());
+            var orderedSuccess=selected.stream().filter(successful::contains).toList();
+            long pickingAt=OzonPrintTiming.tick();
+            try{pickingLists.exportBatch(pickingStaging,shop,orderedSuccess.stream().map(context.postings::get).toList());}
+            finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingAt);}
+            requireNotInterrupted();var labelsFile=labelStaging;var pickingFile=pickingStaging;
+            ownedPublish(shop,context.preparation.validateShopOwner(),containsNewPrint,()->
+                    publishPrintedBundle(shop,orderedSuccess,Map.copyOf(proofs),pickingFile,pickingTarget,labelsFile,labelTarget,context.preparation.validateShopOwner()));
+            labelStaging=null;pickingStaging=null;carrierOnly.keySet().retainAll(successful);
+            return new AvailableBatchExportResult(labelTarget,pickingTarget,orderedSuccess,Map.copyOf(failures),Set.copyOf(waiting),totalPages,kizPages,Map.copyOf(carrierOnly));
+        }finally{context.labels.close();AtomicFilePublisher.deleteQuietly(labelStaging);AtomicFilePublisher.deleteQuietly(pickingStaging);}
     }
 
     private static boolean deferredLabelFailure(IOException failure){
@@ -722,7 +819,14 @@ public final class OzonPrintBundleService {
         default OfficialLabelDownloader forBatch(Shop shop,List<String> numbers)throws IOException{return this;}
         /** Borrowed page from a shared PDF whose posting identity has already been verified. */
         default VerifiedCarrierPage verifiedCarrierPage(Shop shop,String postingNumber)throws IOException{return null;}
+        default boolean supportsWholeBatches(){return false;}
+        default WholeCarrierBatch wholeBatch(Shop shop,String postingNumber)throws IOException{return null;}
         @Override default void close(){}
+    }
+
+    /** Exact authenticated task membership; pages stay in Ozon order without per-page KIZ pairing. */
+    record WholeCarrierBatch(PdfDocument source,List<Integer> pages,List<String> members,Set<String> unprinted){
+        WholeCarrierBatch{pages=List.copyOf(pages);members=List.copyOf(members);unprinted=Set.copyOf(unprinted);}
     }
 
     record VerifiedCarrierPage(PdfDocument source,int page) {

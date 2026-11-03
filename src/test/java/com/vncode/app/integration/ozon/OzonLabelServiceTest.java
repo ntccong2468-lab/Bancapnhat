@@ -396,15 +396,28 @@ class OzonLabelServiceTest {
         assertEquals(numbers,result.successful());assertEquals(blocked,result.carrierOnly());assertTrue(result.failures().isEmpty());assertEquals(count,result.totalPages());assertEquals(0,result.kizPages());
         assertEquals(1,timing.labelGroups());assertEquals(0,timing.isolatedLabels());assertEquals(3,server.getRequestCount());
         try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(output.toFile()))){
-            assertEquals(count,pdf.getNumberOfPages());for(int i=0;i<count;i++)assertEquals(numbers.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(i+1)).strip());
+            assertEquals(count,pdf.getNumberOfPages());for(int i=0;i<count;i++)assertEquals(reversed.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(i+1)).strip());
         }
         var create=server.takeRequest(1,TimeUnit.SECONDS);assertEquals("/v3/posting/fbs/package-label/create",create.getPath());assertEquals(count,com.google.gson.JsonParser.parseString(create.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_numbers").size());
         assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());assertEquals("/cdn/requested.pdf",server.takeRequest(1,TimeUnit.SECONDS).getPath());
         String benchmark=System.getProperty("vncode.ozon.pdf.benchmark");if(benchmark!=null){
-            var value=new com.google.gson.JsonObject();value.addProperty("synthetic",true);value.addProperty("orders",count);value.addProperty("pages",result.totalPages());value.addProperty("totalMillis",timing.totalMillis());value.addProperty("labelGroups",timing.labelGroups());value.addProperty("isolatedLabels",timing.isolatedLabels());value.addProperty("httpRequests",3);value.addProperty("allPageIdentitiesChecked",true);
+            var value=new com.google.gson.JsonObject();value.addProperty("synthetic",true);value.addProperty("orders",count);value.addProperty("pages",result.totalPages());value.addProperty("totalMillis",timing.totalMillis());value.addProperty("labelGroups",timing.labelGroups());value.addProperty("isolatedLabels",timing.isolatedLabels());value.addProperty("httpRequests",3);value.addProperty("independentSyntheticPageIdentitiesChecked",true);value.addProperty("appVerifiesTaskMembershipAndCounts",true);value.addProperty("nativePageOrderPreserved",true);value.addProperty("appPairsEachPageToKiz",false);
             for(var stage:OzonPrintTiming.Stage.values())value.addProperty(stage.name().toLowerCase()+"Millis",timing.millis(stage));
             java.nio.file.Files.writeString(java.nio.file.Path.of(benchmark+"-"+count+".json"),value.toString());
         }
+    }
+
+    @Test void opaqueTransportAndProductPagesKeepOneWholeTaskInsteadOfCreatingIndividualTasks()throws Exception{
+        var numbers=twoPostings();byte[] bytes=textPdf("OPAQUE TRANSPORT A","PRODUCT A","OPAQUE TRANSPORT B","PRODUCT B");
+        server.enqueue(json("{\"task_id\":7001}"));server.enqueue(json("{\"status\":{\"code\":\"completed\",\"postings_count\":2,\"printed_postings_count\":2},\"file_url\":\""+server.url("/cdn/opaque.pdf")+"\"}"));server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes)));
+        var service=new OzonLabelService(new OzonLabelRepository(),this::client);
+        try(var batch=new OzonBatchLabelDownloader(service,owner(),numbers)){
+            var whole=batch.wholeBatch(owner(),numbers.getFirst());assertEquals(numbers,whole.members());assertEquals(java.util.List.of(1,2,3,4),whole.pages());assertTrue(whole.unprinted().isEmpty());
+            assertEquals(whole,batch.wholeBatch(owner(),numbers.getLast()));
+            assertEquals(1,new OzonLabelRepository().findMany(1,numbers).values().stream().map(OzonLabelRepository.LabelJob::taskId).distinct().count());
+            assertTrue(new OzonLabelRepository().find(1,numbers.getFirst()).taskId().startsWith("v3:"));
+        }
+        assertEquals(3,server.getRequestCount(),"One creation, one poll, one PDF; no isolated tasks for opaque pages");
     }
 
     @Test void printAllOneHundredOrdersCreatesOneSharedLabelTaskAndMapsEveryPage() throws Exception {
