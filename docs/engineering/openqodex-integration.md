@@ -32,6 +32,8 @@ Skill tại `.agents/skills/openqodex/SKILL.md` mô tả cách dùng và cách b
 
 Trong Codex Cloud, CLI OpenQodex 0.16.0 đã được thử offline với fixture SQL giả: `sqllint` báo một finding và exit 1 khi ngưỡng chặn là `major`; mẫu sạch exit 0. Một lượt chọn Semgrep với `--offline` ghi scanner bị disabled nhưng vẫn exit 0, xác nhận không thể dựa riêng vào exit code để kết luận mọi scanner đã chạy. Đây chỉ là kiểm tra hành vi trên fixture, không chứng minh toàn bộ scanner, AI reviewer hay GitHub Action đã chạy thành công.
 
+Trên commit `6e72124`, OpenQodex CLI đã chạy Gitleaks 8.21.2 đã kiểm SHA-256 trên sáu tệp thay đổi so với nhánh audit, không có candidate. GitHub Action scanner-only của PR #15 cũng đã chạy: 6 scanner hoàn thành, 16 không có tệp phù hợp, 1 candidate mức minor và 5 advisory dependency ngoài dòng thay đổi; gate sức khỏe đạt và artifact tóm tắt được tải lên. Candidate và advisory chưa được phân tích chi tiết, và đây không phải xác nhận toàn repository không có lỗi. Các kiểm thử/CI khác trong PR có thể có trạng thái riêng.
+
 Ở thời điểm thử cục bộ: 134/134 kiểm thử công cụ Node và 67/67 kiểm thử portal đạt; `npm run check`, `npm audit --package-lock-only` và actionlint đạt. Maven `-DskipTests package` trên bản sao Linux dùng JDK 25 thành công; 21/21 test Java chọn lọc cho wrapper, TN VED, rollback PDF Ozon và hủy cập nhật đạt. Đây không phải toàn bộ test Java hoặc xác minh Windows.
 
 Không công cụ nào trong cấu hình này bảo đảm phát hiện hết lỗi logic nghiệp vụ, race, rò bộ nhớ, hiệu năng, cấu hình hay lỗ hổng bảo mật. Cần đối chiếu finding với mã, tái hiện khi khả thi, sửa tối thiểu và chạy test hồi quy. Kết quả mô phỏng không chứng minh tương thích Windows/CryptoPro hoặc ghi thành công lên Catalog, WB và Ozon thật.
