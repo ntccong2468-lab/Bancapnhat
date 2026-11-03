@@ -164,13 +164,19 @@ public final class LicenseService implements AutoCloseable {
     }
     public boolean allows(Permission permission) {
         Lease current=lease;State saved=state;LicenseClock time=clock;
-        if(closed||startupCheckPending||leaseGeneration!=generation.get()||current==null||saved==null||!blank(saved.denialCode())||time==null||time.rollbackDetected()||!current.permissions().contains(permission))return false;
-        long now=time.now();return now<current.subscriptionExpiresAt() && (now<onlineDeadline||current.offlineHours()>0&&now<current.expiresAt());
+        if(closed||startupCheckPending||leaseGeneration!=generation.get()||current==null||saved==null||!blank(saved.denialCode())||time==null||!current.permissions().contains(permission))return false;
+        synchronized(time){
+            if(time.rollbackDetected())return false;
+            long now=time.now();return now<current.subscriptionExpiresAt() && (now<onlineDeadline||current.offlineHours()>0&&now<current.expiresAt());
+        }
     }
     private boolean hasVerifiedOfflineLease(){
         Lease current=lease;State saved=state;LicenseClock time=clock;
-        if(closed||leaseGeneration!=generation.get()||current==null||saved==null||!blank(saved.denialCode())||time==null||time.rollbackDetected()||current.offlineHours()<=0)return false;
-        long now=time.now();return now<current.subscriptionExpiresAt()&&now<current.expiresAt();
+        if(closed||leaseGeneration!=generation.get()||current==null||saved==null||!blank(saved.denialCode())||time==null||current.offlineHours()<=0)return false;
+        synchronized(time){
+            if(time.rollbackDetected())return false;
+            long now=time.now();return now<current.subscriptionExpiresAt()&&now<current.expiresAt();
+        }
     }
     public int maxShops(){return lease==null?0:lease.maxShops();}
     // Retry the workflow, never a previously signed POST: challenge IDs are single-use.
@@ -193,12 +199,15 @@ public final class LicenseService implements AutoCloseable {
         if(state.account()==null||!grant.account().email().equals(state.account().email())||!grant.account().status().equals("approved"))throw LicenseJson.invalid();
         if(!activating&&(!grant.account().id().equals(state.account().id())))throw LicenseJson.invalid();
         long min=activating&& !grant.account().id().equals(state.account().id())?0:state.minRevision();
-        Lease verified=verifier.verify(grant.envelope(),grant.account().id(),keys.hash(),min,clock.now(),true);
-        if(grant.account().expiresAt()!=verified.subscriptionExpiresAt()||grant.onlineValidUntil()>Math.min(verified.subscriptionExpiresAt(),verified.issuedAt()+300))throw LicenseJson.invalid();
-        if(grant.onlineValidUntil()<=clock.now())throw new IOException("LICENSE_CLOCK_SKEW");
-        if(clock.rollbackDetected())throw new IOException("LICENSE_CLOCK_ROLLBACK");
-        String token=activating?grant.accessToken():state.accessToken();if(blank(token))throw LicenseJson.invalid();
-        state=new State(keys.publicKey(),keys.privateKey(),state.registrationToken(),token,grant.account(),grant.envelope(),clock.now(),verified.revision(),"");
+        LicenseClock time=clock;Lease verified;
+        synchronized(time){
+            verified=verifier.verify(grant.envelope(),grant.account().id(),keys.hash(),min,time.now(),true);
+            if(grant.account().expiresAt()!=verified.subscriptionExpiresAt()||grant.onlineValidUntil()>Math.min(verified.subscriptionExpiresAt(),verified.issuedAt()+300))throw LicenseJson.invalid();
+            if(grant.onlineValidUntil()<=time.now())throw new IOException("LICENSE_CLOCK_SKEW");
+            if(time.rollbackDetected())throw new IOException("LICENSE_CLOCK_ROLLBACK");
+            String token=activating?grant.accessToken():state.accessToken();if(blank(token))throw LicenseJson.invalid();
+            state=new State(keys.publicKey(),keys.privateKey(),state.registrationToken(),token,grant.account(),grant.envelope(),time.now(),verified.revision(),"");
+        }
         persist();startupCheckPending=false;lease=verified;leaseGeneration=operationGeneration.get()==null?generation.get():operationGeneration.get();onlineDeadline=grant.onlineValidUntil();publish(Status.ACTIVE,"");
         refreshCadence.completed(nanos.getAsLong(),true);
     }

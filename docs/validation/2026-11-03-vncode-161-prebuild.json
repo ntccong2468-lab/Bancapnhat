@@ -1,0 +1,24 @@
+{
+  "version": "1.6.1",
+  "releaseRequested": true,
+  "ownerInstruction": "sau khi xong gom tất cả các chỉnh sửa thành một bản cập nhật mới và tạo bộ cài đẩy lên latest để phát hành xuống app",
+  "publicBaseline": "1.6.0",
+  "uiSource": "a250e2f",
+  "uiTests": {
+    "tests": 143,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "nodeTests": 135,
+  "licenseTimeSynchronizationTests": {
+    "tests": 97,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "credentialMigrationPrototypeIncludedInRuntime": false,
+  "windowsNative": "pending",
+  "fullJava": "pending",
+  "actualLiveWrites": "see independent sanitized acceptance receipts; do not repeat"
+}
