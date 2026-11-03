@@ -7,3 +7,4 @@
 - Không in hay commit secret, token, mã KIZ, dữ liệu seller hoặc thông tin license thật; dùng dữ liệu tổng hợp trong kiểm thử. Kiểm thử ghi lên dịch vụ thật và các thao tác có phí chỉ trong phạm vi người dùng đã cho phép; xem `docs/engineering/security.md`.
 - Phân biệt test mô phỏng với kết quả trên WB/Ozon/Catalog và trên Windows thật. Không coi HTTP 200 là xác nhận nghiệp vụ đã hoàn tất.
 - Không tự triển khai, merge hoặc xóa bản phát hành/dữ liệu; làm theo yêu cầu cụ thể của người dùng. Lệnh `tools/baseline-release.mjs prune` xóa các release cũ và không thuộc bước xác minh thông thường.
+- Khi dùng OpenQodex để quét hoặc review, đọc skill `.agents/skills/openqodex/SKILL.md` và báo đúng phạm vi scanner/reviewer.

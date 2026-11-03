@@ -1,7 +1,12 @@
-name: PR security and workflow checks
+name: Security and workflow checks
 
 on:
   pull_request:
+  push:
+    branches: [dev, develop, 'dev/**']
+  # GitHub runs schedules on the default branch; CodeQL scans the whole checkout.
+  schedule:
+    - cron: '37 4 * * 0'
   workflow_dispatch:
 
 # PR code is untrusted. This workflow has no deployment credentials or write access.
@@ -10,6 +15,41 @@ permissions:
   actions: read
 
 jobs:
+  openqodex-scan:
+    # A clean scheduled checkout may have no diff: do not present it as a full scan.
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Explicit scanner-only mode: this is not an independent AI review.
+      - name: Scan changed files without an AI reviewer
+        id: openqodex
+        uses: openqodex/openqodex@6d879d65de94ab201bddd9ccad76e1d1bcff70ca # openqodex@0.16.0
+        with:
+          version: '0.16.0'
+          review: 'off'
+          upload-sarif: 'false'
+          block-on-severity: major
+          fail-on-tool-error: 'true'
+          config-from: base
+      # Upstream can return success even if an individual selected scanner fails.
+      - name: Check scanner health
+        if: always() && steps.openqodex.outcome != 'skipped'
+        run: node tools/openqodex-health-gate.mjs "$RUNNER_TEMP"
+      # No raw source snippets, paths, reasons or potentially unrecognized secrets.
+      - name: Preserve sanitized scanner health report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: openqodex-scanner-health
+          path: ${{ runner.temp }}/openqodex-health-summary.json
+          if-no-files-found: error
+          retention-days: 14
+
   lint-and-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 20
