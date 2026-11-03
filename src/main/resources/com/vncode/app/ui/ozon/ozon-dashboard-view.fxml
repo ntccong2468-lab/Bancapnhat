@@ -25,7 +25,7 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <VBox minWidth="0" minHeight="0" spacing="6.0" styleClass="ozon-fbs-workspace,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.ozon.OzonDashboardController">
-    <padding><Insets bottom="10.0" left="10.0" right="10.0" top="10.0" /></padding>
+    <padding><Insets bottom="16.0" left="16.0" right="16.0" top="16.0" /></padding>
     <children>
         <FlowPane alignment="CENTER_LEFT" hgap="10.0" vgap="6.0">
             <children>
@@ -50,8 +50,8 @@
         <Label fx:id="statusLabel" styleClass="text-muted" wrapText="true" />
         <Label fx:id="workflowLabel" styleClass="text-muted" wrapText="true" visible="false" managed="false" />
         <FlowPane hgap="8.0" vgap="8.0" alignment="CENTER_LEFT" styleClass="surface filter-bar">
-            <TextField fx:id="postingSearch" prefWidth="320.0" minWidth="100.0" />
-            <Button fx:id="clearSearchButton" onAction="#onClearSearch" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-x" iconSize="15" /></graphic></Button>
+            <TextField fx:id="postingSearch" accessibleText="%ui.search.orders" prefWidth="320.0" minWidth="100.0" />
+            <Button fx:id="clearSearchButton" accessibleText="%ui.search.clear" onAction="#onClearSearch" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-x" iconSize="15" /></graphic></Button>
             <Button fx:id="selectFilteredButton" onAction="#onSelectFiltered" text="Select all filtered"/>
             <Button fx:id="clearBatchSelectionButton" onAction="#onClearBatchSelection" text="Clear selection"/>
         </FlowPane>

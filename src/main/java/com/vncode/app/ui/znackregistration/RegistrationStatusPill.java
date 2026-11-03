@@ -17,6 +17,7 @@ final class RegistrationStatusPill {
         return show(host,id,message,running,!running);
     }
     static HBox show(StackPane host,String id,String message,boolean running,boolean dismiss) {
+        com.vncode.app.shared.TaskStatusDock.install(host);
         host.getChildren().removeIf(node->id.equals(node.getId()));
         var label=new Label(message);label.setWrapText(true);label.setMinWidth(0);
         label.maxWidthProperty().bind(javafx.beans.binding.Bindings.max(160,host.widthProperty().subtract(80)));

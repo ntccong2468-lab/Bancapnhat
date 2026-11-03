@@ -52,7 +52,7 @@ class OzonFbsUiTest {
         var loader = fx(() -> {
             var view = FxmlViewLoader.loader(OzonDashboardController.class, "ozon-dashboard-view.fxml");
             var scene = new Scene(view.load(), 1024, 600);
-            scene.getStylesheets().add(com.vncode.app.MainApplication.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());
+            ThemeService.applyTheme(scene);
             stage[0] = new javafx.stage.Stage(); stage[0].setScene(scene); stage[0].show(); return view;
         });
         OzonDashboardController controller = loader.getController();
@@ -62,7 +62,7 @@ class OzonFbsUiTest {
                     for (var tab : List.of("newOrdersTab", "packingOrdersTab", "printedOrdersTab", "deliveringOrdersTab")) fx(() -> {
                         I18nService.getInstance().setLanguage(language); controller.applyTranslations();
                         var scene = stage[0].getScene(); var content = scene.getRoot();
-                        content.getStyleClass().removeAll("theme-dark", "theme-light"); content.getStyleClass().add(theme);
+                        ThemeService.switchTheme(theme.substring("theme-".length())); ThemeService.applyTheme(scene);
                         stage[0].setWidth(size[0]); stage[0].setHeight(size[1]);
                         ((TabPane) loader.getNamespace().get("orderStatusTabs")).getSelectionModel().select((Tab) loader.getNamespace().get(tab));
                         content.applyCss(); content.layout();
@@ -88,13 +88,18 @@ class OzonFbsUiTest {
     }
     @Test void allPostingItemTitlesStayInsideTheirRenderedRow()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Fixture','OZON','11','fixture')");}
-        var window=new java.util.concurrent.atomic.AtomicReference<javafx.stage.Stage>();FXMLLoader loader=fx(()->{var l=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");var scene=new Scene(l.load(),1024,600);scene.getStylesheets().add(com.vncode.app.MainApplication.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());var stage=new javafx.stage.Stage();window.set(stage);stage.setScene(scene);stage.show();return l;});OzonDashboardController controller=loader.getController();
+        var window=new java.util.concurrent.atomic.AtomicReference<javafx.stage.Stage>();FXMLLoader loader=fx(()->{var l=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");var scene=new Scene(l.load(),1024,600);ThemeService.applyTheme(scene);var stage=new javafx.stage.Stage();window.set(stage);stage.setScene(scene);stage.show();return l;});OzonDashboardController controller=loader.getController();
         try{
             fx(()->{controller.setFbsReader(q->new OzonFbsPage(List.of(new OzonPostingDto("fixture","","",q.status(),"","","","","","",new OzonRequirements(List.of(),List.of(),List.of()),List.of(),false,List.of(new OzonPostingItemDto(0,"1","11","fixture-a","First complete product title",1,"RUB","100"),new OzonPostingItemDto(1,"2","22","fixture-b","Second complete product title",1,"RUB","200")))),1,Map.of()));controller.setShop(new Shop(1,"Fixture",Marketplace.OZON,"11","fixture"),false);return null;});
             for(int i=0;i<500;i++){if(fx(()->((TableView<?>)loader.getNamespace().get("newOrdersTable")).getItems().size()==1))break;Thread.sleep(10);}
             var pulsed=new CompletableFuture<Void>();fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==2){stop();pulsed.complete(null);}}}.start();return null;});pulsed.get(5,TimeUnit.SECONDS);
             fx(()->{var table=(TableView<?>)loader.getNamespace().get("newOrdersTable");table.applyCss();table.layout();var row=table.lookupAll(".table-row-cell").stream().filter(n->n instanceof TableRow<?> r&&!r.isEmpty()).findFirst().orElseThrow();var bounds=row.localToScene(row.getBoundsInLocal());
-                var titles=row.lookupAll(".text-bold").stream().filter(n->n instanceof Label l&&l.getText().endsWith("complete product title")).toList();assertEquals(2,titles.size());for(var label:titles){var b=label.localToScene(label.getBoundsInLocal());assertTrue(b.getMinY()>=bounds.getMinY()-1&&b.getMaxY()<=bounds.getMaxY()+1,"Each title must remain visible inside its own row");}return null;});
+                var titles=row.lookupAll(".text-bold").stream().filter(n->n instanceof Label l&&l.getText().endsWith("complete product title")).toList();assertEquals(2,titles.size());
+                double viewportRight=table.localToScene(table.getBoundsInLocal()).getMaxX()-2;
+                for(var price:row.lookupAll(".label"))if(price instanceof Label l&&l.getText().endsWith("RUB")){
+                    assertTrue(price.localToScene(price.getBoundsInLocal()).getMaxX()<=viewportRight,"Complete price must fit the available table width; width="+table.getWidth()+" policy="+table.getColumnResizePolicy()+" contentWidth="+new TableView.ResizeFeatures<>(table,null,0.0).getContentWidth()+" minimum="+table.getVisibleLeafColumns().stream().mapToDouble(javafx.scene.control.TableColumnBase::getMinWidth).sum()+" columns="+table.getVisibleLeafColumns().stream().map(c->c.getText()+":"+c.getWidth()+":"+c.getMinWidth()+":"+c.getMaxWidth()+":"+c.isResizable()).toList());
+                }
+                for(var label:titles){var b=label.localToScene(label.getBoundsInLocal());assertTrue(b.getMinY()>=bounds.getMinY()-1&&b.getMaxY()<=bounds.getMaxY()+1,"Each title must remain visible inside its own row");}return null;});
             String captureDir = System.getProperty("vncode.ui.capture.dir");
             if (captureDir != null) {
                 var language = I18nService.getInstance().getCurrentLanguage();

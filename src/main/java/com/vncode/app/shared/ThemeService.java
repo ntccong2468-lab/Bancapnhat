@@ -8,11 +8,10 @@ import javafx.scene.control.DialogPane;
 import javafx.stage.Window;
 import java.util.*;
 
-/** Shared glass paints and high-contrast foregrounds; whole-window opacity stays intact. */
+/** Shared desktop tokens and controls; the saved light-material preference never fades text. */
 public final class ThemeService {
-    private static final String GLASS_CSS = Objects.requireNonNull(ThemeService.class.getResource("/com/vncode/app/styles/liquid-glass.css")).toExternalForm();
     private static final String BASE_CSS = Objects.requireNonNull(ThemeService.class.getResource("/com/vncode/app/styles/theme.css")).toExternalForm();
-    private static final String REFERENCE_CSS = Objects.requireNonNull(ThemeService.class.getResource("/com/vncode/app/styles/reference-dark.css")).toExternalForm();
+    private static final String CONTROLS_CSS = Objects.requireNonNull(ThemeService.class.getResource("/com/vncode/app/styles/workspace-controls.css")).toExternalForm();
     private static final Set<Parent> ROOTS = Collections.newSetFromMap(new WeakHashMap<>());
     private static final String ORIGINAL_STYLE = ThemeService.class.getName()+".originalStyle";
     private static boolean observingWindows;
@@ -56,8 +55,7 @@ public final class ThemeService {
         if(scene==null||Boolean.TRUE.equals(scene.getProperties().get(STARTUP_SCENE)))return;
         UiFonts.install();observeWindows();
         if(!scene.getStylesheets().contains(BASE_CSS))scene.getStylesheets().add(BASE_CSS);
-        if(!scene.getStylesheets().contains(GLASS_CSS))scene.getStylesheets().add(GLASS_CSS);
-        if(!scene.getStylesheets().contains(REFERENCE_CSS))scene.getStylesheets().add(REFERENCE_CSS);
+        if(!scene.getStylesheets().contains(CONTROLS_CSS))scene.getStylesheets().add(CONTROLS_CSS);
         if(!scene.getProperties().containsKey(ThemeService.class)) {
             scene.getProperties().put(ThemeService.class,Boolean.TRUE);
             scene.rootProperty().addListener((observable,oldRoot,newRoot)->applyTheme(scene));
@@ -68,8 +66,7 @@ public final class ThemeService {
         if(pane==null)return;
         UiFonts.install();observeWindows();
         if(!pane.getStylesheets().contains(BASE_CSS))pane.getStylesheets().add(BASE_CSS);
-        if(!pane.getStylesheets().contains(GLASS_CSS))pane.getStylesheets().add(GLASS_CSS);
-        if(!pane.getStylesheets().contains(REFERENCE_CSS))pane.getStylesheets().add(REFERENCE_CSS);
+        if(!pane.getStylesheets().contains(CONTROLS_CSS))pane.getStylesheets().add(CONTROLS_CSS);
         material(pane,getCurrentTheme(),getGlassTransparency());
     }
     private static void observeWindows() {
@@ -92,6 +89,7 @@ public final class ThemeService {
     private static void material(Parent root,Theme theme,int amount) {
         if(root==null)return;
         ROOTS.add(root);
+        if(!root.getStyleClass().contains("workspace-theme"))root.getStyleClass().add("workspace-theme");
         if(theme==Theme.LIGHT){if(!root.getStyleClass().contains("liquid-glass"))root.getStyleClass().add("liquid-glass");}
         else root.getStyleClass().remove("liquid-glass");
         String selected=theme==Theme.LIGHT?"theme-light":"theme-dark";

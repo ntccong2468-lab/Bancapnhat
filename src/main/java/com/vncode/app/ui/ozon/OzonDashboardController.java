@@ -863,6 +863,7 @@ public final class OzonDashboardController {
     private static String seconds(long millis){return String.format(Locale.ROOT,"%.2f",millis/1000d);}
 
     private void showPrintPill(String message){
+        com.vncode.app.shared.TaskStatusDock.install(kn3StatusHost);
         var existing=kn3StatusHost.lookup("#kizPrintProgressText");
         if(existing instanceof Label label){label.setText(message);return;}
         var text=new Label(message);text.setId("kizPrintProgressText");text.setWrapText(true);text.setMaxWidth(860);
@@ -1031,6 +1032,12 @@ public final class OzonDashboardController {
         var identifiers=new TableColumn<OzonPostingDto,OzonPostingDto>();identifiers.setId("ozonBarcodes");identifiers.setMinWidth(190);identifiers.setPrefWidth(230);
         identifiers.setCellValueFactory(data->new ReadOnlyObjectWrapper<>(data.getValue()));identifiers.setCellFactory(column->new PostingBarcodesCell());
         barcodeColumns.add(identifiers);table.getColumns().add(table.getColumns().indexOf(details)+1,identifiers);
+        // Keep fixed widths locked using equal bounds: JavaFX's constrained policy must
+        // include their preferred widths when deciding whether to shrink other columns.
+        for (var fixed : table.getColumns()) if (!fixed.isResizable()) {
+            double width = fixed.getPrefWidth();
+            fixed.setMinWidth(width); fixed.setMaxWidth(width); fixed.setResizable(true);
+        }
         table.widthProperty().addListener((o,a,b)->resizePostingTable(table));resizePostingTable(table);
     }
     private void resizePostingTable(TableView<OzonPostingDto> table){

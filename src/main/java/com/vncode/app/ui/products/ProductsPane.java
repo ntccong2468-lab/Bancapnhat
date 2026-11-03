@@ -39,6 +39,7 @@ public final class ProductsPane extends BorderPane {
         backgroundEdits.put(shopScope,editor);installProgress(editor);
     }
     private void installProgress(ProductBulkEditPane editor){
+        TaskStatusDock.install(listing);
         progressDismiss.stop();
         if(currentEdit!=null&&editListener!=null)currentEdit.backgroundRunning().removeListener(editListener);
         if(progressPill!=null){for(var node:progressPill.getChildren())if(node instanceof Label label)label.textProperty().unbind();listing.getChildren().remove(progressPill);}
@@ -78,7 +79,7 @@ public final class ProductsPane extends BorderPane {
     public ProductsPane(Function<ProductQuery,ProductPage> reader,ShopReadCoordinator reads,ProductRefreshService refreshService) {
         this.reader=reader==null?repository::loadProductPage:reader;this.reads=Objects.requireNonNull(reads);
         this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
-        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(12));
+        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(16));
         rows.setId("productRows");rows.setFixedCellSize(84);rows.setCellFactory(list->new ProductCell());
         rows.skinProperty().addListener((o,a,b)->Platform.runLater(this::installScrollPaging));
         var headingSpacer=new Region();HBox.setHgrow(headingSpacer,Priority.ALWAYS);
@@ -265,6 +266,6 @@ public final class ProductsPane extends BorderPane {
         };
     }
     private void refreshIssueCells(){issue.setCellFactory(list->issueCell());issue.setButtonCell(issueCell());issueChips.forEach((kind,chip)->{chip.setText(tr("products.issue."+kind.name())+" ("+(issueCounts.containsKey(kind)?issueCounts.get(kind):"—")+")");chip.setSelected(issue.getValue()==kind);});}
-    public void applyTranslations(){needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
+    public void applyTranslations(){needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));search.setAccessibleText(tr("products.search"));category.setAccessibleText(tr("products.categories"));document.setAccessibleText(tr("products.documents_all"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
     public void dispose(){if(disposed)return;disposed=true;generation++;syncTicket++;progressDismiss.stop();debounce.stop();thumbnails.close();}
 }

@@ -1,0 +1,21 @@
+{
+  "source": "https://github.com/nextlevelbuilder/ui-ux-pro-max-skill",
+  "commit": "713eef51b04efc98d6fa565323b495f7c9c89fd4",
+  "method": "Repository CLI built with npm ci --ignore-scripts and npm run build; init --ai codex --offline",
+  "python": "3.12.14",
+  "stack": "JavaFX 25.0.2; advice catalog cites JavaFX 26, only compatible APIs used",
+  "smokeSearches": [
+    "virtualized table responsive layout --stack javafx",
+    "keyboard focus modal --stack javafx",
+    "badge chip label wraps --domain ux"
+  ],
+  "extraBundledSkills": [
+    "banner-design",
+    "brand",
+    "design",
+    "design-system",
+    "slides",
+    "ui-styling"
+  ],
+  "globalInstall": false
+}

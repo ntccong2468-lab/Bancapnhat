@@ -31,11 +31,18 @@ public class ShopDialogController {
     @FXML
     private Label errorLabel;
 
+    @FXML private Label nameLabel;
+    @FXML private Label marketplaceLabel;
+
     private boolean editing;
     private String originalClientId;
 
     @FXML
     public void initialize() {
+        nameLabel.setLabelFor(nameField);
+        marketplaceLabel.setLabelFor(marketplaceField);
+        clientIdLabel.setLabelFor(clientIdField);
+        apiKeyLabel.setLabelFor(apiKeyField);
         marketplaceField.getItems().setAll(Marketplace.values());
         marketplaceField.getSelectionModel().select(Marketplace.WILDBERRIES);
         marketplaceField.valueProperty().addListener((obs, oldValue, newValue) -> updateMarketplaceFields());

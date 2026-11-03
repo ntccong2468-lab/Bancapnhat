@@ -61,8 +61,8 @@ class PackingDebtStatusVisualTest {
             try {
                 Scene scene = new Scene(root, 1280, 900);
                 scene.getStylesheets().add(PackingController.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());
-                scene.getStylesheets().add(PackingController.class.getResource("/com/vncode/app/styles/reference-dark.css").toExternalForm());
-                root.getStyleClass().add("reference-dark");
+                scene.getStylesheets().add(PackingController.class.getResource("/com/vncode/app/styles/workspace-controls.css").toExternalForm());
+                root.getStyleClass().addAll("reference-dark", "workspace-theme");
                 stage.setScene(scene);
                 stage.show();
                 TabPane tabs = (TabPane) loader.getNamespace().get("packingTabPane");

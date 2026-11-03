@@ -1,0 +1,214 @@
+{
+  "recordedAt": "2026-11-03T19:52:11.923160+00:00",
+  "sourceBase": "30afa28",
+  "uiTests": {
+    "tests": 143,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": [
+    {
+      "name": "com.vncode.app.shared.TaskStatusDockTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.shared.ThemeServiceTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.DarkReferenceScreensTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": "58",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.ReferenceThemeAccessibilityTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.StartupProgressTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.gs1.Gs1ZnackHeadingLayoutTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.news.NewsPaneLayoutTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.packing.PackingDebtStatusVisualTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.products.ProductBulkDialogTest",
+      "tests": "28",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.products.ProductEditInteractionTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.products.ProductReferenceLayoutTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.products.ProductSelectionSmoothnessTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.DesktopShellEvidenceTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceChromeUiTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceJavaPagesLayoutTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceListAreaTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspacePagesLayoutTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.RegistrationDraftCompletionDialogTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "nodeTools": {
+    "tests": 135,
+    "passed": 135
+  },
+  "skillPython": {
+    "tests": 39,
+    "passed": 39
+  },
+  "layout": {
+    "fxmlPages": 16,
+    "javaPanes": 10,
+    "locales": 4,
+    "themes": 2,
+    "sizes": 2,
+    "fxmlActionChecks": 976,
+    "javaActionChecks": 990,
+    "clippedFixedActions": 0
+  },
+  "fxmlContracts": [
+    {
+      "file": "src/main/resources/com/vncode/app/ui/dashboard/dashboard-view.fxml",
+      "existingIdsPreserved": 28,
+      "handlersPreserved": 6
+    },
+    {
+      "file": "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+      "existingIdsPreserved": 76,
+      "handlersPreserved": 13
+    },
+    {
+      "file": "src/main/resources/com/vncode/app/ui/shop/shop-dialog.fxml",
+      "existingIdsPreserved": 8,
+      "handlersPreserved": 0
+    },
+    {
+      "file": "src/main/resources/com/vncode/app/ui/shop/shop-sidebar-view.fxml",
+      "existingIdsPreserved": 35,
+      "handlersPreserved": 28
+    },
+    {
+      "file": "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml",
+      "existingIdsPreserved": 52,
+      "handlersPreserved": 16
+    }
+  ],
+  "priceOverflowRegression": {
+    "redReproduced": true,
+    "computedBoundsPassed": true,
+    "fixedColumnBoundsKept": true
+  },
+  "uiBusinessApiChanges": false,
+  "uiSchemaChanges": false,
+  "syntheticScreenshots": true,
+  "screenshotCount": 92,
+  "windowsNativeVerification": "pending release build"
+}

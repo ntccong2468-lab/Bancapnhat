@@ -8,7 +8,7 @@
       fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page,registration-reference">
     <StackPane fx:id="ozonRegistrationHost" minHeight="0" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
     <VBox fx:id="wbRegistrationContent" minHeight="0" minWidth="0" spacing="6" VBox.vgrow="ALWAYS">
-    <padding><Insets top="10" right="10" bottom="10" left="10"/></padding>
+    <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
     <HBox fx:id="registrationHeader" alignment="CENTER_LEFT" spacing="10">
         <Label fx:id="titleLabel" text="Đăng ký thẻ Znack" styleClass="h2" minWidth="210" prefWidth="240" maxWidth="260"/>
         <Pane HBox.hgrow="ALWAYS"/>
@@ -31,9 +31,9 @@
         <Button fx:id="newCardsSelectedButton" text="Tạo thẻ mới cho tập đã chọn" onAction="#onNewCardsSelected"/>
     </VBox>
     <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6">
-        <TextField fx:id="searchField" promptText="Tìm theo tên, article, SKU..." prefWidth="280"/>
+        <TextField fx:id="searchField" accessibleText="%products.search" promptText="Tìm theo tên, article, SKU..." prefWidth="280"/>
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
-        <ComboBox fx:id="statusFilter" prefWidth="195"/>
+        <ComboBox fx:id="statusFilter" accessibleText="%ui.filter.status" prefWidth="195"/>
         <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
         <Button fx:id="connectionButton" text="Kiểm tra kết nối" onAction="#onConnection" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
         <Button fx:id="provenanceButton" text="Nguồn dữ liệu" onAction="#onProvenance" styleClass="btn-secondary" minWidth="100" wrapText="true"/>

@@ -8,6 +8,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
@@ -60,14 +61,14 @@
             </children>
         </HBox>
         <Label fx:id="penaltyHelpLabel" styleClass="text-muted" wrapText="true" text="Mô tả theo dữ liệu sàn đã đồng bộ; có thể chưa có lý do chi tiết." />
-        <HBox alignment="CENTER_LEFT" spacing="8.0">
+        <FlowPane alignment="CENTER_LEFT" hgap="8" vgap="6">
             <children>
                 <Label fx:id="penaltyFromLabel" minWidth="-Infinity" text="Từ" />
                 <DatePicker fx:id="penaltyFromDate" minWidth="170.0" prefWidth="170.0" onAction="#onPenaltyRangeChanged" />
                 <Label fx:id="penaltyToLabel" minWidth="-Infinity" text="Đến" />
                 <DatePicker fx:id="penaltyToDate" minWidth="170.0" prefWidth="170.0" onAction="#onPenaltyRangeChanged" />
             </children>
-        </HBox>
+        </FlowPane>
         <Label fx:id="penaltyStatusLabel" styleClass="text-muted" wrapText="true" />
         <TableView fx:id="penaltyTable" minHeight="100.0" VBox.vgrow="ALWAYS">
             <columns>

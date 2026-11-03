@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## Giao diện UI UX Pro Max — 03.11.2026, chờ đóng gói 1.6.1
+
+- Nền PR #18 (`30afa28`), nhánh `feature/ui-ux-pro-max-20261103`. Skill được cài upstream cố định `713eef51`, có Python/data/license và companions; search JavaFX thật, không áp dụng Hero/CTA marketing. Không thay hai skill UI cũ.
+- Một stylesheet controls/token sáng/tối cho toàn app; giữ Inter, theme đã lưu và thanh chỉnh nền sáng. Sidebar gọn; control/focus/metadata và dialog thống nhất; thêm accessibleText/labelFor. Progress sản phẩm, Znack, in Ozon chừa footer thay vì che dòng; không thay model/selection.
+- Giữ khung danh sách như FBS WB với lề 16 px và co theo cửa sổ. Xem ảnh phát hiện cột giá Ozon bị cắt dù toolbar đạt: JavaFX constrained resize bỏ phần pref width của cột `resizable=false`; khóa các cột đó bằng min=max và cho tham gia tính toán. Test lỗi đỏ rồi xanh, không bỏ giá, nút hoặc mã vận đơn.
+- 143 UI test riêng biệt đạt, 26 view/pane × 4 ngôn ngữ × 2 theme × 2 cỡ, 1.966 phép kiểm nút cố định không khuất; 5 danh sách có dữ liệu ở 3 cỡ đều co giãn đúng. Node135/135, Python39/39. 92 ảnh JavaFX tổng hợp và báo cáo ở [bàn giao UI](validation/2026-11-03-ui-ux-pro-max/README.md). Màn khởi động dùng CSS mới trực tiếp để không đọc SQL trước phục hồi.
+- Chủ dự án đã yêu cầu gộp tất cả, tạo bộ cài và Latest. Latest công khai hiện 1.6.0, vì vậy dùng 1.6.1; chưa coi là phát hành trước khi Windows/native/upgrade và asset cuối đạt. Không đưa prototype migration credential vào runtime; không kích hoạt license, mua/tiêu KIZ hoặc gửi lại giao dịch Catalog đã có receipt.
+
+
 
 ## PDF Ozon theo lô — 03.11.2026, chưa phát hành
 

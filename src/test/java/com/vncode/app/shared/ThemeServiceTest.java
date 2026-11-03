@@ -29,7 +29,8 @@ class ThemeServiceTest {
     var muted=new Label("GTIN · SKU · Znack");muted.getStyleClass().add("text-muted");
     var input=new TextField("152DASH-52");var button=new Button("Lưu thay đổi");button.getStyleClass().add("btn-primary");
     var selected=new CheckBox("Kho KIZ / Склад КИЗ");selected.setSelected(true);
-    var card=new VBox(12,label,muted,input,button,selected);card.getStyleClass().add("card");
+    var secondary=new Button("Xem chi tiết");
+    var card=new VBox(12,label,muted,input,button,secondary,selected);card.getStyleClass().add("card");
     var root=new VBox(18,new Label("VNCode — Liquid Glass"),card);root.setStyle("-fx-padding:24;");
     var stage=new Stage();stage.setScene(new Scene(root,700,420));ThemeService.applyTheme(stage.getScene());stage.show();root.applyCss();root.layout();
     assertEquals(1,root.getOpacity());assertEquals(1,label.getOpacity());assertEquals(1,input.getOpacity());assertEquals(1,stage.getOpacity());
@@ -46,7 +47,8 @@ class ThemeServiceTest {
     assertTrue(contrast(over((Color)button.getTextFill(),buttonBackground),buttonBackground)>=4.5,"Action text contrast");
     if(amount==0&&theme==ThemeService.Theme.LIGHT){
      assertTrue(fill.getOpacity()<=.005,"Minimum is pure clear water");
-     assertTrue(buttonPaint.getOpacity()<=.04,"Clear-water controls must not retain a frosted fill");
+     assertTrue(((Color)secondary.getBackground().getFills().getFirst().getFill()).getOpacity()<=.04,"Clear-water secondary controls must not retain a frosted fill");
+     assertEquals(1,buttonPaint.getOpacity(),"The primary action retains a readable solid fill at every material setting");
      assertEquals(1,((Color)label.getTextFill()).getOpacity(),"The transparency slider never fades text");
     }
     if(amount==100||theme==ThemeService.Theme.DARK)assertEquals(1,fill.getOpacity());

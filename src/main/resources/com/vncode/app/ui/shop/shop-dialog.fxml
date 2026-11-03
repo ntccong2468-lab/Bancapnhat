@@ -18,9 +18,9 @@
                 <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
             </padding>
             <children>
-                <Label text="%shop_dialog.marketplace" />
+                <Label fx:id="marketplaceLabel" text="%shop_dialog.marketplace" />
                 <ComboBox fx:id="marketplaceField" maxWidth="Infinity" />
-                <Label text="%shop_dialog.name" />
+                <Label fx:id="nameLabel" text="%shop_dialog.name" />
                 <TextField fx:id="nameField" />
                 <Label fx:id="clientIdLabel" text="%shop_dialog.client_id" />
                 <TextField fx:id="clientIdField" />

@@ -30,7 +30,7 @@ class WorkspacePagesLayoutTest {
       fx(()->{var view=window.getScene().getRoot();ThemeService.switchTheme(theme.substring("theme-".length()));ThemeService.applyTheme(window.getScene());window.setWidth(size[0]);window.setHeight(size[1]);return null;});pulse();
       fx(()->{var scene=window.getScene();var view=scene.getRoot();view.applyCss();view.layout();assertTrue(view.getStyleClass().contains("app-page"));
        for(Node node:view.lookupAll(".button"))if(node instanceof ButtonBase){boolean visible=true,scrollable=false,horizontalScroll=false;for(Node parent=node;parent!=null;parent=parent.getParent()){visible&=parent.isVisible();if(parent instanceof ScrollPane scroll){scrollable=true;horizontalScroll|=scroll.getHbarPolicy()!=ScrollPane.ScrollBarPolicy.NEVER;}if(parent instanceof TableView<?>||parent instanceof ListView<?>){scrollable=true;horizontalScroll=true;}}if(!visible||!node.isManaged())continue;checked[0]++;var b=node.localToScene(node.getBoundsInLocal());if(!horizontalScroll&&(b.getMinX()<-1||b.getMaxX()>scene.getWidth()+1)||!scrollable&&(b.getMinY()<-1||b.getMaxY()>scene.getHeight()+1)){String finding=path+" "+lang+" "+size[0]+" "+node.getId()+" "+b;findings.merge(path,1,Integer::sum);if(findings.get(path)<=4)clipped.add(finding);}}
-       return null;});
+       if(lang==AppLanguage.VI&&size[0]==1120)com.vncode.app.testsupport.UiEvidence.capture(scene,path+"-"+theme);return null;});
      }
     }finally{fx(()->{Object controller=loader.getController();if(controller!=null)try{controller.getClass().getMethod("dispose").invoke(controller);}catch(NoSuchMethodException none){}return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();}
    }

@@ -247,6 +247,10 @@ public class WorkspaceHeaderController {
         supportButton.setText(i18n.tr("header.support"));
         newsButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("news.title")));
         shopComboBox.setPromptText(i18n.tr("header.shop_prompt"));
+        shopComboBox.setAccessibleText(i18n.tr("header.shop_prompt"));
+        newsButton.setAccessibleText(i18n.tr("news.title"));
+        editShopButton.setAccessibleText(i18n.tr("header.edit_shop"));
+        deleteShopButton.setAccessibleText(i18n.tr("header.delete_shop"));
         syncCaption=i18n.tr(marketplace == Marketplace.OZON ? "ozon.dashboard.refresh" : "header.sync");
         syncLoadingLabel.setText(i18n.tr("header.sync_products_kiz"));
         moreButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("header.more")));moreButton.setAccessibleText(i18n.tr("header.more"));

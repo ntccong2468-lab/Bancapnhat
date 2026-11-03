@@ -19,6 +19,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Tests computed JavaFX paints rather than just the values written in a stylesheet. */
 class ReferenceThemeAccessibilityTest {
+    @org.junit.jupiter.api.io.TempDir java.nio.file.Path profile;
+    @org.junit.jupiter.api.BeforeEach void profile() {
+        System.setProperty("vncode.appdata.dir", profile.toString());
+        com.vncode.app.config.Database.initDatabase();
+        com.vncode.app.shared.ThemeService.setCurrentTheme(com.vncode.app.shared.ThemeService.Theme.DARK);
+    }
+    @org.junit.jupiter.api.AfterEach void cleanup() { System.clearProperty("vncode.appdata.dir"); }
     @BeforeAll static void toolkit() {
         try { Platform.startup(() -> Platform.setImplicitExit(false)); }
         catch (IllegalStateException alreadyStarted) { }
@@ -27,13 +34,13 @@ class ReferenceThemeAccessibilityTest {
     @Test void primaryHoverAndKeyboardFocusRemainVisibleAndLightMetadataReadable() throws Exception {
         var test = new FutureTask<Void>(() -> {
             var root = new VBox(12);
-            root.getStyleClass().addAll("theme-dark", "reference-dark");
+            root.getStyleClass().addAll("theme-dark", "reference-dark", "workspace-theme");
             var button = new Button("Áp dụng");
             button.getStyleClass().add("btn-primary");
             root.getChildren().add(button);
             var scene = new Scene(root, 450, 200);
             scene.getStylesheets().add(MainApplication.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());
-            scene.getStylesheets().add(MainApplication.class.getResource("/com/vncode/app/styles/reference-dark.css").toExternalForm());
+            scene.getStylesheets().add(MainApplication.class.getResource("/com/vncode/app/styles/workspace-controls.css").toExternalForm());
             var stage = new Stage();
             stage.setScene(scene);
             try {
@@ -48,7 +55,7 @@ class ReferenceThemeAccessibilityTest {
                 assertTrue(contrast(focus, fill) >= 3.0, "Keyboard focus must remain visible");
 
                 var light = new VBox();
-                light.getStyleClass().add("theme-light");
+                light.getStyleClass().addAll("theme-light", "workspace-theme");
                 var metadata = new Label("Thông tin sản phẩm");
                 metadata.getStyleClass().add("text-muted");
                 light.getChildren().add(metadata);
