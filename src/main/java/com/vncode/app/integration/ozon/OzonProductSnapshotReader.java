@@ -45,7 +45,7 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
         if(info==null||attr==null||!attr.has("attributes")||!attr.has("dimension_unit")||!attr.has("weight_unit")||!attr.has("description_category_id")||!attr.has("type_id"))throw new IOException("Complete Ozon card unavailable");
         if(text(attr,"offer_id").isBlank()||!text(info,"offer_id").equals(text(attr,"offer_id"))||(!key.variantId().isBlank()&&!key.variantId().equals(text(attr,"offer_id"))))throw new IOException("Ozon variant identity changed");
         var attributes=new ArrayList<ProductAttribute>();String description="",brand="",size="",color="",russianSize="";var cat=new JsonObject();cat.addProperty("description_category_id",new java.math.BigInteger(text(attr,"description_category_id")));cat.addProperty("type_id",new java.math.BigInteger(text(attr,"type_id")));cat.addProperty("language","DEFAULT");var names=new HashMap<String,String>();for(var e:array(object(client.call("v1/description-category/attribute",cat,false)),"result")){var a=object(e);names.put(text(a,"id"),text(a,"name"));}
-        var groups=new HashMap<String,Integer>();var all=new JsonArray();array(attr,"attributes").forEach(all::add);array(attr,"complex_attributes").forEach(all::add);
+        var groups=new HashMap<String,Integer>();var all=new JsonArray();orderedSimpleAttributes(attr).forEach(all::add);array(attr,"complex_attributes").forEach(all::add);
         for(var e:all){var a=object(e);var values=new ArrayList<String>();for(var v:array(a,"values"))values.add(text(object(v),"value"));String id=text(a,"id"),complex=text(a,"complex_id"),name=names.getOrDefault(id,"");int group=complex.isBlank()||complex.equals("0")?0:groups.merge(complex+":"+id,1,Integer::sum)-1;attributes.add(new ProductAttribute(id,name,values,null,complex,group));if(!values.isEmpty()){if(id.equals("4191"))description=values.getFirst();if(name.equals("Бренд")||name.equals("Бренд в одежде и обуви")||id.equals("85"))brand=values.getFirst();if(name.equals("Цвет товара"))color=values.getFirst();}}
         var media=new ArrayList<ProductMedia>();for(var url:OzonListingImages.ordered(info,attr))media.add(new ProductMedia(URI.create(url),null,null,null,null));
         var dimensions=new PackageDimensions(cm(attr,"depth"),cm(attr,"width"),cm(attr,"height"),kg(attr));
@@ -81,7 +81,22 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
         }catch(IOException unavailable){inherited.put("source.price.unavailable","true");}
         var raw=new JsonObject();raw.add("info",info);raw.add("attributes",attr);raw.add("documents",ProductJson.GSON.toJsonTree(docs.stream().map(ProductDocument::metadata).toList()));String payload=ListingIdentity.canonical(raw);
         inherited.putAll(Map.of("source.payload",payload,"owner",ListingIdentity.fingerprint(shop),"sku",text(info,"sku"),"complex.ambiguous",Boolean.toString(groups.values().stream().anyMatch(v->v>1))));
-        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(payload+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(inherited))),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
+        var revisionMetadata=new LinkedHashMap<>(inherited);revisionMetadata.remove("source.payload");
+        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(revisionPayload(raw)+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(revisionMetadata))),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
+    }
+    /** Simple attributes are keyed by id; Ozon may return them in a new order after moderation. */
+    private static List<JsonElement> orderedSimpleAttributes(JsonObject attributes){
+        var values=new ArrayList<>(array(attributes,"attributes").asList());
+        values.sort(Comparator.comparing(value->text(object(value),"id")));
+        return values;
+    }
+    /** Keep the raw response intact, but do not confuse server moderation metadata with an edit. */
+    private static String revisionPayload(JsonObject raw){
+        var semantic=raw.deepCopy();obj(semantic,"info").remove("statuses");
+        var attributes=obj(semantic,"attributes");attributes.remove("attributes_with_defaults");
+        var ordered=new JsonArray();orderedSimpleAttributes(attributes).forEach(ordered::add);attributes.add("attributes",ordered);
+        // Complex groups, value order, media order and all business fields remain significant.
+        return ListingIdentity.canonical(semantic);
     }
     record ExplicitSize(String value,boolean conflict){}
     /** Never infer a size from a title or take the first value of an ambiguous field. */
