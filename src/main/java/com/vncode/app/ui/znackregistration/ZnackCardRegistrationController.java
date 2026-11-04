@@ -173,7 +173,7 @@ public final class ZnackCardRegistrationController {
 
     @FXML
     private void initialize() {
-        productTable.setFixedCellSize(76);
+        productTable.setFixedCellSize(71);
         configureColumns();
         readinessLabel.textProperty().addListener((o,a,b)->{boolean warning=!ready()&&b!=null&&!b.isBlank();readinessLabel.setVisible(warning);readinessLabel.setManaged(warning);});
         batchProgressLabel.setCursor(javafx.scene.Cursor.HAND);batchProgressLabel.setOnMouseClicked(event->onReport());

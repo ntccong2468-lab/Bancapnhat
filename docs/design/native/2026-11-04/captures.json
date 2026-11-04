@@ -1,0 +1,157 @@
+{
+  "kind": "native-javafx-synthetic-profile",
+  "capturedAt": "2026-11-04T19:10:35.999974+00:00",
+  "liveMarketplaceEvidence": false,
+  "screenshots": [
+    {
+      "file": "screenshots/approved-fbo-dark.png",
+      "sha256": "e41035a57942151aa87c2eea99ff68902dc8b6bac28b46661a987a472d618ed6",
+      "bytes": 60319
+    },
+    {
+      "file": "screenshots/approved-fbo-light.png",
+      "sha256": "556416f83e214fa38b53fa21f15a6505197aa57a36a0733012dfe0aa9aedc066",
+      "bytes": 61575
+    },
+    {
+      "file": "screenshots/approved-finance-dark.png",
+      "sha256": "2ba3ac0b3a7160902833aca549614cec824c4d89f8ba8db7b94440ea8260b8e9",
+      "bytes": 76864
+    },
+    {
+      "file": "screenshots/approved-finance-light.png",
+      "sha256": "8ab64022882f0999c518ad0d93a06d5b410f10e41b3f71a864fe2c591dd45dbb",
+      "bytes": 78132
+    },
+    {
+      "file": "screenshots/approved-gs1-dark.png",
+      "sha256": "f974141d6e67cc511831d644317c6d5a0624d4bd49a60cdea9f4d85aa8be77cb",
+      "bytes": 102824
+    },
+    {
+      "file": "screenshots/approved-gs1-light.png",
+      "sha256": "3b4cee9ccf4fca4611d0a175654c6fd0dde58256867817d3a9cae02d5bccecd8",
+      "bytes": 103146
+    },
+    {
+      "file": "screenshots/approved-history-dark.png",
+      "sha256": "c9ae3e013fb512a9da139454f9fbf8edf8eb53a4d0636f8e77d3e3fb6b38cab1",
+      "bytes": 47622
+    },
+    {
+      "file": "screenshots/approved-history-light.png",
+      "sha256": "937961791ea844954a5e85e8b76559afd5cc28e0af74427bda313618a7101cf8",
+      "bytes": 47730
+    },
+    {
+      "file": "screenshots/approved-kiz-dark.png",
+      "sha256": "aa918a3c041973230708519c401fc813fe9522581e065f330c7d61921d759f35",
+      "bytes": 63284
+    },
+    {
+      "file": "screenshots/approved-kiz-light.png",
+      "sha256": "9c047f25e2db2b2fe86d0a4a1f5bc21e97d9eab505466edf31522f1b3a1cf380",
+      "bytes": 64249
+    },
+    {
+      "file": "screenshots/approved-overview-dark.png",
+      "sha256": "e50e71260bcb8f6d76b486c4de14bab5240aadafb371c29b678b24ac9bbaca7f",
+      "bytes": 93721
+    },
+    {
+      "file": "screenshots/approved-overview-light.png",
+      "sha256": "917c0dc370aeef13897456e3baaf1c6d206a785a9dacde3df153f6371733bcc0",
+      "bytes": 93775
+    },
+    {
+      "file": "screenshots/approved-ozon-1366-dark.png",
+      "sha256": "a27c81a60f6f04102d29decf283860ed66205b4e73f5713820863d7aba843fd5",
+      "bytes": 137417
+    },
+    {
+      "file": "screenshots/approved-ozon-1366-light.png",
+      "sha256": "e0498bbadfbfe57d2da7b2227b7699f594b261839ee39d2abb00b808ed10d26c",
+      "bytes": 137175
+    },
+    {
+      "file": "screenshots/approved-ozon-1920-dark.png",
+      "sha256": "266266c1a58726c7b720219e03be9b485fb32937361c7e825d30b975799f4c72",
+      "bytes": 198630
+    },
+    {
+      "file": "screenshots/approved-ozon-1920-light.png",
+      "sha256": "aa475efc00cefbfc7ede727fa7f2e337bc9ea61c4b0fd4e4550ea370bc5e13fc",
+      "bytes": 196891
+    },
+    {
+      "file": "screenshots/approved-ozon-detail-dark.png",
+      "sha256": "2367a21c065afe263f58801b2a36965117e90832411cbffa9be3766fa54ca4cc",
+      "bytes": 154439
+    },
+    {
+      "file": "screenshots/approved-ozon-detail-light.png",
+      "sha256": "6ef12e3e11e6131b2b89477299f4197b036d0dfcb9057d19f07a18078bdc91ca",
+      "bytes": 154948
+    },
+    {
+      "file": "screenshots/approved-ozon-fbs-dark.png",
+      "sha256": "6676d34e95a3582d3faa51210fcf376845760c63d54df8f0173ff0f730a77d09",
+      "bytes": 160905
+    },
+    {
+      "file": "screenshots/approved-ozon-fbs-light.png",
+      "sha256": "3b9fe02619b1a32080068233ee2ffbdfc4a5be9fbd1c0693e1f3aec928b8996c",
+      "bytes": 159346
+    },
+    {
+      "file": "screenshots/approved-products-dark.png",
+      "sha256": "fa471b860efbed1f54b165325586fa643963ad70239bd3de309d6823b93c75ef",
+      "bytes": 180210
+    },
+    {
+      "file": "screenshots/approved-products-light.png",
+      "sha256": "63cd58e4cde0b628ef707b81614d8fd408c7f759af71deb57f01a987da03c491",
+      "bytes": 181033
+    },
+    {
+      "file": "screenshots/approved-registration-dark.png",
+      "sha256": "dfb2c08c5db0552e5afc37c203f03731b64eabecd76a8e5de90700df3c48c0cb",
+      "bytes": 132765
+    },
+    {
+      "file": "screenshots/approved-registration-light.png",
+      "sha256": "9b127ba890d0ac9b2b4ce0f3726431d4112ba6e39736eaacf0f563834354227b",
+      "bytes": 133421
+    },
+    {
+      "file": "screenshots/approved-templates-dark.png",
+      "sha256": "186e44af3a91113b05ff30425abc72e851fdbc72dc33ef4d9144b9e1ad4e9b08",
+      "bytes": 121677
+    },
+    {
+      "file": "screenshots/approved-templates-light.png",
+      "sha256": "56ccf3bae09da72d2920764fef3c65da7635c688291ccef61ad8ef17b57f6b20",
+      "bytes": 122822
+    },
+    {
+      "file": "screenshots/approved-wb-fbs-dark.png",
+      "sha256": "20ed2d7db2e1bd9f66a701473b37f5318084c5c776a52c049abd5728e1f23238",
+      "bytes": 65531
+    },
+    {
+      "file": "screenshots/approved-wb-fbs-light.png",
+      "sha256": "ecca62c865f5cc4dbadc39aec5433f9d71861faed61d89b750c6cba9c30a1ee8",
+      "bytes": 66810
+    },
+    {
+      "file": "screenshots/approved-znack-config-dark.png",
+      "sha256": "49c2f3aa2da4fc5a85a958118454bc2d9b53d4656c82b2ed42a1a6342027f0b6",
+      "bytes": 87094
+    },
+    {
+      "file": "screenshots/approved-znack-config-light.png",
+      "sha256": "e2d33e4fbc678fd6e1ad59c89dd7b6fc1582e2dc476b72dbed43fa7b4231f400",
+      "bytes": 87170
+    }
+  ]
+}

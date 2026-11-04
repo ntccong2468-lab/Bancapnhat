@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<VBox spacing="10" styleClass="card,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.kizmapping.KizMappingController">
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="10" styleClass="card,app-page" fx:controller="com.vncode.app.ui.kizmapping.KizMappingController">
  <padding><Insets top="14" right="14" bottom="14" left="14"/></padding>
  <HBox alignment="CENTER_LEFT" spacing="10">
   <Label fx:id="titleLabel" styleClass="h2" text="%kiz_mapping.title"/>
@@ -19,8 +19,9 @@
  </HBox>
  <StackPane VBox.vgrow="ALWAYS">
  <TableView fx:id="gtinTable">
-  <columnResizePolicy>
-   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+  <placeholder><Label fx:id="emptyStateLabel" managed="true" styleClass="text-muted" text="%kiz_mapping.empty_gtin" visible="true" wrapText="true" maxWidth="480.0"/>
+</placeholder><columnResizePolicy>
+   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
   </columnResizePolicy>
   <columns>
    <TableColumn fx:id="gtinColumn" minWidth="185" prefWidth="195" text="%znack.field.gtin"/>
@@ -34,5 +35,4 @@
  </TableView>
  <Label fx:id="syncStatusLabel" StackPane.alignment="BOTTOM_CENTER" visible="false" styleClass="mapping-sync-pill" wrapText="true" mouseTransparent="true"><StackPane.margin><Insets bottom="16" left="16" right="16"/></StackPane.margin></Label>
  </StackPane>
- <Label fx:id="emptyStateLabel" managed="false" styleClass="text-muted" text="%kiz_mapping.empty_gtin" visible="false"/>
-</VBox>
+ </VBox>

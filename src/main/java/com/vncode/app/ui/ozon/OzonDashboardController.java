@@ -70,6 +70,8 @@ import java.util.function.BiConsumer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import com.vncode.app.ui.workspace.WorkspaceDetailDrawer.Field;
+import com.vncode.app.ui.workspace.WorkspaceDetailDrawer.Section;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -104,7 +106,7 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 /** JavaFX-first Ozon FBS workspace aligned with the existing WB packing workflow. */
 public final class OzonDashboardController {
-    private static final double ITEM_HEIGHT = 96;
+    private static final double ITEM_HEIGHT = 60;
     private static final double ITEM_GAP = 8;
     private final List<TableColumn<OzonPostingDto,?>> rowNumberColumns=new ArrayList<>();
     private final List<TableColumn<OzonPostingDto,?>> barcodeColumns=new ArrayList<>();
@@ -269,6 +271,8 @@ public final class OzonDashboardController {
     private boolean pendingSyncShowsErrors;
     private long shopGeneration;
 
+    private com.vncode.app.ui.workspace.WorkspaceDetailDrawer orderDetailDrawer;
+
     @FXML
     private void initialize() {
         statusLabel.visibleProperty().bind(statusLabel.textProperty().isNotEmpty());
@@ -278,6 +282,7 @@ public final class OzonDashboardController {
         for(var button:List.of(selectFilteredButton,clearBatchSelectionButton)){
             button.visibleProperty().bind(newOrdersTab.selectedProperty());button.managedProperty().bind(button.visibleProperty());
         }
+        orderDetailDrawer=new com.vncode.app.ui.workspace.WorkspaceDetailDrawer(kn3StatusHost);
         setupTables();
         setupSorting();
         setupGtinInventory();
@@ -300,6 +305,7 @@ public final class OzonDashboardController {
         Shop selected = shop != null && shop.getMarketplace() == Marketplace.OZON ? shop : null;
         boolean sameContext = sameShopContext(this.shop, selected);
         if (!sameContext) {
+            orderDetailDrawer.clear();
             if(activeSelectionTask!=null){activeSelectionTask.cancel(true);activeSelectionTask=null;cancelSelectionButton.setVisible(false);cancelSelectionButton.setManaged(false);}
             clearPrintPill();com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);
             requestToken++;
@@ -953,7 +959,7 @@ public final class OzonDashboardController {
     @FXML private void onPreviousPage(){String status=activeStatus();offsets.put(status,Math.max(0,offsets.getOrDefault(status,0)-100));loadLocal();}
     @FXML private void onNextPage(){String status=activeStatus();if(offsets.getOrDefault(status,0)+100<totals.getOrDefault(status,0L)){offsets.put(status,offsets.getOrDefault(status,0)+100);loadLocal();}}
     private void updatePaging(){if(pageStatusLabel==null)return;String status=activeStatus();long total=totals.getOrDefault(status,0L);int offset=offsets.getOrDefault(status,0);pageStatusLabel.setText((total==0?0:offset+1)+"–"+Math.min(offset+100,total)+" / "+total);previousPageButton.setDisable(shop==null||offset==0);nextPageButton.setDisable(shop==null||offset+100>=total);}
-    public void dispose(){if(activeSelectionTask!=null)activeSelectionTask.cancel(true);clearPrintPill();com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();}
+    public void dispose(){if(orderDetailDrawer!=null)orderDetailDrawer.clear();if(activeSelectionTask!=null)activeSelectionTask.cancel(true);clearPrintPill();com.vncode.app.ui.kiz.Kn3BatchDialog.clear(kn3StatusHost);shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();}
 
     private void updateTabTitles() {
         I18nService i18n = I18nService.getInstance();
@@ -1005,7 +1011,10 @@ public final class OzonDashboardController {
         configureReferenceTable(deliveringOrdersTable,deliveringOrderNumberTC,deliveringOrderItemsTC,"delivering");
         for (TableView<OzonPostingDto> table : List.of(newOrdersTable, packingOrdersTable, printedOrdersTable, deliveringOrdersTable)) {
             table.setSortPolicy(ignored -> false);
+            table.setAccessibleHelp(tr("ui.detail.open"));
+            table.setOnKeyPressed(event->{if(event.getCode()==javafx.scene.input.KeyCode.ENTER&&event.getTarget()==table){var posting=table.getSelectionModel().getSelectedItem();if(posting!=null){showOrderDetails(posting);event.consume();}}});
             table.setRowFactory(ignored -> new TableRow<>() {
+                { setOnMouseClicked(event->{if(event.getClickCount()==2&&getItem()!=null)showOrderDetails(getItem());}); }
                 @Override protected void updateItem(OzonPostingDto posting, boolean empty) {
                     super.updateItem(posting, empty);
                     double height = empty || posting == null ? Region.USE_COMPUTED_SIZE : orderRowHeight(posting);
@@ -1018,6 +1027,22 @@ public final class OzonDashboardController {
                 column.setReorderable(false);
             });
         }
+    }
+
+    private void showOrderDetails(OzonPostingDto posting) {
+        var sections=new ArrayList<Section>();
+        sections.add(new Section(tr("ozon.dashboard.col.order"),List.of(
+            new Field(tr("ozon.dashboard.col.status"),statusText(posting.status())),
+            new Field(tr("ozon.dashboard.col.shipment"),shipmentText(posting)))));
+        for(var item:posting.items()){
+            var variant=OzonProductVariant.from(item,findCatalogProduct(item));
+            sections.add(new Section(item.name(),List.of(
+                new Field(tr("products.seller_article"),variant.article()),
+                new Field(tr("fbo.column.color"),variant.color()),new Field(tr("fbo.column.size"),variant.size()),
+                new Field("SKU",item.sku()),new Field(tr("fbo.column.quantity"),Integer.toString(item.quantity())),
+                new Field("GTIN",verifiedGtinsBySku.getOrDefault(item.sku(),tr("products.unverified"))))));
+        }
+        orderDetailDrawer.show(orderText(posting),sections);
     }
 
     private void configureOrderColumns(TableColumn<OzonPostingDto, String> orderColumn,
@@ -1064,7 +1089,7 @@ public final class OzonDashboardController {
     }
 
     private void configureImageColumn(TableColumn<OzonPostingDto, OzonPostingDto> imageColumn) {
-        imageColumn.setMaxWidth(80);imageColumn.setMinWidth(77);imageColumn.setPrefWidth(80);
+        imageColumn.setMaxWidth(64);imageColumn.setMinWidth(60);imageColumn.setPrefWidth(64);
         imageColumn.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue()));
         imageColumn.setCellFactory(column -> new TableCell<>() {
             private final VBox images = new VBox(ITEM_GAP);
@@ -1090,21 +1115,21 @@ public final class OzonDashboardController {
 
             private StackPane productImage(String postingNumber, OzonPostingItemDto item) {
                 ImageView imageView = new ImageView();
-                imageView.setFitWidth(66);
-                imageView.setFitHeight(88);
+                imageView.setFitWidth(42);
+                imageView.setFitHeight(53);
                 imageView.setPreserveRatio(true);
                 imageView.setSmooth(true);
                 imageView.setVisible(false);
                 StackPane placeholder = new StackPane();
-                placeholder.setPrefSize(66, 88);
-                placeholder.setMaxSize(66, 88);
+                placeholder.setPrefSize(42, 53);
+                placeholder.setMaxSize(42, 53);
                 placeholder.getStyleClass().add("image-placeholder");
                 StackPane thumbnail = new StackPane(placeholder, imageView);
-                thumbnail.setMinSize(66, 88); thumbnail.setPrefSize(66, 88); thumbnail.setMaxSize(66, 88);
+                thumbnail.setMinSize(42, 53); thumbnail.setPrefSize(42, 53); thumbnail.setMaxSize(42, 53);
                 StackPane container = new StackPane(thumbnail);
-                container.setMinSize(66, ITEM_HEIGHT);
-                container.setPrefSize(66, ITEM_HEIGHT);
-                container.setMaxSize(66, ITEM_HEIGHT);
+                container.setMinSize(42, ITEM_HEIGHT);
+                container.setPrefSize(42, ITEM_HEIGHT);
+                container.setMaxSize(42, ITEM_HEIGHT);
                 container.setAlignment(Pos.TOP_CENTER);
 
                 long imageEpoch=shopGeneration;int imageOwner=shop==null?0:shop.getId();String requestedUrl = productImageUrl(item);
@@ -1217,6 +1242,7 @@ public final class OzonDashboardController {
     }
 
     private void updateSelectionState() {
+        com.vncode.app.shared.WorkspaceMotion.selection(selectedCountLabel);
         long selectedFiltered = Math.max(0,selectedFilteredCount);
         long filtered = Math.max(0,filteredNewCount);
         selectAllCheckBox.setIndeterminate(selectedFiltered > 0 && selectedFiltered < filtered);
@@ -1903,7 +1929,7 @@ public final class OzonDashboardController {
                 var gtin=new Label("GTIN: "+verifiedGtinsBySku.getOrDefault(item.sku(),tr("products.unverified")));
                 gtin.getStyleClass().add("text-secondary");gtin.setTooltip(new Tooltip(gtin.getText()));
                 var sku=new Label("SKU: "+item.sku());sku.getStyleClass().add("text-muted");
-                var values=new VBox(8,barcode,gtin,sku);values.setAlignment(Pos.CENTER_LEFT);
+                var values=new VBox(1,barcode,gtin,sku);values.setAlignment(Pos.CENTER_LEFT);
                 values.setMinHeight(ITEM_HEIGHT);values.setPrefHeight(ITEM_HEIGHT);values.setMaxHeight(ITEM_HEIGHT);content.getChildren().add(values);
             }
             setAlignment(Pos.TOP_LEFT);setGraphic(content);
@@ -1954,7 +1980,8 @@ public final class OzonDashboardController {
             var marking=new Label(tr("ozon.fbs.kiz")+": "+(posting.requirements().mandatoryMarkProductIds().contains(item.productId())?tr("ozon.fbs.required"):tr("ozon.fbs.check_before_print")));marking.getStyleClass().add("text-muted");
             var observations=kn3Marks.getOrDefault(posting.postingNumber(),List.of()).stream().filter(m->m.productId().equals(item.sku())).toList();
             var badge=new com.vncode.app.ui.kiz.Kn3Badge();var owner=shop;badge.show(observations,posting.requirements().mandatoryMarkProductIds().contains(item.productId()),owner==null?null:()->{if(!busy)com.vncode.app.ui.kiz.Kn3ReplacementDialog.open(kn3StatusHost,owner,observations,()->{if(sameShopContext(shop,owner))loadLocal();});});
-            VBox itemBox = new VBox(4, titleRow, metadata, category, badge.isVisible()?badge:marking);
+            metadata.setTooltip(new Tooltip(metadata.getText()+"\n"+category.getText()));
+            VBox itemBox = new VBox(2, titleRow, metadata, badge.isVisible()?badge:marking);
             itemBox.setMinHeight(ITEM_HEIGHT); itemBox.setPrefHeight(ITEM_HEIGHT); itemBox.setMaxHeight(ITEM_HEIGHT);
             itemBox.setAlignment(Pos.CENTER_LEFT);
             return itemBox;

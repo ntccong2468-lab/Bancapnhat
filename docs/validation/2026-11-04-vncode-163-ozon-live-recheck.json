@@ -1,0 +1,78 @@
+{
+  "version": "1.6.3",
+  "authorization": "User explicitly requested another real Ozon receipt check and acceptance of every waiting posting after the UI fix.",
+  "initialQueue": {
+    "checkedAtUtc": "2026-11-04T19:15:57Z",
+    "historyWindowFrom": "2026-08-06T19:15:36Z",
+    "historyWindowTo": "2026-11-04T19:15:36Z",
+    "historyPages": 26,
+    "historyUnique": 2524,
+    "activeWindowDaysPast": 180,
+    "activeWindowDaysFuture": 180,
+    "unfulfilledPages": 4,
+    "unfulfilledUnique": 357,
+    "unionUnique": 2524,
+    "statuses": {
+      "cancelled": 1124,
+      "delivered": 1043,
+      "delivering": 332,
+      "awaiting_deliver": 23,
+      "awaiting_packaging": 2
+    },
+    "awaitingReceipt": 2,
+    "liveMutations": 0,
+    "credentialValuesDisclosed": false
+  },
+  "receipt": {
+    "checkedAtUtc": "2026-11-04T19:18:08.394163062Z",
+    "selected": 2,
+    "shipCalls": 2,
+    "verifiedAccepted": 2,
+    "unresolved": 0,
+    "kizAssigned": 0,
+    "liveLicenseActivated": false,
+    "outcomes": [
+      {
+        "alias": "NEW-01",
+        "before": "awaiting_packaging",
+        "mandatoryKiz": false,
+        "pendingReason": "OZON_SPLIT_READBACK_REQUIRED",
+        "readback": "awaiting_deliver",
+        "verified": true,
+        "settledByProductionReadback": true
+      },
+      {
+        "alias": "NEW-02",
+        "before": "awaiting_packaging",
+        "mandatoryKiz": false,
+        "pendingReason": "OZON_SPLIT_READBACK_REQUIRED",
+        "readback": "awaiting_deliver",
+        "verified": true,
+        "settledByProductionReadback": true
+      }
+    ]
+  },
+  "finalQueue": {
+    "checkedAtUtc": "2026-11-04T19:18:57Z",
+    "unfulfilledPages": 4,
+    "unique": 357,
+    "statuses": {
+      "delivering": 332,
+      "awaiting_deliver": 25
+    },
+    "awaitingReceipt": 0,
+    "windowDaysPast": 180,
+    "windowDaysFuture": 180,
+    "liveMutations": 0
+  },
+  "productionServiceSourceHashes": {
+    "src/main/java/com/vncode/app/integration/ozon/OzonUnitShipService.java": "8d182de1fd02279d6fb34992e2a038d15c2409be6421d2b7dbb60a49660cc2b2",
+    "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java": "25db34a832afb64000826407e5956f1e6ac358d6dadb6af9dbea256bb1c970cb",
+    "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java": "e2f7f0369ce8d4ec4be6af43d029a95f29648adaee76042038264d37d9995ff8"
+  },
+  "limitations": [
+    "Production Java services in an isolated profile, not an observed click on the seller Windows installation.",
+    "These two postings had no mandatory KIZ requirement and the API allowed skip_possible_info. No KIZ allocated or consumed, no live license activation.",
+    "Earlier 22 accepted postings were not submitted again. Final queue is a time-bounded snapshot, not a claim about future arrivals."
+  ]
+}

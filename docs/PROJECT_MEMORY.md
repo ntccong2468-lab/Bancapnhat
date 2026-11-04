@@ -1,5 +1,15 @@
 # Bộ nhớ dự án VNCode
 
+## 1.6.3 — áp dụng giao diện đã duyệt và sửa nhận Ozon (đang kiểm thử phát hành)
+
+- Người dùng đã duyệt preview và yêu cầu áp dụng vào VN Code cùng sửa nhận FBS Ozon. Nhánh `feature/vncode-163-approved-ui`, nền `034a2cf`; phiên bản mới 1.6.3, không thay Latest 1.6.2 đã phát hành. [Hướng native](design/2026-11-04-native-implementation.md), [30 ảnh JavaFX](design/native/2026-11-04/README.md).
+- Hai theme xanh trung tính/graphite, nav196/header58, hàng sản phẩm/Ozon76px, Catalog71px; danh sách ưu tiên vùng làm việc. Tổng quan bỏ KPI/chiều cao trống; quản lý thêm/sửa và thùng rác cạnh selector, diagnostics trong overflow. Giữ handler, dữ liệu, API guards và xác nhận xóa.
+- Drawer native chia nhóm có nhãn, Enter mở/Escape đóng/trả focus, giữ danh sách; đóng/mở nhanh không xóa drawer mới. Draft cấu hình giữ riêng theo đầy đủ danh tính shop. Reduced motion hệ điều hành/tùy chọn app; không animation từng dòng hay thời gian chờ API giả.
+- Review native tìm và sửa nested class `root` của template editor reset dark tokens bên trong theme-light; placeholder FBO/KIZ/finance đã bản địa hóa. Giữ tùy chọn độ trong suốt theme sáng. Seed preview được kế thừa theo duyệt, registry cục bộ không xác minh được output roll gốc; không bịa provenance hay roll lại hướng.
+- Kế thừa `ccd7fc1`: đối soát receipt sau cả lô Ozon, sort picking theo WB, nhận diện barcode sản phẩm đúng SKU. Bằng chứng API trước đó:22/22 nhận,19 nhãn/1task; KIZ31ký tự bị từ chối thiếu crypto/sai trạng thái, không được coi nhận đơn là gán KIZ thành công. Không lặp giao dịch thật để build.
+- Yêu cầu mới: kiểm tra lại và nhận hết đơn. Lượt19:15UTC quét26trang90ngày +4trangunfulfilled±180ngày thấy2đơn mới. Production service đã gửi2ship, cả2lần đọc đầu trả `OZON_SPLIT_READBACK_REQUIRED`; bước đối soát mới xác nhận2/2 `awaiting_deliver`, không gửi lặp. Quét hàng đợi sau nhận không còn đơn chờ. [Biên nhận riêng](validation/2026-11-04-vncode-163-ozon-live-recheck.json). Cả2đơn không bắt buộcKIZ, APIcho phép skip; không gánKIZ/kích hoạtlicense.
+- 187 ca riêng biệt/18 lớp mục tiêu, 0 lỗi/bỏ qua; Node141/141. [Prebuild](validation/2026-11-04-vncode-163-prebuild.json). Chưa thay gate full Windows/native/upgrade bằng các kết quả này. Các geometry expectation cũ được cập nhật theo UI duyệt; không tắt kiểm tra contrast hay chức năng opacity.
+
 ## Ozon nhận đơn/phiếu nhặt hàng và mẫu UI chờ duyệt — 04.11.2026
 
 - Nhánh `fix/ozon-accept-picking-preview-20261104`, mã sửa `ccd7fc1`, nền `b460bb3` sau 1.6.2; chưa phát hành. Sửa đối soát ship bất đồng bộ theo cả tập đã gửi, chỉ đọc receipt, ba lượt chờ 1/2/4 giây cho cả lô và hai reader; không gửi lặp khi trạng thái chưa rõ. Hủy vẫn giữ journal.

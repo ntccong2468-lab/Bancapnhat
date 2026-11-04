@@ -20,7 +20,7 @@ Large order and product lists, mouse/keyboard use, normal and maximized Windows 
 
 ## Capabilities and Constraints
 
-Preserve existing handlers, data, licensing, confirmations and store scope. Retain both light and dark themes. Prioritize the working area for order and product lists. Keep official Ozon carrier labels unchanged and retain combined KIZ labels. User approval of screenshots is required before applying the new UI to application code.
+Preserve existing handlers, data, licensing, confirmations and store scope. Retain both light and dark themes. Prioritize the working area for order and product lists. Keep official Ozon carrier labels unchanged and retain combined KIZ labels. The user approved the screenshots and motion on 2026-11-04 and explicitly requested applying them to VN Code with the Ozon FBS fix in the next release.
 
 ## Brand Commitments
 
@@ -39,4 +39,4 @@ User screenshots and repository FXML/controllers. `docs/design/vncode-workspace-
 
 ## Open Decisions
 
-The proposed visual design remains unapproved. Ambient lighting varies; both themes are required by the user. No new backend capability is implied by a preview.
+The proposed visual design is approved. The 37 captures and motion contract in `docs/design/previews/2026-11-04/` are the implementation authority for 1.6.3. Ambient lighting varies; both themes are required by the user. No new backend capability is implied by a preview.

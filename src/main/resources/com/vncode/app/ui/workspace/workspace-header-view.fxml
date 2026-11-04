@@ -4,17 +4,26 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <HBox fx:id="headerRoot" alignment="CENTER_LEFT" spacing="8" minWidth="0" styleClass="header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.WorkspaceHeaderController">
     <ComboBox fx:id="shopComboBox" prefWidth="220" minWidth="130" prefHeight="34" promptText="%header.shop_prompt" />
-    <Label fx:id="syncHealthLabel" text="%sync.health.starting" minWidth="0" maxWidth="220" wrapText="true" styleClass="text-muted" HBox.hgrow="ALWAYS"/>
+    <MenuButton fx:id="manageShopButton" text="%header.manage_shops">
+        <graphic><FontIcon iconLiteral="fth-edit-2" iconSize="16"/></graphic>
+        <items>
+            <CustomMenuItem hideOnClick="false"><content><VBox spacing="6">
+                <Button fx:id="editShopButton" onAction="#onEditShop" text="%header.edit_shop" maxWidth="1.7976931348623157E308"/>
+                <Button fx:id="addShopButton" onAction="#onAddShop" text="%sidebar.add_shop" maxWidth="1.7976931348623157E308"/>
+            </VBox></content></CustomMenuItem>
+        </items>
+    </MenuButton>
+    <Button fx:id="deleteShopButton" onAction="#onDeleteShop" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-trash-2" iconSize="16"/></graphic></Button>
     <Region minWidth="0" HBox.hgrow="ALWAYS"/>
     <ProgressIndicator fx:id="syncLoadingIndicator" managed="false" visible="false" maxWidth="18" maxHeight="18" />
     <Label fx:id="syncLoadingLabel" managed="false" visible="false" text="%header.sync_products_kiz" maxWidth="150" wrapText="true" styleClass="text-muted"/>
-    <Button fx:id="syncButton" onAction="#onSync" text="%header.sync" styleClass="btn-primary"><graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="16"/></graphic></Button>
-    <Button fx:id="jobsButton" onAction="#onJobs" text="%jobs.title"><graphic><FontIcon iconLiteral="fth-activity" iconSize="16"/></graphic></Button>
+    <Button fx:id="themeButton" onAction="#onToggleTheme" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-sun" iconSize="16"/></graphic></Button>
+    <Button fx:id="syncButton" onAction="#onSync" text="%header.sync" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="16"/></graphic></Button>
     <Button fx:id="updateButton" id="availableUpdateButton" onAction="#onUpdate" visible="false" managed="false" styleClass="btn-primary" text="%update.notification"/>
     <FlowPane fx:id="secondaryActions" hgap="8" vgap="8" alignment="CENTER_LEFT">
+        <Button fx:id="jobsButton" onAction="#onJobs" text="%jobs.title"><graphic><FontIcon iconLiteral="fth-activity" iconSize="16"/></graphic></Button>
+        <Label fx:id="syncHealthLabel" text="%sync.health.starting" minWidth="0" maxWidth="220" wrapText="true" styleClass="text-muted"/>
         <VBox spacing="3" minWidth="0"><Label fx:id="balanceLabel" text="%header.balance_unknown" styleClass="text-muted"/><ComboBox fx:id="balanceAccount" prefWidth="160" promptText="%header.balance_choose"/></VBox>
-        <Button fx:id="editShopButton" onAction="#onEditShop" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-edit-2" iconSize="16"/></graphic></Button>
-        <Button fx:id="deleteShopButton" onAction="#onDeleteShop" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-trash-2" iconSize="16"/></graphic></Button>
         <StackPane><Button fx:id="newsButton" onAction="#onNews" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-bell" iconSize="18"/></graphic></Button><Label fx:id="newsBadge" text="0" visible="false" managed="false" mouseTransparent="true" styleClass="unread-badge" StackPane.alignment="TOP_RIGHT"/></StackPane>
         <Button fx:id="supportButton" onAction="#onSupport" text="%header.support"><graphic><FontIcon iconLiteral="fth-message-circle" iconSize="16"/></graphic></Button>
     </FlowPane>

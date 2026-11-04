@@ -24,17 +24,31 @@ public class WorkspaceHeaderController {
 
     private void responsiveHeader(){
         if(headerRoot==null)return;
-        boolean next=headerRoot.getWidth()>0&&headerRoot.getWidth()<1320;
-        if(next!=compact){
-            compact=next;
-            if(compact){headerRoot.getChildren().remove(secondaryActions);secondaryActions.setOrientation(javafx.geometry.Orientation.VERTICAL);secondaryActions.setPrefWrapLength(350);secondaryActions.setPrefWidth(240);secondaryMenu.setContent(secondaryActions);moreButton.getItems().setAll(secondaryMenu);}
-            else{moreButton.hide();secondaryMenu.setContent(null);moreButton.getItems().clear();secondaryActions.setOrientation(javafx.geometry.Orientation.HORIZONTAL);secondaryActions.setPrefWrapLength(500);secondaryActions.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);headerRoot.getChildren().add(headerRoot.getChildren().size()-1,secondaryActions);}
+        compact=headerRoot.getWidth()>0&&headerRoot.getWidth()<800;
+        if(secondaryMenu.getContent()==null){
+            headerRoot.getChildren().remove(secondaryActions);
+            secondaryActions.setOrientation(javafx.geometry.Orientation.VERTICAL);
+            secondaryActions.setPrefWrapLength(500);secondaryActions.setPrefWidth(260);
+            secondaryMenu.setContent(secondaryActions);moreButton.getItems().setAll(secondaryMenu);
         }
-        moreButton.setVisible(compact);moreButton.setManaged(compact);shopComboBox.setPrefWidth(compact?190:220);syncHealthLabel.setMaxWidth(compact?175:220);
-        syncButton.setText(compact?"":syncCaption);jobsButton.setText(compact?"":jobsCaption);
+        moreButton.setVisible(true);moreButton.setManaged(true);shopComboBox.setPrefWidth(compact?180:220);
+        manageShopButton.setText(compact?"":I18nService.getInstance().tr("header.manage_shops"));
+        themeButton.setVisible(!compact);themeButton.setManaged(!compact);
+        syncButton.setText("");jobsButton.setText(jobsCaption);
         syncButton.setTooltip(new javafx.scene.control.Tooltip(syncCaption));syncButton.setAccessibleText(syncCaption);
         jobsButton.setTooltip(new javafx.scene.control.Tooltip(jobsCaption));jobsButton.setAccessibleText(jobsCaption);
-        syncLoadingLabel.setVisible(productSyncLoading&&!compact);syncLoadingLabel.setManaged(productSyncLoading&&!compact);
+        syncLoadingLabel.setVisible(false);syncLoadingLabel.setManaged(false);
+        updateButton.setText(compact?updateVersion:I18nService.getInstance().tr("update.notification")+(updateVersion==null?"":" "+updateVersion));
+    }
+
+    @FXML private javafx.scene.control.MenuButton manageShopButton;
+    @FXML private Button addShopButton,themeButton;
+    private Runnable onAddShop;
+    public void setOnAddShop(Runnable callback){onAddShop=callback;}
+    @FXML private void onAddShop(){manageShopButton.hide();if(onAddShop!=null)onAddShop.run();}
+    @FXML private void onToggleTheme(){
+        var current=com.vncode.app.shared.ThemeService.getCurrentTheme();
+        com.vncode.app.shared.ThemeService.setCurrentTheme(current==com.vncode.app.shared.ThemeService.Theme.DARK?com.vncode.app.shared.ThemeService.Theme.LIGHT:com.vncode.app.shared.ThemeService.Theme.DARK);
     }
 
     @FXML
@@ -65,6 +79,7 @@ public class WorkspaceHeaderController {
         updateVersion=version;boolean visible=version!=null&&!version.isBlank();
         updateButton.setVisible(visible);updateButton.setManaged(visible);
         updateButton.setText(I18nService.getInstance().tr("update.notification")+(visible?" "+version:""));
+        if(shopComboBox!=null)responsiveHeader();
     }
     @FXML private Label newsBadge;
     @FXML private ComboBox<com.vncode.app.integration.znack.BalanceSnapshot> balanceAccount;
@@ -150,6 +165,7 @@ public class WorkspaceHeaderController {
 
     @FXML
     private void onEditShop() {
+        manageShopButton.hide();
         if (onEditShop != null) {
             onEditShop.run();
         }
@@ -245,6 +261,9 @@ public class WorkspaceHeaderController {
         I18nService i18n = I18nService.getInstance();
         if(balanceThresholdItem!=null)balanceThresholdItem.setText(i18n.tr("header.balance_threshold"));
         supportButton.setText(i18n.tr("header.support"));
+        editShopButton.setText(i18n.tr("header.edit_shop"));addShopButton.setText(i18n.tr("sidebar.add_shop"));
+        manageShopButton.setAccessibleText(i18n.tr("header.manage_shops"));manageShopButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("header.manage_shops")));
+        themeButton.setAccessibleText(i18n.tr("settings.theme"));themeButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("settings.theme")));
         newsButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("news.title")));
         shopComboBox.setPromptText(i18n.tr("header.shop_prompt"));
         shopComboBox.setAccessibleText(i18n.tr("header.shop_prompt"));

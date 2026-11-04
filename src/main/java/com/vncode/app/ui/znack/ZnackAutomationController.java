@@ -49,6 +49,29 @@ public class ZnackAutomationController {
     @FXML private Label omsHelpRecognizeTitleLabel, omsHelpRecognizeLabel, omsHelpWarningLabel;
     @FXML private Label signatureTitleLabel;
     @FXML private Button editSettingsButton;
+    @FXML private javafx.scene.layout.HBox settingsSaveBar;
+    // Unsaved credentials stay in memory and are keyed by the complete store scope.
+    private final java.util.Map<String,SettingsDraft> settingsDrafts=new java.util.HashMap<>();
+    private record SettingsDraft(String omsId,String connection,String catalogKey,boolean autoIntroduction,
+            CryptoProCertificateInfo certificate,String signer,String metadata,Instant testedAt,String testedKey) { }
+    private String draftScope(){return catalogShop==null?"":com.vncode.app.integration.listing.ListingIdentity.fingerprint(catalogShop);}
+    private void rememberSettingsDraft(){
+        if(!settingsEditing||catalogShop==null)return;
+        settingsDrafts.put(draftScope(),new SettingsDraft(omsIdField.getText(),omsConnectionField.getText(),catalogKeyField.getText(),
+                autoIntroductionCheck.isSelected(),signatureCertificateCombo.getValue(),signerCertificate,certificateMetadata,signerTestedAt,testedConfigurationKey));
+    }
+    private void restoreSettingsDraft(){
+        var draft=settingsDrafts.get(draftScope());settingsEditing=draft!=null;
+        if(draft!=null){
+            loading=true;
+            omsIdField.setText(draft.omsId());omsConnectionField.setText(draft.connection());catalogKeyField.setText(draft.catalogKey());
+            autoIntroductionCheck.setSelected(draft.autoIntroduction());signerCertificate=draft.signer();certificateMetadata=draft.metadata();
+            signerTestedAt=draft.testedAt();testedConfigurationKey=draft.testedKey();
+            if(draft.certificate()!=null&&!signatureCertificateCombo.getItems().contains(draft.certificate()))signatureCertificateCombo.getItems().add(draft.certificate());
+            signatureCertificateCombo.setValue(draft.certificate());loading=false;updateSignatureSummary();
+        }
+        applyEditMode();updateSaveState();
+    }
     @FXML private ComboBox<String> productionMethodCombo;
     @FXML private Label purchaseMethodLabel,purchaseMethodHint;
     @FXML private javafx.scene.layout.FlowPane catalogActions;
@@ -281,6 +304,7 @@ public class ZnackAutomationController {
     }
 
     public void setShop(Shop shop) {
+        rememberSettingsDraft();
         warehousePane.setShop(shop);
         if(warehouseTab.isSelected())warehousePane.reload();
         shopGeneration++;
@@ -295,6 +319,7 @@ public class ZnackAutomationController {
         repository = shop == null ? null : new ZnackRepository(new ShopContext(shop.getId(), shop.getName()));
         if (repository == null) clear(); else {
             load();
+            restoreSettingsDraft();
             loadDeletedProducts();
             if (productsTab.isSelected()) requestProductSyncOnOpen();
         }
@@ -302,8 +327,10 @@ public class ZnackAutomationController {
 
     public void refresh() {
         if (repository != null) {
+            rememberSettingsDraft();
             invalidateCertificateDiscovery();
             load();
+            restoreSettingsDraft();
         }
     }
 
@@ -380,8 +407,11 @@ public class ZnackAutomationController {
         showOmsHelp("oms_id");
     }
     @FXML private void showCatalogHelp(){AlertService.showInfo(tr("znack.catalog.title"),tr("znack.settings.catalog_key"),tr("znack.catalog.help"));}
-    @FXML private void editSettings(){settingsEditing=!settingsEditing;if(!settingsEditing&&repository!=null)load();applyEditMode();updateSaveState();}
+    @FXML private void editSettings(){settingsEditing=!settingsEditing;if(!settingsEditing){settingsDrafts.remove(draftScope());if(repository!=null)load();}applyEditMode();updateSaveState();}
     private void applyEditMode(){
+        boolean opening=settingsEditing&&!settingsSaveBar.isManaged();
+        settingsSaveBar.setVisible(settingsEditing);settingsSaveBar.setManaged(settingsEditing);
+        if(opening)com.vncode.app.shared.WorkspaceMotion.savedDraft(settingsSaveBar);
         omsIdField.setEditable(settingsEditing);omsConnectionField.setEditable(settingsEditing);catalogKeyField.setEditable(settingsEditing);
         editSettingsButton.setText(tr(settingsEditing?"common.cancel":"znack.settings.edit"));
         catalogActions.setVisible(settingsEditing);catalogActions.setManaged(settingsEditing);saveButton.setVisible(settingsEditing);saveButton.setManaged(settingsEditing);
@@ -428,6 +458,7 @@ public class ZnackAutomationController {
             repository.saveSettings(settings);
             repository.log("SETTINGS_SAVE", null, "INFO", "SAVED", null);
             loaded = settings;
+            settingsDrafts.remove(draftScope());
             settingsEditing=false;applyEditMode();
             resetAccountSession();
             savedFingerprint = fingerprint();

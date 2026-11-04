@@ -300,8 +300,8 @@ public class HomeController implements Initializable {
                 count -> { if(workspaceHeaderController!=null)workspaceHeaderController.setUnreadNews(count); });
             newsPane.setOnOpenPage(() -> workspaceNavigator.show("news"));
             welcomePane=new com.vncode.app.ui.dashboard.WelcomePane(newsPane.preview(),java.util.List.of(
-                this::showPacking,this::showZnackAutomation,this::showZnackRegistration,this::showFboPacking,
-                () -> onSettings(new ActionEvent()),this::showPrintHistory));
+                this::showPacking,this::showFboPacking,this::showProducts,this::showZnackRegistration,
+                this::showKizMapping,this::showFinance));
             FXMLLoader dashboardLoader=FxmlViewLoader.loader(com.vncode.app.ui.dashboard.DashboardController.class,"dashboard-view.fxml");
             welcomePane.setDashboard(FxmlViewLoader.load(dashboardLoader));
             overviewDashboardController=dashboardLoader.getController();
@@ -1821,6 +1821,7 @@ public class HomeController implements Initializable {
         workspaceHeaderController.setOnJobOpen(this::openJob);
         workspaceHeaderController.setOnSync(() -> onSyncWildberries(new ActionEvent()));
         workspaceHeaderController.setOnEditShop(() -> onUpdateShop(new ActionEvent()));
+        workspaceHeaderController.setOnAddShop(() -> onAddShop(new ActionEvent()));
         workspaceHeaderController.setOnDeleteShop(() -> onDeleteShop(new ActionEvent()));
         workspaceHeaderController.setOnShopSelected(this::selectShopExplicitly);
         workspaceHeaderController.applyTranslations();

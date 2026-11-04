@@ -4,7 +4,7 @@
 .ozon-fbs-workspace #printedOrdersTable .table-row-cell,
 .ozon-fbs-workspace #deliveringOrdersTable .table-row-cell {
     -fx-cell-size: -1;
-    -fx-min-height: 112;
+    -fx-min-height: 76;
 }
 .ozon-fbs-workspace .titled-pane > .title { -fx-background-color: -bg-secondary; -fx-background-radius: 10; }
 .ozon-fbs-workspace .titled-pane > .title > .text { -fx-fill: -text-primary; }
@@ -1255,14 +1255,14 @@
 #productRows .list-cell:empty { -fx-border-width: 0; }
 #productsPane .products-bulk { -fx-padding: 10 12; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: -border-color; -fx-border-width: 1; }
 #productsPane .products-bulk .button { -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 9; -fx-border-radius: 9; -fx-padding: 6 10; -fx-min-height: 34; }
-#productsPane .products-bulk .button.btn-primary { -fx-background-color: rgba(137,82,246,.96); -fx-border-color: transparent; -fx-text-fill: white; }
-#productsPane .products-bulk .button.btn-primary:hover { -fx-background-color: #9b6aff; }
+#productsPane .products-bulk .button.btn-primary { -fx-background-color: -accent; -fx-border-color: transparent; -fx-text-fill: white; }
+#productsPane .products-bulk .button.btn-primary:hover { -fx-background-color: -accent-hover; }
 #productsPane .products-bulk .button.btn-primary .ikonli-font-icon { -fx-icon-color: white; -fx-icon-size: 16; }
 #productsPane .button .ikonli-font-icon { -fx-icon-color: -text-primary; -fx-icon-size: 16; }
 #productsPane #productClearSelection { -fx-padding: 6; -fx-min-width: 32; -fx-max-width: 32; }
 #productsPane #productClearSelection .ikonli-font-icon { -fx-icon-size: 18; }
 #productsPane .task-status-pill { -fx-padding: 8 12; }
-#productsPane .check-box:selected > .box, #productsPane .check-box:indeterminate > .box { -fx-background-color: #8952f6; -fx-border-color: #8952f6; }
+#productsPane .check-box:selected > .box, #productsPane .check-box:indeterminate > .box { -fx-background-color: -accent; -fx-border-color: -accent; }
 #productsPane .check-box:selected > .box > .mark, #productsPane .check-box:indeterminate > .box > .mark { -fx-background-color: white; }
 #productsPane .check-box > .box { -fx-min-width: 20; -fx-min-height: 20; -fx-padding: 2; -fx-border-radius: 5; -fx-background-radius: 5; }
 

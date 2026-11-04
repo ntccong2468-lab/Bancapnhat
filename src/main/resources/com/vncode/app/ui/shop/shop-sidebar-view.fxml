@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
+<?xml version='1.0' encoding='UTF-8'?>
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
@@ -18,110 +17,108 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-
-
 <?import javafx.scene.control.TitledPane?>
-<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="224" spacing="6" styleClass="sidebar" fx:controller="com.vncode.app.ui.shop.ShopSidebarController" fx:id="sidebarRoot" minHeight="0" minWidth="224" maxWidth="224">
-    <children><FlowPane alignment="CENTER" hgap="10" vgap="4" styleClass="sidebar-brand"><HBox alignment="CENTER_LEFT" spacing="6.0">
+<?import javafx.scene.control.CheckMenuItem?>
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="196" spacing="6" styleClass="sidebar" fx:controller="com.vncode.app.ui.shop.ShopSidebarController" fx:id="sidebarRoot" minHeight="0" minWidth="196" maxWidth="196">
+    <children><FlowPane alignment="CENTER_LEFT" hgap="4" vgap="4" styleClass="sidebar-brand"><HBox alignment="CENTER_LEFT" spacing="6.0">
             <children>
                 <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
                     <image>
-                        <Image url="@/com/vncode/app/assets/images/logo.png" />
+                        <Image url="@/com/vncode/app/assets/images/logo.png"/>
                     </image>
                 </ImageView>
                 <Label fx:id="sidebarTitle" alignment="CENTER_LEFT" text="VN code" textAlignment="LEFT" styleClass="h2">
                     <font>
-                        <Font name="System Bold" size="22.0" />
+                        <Font name="System Bold" size="22.0"/>
                     </font>
                 </Label>
             </children>
         </HBox>
-        <Button fx:id="sidebarToggleButton" onAction="#onToggleSidebar" maxWidth="42" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-chevrons-left" iconSize="16"/></graphic></Button>
+        <Button fx:id="sidebarToggleButton" onAction="#onToggleSidebar" maxWidth="28" styleClass="btn-icon" prefWidth="28" minWidth="24"><graphic><FontIcon iconLiteral="fth-chevrons-left" iconSize="16"/></graphic></Button>
         </FlowPane>
-        <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="40" prefWidth="190.0" text=" Добавить магазин" maxWidth="1.7976931348623157E308" styleClass="button,add-shop">
+        <ScrollPane minHeight="0" fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll" VBox.vgrow="ALWAYS"><content><VBox spacing="3" minWidth="0"><Label text="%sidebar.group.operate" styleClass="nav-section" maxWidth="1.7976931348623157E308" fx:id="navSectionOperate"/><Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="38" prefWidth="190.0" text=" Dashboard" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-plus" iconSize="16" />
+                <FontIcon iconLiteral="fth-grid" iconSize="16"/>
             </graphic>
         </Button>
-        <ScrollPane minHeight="0" fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll" VBox.vgrow="ALWAYS"><content><VBox spacing="4" minWidth="0"><children><Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="40" prefWidth="190.0" text=" Dashboard" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
+        <Button fx:id="packingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPacking" prefHeight="38" prefWidth="190.0" text=" Упаковка WB" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-grid" iconSize="16" />
+                <FontIcon iconLiteral="fth-truck" iconSize="16"/>
             </graphic>
         </Button>
-        <Button fx:id="productsButton" onAction="#onProducts" text="%products.title" alignment="CENTER_LEFT" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-shopping-bag" iconSize="16" /></graphic></Button>
-        <Button fx:id="packingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPacking" prefHeight="40" prefWidth="190.0" text=" Упаковка WB" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
+        <Button fx:id="fboPackingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboPacking" prefHeight="38" prefWidth="190.0" text=" Đóng hàng FBO" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-truck" iconSize="16" />
+                <FontIcon iconLiteral="fth-package" iconSize="16"/>
             </graphic>
         </Button>
-        <Button fx:id="fboPackingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboPacking" prefHeight="40" prefWidth="190.0" text=" Đóng hàng FBO" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
+        <Label text="%sidebar.group.products" styleClass="nav-section" maxWidth="1.7976931348623157E308" fx:id="navSectionProducts"/><Button fx:id="productsButton" onAction="#onProducts" text="%products.title" alignment="CENTER_LEFT" minHeight="38" maxWidth="1.7976931348623157E308" styleClass="button,nav-item" prefHeight="38"><graphic><FontIcon iconLiteral="fth-shopping-bag" iconSize="16"/></graphic></Button>
+        <Button fx:id="znackRegistrationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackRegistration" prefHeight="38" prefWidth="190.0" text=" Đăng ký Znack" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
+            <graphic><FontIcon iconLiteral="fth-file-plus" iconSize="16"/></graphic>
+        </Button>
+        <Button fx:id="kizMappingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onKizMapping" prefHeight="38" prefWidth="190.0" text=" KIZ Mapping" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-package" iconSize="16" />
+                <FontIcon iconLiteral="fth-link" iconSize="16"/>
             </graphic>
         </Button>
-        <Button fx:id="kizMappingButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onKizMapping" prefHeight="40" prefWidth="190.0" text=" KIZ Mapping" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
+        <Button fx:id="gs1Button" alignment="CENTER_LEFT" onAction="#onGs1" prefHeight="38" minHeight="38" maxWidth="1.7976931348623157E308" text="%gs1.title" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-mail" iconSize="16"/></graphic></Button>
+        <Button fx:id="znackAutomationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackAutomation" prefHeight="38" prefWidth="190.0" text=" Znack Automation" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
+            <graphic><FontIcon iconLiteral="fth-tag" iconSize="16"/></graphic>
+        </Button>
+        <Label text="%sidebar.group.tools" styleClass="nav-section" maxWidth="1.7976931348623157E308" fx:id="navSectionTools"/><Button text="%sidebar.finance" alignment="CENTER_LEFT" onAction="#onFinance" styleClass="button,nav-item" maxWidth="1.7976931348623157E308" fx:id="financeButton" minHeight="38" prefHeight="38"><graphic><FontIcon iconLiteral="fth-bar-chart-2" iconSize="16"/></graphic></Button><Button fx:id="btnPrintHistory" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPrintHistory" prefHeight="38" prefWidth="190.0" text=" История печати" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-link" iconSize="16" />
+                <FontIcon iconLiteral="fth-clock" iconSize="16"/>
             </graphic>
         </Button>
-        <Button fx:id="znackRegistrationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackRegistration" prefHeight="40" prefWidth="190.0" text=" Đăng ký Znack" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
-            <graphic><FontIcon iconLiteral="fth-file-plus" iconSize="16" /></graphic>
-        </Button>
-        <Button fx:id="gs1Button" alignment="CENTER_LEFT" onAction="#onGs1" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" text="%gs1.title" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-mail" iconSize="16" /></graphic></Button>
-        <Button fx:id="znackAutomationButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onZnackAutomation" prefHeight="40" prefWidth="190.0" text=" Znack Automation" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
-            <graphic><FontIcon iconLiteral="fth-tag" iconSize="16" /></graphic>
-        </Button>
-        <Button fx:id="btnPrintHistory" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onPrintHistory" prefHeight="40" prefWidth="190.0" text=" История печати" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
+        <Button fx:id="templateButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onSettings" prefHeight="38" prefWidth="190.0" text=" Дизайн шаблона" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-clock" iconSize="16" />
+                <FontIcon iconLiteral="fth-edit" iconSize="16"/>
             </graphic>
         </Button>
-        <Button fx:id="templateButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onSettings" prefHeight="40" prefWidth="190.0" text=" Дизайн шаблона" maxWidth="1.7976931348623157E308" minHeight="40" styleClass="button,nav-item">
-            <graphic>
-                <FontIcon iconLiteral="fth-edit" iconSize="16" />
-            </graphic>
-        </Button>
-        <Button fx:id="guidesButton" onAction="#onGuides" text="%guides.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-book-open" iconSize="16" /></graphic></Button>
-        <Button fx:id="tnvedButton" onAction="#onTnved" text="%tnved.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-hash" iconSize="16" /></graphic></Button>
-        <TitledPane text="%sidebar.tools" expanded="false" animated="false" styleClass="sidebar-tools" fx:id="toolsPane"><content><VBox spacing="4" minWidth="0"><children>
+        </VBox></content></ScrollPane><VBox spacing="4" styleClass="sidebar-footer"><TitledPane text="%sidebar.tools" expanded="false" animated="false" styleClass="sidebar-tools" fx:id="toolsPane"><content><VBox spacing="4"><Button fx:id="tnvedButton" onAction="#onTnved" text="%tnved.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-hash" iconSize="16"/></graphic></Button>
         <Button fx:id="fboOrdersButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboOrders" prefHeight="30.0" prefWidth="220" text=" Đơn hàng FBO" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
             <graphic>
-                <FontIcon iconLiteral="fth-list" iconSize="16" />
+                <FontIcon iconLiteral="fth-list" iconSize="16"/>
             </graphic>
         </Button>
-        <Button fx:id="listingCopyButton" onAction="#onListingCopy" text="%copy.title" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-copy" iconSize="16" /></graphic></Button>
-        <Button text="%sidebar.finance" alignment="CENTER_LEFT" onAction="#onFinance" styleClass="button,nav-item" maxWidth="1.7976931348623157E308" fx:id="financeButton"><graphic><FontIcon iconLiteral="fth-bar-chart-2" iconSize="16"/></graphic></Button></children></VBox></content></TitledPane></children></VBox></content></ScrollPane><MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="46" prefWidth="236" text=" Settings" maxWidth="1.7976931348623157E308">
+        <Button fx:id="listingCopyButton" onAction="#onListingCopy" text="%copy.title" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-copy" iconSize="16"/></graphic></Button>
+        <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="40" prefWidth="190.0" text=" Добавить магазин" maxWidth="1.7976931348623157E308" styleClass="button,add-shop">
+            <graphic>
+                <FontIcon iconLiteral="fth-plus" iconSize="16"/>
+            </graphic>
+        </Button>
+        </VBox></content></TitledPane><Button fx:id="guidesButton" onAction="#onGuides" text="%guides.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-book-open" iconSize="16"/></graphic></Button>
+        <MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="46" prefWidth="236" text=" Settings" maxWidth="1.7976931348623157E308">
             <styleClass>
-                <String fx:value="button" />
-                <String fx:value="btn-secondary" />
+                <String fx:value="button"/>
+                <String fx:value="btn-secondary"/>
             </styleClass>
             <graphic>
-                <FontIcon iconLiteral="fth-settings" iconSize="16" />
+                <FontIcon iconLiteral="fth-settings" iconSize="16"/>
             </graphic>
             <items>
                 <Menu fx:id="languageMenu" text="Language">
                     <items>
-                        <RadioMenuItem fx:id="languageRuMenuItem" onAction="#onLanguageRu" text="Русский" />
-                        <RadioMenuItem fx:id="languageEnMenuItem" onAction="#onLanguageEn" text="English" />
-                        <RadioMenuItem fx:id="languageZhMenuItem" onAction="#onLanguageZh" text="中文" />
-                        <RadioMenuItem fx:id="languageViMenuItem" onAction="#onLanguageVi" text="Tiếng Việt" />
+                        <RadioMenuItem fx:id="languageRuMenuItem" onAction="#onLanguageRu" text="Русский"/>
+                        <RadioMenuItem fx:id="languageEnMenuItem" onAction="#onLanguageEn" text="English"/>
+                        <RadioMenuItem fx:id="languageZhMenuItem" onAction="#onLanguageZh" text="中文"/>
+                        <RadioMenuItem fx:id="languageViMenuItem" onAction="#onLanguageVi" text="Tiếng Việt"/>
                     </items>
                 </Menu>
                 <Menu fx:id="themeMenu" text="Theme">
                     <items>
-                        <RadioMenuItem fx:id="themeDarkMenuItem" onAction="#onThemeDark" text="Dark" />
-                        <RadioMenuItem fx:id="themeLightMenuItem" onAction="#onThemeLight" text="Light" />
+                        <RadioMenuItem fx:id="themeDarkMenuItem" onAction="#onThemeDark" text="Dark"/>
+                        <RadioMenuItem fx:id="themeLightMenuItem" onAction="#onThemeLight" text="Light"/>
                     </items>
                 </Menu>
-                <MenuItem fx:id="glassSettingsMenuItem" onAction="#onGlassSettings" text="%settings.glass.title" />
-                <MenuItem fx:id="translationMenuItem" onAction="#onTranslationSettings" text="%news.translation_settings" />
-                <MenuItem fx:id="checkVersionMenuItem" onAction="#onCheckVersion" text="Check version" />
-                <MenuItem fx:id="personalEditionMenuItem" onAction="#onPersonalEdition" text="%license.account.title" />
-                <MenuItem fx:id="aboutMenuItem" onAction="#onAbout" text="About" />
+                <CheckMenuItem text="%settings.reduced_motion" onAction="#onReducedMotion" fx:id="reducedMotionMenuItem"/><MenuItem fx:id="glassSettingsMenuItem" onAction="#onGlassSettings" text="%settings.glass.title"/>
+                <MenuItem fx:id="translationMenuItem" onAction="#onTranslationSettings" text="%news.translation_settings"/>
+                <MenuItem fx:id="checkVersionMenuItem" onAction="#onCheckVersion" text="Check version"/>
+                <MenuItem fx:id="personalEditionMenuItem" onAction="#onPersonalEdition" text="%license.account.title"/>
+                <MenuItem fx:id="aboutMenuItem" onAction="#onAbout" text="About"/>
             </items>
         </MenuButton>
-        <Label fx:id="editionStatusLabel" wrapText="true" maxWidth="1.7976931348623157E308" text="•" />
+        </VBox><Label fx:id="editionStatusLabel" wrapText="true" maxWidth="1.7976931348623157E308" text="•"/>
     </children><padding>
-        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+        <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>
     </padding>
 </VBox>

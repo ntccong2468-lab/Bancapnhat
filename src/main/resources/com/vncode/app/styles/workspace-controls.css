@@ -1,22 +1,23 @@
 /* VN Code workbench. One control system for both themes; theme.css owns domain layout.
    No per-row effects or animations. See docs/design/vncode-workspace-system.md. */
 .root, .workspace-theme, .root.theme-dark, .workspace-theme.theme-dark {
-    -bg-primary: #111318;
-    -bg-secondary: #1b1e25;
-    -bg-tertiary: #252a34;
-    -bg-odd-row: #1b1e25;
-    -border-color: #343b49;
+    -bg-primary: #141414;
+    -nav-surface: #171717;
+    -bg-secondary: #1b1b1b;
+    -bg-tertiary: #25272b;
+    -bg-odd-row: #1b1b1b;
+    -border-color: #383b40;
     -border-color-hover: #7c879a;
-    -text-primary: #f2f4f8;
-    -text-secondary: #c6ccd8;
-    -text-muted: #a3adbe;
-    -accent: #7450d6;
-    -accent-hover: #6845c5;
-    -accent-active: #5936b4;
-    -accent-text: #c6b2ff;
-    -accent-transparent: #2d2543;
-    -focus: #c6b2ff;
-    -focus-primary: #eee7ff;
+    -text-primary: #edf2f7;
+    -text-secondary: #c4cdd8;
+    -text-muted: #a8b5c6;
+    -accent: #285fc7;
+    -accent-hover: #2153b0;
+    -accent-active: #19448f;
+    -accent-text: #bedaff;
+    -accent-transparent: #233c5b;
+    -focus: #bedaff;
+    -focus-primary: #eef5ff;
     -danger: #ff8598;
     -success: #70d5b0;
     -warning: #f2c46d;
@@ -26,14 +27,14 @@
     -success-surface: #163b30;
     -danger-surface: #432530;
     -warning-surface: #3c321e;
-    -ui-panel: #1b1e25;
-    -ui-control: #272c36;
-    -ui-control-hover: #343b49;
-    -ui-field: #161a21;
+    -ui-panel: #1b1b1b;
+    -ui-control: #25272b;
+    -ui-control-hover: #383b40;
+    -ui-field: #1b1b1b;
     -ui-input-border: #7c879a;
-    -ui-row-hover: #242936;
-    -ui-selected: #302844;
-    -ui-table-header: #222630;
+    -ui-row-hover: #222b36;
+    -ui-selected: #233c5b;
+    -ui-table-header: #171717;
     -btn-bg: -ui-control;
     -btn-bg-hover: -ui-control-hover;
     -btn-bg-pressed: -bg-primary;
@@ -50,22 +51,23 @@
     -fx-font-size: 14px;
 }
 .root.theme-light, .workspace-theme.theme-light {
-    -bg-primary: #f5f6fa;
+    -bg-primary: #f4f6f9;
+    -nav-surface: #f9fafc;
     -bg-secondary: #ffffff;
-    -bg-tertiary: #eceef4;
+    -bg-tertiary: #eef2f6;
     -bg-odd-row: #ffffff;
-    -border-color: #d3d8e3;
+    -border-color: #dce2ea;
     -border-color-hover: #748197;
-    -text-primary: #1b2632;
-    -text-secondary: #39465a;
-    -text-muted: #566176;
-    -accent: #6940c6;
-    -accent-hover: #5934b2;
-    -accent-active: #4a299e;
-    -accent-text: #6239b9;
-    -accent-transparent: #ede7fa;
-    -focus: #6841be;
-    -focus-primary: #26184b;
+    -text-primary: #172537;
+    -text-secondary: #3b4d63;
+    -text-muted: #5d6a7b;
+    -accent: #175bc5;
+    -accent-hover: #114eae;
+    -accent-active: #0c4093;
+    -accent-text: #174b9a;
+    -accent-transparent: #e8f0ff;
+    -focus: #175bc5;
+    -focus-primary: #ffffff;
     -danger: #b3243e;
     -success: #136749;
     -warning: #825200;
@@ -79,18 +81,18 @@
     -glass-button: rgba(252,253,255,.572);
     -ui-panel: -glass-surface;
     -ui-control: -glass-button;
-    -ui-control-hover: #e8ebf3;
+    -ui-control-hover: #e7edf5;
     -ui-field: #ffffff;
     -ui-input-border: #7e899a;
-    -ui-row-hover: #f0edf8;
-    -ui-selected: #e9e2f7;
-    -ui-table-header: #f0f2f7;
+    -ui-row-hover: #f0f4fa;
+    -ui-selected: #e8f0ff;
+    -ui-table-header: #f9fafc;
 }
 .workspace-theme .label { -fx-text-fill: -text-primary; }
 .workspace-theme .text-muted { -fx-text-fill: -text-muted; }
 .workspace-theme .text-secondary { -fx-text-fill: -text-secondary; }
-.workspace-theme .h1 { -fx-font-size: 26; -fx-font-weight: bold; }
-.workspace-theme .h2 { -fx-font-size: 20; -fx-font-weight: bold; }
+.workspace-theme .h1 { -fx-font-size: 25; -fx-font-weight: bold; }
+.workspace-theme .h2 { -fx-font-size: 25; -fx-font-weight: bold; }
 .workspace-theme .h3 { -fx-font-size: 15; -fx-font-weight: bold; }
 .workspace-theme .text-danger, .workspace-theme .error-label, .workspace-theme .document-rejected { -fx-text-fill: -danger; }
 .workspace-theme .text-success, .workspace-theme .document-valid, .workspace-theme .activation-active { -fx-text-fill: -success; }
@@ -103,8 +105,8 @@
 /* Shared surfaces and application chrome. */
 .workspace-theme .app-page, .workspace-theme .scroll-pane, .workspace-theme .scroll-pane > .viewport,
 .workspace-theme .tab-pane, .workspace-theme .tab-content-area { -fx-background-color: transparent; }
-.workspace-theme .sidebar { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-border-width: 0 1 0 0; -fx-padding: 12 8 8 8; }
-.workspace-theme .header { -fx-background-color: -bg-primary; -fx-border-color: -border-color; -fx-border-width: 0 0 1 0; -fx-padding: 8 12; -fx-min-height: 54; }
+.workspace-theme .sidebar { -fx-background-color: -nav-surface; -fx-border-color: -border-color; -fx-border-width: 0 1 0 0; -fx-padding: 16 12 10 12; }
+.workspace-theme .header { -fx-background-color: -bg-primary; -fx-border-color: -border-color; -fx-border-width: 0 0 1 0; -fx-padding: 10 22; -fx-min-height: 58; -fx-pref-height: 58; }
 .workspace-theme .card, .workspace-theme .surface, .workspace-theme .copy-card,
 .workspace-theme .news-card, .workspace-theme .guide-section, .workspace-theme .feature-card,
 .workspace-theme .products-bulk, .workspace-theme .supply-detail, .workspace-theme .gtin-inventory-card {
@@ -114,18 +116,20 @@
 .workspace-theme .card, .workspace-theme .surface { -fx-padding: 12; }
 .workspace-theme .filter-bar { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 4 0; }
 .workspace-theme .selection-action-bar, .workspace-theme .products-bulk { -fx-padding: 10 12; -fx-background-color: -ui-selected; }
-.workspace-theme .welcome-body { -fx-background-color: transparent; -fx-padding: 12; }
+.workspace-theme .welcome-body { -fx-background-color: transparent; -fx-padding: 16; }
 .workspace-theme .welcome-title { -fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: -text-primary; }
 .workspace-theme .welcome-description { -fx-font-size: 14; -fx-text-fill: -text-muted; }
-.workspace-theme .feature-title { -fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: -text-primary; }
-.workspace-theme .button.feature-card { -fx-alignment: TOP_LEFT; -fx-padding: 16; -fx-background-radius: 20; -fx-border-radius: 20; -fx-min-height: 116; }
+.workspace-theme .feature-title { -fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: -text-primary; }
+.workspace-theme .button.feature-card { -fx-alignment: CENTER_LEFT; -fx-padding: 16 4; -fx-background-color: transparent; -fx-background-radius: 0; -fx-border-radius: 0; -fx-border-width: 0 0 1 0; -fx-min-height: 78; }
+.workspace-theme .button.feature-card:hover { -fx-background-color: -ui-row-hover; }
+.workspace-theme .button.feature-card:focused { -fx-border-width: 1; -fx-border-color: -focus; }
 .workspace-theme .feature-icon { -fx-icon-color: -accent-text; }
 
 /* Stable bounds across focus/hover; all normal controls share the same rhythm. */
 .workspace-theme .button, .workspace-theme .menu-button, .workspace-theme .toggle-button {
-    -fx-background-color: -ui-control; -fx-background-radius: 7; -fx-border-radius: 7;
-    -fx-border-color: -border-color; -fx-border-width: 2;
-    -fx-padding: 6 11; -fx-min-height: 34; -fx-font-size: 13; -fx-font-weight: normal;
+    -fx-background-color: -ui-control; -fx-background-radius: 6; -fx-border-radius: 6;
+    -fx-border-color: -border-color; -fx-border-width: 1;
+    -fx-padding: 7 11; -fx-min-height: 36; -fx-font-size: 13; -fx-font-weight: normal;
     -fx-text-fill: -text-primary; -fx-effect: null; -fx-cursor: hand;
 }
 .workspace-theme .menu-button > .label { -fx-padding: 0; -fx-text-fill: -text-primary; }
@@ -154,7 +158,7 @@
     -fx-font-weight: normal; -fx-text-fill: -text-secondary; -fx-padding: 6 10;
 }
 .workspace-theme .sidebar .button.nav-item:hover, .workspace-theme .sidebar .menu-button:hover { -fx-background-color: -ui-row-hover; }
-.workspace-theme .sidebar .button.nav-selected { -fx-background-color: -ui-selected; -fx-border-color: transparent transparent transparent -accent-text; -fx-text-fill: -accent-text; -fx-font-weight: bold; }
+.workspace-theme .sidebar .button.nav-selected { -fx-background-color: -ui-selected; -fx-border-color: transparent; -fx-text-fill: -accent-text; -fx-font-weight: bold; }
 .workspace-theme .sidebar .button.nav-selected .ikonli-font-icon { -fx-icon-color: -accent-text; }
 .workspace-theme .sidebar .button:focused, .workspace-theme .sidebar .menu-button:focused { -fx-border-color: -focus; }
 .workspace-theme .sidebar.sidebar-compact .button, .workspace-theme .sidebar.sidebar-compact .menu-button { -fx-alignment: CENTER; -fx-padding: 6; }
@@ -164,7 +168,7 @@
 
 /* Fields, dates and spinners use the same readable popup/control family. */
 .workspace-theme .text-input, .workspace-theme .combo-box-base, .workspace-theme .choice-box, .workspace-theme .spinner {
-    -fx-background-color: -ui-field; -fx-background-radius: 7; -fx-border-radius: 7;
+    -fx-background-color: -ui-field; -fx-background-radius: 6; -fx-border-radius: 6;
     -fx-border-color: -ui-input-border; -fx-border-width: 1; -fx-padding: 6 10;
     -fx-min-height: 34; -fx-font-size: 13; -fx-text-fill: -text-primary; -fx-prompt-text-fill: -text-muted;
     -fx-highlight-fill: -accent; -fx-highlight-text-fill: white;
@@ -200,7 +204,7 @@
     -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 1;
 }
 .workspace-theme .table-view .column-header-background { -fx-background-color: -ui-table-header; -fx-background-radius: 8 8 0 0; }
-.workspace-theme .table-view .column-header { -fx-background-color: transparent; -fx-size: 40; }
+.workspace-theme .table-view .column-header { -fx-background-color: transparent; -fx-size: 42; }
 .workspace-theme .table-view .column-header .label { -fx-font-size: 12; -fx-text-fill: -text-secondary; -fx-font-weight: bold; -fx-padding: 8; }
 .workspace-theme .table-row-cell, .workspace-theme .table-row-cell:odd, .workspace-theme .list-cell { -fx-background-color: transparent; -fx-text-fill: -text-primary; }
 .workspace-theme .table-row-cell:filled:hover, .workspace-theme .list-cell:filled:hover { -fx-background-color: -ui-row-hover; }
@@ -211,7 +215,7 @@
 .workspace-theme .tab-pane > .tab-header-area { -fx-padding: 0 0 6 0; }
 .workspace-theme .tab-pane > .tab-header-area > .tab-header-background { -fx-background-color: transparent; }
 .workspace-theme .tab-pane > .tab-header-area > .headers-region > .tab { -fx-background-color: transparent; -fx-background-radius: 0; -fx-padding: 8 12; -fx-border-color: transparent; -fx-border-width: 0 0 2 0; }
-.workspace-theme .tab-pane > .tab-header-area > .headers-region > .tab:selected { -fx-border-color: -accent-text; -fx-background-color: -accent-transparent; }
+.workspace-theme .tab-pane > .tab-header-area > .headers-region > .tab:selected { -fx-border-color: -accent-text; -fx-background-color: transparent; }
 .workspace-theme .tab .tab-label { -fx-font-size: 13; -fx-text-fill: -text-secondary; }
 .workspace-theme .tab:selected .tab-label { -fx-font-weight: bold; -fx-text-fill: -text-primary; }
 .workspace-theme .packing-tabs > .tab-header-area > .headers-region > .tab:selected .tab-label { -fx-text-fill: -text-primary; }
@@ -246,7 +250,7 @@
 .workspace-theme #productsPane .products-bulk .button.btn-primary .ikonli-font-icon, .workspace-theme#productsPane .products-bulk .button.btn-primary .ikonli-font-icon { -fx-icon-color: -text-primary; }
 .workspace-theme #productsPane .product-issue-chip, .workspace-theme#productsPane .product-issue-chip { -fx-background-color: -warning-surface; -fx-text-fill: -warning; -fx-border-color: transparent; -fx-background-radius: 6; -fx-border-radius: 6; }
 .workspace-theme #productsPane .product-issue-chip:selected, .workspace-theme#productsPane .product-issue-chip:selected { -fx-border-color: -warning; }
-.workspace-theme .registration-reference .table-row-cell, .workspace-theme.registration-reference .table-row-cell { -fx-cell-size: 76; }
+.workspace-theme .registration-reference .table-row-cell, .workspace-theme.registration-reference .table-row-cell { -fx-cell-size: 71; }
 .workspace-theme .registration-reference .table-cell .button, .workspace-theme.registration-reference .table-cell .button { -fx-font-size: 13; -fx-min-height: 34; -fx-padding: 5 8; }
 .workspace-theme .gs1-workspace .h2, .workspace-theme.gs1-workspace .h2 { -fx-font-size: 20; }
 .workspace-theme .gs1-workspace .feature-card .h2, .workspace-theme.gs1-workspace .feature-card .h2 { -fx-font-size: 16; }
@@ -262,3 +266,43 @@
 .workspace-theme .finance-kpi-value { -fx-font-size: 24; }
 .workspace-theme .finance-kpi-value-revenue { -fx-text-fill: -accent-text; }
 .workspace-theme #tnvedSuggestionChips .button { -fx-background-color: -ui-selected; -fx-border-color: -accent-text; }
+
+/* Approved 1.6.3 operating workspace. Shared by every native page. */
+.workspace-theme .sidebar .sidebar-brand { -fx-padding: 0 0 14 0; }
+.workspace-theme .sidebar .sidebar-brand .label { -fx-font-size: 20; -fx-font-weight: bold; }
+.workspace-theme .sidebar .nav-section { -fx-font-size: 10; -fx-font-weight: bold; -fx-text-fill: -text-muted; -fx-padding: 20 10 5 10; }
+.workspace-theme .sidebar .button.nav-item { -fx-min-height: 38; -fx-pref-height: 38; }
+.workspace-theme .sidebar .sidebar-footer { -fx-border-color: -border-color transparent transparent transparent; -fx-border-width: 1 0 0 0; -fx-padding: 12 0 0 0; }
+.workspace-theme .sidebar #editionStatusLabel { -fx-font-size: 11; -fx-text-fill: -text-muted; }
+.workspace-theme .header .button, .workspace-theme .header .menu-button { -fx-background-color: transparent; -fx-border-color: transparent; }
+.workspace-theme .header .button:hover, .workspace-theme .header .menu-button:hover { -fx-background-color: -ui-control-hover; }
+.workspace-theme .header .button:focused, .workspace-theme .header .menu-button:focused { -fx-border-color: -focus; }
+.workspace-theme .header .button.btn-primary { -fx-background-color: -accent; }
+.workspace-theme .header #deleteShopButton .ikonli-font-icon { -fx-icon-color: -danger; }
+.workspace-theme .header .btn-icon { -fx-min-width: 32; -fx-min-height: 34; -fx-padding: 6; -fx-background-radius: 6; }
+.workspace-theme .feature-card .text-secondary { -fx-font-size: 12; -fx-text-fill: -text-muted; }
+.workspace-theme .welcome-news { -fx-border-color: transparent transparent transparent -border-color; -fx-border-width: 0 0 0 1; -fx-padding: 0 0 0 22; }
+.workspace-theme .welcome-news .news-card { -fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-radius: 0; -fx-background-radius: 0; }
+.workspace-theme .detail-drawer { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-border-width: 0 0 0 1; -fx-padding: 18; }
+.workspace-theme .detail-drawer .text-area { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
+.workspace-theme .detail-drawer .text-area .content { -fx-background-color: -bg-secondary; }
+.workspace-theme #productsPane .product-name, .workspace-theme#productsPane .product-name { -fx-font-size: 13; }
+.workspace-theme .product-row .label { -fx-font-size: 12; }
+.workspace-theme .registration-reference .table-cell, .workspace-theme.registration-reference .table-cell { -fx-font-size: 12; }
+.workspace-theme .registration-reference .table-cell .label, .workspace-theme.registration-reference .table-cell .label { -fx-font-size: 12; }
+.workspace-theme .selection-action-bar, .workspace-theme .products-bulk { -fx-background-color: transparent; -fx-border-width: 1 0 0 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 10 0 0 0; }
+.workspace-theme .selection-count { -fx-text-fill: -accent-text; -fx-font-weight: bold; }
+.workspace-theme .ozon-posting-table .table-cell .label { -fx-font-size: 12; }
+.workspace-theme .ozon-posting-table .table-cell .text-bold { -fx-font-size: 13; }
+.workspace-theme .gs1-workspace .feature-card { -fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-background-radius: 0; -fx-border-radius: 0; }
+
+.workspace-theme .packing-tabs { -fx-border-width: 0; -fx-padding: 0; -fx-background-color: transparent; }
+.workspace-theme .packing-tabs > .tab-content-area { -fx-padding: 0; }
+.workspace-theme #productsPane .h2, .workspace-theme#productsPane .h2 { -fx-font-size: 25; }
+.workspace-theme #productsPane .products-bulk, .workspace-theme#productsPane .products-bulk { -fx-border-radius: 0; -fx-background-radius: 0; -fx-border-width: 1 0 0 0; -fx-padding: 10 0 0 0; }
+.workspace-theme #productsPane .check-box:selected > .box, .workspace-theme#productsPane .check-box:selected > .box { -fx-background-color: -accent; -fx-border-color: -accent; }
+.workspace-theme .workspace-list-footer { -fx-padding: 6 0 0 0; }
+.workspace-theme .welcome-news .h2 { -fx-font-size: 16; }
+
+.workspace-theme .detail-group { -fx-padding: 0 2 14 0; -fx-border-color: -border-color; -fx-border-width: 0 0 1 0; }
+.workspace-theme .detail-drawer .label:focused { -fx-underline: true; }

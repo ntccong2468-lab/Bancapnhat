@@ -104,11 +104,11 @@ class ThemeServiceTest {
    var content=new BorderPane(welcome,top,null,null,null);BorderPane.setMargin(welcome,new javafx.geometry.Insets(18));
    var shell=new BorderPane(content,null,null,null,nav);var stage=new Stage();stage.setScene(new Scene(shell,1460,900));ThemeService.applyTheme(stage.getScene());stage.show();shell.applyCss();shell.layout();
    assertTrue(shell.getStyleClass().contains("reference-dark"));assertEquals(6,shell.lookupAll(".feature-card").size());
-   for(var node:shell.lookupAll(".feature-card"))assertEquals(20,((Region)node).getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius());
-   var primary=(Button)shell.lookup(".add-shop");assertNotNull(primary);assertEquals(1,primary.getOpacity());
+   for(var node:shell.lookupAll(".feature-card"))assertEquals(0,((Region)node).getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius());
+   var primary=(Button)header.getNamespace().get("addShopButton");assertNotNull(primary);assertEquals(1,primary.getOpacity());
    for(var node:shell.lookupAll(".btn-icon"))if(node instanceof Button icon){
-    assertEquals(38,icon.getMinWidth());assertEquals(38,icon.getMinHeight());
-    assertTrue(icon.getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius()>=10);
+    boolean headerIcon=icon.getParent()==top;assertEquals(headerIcon?32:38,icon.getMinWidth());assertEquals(headerIcon?34:38,icon.getMinHeight());
+    assertTrue(icon.getBackground().getFills().getFirst().getRadii().getTopLeftHorizontalRadius()>=6);
    }
    String output=System.getProperty("vncode.glass.screenshots");
    if(output!=null){var image=shell.snapshot(null,null);var pixels=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)pixels.setRGB(x,y,image.getPixelReader().getArgb(x,y));var dir=Path.of(output);Files.createDirectories(dir);javax.imageio.ImageIO.write(pixels,"png",dir.resolve("vncode-black-reference.png").toFile());}

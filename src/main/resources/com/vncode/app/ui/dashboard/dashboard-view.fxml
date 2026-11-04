@@ -30,7 +30,7 @@
                 </Button>
             </children>
         </HBox>
-        <HBox spacing="10.0">
+        <HBox spacing="10.0" visible="false" managed="false">
             <children>
                 <VBox spacing="4.0" styleClass="surface,dashboard-metric" HBox.hgrow="ALWAYS">
                     <children>

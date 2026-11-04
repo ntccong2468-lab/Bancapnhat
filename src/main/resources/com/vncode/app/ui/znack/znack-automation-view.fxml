@@ -3,8 +3,8 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<VBox spacing="30" styleClass="znack-root,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.znack.ZnackAutomationController">
- <padding><Insets top="30" right="30" bottom="20" left="30"/></padding>
+<VBox spacing="16" styleClass="znack-root,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.znack.ZnackAutomationController">
+ <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
  <Label fx:id="titleLabel" styleClass="h2" text="%znack.title"/>
  <Label fx:id="authStatusLabel" styleClass="text-muted" visible="false" managed="false"/>
  <TabPane styleClass="packing-tabs" VBox.vgrow="ALWAYS">
@@ -128,7 +128,10 @@
        </VBox>
       </GridPane>
       <CheckBox fx:id="autoIntroductionCheck" text="%znack.auto_introduction" visible="false" managed="false"/>
-      <HBox alignment="CENTER_RIGHT"><Button fx:id="saveButton" defaultButton="true" onAction="#save" styleClass="btn-primary" text="%znack.save"/></HBox>
+      <HBox fx:id="settingsSaveBar" spacing="8" alignment="CENTER_RIGHT" visible="false" managed="false" styleClass="selection-action-bar">
+       <Button text="%common.cancel" onAction="#editSettings"/>
+       <Button fx:id="saveButton" defaultButton="true" onAction="#save" styleClass="btn-primary" text="%znack.save"/>
+      </HBox>
      </VBox>
     </ScrollPane>
    </Tab>

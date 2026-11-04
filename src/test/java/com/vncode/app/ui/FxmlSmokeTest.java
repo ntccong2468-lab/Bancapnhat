@@ -511,7 +511,7 @@ class FxmlSmokeTest {
             return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
-    @Test void dashboardCardsHaveUsableRenderedHeightsWithProductionThemes() throws Exception {
+    @Test void overviewTaskRowsHaveUsableRenderedHeightsWithProductionThemes() throws Exception {
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var item=new com.vncode.app.features.news.NewsItem("layout",java.time.Instant.now(),"Wildberries và Ozon: cập nhật thông tin sản phẩm", "Đồng bộ đơn hàng, kiểm tra GTIN và in nhãn theo cấu hình của từng cửa hàng. Xem chi tiết để chuẩn bị lô hàng.");
             var news=new com.vncode.app.ui.news.NewsPane(new com.vncode.app.features.news.NewsService(java.util.List.of(item),new com.vncode.app.features.news.NewsRepository(appDataDir.resolve("layout-news"))),()->{},n->{});
@@ -523,7 +523,7 @@ class FxmlSmokeTest {
                 for(String theme:java.util.List.of("theme-dark","theme-light")) {
                     pane.getStyleClass().removeAll("theme-dark","theme-light");pane.getStyleClass().add(theme);pane.applyCss();pane.layout();
                     for(var node:pane.lookupAll(".feature-card")) {
-                        assertTrue(node.getBoundsInParent().getHeight()>=110&&node.getBoundsInParent().getHeight()<220,"Compact feature card must retain usable content height: "+node.getBoundsInParent().getHeight());
+                        assertTrue(node.getBoundsInParent().getHeight()>=72&&node.getBoundsInParent().getHeight()<160,"Compact task row must retain usable content height: "+node.getBoundsInParent().getHeight());
                         for(var child:((javafx.scene.Parent)node).getChildrenUnmodifiable())if(child.isManaged()&&child.isVisible())
                             assertTrue(child.getBoundsInParent().getMaxY()<=node.getLayoutBounds().getHeight()+1,"Compact dashboard card clips content");
                     }

@@ -1,0 +1,1183 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T19:18:09.971956+00:00",
+  "title": "Design System: VN Code — Native Dispatch Workbench",
+  "extensions": {
+    "colorMeta": {
+      "bg-primary": {
+        "role": "neutral",
+        "displayName": "Graphite Ground",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "nav-surface": {
+        "role": "neutral",
+        "displayName": "Graphite Rail",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "bg-secondary": {
+        "role": "neutral",
+        "displayName": "Raised Graphite",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "bg-tertiary": {
+        "role": "neutral",
+        "displayName": "Bg Tertiary",
+        "tonalRamp": [
+          "oklch(15.0% 0.0037 264.4)",
+          "oklch(27.0% 0.0058 264.4)",
+          "oklch(38.0% 0.0072 264.4)",
+          "oklch(50.0% 0.0079 264.4)",
+          "oklch(61.0% 0.0077 264.4)",
+          "oklch(73.0% 0.0065 264.4)",
+          "oklch(84.0% 0.0048 264.4)",
+          "oklch(95.0% 0.0026 264.4)"
+        ]
+      },
+      "border-color": {
+        "role": "neutral",
+        "displayName": "Border Color",
+        "tonalRamp": [
+          "oklch(15.0% 0.0044 260.7)",
+          "oklch(27.0% 0.0070 260.7)",
+          "oklch(38.0% 0.0087 260.7)",
+          "oklch(50.0% 0.0096 260.7)",
+          "oklch(61.0% 0.0093 260.7)",
+          "oklch(73.0% 0.0079 260.7)",
+          "oklch(84.0% 0.0058 260.7)",
+          "oklch(95.0% 0.0032 260.7)"
+        ]
+      },
+      "border-color-hover": {
+        "role": "neutral",
+        "displayName": "Border Color Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0145 261.4)",
+          "oklch(27.0% 0.0231 261.4)",
+          "oklch(38.0% 0.0287 261.4)",
+          "oklch(50.0% 0.0314 261.4)",
+          "oklch(61.0% 0.0305 261.4)",
+          "oklch(73.0% 0.0259 261.4)",
+          "oklch(84.0% 0.0190 261.4)",
+          "oklch(95.0% 0.0104 261.4)"
+        ]
+      },
+      "text-primary": {
+        "role": "neutral",
+        "displayName": "Paper Ink",
+        "tonalRamp": [
+          "oklch(15.0% 0.0039 247.9)",
+          "oklch(27.0% 0.0063 247.9)",
+          "oklch(38.0% 0.0078 247.9)",
+          "oklch(50.0% 0.0086 247.9)",
+          "oklch(61.0% 0.0083 247.9)",
+          "oklch(73.0% 0.0071 247.9)",
+          "oklch(84.0% 0.0052 247.9)",
+          "oklch(95.0% 0.0028 247.9)"
+        ]
+      },
+      "text-secondary": {
+        "role": "neutral",
+        "displayName": "Text Secondary",
+        "tonalRamp": [
+          "oklch(15.0% 0.0084 253.4)",
+          "oklch(27.0% 0.0133 253.4)",
+          "oklch(38.0% 0.0166 253.4)",
+          "oklch(50.0% 0.0182 253.4)",
+          "oklch(61.0% 0.0176 253.4)",
+          "oklch(73.0% 0.0150 253.4)",
+          "oklch(84.0% 0.0110 253.4)",
+          "oklch(95.0% 0.0060 253.4)"
+        ]
+      },
+      "text-muted": {
+        "role": "neutral",
+        "displayName": "Mist Copy",
+        "tonalRamp": [
+          "oklch(15.0% 0.0130 255.1)",
+          "oklch(27.0% 0.0207 255.1)",
+          "oklch(38.0% 0.0258 255.1)",
+          "oklch(50.0% 0.0283 255.1)",
+          "oklch(61.0% 0.0274 255.1)",
+          "oklch(73.0% 0.0233 255.1)",
+          "oklch(84.0% 0.0171 255.1)",
+          "oklch(95.0% 0.0094 255.1)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Workbench Blue",
+        "tonalRamp": [
+          "oklch(15.0% 0.0794 261.6)",
+          "oklch(27.0% 0.1264 261.6)",
+          "oklch(38.0% 0.1570 261.6)",
+          "oklch(50.0% 0.1721 261.6)",
+          "oklch(61.0% 0.1672 261.6)",
+          "oklch(73.0% 0.1421 261.6)",
+          "oklch(84.0% 0.1042 261.6)",
+          "oklch(95.0% 0.0573 261.6)"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Accent Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0727 261.4)",
+          "oklch(27.0% 0.1157 261.4)",
+          "oklch(38.0% 0.1439 261.4)",
+          "oklch(50.0% 0.1577 261.4)",
+          "oklch(61.0% 0.1532 261.4)",
+          "oklch(73.0% 0.1302 261.4)",
+          "oklch(84.0% 0.0955 261.4)",
+          "oklch(95.0% 0.0524 261.4)"
+        ]
+      },
+      "accent-active": {
+        "role": "primary",
+        "displayName": "Accent Active",
+        "tonalRamp": [
+          "oklch(15.0% 0.0613 260.7)",
+          "oklch(27.0% 0.0976 260.7)",
+          "oklch(38.0% 0.1213 260.7)",
+          "oklch(50.0% 0.1330 260.7)",
+          "oklch(61.0% 0.1291 260.7)",
+          "oklch(73.0% 0.1097 260.7)",
+          "oklch(84.0% 0.0805 260.7)",
+          "oklch(95.0% 0.0442 260.7)"
+        ]
+      },
+      "accent-text": {
+        "role": "primary",
+        "displayName": "Accent Text",
+        "tonalRamp": [
+          "oklch(15.0% 0.0274 255.5)",
+          "oklch(27.0% 0.0436 255.5)",
+          "oklch(38.0% 0.0541 255.5)",
+          "oklch(50.0% 0.0593 255.5)",
+          "oklch(61.0% 0.0576 255.5)",
+          "oklch(73.0% 0.0490 255.5)",
+          "oklch(84.0% 0.0359 255.5)",
+          "oklch(95.0% 0.0197 255.5)"
+        ]
+      },
+      "focus": {
+        "role": "primary",
+        "displayName": "Focus",
+        "tonalRamp": [
+          "oklch(15.0% 0.0274 255.5)",
+          "oklch(27.0% 0.0436 255.5)",
+          "oklch(38.0% 0.0541 255.5)",
+          "oklch(50.0% 0.0593 255.5)",
+          "oklch(61.0% 0.0576 255.5)",
+          "oklch(73.0% 0.0490 255.5)",
+          "oklch(84.0% 0.0359 255.5)",
+          "oklch(95.0% 0.0197 255.5)"
+        ]
+      },
+      "focus-primary": {
+        "role": "primary",
+        "displayName": "Focus Primary",
+        "tonalRamp": [
+          "oklch(15.0% 0.0071 257.2)",
+          "oklch(27.0% 0.0112 257.2)",
+          "oklch(38.0% 0.0140 257.2)",
+          "oklch(50.0% 0.0153 257.2)",
+          "oklch(61.0% 0.0149 257.2)",
+          "oklch(73.0% 0.0126 257.2)",
+          "oklch(84.0% 0.0093 257.2)",
+          "oklch(95.0% 0.0051 257.2)"
+        ]
+      },
+      "ui-panel": {
+        "role": "neutral",
+        "displayName": "Ui Panel",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "ui-control": {
+        "role": "neutral",
+        "displayName": "Ui Control",
+        "tonalRamp": [
+          "oklch(15.0% 0.0037 264.4)",
+          "oklch(27.0% 0.0058 264.4)",
+          "oklch(38.0% 0.0072 264.4)",
+          "oklch(50.0% 0.0079 264.4)",
+          "oklch(61.0% 0.0077 264.4)",
+          "oklch(73.0% 0.0065 264.4)",
+          "oklch(84.0% 0.0048 264.4)",
+          "oklch(95.0% 0.0026 264.4)"
+        ]
+      },
+      "ui-control-hover": {
+        "role": "neutral",
+        "displayName": "Ui Control Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0044 260.7)",
+          "oklch(27.0% 0.0070 260.7)",
+          "oklch(38.0% 0.0087 260.7)",
+          "oklch(50.0% 0.0096 260.7)",
+          "oklch(61.0% 0.0093 260.7)",
+          "oklch(73.0% 0.0079 260.7)",
+          "oklch(84.0% 0.0058 260.7)",
+          "oklch(95.0% 0.0032 260.7)"
+        ]
+      },
+      "ui-field": {
+        "role": "neutral",
+        "displayName": "Ui Field",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "ui-input-border": {
+        "role": "neutral",
+        "displayName": "Ui Input Border",
+        "tonalRamp": [
+          "oklch(15.0% 0.0145 261.4)",
+          "oklch(27.0% 0.0231 261.4)",
+          "oklch(38.0% 0.0287 261.4)",
+          "oklch(50.0% 0.0314 261.4)",
+          "oklch(61.0% 0.0305 261.4)",
+          "oklch(73.0% 0.0259 261.4)",
+          "oklch(84.0% 0.0190 261.4)",
+          "oklch(95.0% 0.0104 261.4)"
+        ]
+      },
+      "ui-row-hover": {
+        "role": "neutral",
+        "displayName": "Ui Row Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0110 253.7)",
+          "oklch(27.0% 0.0175 253.7)",
+          "oklch(38.0% 0.0217 253.7)",
+          "oklch(50.0% 0.0238 253.7)",
+          "oklch(61.0% 0.0231 253.7)",
+          "oklch(73.0% 0.0197 253.7)",
+          "oklch(84.0% 0.0144 253.7)",
+          "oklch(95.0% 0.0079 253.7)"
+        ]
+      },
+      "ui-selected": {
+        "role": "primary",
+        "displayName": "Ui Selected",
+        "tonalRamp": [
+          "oklch(15.0% 0.0288 254.6)",
+          "oklch(27.0% 0.0459 254.6)",
+          "oklch(38.0% 0.0571 254.6)",
+          "oklch(50.0% 0.0626 254.6)",
+          "oklch(61.0% 0.0608 254.6)",
+          "oklch(73.0% 0.0516 254.6)",
+          "oklch(84.0% 0.0379 254.6)",
+          "oklch(95.0% 0.0208 254.6)"
+        ]
+      },
+      "ui-table-header": {
+        "role": "neutral",
+        "displayName": "Ui Table Header",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Danger",
+        "tonalRamp": [
+          "oklch(15.0% 0.0683 11.4)",
+          "oklch(27.0% 0.1088 11.4)",
+          "oklch(38.0% 0.1352 11.4)",
+          "oklch(50.0% 0.1482 11.4)",
+          "oklch(61.0% 0.1440 11.4)",
+          "oklch(73.0% 0.1223 11.4)",
+          "oklch(84.0% 0.0897 11.4)",
+          "oklch(95.0% 0.0493 11.4)"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Success",
+        "tonalRamp": [
+          "oklch(15.0% 0.0505 167.5)",
+          "oklch(27.0% 0.0804 167.5)",
+          "oklch(38.0% 0.1000 167.5)",
+          "oklch(50.0% 0.1096 167.5)",
+          "oklch(61.0% 0.1064 167.5)",
+          "oklch(73.0% 0.0904 167.5)",
+          "oklch(84.0% 0.0663 167.5)",
+          "oklch(95.0% 0.0364 167.5)"
+        ]
+      },
+      "warning": {
+        "role": "semantic",
+        "displayName": "Warning",
+        "tonalRamp": [
+          "oklch(15.0% 0.0541 81.9)",
+          "oklch(27.0% 0.0862 81.9)",
+          "oklch(38.0% 0.1071 81.9)",
+          "oklch(50.0% 0.1175 81.9)",
+          "oklch(61.0% 0.1141 81.9)",
+          "oklch(73.0% 0.0969 81.9)",
+          "oklch(84.0% 0.0711 81.9)",
+          "oklch(95.0% 0.0391 81.9)"
+        ]
+      },
+      "danger-fill": {
+        "role": "semantic",
+        "displayName": "Danger Fill",
+        "tonalRamp": [
+          "oklch(15.0% 0.0737 15.0)",
+          "oklch(27.0% 0.1174 15.0)",
+          "oklch(38.0% 0.1459 15.0)",
+          "oklch(50.0% 0.1599 15.0)",
+          "oklch(61.0% 0.1553 15.0)",
+          "oklch(73.0% 0.1320 15.0)",
+          "oklch(84.0% 0.0968 15.0)",
+          "oklch(95.0% 0.0532 15.0)"
+        ]
+      },
+      "success-surface": {
+        "role": "semantic",
+        "displayName": "Success Surface",
+        "tonalRamp": [
+          "oklch(15.0% 0.0216 171.1)",
+          "oklch(27.0% 0.0345 171.1)",
+          "oklch(38.0% 0.0428 171.1)",
+          "oklch(50.0% 0.0470 171.1)",
+          "oklch(61.0% 0.0456 171.1)",
+          "oklch(73.0% 0.0388 171.1)",
+          "oklch(84.0% 0.0284 171.1)",
+          "oklch(95.0% 0.0156 171.1)"
+        ]
+      },
+      "danger-surface": {
+        "role": "semantic",
+        "displayName": "Danger Surface",
+        "tonalRamp": [
+          "oklch(15.0% 0.0221 356.8)",
+          "oklch(27.0% 0.0352 356.8)",
+          "oklch(38.0% 0.0438 356.8)",
+          "oklch(50.0% 0.0480 356.8)",
+          "oklch(61.0% 0.0466 356.8)",
+          "oklch(73.0% 0.0396 356.8)",
+          "oklch(84.0% 0.0291 356.8)",
+          "oklch(95.0% 0.0160 356.8)"
+        ]
+      },
+      "warning-surface": {
+        "role": "semantic",
+        "displayName": "Warning Surface",
+        "tonalRamp": [
+          "oklch(15.0% 0.0163 84.0)",
+          "oklch(27.0% 0.0259 84.0)",
+          "oklch(38.0% 0.0322 84.0)",
+          "oklch(50.0% 0.0353 84.0)",
+          "oklch(61.0% 0.0343 84.0)",
+          "oklch(73.0% 0.0291 84.0)",
+          "oklch(84.0% 0.0214 84.0)",
+          "oklch(95.0% 0.0117 84.0)"
+        ]
+      },
+      "light-bg-primary": {
+        "role": "neutral",
+        "displayName": "Cool Workbench",
+        "tonalRamp": [
+          "oklch(15.0% 0.0021 258.3)",
+          "oklch(27.0% 0.0033 258.3)",
+          "oklch(38.0% 0.0041 258.3)",
+          "oklch(50.0% 0.0045 258.3)",
+          "oklch(61.0% 0.0044 258.3)",
+          "oklch(73.0% 0.0037 258.3)",
+          "oklch(84.0% 0.0027 258.3)",
+          "oklch(95.0% 0.0015 258.3)"
+        ]
+      },
+      "light-nav-surface": {
+        "role": "neutral",
+        "displayName": "Pale Navigation",
+        "tonalRamp": [
+          "oklch(15.0% 0.0013 264.5)",
+          "oklch(27.0% 0.0021 264.5)",
+          "oklch(38.0% 0.0026 264.5)",
+          "oklch(50.0% 0.0029 264.5)",
+          "oklch(61.0% 0.0028 264.5)",
+          "oklch(73.0% 0.0024 264.5)",
+          "oklch(84.0% 0.0017 264.5)",
+          "oklch(95.0% 0.0009 264.5)"
+        ]
+      },
+      "light-bg-secondary": {
+        "role": "neutral",
+        "displayName": "White Sheet",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "light-bg-tertiary": {
+        "role": "neutral",
+        "displayName": "Light Bg Tertiary",
+        "tonalRamp": [
+          "oklch(15.0% 0.0032 247.9)",
+          "oklch(27.0% 0.0050 247.9)",
+          "oklch(38.0% 0.0062 247.9)",
+          "oklch(50.0% 0.0069 247.9)",
+          "oklch(61.0% 0.0067 247.9)",
+          "oklch(73.0% 0.0057 247.9)",
+          "oklch(84.0% 0.0041 247.9)",
+          "oklch(95.0% 0.0023 247.9)"
+        ]
+      },
+      "light-border-color": {
+        "role": "neutral",
+        "displayName": "Light Border Color",
+        "tonalRamp": [
+          "oklch(15.0% 0.0058 255.5)",
+          "oklch(27.0% 0.0093 255.5)",
+          "oklch(38.0% 0.0115 255.5)",
+          "oklch(50.0% 0.0126 255.5)",
+          "oklch(61.0% 0.0123 255.5)",
+          "oklch(73.0% 0.0104 255.5)",
+          "oklch(84.0% 0.0077 255.5)",
+          "oklch(95.0% 0.0042 255.5)"
+        ]
+      },
+      "light-border-color-hover": {
+        "role": "neutral",
+        "displayName": "Light Border Color Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0170 261.0)",
+          "oklch(27.0% 0.0271 261.0)",
+          "oklch(38.0% 0.0336 261.0)",
+          "oklch(50.0% 0.0369 261.0)",
+          "oklch(61.0% 0.0358 261.0)",
+          "oklch(73.0% 0.0304 261.0)",
+          "oklch(84.0% 0.0223 261.0)",
+          "oklch(95.0% 0.0123 261.0)"
+        ]
+      },
+      "light-text-primary": {
+        "role": "neutral",
+        "displayName": "Blue-black Ink",
+        "tonalRamp": [
+          "oklch(15.0% 0.0180 255.1)",
+          "oklch(27.0% 0.0287 255.1)",
+          "oklch(38.0% 0.0356 255.1)",
+          "oklch(50.0% 0.0391 255.1)",
+          "oklch(61.0% 0.0379 255.1)",
+          "oklch(73.0% 0.0322 255.1)",
+          "oklch(84.0% 0.0237 255.1)",
+          "oklch(95.0% 0.0130 255.1)"
+        ]
+      },
+      "light-text-secondary": {
+        "role": "neutral",
+        "displayName": "Light Text Secondary",
+        "tonalRamp": [
+          "oklch(15.0% 0.0200 253.8)",
+          "oklch(27.0% 0.0318 253.8)",
+          "oklch(38.0% 0.0395 253.8)",
+          "oklch(50.0% 0.0433 253.8)",
+          "oklch(61.0% 0.0421 253.8)",
+          "oklch(73.0% 0.0358 253.8)",
+          "oklch(84.0% 0.0262 253.8)",
+          "oklch(95.0% 0.0144 253.8)"
+        ]
+      },
+      "light-text-muted": {
+        "role": "neutral",
+        "displayName": "Slate Copy",
+        "tonalRamp": [
+          "oklch(15.0% 0.0144 255.2)",
+          "oklch(27.0% 0.0229 255.2)",
+          "oklch(38.0% 0.0284 255.2)",
+          "oklch(50.0% 0.0312 255.2)",
+          "oklch(61.0% 0.0303 255.2)",
+          "oklch(73.0% 0.0257 255.2)",
+          "oklch(84.0% 0.0189 255.2)",
+          "oklch(95.0% 0.0104 255.2)"
+        ]
+      },
+      "light-accent": {
+        "role": "primary",
+        "displayName": "Workbench Blue — Light",
+        "tonalRamp": [
+          "oklch(15.0% 0.0821 259.8)",
+          "oklch(27.0% 0.1307 259.8)",
+          "oklch(38.0% 0.1624 259.8)",
+          "oklch(50.0% 0.1780 259.8)",
+          "oklch(61.0% 0.1729 259.8)",
+          "oklch(73.0% 0.1469 259.8)",
+          "oklch(84.0% 0.1078 259.8)",
+          "oklch(95.0% 0.0592 259.8)"
+        ]
+      },
+      "light-accent-hover": {
+        "role": "primary",
+        "displayName": "Light Accent Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0759 260.0)",
+          "oklch(27.0% 0.1208 260.0)",
+          "oklch(38.0% 0.1501 260.0)",
+          "oklch(50.0% 0.1646 260.0)",
+          "oklch(61.0% 0.1598 260.0)",
+          "oklch(73.0% 0.1358 260.0)",
+          "oklch(84.0% 0.0996 260.0)",
+          "oklch(95.0% 0.0547 260.0)"
+        ]
+      },
+      "light-accent-active": {
+        "role": "primary",
+        "displayName": "Light Accent Active",
+        "tonalRamp": [
+          "oklch(15.0% 0.0675 260.1)",
+          "oklch(27.0% 0.1075 260.1)",
+          "oklch(38.0% 0.1336 260.1)",
+          "oklch(50.0% 0.1465 260.1)",
+          "oklch(61.0% 0.1423 260.1)",
+          "oklch(73.0% 0.1209 260.1)",
+          "oklch(84.0% 0.0887 260.1)",
+          "oklch(95.0% 0.0487 260.1)"
+        ]
+      },
+      "light-accent-text": {
+        "role": "primary",
+        "displayName": "Light Accent Text",
+        "tonalRamp": [
+          "oklch(15.0% 0.0645 259.1)",
+          "oklch(27.0% 0.1027 259.1)",
+          "oklch(38.0% 0.1277 259.1)",
+          "oklch(50.0% 0.1400 259.1)",
+          "oklch(61.0% 0.1359 259.1)",
+          "oklch(73.0% 0.1155 259.1)",
+          "oklch(84.0% 0.0847 259.1)",
+          "oklch(95.0% 0.0466 259.1)"
+        ]
+      },
+      "light-focus": {
+        "role": "primary",
+        "displayName": "Light Focus",
+        "tonalRamp": [
+          "oklch(15.0% 0.0821 259.8)",
+          "oklch(27.0% 0.1307 259.8)",
+          "oklch(38.0% 0.1624 259.8)",
+          "oklch(50.0% 0.1780 259.8)",
+          "oklch(61.0% 0.1729 259.8)",
+          "oklch(73.0% 0.1469 259.8)",
+          "oklch(84.0% 0.1078 259.8)",
+          "oklch(95.0% 0.0592 259.8)"
+        ]
+      },
+      "light-focus-primary": {
+        "role": "primary",
+        "displayName": "Light Focus Primary",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "light-ui-panel": {
+        "role": "neutral",
+        "displayName": "Light Ui Panel",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "light-ui-control": {
+        "role": "neutral",
+        "displayName": "Light Ui Control",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "light-ui-control-hover": {
+        "role": "neutral",
+        "displayName": "Light Ui Control Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0058 255.5)",
+          "oklch(27.0% 0.0092 255.5)",
+          "oklch(38.0% 0.0114 255.5)",
+          "oklch(50.0% 0.0125 255.5)",
+          "oklch(61.0% 0.0122 255.5)",
+          "oklch(73.0% 0.0103 255.5)",
+          "oklch(84.0% 0.0076 255.5)",
+          "oklch(95.0% 0.0042 255.5)"
+        ]
+      },
+      "light-ui-field": {
+        "role": "neutral",
+        "displayName": "Light Ui Field",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "light-ui-input-border": {
+        "role": "neutral",
+        "displayName": "Light Ui Input Border",
+        "tonalRamp": [
+          "oklch(15.0% 0.0132 259.0)",
+          "oklch(27.0% 0.0210 259.0)",
+          "oklch(38.0% 0.0261 259.0)",
+          "oklch(50.0% 0.0286 259.0)",
+          "oklch(61.0% 0.0278 259.0)",
+          "oklch(73.0% 0.0236 259.0)",
+          "oklch(84.0% 0.0173 259.0)",
+          "oklch(95.0% 0.0095 259.0)"
+        ]
+      },
+      "light-ui-row-hover": {
+        "role": "neutral",
+        "displayName": "Light Ui Row Hover",
+        "tonalRamp": [
+          "oklch(15.0% 0.0042 258.3)",
+          "oklch(27.0% 0.0067 258.3)",
+          "oklch(38.0% 0.0083 258.3)",
+          "oklch(50.0% 0.0091 258.3)",
+          "oklch(61.0% 0.0088 258.3)",
+          "oklch(73.0% 0.0075 258.3)",
+          "oklch(84.0% 0.0055 258.3)",
+          "oklch(95.0% 0.0030 258.3)"
+        ]
+      },
+      "light-ui-selected": {
+        "role": "primary",
+        "displayName": "Light Ui Selected",
+        "tonalRamp": [
+          "oklch(15.0% 0.0101 263.2)",
+          "oklch(27.0% 0.0161 263.2)",
+          "oklch(38.0% 0.0200 263.2)",
+          "oklch(50.0% 0.0219 263.2)",
+          "oklch(61.0% 0.0213 263.2)",
+          "oklch(73.0% 0.0181 263.2)",
+          "oklch(84.0% 0.0133 263.2)",
+          "oklch(95.0% 0.0073 263.2)"
+        ]
+      },
+      "light-ui-table-header": {
+        "role": "neutral",
+        "displayName": "Light Ui Table Header",
+        "tonalRamp": [
+          "oklch(15.0% 0.0013 264.5)",
+          "oklch(27.0% 0.0021 264.5)",
+          "oklch(38.0% 0.0026 264.5)",
+          "oklch(50.0% 0.0029 264.5)",
+          "oklch(61.0% 0.0028 264.5)",
+          "oklch(73.0% 0.0024 264.5)",
+          "oklch(84.0% 0.0017 264.5)",
+          "oklch(95.0% 0.0009 264.5)"
+        ]
+      },
+      "light-danger": {
+        "role": "semantic",
+        "displayName": "Light Danger",
+        "tonalRamp": [
+          "oklch(15.0% 0.0815 17.1)",
+          "oklch(27.0% 0.1297 17.1)",
+          "oklch(38.0% 0.1612 17.1)",
+          "oklch(50.0% 0.1767 17.1)",
+          "oklch(61.0% 0.1717 17.1)",
+          "oklch(73.0% 0.1459 17.1)",
+          "oklch(84.0% 0.1070 17.1)",
+          "oklch(95.0% 0.0588 17.1)"
+        ]
+      },
+      "light-success": {
+        "role": "semantic",
+        "displayName": "Light Success",
+        "tonalRamp": [
+          "oklch(15.0% 0.0420 163.5)",
+          "oklch(27.0% 0.0668 163.5)",
+          "oklch(38.0% 0.0830 163.5)",
+          "oklch(50.0% 0.0910 163.5)",
+          "oklch(61.0% 0.0884 163.5)",
+          "oklch(73.0% 0.0751 163.5)",
+          "oklch(84.0% 0.0551 163.5)",
+          "oklch(95.0% 0.0303 163.5)"
+        ]
+      },
+      "light-warning": {
+        "role": "semantic",
+        "displayName": "Light Warning",
+        "tonalRamp": [
+          "oklch(15.0% 0.0477 70.8)",
+          "oklch(27.0% 0.0759 70.8)",
+          "oklch(38.0% 0.0944 70.8)",
+          "oklch(50.0% 0.1034 70.8)",
+          "oklch(61.0% 0.1005 70.8)",
+          "oklch(73.0% 0.0854 70.8)",
+          "oklch(84.0% 0.0626 70.8)",
+          "oklch(95.0% 0.0344 70.8)"
+        ]
+      },
+      "light-danger-fill": {
+        "role": "semantic",
+        "displayName": "Light Danger Fill",
+        "tonalRamp": [
+          "oklch(15.0% 0.0815 17.1)",
+          "oklch(27.0% 0.1297 17.1)",
+          "oklch(38.0% 0.1612 17.1)",
+          "oklch(50.0% 0.1767 17.1)",
+          "oklch(61.0% 0.1717 17.1)",
+          "oklch(73.0% 0.1459 17.1)",
+          "oklch(84.0% 0.1070 17.1)",
+          "oklch(95.0% 0.0588 17.1)"
+        ]
+      },
+      "light-success-surface": {
+        "role": "semantic",
+        "displayName": "Light Success Surface",
+        "tonalRamp": [
+          "oklch(15.0% 0.0107 165.9)",
+          "oklch(27.0% 0.0170 165.9)",
+          "oklch(38.0% 0.0212 165.9)",
+          "oklch(50.0% 0.0232 165.9)",
+          "oklch(61.0% 0.0226 165.9)",
+          "oklch(73.0% 0.0192 165.9)",
+          "oklch(84.0% 0.0141 165.9)",
+          "oklch(95.0% 0.0077 165.9)"
+        ]
+      },
+      "light-danger-surface": {
+        "role": "semantic",
+        "displayName": "Light Danger Surface",
+        "tonalRamp": [
+          "oklch(15.0% 0.0104 0.5)",
+          "oklch(27.0% 0.0166 0.5)",
+          "oklch(38.0% 0.0207 0.5)",
+          "oklch(50.0% 0.0226 0.5)",
+          "oklch(61.0% 0.0220 0.5)",
+          "oklch(73.0% 0.0187 0.5)",
+          "oklch(84.0% 0.0137 0.5)",
+          "oklch(95.0% 0.0075 0.5)"
+        ]
+      },
+      "light-warning-surface": {
+        "role": "semantic",
+        "displayName": "Light Warning Surface",
+        "tonalRamp": [
+          "oklch(15.0% 0.0155 86.3)",
+          "oklch(27.0% 0.0247 86.3)",
+          "oklch(38.0% 0.0306 86.3)",
+          "oklch(50.0% 0.0336 86.3)",
+          "oklch(61.0% 0.0326 86.3)",
+          "oklch(73.0% 0.0277 86.3)",
+          "oklch(84.0% 0.0203 86.3)",
+          "oklch(95.0% 0.0112 86.3)"
+        ]
+      },
+      "on-accent": {
+        "role": "primary",
+        "displayName": "On Accent",
+        "tonalRamp": [
+          "oklch(15.0% 0.0000 0.0)",
+          "oklch(27.0% 0.0000 0.0)",
+          "oklch(38.0% 0.0000 0.0)",
+          "oklch(50.0% 0.0000 0.0)",
+          "oklch(61.0% 0.0000 0.0)",
+          "oklch(73.0% 0.0000 0.0)",
+          "oklch(84.0% 0.0000 0.0)",
+          "oklch(95.0% 0.0000 0.0)"
+        ]
+      },
+      "success-fill": {
+        "role": "semantic",
+        "displayName": "Success Fill",
+        "tonalRamp": [
+          "oklch(15.0% 0.0406 167.0)",
+          "oklch(27.0% 0.0647 167.0)",
+          "oklch(38.0% 0.0804 167.0)",
+          "oklch(50.0% 0.0882 167.0)",
+          "oklch(61.0% 0.0856 167.0)",
+          "oklch(73.0% 0.0728 167.0)",
+          "oklch(84.0% 0.0534 167.0)",
+          "oklch(95.0% 0.0293 167.0)"
+        ]
+      },
+      "warning-fill": {
+        "role": "semantic",
+        "displayName": "Warning Fill",
+        "tonalRamp": [
+          "oklch(15.0% 0.0541 81.9)",
+          "oklch(27.0% 0.0862 81.9)",
+          "oklch(38.0% 0.1071 81.9)",
+          "oklch(50.0% 0.1175 81.9)",
+          "oklch(61.0% 0.1141 81.9)",
+          "oklch(73.0% 0.0969 81.9)",
+          "oklch(84.0% 0.0711 81.9)",
+          "oklch(95.0% 0.0391 81.9)"
+        ]
+      },
+      "on-warning": {
+        "role": "semantic",
+        "displayName": "On Warning",
+        "tonalRamp": [
+          "oklch(15.0% 0.0111 256.4)",
+          "oklch(27.0% 0.0177 256.4)",
+          "oklch(38.0% 0.0220 256.4)",
+          "oklch(50.0% 0.0241 256.4)",
+          "oklch(61.0% 0.0234 256.4)",
+          "oklch(73.0% 0.0199 256.4)",
+          "oklch(84.0% 0.0146 256.4)",
+          "oklch(95.0% 0.0080 256.4)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Main workspace page headings."
+      },
+      "welcome-title": {
+        "displayName": "Welcome Title",
+        "purpose": "Overview title."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Drawer heading and small section hierarchy."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Root and general descriptive copy."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Standard controls, fields, tabs and navigation."
+      },
+      "record-title": {
+        "displayName": "Record Title",
+        "purpose": "Product names and emphasized order data."
+      },
+      "metadata": {
+        "displayName": "Metadata",
+        "purpose": "Product, Catalog and Ozon supporting row data."
+      },
+      "column-label": {
+        "displayName": "Column Label",
+        "purpose": "Table column headings."
+      },
+      "badge": {
+        "displayName": "Badge",
+        "purpose": "Compact semantic state badges."
+      }
+    },
+    "shadows": [
+      {
+        "name": "context-menu",
+        "value": "dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 8, 0, 0, 2)",
+        "purpose": "Native JavaFX context-menu elevation; inherited from theme.css."
+      },
+      {
+        "name": "choice-popup",
+        "value": "dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 10, 0, 0, 4)",
+        "purpose": "Native JavaFX combo-box popup elevation; inherited from theme.css."
+      },
+      {
+        "name": "input-focus",
+        "value": "innershadow(gaussian, -focus, 1, 1, 0, 0)",
+        "purpose": "Native input focus boundary; not an elevation token."
+      },
+      {
+        "name": "selection-control-focus",
+        "value": "dropshadow(gaussian, -focus, 2, 1, 0, 0)",
+        "purpose": "Native checkbox/radio keyboard focus only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "drawer-easing",
+        "value": "Interpolator.SPLINE(.16,1,.3,1)",
+        "purpose": "Drawer translation/fade and draft translation."
+      },
+      {
+        "name": "drawer-open",
+        "value": "220ms; translateX 28px → 0; opacity .5 → 1",
+        "purpose": "Open the read-only detail sheet over the retained list."
+      },
+      {
+        "name": "drawer-close",
+        "value": "140ms; translateX 0 → 20px; opacity 1 → 0",
+        "purpose": "Remove the detail sheet and restore focus."
+      },
+      {
+        "name": "selection-feedback",
+        "value": "120ms; opacity .55 → 1; JavaFX FadeTransition default interpolator",
+        "purpose": "Refresh the selected-count caption."
+      },
+      {
+        "name": "settings-edit-bar",
+        "value": "180ms; translateY 8px → 0; opacity .6 → 1; translation uses drawer spline, fade uses JavaFX default interpolator",
+        "purpose": "Enter local settings edit feedback."
+      },
+      {
+        "name": "native-tab-state",
+        "value": "immediate",
+        "purpose": "Selected border updates directly; the preview’s moving underline is not implemented."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "JavaFX Platform.Preferences.isReducedMotion() OR saved ui_reduced_motion",
+        "purpose": "Skip spatial/fade feedback while completing the same state and focus updates."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sidebar-auto-compact",
+        "value": "1240px",
+        "purpose": "Workspace viewport width below this value selects a 64px rail unless manually overridden; otherwise 196px."
+      },
+      {
+        "name": "header-compact",
+        "value": "800px",
+        "purpose": "Header content width below this value reduces selector width and management label and hides the header theme shortcut."
+      }
+    ],
+    "nativeMaterial": {
+      "source": "src/main/java/com/vncode/app/shared/ThemeService.java#material",
+      "setting": "glass_transparency",
+      "defaultAmount": 55,
+      "range": [
+        0,
+        100
+      ],
+      "surfaceAlpha": ".005 + amount * .00995",
+      "controlAlpha": "min(1, surfaceAlpha + .035 * amount / 100)",
+      "format": "three decimal places",
+      "application": "White light-theme background paints only; never Node or Window opacity. Dark paints remain solid.",
+      "frontmatterSnapshot": "light-ui-panel and light-ui-control record the effective runtime default. The workspace CSS fallback tints are replaced by ThemeService."
+    },
+    "provenance": {
+      "authority": "PRODUCT.md and docs/design/2026-11-04-native-implementation.md",
+      "directionSeed": "4d76fcce170bad27",
+      "seedLimitation": "Carried from the user-approved preview. The local concept registry cannot corroborate the original roll; no replacement roll or inferred provenance.",
+      "sourceOrder": [
+        "src/main/resources/com/vncode/app/styles/theme.css",
+        "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+        "src/main/java/com/vncode/app/shared/ThemeService.java"
+      ],
+      "nativeCaptureManifest": "docs/design/native/2026-11-04/captures.json",
+      "nativeCaptureCount": 30,
+      "captureKind": "native-javafx-synthetic-profile",
+      "liveMarketplaceEvidence": false,
+      "windowsInstallerEvidence": false,
+      "tonalRamps": "Synthesized OKLCH display aids, dark to light, with reduced chroma near endpoints. They do not add runtime colors; alpha paint ramps use the underlying RGB hue.",
+      "componentTranslation": "Self-contained dark/light HTML/CSS documentation samples with inline SVG; native layout and handlers remain authoritative. Drawer swatch width is reduced for the panel canvas.",
+      "scope": "Root JavaFX application design record. Historical preview DESIGN.md remains unchanged."
+    }
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Blue action with stable focus and pressed bounds. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-primary-preview\"><div class=\"ds-primary-dark\"><button class=\"ds-primary\">Đồng bộ</button></div><div class=\"ds-primary-light\"><button class=\"ds-primary\">Đồng bộ</button></div></div>",
+      "css": ".ds-primary-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-primary-dark,.ds-primary-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-primary-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-primary-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-primary{font-family:Inter,sans-serif;font-size:13px;font-weight:700;min-height:36px;padding:7px 11px;border:1px solid transparent;border-radius:6px;background:var(--ds-accent);color:#fff;cursor:pointer}.ds-primary:hover{background:var(--ds-accent-hover)}.ds-primary:active{background:var(--ds-accent-active)}.ds-primary:focus-visible{outline:none;border-color:var(--ds-focus-primary)}.ds-primary:disabled{opacity:.52}"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Neutral everyday action. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-secondary-preview\"><div class=\"ds-secondary-dark\"><button class=\"ds-secondary\">Chọn tất cả</button></div><div class=\"ds-secondary-light\"><button class=\"ds-secondary\">Chọn tất cả</button></div></div>",
+      "css": ".ds-secondary-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-secondary-dark,.ds-secondary-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-secondary-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-secondary-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-secondary{font-family:Inter,sans-serif;font-size:13px;font-weight:400;min-height:36px;padding:7px 11px;border:1px solid var(--ds-border-color);border-radius:6px;background:var(--ds-ui-control);color:var(--ds-text-primary);cursor:pointer}.ds-secondary:hover{background:var(--ds-ui-control-hover)}.ds-secondary:active{background:var(--ds-bg-tertiary)}.ds-secondary:focus-visible{outline:none;border-color:var(--ds-focus)}.ds-secondary:disabled{opacity:.52}"
+    },
+    {
+      "name": "Header management action",
+      "kind": "button",
+      "refersTo": "header-action",
+      "description": "Quiet management control beside the store selector. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-manage-preview\"><div class=\"ds-manage-dark\"><button class=\"ds-manage\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12 3 3 3M3 12l9-9 3 3-9 9-4 1 1-4Z\"/></svg><span>Quản lý</span></button></div><div class=\"ds-manage-light\"><button class=\"ds-manage\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12 3 3 3M3 12l9-9 3 3-9 9-4 1 1-4Z\"/></svg><span>Quản lý</span></button></div></div>",
+      "css": ".ds-manage-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-manage-dark,.ds-manage-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-manage-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-manage-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-manage{display:inline-flex;gap:6px;align-items:center;font-family:Inter,sans-serif;font-size:13px;min-height:36px;padding:7px 11px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--ds-text-primary);cursor:pointer}.ds-manage:hover,.ds-manage:active{background:var(--ds-ui-control-hover)}.ds-manage:focus-visible{outline:none;border-color:var(--ds-focus)}.ds-manage:disabled{opacity:.52}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Solid field with explicit boundary and native-style focus. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-field-preview\"><div class=\"ds-field-dark\"><input class=\"ds-field\" type=\"text\" aria-label=\"Tìm đơn hàng\" placeholder=\"Tìm mã đơn, SKU hoặc sản phẩm\"></div><div class=\"ds-field-light\"><input class=\"ds-field\" type=\"text\" aria-label=\"Tìm đơn hàng\" placeholder=\"Tìm mã đơn, SKU hoặc sản phẩm\"></div></div>",
+      "css": ".ds-field-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-field-dark,.ds-field-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-field-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-field-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-field{font-family:Inter,sans-serif;font-size:13px;min-height:20px;width:240px;padding:6px 10px;border:1px solid var(--ds-ui-input-border);border-radius:6px;background:var(--ds-ui-field);color:var(--ds-text-primary)}.ds-field::placeholder{color:var(--ds-text-muted);opacity:1}.ds-field:hover{border-color:var(--ds-ui-input-border)}.ds-field:focus-visible{outline:none;border-color:var(--ds-focus);box-shadow:inset 0 0 0 1px var(--ds-focus)}.ds-field::selection{background:var(--ds-accent);color:#fff}.ds-field[aria-invalid=true]{border-color:#ff8598}"
+    },
+    {
+      "name": "Selected navigation row",
+      "kind": "nav",
+      "refersTo": "navigation-item-selected",
+      "description": "Quiet current destination with a persistent selected wash. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-nav-preview\"><div class=\"ds-nav-dark\"><nav aria-label=\"Điều hướng\"><button class=\"ds-nav\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M1 3h13v12H1zM14 7h4l3 4v4h-7\"/><circle cx=\"5.5\" cy=\"17.5\" r=\"2.5\"/><circle cx=\"17.5\" cy=\"17.5\" r=\"2.5\"/></svg><span>Đơn hàng FBS</span></button></nav></div><div class=\"ds-nav-light\"><nav aria-label=\"Điều hướng\"><button class=\"ds-nav\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M1 3h13v12H1zM14 7h4l3 4v4h-7\"/><circle cx=\"5.5\" cy=\"17.5\" r=\"2.5\"/><circle cx=\"17.5\" cy=\"17.5\" r=\"2.5\"/></svg><span>Đơn hàng FBS</span></button></nav></div></div>",
+      "css": ".ds-nav-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-nav-dark,.ds-nav-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-nav-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-nav-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-nav{display:flex;align-items:center;gap:6px;min-height:38px;width:170px;padding:6px 10px;border:1px solid transparent;border-radius:6px;background:var(--ds-ui-selected);color:var(--ds-accent-text);font-family:Inter,sans-serif;font-size:13px;font-weight:700;text-align:left;cursor:pointer}.ds-nav:hover,.ds-nav:active{background:var(--ds-ui-row-hover)}.ds-nav:focus-visible{outline:none;border-color:var(--ds-focus)}"
+    },
+    {
+      "name": "Repair filter chip",
+      "kind": "chip",
+      "refersTo": "warning-chip",
+      "description": "Written warning filter; selected state adds its boundary. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-chip-preview\"><div class=\"ds-chip-dark\"><button class=\"ds-chip\" aria-pressed=\"true\">Thiếu thương hiệu (—)</button></div><div class=\"ds-chip-light\"><button class=\"ds-chip\" aria-pressed=\"true\">Thiếu thương hiệu (—)</button></div></div>",
+      "css": ".ds-chip-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-chip-dark,.ds-chip-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-chip-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-chip-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-chip{font-family:Inter,sans-serif;font-size:13px;min-height:28px;padding:4px 10px;border:1px solid transparent;border-radius:6px;background:var(--ds-warning-surface);color:var(--ds-warning);cursor:pointer}.ds-chip[aria-pressed=true]{border-color:var(--ds-warning)}.ds-chip:hover,.ds-chip:active{background:var(--ds-warning-surface)}.ds-chip:focus-visible{outline:none;border-color:var(--ds-focus)}"
+    },
+    {
+      "name": "Inset data sheet",
+      "kind": "card",
+      "refersTo": "data-sheet",
+      "description": "Fine-bordered list with a complete record and contextual state. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-sheet-preview\"><div class=\"ds-sheet-dark\"><div class=\"ds-sheet\" tabindex=\"0\" aria-label=\"Danh sách minh họa\"><div class=\"ds-sheet-heading\">Đơn hàng</div><div class=\"ds-sheet-row\"><strong>DEMO-0101-1</strong><span>Cửa hàng minh họa</span></div><div class=\"ds-sheet-row ds-sheet-selected\"><strong>DEMO-0102-1</strong><span>Chờ đóng gói</span></div></div></div><div class=\"ds-sheet-light\"><div class=\"ds-sheet\" tabindex=\"0\" aria-label=\"Danh sách minh họa\"><div class=\"ds-sheet-heading\">Đơn hàng</div><div class=\"ds-sheet-row\"><strong>DEMO-0101-1</strong><span>Cửa hàng minh họa</span></div><div class=\"ds-sheet-row ds-sheet-selected\"><strong>DEMO-0102-1</strong><span>Chờ đóng gói</span></div></div></div></div>",
+      "css": ".ds-sheet-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-sheet-dark,.ds-sheet-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-sheet-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-sheet-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-sheet{width:250px;padding:1px;border:1px solid var(--ds-border-color);border-radius:8px;background:var(--ds-bg-secondary);color:var(--ds-text-primary)}.ds-sheet-heading{padding:8px;font-size:12px;font-weight:700;color:var(--ds-text-secondary);border-bottom:1px solid var(--ds-border-color)}.ds-sheet-row{display:flex;flex-direction:column;justify-content:center;gap:4px;min-height:63px;padding:6px 10px;border-bottom:1px solid var(--ds-border-color);font-size:13px}.ds-sheet-row span{color:var(--ds-text-muted);font-size:12px}.ds-sheet-row:hover{background:var(--ds-ui-row-hover)}.ds-sheet-selected,.ds-sheet-selected:hover{background:var(--ds-ui-selected)}.ds-sheet:focus-visible{outline:none;border-color:var(--ds-focus)}"
+    },
+    {
+      "name": "Native flat tabs",
+      "kind": "nav",
+      "refersTo": "workspace-tab",
+      "description": "Selected underline changes instantly; no animated rail. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-tabs-preview\"><div class=\"ds-tabs-dark\"><div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Trạng thái đơn\"><button class=\"ds-tab\" role=\"tab\" aria-selected=\"true\">Chờ nhận (12)</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Đơn mới (12)</button></div></div><div class=\"ds-tabs-light\"><div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Trạng thái đơn\"><button class=\"ds-tab\" role=\"tab\" aria-selected=\"true\">Chờ nhận (12)</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Đơn mới (12)</button></div></div></div>",
+      "css": ".ds-tabs-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-tabs-dark,.ds-tabs-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-tabs-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-tabs-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-tabs{display:flex;padding-bottom:6px}.ds-tab{font-family:Inter,sans-serif;font-size:13px;font-weight:400;padding:8px 12px;border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--ds-text-secondary);cursor:pointer}.ds-tab[aria-selected=true]{font-weight:700;color:var(--ds-text-primary);border-bottom-color:var(--ds-accent-text)}.ds-tab:hover,.ds-tab:active{background:transparent}.ds-tab:focus-visible{outline:1px solid var(--ds-focus);outline-offset:-3px}"
+    },
+    {
+      "name": "Read-only detail drawer",
+      "kind": "custom",
+      "refersTo": "detail-drawer",
+      "description": "Grouped labelled fields on a solid sheet with retained list context. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-drawer-preview\"><div class=\"ds-drawer-dark\"><aside class=\"ds-drawer\" aria-label=\"Chi tiết đơn minh họa\"><div class=\"ds-drawer-heading\"><strong>DEMO-0102-1</strong><button class=\"ds-drawer-close\" aria-label=\"Đóng chi tiết\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m4 4 10 10M14 4 4 14\"/></svg></button></div><div class=\"ds-detail-group\"><strong>Đơn hàng</strong><div class=\"ds-detail-pair\"><span>Trạng thái</span><span tabindex=\"0\">Chờ đóng gói</span></div><div class=\"ds-detail-pair\"><span>GTIN</span><span tabindex=\"0\">Chưa xác minh</span></div></div></aside></div><div class=\"ds-drawer-light\"><aside class=\"ds-drawer\" aria-label=\"Chi tiết đơn minh họa\"><div class=\"ds-drawer-heading\"><strong>DEMO-0102-1</strong><button class=\"ds-drawer-close\" aria-label=\"Đóng chi tiết\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m4 4 10 10M14 4 4 14\"/></svg></button></div><div class=\"ds-detail-group\"><strong>Đơn hàng</strong><div class=\"ds-detail-pair\"><span>Trạng thái</span><span tabindex=\"0\">Chờ đóng gói</span></div><div class=\"ds-detail-pair\"><span>GTIN</span><span tabindex=\"0\">Chưa xác minh</span></div></div></aside></div></div>",
+      "css": ".ds-drawer-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-drawer-dark,.ds-drawer-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-drawer-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-drawer-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-drawer{width:280px;max-width:90%;padding:18px;background:var(--ds-bg-secondary);color:var(--ds-text-primary);border-left:1px solid var(--ds-border-color)}.ds-drawer-heading{display:flex;gap:12px;align-items:center;font-size:15px;margin-bottom:14px}.ds-drawer-heading strong{flex:1}.ds-drawer-close{min-width:34px;min-height:36px;padding:7px 11px;border:1px solid var(--ds-border-color);border-radius:6px;background:var(--ds-ui-control);color:var(--ds-text-primary);cursor:pointer}.ds-drawer-close:hover,.ds-drawer-close:active{background:var(--ds-ui-control-hover)}.ds-drawer-close:focus-visible{outline:none;border-color:var(--ds-focus)}.ds-detail-group{display:flex;flex-direction:column;gap:10px;padding:0 2px 14px 0;border-bottom:1px solid var(--ds-border-color)}.ds-detail-pair{display:flex;flex-direction:column;gap:3px;font-size:14px}.ds-detail-pair>span:first-child{color:var(--ds-text-muted)}.ds-detail-pair>span:focus-visible{outline:none;text-decoration:underline}"
+    },
+    {
+      "name": "Selection action bar",
+      "kind": "custom",
+      "refersTo": "selection-bar",
+      "description": "Batch controls have independent layout space and wrap with available width. Dark and light documentation translations; native handlers are not executed.",
+      "html": "<div class=\"ds-batch-preview\"><div class=\"ds-batch-dark\"><div class=\"ds-batch\"><strong>Đã chọn 2</strong><button class=\"ds-batch-action\">In nhãn</button><button class=\"ds-batch-action\">Bỏ chọn</button></div></div><div class=\"ds-batch-light\"><div class=\"ds-batch\"><strong>Đã chọn 2</strong><button class=\"ds-batch-action\">In nhãn</button><button class=\"ds-batch-action\">Bỏ chọn</button></div></div></div>",
+      "css": ".ds-batch-preview{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start}.ds-batch-dark,.ds-batch-light{padding:16px;background:var(--ds-bg-primary);color:var(--ds-text-primary);font-family:Inter,sans-serif;font-size:13px}.ds-batch-dark{--ds-bg-primary:#141414;--ds-bg-tertiary:#25272b;--ds-bg-secondary:#1b1b1b;--ds-text-primary:#edf2f7;--ds-text-secondary:#c4cdd8;--ds-text-muted:#a8b5c6;--ds-accent:#285fc7;--ds-accent-hover:#2153b0;--ds-accent-active:#19448f;--ds-accent-text:#bedaff;--ds-focus:#bedaff;--ds-focus-primary:#eef5ff;--ds-border-color:#383b40;--ds-ui-panel:#1b1b1b;--ds-ui-control:#25272b;--ds-ui-control-hover:#383b40;--ds-ui-field:#1b1b1b;--ds-ui-input-border:#7c879a;--ds-ui-row-hover:#222b36;--ds-ui-selected:#233c5b;--ds-warning:#f2c46d;--ds-warning-surface:#3c321e}.ds-batch-light{--ds-bg-primary:#f4f6f9;--ds-bg-tertiary:#eef2f6;--ds-bg-secondary:#ffffff;--ds-text-primary:rgb(23,37,55);--ds-text-secondary:#3b4d63;--ds-text-muted:#5d6a7b;--ds-accent:#175bc5;--ds-accent-hover:#114eae;--ds-accent-active:#0c4093;--ds-accent-text:#174b9a;--ds-focus:#175bc5;--ds-focus-primary:#ffffff;--ds-border-color:#dce2ea;--ds-ui-panel:rgba(255,255,255,0.552);--ds-ui-control:rgba(255,255,255,0.572);--ds-ui-control-hover:#e7edf5;--ds-ui-field:#ffffff;--ds-ui-input-border:#7e899a;--ds-ui-row-hover:#f0f4fa;--ds-ui-selected:#e8f0ff;--ds-warning:#825200;--ds-warning-surface:#fbf0d8}.ds-batch{display:flex;align-items:center;flex-wrap:wrap;gap:8px;width:285px;padding:10px 0 0;border-top:1px solid var(--ds-border-color);background:transparent}.ds-batch>strong{color:var(--ds-accent-text);font-size:13px}.ds-batch-action{font-family:Inter,sans-serif;font-size:13px;min-height:36px;padding:7px 11px;border:1px solid var(--ds-border-color);border-radius:6px;background:var(--ds-ui-control);color:var(--ds-text-primary);cursor:pointer}.ds-batch-action:hover{background:var(--ds-ui-control-hover)}.ds-batch-action:active{background:var(--ds-bg-tertiary)}.ds-batch-action:focus-visible{outline:none;border-color:var(--ds-focus)}.ds-batch-action:disabled{opacity:.52}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Dispatch Workbench",
+    "overview": "Dispatch Workbench is VN Code’s implemented native workspace: neutral white and graphite surfaces, bundled Inter, a restrained blue action family and fine dividing rules. Its precise, restrained controls serve Vietnamese-speaking sellers and warehouse staff working through large lists with a mouse and keyboard. The VN black logo remains the identity anchor.\n\nThe visual center is an inset work list. Store identity and management sit above it, navigation remains quiet beside it, and contextual details retain the underlying list. Both themes share the same geometry. Light-theme material opacity remains a user preference applied to background paints; it never fades the text or the whole window. Short, interruptible motion connects local actions with their visible result.",
+    "keyCharacteristics": [
+      "White and graphite grounds, one blue interaction family, and written semantic states.",
+      "Compact native controls and virtualized data sheets with room for complete order contents.",
+      "Flat navigation, fine borders and limited popup elevation.",
+      "Visible store identity, management access and the existing named delete confirmation.",
+      "Bundled Inter and consistent line icons; shared structure in both themes.",
+      "Read-only detail motion and draft feedback that respect system and manual reduced motion."
+    ],
+    "rules": [
+      {
+        "name": "The Shared Palette Rule",
+        "body": "Use the active theme’s semantic paints for common controls and data states; marketplace identity does not introduce a competing page palette.",
+        "section": "colors"
+      },
+      {
+        "name": "The Text Stays Solid Rule",
+        "body": "Apply the light material preference to background paints only. Text, control boundaries, selection and the application window remain fully legible.",
+        "section": "colors"
+      },
+      {
+        "name": "The Working Hierarchy Rule",
+        "body": "Use Inter weight and size to separate page titles, record titles and supporting data. Keep metadata readable without giving every cell heading weight.",
+        "section": "typography"
+      },
+      {
+        "name": "The Bordered Sheet Rule",
+        "body": "Keep working surfaces flat and separate them with tone and fine rules. Reserve the existing soft shadows for temporary menus and choice popups.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Continuity Rule",
+        "body": "Keep the selected record, list and store identity intact through local feedback. Reduced motion updates the same state immediately.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "**Do** reuse the shared semantic paints and bundled Inter in both themes.",
+      "**Do** keep the active store and management access visible, with the existing named confirmation for deletion.",
+      "**Do** retain list virtualization, barcode/GTIN data and complete multi-item orders when adapting a surface.",
+      "**Do** allocate layout space for batch actions and let their controls wrap at constrained widths.",
+      "**Do** preserve readable focus, written status, truthful empty states and accessible names for icon-only actions.",
+      "**Do** retain background-only light opacity and immediate feedback when motion is reduced."
+    ],
+    "donts": [
+      "**Don’t** restore the overview’s removed metric trio or its reserved empty band.",
+      "**Don’t** replace the header’s store controls with the former FBS delay text.",
+      "**Don’t** apply opacity to a parent node or window to implement the light material setting.",
+      "**Don’t** add per-row entrances, artificial task delays or decorative animation to the working lists.",
+      "**Don’t** describe the native tab underline as animated or import prototype-only behavior as an implemented rule.",
+      "**Don’t** treat synthetic screenshots or HTML component swatches as marketplace readback or Windows release verification."
+    ]
+  }
+}

@@ -15,6 +15,9 @@ import javafx.scene.control.ToggleGroup;
 import java.util.function.Consumer;
 
 public class ShopSidebarController {
+    @FXML private Label navSectionOperate,navSectionProducts,navSectionTools;
+    @FXML private javafx.scene.control.CheckMenuItem reducedMotionMenuItem;
+    @FXML private void onReducedMotion(){com.vncode.app.shared.WorkspaceMotion.setReduced(reducedMotionMenuItem.isSelected());}
     @FXML private javafx.scene.layout.VBox sidebarRoot;
     @FXML private Label sidebarTitle;
     private boolean compact;private Boolean compactOverride;private double viewportWidth;
@@ -27,7 +30,7 @@ public class ShopSidebarController {
 
     private final java.util.Map<javafx.scene.control.ButtonBase,String> fullLabels=new java.util.HashMap<>();
     public void setViewportWidth(double width){viewportWidth=width;compact=compactOverride!=null?compactOverride:width>0&&width<1240;applyCompact();}
-    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:224;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);renderEditionStatusPresentation();
+    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:196;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");for(var label:java.util.List.of(navSectionOperate,navSectionProducts,navSectionTools)){label.setVisible(!compact);label.setManaged(!compact);}sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);renderEditionStatusPresentation();
         if(sidebarToggleButton!=null){String text=I18nService.getInstance().tr(compact?"sidebar.expand":"sidebar.collapse");sidebarToggleButton.setTooltip(new javafx.scene.control.Tooltip(text));sidebarToggleButton.setAccessibleText(text);((org.kordamp.ikonli.javafx.FontIcon)sidebarToggleButton.getGraphic()).setIconLiteral(compact?"fth-chevrons-right":"fth-chevrons-left");}
     }
     private void compactButtons(javafx.scene.Parent parent){for(var n:parent.getChildrenUnmodifiable()){
@@ -197,6 +200,8 @@ public class ShopSidebarController {
 
     @FXML
     private void initialize() {
+        reducedMotionMenuItem.setSelected(com.vncode.app.shared.WorkspaceMotion.isReduced());
+        settingsMenuButton.setOnShowing(e->{setSelectedTheme(com.vncode.app.shared.ThemeService.getCurrentTheme().getKey());reducedMotionMenuItem.setSelected(com.vncode.app.shared.WorkspaceMotion.isReduced());});
         automaticLayoutItem=new MenuItem();automaticLayoutItem.setOnAction(e->resetSidebarLayout());sidebarToggleButton.setContextMenu(new javafx.scene.control.ContextMenu(automaticLayoutItem));
         ToggleGroup languageGroup = new ToggleGroup();
         languageRuMenuItem.setToggleGroup(languageGroup);
@@ -311,6 +316,10 @@ public class ShopSidebarController {
     }
 
     public void applyTranslations() {
+        navSectionOperate.setText(I18nService.getInstance().tr("sidebar.group.operate"));
+        navSectionProducts.setText(I18nService.getInstance().tr("sidebar.group.products"));
+        navSectionTools.setText(I18nService.getInstance().tr("sidebar.group.tools"));
+        reducedMotionMenuItem.setText(I18nService.getInstance().tr("settings.reduced_motion"));
         tnvedButton.setText(" "+I18nService.getInstance().tr("tnved.title"));
         if(automaticLayoutItem!=null)automaticLayoutItem.setText(I18nService.getInstance().tr("sidebar.automatic"));
         I18nService i18n = I18nService.getInstance();
