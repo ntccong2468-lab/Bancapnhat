@@ -1,0 +1,24 @@
+{
+  "version": "1.6.1",
+  "sourceCommit": "1786c2c30e38c975523f9b678c4e77d203b5a7cb",
+  "verifiedAt": "2026-11-04T00:24:46.681961+00:00",
+  "sourceFilesCompared": 2626,
+  "sourceExactBytes": false,
+  "sourceEquivalentAfterTextCRLFNormalization": true,
+  "textLineEndingOnlyFiles": 2401,
+  "jar": "VN code/app/VNcode-1.6.1.jar",
+  "jarSha256": "b43568d905f352f400dd2d90b8c5726dded318008fabe85613288505c77281a5",
+  "runtimeVersionVerified": true,
+  "runtimeIncludes": [
+    "com/vncode/app/shared/TaskStatusDock.class",
+    "com/vncode/app/shared/ThemeService.class",
+    "com/vncode/app/shared/ThumbnailLoader.class",
+    "com/vncode/app/integration/ozon/OzonBatchLabelDownloader.class",
+    "com/vncode/app/integration/ozon/OzonKizLabelAppender.class",
+    "com/vncode/app/styles/workspace-controls.css",
+    "com/vncode/app/styles/theme.css"
+  ],
+  "stylesExactSourceBytes": false,
+  "stylesEquivalentAfterTextCRLFNormalization": true,
+  "removedConflictingStylesAbsent": true
+}

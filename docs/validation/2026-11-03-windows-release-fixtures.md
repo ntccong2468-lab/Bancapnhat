@@ -15,9 +15,9 @@ Rà soát sau đó phát hiện Retry-After 3.600 giây vượt tổng ngân sá
 
 Nhánh xuất bản sửa riêng fixture thành Retry-After **120 giây**, timeout worker **30 giây**, giữ assert deadline >110 giây, không gửi trước hạn, tiếp tục đúng GTIN và không lặp feed. Log Linux chứng minh đã đi vào nhánh retry 120.000 ms nhưng cả lớp 9 ca kết thúc trong 9,073 giây; 11/11 ca hai lớp đạt, không bỏ qua, tổng Maven 34,625 giây.
 
-Workflow bổ sung `verify-vncode-161-cooldown.yml` kiểm tra Windows và bắt buộc `src/main`, POM, wrapper, build script trùng tuyệt đối với nguồn bộ cài `01b87d3`. Đây là kiểm tra bổ sung trên cùng đầu vào runtime, không thay cho full Windows của chính nguồn bộ cài và không đổi tag/artifact. Fixture mới và biên nhận nằm trên nhánh xuất bản; source ZIP của bộ cài giữ đúng nguồn01b đã ghim. Chỉ công bố khi cả full/native/upgrade và kiểm tra bổ sung Windows đạt. Không ghi full suite được chạy trên SHA của nhánh xuất bản.
+Workflow bổ sung `verify-vncode-161-cooldown.yml` kiểm tra Windows và bắt buộc `src/main`, POM, wrapper, build script trùng tuyệt đối với nguồn bộ cài `01b87d3`. Đây là kiểm tra bổ sung trên cùng đầu vào runtime, không thay cho full Windows của chính nguồn bộ cài và không đổi tag/artifact. Fixture mới và biên nhận nằm trên nhánh xuất bản; source ZIP của ứng viên khi đó giữ đúng nguồn01b đã ghim. Chỉ công bố khi cả full/native/upgrade và kiểm tra bổ sung Windows đạt. Không ghi full suite được chạy trên SHA của nhánh xuất bản.
 
-Windows bổ sung đã đạt: run `41736451413`, source kiểm thử `4fa8e6a`, runtime inputs giống01b; 11/11 ca, không lỗi/thất bại/bỏ qua. Ca cooldown mất 7,008 giây, log xác nhận đã vào nhánh retry 120.000 ms rồi nhả worker. [Biên nhận](2026-11-03-vncode-161-cooldown-windows.json).
+Windows bổ sung thời điểm đó đã đạt: run `41736451413`, source kiểm thử `4fa8e6a`, runtime inputs giống01b; 11/11 ca, không lỗi/thất bại/bỏ qua. Ca cooldown mất 7,008 giây, log xác nhận đã vào nhánh retry 120.000 ms rồi nhả worker. [Biên nhận](2026-11-03-vncode-161-cooldown-windows.json).
 
 
 ## Khóa SQLite trong fixture giao diện
@@ -27,3 +27,8 @@ Lượt full Windows `41724251562` hoàn thành 3.813 ca, 0 thất bại, 1 lỗ
 Hàm chờ cũ theo dõi AppTaskExecutor và ShopReadCoordinator, nhưng Home còn có tác vụ analytics trên FinanceExecutor riêng. Fixture mới chờ cả các tác vụ analytics trước khi đổi chế độ journal. SQLite có thể trả BUSY ngay ở chuyển WAL→DELETE dù đã đặt busy_timeout; helper chờ lại tối đa 10 giây chỉ cho bước thiết lập này và bắt buộc xác nhận chế độ journal thực tế. Lỗi khác và khóa không được giải phóng vẫn làm test thất bại.
 
 Giữ nguyên khóa `BEGIN EXCLUSIVE` và giới hạn **300 ms** cho chính thao tác JavaFX, không retry hay kéo dài phần đo. Áp dụng helper cho cả bốn ca dùng cùng kiểu khóa và đưa toàn lớp FxmlSmokeTest vào preflight Windows. Candidate kế tiếp cũng chứa fixture cooldown **120 giây** đã được Windows xác minh; không dùng fixture 3.600 giây cho nguồn phát hành cuối. Runtime ứng dụng, schema, quota và dữ liệu seller không thay đổi.
+
+
+## Kết quả nguồn phát hành cuối
+
+Nguồn `1786c2c` có cả ba sửa fixture, giữ nguyên runtime so với `24f9761`. Linux FXML 58/58 đạt. Windows full [41738169431](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41738169431) đạt 3.813 ca, 0 thất bại/lỗi, 2 OS skip; preflight 69/69. Ca cooldown 120 giây hoàn tất trong 3,975 giây; toàn ca switchShop mất 0,272 giây và giữ phép đo FX 300 ms. Native, cài/gỡ và nâng cấp từ 1.6.0 đều đạt. Đây là nguồn đã phát hành 1.6.1; hai lượt Windows lỗi nêu trên không được dùng làm bằng chứng phát hành. [Biên nhận](2026-11-04-vncode-161-windows.json).

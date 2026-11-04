@@ -1,0 +1,44 @@
+{
+  "version": "1.6.1",
+  "status": "published-and-publicly-verified",
+  "sourceCommit": "1786c2c30e38c975523f9b678c4e77d203b5a7cb",
+  "releaseId": 433167599,
+  "tag": "v1.6.1",
+  "publishedAt": "2026-11-04T00:27:59Z",
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.1",
+  "buildRun": 41738169431,
+  "publisherRun": 41746710521,
+  "publisherAttempt": 2,
+  "publicAssetsVerified": 16,
+  "windowsJava": {
+    "tests": 3813,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "linuxFullSource": "24f9761f14cc1c60f1274620bb860aa35df2fc90",
+  "linuxFullCounts": {
+    "tests": 3813,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "runtimeInputsIdenticalToLinuxSource": true,
+  "nativeAndUpgradePassed": true,
+  "upgradeFrom": "1.6.0",
+  "published160UpdaterSees161": true,
+  "sellerPopupObserved": false,
+  "authenticodeSigned": false,
+  "credentialMigrationPrototypeInRuntime": false,
+  "websiteDeployed": false,
+  "previousPublicReleasesRetained": true,
+  "securityReview": "2026-11-03-release-security-review.md",
+  "verificationRecords": {
+    "windows": "2026-11-04-vncode-161-windows.json",
+    "package": "2026-11-04-vncode-161-package.json",
+    "updater": "2026-11-04-vncode-161-updater.json",
+    "public-assets": "2026-11-04-vncode-161-public-assets.json",
+    "publication-receipt": "2026-11-04-vncode-161-publication-receipt.json"
+  },
+  "verifiedAt": "2026-11-04T00:30:04.321316+00:00"
+}

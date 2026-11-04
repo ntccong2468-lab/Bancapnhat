@@ -1,0 +1,74 @@
+{
+  "version": "1.6.1",
+  "sourceCommit": "1786c2c30e38c975523f9b678c4e77d203b5a7cb",
+  "releaseId": 433167599,
+  "verifiedAt": "2026-11-04T00:30:04.321316+00:00",
+  "publicDownloadWithoutCredentials": true,
+  "assetsVerified": 16,
+  "files": {
+    "VN-code-1.6.1-Windows-x64.exe": {
+      "bytes": 149154304,
+      "sha256": "f282f1dba0fd900d7023569b98bc9548dfeed97dcacdc1f184d29e6667d61f19"
+    },
+    "VN-code-1.6.1-Windows-x64.msi": {
+      "bytes": 148485381,
+      "sha256": "4e819d84d2dfcd1ef0bea57dba8e9b5060ba28494b048801e26e4da4d0d44705"
+    },
+    "VN-code-1.6.1-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "3d848882a6dacd2214fc1172af6211424b53687700fa66439f4925be6236e4dd"
+    },
+    "VN-code-1.6.1-Windows-x64.zip": {
+      "bytes": 148073119,
+      "sha256": "ddce85458d65d4bc88af7db1a1833bbb785b26f3f8eeb66669c28ab64eb0c55f"
+    },
+    "VN-code-1.6.1-source.zip": {
+      "bytes": 25560564,
+      "sha256": "5bd564a492179f8be1d0c4d35f8d690aa2bec8841ceb71c0ba5e7afff0806888"
+    },
+    "VN-code-1.6.1-history.bundle": {
+      "bytes": 31558894,
+      "sha256": "e203e3137c5d7b33e08e807e37f34f3de653457b6314159725f0fdca3295c1ea"
+    },
+    "VN-code-1.6.1-verification.zip": {
+      "bytes": 2340163,
+      "sha256": "0bcccbff65602c49420b830dc66a6ca65a0b4e0fc4e223e951360aa0ecc7e321"
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "cb4daee89e9104585d9d612771010eefdbe3b9c557f66dee24ea0eedb12c1b5f"
+    },
+    "release-notes.md": {
+      "bytes": 5704,
+      "sha256": "aaed91cac20e6fa3d8e44626519031d4e90fa6174d192f0d1e6eb29d8823fff1"
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "fc6944714d0a4bcb05d56c7fee19dff988cef40afd976f1f4b40779829a96a6e"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "72eccdc9907cd3205bc8c545fd34359459e449d472fafd118b7bd52a732f8229"
+    },
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "29c5901d5bf5f8b409f985fdb94c4b82c7f380a955d57361ecfc675d8988e3bc"
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "aa9a08b6e8a9a68abf3937afd502d0a24298b7a459802e1e185ae35f46cae030"
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "2f176374527129da2413f411ce8c0d69cbe6d7b631715f3c984c23cde6a5c3ed"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "4a94a95a69dd50d1396cf2389c86a9d9475a4a63958ab59d834054748e78f9b1"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "b60940cff3d7f9d1d78bf51420e48f1a2ef8ddd05e6bb8e368ebefd1be3d8f65"
+    }
+  }
+}

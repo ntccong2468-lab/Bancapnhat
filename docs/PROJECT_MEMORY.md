@@ -1,16 +1,26 @@
 # Bộ nhớ dự án VNCode
 
-## Giao diện UI UX Pro Max — 03.11.2026, chờ đóng gói 1.6.1
+## Bản gộp 1.6.1 đã phát hành Latest — 04.11.2026
+
+- Latest `v1.6.1`, release `433167599`, công bố 00:27:59 UTC; source bất biến `1786c2c30e38c975523f9b678c4e77d203b5a7cb`. [Biên nhận](validation/2026-11-04-vncode-161-published-latest.json), [bàn giao đầy đủ](validation/2026-11-03-vncode-161-handoff.md). Đã gom UI UX Pro Max, sản phẩm/Catalog, FBS/KIZ/PDF Ozon và audit sau 1.6.0.
+- Windows build `41738169431`: 3.813 ca, 0 lỗi/thất bại, 2 OS skip; preflight 69/69. Native, DPAPI, cài/gỡ độc lập và nâng cấp bằng EXE từ 1.6.0 giữ dữ liệu đều đạt. Linux full trên `24f9761` cũng đạt 3.813/0/0/2; runtime/POM/wrapper/build script không đổi ở nguồn cuối. Phân biệt SHA full Linux với SHA full Windows.
+- Publisher `41746710521`, lần 2 đạt. Đã tải/kiểm hash và kích thước 16 asset công khai. Source 2.626 tệp tương đương sau chuẩn hóa CRLF văn bản (2.401 tệp); runtime đúng 1.6.1/CSS mới. Updater lấy từ binary 1.6.0 nhận 1.6.1, MSI, hash và kích thước; chưa quan sát popup trên máy seller.
+- Hai lượt Windows trước lỗi fixture không được phát hành. Wrapper thử ZIP qua loopback; cooldown 120 giây trong ngân sách 300 giây phải nhả worker dưới 30 giây; fixture khóa SQLite chờ cả FinanceExecutor và thử lại journal-mode có hạn, giữ phép đo FX 300 ms. Không bỏ test hay sửa kết quả lượt lỗi.
+- Kiểm tra cả ID/tag/source của draft trước publisher; chỉ dọn draft trùng rỗng do chính lượt lỗi tạo. Giữ mọi release công khai cũ; không dùng prune. Upload qua workflow Actions, không sao chép credential để né lỗi upload HTTP 401 trong workspace.
+- API thật: 10 lượt gửi lại giá trị hiện có và đọc lại; một thẻ Catalog ở draft/moderation, chưa ký xanh; PDF một đơn Ozon/hai trang 6,111 giây, in lại 4,989 giây. Lô 100/1.000 là giả lập. Không mua/tiêu KIZ, kích hoạt license hoặc gửi lại Catalog trong phát hành. Prototype mã hóa credential chưa vào runtime; website không được triển khai.
+- CodeQL Java còn một high về thumbprint SHA-1 tương thích Windows/CryptoPro và bảy medium, đã ghi review; không ghi mọi kiểm tra bảo mật xanh. Bộ cài chưa ký Authenticode. Phiên sau bắt đầu từ source/tag hoặc nhánh `release/vn-code-1.6.1`; giữ UUID/schema/shop scope và đọc journal trước giao dịch thật.
+
+## Giao diện UI UX Pro Max — 03.11.2026, đã đưa vào 1.6.1
 
 - Nền PR #18 (`30afa28`), nhánh `feature/ui-ux-pro-max-20261103`. Skill được cài upstream cố định `713eef51`, có Python/data/license và companions; search JavaFX thật, không áp dụng Hero/CTA marketing. Không thay hai skill UI cũ.
 - Một stylesheet controls/token sáng/tối cho toàn app; giữ Inter, theme đã lưu và thanh chỉnh nền sáng. Sidebar gọn; control/focus/metadata và dialog thống nhất; thêm accessibleText/labelFor. Progress sản phẩm, Znack, in Ozon chừa footer thay vì che dòng; không thay model/selection.
 - Giữ khung danh sách như FBS WB với lề 16 px và co theo cửa sổ. Xem ảnh phát hiện cột giá Ozon bị cắt dù toolbar đạt: JavaFX constrained resize bỏ phần pref width của cột `resizable=false`; khóa các cột đó bằng min=max và cho tham gia tính toán. Test lỗi đỏ rồi xanh, không bỏ giá, nút hoặc mã vận đơn.
 - 143 UI test riêng biệt đạt, 26 view/pane × 4 ngôn ngữ × 2 theme × 2 cỡ, 1.966 phép kiểm nút cố định không khuất; 5 danh sách có dữ liệu ở 3 cỡ đều co giãn đúng. Node135/135, Python39/39. 92 ảnh JavaFX tổng hợp và báo cáo ở [bàn giao UI](validation/2026-11-03-ui-ux-pro-max/README.md). Màn khởi động dùng CSS mới trực tiếp để không đọc SQL trước phục hồi.
-- Chủ dự án đã yêu cầu gộp tất cả, tạo bộ cài và Latest. Latest công khai hiện 1.6.0, vì vậy dùng 1.6.1; chưa coi là phát hành trước khi Windows/native/upgrade và asset cuối đạt. Không đưa prototype migration credential vào runtime; không kích hoạt license, mua/tiêu KIZ hoặc gửi lại giao dịch Catalog đã có receipt.
+- Chủ dự án đã yêu cầu gộp tất cả, tạo bộ cài và Latest. Ở đầu phiên Latest công khai là 1.6.0, vì vậy dùng 1.6.1; đã công bố sau khi Windows/native/upgrade và asset cuối đạt, xem mục trên. Không đưa prototype migration credential vào runtime; không kích hoạt license, mua/tiêu KIZ hoặc gửi lại giao dịch Catalog đã có receipt.
 
 
 
-## PDF Ozon theo lô — 03.11.2026, chưa phát hành
+## PDF Ozon theo lô — 03.11.2026, đã đưa vào 1.6.1
 
 - Nhánh `fix/ozon-batch-pdf-20261103`, kế thừa PR #17; nguồn cuối `8b28133` (PDF whole-task `6f302cf`). Đọc nguồn mới qua v4 list với tối đa 100 `order_numbers` thật, phân trang/kiểm tra đúng posting; thiếu metadata mới fallback get. API nhãn v3 create/v2 get tối đa 1.000 đơn đã có trước; bottleneck là đọc chi tiết từng đơn và nhận diện trang khiến task chuyển sang tải riêng.
 - Giữ nguyên PDF của đúng task completed, membership và số lượng/unprinted đã đối soát; KIZ đúng binding được thêm ở cuối tệp, không ghép theo vị trí trang. PDF Ozon có thể có cả trang vận đơn và trang sản phẩm. Thiếu KIZ/mapping không loại nhãn vận đơn API đã cấp; báo rõ chưa kèm KIZ, không trừ kho phần chưa in. In một phần task cũ vẫn cần lọc đúng trang hoặc đường dự phòng, không in lẫn đơn khác.

@@ -1,7 +1,9 @@
 # Bàn giao bản gộp VN Code 1.6.1 — 03.11.2026
 
 <!-- PUBLICATION_START -->
-Tình trạng: đang kiểm tra Windows; chưa công bố Latest. Mã đóng gói cố định `1786c2c30e38c975523f9b678c4e77d203b5a7cb`, Windows build [41738169431](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41738169431). Runtime ứng dụng giống `24f9761`; nguồn cuối gồm cả fixture cooldown 120 giây và sửa bước khóa SQLite của kiểm thử giao diện. Hai lượt Windows trước còn lỗi fixture nên không được dùng để phát hành. Bản mới là 1.6.1 vì 1.6.0 đã công bố; không ghi đè binary/tag 1.6.0.
+**Đã phát hành [VN Code 1.6.1](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.1) lên Latest lúc 00:27:59 UTC ngày 04.11.2026.** Mã ứng dụng bất biến `1786c2c30e38c975523f9b678c4e77d203b5a7cb`. [Biên nhận phát hành và kiểm tra công khai](2026-11-04-vncode-161-published-latest.json).
+
+Đủ 16 tệp đã được tải công khai và kiểm tra SHA-256/kích thước; bộ cập nhật lấy từ binary 1.6.0 nhận đúng 1.6.1 và đúng MSI. Chưa quan sát popup trên máy seller. Các bản phát hành cũ được giữ lại. Bản gộp dùng số 1.6.1 vì 1.6.0 đã công bố.
 <!-- PUBLICATION_END -->
 
 ## Phạm vi đã gom
@@ -23,13 +25,17 @@ Tất cả nhánh sửa liên quan đều là tổ tiên của mã ứng dụng 
 ## Xác minh
 
 - Linux/Xvfb trên đúng `24f9761`: `clean verify` **3.813 ca, 0 thất bại, 0 lỗi, 2 bỏ qua theo OS**, 518 lớp, 35 phút 03 giây. Hai ca bỏ qua yêu cầu Windows DPAPI/NTFS junction; [biên nhận](2026-11-03-vncode-161-linux.json).
-- Linux trên `01b87d3`: 11/11 ca mục tiêu cho hai fixture Windows đạt; không chạy lại full Linux vì `src/main`, POM, wrapper và build script không đổi. Full Windows vẫn chạy lại toàn bộ trên nguồn chốt. [Chi tiết nguyên nhân và sửa](2026-11-03-windows-release-fixtures.md).
-- Kiểm tra bổ sung fixture trên nhánh xuất bản: Retry-After 120 giây trong ngân sách transport, worker phải nhả trong 30 giây, giữ deadline và chống lặp; 11/11 Linux đạt. Windows bổ sung [41736451413](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41736451413) đạt 11/11 trên nguồn kiểm thử `4fa8e6a`, ca cooldown 7,008 giây; CI bắt buộc runtime/build inputs giống nguồn bộ cài01b. [Biên nhận](2026-11-03-vncode-161-cooldown-windows.json). Kết quả này bổ sung, không thay full Windows của01b. [Phân biệt hai nhánh cooldown](2026-11-03-windows-release-fixtures.md).
+- Linux trên `01b87d3`: 11/11 ca mục tiêu cho hai fixture Windows đạt; không chạy lại full Linux vì `src/main`, POM, wrapper và build script không đổi. Full Windows đã chạy lại toàn bộ trên nguồn chốt `1786c2c`. [Chi tiết nguyên nhân và sửa](2026-11-03-windows-release-fixtures.md).
+- Kiểm tra bổ sung fixture trên nhánh xuất bản: Retry-After 120 giây trong ngân sách transport, worker phải nhả trong 30 giây, giữ deadline và chống lặp; 11/11 Linux đạt. Windows bổ sung [41736451413](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41736451413) đạt 11/11 trên nguồn kiểm thử `4fa8e6a`, ca cooldown 7,008 giây; CI bổ sung bắt buộc runtime/build inputs giống nguồn ứng viên01b. [Biên nhận](2026-11-03-vncode-161-cooldown-windows.json). Kết quả này là bằng chứng bổ sung lịch sử; nguồn phát hành1786 đã chứa fixture120 giây và đạt full Windows riêng. [Phân biệt hai nhánh cooldown](2026-11-03-windows-release-fixtures.md).
 - Linux sau sửa thiết lập khóa SQLite: **58/58** kiểm thử FXML đạt, không lỗi/bỏ qua; 38,607 giây gồm Maven. Giữ giới hạn 300 ms cho thao tác giao diện dưới khóa.
 - Công cụ phát hành Node **138/138**, Python search skill **39/39**. Các kiểm thử mục tiêu UI trước full suite: 143 ca riêng biệt, 26 view/pane × bốn ngôn ngữ × hai theme × hai cỡ, thêm năm danh sách có dữ liệu ở ba cỡ. Không cộng các nhóm mục tiêu này vào tổng full suite vì có giao nhau.
 - 92 ảnh là view JavaFX thật dùng dữ liệu tổng hợp; không phải chứng cứ đã ghi API thành công. Các danh sách tăng đúng chiều cao vùng làm việc; kiểm tra giá Ozon, focus, giữ dữ liệu/lựa chọn khi tiến trình hiện/ẩn.
 <!-- WINDOWS_START -->
-- Windows full/native/cài-gỡ/nâng cấp và kiểm tra asset công khai: đang chờ kết quả đúng build nêu trên. Chưa dùng draft hoặc build đã hủy làm bằng chứng phát hành.
+- Windows trên đúng `1786c2c`: **3.813 ca, 0 thất bại, 0 lỗi, 2 bỏ qua theo OS**, 518 lớp, 59 phút 10 giây; preflight 69/69. Ca khóa SQLite đã sửa đạt, ca cooldown 120 giây nhả worker trong 3,975 giây. [Biên nhận Windows](2026-11-04-vncode-161-windows.json).
+- Native launcher, migration/snapshot, bảo vệ dữ liệu Windows, cài/gỡ độc lập và nâng cấp thụ động bằng đúng EXE từ **1.6.0** đều đạt; xác minh MSI nhúng và dữ liệu trước/sau nâng cấp. [Build 41738169431](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41738169431).
+- Đối chiếu 2.626 tệp source ZIP với nguồn Git: 2.401 tệp văn bản chỉ khác CRLF của Windows, không khác nội dung; tệp nhị phân trùng byte. JAR đúng 1.6.1, có lớp/CSS mới, không còn hai CSS xung đột. Không gọi đây là toàn bộ archive trùng byte. [Biên nhận đóng gói](2026-11-04-vncode-161-package.json).
+- [16 tệp tải công khai](2026-11-04-vncode-161-public-assets.json) khớp biên nhận CI và checksum. [Bộ cập nhật của 1.6.0](2026-11-04-vncode-161-updater.json) đọc metadata công khai, báo có bản 1.6.1, chọn MSI và khớp hash/kích thước.
+- Publisher [41746710521, lần 2](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41746710521) đạt. Lần đầu dừng ở nhận diện draft/tag, chưa upload; sửa nhãn bản nháp, bỏ đúng một draft trùng rỗng do lượt đó tạo và chạy lại riêng publisher. Không dựng lại hoặc thay byte bộ cài đã kiểm chứng.
 <!-- WINDOWS_END -->
 
 ## Nghiệm thu thật và giới hạn
@@ -45,6 +51,8 @@ Tất cả nhánh sửa liên quan đều là tổ tiên của mã ứng dụng 
 
 - Lượt full ban đầu chỉ ra hai fixture không còn đúng đường chạy: seller-only test chưa gắn danh mục seller; FXML test bỏ qua loader i18n của production. Sửa fixture theo dữ liệu/loader thật của app, giữ các assert thiếu kho, snapshot/resume và thao tác UI. Các ca liên quan đạt trước khi chạy lại full; không xóa test hoặc bỏ điều kiện API/KIZ.
 - Full suite có bài 10.000 GTIN chạy lâu; log có thể dừng ở tên lớp trong khi SQLite/API giả lập vẫn hoạt động. Cần xem thời gian, kết quả từng giai đoạn và process, không suy ra app bị treo hay hủy build đủ điều kiện chỉ vì log tạm im.
+- Chuyển journal SQLite trong fixture phải chờ tất cả executor sở hữu kết nối, gồm FinanceExecutor. Retry có hạn chỉ áp dụng bước dựng điều kiện khóa; giữ phép đo FX 300 ms. Không tăng timeout thao tác UI để che lỗi.
+- Khi chuẩn bị draft trên GitHub, đối chiếu cả `tag_name`, `target_commitish` và ID sau cập nhật; không chỉ dựa tên hiển thị của release. Chỉ bỏ draft trùng rỗng do chính lượt xuất bản tạo, giữ các release công khai.
 - Một mã ứng dụng bất biến đi cùng build-info, checksum, Git bundle, native và upgrade proof. Công cụ publisher có nhánh riêng; thay tài liệu/công cụ xuất bản không được làm lệch nguồn ứng dụng đã kiểm chứng.
 - Upload asset trực tiếp từ workspace gặp HTTP 401 của uploads.github.com; dùng workflow publisher với token Actions được cấp sẵn. Không sao chép credential vào CI hoặc nới quyền bảo mật để vượt lỗi.
 - Phiên sau lấy SHA trong build-info làm nền, giữ UUID nâng cấp `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`, schema/dữ liệu và phạm vi shop. Không dùng `prune`, không xóa bản cũ hoặc thay binary/tag đã công bố. Đọc biên nhận và journal trước bất kỳ thao tác live nào có thể bị gửi lặp.

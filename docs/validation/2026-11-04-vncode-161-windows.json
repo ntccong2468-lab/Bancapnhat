@@ -1,0 +1,51 @@
+{
+  "version": "1.6.1",
+  "sourceCommit": "1786c2c30e38c975523f9b678c4e77d203b5a7cb",
+  "runId": 41738169431,
+  "platform": "windows",
+  "result": "passed",
+  "counts": {
+    "tests": 3813,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "classes": 518,
+  "preflight": {
+    "tests": 69,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "fullMavenElapsed": "59m10s",
+  "completedAt": "2026-11-04T00:20:21Z",
+  "skips": [
+    {
+      "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "case": "privatePermissionsAreAppliedWhereSupported",
+      "reason": null
+    },
+    {
+      "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "case": "neverFallsBackToPlaintextOffWindows",
+      "reason": "Disabled on operating system: Windows Server 2022"
+    }
+  ],
+  "repairedFixtureCases": [
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "case": "aLongCatalogCooldownYieldsTheWorkerAndResumesTheSameSavedBatch",
+      "seconds": 3.975
+    },
+    {
+      "class": "com.vncode.app.ui.FxmlSmokeTest",
+      "case": "switchShopReturnsBeforeSlowRepository",
+      "seconds": 0.272
+    }
+  ],
+  "nativeStartup": true,
+  "windowsDataProtection": true,
+  "freshInstallCoexistenceUninstall": true,
+  "passiveUpgradeFrom": "1.6.0",
+  "liveSellerMutations": false
+}
