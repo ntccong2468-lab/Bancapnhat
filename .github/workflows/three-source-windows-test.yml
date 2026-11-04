@@ -26,6 +26,8 @@ jobs:
           cache: maven
       - name: Verify source-review gate and full application
         shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-three-source-test-${{ github.run_id }}
         run: |
           .\\mvnw.cmd -B '-Dtest=RegistrationThreeSourceReviewGateTest,RegistrationBatchPreflightTest,RegistrationSourcesTest' test
           if ($LASTEXITCODE -ne 0) { throw 'Three-source tests failed' }
