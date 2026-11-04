@@ -1,0 +1,73 @@
+name: VN Code 1.6.2 - Three-source Windows test
+on:
+  pull_request:
+    paths:
+      - 'src/main/java/com/vncode/app/ui/znackregistration/**'
+      - 'src/test/java/com/vncode/app/ui/znackregistration/**'
+      - '.github/workflows/three-source-windows-test.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-test:
+    runs-on: windows-2022
+    timeout-minutes: 180
+    env:
+      VNCODE_BUILD_PROFILE: znack-registration-test
+      LOCALAPPDATA: ${{ runner.temp }}\\vncode-three-source-test-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          distribution: oracle
+          java-version: '25'
+          cache: maven
+      - name: Verify source-review gate and full application
+        shell: pwsh
+        run: |
+          .\\mvnw.cmd -B '-Dtest=RegistrationThreeSourceReviewGateTest,RegistrationBatchPreflightTest,RegistrationSourcesTest' test
+          if ($LASTEXITCODE -ne 0) { throw 'Three-source tests failed' }
+          .\\mvnw.cmd -B clean verify
+          if ($LASTEXITCODE -ne 0) { throw 'VN Code full test suite failed' }
+      - name: Build isolated Windows test EXE
+        shell: cmd
+        env:
+          VNCODE_REUSE_VERIFIED_BUILD: 'true'
+        run: build.bat exe
+      - name: Keep test installer before packaging portable copy
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP/three-source-output" | Out-Null
+          $installer = @(Get-ChildItem out -Filter '*.exe' -File)
+          if ($installer.Count -ne 1) { throw 'Expected one isolated test installer' }
+          Copy-Item $installer[0].FullName "$env:RUNNER_TEMP/three-source-output/VNCode-Three-Source-1.6.2-TEST.exe"
+      - name: Build isolated portable app image
+        shell: cmd
+        env:
+          VNCODE_REUSE_VERIFIED_BUILD: 'true'
+        run: build.bat app-image
+      - name: Package test outputs and SHA256
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $dest="$env:RUNNER_TEMP/three-source-output"
+          $portable='out/VN code Znack Test'
+          if (!(Test-Path $portable)) { throw 'Portable app image missing' }
+          Compress-Archive -Path $portable -DestinationPath "$dest/VNCode-Three-Source-1.6.2-PORTABLE.zip"
+          Get-ChildItem $dest -File | ForEach-Object {
+            "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant())  $($_.Name)"
+          } | Set-Content "$dest/SHA256SUMS.txt" -Encoding ascii
+      - name: Upload separated Windows trial
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VNCode-Three-Source-1.6.2-Windows-TEST
+          path: ${{ runner.temp }}/three-source-output/*
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload failed test reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: three-source-test-failures-${{ github.run_id }}
+          path: target/surefire-reports/TEST-*.xml
+          if-no-files-found: ignore
