@@ -1,0 +1,72 @@
+{
+  "version": "1.6.3",
+  "sourceCommit": "6de9c73f34c429bfac0ba2af5ac4ea91538c8af1",
+  "scope": "Production Java API/services in an isolated profile; no observed seller Windows click. User explicitly requested real PDF export and images.",
+  "timing": {
+    "checkedAtUtc": "2026-11-04T19:26:10.377366925Z",
+    "selected": 25,
+    "successful": 25,
+    "failed": 0,
+    "allOrdersPrinted": true,
+    "pickingSortedLikeWb": true,
+    "shippingPages": 25,
+    "pickingPages": 2,
+    "labelGroups": 2,
+    "isolatedLabelRequests": 0,
+    "distinctPersistedLabelTasks": 2,
+    "kizPages": 0,
+    "carrierOnly": 25,
+    "preflightMillis": 3911,
+    "exportMillis": 11458,
+    "endToEndMillis": 15426,
+    "stageMillis": {
+      "COMPOSITION": 1814,
+      "PREPARATION": 0,
+      "LABEL_NETWORK": 9243,
+      "PICKING": 239
+    },
+    "freshPostingReadPages": 1,
+    "liveLicenseActivated": false
+  },
+  "independentIdentityVerification": {
+    "selected": 25,
+    "shippingPages": 25,
+    "pickingPages": 2,
+    "allOrdersInPicking": true,
+    "pickingSortedLikeWb": true,
+    "exactCarrierNumberOnOwnPickingRow": true,
+    "carrierNumbersReadFromOfficialPdf": 25,
+    "labelJobsReady": 25,
+    "nativeBatchTasks": 2,
+    "individualLabelTasks": 0,
+    "rejectedKizAttached": false,
+    "millisecondsUntilPdfFilesWritten": 11447,
+    "timingNote": "Independent read-only identity verification after the successful timed export; use pdf-sanitized.json for timing."
+  },
+  "pdfFiles": {
+    "Ozon-25-van-don.pdf": {
+      "pages": 25,
+      "bytes": 148427,
+      "sha256": "9bdb87c93616fdbc5f32400de4d8861dd5d17ff5fe83b729834d394d37bfe757",
+      "firstPageSizePoints": [
+        164.25,
+        113.25
+      ]
+    },
+    "Ozon-25-phieu-nhat-hang.pdf": {
+      "pages": 2,
+      "bytes": 182584,
+      "sha256": "f42d0c0f2609799558758985be7530780ec6d3830b6775a7add39413e6a79a28",
+      "firstPageSizePoints": [
+        595.0,
+        842.0
+      ]
+    }
+  },
+  "limitations": [
+    "Official carrier labels and picking list only; no KIZ was attached.",
+    "Two persisted native label groups cover the batch; existing label tasks were reused where available. This is not a cold-cache 1000-order benchmark.",
+    "Real PDF and screenshot files are private session artifacts and intentionally not committed to the public repository.",
+    "Only stripped counts and hashes are retained here; no credentials, KIZ or seller/order identities."
+  ]
+}

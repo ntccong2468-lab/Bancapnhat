@@ -2,6 +2,8 @@
 
 Người dùng đã duyệt bản xem trước và yêu cầu áp dụng cùng sửa nhận đơn FBS Ozon. Phiên bản ứng dụng đã tăng lên **1.6.3**, kế thừa Latest 1.6.2 và sửa Ozon `ccd7fc1`. **Tại thời điểm ghi hồ sơ này chưa công bố Latest mới**; phải qua Windows full/native/upgrade rồi mới xuất bản.
 
+Nguồn ứng dụng đã pin: `6de9c73f34c429bfac0ba2af5ac4ea91538c8af1`; Windows build `41895958691` đang chạy. Tool publisher1.6.3 kiểm144/144, pin đúng nguồn/run; chưa thay Latest.
+
 ## Những phần đã hoàn tất
 
 - Áp dụng giao diện đã duyệt bằng JavaFX thật: hai theme, thanh điều hướng 196px, header58px, quản lý/thêm/sửa và thùng rác cạnh selector. Diagnostics vẫn ở overflow; giữ các handler, phạm vi cửa hàng và xác nhận xóa.
@@ -19,6 +21,7 @@ Người dùng đã duyệt bản xem trước và yêu cầu áp dụng cùng s
 - Lượt UI tổng hợp trên Linux ghi warning nền khi fixture FXML xóa profile tạm; JUnit không thất bại, lượt native acceptance tách riêng đạt. Không dùng warning này để kết luận lỗi dữ liệu seller; full Windows vẫn là gate bắt buộc.
 - [API thật trước đóng gói](2026-11-04-ozon-accept-picking-verified.json):22/22đơn đọc lại đã nhận; snapshot cuối18:00:05UTC,19nhãn trong1task, xuất lại task có sẵn8.009giây. Không phải benchmark1000đơn hay thao tác trên Windows seller. File KIZ31ký tự bị từ chối crypto/trạng thái; không gán/tiêu/mua KIZ. Không lặp mutation thật trong bước phát hành.
 - Sau yêu cầu kiểm tra thật bổ sung, quét26trang lịch sử/4trang hàng đợi tìm2đơn mới; gửi2yêu cầu ship và xác nhận2/2 `awaiting_deliver`. Cả2trả trạng thái chậm ở lần đọc đầu, được bước đối soát production mới giải quyết không gửi trùng. Quét cuối không còn đơn chờ trong cửa sổunfulfilled±180ngày. [Biên nhận](2026-11-04-vncode-163-ozon-live-recheck.json). Không bắt buộcKIZ trên2đơn này; không coi đó là bằng chứng fileKIZ đã hợp lệ.
+- Theo yêu cầu mới đã xuất PDF thật cho25đơn:25trangvậnđơn+2trangnhặthàng,0thấtbại;2nhómtask,0requestnhãnlẻ;15,426giây cả đối chiếu dữ liệu,11,458giây riêngexport. Kiểm độc lập số in trên nhãn khớp đúng25/25dòng phiếu và sortWB. [Biên nhậnPDF](2026-11-04-vncode-163-ozon-pdf-live.json). Không có nhãnKIZ; file thật/ảnh ở artifactprivate khôngcommit. Đây là serviceproduction trongprofileisolated, không phải clickWindows hoặc benchmark1000đơn/cachelạnh.
 - Không đổi schema6, UpgradeCode, dữ liệu license/shop/GTIN/history; không triển khai portal hoặc prototype credential migration. Installer chưa ký Authenticode; giới hạn securityreview1.6.1 vẫn còn.
 
 ## Bước phát hành bắt buộc
