@@ -1,0 +1,21 @@
+{
+  "version": "1.6.2",
+  "sourceCommit": "3968f8f4bb2239ddf61b48e9f6245086bd4ad529",
+  "verifiedAt": "2026-11-04T08:22:31.404092+00:00",
+  "sourceFilesCompared": 2646,
+  "sourceEquivalentAfterTextCRLFNormalization": true,
+  "textLineEndingOnlyFiles": 2417,
+  "jar": "VN code/app/VNcode-1.6.2.jar",
+  "jarSha256": "6cc65131f3110f172fc8d280664c5b02ac621539afc8f7e0500251c8a60aa742",
+  "runtimeVersionVerified": true,
+  "runtimeIncludes": [
+    "com/vncode/app/integration/ozon/OzonCarrierLabelNumbers.class",
+    "com/vncode/app/integration/ozon/OzonProductBarcodePage.class",
+    "com/vncode/app/integration/ozon/OzonOfficialLabelSelector.class",
+    "com/vncode/app/integration/ozon/OzonPostingTrackingStore.class",
+    "com/vncode/app/ui/finance/FinancePenaltyController.class",
+    "com/vncode/app/ui/finance/finance-penalty-view.fxml"
+  ],
+  "scanitInRuntimeDto": true,
+  "customShippingBadgeAbsent": true
+}

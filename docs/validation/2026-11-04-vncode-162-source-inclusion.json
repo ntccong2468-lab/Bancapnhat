@@ -1,0 +1,32 @@
+{
+  "version": "1.6.2",
+  "sourceCommit": "3968f8f4bb2239ddf61b48e9f6245086bd4ad529",
+  "includesReleased161": true,
+  "includesApprovedFixes7875708": true,
+  "applicationChangedFiles": [
+    "pom.xml",
+    "src/main/java/com/vncode/app/integration/ozon/OzonBatchLabelDownloader.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonCarrierLabelNumbers.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonJson.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonLabelPageIdentity.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonOfficialLabelSelector.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPickingListPdfExporter.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingDto.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingTrackingStore.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductBarcodePage.java",
+    "src/main/java/com/vncode/app/ui/dashboard/DashboardController.java",
+    "src/main/java/com/vncode/app/ui/finance/FinanceDashboardController.java",
+    "src/main/java/com/vncode/app/ui/finance/FinancePenaltyController.java",
+    "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+    "src/main/resources/com/vncode/app/ui/dashboard/dashboard-view.fxml",
+    "src/main/resources/com/vncode/app/ui/finance/finance-dashboard-view.fxml",
+    "src/main/resources/com/vncode/app/ui/finance/finance-penalty-view.fxml"
+  ],
+  "upgradeUuidUnchanged": true,
+  "sourcePinnedAt": "2026-11-04T07:20:48.873859+00:00"
+}

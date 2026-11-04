@@ -1,6 +1,6 @@
 # Nhãn Ozon, phiếu nhặt hàng và báo cáo phạt — 04.11.2026
 
-Nhánh `fix/ozon-labels-finance-20261104`, dựa trên mã sau phát hành 1.6.1 (`62e440a`). Đây là bản sửa nguồn chưa đóng gói/phát hành; Latest 1.6.1 không bị thay thế.
+Nhánh `fix/ozon-labels-finance-20261104`, dựa trên mã sau phát hành 1.6.1 (`62e440a`). Đã đóng gói và phát hành trong **Latest 1.6.2** lúc 08:22:03 UTC ngày 04.11.2026. [Bàn giao phát hành](../2026-11-04-vncode-162-handoff.md); các biên nhận phía dưới ghi kết quả trước đóng gói.
 
 ## Yêu cầu đã chốt
 
@@ -23,7 +23,7 @@ Nhánh `fix/ozon-labels-finance-20261104`, dựa trên mã sau phát hành 1.6.1
 - Lô giả lập 100/1.000 nhãn: một task create + một status read + một tải PDF; không có task từng đơn. Lô hỗn hợp 100 vận đơn + 100 barcode sản phẩm: đầu ra đủ 100 vận đơn, mọi stream nội dung và khổ giấy vận đơn giống nguồn. Nhãn kết hợp được kiểm tra riêng cả đọc lại barcode và DataMatrix.
 - [API đọc thật](live-readonly.json): `/v3/posting/fbs/get` và `/v4/posting/fbs/list` đều trả `scanit` khớp số trong một PDF Ozon thật đã tải trước đó. Không nhận đơn, tạo task nhãn, mua/gán KIZ hay kích hoạt license trong lượt này.
 - Chạy trực tiếp bộ đọc mới với PDF thật và `scanit` từ API: nhận diện đúng posting, số trích xuất bằng số in trên nhãn. Dữ liệu/API/PDF thật nằm ngoài Git; chỉ lưu kết luận không chứa mã đơn, khóa hoặc KIZ.
-- Các số thời gian trong biên nhận là **giả lập trên máy kiểm thử**, không phải tốc độ API Ozon/máy seller. Chưa chạy bộ cài Windows hoặc phát hành các thay đổi này.
+- Các số thời gian trong biên nhận là **giả lập trên máy kiểm thử**, không phải tốc độ API Ozon/máy seller. Các phép đo này được thực hiện trước đóng gói; kiểm chứng Windows/bộ cài và phát hành tiếp theo được ghi riêng trong bàn giao 1.6.2.
 
 ## Ảnh và mẫu
 
@@ -35,4 +35,4 @@ Nhánh `fix/ozon-labels-finance-20261104`, dựa trên mã sau phát hành 1.6.1
 - Không dùng `tracking_number`, `lower_barcode` hay số đơn để thay cho số in trên nhãn khi `scanit` là mã Ozon thực tế. Ví dụ đã kiểm chứng: tracking rỗng, lower/upper là số dạng khác; `scanit` mới khớp nhãn.
 - Không đưa việc đọc từng nhãn từ mạng trở lại khi cần ghép phiếu nhặt hàng. Đọc metadata/cache theo lô, kiểm chứng từ PDF đã tải; giữ task receipt và cơ chế chống tạo lại task sau timeout chưa rõ kết quả.
 - Tách yêu cầu của phiếu nhặt hàng khỏi nhãn vận đơn: phiếu có thể tô đậm số cuối, còn nhãn vận đơn phải giữ nguyên Ozon.
-- Nếu được yêu cầu phát hành tiếp: tạo phiên bản mới từ nhánh này, chạy kiểm chứng Windows/upgrade và quy trình publisher. Không thay byte asset của 1.6.1 đã công bố.
+- Đã phát hành 1.6.2 sau kiểm chứng Windows/upgrade và publisher. Phiên sau bắt đầu từ tag/source 1.6.2; không thay byte asset đã công bố.

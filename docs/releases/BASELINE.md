@@ -1,33 +1,29 @@
 # VNCode consolidated baseline
 
-Bản nền hiện hành đã công bố: **VN Code 1.6.1**, tag bất biến `v1.6.1`, mã ứng dụng `1786c2c30e38c975523f9b678c4e77d203b5a7cb`.
+Bản nền hiện hành đã công bố: **VN Code 1.6.2**, tag bất biến `v1.6.2`, nguồn `3968f8f4bb2239ddf61b48e9f6245086bd4ad529`, phát hành 04.11.2026 08:22:03 UTC.
 
-Bản này gộp giao diện UI UX Pro Max toàn ứng dụng, nền tối/sáng, sửa sản phẩm và Catalog, FBS/KIZ, PDF Ozon theo lô, cache ảnh phiếu nhặt hàng và các sửa audit sau 1.6.0. [Tải bộ cài](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.1/VN-code-1.6.1-Windows-x64.exe), [ghi chú 1.6.1](VN-code-1.6.1.md), [bàn giao](../validation/2026-11-03-vncode-161-handoff.md), [biên nhận Latest](../validation/2026-11-04-vncode-161-published-latest.json).
+Kế thừa toàn bộ 1.6.1. Bản mới giữ nguyên nhãn vận đơn Ozon, bỏ trang barcode sản phẩm đứng riêng khi nhận diện được, giữ nhãn kết hợp và luồng lấy nhãn theo lô. Phiếu nhặt hàng dùng đúng số trên nhãn từng đơn với đối chiếu `scanit`. Báo cáo lý do phạt chuyển từ Tổng quan sang Công cụ → Báo cáo tài chính.
+
+[Tải bộ cài EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.exe), [ghi chú 1.6.2](VN-code-1.6.2.md), [bàn giao](../validation/2026-11-04-vncode-162-handoff.md), [biên nhận Latest](../validation/2026-11-04-vncode-162-published-latest.json). Lịch sử tính năng nền ở [ghi chú 1.6.1](VN-code-1.6.1.md).
 
 ## Gói nguồn và kiểm chứng
 
-Release giữ đủ 16 tệp:
+Release giữ đủ 16 tệp: EXE, MSI, ZIP chạy độc lập kèm Java, source ZIP, Git history bundle, verification ZIP, tệp EXE `.sha256`, `build-info.json`, `release-notes.md`, `native-smoke.json`, `gs1-smoke.json`, `side-by-side-smoke.json`, `upgrade-baseline-smoke.json`, `previous-baseline.json`, `asset-manifest.json`, `SHA256SUMS`. Các tệp có tiền tố phiên bản dùng `VN-code-1.6.2-`.
 
-- `VN-code-1.6.1-Windows-x64.exe` và `.msi`: bộ cài giữ định danh nâng cấp.
-- `VN-code-1.6.1-Windows-x64.zip`: bộ chạy độc lập kèm Java và thư viện.
-- `VN-code-1.6.1-source.zip`: toàn bộ tệp Git tại mã phát hành.
-- `VN-code-1.6.1-history.bundle`: lịch sử Git và ref tại lúc đóng gói. Bundle có SHA nguồn; tag được tạo sau bước đóng gói có thể chưa có trong bundle.
-- `VN-code-1.6.1-verification.zip`, tệp `.sha256`, `build-info.json`, `release-notes.md`, `native-smoke.json`, `gs1-smoke.json`, `side-by-side-smoke.json`, `upgrade-baseline-smoke.json`, `previous-baseline.json`, `asset-manifest.json`, `SHA256SUMS`.
+Windows build `41789324429` trên đúng nguồn phát hành: **3.824 ca, 0 thất bại/lỗi, 2 bỏ qua theo OS**, 520 lớp; preflight 69/69. Native launcher, migration/snapshot, DPAPI, cài/gỡ độc lập và nâng cấp bằng đúng EXE từ Latest 1.6.1 giữ dữ liệu đều đạt. Node 138/138 trên nguồn ứng dụng, 141/141 ở publisher. Không chạy lại full Linux cho bản này; 302 ca liên quan đã đạt trước đóng gói.
 
-Windows trên đúng mã phát hành: 3.813 ca, 0 thất bại/lỗi, 2 bỏ qua theo OS; preflight 69/69. Linux full trên `24f9761`: 3.813 ca, 0 thất bại/lỗi, 2 OS skip; runtime, POM, wrapper và build script không thay đổi ở nguồn cuối. Native launcher, migration/snapshot, DPAPI, cài/gỡ độc lập và nâng cấp từ Latest 1.6.0 bằng đúng EXE đều đạt, giữ dữ liệu. Công cụ phát hành Node 138/138 đạt.
+Publisher `41798807654` đạt. Cả 16 tệp đã tải công khai và đối chiếu SHA-256/kích thước. Source ZIP gồm 2.646 tệp: 2.417 tệp văn bản chỉ khác CRLF do Windows; nhị phân trùng byte. Runtime JAR đúng 1.6.2 và chứa các lớp sửa nhãn, scanit và Tài chính. Bộ đọc updater từ binary 1.6.1 nhận đúng Latest 1.6.2, MSI/hash/kích thước; chưa quan sát popup hay cài trên máy seller.
 
-Cả 16 tệp đã tải công khai và đối chiếu SHA-256/kích thước. Đối chiếu source ZIP gồm 2.626 tệp: 2.401 tệp văn bản chỉ khác CRLF do Windows, tệp nhị phân trùng byte. Runtime JAR đúng 1.6.1 và chứa CSS/lớp mới. Bộ cập nhật lấy từ binary 1.6.0 nhận đúng Latest 1.6.1, chọn MSI và khớp hash/kích thước; chưa quan sát popup trên máy seller.
-
-Bộ cài chưa ký Authenticode. [Rà soát bảo mật](../validation/2026-11-03-release-security-review.md) giữ lại cảnh báo CodeQL Java về định danh chứng thư và các mục medium cần đánh giá tiếp; không tuyên bố mọi gate bảo mật đạt. Prototype migration mã hóa credential vẫn nằm ngoài runtime. Lượt này không triển khai portal.
+Bộ cài chưa ký Authenticode. [Rà soát bảo mật nền 1.6.1](../validation/2026-11-03-release-security-review.md) vẫn có cảnh báo định danh chứng thư và các mục medium; không tuyên bố mọi gate bảo mật đạt. Prototype migration mã hóa credential nằm ngoài runtime. Portal không được triển khai.
 
 ## Phạm vi API thật
 
-Mười lượt gửi lại giá trị hiện có của năm trường WB/Ozon đã được đọc lại xác nhận. Một GTIN/feed Catalog mới được đọc thấy đúng thẻ ở draft/moderation; chưa ký/công bố hoặc đẩy GTIN mới lên sàn. PDF Ozon thật đo trên một đơn/hai trang, 6,111 giây khi tạo tác vụ và 4,989 giây khi in lại; lô 100/1.000 dùng HTTP/PDF mô phỏng. Nguồn sàn quyết định khả năng nhận đơn/cấp nhãn; app giữ kết quả đúng và lý do còn thiếu, không giả báo đã nhận/in.
+Các kết quả ghi thật trước bản nền 1.6.1 vẫn có giới hạn được ghi trong bàn giao 1.6.1. Lượt sửa 1.6.2 đọc API Ozon và đối chiếu `scanit` với một PDF thật đã lưu, không tạo tác vụ nhãn mới. Lô 100/1.000 dùng HTTP/PDF mô phỏng, không phải tốc độ cửa hàng thật. Nguồn báo cáo phạt Ozon vẫn chưa hỗ trợ khi hợp đồng API chưa được xác minh. Lượt phát hành không nhận đơn khách, mua/tiêu KIZ, kích hoạt license hoặc gửi lại Catalog.
 
 ## Tiếp tục phát triển
 
-Clone repository hoặc Git bundle; lấy SHA nguồn trong `build-info.json` làm mốc. Giữ Java 25, schema 6, UpgradeCode `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`, dữ liệu và phạm vi cửa hàng. Đọc receipt/journal trước khi tiếp tục giao dịch chưa rõ, tránh tạo lại GTIN/feed hoặc mua KIZ trùng.
+Lấy SHA nguồn trong `build-info.json` làm mốc. Giữ Java 25, schema 6, UpgradeCode `8CBBA0E2-6E73-4F56-9101-6BC0948D3C72`, dữ liệu và phạm vi cửa hàng. Đọc receipt/journal trước giao dịch chưa rõ để tránh gửi hoặc mua trùng.
 
-Trên Windows: `mvnw.cmd -B clean verify`, `node --test tools/*.test.mjs`, rồi `build.bat exe`. Lưu bộ cài và bằng chứng trước `build.bat app-image`, vì script dọn `out`. Workflow Build complete VNCode baseline dựng từ một SHA cố định và dùng Latest được pin đầu lượt chạy làm mốc nâng cấp. Không dùng kết quả của SHA khác để khẳng định build đã được kiểm chứng.
+Trên Windows: `mvnw.cmd -B clean verify`, `node --test tools/*.test.mjs`, rồi `build.bat exe`. Giữ bộ cài và bằng chứng trước `build.bat app-image` vì script dọn `out`. Workflow Build complete VNCode baseline dựng từ một SHA cố định, pin Latest trước khi kiểm tra nâng cấp; lượt full Windows 1.6.2 mất hơn 73 phút. Không dùng kết quả SHA khác để khẳng định binary mới đã được kiểm chứng.
 
-Chỉ công bố sau khi kiểm thử và gói cuối đạt. Giữ tag, binary và checksum bất biến; không thêm/ghi đè tài sản sau Publish. Các bản cũ vẫn được giữ; lệnh `prune` không thuộc kiểm chứng thông thường. Xem [bộ nhớ dự án](../PROJECT_MEMORY.md) và bàn giao trước giao dịch thật hoặc thay đổi dữ liệu.
+Chỉ công bố sau kiểm thử và kiểm tra gói cuối. Giữ tag/binary/checksum bất biến, không thêm hoặc ghi đè asset sau Publish. Giữ các bản cũ; không dùng `prune` trong kiểm chứng. Xem [bộ nhớ dự án](../PROJECT_MEMORY.md) và bàn giao trước thao tác dữ liệu thật.

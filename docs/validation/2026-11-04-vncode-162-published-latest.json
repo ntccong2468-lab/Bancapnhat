@@ -1,0 +1,24 @@
+{
+  "version": "1.6.2",
+  "sourceCommit": "3968f8f4bb2239ddf61b48e9f6245086bd4ad529",
+  "releaseId": 433607147,
+  "publishedAt": "2026-11-04T08:22:03Z",
+  "latest": true,
+  "buildRun": 41789324429,
+  "publisherRun": 41798807654,
+  "allPublicAssetsVerified": 16,
+  "updaterVerifiedFromBinary": "1.6.1",
+  "installer": {
+    "bytes": 149170688,
+    "sha256": "15d6f969ea39409b59ca17b1613c801e930f65cefd6d2a5720c2a23f8092ffe0",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.exe"
+  },
+  "msi": {
+    "bytes": 148501765,
+    "sha256": "e2572d78f232d858a6ec7d2085370375822378ba155578c46f5335af0c0685b6",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.msi"
+  },
+  "previousPublicReleasesRetained": true,
+  "sellerPopupObserved": false,
+  "liveMarketplaceMutationsDuringRelease": false
+}

@@ -1,11 +1,20 @@
 # Bộ nhớ dự án VNCode
 
-## Nhãn Ozon, phiếu nhặt hàng và báo cáo phạt — 04.11.2026, chưa phát hành
+## Đã phát hành 1.6.2 lên Latest — 04.11.2026
+
+- Latest `v1.6.2`, release `433607147`, công bố **08:22:03 UTC**; nguồn/tag bất biến `3968f8f4bb2239ddf61b48e9f6245086bd4ad529`. Kế thừa toàn bộ 1.6.1 và sửa `7875708`: nhãn Ozon gốc/nhãn kết hợp, số vận đơn thực trên phiếu nhặt hàng, chuyển báo cáo phạt sang Tài chính. [Bàn giao](validation/2026-11-04-vncode-162-handoff.md), [biên nhận Latest](validation/2026-11-04-vncode-162-published-latest.json).
+- Windows build `41789324429` đạt **3.824 ca, 0 thất bại/lỗi, 2 OS skip**, 520 lớp; preflight 69/69. Native/migration/snapshot, DPAPI, cài/gỡ độc lập và nâng cấp bằng đúng EXE từ 1.6.1 giữ dữ liệu đều đạt. Công cụ Node 138/138 trên nguồn ứng dụng, 141/141 trên nhánh publisher. Full Windows mất hơn 73 phút ở lượt này; không coi log tạm im là treo hay chạy lại các ca đã đạt.
+- Publisher `41798807654` đạt lần đầu. Draft được tạo bằng API với tag/source tường minh, đọc lại ID/tag trước upload. Cả 16 asset tải công khai khớp hash/kích thước; source ZIP 2.646 tệp tương đương sau chuẩn hóa CRLF văn bản (2.417 tệp), nhị phân trùng byte; JAR đúng 1.6.2, có scanit và các lớp lọc nhãn/tài chính mới, không có ô số tự tạo trên vận đơn.
+- Bộ đọc updater lấy từ binary 1.6.1 nhận đúng 1.6.2, MSI/hash/kích thước; chưa quan sát popup hoặc cài trên máy seller. Khi chạy probe độc lập phải đưa đủ dependency JAR của bản đã phát hành vào classpath; lỗi thiếu SLF4J ở probe đã được sửa bằng đúng dependency của binary, không phải lỗi bộ cài.
+- Giữ release cũ, UUID/schema/dữ liệu và phạm vi shop. Không triển khai portal/prototype credential migration, không nhận đơn khách, tạo task nhãn thật, kích hoạt license, mua/tiêu KIZ hoặc gửi lại Catalog trong phát hành. API thật trước build chỉ đối chiếu đọc một nhãn/scanit; 100/1.000 là mock. Nguồn báo cáo phạt Ozon vẫn chưa hỗ trợ khi chưa xác minh hợp đồng API. Installer chưa ký Authenticode; giới hạn security review 1.6.1 vẫn được giữ, không tuyên bố mọi gate bảo mật xanh.
+- Phiên sau lấy tag/source hoặc nhánh `release/vn-code-1.6.2`; không thay asset/tag đã công bố. [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.exe).
+
+## Nhãn Ozon, phiếu nhặt hàng và báo cáo phạt — 04.11.2026, đã đưa vào 1.6.2
 
 - Nhánh `fix/ozon-labels-finance-20261104`, dựa trên mã sau 1.6.1. Giữ nguyên nhãn vận đơn API Ozon, bỏ trang barcode sản phẩm đứng riêng, giữ nhãn kết hợp. Lấy nhãn/nhận đơn theo lô; không thêm ô số tự tạo lên nhãn vận đơn. Xác nhận sau cùng của người dùng thay yêu cầu trung gian `4801` bằng nhãn gốc 100%.
 - PDF nhặt hàng thêm số trên nhãn đúng từng đơn, bốn số cuối nền đen. Trường đúng là `scanit`: đã đối chiếu read-only ở cả v3 get và v4 list với PDF thật; `tracking_number` có thể rỗng, lower/upper có thể khác mã in. Lưu riêng scanit theo fingerprint shop; ghép nhãn qua danh tính, không qua thứ tự trang.
 - Chuyển lý do phạt khỏi Tổng quan vào Công cụ → Báo cáo tài chính → Lý do phạt; giữ dữ liệu/phân trang/theme, dừng polling khi ẩn. Không mở thêm nguồn phạt Ozon chưa kiểm chứng.
-- [Bàn giao, kiểm thử và mẫu PDF tổng hợp](validation/2026-11-04-ozon-labels-finance/README.md). Latest 1.6.1 giữ nguyên; sửa nguồn này chưa nằm trong bộ cài đã phát hành.
+- [Bàn giao, kiểm thử và mẫu PDF tổng hợp](validation/2026-11-04-ozon-labels-finance/README.md). Các sửa này đã nằm trong Latest 1.6.2; giữ nguyên asset 1.6.1 đã công bố.
 
 
 ## Bản gộp 1.6.1 đã phát hành Latest — 04.11.2026

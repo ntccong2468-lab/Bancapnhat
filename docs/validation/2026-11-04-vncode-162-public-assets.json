@@ -1,0 +1,90 @@
+{
+  "version": "1.6.2",
+  "sourceCommit": "3968f8f4bb2239ddf61b48e9f6245086bd4ad529",
+  "releaseId": 433607147,
+  "publishedAt": "2026-11-04T08:22:03Z",
+  "verifiedAt": "2026-11-04T08:22:28.951109+00:00",
+  "publicAssetsVerified": true,
+  "assets": {
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "681f8e79f157ad0fab2c60da93cd4688518273265a4daef7d27a534351c7b079",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/asset-manifest.json"
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "b64c6f0ab82d4f4ee2f9d8a2e32afa62b532707168e0ff5b79cb5e0c9c3ca335",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/build-info.json"
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "6fe7b0b2634bc1b9356bea9bd9cc7e19fc78c651dc7e9f101bcd307f547f5f58",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/gs1-smoke.json"
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "151113967a76911286dca01c9beb4373898fff4f6d40e3d50c9a814fea89bd79",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/native-smoke.json"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "f71e9f3558de05eff61ae14923d614902a484e2a2625530859536ae8f771ba81",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/previous-baseline.json"
+    },
+    "release-notes.md": {
+      "bytes": 2674,
+      "sha256": "bf3834d9f9662d62ed549596c8d6ddd6a48568e860eeac1ee99ef4e7ba959922",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/release-notes.md"
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "7891e7b357a291f8cadc4c3bfe801351535a40799904b6e98d81e7800d6da680",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/SHA256SUMS"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "94bb3a2165505d9c6868ace7552ee199f9926893c44b8aa5594e74d6f7b44d68",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/side-by-side-smoke.json"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "91d1a300f6739d503032f16d323426ec453666a070e6b7d431a21beded0d83c9",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/upgrade-baseline-smoke.json"
+    },
+    "VN-code-1.6.2-history.bundle": {
+      "bytes": 31759881,
+      "sha256": "8977fd7185bba4f3d262b15a125e65aa6f81ff15ad778a3481cba90d415f1992",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-history.bundle"
+    },
+    "VN-code-1.6.2-source.zip": {
+      "bytes": 25720989,
+      "sha256": "a0717602db2eb2ba9f39aac83d6dec09516847ac34aec695bd2695c6551fa9f6",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-source.zip"
+    },
+    "VN-code-1.6.2-verification.zip": {
+      "bytes": 2348680,
+      "sha256": "b1bc29e57e01244001afb553ea50b9ee2c9198c81aa410f5a583f2afe416dbc2",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-verification.zip"
+    },
+    "VN-code-1.6.2-Windows-x64.exe": {
+      "bytes": 149170688,
+      "sha256": "15d6f969ea39409b59ca17b1613c801e930f65cefd6d2a5720c2a23f8092ffe0",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.exe"
+    },
+    "VN-code-1.6.2-Windows-x64.msi": {
+      "bytes": 148501765,
+      "sha256": "e2572d78f232d858a6ec7d2085370375822378ba155578c46f5335af0c0685b6",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.msi"
+    },
+    "VN-code-1.6.2-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "43d74274306c4cfe7d6f36cb17874eddfce2316e1b470c269d277be1b2c4ab97",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.sha256"
+    },
+    "VN-code-1.6.2-Windows-x64.zip": {
+      "bytes": 148090964,
+      "sha256": "335c541625f640ac040b607d89fe827b4f56d0a5d2bfe71d2952f83a53f58e47",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.zip"
+    }
+  }
+}

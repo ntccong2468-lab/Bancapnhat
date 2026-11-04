@@ -208,5 +208,7 @@
     }
   ],
   "windowsInstaller": "NOT RUN",
-  "published": false
+  "published": false,
+  "scope": "Pre-packaging verification at fix commit 7875708; Windows and publication followed in 1.6.2.",
+  "releaseFollowup": "../2026-11-04-vncode-162-published-latest.json"
 }

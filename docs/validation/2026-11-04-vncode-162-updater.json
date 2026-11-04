@@ -1,0 +1,11 @@
+{
+  "installedBinaryVersion": "1.6.1",
+  "configuredDefaultSource": "https://github.com/ntccong2468-lab/Bancapnhat",
+  "manifestPublicKeyPinned": false,
+  "latestVersion": "1.6.2",
+  "updateAvailable": true,
+  "selectedDownload": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.msi",
+  "sha256": "e2572d78f232d858a6ec7d2085370375822378ba155578c46f5335af0c0685b6",
+  "size": 148501765,
+  "scope": "Published 1.6.1 updater parses public GitHub metadata; no installation or seller/license API mutation"
+}
