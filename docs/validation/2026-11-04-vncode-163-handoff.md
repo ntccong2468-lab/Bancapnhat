@@ -4,6 +4,8 @@ Người dùng đã duyệt bản xem trước và yêu cầu áp dụng cùng s
 
 Ứng viên ban đầu `6de9c73f34c429bfac0ba2af5ac4ea91538c8af1` / build `41895958691` **đã hủy**, vì người dùng yêu cầu bổ sung ghép PDF/KIZ trước phát hành. Không được xuất bản run này; pin nguồn/build mới sau commit. Tool publisher kiểm144/144; Latest vẫn1.6.2.
 
+Nguồn ứng dụng cuối đã commit/push: `14a10498951e50ffb3d2603e88f5bfb8d6c15b68`; Windows full build `41902237002` bắt đầu 19:59:24 UTC. Publisher đã repin đúng commit/run này; chỉ được chạy sau khi toàn bộ gate thành công.
+
 Bổ sung sau chốt UI: sort vận đơn across batch theo WB, đặt KIZ kết hợp ngay sau đúng vận đơn, không thay content/dimension carrier. KIZ bị từ chối vẫn in từ reservation đúng đơn theo yêu cầu mới; giữ API rejection riêng. Nhận không KIZ chỉ khi fresh Ozon cho phép và không có mandatory mark; pending/foreign/429 giữ nguyên cơ chế đối soát. Child bị từ chối không chặn child hợp lệ.
 
 [PDF thật mới](2026-11-04-vncode-163-ozon-paired-pdf.json): 25 vận đơn + 13 KIZ gilet, 38 trang, 2 trang picking;2native task/0individual;6.999s export/9.401s end-to-end. 13DataMatrix khớp reservation độc lập,25carrierbyte-identical,sort/picking/scanit đạt. 12đơn khác danh mục không ghép mã gilet. File/user raw KIZ và API data nằm riêng ngoàiGit; không đưa vào source ZIP. Không claim Ozon đã chấp nhận13KIZ mới; đây là local combined print của đơn đã nhận.
