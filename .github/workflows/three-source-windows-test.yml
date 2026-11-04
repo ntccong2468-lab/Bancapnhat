@@ -1,0 +1,32 @@
+name: Three Source Windows Trial
+on:
+  push:
+    branches:
+      - test/three-source-znack-162-20261104
+  workflow_dispatch:
+jobs:
+  build-windows:
+    runs-on: windows-2022
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: oracle
+          java-version: '25'
+      - name: Verify entire VN Code application
+        shell: cmd
+        run: mvnw.cmd -B clean verify
+      - name: Package isolated test EXE
+        shell: cmd
+        env:
+          VNCODE_BUILD_PROFILE: znack-registration-test
+          VNCODE_REUSE_VERIFIED_BUILD: 'true'
+        run: build.bat exe
+      - name: Upload test installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: VNCode-Three-Source-Windows-Test
+          path: out/*.exe
+          if-no-files-found: error
+          retention-days: 14
