@@ -17,6 +17,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
     private final Set<String> unprinted=new HashSet<>();
     private final Map<String,List<Integer>> pages=new HashMap<>();
     private final Map<String,PdfDocument> documents=new HashMap<>();
+    private final Map<PdfDocument,File> sourceFiles=new HashMap<>();
     private final List<Path> temporaryFiles=new ArrayList<>();
     private int rejectedSplits;
     private final int maxRejectedSplits;
@@ -72,12 +73,12 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
                 Path file=Files.createTempFile("vncode-ozon-label-selected-",".pdf");temporaryFiles.add(file);
                 OzonPrintTiming.isolatedLabel();long started=OzonPrintTiming.tick();
                 try{service.downloadIsolatedPdf(shop,number,file.toFile());}finally{OzonPrintTiming.add(OzonPrintTiming.Stage.LABEL_NETWORK,started);}
-                var pdf=new PdfDocument(new PdfReader(file.toFile()));documents.put(number,pdf);
-                return new OzonPrintBundleService.WholeCarrierBatch(pdf,java.util.stream.IntStream.rangeClosed(1,pdf.getNumberOfPages()).boxed().toList(),List.of(number),Set.of());
+                var pdf=new PdfDocument(new PdfReader(file.toFile()));documents.put(number,pdf);sourceFiles.put(pdf,file.toFile());
+                return new OzonPrintBundleService.WholeCarrierBatch(pdf,file.toFile(),java.util.stream.IntStream.rangeClosed(1,pdf.getNumberOfPages()).boxed().toList(),List.of(number),Set.of());
             }
             var retained=group.stream().filter(n->!unprinted.contains(n)).flatMap(n->pages.getOrDefault(n,List.of()).stream()).distinct().sorted().toList();
             PdfDocument pdf=group.stream().map(documents::get).filter(Objects::nonNull).findFirst().orElse(null);
-            return new OzonPrintBundleService.WholeCarrierBatch(pdf,retained,group,group.stream().filter(unprinted::contains).collect(java.util.stream.Collectors.toSet()));
+            return new OzonPrintBundleService.WholeCarrierBatch(pdf,sourceFiles.get(pdf),retained,group,group.stream().filter(unprinted::contains).collect(java.util.stream.Collectors.toSet()));
         }
     }
     private List<String> groupFor(Shop shop,String number)throws IOException {
@@ -131,6 +132,7 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
             if(result.file()==null){loaded.add(group);return;}
         }
         var pdf=new PdfDocument(new PdfReader(file.toFile()));
+        sourceFiles.put(pdf,file.toFile());
         boolean retained=false;
         try {
             if(legacy)pages.put(group.getFirst(),java.util.stream.IntStream.rangeClosed(1,pdf.getNumberOfPages()).boxed().toList());
@@ -139,10 +141,12 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
                 var members=new OzonLabelRepository().taskPostings(shop.getId(),receipt.taskId());
                 if(entireTask&&result!=null&&result.wholeTaskConfirmed()&&new HashSet<>(members).equals(new HashSet<>(group))){
                     var selectedPages=java.util.stream.IntStream.rangeClosed(1,pdf.getNumberOfPages()).boxed().toList();
-                    whole.put(group,new OzonPrintBundleService.WholeCarrierBatch(pdf,selectedPages,group,group.stream().filter(unprinted::contains).collect(java.util.stream.Collectors.toSet())));
+                    whole.put(group,new OzonPrintBundleService.WholeCarrierBatch(pdf,file.toFile(),selectedPages,group,group.stream().filter(unprinted::contains).collect(java.util.stream.Collectors.toSet())));
                     group.forEach(number->documents.put(number,pdf));retained=true;return;
                 }
-                var postings=new OzonPostingRepository().findMany(shop.getId(),members);
+                Map<String,OzonPostingDto> postings;
+                try{postings=OzonPostingTrackingStore.withLabelNumbers(shop,new OzonPostingRepository().findMany(shop.getId(),members));}
+                catch(java.sql.SQLException error){throw new IOException("OZON_TRACKING_READ_FAILED",error);}
                 var selectedNumbers=new HashSet<>(group);
                 var detected=new HashMap<String,List<Integer>>();boolean verified=true;
                 long identityStarted=OzonPrintTiming.tick();
@@ -162,11 +166,11 @@ final class OzonBatchLabelDownloader implements OzonPrintBundleService.OfficialL
                 pages.putAll(detected);
             }
             group.forEach(number->documents.put(number,pdf));loaded.add(group);retained=true;
-        } finally {if(!retained)pdf.close();}
+        } finally {if(!retained){sourceFiles.remove(pdf);pdf.close();}}
     }
     @Override public void close() {
         for(var pdf:new HashSet<>(documents.values()))try{pdf.close();}catch(RuntimeException ignored){}
         for(var file:temporaryFiles)try{Files.deleteIfExists(file);}catch(IOException ignored){}
-        documents.clear();pages.clear();temporaryFiles.clear();loaded.clear();whole.clear();isolated.clear();failed.clear();unprinted.clear();
+        documents.clear();sourceFiles.clear();pages.clear();temporaryFiles.clear();loaded.clear();whole.clear();isolated.clear();failed.clear();unprinted.clear();
     }
 }

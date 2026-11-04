@@ -1,0 +1,13 @@
+{
+  "kind": "read-only-live",
+  "timeUtc": "2026-11-04T06:17:07.158657+00:00",
+  "detailEndpoint": "/v3/posting/fbs/get",
+  "detailHttp": 200,
+  "detailScanitMatchesActualLabel": true,
+  "batchEndpoint": "/v4/posting/fbs/list",
+  "batchHttp": 200,
+  "selectedPostingFound": true,
+  "batchScanitMatchesActualLabel": true,
+  "mutations": 0,
+  "labelSource": "previously downloaded real official PDF"
+}

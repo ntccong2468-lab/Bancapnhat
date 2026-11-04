@@ -21,6 +21,7 @@ import java.util.Set;
 final class OzonPostingTrackingStore {
     private static final Gson JSON = new GsonBuilder().setStrictness(Strictness.STRICT).create();
     private static final String PREFIX = "ozon_posting_tracking.v1:";
+    private static final String LABEL_PREFIX = "ozon_posting_scanit.v1:";
     record Tracking(String number, boolean verified) {}
 
     private OzonPostingTrackingStore() {}
@@ -31,6 +32,13 @@ final class OzonPostingTrackingStore {
         String owner = ListingIdentity.fingerprint(connection, shopId, Marketplace.OZON);
         List<OzonPostingDto> scoped = postings.stream().filter(p -> p.trackingOwner() == null || owner.equals(p.trackingOwner())).toList();
         if (scoped.isEmpty()) return;
+        try(var write=connection.prepareStatement("INSERT INTO app_config(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")) {
+            for(var posting:scoped)if(owner.equals(posting.trackingOwner())&&posting.scanit()!=null){
+                write.setString(1,LABEL_PREFIX+shopId+":"+owner+":"+ListingIdentity.hash(posting.postingNumber()));
+                write.setString(2,posting.scanit());write.addBatch();
+            }
+            write.executeBatch();
+        }
         Set<String> invalid = new HashSet<>();
         Map<String, Tracking> previous = read(connection, shopId, owner, scoped, invalid);
         try (var write = connection.prepareStatement("INSERT INTO app_config(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value")) {
@@ -68,6 +76,30 @@ final class OzonPostingTrackingStore {
                 connection.setAutoCommit(true);
             }
         }
+    }
+
+    /** Persisted native label numbers have a separate key from third-party tracking numbers. */
+    static Map<String,OzonPostingDto> withLabelNumbers(Shop shop,Map<String,OzonPostingDto> postings) throws SQLException {
+        var result=new LinkedHashMap<>(postings);
+        if(shop==null||postings.isEmpty())return result;
+        try(var connection=Database.getConnection()){
+            String owner=ListingIdentity.fingerprint(connection,shop.getId(),Marketplace.OZON);
+            if(!owner.equals(ListingIdentity.fingerprint(shop)))return result;
+            var keys=new LinkedHashMap<String,String>();
+            postings.keySet().forEach(number->keys.put(LABEL_PREFIX+shop.getId()+":"+owner+":"+ListingIdentity.hash(number),number));
+            var all=new ArrayList<>(keys.keySet());
+            for(int start=0;start<all.size();start+=500){
+                var part=all.subList(start,Math.min(start+500,all.size()));
+                try(var query=connection.prepareStatement("SELECT key,value FROM app_config WHERE key IN ("+String.join(",",java.util.Collections.nCopies(part.size(),"?"))+")")){
+                    for(int i=0;i<part.size();i++)query.setString(i+1,part.get(i));
+                    try(var rows=query.executeQuery()){while(rows.next()){
+                        String number=keys.get(rows.getString(1)),value=rows.getString(2);
+                        if(value!=null&&value.matches("[A-Za-z0-9-]{6,128}"))result.put(number,postings.get(number).withScanit(value));
+                    }}
+                }
+            }
+        }
+        return result;
     }
 
     private static Map<String, Tracking> read(Connection connection, int shopId, String owner,

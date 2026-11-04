@@ -522,13 +522,20 @@ class OzonPrintBundleServiceTest {
         assertTrue(result.successful().isEmpty());assertEquals(java.util.Set.of("POST-1","POST-2"),result.waiting());assertEquals(result.waiting(),result.failures().keySet());assertEquals("0",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));
     }
 
-    @Test void wholeOfficialTaskIsPreservedAndOnlyVerifiedKizLabelsAreAppendedAfterIt()throws Exception {
+    @Test void wholeTaskIsDownloadedOnceAndExportsOnlyShippingAndVerifiedCombinedLabels()throws Exception {
         seedPosting(1);seedValidatedExemplar(RAW_KIZ);seedUnmarkedPosting("POST-2","SKU-2","offer-2");
-        var source=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(officialPdf.toFile()));
+        var batchFile=temporaryDirectory.resolve("whole-source.pdf");
+        try(var original=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(officialPdf.toFile()));
+            var batch=new PdfDocument(new PdfWriter(batchFile.toFile()))){
+            // Product page first, then two shipping pages and the second product label.
+            original.copyPagesTo(List.of(2,1,1,2),batch);
+        }
+        var source=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(batchFile.toFile()));
+        var batches=new java.util.concurrent.atomic.AtomicInteger();
         var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
             public java.io.File download(Shop owner,String number,java.io.File target){throw new AssertionError("No per-posting label downloads");}
             public boolean supportsWholeBatches(){return true;}
-            public OzonPrintBundleService.WholeCarrierBatch wholeBatch(Shop owner,String number){return new OzonPrintBundleService.WholeCarrierBatch(source,List.of(1,2),List.of("POST-1","POST-2"),java.util.Set.of());}
+            public OzonPrintBundleService.WholeCarrierBatch wholeBatch(Shop owner,String number){batches.incrementAndGet();return new OzonPrintBundleService.WholeCarrierBatch(source,batchFile.toFile(),List.of(1,2,3,4),List.of("POST-1","POST-2"),java.util.Set.of());}
             public void close(){source.close();}
         };
         var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
@@ -536,7 +543,23 @@ class OzonPrintBundleServiceTest {
         var labels=temporaryDirectory.resolve("whole-with-kiz.pdf");
         var result=exporter.exportRequested(shop,List.of("POST-1","POST-2"),labels.toFile(),temporaryDirectory.resolve("whole-with-kiz-pick.pdf").toFile(),null,java.util.Map.of("POST-2","MAPPING_MISSING"));
         assertEquals(List.of("POST-1","POST-2"),result.successful());assertEquals(1,result.kizPages());assertEquals(3,result.totalPages());assertEquals(java.util.Set.of("POST-2"),result.carrierOnly().keySet());
-        try(var output=Loader.loadPDF(labels.toFile())){assertEquals(3,output.getNumberOfPages());assertPageMillimeters(output,2,58,40);}
+        assertEquals(1,batches.get(),"Keep the grouped download flow even without KIZ for one posting");
+        try(var output=Loader.loadPDF(labels.toFile())){
+            assertEquals(3,output.getNumberOfPages());assertPageMillimeters(output,2,58,40);
+            assertFalse(new PDFTextStripper().getText(output).contains("Official Ozon product label"));
+            assertTrue(pageText(output,0).contains("2345"));
+            assertTrue(pageText(output,1).contains("2345"));
+            assertTrue(pageText(output,0).contains("shipping"));assertTrue(pageText(output,1).contains("shipping"));
+            assertEquals(PRODUCT_BARCODE,decodeProductBarcode(output,2,203));
+        }
+        try(var official=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(batchFile.toFile()));
+            var output=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(labels.toFile()))){
+            // Copy the original vector label: large white last-four digits, black background,
+            // barcode geometry and original 58x40 mm media all survive without reconstruction.
+            assertArrayEquals(official.getPage(2).getContentBytes(),output.getPage(1).getContentBytes());
+            assertArrayEquals(official.getPage(3).getContentBytes(),output.getPage(2).getContentBytes());
+            assertEquals(official.getPage(2).getPageSize().toString(),output.getPage(1).getPageSize().toString());
+        }
         assertEquals("CONSUMED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("2",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));assertTrue(source.isClosed());
     }
 
@@ -731,29 +754,37 @@ class OzonPrintBundleServiceTest {
     }
 
     @Test
-    void printAllOmitsProductLabelOnlyForPostingWithCombinedKizCoverage() throws Exception {
+    void printAllOmitsStandaloneProductLabelsIncludingPostingsWithoutKiz() throws Exception {
         seedPosting(1);
         seedAcceptedExemplars(List.of(RAW_KIZ));
         seedUnmarkedPosting("POST-2", "SKU-2", "offer-blue-68");
         new OzonProductKizPolicyRepository().setRequired(1, "SKU-2", false);
+        new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto("POST-2-PRODUCT",
+                "offer-blue-68","SKU-2","Product SKU-2","",false,"",List.of("OZN0000002"))),"fixture");
         Path labels = temporaryDirectory.resolve("mixed-labels.pdf");
         Path picking = temporaryDirectory.resolve("mixed-picking.pdf");
         var progress = new java.util.ArrayList<Integer>();
 
-        var result = service(new AtomicBoolean()).exportAll(
+        var exporter = new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{ throw new AssertionError("Do not prepare an accepted or exempt posting"); },
+                (owner,number,target)->{
+                    if(number.equals("POST-2")) writeOfficialTwoPagePdf(target.toPath(), "OZN0000002");
+                    else Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);
+                    return target;
+                });
+        var result = exporter.exportAll(
                 shop, List.of("POST-1", "POST-2"), labels.toFile(), picking.toFile(), progress::add);
 
         assertEquals(2, result.postingCount());
         assertEquals(1, result.kizPages());
-        assertEquals(4, result.totalPages());
+        assertEquals(3, result.totalPages());
         assertEquals(List.of(1, 2), progress);
         try (PDDocument document = Loader.loadPDF(labels.toFile())) {
-            assertEquals(4, document.getNumberOfPages());
+            assertEquals(3, document.getNumberOfPages());
             assertTrue(pageText(document, 0).contains("Official Ozon shipping page"));
             assertEquals(PRODUCT_BARCODE, decodeProductBarcode(document, 1, 203));
             assertTrue(pageText(document, 2).contains("Official Ozon shipping page"));
-            assertTrue(pageText(document, 3).contains("Official Ozon product label"),
-                    "A posting without a combined label must retain its official product label");
+            assertFalse(new PDFTextStripper().getText(document).contains("Official Ozon product label"));
         }
         assertEquals("ACCEPTED", scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
     }
@@ -1107,15 +1138,24 @@ class OzonPrintBundleServiceTest {
     }
 
     private static void writeOfficialTwoPagePdf(Path target) throws IOException {
+        writeOfficialTwoPagePdf(target, PRODUCT_BARCODE);
+    }
+
+    private static void writeOfficialTwoPagePdf(Path target, String productBarcode) throws IOException {
         try (PdfDocument document = new PdfDocument(new PdfWriter(target.toFile()))) {
             var shipping = document.addNewPage(new PageSize(LABEL_WIDTH, LABEL_HEIGHT));
             new PdfCanvas(shipping).beginText().setFontAndSize(PdfFontFactory.createFont(), 8)
                     .moveText(10, 10).showText("Official Ozon shipping page 1").endText();
+            // Synthetic Ozon carrier-number suffix, not the last digits of posting_number.
+            new PdfCanvas(shipping).saveState().setFillColor(ColorConstants.BLACK)
+                    .rectangle(102, 69, 53, 23).fill().setFillColor(ColorConstants.WHITE)
+                    .beginText().setFontAndSize(PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.HELVETICA_BOLD),18)
+                    .moveText(108,73).showText("2345").endText().restoreState();
             var product = document.addNewPage(new PageSize(LABEL_WIDTH, LABEL_HEIGHT));
             new PdfCanvas(product).beginText().setFontAndSize(PdfFontFactory.createFont(), 8)
                     .moveText(10, 90).showText("Official Ozon product label").endText();
             Barcode128 barcode = new Barcode128(document);
-            barcode.setCode(PRODUCT_BARCODE);
+            barcode.setCode(productBarcode);
             barcode.setSize(8);
             barcode.setBarHeight(25);
             barcode.setX(0.75f);

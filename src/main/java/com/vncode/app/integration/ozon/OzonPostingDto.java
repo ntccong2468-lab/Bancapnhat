@@ -18,7 +18,16 @@ public record OzonPostingDto(
         boolean shipAvailable,
         List<OzonPostingItemDto> items,
         String trackingNumber,
-        String trackingOwner) {
+        String trackingOwner,
+        String scanit) {
+    /** Older callers have no native Ozon label-number observation. */
+    public OzonPostingDto(String postingNumber, String orderId, String orderNumber, String status, String substatus,
+            String warehouseId, String shipmentAt, String inProcessAt, String lowerBarcode, String upperBarcode,
+            OzonRequirements requirements, List<String> availableActions, boolean shipAvailable, List<OzonPostingItemDto> items,
+            String trackingNumber, String trackingOwner) {
+        this(postingNumber,orderId,orderNumber,status,substatus,warehouseId,shipmentAt,inProcessAt,lowerBarcode,upperBarcode,
+                requirements,availableActions,shipAvailable,items,trackingNumber,trackingOwner,null);
+    }
     /** Compatibility for locally created and older persisted postings with no tracking observation. */
     public OzonPostingDto(String postingNumber, String orderId, String orderNumber, String status, String substatus,
             String warehouseId, String shipmentAt, String inProcessAt, String lowerBarcode, String upperBarcode,
@@ -50,13 +59,22 @@ public record OzonPostingDto(
             else trackingNumber = trackingNumber.strip();
         }
         if (trackingOwner == null || !trackingOwner.matches("[0-9a-f]{64}")) trackingOwner = null;
+        if (scanit != null) {
+            scanit=scanit.strip();
+            if (!scanit.matches("[A-Za-z0-9-]{6,128}")) scanit=null;
+        }
     }
 
     /** Bind a tracking observation to the exact credentials that produced the response. */
     public OzonPostingDto withTrackingOwner(String owner) {
         return new OzonPostingDto(postingNumber, orderId, orderNumber, status, substatus, warehouseId, shipmentAt,
                 inProcessAt, lowerBarcode, upperBarcode, requirements, availableActions, shipAvailable, items,
-                trackingNumber, owner);
+                trackingNumber, owner, scanit);
+    }
+
+    OzonPostingDto withScanit(String labelNumber) {
+        return new OzonPostingDto(postingNumber,orderId,orderNumber,status,substatus,warehouseId,shipmentAt,inProcessAt,
+                lowerBarcode,upperBarcode,requirements,availableActions,shipAvailable,items,trackingNumber,trackingOwner,labelNumber);
     }
 
     public boolean isSinglePackageSupported() {

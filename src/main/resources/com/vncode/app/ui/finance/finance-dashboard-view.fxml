@@ -7,6 +7,8 @@
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -20,6 +22,7 @@
     <children>
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <Label fx:id="titleLabel" styleClass="h2" text="Finance" />
+            <HBox fx:id="summaryActions" alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
             <ProgressIndicator fx:id="loadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0"
                                prefHeight="18.0" prefWidth="18.0" visible="false" />
             <Label fx:id="statusLabel" styleClass="text-muted" text="" />
@@ -30,8 +33,13 @@
             <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#onRefresh" text="Refresh">
                 <graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15" /></graphic>
             </Button>
+            </HBox>
         </HBox>
 
+        <TabPane fx:id="reportTabs" minHeight="0.0" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <Tab fx:id="summaryTab" text="Tổng hợp" closable="false">
+                    <content><VBox spacing="12.0" minHeight="0.0"><children>
         <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="surface finance-filter-bar">
             <Button fx:id="sevenDaysButton" onAction="#onSevenDays" text="7 days" />
             <Button fx:id="thirtyDaysButton" onAction="#onThirtyDays" text="30 days" />
@@ -141,5 +149,12 @@
             </columns>
             <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN" /></columnResizePolicy>
         </TableView>
+                    </children></VBox></content>
+                </Tab>
+                <Tab fx:id="penaltiesTab" text="Lý do phạt" closable="false">
+                    <content><fx:include fx:id="penaltyReport" source="finance-penalty-view.fxml" /></content>
+                </Tab>
+            </tabs>
+        </TabPane>
     </children>
 </VBox>

@@ -1,4 +1,4 @@
-package com.vncode.app.ui.dashboard;
+package com.vncode.app.ui.finance;
 
 import com.vncode.app.config.Database;
 import com.vncode.app.features.finance.AnalyticsDatabase;
@@ -26,14 +26,14 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class DashboardPenaltyUiTest {
+class FinancePenaltyUiTest {
     @TempDir Path data;
     @BeforeAll static void start() { try { Platform.startup(() -> Platform.setImplicitExit(false)); } catch (IllegalStateException alreadyStarted) { } }
     static <T> T fx(Callable<T> work) throws Exception { var task = new FutureTask<>(work); Platform.runLater(task); return task.get(15, TimeUnit.SECONDS); }
     static void await(Callable<Boolean> condition) throws Exception {
         long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
         while (!fx(condition) && System.nanoTime() < until) Thread.sleep(25);
-        assertTrue(fx(condition), "Timed out waiting for dashboard data");
+        assertTrue(fx(condition), "Timed out waiting for finance data");
     }
     static void pulse() throws Exception {
         var done = new java.util.concurrent.CompletableFuture<Void>();
@@ -74,12 +74,24 @@ class DashboardPenaltyUiTest {
         }
         var previousLanguage = I18nService.getInstance().getCurrentLanguage();
         var previousTheme = ThemeService.getCurrentTheme();
-        var loader = fx(() -> { I18nService.getInstance().setLanguage(AppLanguage.VI); return FxmlViewLoader.loader(DashboardController.class, "dashboard-view.fxml"); });
+        var loader = fx(() -> { I18nService.getInstance().setLanguage(AppLanguage.VI); return FxmlViewLoader.loader(FinanceDashboardController.class, "finance-dashboard-view.fxml"); });
         Parent view = fx(loader::load);
-        DashboardController controller = loader.getController();
+        FinanceDashboardController controller = loader.getController();
+        FinancePenaltyController penaltyController = (FinancePenaltyController) loader.getNamespace().get("penaltyReportController");
+        var tabs = (javafx.scene.control.TabPane) loader.getNamespace().get("reportTabs");
+        var penalties = (javafx.scene.control.Tab) loader.getNamespace().get("penaltiesTab");
+        var summary = (javafx.scene.control.Tab) loader.getNamespace().get("summaryTab");
+        fx(() -> {
+            assertEquals(summary,tabs.getSelectionModel().getSelectedItem());
+            Parent overview=FxmlViewLoader.loader(com.vncode.app.ui.dashboard.DashboardController.class,"dashboard-view.fxml").load();
+            assertNull(overview.lookup("#penaltyTable"),"Penalty report moved out of Overview");
+            assertNotNull(loader.getNamespace().get("dailyTable"),"Original financial summary remains available");
+            tabs.getSelectionModel().select(penalties);
+            return null;
+        });
         Stage stage = fx(() -> { var s = new Stage(); s.setScene(new Scene(view, 940, 510)); ThemeService.applyTheme(s.getScene()); s.show(); return s; });
         try {
-            fx(() -> { controller.setShop(new Shop(1,"Fixture WB","fixture"),true); return null; });
+            fx(() -> { controller.setShop(new Shop(1,"Fixture WB","fixture")); return null; });
             await(() -> ((javafx.scene.control.Label)view.lookup("#penaltyStatusLabel")).getText().contains("Chưa xác minh"));
             assertTrue(fx(() -> ((TableView<?>)view.lookup("#penaltyTable")).getItems().isEmpty()), "Unscoped legacy entries must remain hidden");
             assertTrue(fx(() -> ((javafx.scene.control.Label)((TableView<?>)view.lookup("#penaltyTable")).getPlaceholder()).getText()).contains("Chưa xác minh"));
@@ -108,13 +120,13 @@ class DashboardPenaltyUiTest {
             fx(() -> { ((javafx.scene.control.DatePicker)view.lookup("#penaltyFromDate")).setValue(LocalDate.now().minusDays(29)); return null; });
             await(() -> ((TableView<?>)view.lookup("#penaltyTable")).getItems().size() == 50);
             try (var c = Database.getConnection(); var s = c.createStatement()) { s.execute("UPDATE shops SET api_key='new-fixture' WHERE id=1"); }
-            fx(() -> { controller.setShop(new Shop(1,"Fixture WB","new-fixture"),true); return null; });
+            fx(() -> { controller.setShop(new Shop(1,"Fixture WB","new-fixture")); return null; });
             await(() -> ((javafx.scene.control.Label)view.lookup("#penaltyStatusLabel")).getText().contains("Chưa xác minh"));
             assertTrue(fx(() -> ((TableView<?>)view.lookup("#penaltyTable")).getItems().isEmpty()), "A new key at the same shop ID must not inherit entries");
             var toPicker = fx(() -> (javafx.scene.control.DatePicker)view.lookup("#penaltyToDate"));
             assertEquals(LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/uuuu")), fx(() -> toPicker.getConverter().toString(toPicker.getValue())));
             assertNull(fx(() -> toPicker.getConverter().fromString("31/02/2026")), "Invalid dates must not silently roll forward");
-            fx(() -> { controller.setShop(new Shop(2,"Fixture Ozon",com.vncode.app.integration.marketplace.Marketplace.OZON,"123","fixture"),true); return null; });
+            fx(() -> { controller.setShop(new Shop(2,"Fixture Ozon",com.vncode.app.integration.marketplace.Marketplace.OZON,"123","fixture")); return null; });
             await(() -> ((javafx.scene.control.Label)view.lookup("#penaltyStatusLabel")).getText().contains("Chưa hỗ trợ"));
             assertTrue(fx(() -> ((TableView<?>)view.lookup("#penaltyTable")).getItems().isEmpty()), "Do not show legacy rows after switching shop");
             String syncStatus = fx(() -> ((javafx.scene.control.Label)view.lookup("#penaltyStatusLabel")).getText());
@@ -156,25 +168,30 @@ class DashboardPenaltyUiTest {
             }
             var newWb = new Shop(1,"Fixture WB","new-fixture");
             store.request(newWb, LocalDate.now().minusDays(29), LocalDate.now(), java.time.Instant.now());
-            fx(() -> { I18nService.getInstance().setLanguage(AppLanguage.VI); controller.applyTranslations(); controller.setShop(newWb,true); return null; });
+            fx(() -> { I18nService.getInstance().setLanguage(AppLanguage.VI); controller.applyTranslations(); controller.setShop(newWb); return null; });
             await(() -> ((javafx.scene.control.Label)view.lookup("#penaltyStatusLabel")).getText().contains("Đã yêu cầu"));
-            var field = DashboardController.class.getDeclaredField("penaltyPoll"); field.setAccessible(true);
-            fx(() -> { controller.setShop(null,false); return null; });
-            assertEquals(javafx.animation.Animation.Status.STOPPED, fx(() -> ((javafx.animation.PauseTransition)field.get(controller)).getStatus()), "Closing workspace must stop polling");
+            var field = FinancePenaltyController.class.getDeclaredField("penaltyPoll"); field.setAccessible(true);
+            fx(() -> { tabs.getSelectionModel().select(summary); return null; });
+            assertEquals(javafx.animation.Animation.Status.STOPPED,fx(() -> ((javafx.animation.PauseTransition)field.get(penaltyController)).getStatus()),"Hidden finance tab stops polling");
+            fx(() -> { tabs.getSelectionModel().select(penalties); return null; });
+            await(() -> ((javafx.scene.control.Label)view.lookup("#penaltyStatusLabel")).getText().contains("Đã yêu cầu"));
+            fx(() -> { controller.dispose(); return null; });
+            assertEquals(javafx.animation.Animation.Status.STOPPED, fx(() -> ((javafx.animation.PauseTransition)field.get(penaltyController)).getStatus()), "Closing workspace must stop polling");
         } finally {
-            fx(() -> { controller.setShop(null,false); stage.close(); I18nService.getInstance().setLanguage(previousLanguage); ThemeService.setCurrentTheme(previousTheme); return null; });
+            fx(() -> { controller.dispose(); stage.close(); I18nService.getInstance().setLanguage(previousLanguage); ThemeService.setCurrentTheme(previousTheme); return null; });
             com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+            com.vncode.app.testsupport.FinanceTestCleanup.detachAndAwait();
             System.clearProperty("vncode.appdata.dir");
         }
     }
 
     private static void capture(Scene scene, String theme, AppLanguage language, int[] size) throws Exception {
-        String dir = System.getProperty("vncode.dashboard.capture.dir");
+        String dir = System.getProperty("vncode.finance.penalty.capture.dir");
         if (dir == null || language != AppLanguage.VI) return;
         var image = scene.snapshot(null);
         var png = new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);
         image.getPixelReader().getPixels(0,0,(int)image.getWidth(),(int)image.getHeight(),javafx.scene.image.PixelFormat.getIntArgbInstance(),((java.awt.image.DataBufferInt)png.getRaster().getDataBuffer()).getData(),0,(int)image.getWidth());
         Files.createDirectories(Path.of(dir));
-        javax.imageio.ImageIO.write(png,"png",Path.of(dir,"dashboard-"+theme+"-"+size[0]+"x"+size[1]+".png").toFile());
+        javax.imageio.ImageIO.write(png,"png",Path.of(dir,"finance-penalty-"+theme+"-"+size[0]+"x"+size[1]+".png").toFile());
     }
 }

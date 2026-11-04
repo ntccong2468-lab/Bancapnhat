@@ -49,6 +49,11 @@ final class OzonPickingListPdfExporter {
     }
 
     private void export(File target, Shop shop, List<OzonPostingDto> postings) throws IOException {
+        exportBatch(target,shop,postings,null);
+    }
+
+    /** Current PDF observations take precedence over tracking from a different API response. */
+    void exportBatch(File target,Shop shop,List<OzonPostingDto> postings,Map<String,String> carrierNumbers) throws IOException {
         List<OzonPostingDto> safePostings = postings == null ? List.of() : postings.stream()
                 .filter(java.util.Objects::nonNull)
                 .toList();
@@ -61,7 +66,7 @@ final class OzonPickingListPdfExporter {
             document.setMargins(24, 24, 24, 24);
             document.setFont(GenerateBarcode.getArialFont());
             var products = catalog.findBySkus(shop.getId(),safePostings.stream().flatMap(p->p.items().stream()).map(OzonPostingItemDto::sku).distinct().toList());
-            float[] widths = new float[]{30, 115, 60, 200, 100, 35};
+            float[] widths = carrierNumbers==null?new float[]{30,115,60,200,100,35}:new float[]{25,95,48,150,85,28,116};
             Table table = new Table(widths, true);
             table.setWidth(UnitValue.createPercentValue(100));
             header(table, tr("ozon.picking.column.index"));
@@ -70,6 +75,7 @@ final class OzonPickingListPdfExporter {
             header(table, tr("ozon.picking.column.name"));
             header(table, tr("ozon.dashboard.item.article"));
             header(table, tr("fbo.column.quantity"));
+            if(carrierNumbers!=null)header(table,tr("ozon.picking.column.carrier"));
             // Large-table mode flushes completed rows/pages instead of retaining every renderer.
             document.add(table);
             // Images are independent reads. Schedule a bounded window ahead so the existing
@@ -91,12 +97,13 @@ final class OzonPickingListPdfExporter {
                     OzonPostingItemDto item = row.item();
                     OzonProductDto product = products.get(item.sku());
                     table.addCell(cell(String.valueOf(++rowNumber), TextAlignment.CENTER));
-                    table.addCell(postingCell(row.postingNumber(), row.tracking()));
+                    table.addCell(carrierNumbers==null?postingCell(row.postingNumber(),row.tracking()):cell(row.postingNumber(),TextAlignment.LEFT));
                     table.addCell(imageCell(imageObject(product, prefetched, imageObjects)));
                     table.addCell(cell(first(item.name(), product == null ? "" : product.name()), TextAlignment.LEFT));
                     table.addCell(cell(first(
                             product == null ? "" : product.article(), item.offerId()), TextAlignment.LEFT));
                     table.addCell(cell(String.valueOf(item.quantity()), TextAlignment.CENTER, true));
+                    if(carrierNumbers!=null)table.addCell(carrierCell(carrierNumbers.get(row.postingNumber())));
                     if (rowNumber % 32 == 0) table.flush();
                 }
             }
@@ -182,6 +189,20 @@ final class OzonPickingListPdfExporter {
         } else paragraph.add(new Text("\n" + tr("ozon.picking.tracking.missing")).setFontSize(8));
         return new Cell().add(paragraph).setKeepTogether(true)
                 .setTextAlignment(TextAlignment.LEFT).setVerticalAlignment(VerticalAlignment.MIDDLE);
+    }
+
+    private static Cell carrierCell(String number) {
+        Paragraph paragraph=new Paragraph().setFontSize(11);
+        if(number==null||number.isBlank())paragraph.add(new Text(tr("ozon.picking.carrier.unreadable")).setFontSize(8));
+        else {
+            int split=number.length()-4;
+            if(split>=0&&number.substring(split).matches("[0-9]{4}")){
+                paragraph.add(new Text(number.substring(0,split)));
+                paragraph.add(new Text(number.substring(split)).setBold().setFontColor(ColorConstants.WHITE)
+                        .setBackgroundColor(ColorConstants.BLACK,2,1,2,1));
+            }else paragraph.add(new Text(number).setBold());
+        }
+        return new Cell().add(paragraph).setKeepTogether(true).setVerticalAlignment(VerticalAlignment.MIDDLE);
     }
 
     private static Cell cell(String value, TextAlignment alignment, boolean bold) {

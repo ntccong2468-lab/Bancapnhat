@@ -1,0 +1,212 @@
+{
+  "baseCommit": "62e440af59a1fdf80dfe65dbe8165e1529a2df2b",
+  "branch": "fix/ozon-labels-finance-20261104",
+  "execution": "Linux Java 25 / JavaFX Xvfb; synthetic HTTP/SQLite fixtures",
+  "tests": {
+    "tests": 302,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "name": "OzonProductBarcodePageTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonCarrierLabelNumbersTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonPostingTrackingStoreTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonPickingListPdfExporterTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonOfficialLabelSelectorTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonLabelServiceTest",
+      "tests": 52,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonPrintBundleServiceTest",
+      "tests": 45,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonPrintBundleRollbackTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonPrintBatchReadTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonPrintReadinessServiceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonExemplarWorkflowTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonPerUnitShipServiceTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "FinancePenaltyUiTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "FxmlSmokeTest",
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonJsonTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonPostingRepositoryTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "OzonSyncServiceTest",
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "FinancePenaltySyncIntegrationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "FinancePenaltySyncStoreTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "FinancePenaltyRepositoryTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "readOnlyLiveApi": "live-readonly.json",
+  "livePdfReader": {
+    "savedRealPdfUsed": true,
+    "scanitFromLiveApi": true,
+    "exactPostingIdentified": true,
+    "extractedNumberEqualsPrintedCaption": true,
+    "mutations": 0
+  },
+  "benchmarks": [
+    {
+      "synthetic": true,
+      "orders": 100,
+      "pages": 100,
+      "totalMillis": 185,
+      "labelGroups": 1,
+      "isolatedLabels": 0,
+      "httpRequests": 3,
+      "independentSyntheticPageIdentitiesChecked": true,
+      "appVerifiesTaskMembershipAndCounts": true,
+      "nativePageOrderPreserved": true,
+      "appPairsEachPageToKiz": false,
+      "stockMillis": 0,
+      "preparationMillis": 0,
+      "label_networkMillis": 100,
+      "page_identityMillis": 0,
+      "compositionMillis": 8,
+      "pickingMillis": 55
+    },
+    {
+      "synthetic": true,
+      "orders": 1000,
+      "pages": 1000,
+      "totalMillis": 524,
+      "labelGroups": 1,
+      "isolatedLabels": 0,
+      "httpRequests": 3,
+      "independentSyntheticPageIdentitiesChecked": true,
+      "appVerifiesTaskMembershipAndCounts": true,
+      "nativePageOrderPreserved": true,
+      "appPairsEachPageToKiz": false,
+      "stockMillis": 0,
+      "preparationMillis": 0,
+      "label_networkMillis": 69,
+      "page_identityMillis": 0,
+      "compositionMillis": 54,
+      "pickingMillis": 337
+    },
+    {
+      "synthetic": true,
+      "orders": 100,
+      "sourcePages": 200,
+      "outputCarrierPages": 100,
+      "totalMillis": 222,
+      "httpRequests": 3,
+      "carrierContentBytesUnchanged": true
+    }
+  ],
+  "windowsInstaller": "NOT RUN",
+  "published": false
+}

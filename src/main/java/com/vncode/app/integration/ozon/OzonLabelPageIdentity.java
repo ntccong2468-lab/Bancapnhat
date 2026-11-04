@@ -34,7 +34,7 @@ final class OzonLabelPageIdentity implements AutoCloseable {
         this.file=file;this.source=source;
         for(String number:numbers){
             add(number,number);var posting=postings.get(number);
-            if(posting!=null){add(posting.lowerBarcode(),number);add(posting.upperBarcode(),number);}
+            if(posting!=null){add(posting.lowerBarcode(),number);add(posting.upperBarcode(),number);add(posting.scanit(),number);}
         }
         // An identifier containing other characters may overlap another identifier
         // (e.g. ABC and ABC.); retain the longest-first, non-overlapping legacy
@@ -89,8 +89,15 @@ final class OzonLabelPageIdentity implements AutoCloseable {
         catch(NotFoundException unreadable){/* The caller uses a single-posting task instead. */}
     }
     Set<String> matches(String text){
-        var result=new LinkedHashSet<String>();var matcher=(identifiers==null?TOKEN:identifiers).matcher(normalize(text));
-        while(matcher.find())result.addAll(owners.getOrDefault(matcher.group(),Set.of()));return result;
+        String normalized=normalize(text);
+        var result=new LinkedHashSet<String>();addMatches(normalized,result);
+        // The carrier number's final four digits can be a separate text run on a black box.
+        addMatches(normalized.replaceAll("(?<=[\\p{L}\\p{N}])[\\h]+(?=[0-9]{4}(?![\\p{L}\\p{N}-]))", ""),result);
+        return result;
+    }
+    private void addMatches(String text,Set<String> result){
+        var matcher=(identifiers==null?TOKEN:identifiers).matcher(text);
+        while(matcher.find())result.addAll(owners.getOrDefault(matcher.group(),Set.of()));
     }
     static String normalize(String text){
         return Normalizer.normalize(Objects.requireNonNullElse(text,""),Normalizer.Form.NFKC)

@@ -56,6 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -463,10 +464,10 @@ class FxmlSmokeTest {
             }finally {home.dispose();}return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);
     }
-    @Test void realWelcomeRouteContainsPenaltyReportAndTracksShopSwitches() throws Exception {
+    @Test void penaltyReportLivesInFinanceToolsAndTracksShopSwitches() throws Exception {
         try(var c=Database.getConnection();var s=c.createStatement()) {
-            s.execute("INSERT OR REPLACE INTO shops(id,name,marketplace,client_id,api_key) VALUES(81,'Overview A','OZON','81','fixture-a')");
-            s.execute("INSERT OR REPLACE INTO shops(id,name,marketplace,client_id,api_key) VALUES(82,'Overview B','OZON','82','fixture-b')");
+            s.execute("INSERT OR REPLACE INTO shops(id,name,marketplace,client_id,api_key) VALUES(81,'Finance A','OZON','81','fixture-a')");
+            s.execute("INSERT OR REPLACE INTO shops(id,name,marketplace,client_id,api_key) VALUES(82,'Finance B','OZON','82','fixture-b')");
         }
         var task=new java.util.concurrent.FutureTask<Void>(() -> {
             var loader=FxmlViewLoader.loader(HomeController.class,"home-view.fxml");
@@ -479,26 +480,33 @@ class FxmlSmokeTest {
                 nav.show("welcome");assertEquals("welcome",nav.currentRoute());
                 var welcomeField=HomeController.class.getDeclaredField("welcomePane");welcomeField.setAccessible(true);
                 var welcome=(com.vncode.app.ui.dashboard.WelcomePane)welcomeField.get(home);
-                assertNotNull(welcome.lookup("#penaltyTable"),"The actual overview must contain the finance report");
-                assertEquals(6,welcome.lookupAll(".feature-card").size(),"Existing actions must remain available");
-                var controllerField=HomeController.class.getDeclaredField("overviewDashboardController");controllerField.setAccessible(true);
-                var controller=(DashboardController)controllerField.get(home);
-                var selected=DashboardController.class.getDeclaredField("shop");selected.setAccessible(true);
+                assertNull(welcome.lookup("#penaltyTable"),"Overview no longer contains penalty reasons");
+                assertEquals(6,welcome.lookupAll(".feature-card").size(),"Existing actions remain available");
+                var open=HomeController.class.getDeclaredMethod("showFinance");open.setAccessible(true);open.invoke(home);
+                assertEquals("finance",nav.currentRoute());
+                root.applyCss();root.layout();
+                var controllerField=HomeController.class.getDeclaredField("financeDashboardController");controllerField.setAccessible(true);
+                var controller=(com.vncode.app.ui.finance.FinanceDashboardController)controllerField.get(home);
+                var reportField=controller.getClass().getDeclaredField("penaltyReportController");reportField.setAccessible(true);
+                var report=reportField.get(controller);
+                var selected=report.getClass().getDeclaredField("shop");selected.setAccessible(true);
+                var pane=(javafx.scene.control.TabPane)root.lookup("#reportTabs");
+                pane.getSelectionModel().select(1);root.applyCss();root.layout();
+                @SuppressWarnings("unchecked") var table=(TableView<com.vncode.app.features.finance.FinancePenaltyEntry>)root.lookup("#penaltyTable");
+                assertNotNull(table,"Penalty report must be reachable in Finance tools");
                 var select=HomeController.class.getDeclaredMethod("selectShop",Shop.class);select.setAccessible(true);
-                @SuppressWarnings("unchecked") var table=(TableView<com.vncode.app.features.finance.FinancePenaltyEntry>)welcome.lookup("#penaltyTable");
                 var oldRow=new com.vncode.app.features.finance.FinancePenaltyEntry("fixture",java.time.LocalDate.now(),"RUB","fixture","order","product","article","sku",10);
-                select.invoke(home,new Shop(81,"Overview A",com.vncode.app.integration.marketplace.Marketplace.OZON,"81","fixture-a"));
-                assertEquals(81,((Shop)selected.get(controller)).getId());
-                table.getItems().add(oldRow);
-                select.invoke(home,new Shop(82,"Overview B",com.vncode.app.integration.marketplace.Marketplace.OZON,"82","fixture-b"));
-                assertEquals(82,((Shop)selected.get(controller)).getId());
-                assertTrue(table.getItems().isEmpty(),"Old owner rows must clear synchronously");
-                table.getItems().add(oldRow);
-                select.invoke(home,new Shop(82,"Overview B",com.vncode.app.integration.marketplace.Marketplace.OZON,"82","fixture-new-key"));
-                assertEquals("fixture-new-key",((Shop)selected.get(controller)).getApiKey());
-                assertTrue(table.getItems().isEmpty(),"Changing credentials for the same shop must hide old rows synchronously");
-                welcome.resize(600,700);welcome.layout();
-                assertNotNull(welcome.lookup("#penaltyTable"),"Responsive relayout must retain the report");
+                select.invoke(home,new Shop(81,"Finance A",com.vncode.app.integration.marketplace.Marketplace.OZON,"81","fixture-a"));
+                assertEquals(81,((Shop)selected.get(report)).getId());table.getItems().add(oldRow);
+                select.invoke(home,new Shop(82,"Finance B",com.vncode.app.integration.marketplace.Marketplace.OZON,"82","fixture-b"));
+                assertEquals(82,((Shop)selected.get(report)).getId());
+                assertTrue(table.getItems().isEmpty(),"Switching owner clears old rows synchronously");table.getItems().add(oldRow);
+                select.invoke(home,new Shop(82,"Finance B",com.vncode.app.integration.marketplace.Marketplace.OZON,"82","fixture-new-key"));
+                assertEquals("fixture-new-key",((Shop)selected.get(report)).getApiKey());
+                assertTrue(table.getItems().isEmpty(),"A changed key cannot reuse another owner's report");
+                nav.show("welcome");
+                var active=report.getClass().getDeclaredField("active");active.setAccessible(true);
+                assertFalse(active.getBoolean(report),"Leaving Finance stops report polling");
             } finally {home.dispose();}
             return null;
         });Platform.runLater(task);task.get(15,TimeUnit.SECONDS);

@@ -19,25 +19,22 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 
-/** Removes only positively identified product pages already replaced by combined labels. */
+/** Keeps carrier pages, excluding positively identified standalone product labels. */
 final class OzonOfficialLabelSelector {
     private static final int DPI = 203;
-    private static final double MAXIMUM_POINTS = 100 * 72d / 25.4;
-    private static final long MAXIMUM_PIXELS = 1_000_000;
+    private static final long MAXIMUM_PIXELS = 2_000_000;
     private static final Pattern TRANSPORT_TEXT = Pattern.compile(
             "отправлени|маршрут|курьер|сортиров|доставк|получател|пункт\\s+выдачи|"
                     + "заказ\\s*[:№]|shipping|shipment|routing|carrier|\\bposting\\b");
@@ -47,35 +44,57 @@ final class OzonOfficialLabelSelector {
 
     private OzonOfficialLabelSelector() { }
 
-    /** Page numbers are one based. Unknown pages and the first carrier page are always kept. */
-    static List<Integer> retainedPages(File official, PdfDocument source, OzonPostingDto posting,
-            List<OzonExemplarJobRepository.KizBinding> bindings, Map<String, OzonProductDto> products)
-            throws IOException {
-        List<Integer> all = IntStream.rangeClosed(1, source.getNumberOfPages()).boxed().toList();
-        if (all.size() < 2 || bindings.isEmpty()) return all;
-        Set<String> covered = completelyCoveredBarcodes(posting, bindings, products);
-        if (covered.isEmpty()) return all;
+    /**
+     * One local pass over an already downloaded task, independent of KIZ availability.
+     * Page order and task membership do not imply page type. Unknown pages stay intact.
+     */
+    static List<Integer> shippingPages(File official, PdfDocument source, List<Integer> pages,
+            List<OzonPostingDto> postings, Map<String, OzonProductDto> products) throws IOException {
+        List<Integer> all = List.copyOf(pages);
+        Set<String> barcodes = new HashSet<>();
+        Set<String> transportIds = new HashSet<>();
+        for (var posting : postings) {
+            for (String id : List.of(posting.postingNumber(), posting.orderId(), posting.orderNumber(),
+                    posting.lowerBarcode(), posting.upperBarcode())) {
+                if (!id.isBlank()) transportIds.add(id.toLowerCase(Locale.ROOT));
+            }
+            for (var item : posting.items()) {
+                try { barcodes.add(OzonProductLabelBarcode.resolve(item, products.get(item.sku()))); }
+                catch (IOException unresolved) { /* Unknown product pages must not hide carrier labels. */ }
+            }
+        }
+        if (all.isEmpty() || barcodes.isEmpty()) return all;
+
+        // The usual shipping-only batch never needs PDF rasterisation. Text checks are cheap
+        // and shared across the task; PDFBox opens the original file only once if necessary.
+        List<Integer> candidates = new ArrayList<>();
+        Set<Integer> excluded = new HashSet<>();
+        var vectorProducts = new OzonProductBarcodePage(barcodes);
+        for (int page : all) {
+            requireNotInterrupted();
+            try {
+                String text = PdfTextExtractor.getTextFromPage(source.getPage(page)).toLowerCase(Locale.ROOT);
+                if (!TRANSPORT_TEXT.matcher(text).find()
+                        && transportIds.stream().noneMatch(text::contains)) {
+                    if (vectorProducts.matches(source.getPage(page))) excluded.add(page);
+                    else candidates.add(page);
+                }
+            } catch (RuntimeException unknownPage) { /* Keep unreadable pages unchanged. */ }
+        }
+        if (candidates.isEmpty()) return all.stream().filter(page -> !excluded.contains(page)).toList();
 
         // Recognition must not turn an unfamiliar official document into a failed print or
         // remove a shipping page. A failed/unsupported decode therefore preserves the page.
         try (PDDocument document = Loader.loadPDF(official)) {
-            if (document.getNumberOfPages() != all.size()) return all;
+            if (document.getNumberOfPages() != source.getNumberOfPages()) return all;
             PDFRenderer renderer = new PDFRenderer(document);
             renderer.setSubsamplingAllowed(true);
-            List<Integer> retained = new ArrayList<>();
-            retained.add(1);
-            for (int page = 2; page <= all.size(); page++) {
-                if (Thread.currentThread().isInterrupted()) {
-                    throw new IOException("Ozon label selection was interrupted.");
-                }
-                if (!replaceableProductPage(source, document, renderer, page, posting, covered)) {
-                    retained.add(page);
-                }
+            for (int page : candidates) {
+                requireNotInterrupted();
+                if (productPage(document, renderer, page, barcodes)) excluded.add(page);
             }
-            if (Thread.currentThread().isInterrupted()) {
-                throw new IOException("Ozon label selection was interrupted.");
-            }
-            return List.copyOf(retained);
+            requireNotInterrupted();
+            return all.stream().filter(page -> !excluded.contains(page)).toList();
         } catch (IOException | RuntimeException exception) {
             if (Thread.currentThread().isInterrupted()) {
                 throw new IOException("Ozon label selection was interrupted.", exception);
@@ -84,56 +103,24 @@ final class OzonOfficialLabelSelector {
         }
     }
 
-    private static Set<String> completelyCoveredBarcodes(OzonPostingDto posting,
-            List<OzonExemplarJobRepository.KizBinding> bindings, Map<String, OzonProductDto> products) {
-        Map<String, Boolean> coverage = new HashMap<>();
-        Set<Integer> itemIndexes = new HashSet<>();
-        for (OzonPostingItemDto item : posting.items()) {
-            if (!itemIndexes.add(item.itemIndex())) return Set.of();
-            final String barcode;
-            try {
-                barcode = OzonProductLabelBarcode.resolve(item, products.get(item.sku()));
-            } catch (IOException exception) {
-                // Unresolved items might use the same barcode; full coverage is unproven.
-                return Set.of();
-            }
-            Set<Integer> units = new HashSet<>();
-            Set<Long> codes = new HashSet<>();
-            for (var binding : bindings) {
-                if (binding.itemIndex() == item.itemIndex()
-                        && item.productId().equals(binding.productId())
-                        && binding.exemplarIndex() >= 0 && binding.exemplarIndex() < item.quantity()
-                        && binding.kizId() > 0 && binding.rawCode() != null && !binding.rawCode().isBlank()
-                        && codes.add(binding.kizId())) {
-                    units.add(binding.exemplarIndex());
-                }
-            }
-            coverage.merge(barcode, units.size() == item.quantity(), Boolean::logicalAnd);
-        }
-        Set<String> complete = new HashSet<>();
-        coverage.forEach((barcode, value) -> { if (value) complete.add(barcode); });
-        return Set.copyOf(complete);
+    private static void requireNotInterrupted() throws IOException {
+        if (Thread.currentThread().isInterrupted()) throw new IOException("Ozon label selection was interrupted.");
     }
 
-    private static boolean replaceableProductPage(PdfDocument source, PDDocument document,
-            PDFRenderer renderer, int page, OzonPostingDto posting, Set<String> covered) {
+    private static boolean productPage(PDDocument document,
+            PDFRenderer renderer, int page, Set<String> barcodes) {
         java.awt.image.BufferedImage image = null;
         try {
-            if (!compact(document.getPage(page - 1))) return false;
-            String text = PdfTextExtractor.getTextFromPage(source.getPage(page)).toLowerCase(Locale.ROOT);
-            if (TRANSPORT_TEXT.matcher(text).find()) return false;
-            for (String identifier : List.of(posting.postingNumber(), posting.orderId(), posting.orderNumber(),
-                    posting.lowerBarcode(), posting.upperBarcode())) {
-                if (!identifier.isBlank() && text.contains(identifier.toLowerCase(Locale.ROOT))) return false;
-            }
-            image = renderer.renderImageWithDPI(page - 1, DPI, ImageType.GRAY);
+            float dpi = recognitionDpi(document.getPage(page - 1));
+            if (dpi == 0) return false;
+            image = renderer.renderImageWithDPI(page - 1, dpi, ImageType.GRAY);
             if ((long) image.getWidth() * image.getHeight() > MAXIMUM_PIXELS) return false;
             BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(new BufferedImageLuminanceSource(image)));
             if (containsTransportMatrix(bitmap)) return false;
             Result[] decoded = new GenericMultipleBarcodeReader(new MultiFormatReader())
                     .decodeMultiple(bitmap, DECODE_HINTS);
             return decoded.length > 0 && Arrays.stream(decoded).allMatch(result ->
-                    result.getBarcodeFormat() == BarcodeFormat.CODE_128 && covered.contains(result.getText()));
+                    result.getBarcodeFormat() == BarcodeFormat.CODE_128 && barcodes.contains(result.getText()));
         } catch (IOException | NotFoundException | RuntimeException exception) {
             return false;
         } finally {
@@ -175,14 +162,15 @@ final class OzonOfficialLabelSelector {
         return false;
     }
 
-    private static boolean compact(PDPage page) {
+    private static float recognitionDpi(PDPage page) {
         double unit = page.getUserUnit();
-        if (!Double.isFinite(unit) || unit <= 0) return false;
+        if (!Double.isFinite(unit) || unit <= 0) return 0;
         // PDFRenderer allocates from raw CropBox dimensions even when UserUnit < 1.
-        double width = page.getCropBox().getWidth() * Math.max(1d, unit);
-        double height = page.getCropBox().getHeight() * Math.max(1d, unit);
-        return Double.isFinite(width) && Double.isFinite(height) && width > 0 && height > 0
-                && width <= MAXIMUM_POINTS && height <= MAXIMUM_POINTS
-                && Math.ceil(width * DPI / 72d) * Math.ceil(height * DPI / 72d) <= MAXIMUM_PIXELS;
+        double width = page.getCropBox().getWidth() * Math.max(1d, unit) / 72d;
+        double height = page.getCropBox().getHeight() * Math.max(1d, unit) / 72d;
+        if (!Double.isFinite(width * height) || width <= 0 || height <= 0) return 0;
+        // Include large Ozon product labels (100x150 mm and A4), keeping bounded memory.
+        double dpi = Math.min(DPI, Math.sqrt((MAXIMUM_PIXELS - 50_000d) / (width * height)));
+        return dpi < 90 || !Double.isFinite(dpi) ? 0 : (float)dpi;
     }
 }

@@ -25,7 +25,7 @@ import java.util.function.IntConsumer;
 
 /**
  * Idempotent Ozon print orchestration: reserve KIZ locally, preserve official shipping pages,
- * replace redundant product labels with combined KIZ labels and create a separate picking list.
+ * exclude standalone product labels, append combined KIZ labels and create a separate picking list.
  * KIZ is never submitted to Ozon.
  */
 public final class OzonPrintBundleService {
@@ -235,6 +235,7 @@ public final class OzonPrintBundleService {
         File officialStaging = null;
         File labelStaging = null;
         File pickingStaging = null;
+        Map<String,String> carrierNumbers=context==null?new LinkedHashMap<>():context.carrierNumbers;
         try {
             if(destination==null)labelStaging = AtomicFilePublisher.stagingFile(labelTarget, ".bundle.pdf");
             if (pickingTarget != null) {
@@ -250,6 +251,7 @@ public final class OzonPrintBundleService {
                 long composeStarted=OzonPrintTiming.tick();
                 try {
                     int first=destination.getNumberOfPages()+1;
+                    carrierNumbers.putAll(OzonCarrierLabelNumbers.read(shop,null,carrier.source(),List.of(carrier.page()),Map.of(safePosting,posting)));
                     carrier.source().copyPagesTo(carrier.page(),carrier.page(),destination);
                     if(kizLabels.append(destination,shop,posting,bindings,products)!=bindings.size())throw new IOException("The Ozon KIZ label page count is incomplete.");
                     for(int page=first;page<=destination.getNumberOfPages();page++)destination.getPage(page).flush();
@@ -259,12 +261,12 @@ public final class OzonPrintBundleService {
                 officialStaging=AtomicFilePublisher.stagingFile(labelTarget,".official.pdf");
                 downloader.download(shop,safePosting,officialStaging);
                 long composeStarted=OzonPrintTiming.tick();
-                try { officialPages=destination==null?compose(officialStaging,labelStaging,shop,posting,bindings,products):composeInto(officialStaging,destination,shop,posting,bindings,products); }
+                try { officialPages=destination==null?compose(officialStaging,labelStaging,shop,posting,bindings,products,carrierNumbers):composeInto(officialStaging,destination,shop,posting,bindings,products,carrierNumbers); }
                 finally { OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,composeStarted); }
             }
             if (pickingStaging != null) {
                 long pickingStarted=OzonPrintTiming.tick();
-                try { pickingLists.export(pickingStaging, shop, posting); }
+                try { pickingLists.exportBatch(pickingStaging, shop, List.of(posting),carrierNumbers); }
                 finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted); }
             }
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
@@ -352,7 +354,7 @@ public final class OzonPrintBundleService {
             requireNotInterrupted();
             List<OzonPostingDto> current = safePostings.stream().map(context.postings::get).toList();
             long pickingStarted=OzonPrintTiming.tick();
-            try { pickingLists.exportBatch(pickingStaging, frozenShop, current); }
+            try { pickingLists.exportBatch(pickingStaging, frozenShop, current,context.carrierNumbers); }
             finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted); }
             requireNotInterrupted();
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
@@ -462,6 +464,7 @@ public final class OzonPrintBundleService {
                     long copiedAt=OzonPrintTiming.tick();
                     try {
                         if(direct!=null){
+                            context.carrierNumbers.putAll(OzonCarrierLabelNumbers.read(frozen,null,direct.source(),List.of(direct.page()),Map.of(number,context.postings.get(number))));
                             direct.source().copyPagesTo(direct.page(),direct.page(),destination);
                             destination.getLastPage().flush();
                         }else try(var source=new PdfDocument(new PdfReader(new java.io.ByteArrayInputStream(partBytes)))) {
@@ -476,7 +479,7 @@ public final class OzonPrintBundleService {
             requireNotInterrupted();
             var printed=successful.stream().map(context.postings::get).toList();
             long pickingStarted=OzonPrintTiming.tick();
-            try{pickingLists.exportBatch(pickingStaging,frozen,printed);}
+            try{pickingLists.exportBatch(pickingStaging,frozen,printed,context.carrierNumbers);}
             finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted);}
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             List<String> frozenSuccess=List.copyOf(successful);var frozenKizSuccess=Map.copyOf(successfulWithKiz);
@@ -491,7 +494,7 @@ public final class OzonPrintBundleService {
         }
     }
 
-    /** Preserve the whole official task PDF, then append independently identified KIZ labels.
+    /** Filter the downloaded task once, then append independently identified KIZ labels.
      * No positional assumption links an opaque transport page to a KIZ. */
     private AvailableBatchExportResult exportWholeRequested(Shop shop,List<String> selected,File labelTarget,File pickingTarget,
             IntConsumer completed,Map<String,String> initialCarrierOnly,PrintContext context,boolean containsNewPrint)throws IOException {
@@ -546,9 +549,18 @@ public final class OzonPrintBundleService {
                     var printed=batch.members().stream().filter(n->!batch.unprinted().contains(n)).toList();
                     if(!printed.isEmpty()&&(batch.source()==null||batch.pages().isEmpty()))throw new IOException("OZON_LABEL_BATCH_INVALID_PDF");
                     long copied=OzonPrintTiming.tick();
-                    try{if(batch.source()!=null){batch.source().copyPagesTo(batch.pages(),destination);destination.flushCopiedObjects(batch.source());}}
+                    List<Integer> shippingPages=List.of();
+                    try{if(batch.source()!=null){
+                        shippingPages=OzonOfficialLabelSelector.shippingPages(batch.file(),batch.source(),batch.pages(),
+                                printed.stream().map(context.postings::get).toList(),context.products);
+                        if(!printed.isEmpty()&&shippingPages.isEmpty())throw new IOException("OZON_LABEL_BATCH_INVALID_PDF");
+                        var labelledPostings=new LinkedHashMap<String,OzonPostingDto>();
+                        printed.forEach(n->labelledPostings.put(n,context.postings.get(n)));
+                        context.carrierNumbers.putAll(OzonCarrierLabelNumbers.read(shop,batch.file(),batch.source(),shippingPages,labelledPostings));
+                        batch.source().copyPagesTo(shippingPages,destination);destination.flushCopiedObjects(batch.source());
+                    }}
                     finally{OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,copied);}
-                    totalPages+=batch.pages().size();successful.addAll(printed);processed.addAll(batch.members());
+                    totalPages+=shippingPages.size();successful.addAll(printed);processed.addAll(batch.members());
                     for(String rejected:batch.unprinted())failures.put(rejected,"OZON_LABEL_UNPRINTED");
                 }
                 int done=0;
@@ -576,7 +588,7 @@ public final class OzonPrintBundleService {
             if(successful.isEmpty())return new AvailableBatchExportResult(null,null,List.of(),Map.copyOf(failures),Set.copyOf(waiting),0,0,Map.of());
             var orderedSuccess=selected.stream().filter(successful::contains).toList();
             long pickingAt=OzonPrintTiming.tick();
-            try{pickingLists.exportBatch(pickingStaging,shop,orderedSuccess.stream().map(context.postings::get).toList());}
+            try{pickingLists.exportBatch(pickingStaging,shop,orderedSuccess.stream().map(context.postings::get).toList(),context.carrierNumbers);}
             finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingAt);}
             requireNotInterrupted();var labelsFile=labelStaging;var pickingFile=pickingStaging;
             ownedPublish(shop,context.preparation.validateShopOwner(),containsNewPrint,()->
@@ -593,7 +605,7 @@ public final class OzonPrintBundleService {
         var staging=AtomicFilePublisher.stagingFile(target,".carrier.pdf");
         try{
             context.labels.download(shop,number,staging);
-            int pages=composeInto(staging,destination,shop,context.postings.get(number),List.of(),context.products);
+            int pages=composeInto(staging,destination,shop,context.postings.get(number),List.of(),context.products,context.carrierNumbers);
             return new ExportResult(target,null,pages,0,pages);
         }finally{AtomicFilePublisher.deleteQuietly(staging);}
     }
@@ -706,6 +718,7 @@ public final class OzonPrintBundleService {
         final Set<String> exemptions;
         final Map<String, OzonProductDto> products;
         final Map<String,OzonExemplarJobRepository.PrintProof> printProofs=new LinkedHashMap<>();
+        final Map<String,String> carrierNumbers=new LinkedHashMap<>();
         final Preparation preparation;
         OfficialLabelDownloader labels;
         PrintContext(Map<String, OzonPostingDto> postings, Map<String, OzonExemplarJob> jobs,
@@ -724,25 +737,28 @@ public final class OzonPrintBundleService {
             Shop shop,
             OzonPostingDto posting,
             List<OzonExemplarJobRepository.KizBinding> bindings,
-            Map<String, OzonProductDto> products) throws IOException {
+            Map<String, OzonProductDto> products,Map<String,String> carrierNumbers) throws IOException {
         try(var destination=new PdfDocument(new PdfWriter(target))) {
-            return composeInto(official,destination,shop,posting,bindings,products);
+            return composeInto(official,destination,shop,posting,bindings,products,carrierNumbers);
         }
     }
     private int composeInto(File official,PdfDocument destination,Shop shop,OzonPostingDto posting,
-            List<OzonExemplarJobRepository.KizBinding> bindings,Map<String,OzonProductDto> products)throws IOException {
+            List<OzonExemplarJobRepository.KizBinding> bindings,Map<String,OzonProductDto> products,Map<String,String> carrierNumbers)throws IOException {
         if(!Files.isRegularFile(official.toPath()))throw new IOException("OZON_LABEL_FILE_MISSING");
         try(PdfDocument source=new PdfDocument(new PdfReader(official))) {
             int firstPage=destination.getNumberOfPages()+1;
             if (source.getNumberOfPages() < 1) {
                 throw new IOException("The official Ozon shipping label PDF has no pages.");
             }
-            List<Integer> retainedPages = OzonOfficialLabelSelector.retainedPages(
-                    official, source, posting, bindings, products);
+            List<Integer> retainedPages = OzonOfficialLabelSelector.shippingPages(
+                    official, source, java.util.stream.IntStream.rangeClosed(1,source.getNumberOfPages()).boxed().toList(),
+                    List.of(posting), products);
+            if(retainedPages.isEmpty())throw new IOException("OZON_LABEL_BATCH_INVALID_PDF");
+            carrierNumbers.putAll(OzonCarrierLabelNumbers.read(shop,official,source,retainedPages,Map.of(posting.postingNumber(),posting)));
             int bindingIndex = 0;
             int appended = 0;
-            // Shipping pages retain their exact content and dimensions. A product-only page
-            // already covered by the combined labels is omitted instead of printing it twice.
+            // Shipping pages retain their exact content and dimensions; standalone product
+            // labels are omitted whether or not a combined KIZ label is available.
             for (int page : retainedPages) {
                 source.copyPagesTo(page, page, destination);
                 if (bindingIndex < bindings.size()) {
@@ -825,7 +841,7 @@ public final class OzonPrintBundleService {
     }
 
     /** Exact authenticated task membership; pages stay in Ozon order without per-page KIZ pairing. */
-    record WholeCarrierBatch(PdfDocument source,List<Integer> pages,List<String> members,Set<String> unprinted){
+    record WholeCarrierBatch(PdfDocument source,File file,List<Integer> pages,List<String> members,Set<String> unprinted){
         WholeCarrierBatch{pages=List.copyOf(pages);members=List.copyOf(members);unprinted=Set.copyOf(unprinted);}
     }
 

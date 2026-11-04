@@ -2418,6 +2418,7 @@ public class HomeController implements Initializable {
         updateExecutor.shutdownNow();
         if (licensePane != null) licensePane.dispose();
         if (overviewDashboardController != null) overviewDashboardController.setShop(null, false);
+        if (financeDashboardController != null) financeDashboardController.dispose();
         if(guidesPane!=null)guidesPane.dispose();
         if(workspaceHeaderController!=null)workspaceHeaderController.dispose();
         if(wbShippingPane!=null)wbShippingPane.dispose();

@@ -34,6 +34,23 @@ class OzonPostingTrackingStoreTest {
 
     @AfterEach void cleanup() { System.clearProperty("vncode.appdata.dir"); }
 
+    @Test void nativeScanitSurvivesReloadSeparatelyFromTrackingAndNeverCrossesOwners() throws Exception {
+        var json=response("post-1","EXTERNAL-TRACKING",true);
+        json.getAsJsonObject("result").addProperty("scanit","ii12345674801");
+        var observed=OzonJson.parsePostingDetail(json).withTrackingOwner(ListingIdentity.fingerprint(shop));
+        assertEquals("ii12345674801",observed.scanit());repository.upsertDetail(1,observed);
+        var loaded=repository.find(1,"post-1");
+        var restored=OzonPostingTrackingStore.withLabelNumbers(shop,java.util.Map.of("post-1",loaded)).get("post-1");
+        assertEquals("ii12345674801",restored.scanit());
+        assertEquals("EXTERNAL-TRACKING",read(shop,"post-1").number());
+        assertNull(OzonPostingTrackingStore.withLabelNumbers(other,java.util.Map.of("post-1",loaded)).get("post-1").scanit());
+        var stale=response("post-1",null,false);stale.getAsJsonObject("result").addProperty("scanit","ii99999999999");
+        repository.upsertPageIfUnchanged(1,List.of(OzonJson.parsePostingDetail(stale).withTrackingOwner(ListingIdentity.fingerprint(shop))),java.time.Instant.EPOCH);
+        assertEquals("ii12345674801",OzonPostingTrackingStore.withLabelNumbers(shop,java.util.Map.of("post-1",loaded)).get("post-1").scanit());
+        try(var c=Database.getConnection();var q=c.createStatement()){q.execute("UPDATE shops SET api_key='replacement' WHERE id=1");}
+        assertNull(OzonPostingTrackingStore.withLabelNumbers(new Shop(1,"one",Marketplace.OZON,"client-one","replacement"),java.util.Map.of("post-1",loaded)).get("post-1").scanit());
+    }
+
     @Test void absentNullAndEmptyResponsesKeepTheLastValueButMarkItUnverified() throws Exception {
         var first = observation(shop, "post-1", "TRACK-123", true);
         repository.upsertDetail(1, first);

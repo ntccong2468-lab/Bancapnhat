@@ -25,7 +25,7 @@ class OzonOfficialLabelSelectorTest {
     private static final PageSize COMPACT = new PageSize((float) (58 * 72d / 25.4), (float) (40 * 72d / 25.4));
     @TempDir Path temporaryDirectory;
 
-    @Test void removesCoveredProductBarcodePageEvenWithoutReadableCaption() throws Exception {
+    @Test void removesStandaloneProductPageEvenWithoutReadableCaption() throws Exception {
         Path official = write("product.pdf", (document, page) -> barcode(document, page, BARCODE));
         assertEquals(List.of(1), select(official, posting(1), List.of(binding(0, 100))));
     }
@@ -79,24 +79,41 @@ class OzonOfficialLabelSelectorTest {
         assertEquals(List.of(1, 2), select(official, posting(1), List.of(binding(0, 100))));
     }
 
-    @Test void preservesUnmarkedAndPartiallyCoveredProductPages() throws Exception {
-        Path official = write("partial.pdf", (document, page) -> barcode(document, page, BARCODE));
-        assertEquals(List.of(1, 2), select(official, posting(1), List.of()));
-        assertEquals(List.of(1, 2), select(official, posting(2), List.of(binding(0, 100))));
-        assertEquals(List.of(1, 2), select(official, posting(2), List.of(binding(0, 100), binding(0, 101))));
-        assertEquals(List.of(1), select(official, posting(2), List.of(binding(0, 100), binding(1, 101))));
+    @Test void removesProductPagesRegardlessOfKizCoverage() throws Exception {
+        Path official = write("no-kiz.pdf", (document, page) -> barcode(document, page, BARCODE));
+        assertEquals(List.of(1), select(official, posting(1), List.of()));
+        assertEquals(List.of(1), select(official, posting(2), List.of(binding(0, 100))));
     }
 
-    @Test void preservesLargerUnknownPageWithoutRenderingIt() throws Exception {
+    @Test void productFirstPageIsExcludedWithoutAssumingOddOrEvenPages() throws Exception {
+        Path official = temporaryDirectory.resolve("product-first.pdf");
+        try (PdfDocument document = new PdfDocument(new PdfWriter(official.toFile()))) {
+            barcode(document, document.addNewPage(COMPACT), BARCODE);
+            text(document.addNewPage(COMPACT), "Shipping POST-1");
+            barcode(document, document.addNewPage(COMPACT), BARCODE);
+            text(document.addNewPage(COMPACT), "Carrier continuation");
+        }
+        assertEquals(List.of(2, 4), select(official, posting(1), List.of()));
+    }
+
+    @Test void missingProductDataNeverRemovesUnknownCarrierPage() throws Exception {
+        Path official = write("unknown.pdf", (document, page) -> barcode(document, page, BARCODE));
+        try (PdfDocument source = new PdfDocument(new PdfReader(official.toFile()))) {
+            assertEquals(List.of(1, 2), OzonOfficialLabelSelector.shippingPages(official.toFile(), source,
+                    List.of(1, 2), List.of(posting(1)), Map.of()));
+        }
+    }
+
+    @Test void removesLargeStandaloneProductBarcodePage() throws Exception {
         Path official = temporaryDirectory.resolve("large.pdf");
         try (PdfDocument document = new PdfDocument(new PdfWriter(official.toFile()))) {
             document.addNewPage(COMPACT);
             barcode(document, document.addNewPage(PageSize.A4), BARCODE);
         }
-        assertEquals(List.of(1, 2), select(official, posting(1), List.of(binding(0, 100))));
+        assertEquals(List.of(1), select(official, posting(1), List.of(binding(0, 100))));
     }
 
-    @Test void sameBarcodeOnAnotherUncoveredItemPreventsRemovingItsOfficialPage() throws Exception {
+    @Test void sameProductBarcodeOnSeveralItemsDoesNotRequireCombinedKizCoverage() throws Exception {
         Path official = write("shared-barcode.pdf", (document, page) -> barcode(document, page, BARCODE));
         OzonPostingDto original = posting(1);
         OzonPostingDto posting = new OzonPostingDto(original.postingNumber(), original.orderId(),
@@ -107,15 +124,16 @@ class OzonOfficialLabelSelectorTest {
                 "101", new OzonProductDto("9001", "offer-52", "101", "Suit", "", false, "", List.of(BARCODE)),
                 "102", new OzonProductDto("9002", "offer-54", "102", "Suit", "", false, "", List.of(BARCODE)));
         try (PdfDocument source = new PdfDocument(new PdfReader(official.toFile()))) {
-            assertEquals(List.of(1, 2), OzonOfficialLabelSelector.retainedPages(official.toFile(), source,
-                    posting, List.of(binding(0, 100)), products));
+            assertEquals(List.of(1), OzonOfficialLabelSelector.shippingPages(official.toFile(), source,
+                    List.of(1, 2), List.of(posting), products));
         }
     }
 
     private List<Integer> select(Path official, OzonPostingDto posting,
             List<OzonExemplarJobRepository.KizBinding> bindings) throws IOException {
         try (PdfDocument source = new PdfDocument(new PdfReader(official.toFile()))) {
-            return OzonOfficialLabelSelector.retainedPages(official.toFile(), source, posting, bindings,
+            return OzonOfficialLabelSelector.shippingPages(official.toFile(), source,
+                    java.util.stream.IntStream.rangeClosed(1, source.getNumberOfPages()).boxed().toList(), List.of(posting),
                     Map.of("101", new OzonProductDto("9001", "offer-52", "101", "Suit", "", false,
                             "", List.of(BARCODE))));
         }
@@ -137,7 +155,8 @@ class OzonOfficialLabelSelectorTest {
         Path target = temporaryDirectory.resolve(name);
         try (PdfDocument document = new PdfDocument(new PdfWriter(target.toFile()))) {
             PdfPage first = document.addNewPage(COMPACT);
-            // First-page retention must not depend on recognition, even if it has the product barcode.
+            // Shipping identity wins even when a carrier label contains the product barcode.
+            text(first, "Shipping POST-1");
             barcode(document, first, BARCODE);
             writer.write(document, document.addNewPage(COMPACT));
         }

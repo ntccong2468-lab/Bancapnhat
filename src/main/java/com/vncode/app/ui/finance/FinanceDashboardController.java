@@ -31,6 +31,11 @@ public class FinanceDashboardController {
     private static final Logger LOGGER = LoggerFactory.getLogger(FinanceDashboardController.class);
     private final FinanceDashboardRepository repository = new FinanceDashboardRepository();
 
+    @FXML private javafx.scene.control.TabPane reportTabs;
+    @FXML private javafx.scene.control.Tab summaryTab;
+    @FXML private javafx.scene.control.Tab penaltiesTab;
+    @FXML private javafx.scene.layout.HBox summaryActions;
+    @FXML private FinancePenaltyController penaltyReportController;
     @FXML private Label titleLabel;
     @FXML private Label statusLabel;
     @FXML private ProgressIndicator loadingIndicator;
@@ -86,23 +91,51 @@ public class FinanceDashboardController {
         LocalDate today = LocalDate.now();
         fromDatePicker.setValue(today.minusDays(29));
         toDatePicker.setValue(today);
+        summaryActions.visibleProperty().bind(penaltiesTab.selectedProperty().not());
+        summaryActions.managedProperty().bind(summaryActions.visibleProperty());
+        penaltyReportController.setActive(false);
+        penaltiesTab.selectedProperty().addListener((observable, before, selected) -> {
+            updateReportVisibility();
+            if (!selected && shop != null && reportTabs.getScene() != null) load();
+        });
+        reportTabs.sceneProperty().addListener((observable, before, scene) -> updateReportVisibility());
         configureColumns();
         applyTranslations();
         clearData();
     }
 
     public void setShop(Shop shop) {
-        this.shop = shop;
+        ++requestToken;
+        boolean same = this.shop != null && shop != null && this.shop.getId() == shop.getId()
+                && this.shop.getMarketplace() == shop.getMarketplace()
+                && java.util.Objects.equals(this.shop.getClientId(), shop.getClientId())
+                && java.util.Objects.equals(this.shop.getApiKey(), shop.getApiKey());
+        if (!same) clearData();
+        this.shop = shop == null ? null : new Shop(shop.getId(), shop.getName(), shop.getMarketplace(), shop.getClientId(), shop.getApiKey());
+        penaltyReportController.setShop(this.shop, false);
         updateMarketplaceTexts();
         if (this.shop == null) {
             clearData();
-        } else {
+        } else if (!penaltiesTab.isSelected()) {
             load();
         }
     }
 
+    public void refresh() {
+        if (penaltiesTab.isSelected()) penaltyReportController.refresh(); else load();
+    }
+
+    public void dispose() { setShop(null); penaltyReportController.dispose(); }
+
+    private void updateReportVisibility() {
+        penaltyReportController.setActive(reportTabs.getScene() != null && penaltiesTab.isSelected());
+    }
+
     public void applyTranslations() {
         I18nService i18n = I18nService.getInstance();
+        summaryTab.setText(i18n.tr("finance.tab.summary"));
+        penaltiesTab.setText(i18n.tr("finance.tab.penalties"));
+        penaltyReportController.applyTranslations();
         titleLabel.setText(i18n.tr("finance.title"));
         sevenDaysButton.setText(i18n.tr("finance.range.7"));
         thirtyDaysButton.setText(i18n.tr("finance.range.30"));
@@ -164,7 +197,7 @@ public class FinanceDashboardController {
 
     @FXML
     private void onRefresh() {
-        load();
+        refresh();
     }
 
     @FXML

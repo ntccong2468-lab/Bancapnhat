@@ -407,6 +407,63 @@ class OzonLabelServiceTest {
         }
     }
 
+    @Test void wholeBatchDropsLargeProductPagesWithoutChangingAnyCarrierContent() throws Exception {
+        int count=100;
+        var numbers=java.util.stream.IntStream.range(0,count).mapToObj(i->"96000000-"+String.format("%04d",i)+"-1").toList();
+        var selected=numbers.stream().map(number->new OzonPostingDto(number,number,number,"awaiting_deliver","","","","","","",
+                null,java.util.List.of(),false,java.util.List.of(new OzonPostingItemDto(0,"product","sku","offer","Product",1,"RUB","1")))).toList();
+        new OzonPostingRepository().upsertPage(1,selected);
+        new OzonCatalogRepository().upsertPage(1,java.util.List.of(new OzonProductDto("product","offer","sku","Product","",false,"",java.util.List.of("OZN1234567890"))),"fixture");
+        var bytes=new java.io.ByteArrayOutputStream();
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfWriter(bytes))){
+            var font=com.itextpdf.kernel.font.PdfFontFactory.createFont();
+            for(int i=count-1;i>=0;i--){
+                // Product first: page positions must never be interpreted as label types.
+                var product=pdf.addNewPage(new com.itextpdf.kernel.geom.PageSize(283.46f,425.20f));
+                var barcode=new com.itextpdf.barcodes.Barcode128(pdf);barcode.setCode("OZN1234567890");barcode.setX(1.5f);barcode.setBarHeight(60);
+                var productCanvas=new com.itextpdf.kernel.pdf.canvas.PdfCanvas(product).saveState().concatMatrix(1,0,0,1,20,100);
+                barcode.placeBarcode(productCanvas,com.itextpdf.kernel.colors.ColorConstants.BLACK,com.itextpdf.kernel.colors.ColorConstants.BLACK);productCanvas.restoreState();
+                var carrier=pdf.addNewPage(new com.itextpdf.kernel.geom.PageSize(164.4f,113.4f));
+                new com.itextpdf.kernel.pdf.canvas.PdfCanvas(carrier).beginText().setFontAndSize(font,9).moveText(8,98).showText(numbers.get(i)).endText()
+                        .beginText().setFontAndSize(font,18).moveText(8,8).showText("ii1234567").endText()
+                        .saveState().setFillColor(com.itextpdf.kernel.colors.ColorConstants.BLACK).rectangle(100,4,58,24).fill()
+                        .setFillColor(com.itextpdf.kernel.colors.ColorConstants.WHITE).beginText().setFontAndSize(font,18).moveText(106,8)
+                        .showText(String.format("%04d",i)).endText().restoreState();
+            }
+        }
+        server.enqueue(json("{\"task_id\":7001}"));
+        server.enqueue(json("{\"status\":{\"code\":\"completed\",\"postings_count\":"+count+",\"printed_postings_count\":"+count+"},\"file_url\":\""+server.url("/cdn/mixed.pdf")+"\"}"));
+        server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes.toByteArray())));
+        var labelService=new OzonLabelService(new OzonLabelRepository(),this::client);
+        var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
+            public java.io.File download(Shop shop,String number,java.io.File target){throw new AssertionError("Do not switch to per-order downloads");}
+            public OzonPrintBundleService.OfficialLabelDownloader forBatch(Shop shop,java.util.List<String> all){return new OzonBatchLabelDownloader(labelService,shop,all);}
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (shop,number)->{throw new AssertionError("Carrier-only export must not reserve KIZ");},downloader);
+        var blocked=numbers.stream().collect(java.util.stream.Collectors.toMap(n->n,n->"KIZ_MAPPING_MISSING"));
+        var output=temporaryDirectory.resolve("mixed-carriers.pdf");
+        long started=System.nanoTime();
+        var result=exporter.exportRequested(owner(),numbers,output.toFile(),temporaryDirectory.resolve("mixed-picking.pdf").toFile(),null,blocked);
+        long elapsed=java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime()-started);
+        assertEquals(numbers,result.successful());assertEquals(count,result.totalPages());assertEquals(0,result.kizPages());assertEquals(3,server.getRequestCount());
+        try(var original=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(new java.io.ByteArrayInputStream(bytes.toByteArray())));
+            var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(output.toFile()))){
+            assertEquals(count,pdf.getNumberOfPages());
+            for(int i=0;i<count;i++){
+                org.junit.jupiter.api.Assertions.assertArrayEquals(original.getPage(i*2+2).getContentBytes(),pdf.getPage(i+1).getContentBytes(),"Carrier label stays exactly as Ozon returned it");
+                assertEquals(original.getPage(i*2+2).getPageSize().toString(),pdf.getPage(i+1).getPageSize().toString());
+            }
+        }
+        try(var picking=org.apache.pdfbox.Loader.loadPDF(temporaryDirectory.resolve("mixed-picking.pdf").toFile())){
+            String text=new org.apache.pdfbox.text.PDFTextStripper().getText(picking).replaceAll("\\s+","");
+            for(int i=0;i<count;i++)assertTrue(text.contains("ii1234567"+String.format("%04d",i)),"Each picking row uses the actual carrier number from the downloaded PDF");
+        }
+        String benchmark=System.getProperty("vncode.ozon.pdf.benchmark");
+        if(benchmark!=null)java.nio.file.Files.writeString(java.nio.file.Path.of(benchmark+"-mixed-100.json"),
+                "{\"synthetic\":true,\"orders\":100,\"sourcePages\":200,\"outputCarrierPages\":100,\"totalMillis\":"+elapsed+",\"httpRequests\":3,\"carrierContentBytesUnchanged\":true}");
+    }
+
     @Test void opaqueTransportAndProductPagesKeepOneWholeTaskInsteadOfCreatingIndividualTasks()throws Exception{
         var numbers=twoPostings();byte[] bytes=textPdf("OPAQUE TRANSPORT A","PRODUCT A","OPAQUE TRANSPORT B","PRODUCT B");
         server.enqueue(json("{\"task_id\":7001}"));server.enqueue(json("{\"status\":{\"code\":\"completed\",\"postings_count\":2,\"printed_postings_count\":2},\"file_url\":\""+server.url("/cdn/opaque.pdf")+"\"}"));server.enqueue(new MockResponse().setBody(new okio.Buffer().write(bytes)));

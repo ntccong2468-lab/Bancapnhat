@@ -128,6 +128,43 @@ class OzonPickingListPdfExporterTest {
         }
     }
 
+    @Test void bundlePickingUsesThePrintedLabelNumberWithLastFourHighlightedForEachOrder() throws Exception {
+        System.setProperty("vncode.appdata.dir",temp.resolve("appdata").toString());Database.initDatabase();
+        try(var connection=Database.getConnection();var sql=connection.createStatement()){
+            sql.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'shop','OZON','id','key')");
+        }
+        var shop=new Shop(1,"shop",Marketplace.OZON,"id","key");
+        var first=new OzonPostingDto("70000000-001-1","order-a","order-a","awaiting_deliver","","","","","","",null,List.of(),false,
+                List.of(new OzonPostingItemDto(0,"product-a","sku-a","article-a","Alpha",1,"RUB","1")));
+        var second=new OzonPostingDto("70000000-002-1","order-b","order-b","awaiting_deliver","","","","","","",null,List.of(),false,
+                List.of(new OzonPostingItemDto(0,"product-b","sku-b","article-b","Beta",1,"RUB","1")));
+        var target=temp.resolve("carrier-numbers.pdf");
+        new OzonPickingListPdfExporter().exportBatch(target.toFile(),shop,List.of(first,second),
+                Map.of(first.postingNumber(),"ii11111114801",second.postingNumber(),"ii22222228099"));
+        try(var pdf=Loader.loadPDF(target.toFile())){
+            var stripper=new PDFTextStripper();stripper.setSortByPosition(true);String text=stripper.getText(pdf);
+            var rows=text.lines().filter(line->line.contains("70000000-")).map(line->line.replaceAll("\\s+","")).toList();
+            assertEquals(2,rows.size(),text);
+            assertTrue(rows.get(0).contains("Alpha")&&rows.get(0).contains("ii11111114801"),text);
+            assertTrue(rows.get(1).contains("Beta")&&rows.get(1).contains("ii22222228099"),text);
+            String capture=System.getProperty("vncode.ozon.picking.capture");
+            if(capture!=null){java.nio.file.Files.copy(target,Path.of(capture+".pdf"),java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                ImageIO.write(new org.apache.pdfbox.rendering.PDFRenderer(pdf).renderImageWithDPI(0,110),"png",Path.of(capture+".png").toFile());}
+        }
+        try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(target.toFile()))){
+            var whiteTails=new java.util.HashSet<String>();
+            new com.itextpdf.kernel.pdf.canvas.parser.PdfCanvasProcessor(new com.itextpdf.kernel.pdf.canvas.parser.listener.IEventListener(){
+                public java.util.Set<com.itextpdf.kernel.pdf.canvas.parser.EventType> getSupportedEvents(){return java.util.Set.of(com.itextpdf.kernel.pdf.canvas.parser.EventType.RENDER_TEXT);}
+                public void eventOccurred(com.itextpdf.kernel.pdf.canvas.parser.data.IEventData data,com.itextpdf.kernel.pdf.canvas.parser.EventType type){
+                    if(data instanceof com.itextpdf.kernel.pdf.canvas.parser.data.TextRenderInfo text&&text.getText().matches("4801|8099")){
+                        float[] rgb=text.getFillColor().getColorValue();assertTrue(rgb.length==3&&rgb[0]==1&&rgb[1]==1&&rgb[2]==1);whiteTails.add(text.getText());
+                    }
+                }
+            }).processPageContent(pdf.getFirstPage());
+            assertEquals(java.util.Set.of("4801","8099"),whiteTails);
+        }
+    }
+
     @Test void startsIndependentImageReadsTogetherAndReusesRepeatedProductImage() throws Exception {
         System.setProperty("vncode.appdata.dir", temp.resolve("appdata").toString());
         Database.initDatabase();

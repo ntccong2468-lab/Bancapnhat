@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Nhãn Ozon, phiếu nhặt hàng và báo cáo phạt — 04.11.2026, chưa phát hành
+
+- Nhánh `fix/ozon-labels-finance-20261104`, dựa trên mã sau 1.6.1. Giữ nguyên nhãn vận đơn API Ozon, bỏ trang barcode sản phẩm đứng riêng, giữ nhãn kết hợp. Lấy nhãn/nhận đơn theo lô; không thêm ô số tự tạo lên nhãn vận đơn. Xác nhận sau cùng của người dùng thay yêu cầu trung gian `4801` bằng nhãn gốc 100%.
+- PDF nhặt hàng thêm số trên nhãn đúng từng đơn, bốn số cuối nền đen. Trường đúng là `scanit`: đã đối chiếu read-only ở cả v3 get và v4 list với PDF thật; `tracking_number` có thể rỗng, lower/upper có thể khác mã in. Lưu riêng scanit theo fingerprint shop; ghép nhãn qua danh tính, không qua thứ tự trang.
+- Chuyển lý do phạt khỏi Tổng quan vào Công cụ → Báo cáo tài chính → Lý do phạt; giữ dữ liệu/phân trang/theme, dừng polling khi ẩn. Không mở thêm nguồn phạt Ozon chưa kiểm chứng.
+- [Bàn giao, kiểm thử và mẫu PDF tổng hợp](validation/2026-11-04-ozon-labels-finance/README.md). Latest 1.6.1 giữ nguyên; sửa nguồn này chưa nằm trong bộ cài đã phát hành.
+
+
 ## Bản gộp 1.6.1 đã phát hành Latest — 04.11.2026
 
 - Latest `v1.6.1`, release `433167599`, công bố 00:27:59 UTC; source bất biến `1786c2c30e38c975523f9b678c4e77d203b5a7cb`. [Biên nhận](validation/2026-11-04-vncode-161-published-latest.json), [bàn giao đầy đủ](validation/2026-11-03-vncode-161-handoff.md). Đã gom UI UX Pro Max, sản phẩm/Catalog, FBS/KIZ/PDF Ozon và audit sau 1.6.0.

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<VBox spacing="12.0" minHeight="0.0" styleClass="finance-penalty-report"
+      xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.vncode.app.ui.finance.FinancePenaltyController">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="8.0">
+            <children>
+                <Label fx:id="reportTitleLabel" styleClass="h3" text="Giao dịch phạt" />
+                <HBox HBox.hgrow="ALWAYS" />
+                <Button fx:id="penaltySyncButton" onAction="#onPenaltySync" text="Đồng bộ tài chính" />
+            </children>
+        </HBox>
+        <Label fx:id="penaltyHelpLabel" styleClass="text-muted" wrapText="true" text="Mô tả theo dữ liệu sàn đã đồng bộ; có thể chưa có lý do chi tiết." />
+        <FlowPane alignment="CENTER_LEFT" hgap="8" vgap="6">
+            <children>
+                <Label fx:id="penaltyFromLabel" minWidth="-Infinity" text="Từ" />
+                <DatePicker fx:id="penaltyFromDate" minWidth="170.0" prefWidth="170.0" onAction="#onPenaltyRangeChanged" />
+                <Label fx:id="penaltyToLabel" minWidth="-Infinity" text="Đến" />
+                <DatePicker fx:id="penaltyToDate" minWidth="170.0" prefWidth="170.0" onAction="#onPenaltyRangeChanged" />
+            </children>
+        </FlowPane>
+        <Label fx:id="penaltyStatusLabel" styleClass="text-muted" wrapText="true" />
+        <TableView fx:id="penaltyTable" minHeight="100.0" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="penaltyDateColumn" prefWidth="110.0" text="Ngày" />
+                <TableColumn fx:id="penaltyDescriptionColumn" prefWidth="320.0" text="Mô tả từ sàn" />
+                <TableColumn fx:id="penaltyOrderColumn" prefWidth="170.0" text="Mã đơn" />
+                <TableColumn fx:id="penaltyProductColumn" prefWidth="170.0" text="Sản phẩm" />
+                <TableColumn fx:id="penaltyAmountColumn" prefWidth="150.0" text="Số tiền theo sàn" />
+            </columns>
+        </TableView>
+        <HBox alignment="CENTER_RIGHT" spacing="8.0">
+            <children>
+                <Label fx:id="penaltyPageLabel" styleClass="text-muted" />
+                <Button fx:id="penaltyPreviousButton" onAction="#onPenaltyPrevious" text="Trước" />
+                <Button fx:id="penaltyNextButton" onAction="#onPenaltyNext" text="Sau" />
+            </children>
+        </HBox>
+    </children>
+</VBox>
