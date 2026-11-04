@@ -13,6 +13,8 @@ import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BiFunction;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntConsumer;
 
 /** One native v4 ship request, followed by authoritative per-child readback. */
 final class OzonUnitShipService {
@@ -28,6 +30,56 @@ final class OzonUnitShipService {
     private final BiFunction<Integer,OzonCredentials,OzonApiClient> clients;
     private final OzonUnitShipRepository receipts=new OzonUnitShipRepository();
     OzonUnitShipService(OzonPostingRepository postings,OzonExemplarJobRepository jobs,BiFunction<Integer,OzonCredentials,OzonApiClient> clients){this.postings=postings;this.jobs=jobs;this.clients=clients;}
+
+    @FunctionalInterface interface ReadbackPause { void waitMillis(long millis) throws InterruptedException; }
+
+    /** Settle the submitted batch together; never ship again or allocate another KIZ. */
+    Map<String,OzonShipResult> settleSubmittedReadOnly(Shop shop,Collection<String> numbers,
+            BooleanSupplier stopping,IntConsumer remaining,ReadbackPause pause)throws InterruptedException {
+        MarketplaceGuard.requireOzon(shop);ListingIdentity.require(shop);
+        if(numbers.size()>10000)throw new IllegalArgumentException("Too many shipment receipts");
+        var pending=new LinkedHashSet<String>();
+        for(String number:numbers){var receipt=receipts.find(shop,number);if(receipt!=null&&!receipt.state().equals("REJECTED"))pending.add(number);}
+        var done=new LinkedHashMap<String,OzonShipResult>();
+        var api=clients.apply(shop.getId(),new OzonCredentials(shop.getClientId(),shop.getApiKey()));
+        for(int round=0;round<3&&!pending.isEmpty();round++){
+            if(stopping.getAsBoolean()||Thread.currentThread().isInterrupted())break;
+            // One delay per batch, never per posting. Later requests can settle while
+            // the remaining independent orders are being accepted by Ozon.
+            long delay=1000L<<round;
+            for(long waited=0;waited<delay&&!stopping.getAsBoolean();waited+=250)pause.waitMillis(250);
+            var pass=List.copyOf(pending);
+            for(int offset=0;offset<pass.size()&&!stopping.getAsBoolean();offset+=CHILD_READ_AHEAD){
+                ListingIdentity.require(shop);
+                var futures=new LinkedHashMap<String,Future<OzonShipResult>>();
+                try{
+                    for(String number:pass.subList(offset,Math.min(pass.size(),offset+CHILD_READ_AHEAD))){
+                        futures.put(number,CHILD_READERS.submit(()->{
+                            if(stopping.getAsBoolean()||Thread.currentThread().isInterrupted())return null;
+                            ListingIdentity.require(shop);
+                            var receipt=receipts.find(shop,number);
+                            if(receipt==null||receipt.state().equals("REJECTED"))return null;
+                            // Unlike finishMarkedSplit, reconcile performs reads only.
+                            return reconcile(shop,api,receipt,true);
+                        }));
+                    }
+                    for(var entry:futures.entrySet())try{
+                        var result=entry.getValue().get();
+                        if(result!=null){done.put(entry.getKey(),result);pending.remove(entry.getKey());}
+                    }catch(ExecutionException unresolved){
+                        var cause=unresolved.getCause();
+                        if(cause instanceof SecurityException changed)throw changed;
+                        if(cause instanceof com.vncode.app.features.license.LicenseGate.LicenseDeniedException denied)throw denied;
+                        if(!(cause instanceof IOException))throw new IllegalStateException("OZON_READBACK_FAILED",cause);
+                        // The durable receipt and the ordinary sync worker retain any
+                        // unresolved outcome; this method cannot convert it to success.
+                    }
+                }finally{futures.values().forEach(future->{if(!future.isDone())future.cancel(true);});}
+                remaining.accept(pending.size());
+            }
+        }
+        return java.util.Collections.unmodifiableMap(done);
+    }
 
     OzonShipResult ship(Shop shop,String number,boolean confirmed)throws IOException {
         return ship(shop,number,confirmed,null);

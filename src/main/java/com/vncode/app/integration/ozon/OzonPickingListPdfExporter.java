@@ -18,11 +18,15 @@ import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.properties.VerticalAlignment;
 import com.vncode.app.features.fbo.FboProductImageService;
 import com.vncode.app.features.print.GenerateBarcode;
+import com.vncode.app.features.ozon.OzonProductVariant;
+import com.vncode.app.features.supply.OrderSortPreferenceService;
+import com.vncode.app.shared.NaturalOrderComparator;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.I18nService;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -83,6 +87,10 @@ final class OzonPickingListPdfExporter {
             List<PickingRow> rows = safePostings.stream()
                     .flatMap(posting -> posting.items().stream()
                             .map(item -> new PickingRow(posting.postingNumber(), tracking.get(posting.postingNumber()), item)))
+                    .sorted(Comparator.comparing((PickingRow row) -> OzonProductVariant.from(
+                                    row.item(), products.get(row.item().sku())),
+                                    OzonProductVariant.comparator(new OrderSortPreferenceService().load()))
+                            .thenComparing(PickingRow::postingNumber, NaturalOrderComparator::compareIgnoreCase))
                     .toList();
             Map<String,PdfImageXObject> imageObjects = new LinkedHashMap<>(16, 0.75f, true) {
                 @Override protected boolean removeEldestEntry(Map.Entry<String,PdfImageXObject> eldest) {

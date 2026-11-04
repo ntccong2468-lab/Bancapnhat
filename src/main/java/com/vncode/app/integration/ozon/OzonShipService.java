@@ -137,6 +137,12 @@ public final class OzonShipService {
         return new OzonUnitShipService(postings,jobs,apiClients).reconcilePendingReadOnly(shop,api,maximumReads);
     }
 
+    public java.util.Map<String,OzonShipResult> settleSubmittedReadOnly(Shop shop,java.util.Collection<String> numbers,
+            java.util.function.BooleanSupplier stopping,java.util.function.IntConsumer remaining)throws InterruptedException {
+        return new OzonUnitShipService(postings,jobs,apiClients).settleSubmittedReadOnly(
+                shop,numbers,stopping,remaining,Thread::sleep);
+    }
+
     /** Local readback for the open batch report; never sends another acceptance request. */
     public java.util.Map<String,java.util.List<String>> completedUnitPostings(Shop shop,java.util.Collection<String> sources){
         MarketplaceGuard.requireOzon(shop);com.vncode.app.integration.listing.ListingIdentity.require(shop);

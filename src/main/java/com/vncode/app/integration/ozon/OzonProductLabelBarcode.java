@@ -8,7 +8,7 @@ import java.util.List;
 final class OzonProductLabelBarcode {
     private OzonProductLabelBarcode() { }
 
-    static String resolve(OzonPostingItemDto item, OzonProductDto product) throws IOException {
+    static List<String> registeredForProduct(OzonPostingItemDto item, OzonProductDto product) throws IOException {
         if (product == null) {
             throw failure("OZON_LABEL_PRODUCT_MISSING", "ozon.label.product.missing",
                     "Chưa có dữ liệu sản phẩm Ozon để in nhãn. Đồng bộ lại Sản phẩm rồi in lại.", item);
@@ -28,6 +28,11 @@ final class OzonProductLabelBarcode {
             throw failure("OZON_LABEL_BARCODE_MISSING", "ozon.label.barcode.missing",
                     "Sản phẩm chưa có barcode Ozon. Bổ sung barcode trên Ozon, đồng bộ lại Sản phẩm rồi in lại.", item);
         }
+        return barcodes;
+    }
+
+    static String resolve(OzonPostingItemDto item, OzonProductDto product) throws IOException {
+        List<String> barcodes = registeredForProduct(item, product);
         // ADD GTIN preserves Ozon's existing OZN barcode. Repository order is lexical, so the
         // newly added numeric GTIN can sort first and must not silently replace that barcode.
         List<String> nativeBarcodes = barcodes.stream()

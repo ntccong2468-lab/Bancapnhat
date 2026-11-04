@@ -57,9 +57,55 @@ class OzonPickingListPdfExporterTest {
             assertEquals(4, rows.size(), "Each item, including repeated SKU, needs its own posting number: " + text);
             assertTrue(rows.get(0).contains("70000000-001-1") && rows.get(0).contains("UniqueAlpha"), text);
             assertTrue(rows.get(1).contains("70000000-001-1") && rows.get(1).contains("UniqueBeta"), text);
-            assertTrue(rows.get(2).contains("70000000-002-1") && rows.get(2).contains("UniqueGamma"), text);
-            assertTrue(rows.get(3).contains("70000000-002-1") && rows.get(3).contains("UniqueBeta"), text);
+            assertTrue(rows.get(2).contains("70000000-002-1") && rows.get(2).contains("UniqueBeta"), text);
+            assertTrue(rows.get(3).contains("70000000-002-1") && rows.get(3).contains("UniqueGamma"), text);
         }
+    }
+
+    @Test void groupsRowsLikeWbUsingSavedOptionsAndKeepsCarrierNumbersWithTheirOrders() throws Exception {
+        System.setProperty("vncode.appdata.dir", temp.resolve("appdata").toString());Database.initDatabase();
+        try (var c=Database.getConnection();var s=c.createStatement()) {
+            s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'shop','OZON','id','key')");
+        }
+        // Deliberately shuffled selection and posting IDs: grouping must come from
+        // catalog product/article/color/size, not selection or task completion order.
+        var products=List.of(
+                product("1","Jacket","B10","blue","2"),
+                product("2","Pants","A2","black","2"),
+                product("3","Jacket","B2","blue","10"),
+                product("4","Jacket","B2","blue","2"),
+                product("5","Jacket","B2","black","10"));
+        new OzonCatalogRepository().upsertPage(1,products,"");
+        var postings=products.stream().map(p->new OzonPostingDto("ORDER-"+p.sku(),"order","order","awaiting_deliver","","","","","","",
+                new OzonRequirements(List.of(),List.of(),List.of()),List.of(),false,
+                List.of(new OzonPostingItemDto(0,p.productId(),p.sku(),"unrelated-offer",p.name(),1,"RUB","1")))).toList();
+        var carrier=postings.stream().collect(java.util.stream.Collectors.toMap(OzonPostingDto::postingNumber,p->"CARRIER-"+p.items().getFirst().sku()+"-9087"));
+        var shop=new Shop(1,"shop",Marketplace.OZON,"id","key");
+        var exporter=new OzonPickingListPdfExporter();
+        var preferences=new com.vncode.app.features.supply.OrderSortPreferenceService();
+        preferences.save(com.vncode.app.features.supply.OrderSortOptions.defaultOptions());
+        var target=temp.resolve("grouped.pdf");exporter.exportBatch(target.toFile(),shop,postings,carrier);
+        try(var pdf=Loader.loadPDF(target.toFile())) {
+            String text=new PDFTextStripper().getText(pdf);
+            assertInOrder(text,List.of("ORDER-5","ORDER-4","ORDER-3","ORDER-1","ORDER-2"));
+            for(int i=1;i<=5;i++){
+                String row=text.substring(text.indexOf("ORDER-"+i));int end=row.indexOf("ORDER-",6);
+                if(end>=0)row=row.substring(0,end);
+                assertTrue(row.replaceAll("\\s+","").contains("CARRIER-"+i+"-9087"),row);
+            }
+        }
+        preferences.save(new com.vncode.app.features.supply.OrderSortOptions(false,false,false,false));
+        target=temp.resolve("by-order.pdf");exporter.exportBatch(target.toFile(),shop,postings,carrier);
+        try(var pdf=Loader.loadPDF(target.toFile())) {
+            assertInOrder(new PDFTextStripper().getText(pdf),List.of("ORDER-1","ORDER-2","ORDER-3","ORDER-4","ORDER-5"));
+        }
+    }
+
+    private static OzonProductDto product(String sku,String name,String article,String color,String size) {
+        return new OzonProductDto("product-"+sku,"offer-"+sku,sku,name,"",article,color,size,false,"",List.of());
+    }
+    private static void assertInOrder(String text,List<String> values) {
+        int previous=-1;for(String value:values){int index=text.indexOf(value);assertTrue(index>previous,"Wrong picking order: "+text);previous=index;}
     }
 
     @Test void longPostingNumberRemainsReadableInsideThePage() throws Exception {
@@ -168,6 +214,10 @@ class OzonPickingListPdfExporterTest {
     @Test void startsIndependentImageReadsTogetherAndReusesRepeatedProductImage() throws Exception {
         System.setProperty("vncode.appdata.dir", temp.resolve("appdata").toString());
         Database.initDatabase();
+        // Keep selection order for this read-ahead fixture: the separate grouping
+        // test exercises the default WB product ordering with the real PDF.
+        new com.vncode.app.features.supply.OrderSortPreferenceService().save(
+                new com.vncode.app.features.supply.OrderSortOptions(false,false,false,false));
         try (var connection = Database.getConnection(); var sql = connection.createStatement()) {
             sql.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'shop','OZON','id','key')");
         }

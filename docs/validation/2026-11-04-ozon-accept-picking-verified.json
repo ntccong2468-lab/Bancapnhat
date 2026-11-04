@@ -1,0 +1,147 @@
+{
+  "date": "2026-11-04",
+  "baseCommit": "b460bb3b3e80c6fcdead4cc8f5b9a12caa6a0bb4",
+  "scope": "Production Ozon services called from isolated Java runners; not a Windows UI or installer test",
+  "realReceipt": {
+    "initialPending": 19,
+    "laterArrivals": 3,
+    "shipRequests": 22,
+    "authoritativelyVerifiedAwaitingDeliver": 22,
+    "kizAssignedFromUploadedFile": 0,
+    "reasonNoKizWasRequired": "Fresh API requirements empty; optional cases explicitly allowed skip_possible_info"
+  },
+  "lastQueueRead": {
+    "checkedAtUtc": "2026-11-04T18:00:05Z",
+    "windowSinceUtc": "2026-08-06T17:59:48Z",
+    "windowToUtc": "2026-11-04T17:59:48Z",
+    "pages": 26,
+    "unique": 2522,
+    "statuses": {
+      "cancelled": 1124,
+      "delivered": 1043,
+      "delivering": 332,
+      "awaiting_deliver": 23
+    },
+    "awaitingReceipt": 0
+  },
+  "kizValidation": {
+    "fileRows": 200,
+    "uniqueRows": 200,
+    "rowLength": 31,
+    "fullCryptoTailPresent": false,
+    "liveSamplesValidated": 1,
+    "httpStatus": 200,
+    "exemplarAccepted": false,
+    "errorCodes": [
+      "MANDATORY_MARK_HAS_INCORRECT_CRYPTOTAIL",
+      "MANDATORY_MARK_IN_INCORRECT_STATUS"
+    ],
+    "bindingOrConsumption": false
+  },
+  "livePrint": {
+    "selected": 19,
+    "shippingPages": 19,
+    "pickingPages": 2,
+    "allOrdersInPicking": true,
+    "pickingSortedLikeWb": true,
+    "exactCarrierNumberOnOwnPickingRow": true,
+    "carrierNumbersReadFromOfficialPdf": 19,
+    "labelJobsReady": 19,
+    "nativeBatchTasks": 1,
+    "individualLabelTasks": 0,
+    "rejectedKizAttached": false
+  },
+  "knownBatchReExport": {
+    "successful": 19,
+    "failed": 0,
+    "shippingPages": 19,
+    "labelGroups": 1,
+    "isolatedLabels": 0,
+    "newApiMutationAttempts": 0,
+    "totalMillis": 8009,
+    "nineteenCarrierPagesUnchanged": true,
+    "removedRegisteredEanProductPages": 1
+  },
+  "tests": {
+    "uniqueSelectedTests": 105,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": [
+      {
+        "class": "OzonLabelPageIdentityTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "OzonPickingListPdfExporterTest",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "OzonOfficialLabelSelectorTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "OzonPrintBundleServiceTest",
+        "tests": 45,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "OzonPerUnitShipServiceTest",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "OzonPostingSortingServiceTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "OzonDashboardControllerTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "class": "OzonProductLabelBarcodeTest",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "note": "Latest successful XML for each affected class across two focused runs; not full Windows regression"
+  },
+  "productionSourceSha256": {
+    "src/main/java/com/vncode/app/features/ozon/OzonPostingSortingService.java": "6280c6d0b3b11ea2af9c4e91d21871bf8b561a8620d93988d9e1acc1be60ac4e",
+    "src/main/java/com/vncode/app/features/ozon/OzonProductVariant.java": "95bf3da89d71eea6497139decaa0aa368d3307ee7ef9b6dff5eb53b572ed563c",
+    "src/main/java/com/vncode/app/integration/ozon/OzonOfficialLabelSelector.java": "10531905046d83e5f0a6b14c32f7aba1799420f081049085518aab93afd82371",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPickingListPdfExporter.java": "bc007be679c7ac4db05de31e008bec3e9c3b895906406038d184ae9e6d79ac2f",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductLabelBarcode.java": "a9d7c483d7e1100e6e7bfb9d24e4bcce950835269963b28070c3a8bf7decf174",
+    "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java": "25db34a832afb64000826407e5956f1e6ac358d6dadb6af9dbea256bb1c970cb",
+    "src/main/java/com/vncode/app/integration/ozon/OzonUnitShipService.java": "8d182de1fd02279d6fb34992e2a038d15c2409be6421d2b7dbb60a49660cc2b2",
+    "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java": "68b5895e63660e495e4d00488e32433c43c08fd527cf46ba44b2fef6d76fd9fb"
+  },
+  "boundaries": [
+    "No KIZ purchase, allocation, binding or consumption",
+    "No real license activation",
+    "No production UI replacement, installer build or Latest publication",
+    "No customer or credential data included",
+    "No live 100/1000-order performance claim"
+  ]
+}

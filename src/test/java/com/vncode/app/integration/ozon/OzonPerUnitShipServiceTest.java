@@ -357,6 +357,48 @@ class OzonPerUnitShipServiceTest {
                 new OzonExemplarJobRepository(), (id, credentials) -> api());
     }
 
+    @Test void submittedBatchWaitsForAsynchronousReadbackWithoutSendingShipAgain() throws Exception {
+        String waiting=child("PARENT","ORDER","WH",101,"awaiting_packaging","posting_created");
+        enqueue(waiting);enqueue("{\"result\":[\"PARENT\"]}");enqueue(waiting);
+        assertThrows(OzonApiException.class,()->service().shipPerUnit(shop,"PARENT",true));
+        enqueue(waiting);enqueue(child("PARENT","ORDER","WH",101,"awaiting_deliver","posting_transferring_to_delivery"));
+        var observed=new java.util.ArrayList<Integer>();var delay=new java.util.concurrent.atomic.AtomicLong();
+        var settled=new OzonUnitShipService(new OzonPostingRepository(),new OzonExemplarJobRepository(),(id,credentials)->api())
+                .settleSubmittedReadOnly(shop,List.of("PARENT"),()->false,observed::add,delay::addAndGet);
+        assertEquals(java.util.Set.of("PARENT"),settled.keySet());
+        assertEquals(List.of(1,0),observed);assertEquals(3000,delay.get());
+        assertEquals("COMPLETE",receiptState());assertEquals(1,shipRequests.get());
+        assertTrue(responses.isEmpty());
+    }
+
+    @Test void unresolvedReadbacksRemainPendingAndDoNotReplayTheMutation() throws Exception {
+        String waiting=child("PARENT","ORDER","WH",101,"awaiting_packaging","posting_created");
+        enqueue(waiting);enqueue("{\"result\":[\"PARENT\"]}");enqueue(waiting);
+        assertThrows(OzonApiException.class,()->service().shipPerUnit(shop,"PARENT",true));
+        enqueue(waiting);enqueue(waiting);enqueue(waiting);
+        var settled=new OzonUnitShipService(new OzonPostingRepository(),new OzonExemplarJobRepository(),(id,credentials)->api())
+                .settleSubmittedReadOnly(shop,List.of("PARENT"),()->false,count->{},millis->{});
+        assertTrue(settled.isEmpty());assertEquals("ACCEPTED",receiptState());assertEquals(1,shipRequests.get());
+        assertTrue(responses.isEmpty());
+    }
+
+    @Test void missingReceiptCannotBeSubmittedByAReadbackPass() throws Exception {
+        var settled=new OzonUnitShipService(new OzonPostingRepository(),new OzonExemplarJobRepository(),(id,credentials)->api())
+                .settleSubmittedReadOnly(shop,List.of("PARENT"),()->false,count->{},millis->fail("No batch delay without a submitted receipt"));
+        assertTrue(settled.isEmpty());assertEquals(0,server.getRequestCount());
+    }
+
+    @Test void cancellingTheBatchWaitLeavesTheReceiptForBackgroundReconciliation() throws Exception {
+        String waiting=child("PARENT","ORDER","WH",101,"awaiting_packaging","posting_created");
+        enqueue(waiting);enqueue("{\"result\":[\"PARENT\"]}");enqueue(waiting);
+        assertThrows(OzonApiException.class,()->service().shipPerUnit(shop,"PARENT",true));
+        int before=server.getRequestCount();var stopped=new java.util.concurrent.atomic.AtomicBoolean();
+        var settled=new OzonUnitShipService(new OzonPostingRepository(),new OzonExemplarJobRepository(),(id,credentials)->api())
+                .settleSubmittedReadOnly(shop,List.of("PARENT"),stopped::get,count->{},millis->stopped.set(true));
+        assertTrue(settled.isEmpty());assertEquals(before,server.getRequestCount());
+        assertEquals("ACCEPTED",receiptState());assertEquals(1,shipRequests.get());
+    }
+
     private OzonApiClient api() {
         return new OzonApiClient(shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey()),
                 server.url("/"), new OkHttpClient.Builder().retryOnConnectionFailure(false)

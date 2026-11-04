@@ -129,6 +129,28 @@ class OzonOfficialLabelSelectorTest {
         }
     }
 
+    @Test void removesTheRegisteredEanProductLabelWhenTheCardAlsoHasAnOznBarcode() throws Exception {
+        String ean="4006381333931";
+        Path official=write("ean-product.pdf",(document,page)->{
+            var barcode=new com.itextpdf.barcodes.BarcodeEAN(document);barcode.setCodeType(com.itextpdf.barcodes.BarcodeEAN.EAN13);
+            barcode.setCode(ean);barcode.setBarHeight(40);barcode.setX(1);
+            new PdfCanvas(page).addXObjectAt(barcode.createFormXObject(document),10,20);
+            text(page,"Product article");
+        });
+        var product=new OzonProductDto("9001","offer-52","101","Suit","",false,"",List.of(BARCODE,ean));
+        try(var source=new PdfDocument(new PdfReader(official.toFile()))){
+            assertEquals(List.of(1),OzonOfficialLabelSelector.shippingPages(official.toFile(),source,List.of(1,2),List.of(posting(1)),Map.of("101",product)));
+        }
+        // A positive decoded barcode needs exact catalog ownership, not merely an EAN shape.
+        assertEquals(List.of(1,2),select(official,posting(1),List.of()));
+    }
+
+    @Test void nativeCarrierScanitWinsOverAnOverlappingProductBarcode() throws Exception {
+        Path official=write("carrier-scanit.pdf",(document,page)->{barcode(document,page,BARCODE);text(page,BARCODE);});
+        var p=posting(1);var carrier=new OzonPostingDto(p.postingNumber(),p.orderId(),p.orderNumber(),p.status(),p.substatus(),p.warehouseId(),p.shipmentAt(),p.inProcessAt(),p.lowerBarcode(),p.upperBarcode(),p.requirements(),p.availableActions(),p.shipAvailable(),p.items(),null,null,BARCODE);
+        assertEquals(List.of(1,2),select(official,carrier,List.of()));
+    }
+
     private List<Integer> select(Path official, OzonPostingDto posting,
             List<OzonExemplarJobRepository.KizBinding> bindings) throws IOException {
         try (PdfDocument source = new PdfDocument(new PdfReader(official.toFile()))) {

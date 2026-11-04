@@ -594,6 +594,23 @@ public final class OzonDashboardController {
                     reportProgress(token,selected,++processed,postingNumbers.size());
                 }
                 notProcessed.addAll(postingNumbers.subList(processed,postingNumbers.size()));
+                if(!pending.isEmpty()&&!isCancelled()&&!lease.stopping()){
+                    try{
+                        lease.requireOwner(selected);
+                        var settled=shipService.settleSubmittedReadOnly(selected,pending,
+                                ()->isCancelled()||lease.stopping(),count->updateMessage(tr("ozon.fbs.pending")+": "+count));
+                        for(String number:List.copyOf(pending))if(settled.containsKey(number)){
+                            pending.remove(number);completed.add(number);reasons.remove(number);
+                            children.put(number,settled.get(number).resultingPostings());
+                        }
+                    }catch(InterruptedException interrupted){
+                        Thread.currentThread().interrupt();
+                    }catch(RuntimeException readbackUnavailable){
+                        // Preserve the partial batch report and its durable receipts,
+                        // including when the owner changes during the read-only pass.
+                        for(String number:pending)reasons.put(number,tr("ozon.fbs.pending")+" · "+shippingFailure(readbackUnavailable));
+                    }
+                }
                 return new BatchTransitionResult(postingNumbers.size(), List.copyOf(completed), List.copyOf(failed),List.copyOf(pending),List.copyOf(notProcessed),Map.copyOf(children),Map.copyOf(reasons));
             }
         };

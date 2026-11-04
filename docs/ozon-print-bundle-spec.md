@@ -4,7 +4,7 @@
 
 Add the JavaFX Ozon print flow that mirrors the useful parts of the existing WB workflow without reusing WB mutations. A single print action must idempotently prepare Ozon exemplars, download the official Ozon shipping document, append one combined KIZ/product-barcode label for every printable exemplar, and create a separate A4 picking list.
 
-For the common posting with one product and quantity one, the label bundle contains **two labels**: the official Ozon carrier label and the existing 58 x 40 mm combined KIZ/product-barcode label. The redundant official standalone product label is omitted when its barcode is independently identified and all corresponding units have combined-label coverage. Genuine additional carrier pages, unknown formats and product labels without complete combined coverage remain. For larger postings the page count is `retained official pages + printable exemplars`.
+For the common posting with one accepted marked product and quantity one, the label bundle contains **two labels**: the official Ozon carrier label and the existing 58 x 40 mm combined KIZ/product-barcode label. At the user's request, a redundant official standalone product label is omitted when its barcode is independently identified on the exact SKU, even without combined-label coverage. Genuine additional carrier pages and unknown formats remain. Both registered Code 128 and EAN-13 product labels are recognized; transport identifiers, including native `scanit`, take precedence. For larger postings the page count is `retained official pages + printable exemplars`.
 
 Printing does not ship, cancel, change stock, or change prices.
 
@@ -43,30 +43,30 @@ if (markingIsRequested(posting) && !accepted(job)) {
 }
 ```
 
-The official Ozon download is kept unchanged; retained carrier pages are copied into the print bundle without scaling or rewriting their content. The first official page always remains. Removing a later product-only page must not remove transport QR/DataMatrix, another shipping barcode or posting identity. Raw KIZ values are used only while rendering DataMatrix and are never logged, shown in the UI, or written to evidence.
+The official Ozon carrier pages are copied into the print bundle without scaling or rewriting their content. Page position is not evidence of page type. Removing a product-only page must not remove transport QR/DataMatrix, another shipping barcode or posting identity. Raw KIZ values are used only while rendering DataMatrix and are never logged, shown in the UI, or written to evidence.
 
-The picking PDF is intentionally minimal: it contains only a product table with columns `#`, `Image`, `Product`, `SKU`, `Offer ID`, and `Qty`. It contains no title/metadata block, no KIZ column, no KIZ explanatory note, and no posting footer. The product image comes from the synchronized Ozon catalog and is embedded in the PDF; an unavailable or invalid image renders a stable placeholder instead of aborting the whole print job.
+The picking PDF is intentionally minimal: a product table includes row number, image, product identity, quantity and the native carrier number for that posting. The carrier number comes from `scanit`, verified against the official label, rather than a derived fragment of the posting number. Its last four characters have a black background on the picking sheet only; official shipping labels are unchanged. There is no title/metadata block, KIZ column, KIZ explanatory note or posting footer. Flattened product rows follow the saved WB grouping preference (product/category, article, color, size, then order identity), with natural text/numeric ordering and missing values last. The product image comes from the synchronized Ozon catalog; an unavailable or invalid image renders a stable placeholder instead of aborting the whole print job.
 
 The physical KIZ page has no border, brand/shop heading, or Ozon status text. Its GS1 DataMatrix is drawn as PDF vector modules with a one-module quiet zone so it stays sharp at printer resolution; it must never be stretched from a low-resolution bitmap.
 
 ## Testing Strategy
 
 - Unit/integration test that an official carrier/product PDF plus one printable exemplar produces only the carrier and combined label, with correct page totals.
-- Verify genuine additional carrier pages and unknown layouts remain; no-KIZ and incomplete combined coverage retain the original product label.
+- Verify genuine additional carrier pages and unknown layouts remain; a positively identified standalone product barcode is omitted even without KIZ/combined-label coverage.
 - Verify single print, reprint and mixed print-all batches apply the same page-selection rule.
 - Decode the generated DataMatrix, require GS1 symbology identifier `]d2`, and compare it with the persisted KIZ inside the test process.
 - Verify multiple exemplars append one KIZ page each in stable item/exemplar order.
 - Verify an accepted durable job does not invoke preparation again.
-- Verify a non-accepted marking job blocks output and does not publish partial files.
+- Verify a non-accepted marking job cannot produce a KIZ label or consume that mark; official carrier labels already issued by Ozon remain printable, with an explicit incomplete-KIZ outcome.
 - Verify the separate A4 picking list contains an embedded product image, product name, SKU, offer ID and quantity.
-- Verify the picking list omits the title/metadata block, KIZ column, KIZ explanatory note and posting/order/shop/timestamp text.
+- Verify the picking list omits the title/metadata block, KIZ column, KIZ explanatory note and shop/timestamp prose; native carrier numbers stay with the correct rows after sorting.
 - Verify the KIZ page omits every brand/shop heading, `OZON - KIZ` and `KIZ accepted by Ozon`, and has no drawn outer border.
 - Verify the GS1 DataMatrix is vector content rather than an image XObject and remains independently decodable from a 300 DPI page render.
 - Keep the existing Ozon label and exemplar tests green.
 
 ## Boundaries
 
-- Always: prepare before printing a required/mapped KIZ; print only `ACCEPTED` exemplars; publish final files atomically; preserve official Ozon page sizes.
+- Always: prepare before printing a required/mapped KIZ; print only `ACCEPTED` exemplars as KIZ labels; publish final files atomically; preserve official Ozon page sizes. Missing/rejected KIZ must not suppress an already issued carrier label.
 - Ask first: changing schema, adding dependencies, or changing the ship confirmation workflow.
 - Never: send a second blind exemplar mutation, expose raw KIZ, synthesize an Ozon shipping barcode, resize official Ozon pages, or automatically ship from the print action.
 
@@ -79,9 +79,9 @@ The physical KIZ page has no border, brand/shop heading, or Ozon status text. It
 - Every KIZ page is borderless and contains no brand/shop heading or Ozon status copy.
 - The DataMatrix remains sharp and decodable when rendered at 300 DPI.
 - Reprinting an accepted posting reuses the same KIZ and label job.
-- A posting whose KIZ is not accepted produces no final print bundle.
+- A posting whose KIZ is not accepted never produces that KIZ label; its issued carrier label can be exported with the incomplete-KIZ result clearly reported.
 - JavaFX presents one print action and reports both output files.
 
 ## Open Questions
 
-None for the JavaFX MVP.
+Native API result/limits remain authoritative. The 2026-11-04 live verification covered 19 orders in one native task and 19 unchanged carrier pages; 100/1,000-order performance remains a simulated test rather than a measured live result. See [handoff](validation/2026-11-04-ozon-accept-picking-handoff.md).

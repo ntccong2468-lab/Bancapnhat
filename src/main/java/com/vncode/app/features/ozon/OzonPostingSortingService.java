@@ -25,12 +25,8 @@ public final class OzonPostingSortingService {
     }
 
     private static Comparator<OzonPostingDto> comparator(OrderSortOptions options, List<OzonProductDto> products) {
-        Comparator<OzonPostingDto> result = compare(OzonPostingDto::postingNumber);
-        if (options.bySize()) result = compare(value -> variant(value, products).size()).thenComparing(result);
-        if (options.byColor()) result = compare(value -> variant(value, products).color()).thenComparing(result);
-        if (options.byArticle()) result = compare(value -> variant(value, products).article()).thenComparing(result);
-        if (options.bySubject()) result = compare(value -> variant(value, products).product()).thenComparing(result);
-        return result;
+        return Comparator.comparing((OzonPostingDto value) -> variant(value, products),
+                OzonProductVariant.comparator(options)).thenComparing(compare(OzonPostingDto::postingNumber));
     }
 
     private static Comparator<OzonPostingDto> compare(Function<OzonPostingDto, String> extractor) {

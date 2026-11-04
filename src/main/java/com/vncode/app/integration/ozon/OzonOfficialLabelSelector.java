@@ -55,14 +55,20 @@ final class OzonOfficialLabelSelector {
         Set<String> transportIds = new HashSet<>();
         for (var posting : postings) {
             for (String id : List.of(posting.postingNumber(), posting.orderId(), posting.orderNumber(),
-                    posting.lowerBarcode(), posting.upperBarcode())) {
+                    posting.lowerBarcode(), posting.upperBarcode(), java.util.Objects.toString(posting.scanit(), ""))) {
                 if (!id.isBlank()) transportIds.add(id.toLowerCase(Locale.ROOT));
             }
             for (var item : posting.items()) {
-                try { barcodes.add(OzonProductLabelBarcode.resolve(item, products.get(item.sku()))); }
+                // Ozon can print an EAN even when the card also has an OZN barcode.
+                // Recognition accepts every barcode on this exact SKU, while combined
+                // label generation still requires the single resolve() choice.
+                try { OzonProductLabelBarcode.registeredForProduct(item, products.get(item.sku())).stream()
+                        .filter(value -> value.matches("[\\x20-\\x7E]+"))
+                        .forEach(barcodes::add); }
                 catch (IOException unresolved) { /* Unknown product pages must not hide carrier labels. */ }
             }
         }
+        barcodes.removeIf(value -> transportIds.contains(value.toLowerCase(Locale.ROOT)));
         if (all.isEmpty() || barcodes.isEmpty()) return all;
 
         // The usual shipping-only batch never needs PDF rasterisation. Text checks are cheap
@@ -120,7 +126,9 @@ final class OzonOfficialLabelSelector {
             Result[] decoded = new GenericMultipleBarcodeReader(new MultiFormatReader())
                     .decodeMultiple(bitmap, DECODE_HINTS);
             return decoded.length > 0 && Arrays.stream(decoded).allMatch(result ->
-                    result.getBarcodeFormat() == BarcodeFormat.CODE_128 && barcodes.contains(result.getText()));
+                    (result.getBarcodeFormat() == BarcodeFormat.CODE_128
+                            || result.getBarcodeFormat() == BarcodeFormat.EAN_13)
+                            && barcodes.contains(result.getText()));
         } catch (IOException | NotFoundException | RuntimeException exception) {
             return false;
         } finally {
