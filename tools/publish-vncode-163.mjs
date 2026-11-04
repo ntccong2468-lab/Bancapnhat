@@ -10,7 +10,7 @@ import {validateBuild, validateNativeSmoke, validateSideBySideSmoke, validateUpg
 
 // One owner-requested release. These constants deliberately cannot be replaced by dispatch inputs.
 export const candidate=Object.freeze({version:'1.6.3',source:'f8d2cf967ecc8fe9de32cd3b57c70de642751ff2',
-  build:41918387266,workflow:392732536,baseline:'1.6.2',repo:'ntccong2468-lab/Bancapnhat'});
+  build:41918387266,workflow:392732536,baseline:'1.6.2',repo:'ntccong2468-lab/Bancapnhat',releaseId:434558799});
 export const assets=Object.freeze([...requiredAssets(candidate.version),'asset-manifest.json','SHA256SUMS',
   'gs1-smoke.json','side-by-side-smoke.json','previous-baseline.json']);
 const json=bytes=>JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));
@@ -46,6 +46,16 @@ export function validateStagedAssets(release,local){
   }
 }
 
+export function validateReleaseIdentity(release){
+  assert.equal(release.id,candidate.releaseId,'Wrong release ID');
+  assert.equal(release.tag_name,`v${candidate.version}`,'Wrong release tag');
+  assert.equal(release.target_commitish,candidate.source,'Wrong release source');
+  assert.equal(release.prerelease,false);
+  assert.ok(Array.isArray(release.assets));
+  assert.ok(release.assets.every(a=>assets.includes(a.name)),'Unreviewed draft asset');
+  return true;
+}
+
 async function main(){
   const c=candidate,tag=`v${c.version}`;
   const run=api(`actions/runs/${c.build}`);validateBuild(run,c.source,c.workflow);
@@ -78,11 +88,11 @@ async function main(){
   const existing=api('releases?per_page=100').filter(r=>r.tag_name===tag);assert.ok(existing.length<=1);
   const tags=api(`git/matching-refs/tags/${tag}`).filter(r=>r.ref===`refs/tags/${tag}`);
   assert.ok(tags.length<=1);if(tags.length){assert.equal(tags[0].object.type,'commit');assert.equal(tags[0].object.sha,c.source,'Existing tag points to other code');}
-  if(!existing.length)gh(['release','create',tag,'--repo',c.repo,'--draft','--target',c.source,'--title',`VN code ${c.version}`,'--notes-file',path.join(dir,'release-notes.md')]);
-  const matches=api('releases?per_page=100').filter(r=>r.tag_name===tag);assert.equal(matches.length,1);
-  let release=api(`releases/${matches[0].id}`);
-  assert.equal(release.target_commitish,c.source);assert.equal(release.prerelease,false);
-  assert.ok(release.assets.every(a=>assets.includes(a.name)),'Unreviewed draft asset');
+  // The first publication attempt created this exact draft, but the release-list
+  // response was still stale. Resume by its verified ID; never create a duplicate.
+  if(existing.length)assert.equal(existing[0].id,c.releaseId,'Unexpected duplicate release');
+  let release=api(`releases/${c.releaseId}`);
+  validateReleaseIdentity(release);
   if(release.draft){
     for(const name of assets){
       const present=release.assets.filter(a=>a.name===name);assert.ok(present.length<=1);

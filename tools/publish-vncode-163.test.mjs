@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {assets,candidate as c,validateEvidence,validateStagedAssets} from './publish-vncode-163.mjs';
+import {assets,candidate as c,validateEvidence,validateStagedAssets,validateReleaseIdentity} from './publish-vncode-163.mjs';
 
 function evidence(){return {
   run:{status:'completed',conclusion:'success',repository:{full_name:c.repo},head_repository:{full_name:c.repo},head_sha:c.source,workflow_id:c.workflow},
@@ -27,5 +27,13 @@ test('every staged asset must match exact content before switching Latest',()=>{
   for(const change of [r=>r.assets.pop(),r=>r.assets.push(r.assets[0]),r=>r.assets[0].digest='sha256:'+'f'.repeat(64),
     r=>r.assets[0].size++,r=>r.assets[0].state='new',r=>r.target_commitish='dev',r=>r.prerelease=true]){
     const r=structuredClone(release);change(r);assert.throws(()=>validateStagedAssets(r,local));
+  }
+});
+test('resume only the verified draft ID even when release listing is stale',()=>{
+  const release={id:c.releaseId,tag_name:`v${c.version}`,target_commitish:c.source,draft:true,prerelease:false,assets:[]};
+  assert.equal(validateReleaseIdentity(release),true);
+  for(const change of [r=>r.id++,r=>r.tag_name='v1.6.2',r=>r.target_commitish='wrong-source',
+    r=>r.prerelease=true,r=>r.assets=[{name:'unreviewed.exe'}]]){
+    const invalid=structuredClone(release);change(invalid);assert.throws(()=>validateReleaseIdentity(invalid));
   }
 });
