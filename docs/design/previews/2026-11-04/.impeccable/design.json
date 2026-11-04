@@ -1,0 +1,609 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T18:01:14Z",
+  "title": "Design System: VN Code — Desktop Preview Proposal",
+  "extensions": {
+    "colorMeta": {
+      "bg": {
+        "role": "neutral",
+        "displayName": "Cool Workbench",
+        "tonalRamp": [
+          "oklch(15% 0.0017 258.3)",
+          "oklch(26% 0.0029 258.3)",
+          "oklch(38% 0.0043 258.3)",
+          "oklch(50% 0.0045 258.3)",
+          "oklch(62% 0.0045 258.3)",
+          "oklch(74% 0.0045 258.3)",
+          "oklch(86% 0.0025 258.3)",
+          "oklch(95% 0.0009 258.3)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "White Sheet",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(50% 0.0000 0.0)",
+          "oklch(62% 0.0000 0.0)",
+          "oklch(74% 0.0000 0.0)",
+          "oklch(86% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "nav": {
+        "role": "neutral",
+        "displayName": "Pale Navigation",
+        "tonalRamp": [
+          "oklch(15% 0.0011 264.5)",
+          "oklch(26% 0.0019 264.5)",
+          "oklch(38% 0.0027 264.5)",
+          "oklch(50% 0.0029 264.5)",
+          "oklch(62% 0.0029 264.5)",
+          "oklch(74% 0.0029 264.5)",
+          "oklch(86% 0.0016 264.5)",
+          "oklch(95% 0.0006 264.5)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Blue-black Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0147 255.1)",
+          "oklch(26% 0.0255 255.1)",
+          "oklch(38% 0.0372 255.1)",
+          "oklch(50% 0.0392 255.1)",
+          "oklch(62% 0.0392 255.1)",
+          "oklch(74% 0.0392 255.1)",
+          "oklch(86% 0.0219 255.1)",
+          "oklch(95% 0.0078 255.1)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Slate Copy",
+        "tonalRamp": [
+          "oklch(15% 0.0117 255.2)",
+          "oklch(26% 0.0203 255.2)",
+          "oklch(38% 0.0297 255.2)",
+          "oklch(50% 0.0313 255.2)",
+          "oklch(62% 0.0313 255.2)",
+          "oklch(74% 0.0313 255.2)",
+          "oklch(86% 0.0175 255.2)",
+          "oklch(95% 0.0063 255.2)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Fine Grey Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0048 255.5)",
+          "oklch(26% 0.0082 255.5)",
+          "oklch(38% 0.0120 255.5)",
+          "oklch(50% 0.0127 255.5)",
+          "oklch(62% 0.0127 255.5)",
+          "oklch(74% 0.0127 255.5)",
+          "oklch(86% 0.0071 255.5)",
+          "oklch(95% 0.0025 255.5)"
+        ]
+      },
+      "soft": {
+        "role": "neutral",
+        "displayName": "Cool Hover",
+        "tonalRamp": [
+          "oklch(15% 0.0026 247.9)",
+          "oklch(26% 0.0045 247.9)",
+          "oklch(38% 0.0065 247.9)",
+          "oklch(50% 0.0069 247.9)",
+          "oklch(62% 0.0069 247.9)",
+          "oklch(74% 0.0069 247.9)",
+          "oklch(86% 0.0038 247.9)",
+          "oklch(95% 0.0014 247.9)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Workbench Blue",
+        "tonalRamp": [
+          "oklch(15% 0.0669 259.8)",
+          "oklch(26% 0.1160 259.8)",
+          "oklch(38% 0.1696 259.8)",
+          "oklch(50% 0.1785 259.8)",
+          "oklch(62% 0.1785 259.8)",
+          "oklch(74% 0.1785 259.8)",
+          "oklch(86% 0.1000 259.8)",
+          "oklch(95% 0.0357 259.8)"
+        ]
+      },
+      "selected": {
+        "role": "primary",
+        "displayName": "Blue Wash",
+        "tonalRamp": [
+          "oklch(15% 0.0082 263.2)",
+          "oklch(26% 0.0143 263.2)",
+          "oklch(38% 0.0209 263.2)",
+          "oklch(50% 0.0219 263.2)",
+          "oklch(62% 0.0219 263.2)",
+          "oklch(74% 0.0219 263.2)",
+          "oklch(86% 0.0123 263.2)",
+          "oklch(95% 0.0044 263.2)"
+        ]
+      },
+      "selected-ink": {
+        "role": "primary",
+        "displayName": "Deep Blue Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0526 259.1)",
+          "oklch(26% 0.0912 259.1)",
+          "oklch(38% 0.1333 259.1)",
+          "oklch(50% 0.1403 259.1)",
+          "oklch(62% 0.1403 259.1)",
+          "oklch(74% 0.1403 259.1)",
+          "oklch(86% 0.0786 259.1)",
+          "oklch(95% 0.0281 259.1)"
+        ]
+      },
+      "success": {
+        "role": "semantic",
+        "displayName": "Forest Green",
+        "tonalRamp": [
+          "oklch(15% 0.0337 163.0)",
+          "oklch(26% 0.0584 163.0)",
+          "oklch(38% 0.0854 163.0)",
+          "oklch(50% 0.0899 163.0)",
+          "oklch(62% 0.0899 163.0)",
+          "oklch(74% 0.0899 163.0)",
+          "oklch(86% 0.0503 163.0)",
+          "oklch(95% 0.0180 163.0)"
+        ]
+      },
+      "warn": {
+        "role": "semantic",
+        "displayName": "Ochre",
+        "tonalRamp": [
+          "oklch(15% 0.0397 72.1)",
+          "oklch(26% 0.0688 72.1)",
+          "oklch(38% 0.1005 72.1)",
+          "oklch(50% 0.1058 72.1)",
+          "oklch(62% 0.1058 72.1)",
+          "oklch(74% 0.1058 72.1)",
+          "oklch(86% 0.0593 72.1)",
+          "oklch(95% 0.0212 72.1)"
+        ]
+      },
+      "danger": {
+        "role": "semantic",
+        "displayName": "Cranberry",
+        "tonalRamp": [
+          "oklch(15% 0.0650 19.5)",
+          "oklch(26% 0.1127 19.5)",
+          "oklch(38% 0.1647 19.5)",
+          "oklch(50% 0.1734 19.5)",
+          "oklch(62% 0.1734 19.5)",
+          "oklch(74% 0.1734 19.5)",
+          "oklch(86% 0.0971 19.5)",
+          "oklch(95% 0.0347 19.5)"
+        ]
+      },
+      "dark-bg": {
+        "role": "neutral",
+        "displayName": "Graphite Ground",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(50% 0.0000 0.0)",
+          "oklch(62% 0.0000 0.0)",
+          "oklch(74% 0.0000 0.0)",
+          "oklch(86% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "dark-surface": {
+        "role": "neutral",
+        "displayName": "Raised Graphite",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(50% 0.0000 0.0)",
+          "oklch(62% 0.0000 0.0)",
+          "oklch(74% 0.0000 0.0)",
+          "oklch(86% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "dark-nav": {
+        "role": "neutral",
+        "displayName": "Graphite Rail",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(50% 0.0000 0.0)",
+          "oklch(62% 0.0000 0.0)",
+          "oklch(74% 0.0000 0.0)",
+          "oklch(86% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Paper Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0032 247.9)",
+          "oklch(26% 0.0056 247.9)",
+          "oklch(38% 0.0082 247.9)",
+          "oklch(50% 0.0086 247.9)",
+          "oklch(62% 0.0086 247.9)",
+          "oklch(74% 0.0086 247.9)",
+          "oklch(86% 0.0048 247.9)",
+          "oklch(95% 0.0017 247.9)"
+        ]
+      },
+      "dark-muted": {
+        "role": "neutral",
+        "displayName": "Mist Copy",
+        "tonalRamp": [
+          "oklch(15% 0.0106 255.1)",
+          "oklch(26% 0.0184 255.1)",
+          "oklch(38% 0.0269 255.1)",
+          "oklch(50% 0.0283 255.1)",
+          "oklch(62% 0.0283 255.1)",
+          "oklch(74% 0.0283 255.1)",
+          "oklch(86% 0.0159 255.1)",
+          "oklch(95% 0.0057 255.1)"
+        ]
+      },
+      "dark-line": {
+        "role": "neutral",
+        "displayName": "Graphite Rule",
+        "tonalRamp": [
+          "oklch(15% 0.0036 260.7)",
+          "oklch(26% 0.0062 260.7)",
+          "oklch(38% 0.0091 260.7)",
+          "oklch(50% 0.0096 260.7)",
+          "oklch(62% 0.0096 260.7)",
+          "oklch(74% 0.0096 260.7)",
+          "oklch(86% 0.0054 260.7)",
+          "oklch(95% 0.0019 260.7)"
+        ]
+      },
+      "dark-soft": {
+        "role": "neutral",
+        "displayName": "Graphite Hover",
+        "tonalRamp": [
+          "oklch(15% 0.0030 264.4)",
+          "oklch(26% 0.0052 264.4)",
+          "oklch(38% 0.0075 264.4)",
+          "oklch(50% 0.0079 264.4)",
+          "oklch(62% 0.0079 264.4)",
+          "oklch(74% 0.0079 264.4)",
+          "oklch(86% 0.0044 264.4)",
+          "oklch(95% 0.0016 264.4)"
+        ]
+      },
+      "dark-accent": {
+        "role": "primary",
+        "displayName": "Workbench Blue at Night",
+        "tonalRamp": [
+          "oklch(15% 0.0647 261.6)",
+          "oklch(26% 0.1122 261.6)",
+          "oklch(38% 0.1640 261.6)",
+          "oklch(50% 0.1726 261.6)",
+          "oklch(62% 0.1726 261.6)",
+          "oklch(74% 0.1726 261.6)",
+          "oklch(86% 0.0967 261.6)",
+          "oklch(95% 0.0345 261.6)"
+        ]
+      },
+      "dark-selected": {
+        "role": "primary",
+        "displayName": "Slate Blue",
+        "tonalRamp": [
+          "oklch(15% 0.0235 254.6)",
+          "oklch(26% 0.0408 254.6)",
+          "oklch(38% 0.0596 254.6)",
+          "oklch(50% 0.0627 254.6)",
+          "oklch(62% 0.0627 254.6)",
+          "oklch(74% 0.0627 254.6)",
+          "oklch(86% 0.0351 254.6)",
+          "oklch(95% 0.0125 254.6)"
+        ]
+      },
+      "dark-selected-ink": {
+        "role": "primary",
+        "displayName": "Pale Blue Ink",
+        "tonalRamp": [
+          "oklch(15% 0.0223 255.5)",
+          "oklch(26% 0.0387 255.5)",
+          "oklch(38% 0.0565 255.5)",
+          "oklch(50% 0.0595 255.5)",
+          "oklch(62% 0.0595 255.5)",
+          "oklch(74% 0.0595 255.5)",
+          "oklch(86% 0.0333 255.5)",
+          "oklch(95% 0.0119 255.5)"
+        ]
+      },
+      "dark-success": {
+        "role": "semantic",
+        "displayName": "Mint",
+        "tonalRamp": [
+          "oklch(15% 0.0331 165.9)",
+          "oklch(26% 0.0574 165.9)",
+          "oklch(38% 0.0840 165.9)",
+          "oklch(50% 0.0884 165.9)",
+          "oklch(62% 0.0884 165.9)",
+          "oklch(74% 0.0884 165.9)",
+          "oklch(86% 0.0495 165.9)",
+          "oklch(95% 0.0177 165.9)"
+        ]
+      },
+      "dark-warn": {
+        "role": "semantic",
+        "displayName": "Warm Sand",
+        "tonalRamp": [
+          "oklch(15% 0.0402 79.6)",
+          "oklch(26% 0.0698 79.6)",
+          "oklch(38% 0.1020 79.6)",
+          "oklch(50% 0.1073 79.6)",
+          "oklch(62% 0.1073 79.6)",
+          "oklch(74% 0.1073 79.6)",
+          "oklch(86% 0.0601 79.6)",
+          "oklch(95% 0.0215 79.6)"
+        ]
+      },
+      "dark-danger": {
+        "role": "semantic",
+        "displayName": "Rose",
+        "tonalRamp": [
+          "oklch(15% 0.0349 11.8)",
+          "oklch(26% 0.0605 11.8)",
+          "oklch(38% 0.0884 11.8)",
+          "oklch(50% 0.0930 11.8)",
+          "oklch(62% 0.0930 11.8)",
+          "oklch(74% 0.0930 11.8)",
+          "oklch(86% 0.0521 11.8)",
+          "oklch(95% 0.0186 11.8)"
+        ]
+      },
+      "on-accent": {
+        "role": "primary",
+        "displayName": "White Mark",
+        "tonalRamp": [
+          "oklch(15% 0.0000 0.0)",
+          "oklch(26% 0.0000 0.0)",
+          "oklch(38% 0.0000 0.0)",
+          "oklch(50% 0.0000 0.0)",
+          "oklch(62% 0.0000 0.0)",
+          "oklch(74% 0.0000 0.0)",
+          "oklch(86% 0.0000 0.0)",
+          "oklch(95% 0.0000 0.0)"
+        ]
+      },
+      "focus-ring": {
+        "role": "primary",
+        "displayName": "Focus Blue",
+        "tonalRamp": [
+          "oklch(15% 0.0596 258.3)",
+          "oklch(26% 0.1033 258.3)",
+          "oklch(38% 0.1510 258.3)",
+          "oklch(50% 0.1590 258.3)",
+          "oklch(62% 0.1590 258.3)",
+          "oklch(74% 0.1590 258.3)",
+          "oklch(86% 0.0890 258.3)",
+          "oklch(95% 0.0318 258.3)"
+        ]
+      },
+      "checkbox-outline": {
+        "role": "neutral",
+        "displayName": "Checkbox Slate",
+        "tonalRamp": [
+          "oklch(15% 0.0120 253.0)",
+          "oklch(26% 0.0208 253.0)",
+          "oklch(38% 0.0305 253.0)",
+          "oklch(50% 0.0321 253.0)",
+          "oklch(62% 0.0321 253.0)",
+          "oklch(74% 0.0321 253.0)",
+          "oklch(86% 0.0180 253.0)",
+          "oklch(95% 0.0064 253.0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Workspace Headline",
+        "purpose": "The current preview surface title."
+      },
+      "title": {
+        "displayName": "Section Title",
+        "purpose": "Overview workflow and news-region headings."
+      },
+      "body": {
+        "displayName": "UI Body",
+        "purpose": "Default interface text; normal browser line height."
+      },
+      "label": {
+        "displayName": "Metadata Label",
+        "purpose": "Secondary list details and small labels."
+      },
+      "control": {
+        "displayName": "Control Text",
+        "purpose": "Standard primary and bordered button labels."
+      },
+      "row-title": {
+        "displayName": "Product Row Title",
+        "purpose": "Product names inside dense data sheets."
+      },
+      "navigation": {
+        "displayName": "Navigation Text",
+        "purpose": "Unselected rail destinations; active rows use heavier weight."
+      }
+    },
+    "shadows": [
+      {
+        "name": "popover",
+        "value": "0 10px 30px #0003",
+        "purpose": "Temporary store and action menus."
+      },
+      {
+        "name": "dialog",
+        "value": "0 16px 60px #0004",
+        "purpose": "Centered local confirmation and edit dialogs."
+      },
+      {
+        "name": "toast",
+        "value": "0 8px 20px #0002",
+        "purpose": "Short-lived local feedback."
+      }
+    ],
+    "motion": [
+      {
+        "name": "popover-reveal-duration",
+        "value": "0.16s",
+        "purpose": "Only the popover entrance, under prefers-reduced-motion: no-preference."
+      },
+      {
+        "name": "popover-reveal-easing",
+        "value": "cubic-bezier(.16,1,.3,1)",
+        "purpose": "Clip and vertical-translation reveal; ordinary buttons have no authored transition."
+      },
+      {
+        "name": "popover-reveal-transform",
+        "value": "translateY(-4px) to translateY(0)",
+        "purpose": "Observed start and end positions of the short reveal."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-desktop-max",
+        "value": "1200px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The dominant batch action; hover brightness and focus outline follow the preview.",
+      "html": "<button type=\"button\" class=\"ds-button-primary\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4v16 M4 12h16\"></path></svg>Nhận đơn đã chọn</button>",
+      "css": ".ds-button-primary{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-primary{background:var(--accent,#175bc5);color:#fff;border-color:var(--accent,#175bc5)}.ds-button-primary:hover{filter:brightness(1.08)}.ds-button-primary:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-primary:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A bordered neutral action for refresh and supporting tasks.",
+      "html": "<button type=\"button\" class=\"ds-button-secondary\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M20 4v6h-6 M4 20v-6h6 M5.5 8a7 7 0 0 1 11.6-3L20 10 M4 14l2.9 5A7 7 0 0 0 18.5 16\"></path></svg>Cập nhật đơn</button>",
+      "css": ".ds-button-secondary{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-secondary:hover{background:var(--soft,#eef2f6)}.ds-button-secondary:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-secondary:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "The transparent management action; its authored hover remains transparent.",
+      "html": "<button type=\"button\" class=\"ds-button-quiet\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m14 4 6 6 M4 15 16 3l5 5L9 20H4z\"></path></svg>Quản lý</button>",
+      "css": ".ds-button-quiet{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-quiet{background:transparent;border-color:transparent;font-weight:500}.ds-button-quiet:hover{background:transparent}.ds-button-quiet:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-quiet:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "The named dialog confirmation, using danger text on a neutral surface.",
+      "html": "<button type=\"button\" class=\"ds-button-danger\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7\"></path></svg>Xóa cửa hàng</button>",
+      "css": ".ds-button-danger{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-danger:hover{background:var(--soft,#eef2f6)}.ds-button-danger{color:var(--danger,#b52b3c)}.ds-button-danger:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-danger:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Search Field",
+      "kind": "input",
+      "refersTo": "input-search",
+      "description": "Local list search, with the preview’s icon inset and capped flexible field.",
+      "html": "<label class=\"ds-search\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14 M15 15l6 6\"></path></svg><input class=\"ds-search-input\" aria-label=\"Tìm kiếm\" placeholder=\"Tìm đơn hàng, sản phẩm, Article...\"></label>",
+      "css": ".ds-search{font-family:Inter,Arial,sans-serif;font-size:14px;display:flex;align-items:center;gap:9px;border:1px solid var(--line,#dce2ea);border-radius:6px;background:var(--surface,#fff);padding-left:11px;flex:1;max-width:440px;color:var(--muted,#5d6a7b)}.ds-search-input{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);border:0;background:transparent;flex:1;min-width:0;border-radius:6px;padding:9px 10px}.ds-search-input::placeholder{color:var(--muted,#5d6a7b)}.ds-search-input:focus-visible{outline:2px solid #3575d3;outline-offset:0}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Navigation Row",
+      "kind": "nav",
+      "refersTo": "navigation",
+      "description": "Flat rail destinations with the selected weight and blue fill; hover uses the neutral fill.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Ví dụ điều hướng\"><button type=\"button\" class=\"ds-nav-button ds-nav-active\" aria-current=\"page\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 10 12 3l9 7v10H3z M9 20v-7h6v7\"></path></svg>Tổng quan</button><button type=\"button\" class=\"ds-nav-button\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 5h11v12H3z M14 9h4l3 4v4h-7 M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4 M17 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4\"></path></svg>Đóng hàng FBS</button></nav>",
+      "css": ".ds-nav{width:172px;background:var(--nav,#f9fafc);color:var(--ink,#172537)}.ds-nav-button{font-family:Inter,Arial,sans-serif;display:inline-flex;align-items:center;cursor:pointer;width:100%;border:0;border-radius:6px;background:transparent;color:inherit;justify-content:flex-start;padding:10px 12px;margin-bottom:3px;font-size:13px;font-weight:500;gap:11px;min-height:38px;white-space:nowrap}.ds-nav-active{color:var(--selected-ink,#174b9a);background:var(--selected,#e8f0ff);font-weight:700}.ds-nav-button:hover{background:var(--soft,#eef2f6)}.ds-nav-button:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+    },
+    {
+      "name": "Marketplace Tag",
+      "kind": "chip",
+      "refersTo": "marketplace-tag",
+      "description": "A non-interactive marketplace label carried inside the store selector.",
+      "html": "<span class=\"ds-market\">OZON</span>",
+      "css": ".ds-market{font-family:Inter,Arial,sans-serif;font-size:10px;padding:3px 5px;background:var(--selected,#e8f0ff);color:var(--selected-ink,#174b9a);border-radius:3px;letter-spacing:.04em;font-weight:700}"
+    },
+    {
+      "name": "Data Sheet",
+      "kind": "card",
+      "refersTo": "data-sheet",
+      "description": "The table container with a sticky heading, selected row and aligned synthetic prices; this sample isolates the container from product thumbnails.",
+      "html": "<div class=\"ds-sheet\"><table class=\"ds-table\"><thead class=\"ds-thead\"><tr><th class=\"ds-th\">Đơn hàng</th><th class=\"ds-th\">Sản phẩm</th><th class=\"ds-th ds-price\">Giá</th></tr></thead><tbody><tr class=\"ds-row ds-selected\"><td class=\"ds-td\">DEMO-0101-1</td><td class=\"ds-td\">Костюм спортивный</td><td class=\"ds-td ds-price\">1290 ₽</td></tr><tr class=\"ds-row\"><td class=\"ds-td\">DEMO-0102-1</td><td class=\"ds-td\">Брюки спортивные</td><td class=\"ds-td ds-price\">850 ₽</td></tr></tbody></table></div>",
+      "css": ".ds-sheet{font-family:Inter,Arial,sans-serif;font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink,#172537);flex:1;min-height:0;overflow:auto;border:1px solid var(--line,#dce2ea);border-radius:8px;background:var(--surface,#fff)}.ds-table{width:100%;border-collapse:collapse;table-layout:fixed;text-align:left}.ds-thead{position:sticky;top:0;z-index:1;background:var(--nav,#f9fafc)}.ds-th{height:42px;color:var(--muted,#5d6a7b);font-size:12px;font-weight:500;border-bottom:1px solid var(--line,#dce2ea);padding:10px 12px}.ds-td{height:71px;border-bottom:1px solid var(--line,#dce2ea);padding:9px 12px;vertical-align:middle}.ds-row:last-child .ds-td{border-bottom:0}.ds-row:hover{background:var(--soft,#eef2f6)}.ds-row.ds-selected{background:var(--selected,#e8f0ff)}.ds-price{text-align:right;font-size:13px;white-space:nowrap}.ds-th.ds-price{font-size:12px}"
+    },
+    {
+      "name": "Store Management Popover",
+      "kind": "custom",
+      "refersTo": "store-popover",
+      "description": "The signature local overlay beside the active store. This specimen uses normal flow; the preview places it at fixed header coordinates.",
+      "html": "<section class=\"ds-store-popover\" aria-label=\"Quản lý cửa hàng\"><p class=\"ds-store-copy\">Cửa hàng đang chọn<br><strong class=\"ds-store-name\">Cửa hàng minh họa</strong></p><button type=\"button\" class=\"ds-store-action\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m14 4 6 6 M4 15 16 3l5 5L9 20H4z\"></path></svg>Chỉnh sửa cửa hàng</button><div class=\"ds-store-rule\"></div><button type=\"button\" class=\"ds-store-action\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4v16 M4 12h16\"></path></svg>Thêm cửa hàng</button></section>",
+      "css": ".ds-store-popover{font-family:Inter,Arial,sans-serif;width:280px;padding:8px;background:var(--surface,#fff);color:var(--ink,#172537);border:1px solid var(--line,#dce2ea);border-radius:8px;box-shadow:0 10px 30px #0003}.ds-store-copy{margin:0;padding:10px 10px 14px;line-height:1.6;color:var(--muted,#5d6a7b);font-size:12px}.ds-store-name{color:var(--ink,#172537)}.ds-store-action{font-family:Inter,Arial,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;border:0;justify-content:flex-start;font-size:13px;font-weight:600;padding:11px 10px;min-height:36px;white-space:nowrap;border-radius:6px;background:var(--surface,#fff);color:var(--ink,#172537)}.ds-store-action:hover{background:var(--soft,#eef2f6)}.ds-store-action:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-store-rule{height:1px;background:var(--line,#dce2ea);margin:7px}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}@media(prefers-reduced-motion:no-preference){.ds-store-popover{animation:ds-store-reveal .16s cubic-bezier(.16,1,.3,1)}@keyframes ds-store-reveal{from{clip-path:inset(0 0 15% 0);transform:translateY(-4px)}to{clip-path:inset(0);transform:translateY(0)}}}"
+    },
+    {
+      "name": "Selection Checkbox",
+      "kind": "input",
+      "refersTo": "selection-checkbox",
+      "description": "An actual checkbox with checked and indeterminate CSS. The preview sets the indeterminate DOM property when only part of the filtered result is selected.",
+      "html": "<label class=\"ds-selection\"><input class=\"ds-checkbox\" type=\"checkbox\" checked aria-label=\"Chọn đơn minh họa\">Chọn đơn minh họa</label>",
+      "css": ".ds-selection{font-family:Inter,Arial,sans-serif;font-size:13px;color:var(--ink,#172537);display:flex;align-items:center;gap:9px}.ds-checkbox{appearance:none;width:17px;height:17px;padding:0;flex:none;border:1.5px solid #8190a2;vertical-align:middle;border-radius:4px;cursor:pointer;background:var(--surface,#fff)}.ds-checkbox:checked,.ds-checkbox:indeterminate{background:var(--accent,#175bc5);border-color:var(--accent,#175bc5);position:relative}.ds-checkbox:checked:after{content:\"\";position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg)}.ds-checkbox:indeterminate:after{content:\"\";position:absolute;left:3px;top:6px;width:8px;height:2px;background:white;border:0;transform:none}.ds-checkbox:focus-visible{outline:2px solid #3575d3;outline-offset:3px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Dispatch Workbench",
+    "overview": "Dispatch Workbench is the proposed visual direction for VN Code's separate HTML desktop preview. It is a **PROPOSAL awaiting user screenshot approval**, with synthetic store, order and product data. The calm white and graphite surfaces, restrained blue selection, fine rules and bundled Inter typography support a compact, readable workspace for Vietnamese-speaking sellers and warehouse staff.\n\nThe component character is precise and restrained: flat controls, clear text states, inset data sheets and a small store-management popover. Light and dark themes share the same structure. This document governs only the preview directory; [the incumbent workspace system](../../vncode-workspace-system.md) remains the production design authority. The current [index.html](index.html) is a code-led desktop visual mock, not the JavaFX application runtime or an implementation approval.",
+    "keyCharacteristics": [
+      "Neutral white and graphite grounds with one blue action and selection family.",
+      "Dense, legible lists with tabular numbers and persistent batch controls.",
+      "Flat navigation and fine dividers; elevation reserved for temporary overlays.",
+      "Visible store identity and management controls, with a named delete confirmation.",
+      "Locally served Inter, line icons, and labelled synthetic content in both themes."
+    ],
+    "rules": [
+      {
+        "name": "The Written State Rule",
+        "body": "Every status dot appears with a readable status label; color alone does not name the state.",
+        "section": "colors"
+      },
+      {
+        "name": "The Number Column Rule",
+        "body": "Use tabular numerals throughout the preview and right-align prices so batch values can be scanned vertically.",
+        "section": "typography"
+      },
+      {
+        "name": "The Temporary Layer Rule",
+        "body": "Reserve shadows for overlays; use tonal surfaces and rules for persistent workspace structure.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** use the shared semantic roles in both preview themes.",
+      "**Do** keep tabular numbers, right-aligned prices and written status labels.",
+      "**Do** keep table scrolling inside the sheet and batch actions in the separate footer.",
+      "**Do** retain visible store identity, management access and a named delete confirmation.",
+      "**Do** use locally served Inter and labelled synthetic examples with recorded image provenance."
+    ],
+    "donts": [
+      "**Don't** treat this proposal or the finish-review verdict as user screenshot approval or native implementation readiness.",
+      "**Don't** restore the three overview counters or reserve their empty card band in this preview.",
+      "**Don't** displace the header's store controls with the former FBS delay text.",
+      "**Don't** claim local simulations, tab counts or dropdown samples are live marketplace behavior.",
+      "**Don't** infer mobile support from the compact desktop breakpoint."
+    ]
+  }
+}

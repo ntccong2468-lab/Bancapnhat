@@ -1,0 +1,175 @@
+[
+  {
+    "name": "overview-light",
+    "width": 1440,
+    "height": 900,
+    "errors": [],
+    "overflow": false,
+    "missingImages": 0,
+    "main": {
+      "x": 196,
+      "y": 58,
+      "width": 1244,
+      "height": 842,
+      "top": 58,
+      "right": 1440,
+      "bottom": 900,
+      "left": 196
+    },
+    "rows": 0
+  },
+  {
+    "name": "overview-dark",
+    "width": 1340,
+    "height": 865,
+    "errors": [],
+    "overflow": false,
+    "missingImages": 0,
+    "main": {
+      "x": 196,
+      "y": 58,
+      "width": 1144,
+      "height": 807,
+      "top": 58,
+      "right": 1340,
+      "bottom": 865,
+      "left": 196
+    },
+    "rows": 0
+  },
+  {
+    "name": "orders-dark",
+    "width": 1440,
+    "height": 900,
+    "errors": [],
+    "overflow": false,
+    "missingImages": 0,
+    "main": {
+      "x": 196,
+      "y": 58,
+      "width": 1244,
+      "height": 842,
+      "top": 58,
+      "right": 1440,
+      "bottom": 900,
+      "left": 196
+    },
+    "rows": 7,
+    "footer": {
+      "x": 218,
+      "y": 844,
+      "width": 1200,
+      "height": 42,
+      "top": 844,
+      "right": 1418,
+      "bottom": 886,
+      "left": 218
+    }
+  },
+  {
+    "name": "products-light",
+    "width": 1440,
+    "height": 900,
+    "errors": [],
+    "overflow": false,
+    "missingImages": 0,
+    "main": {
+      "x": 196,
+      "y": 58,
+      "width": 1244,
+      "height": 842,
+      "top": 58,
+      "right": 1440,
+      "bottom": 900,
+      "left": 196
+    },
+    "rows": 7,
+    "footer": {
+      "x": 218,
+      "y": 844,
+      "width": 1200,
+      "height": 42,
+      "top": 844,
+      "right": 1418,
+      "bottom": 886,
+      "left": 218
+    }
+  },
+  {
+    "name": "znack-dark",
+    "width": 1440,
+    "height": 900,
+    "errors": [],
+    "overflow": false,
+    "missingImages": 0,
+    "main": {
+      "x": 196,
+      "y": 58,
+      "width": 1244,
+      "height": 842,
+      "top": 58,
+      "right": 1440,
+      "bottom": 900,
+      "left": 196
+    },
+    "rows": 7,
+    "footer": {
+      "x": 218,
+      "y": 844,
+      "width": 1200,
+      "height": 42,
+      "top": 844,
+      "right": 1418,
+      "bottom": 886,
+      "left": 218
+    }
+  },
+  {
+    "name": "store-controls",
+    "width": 1340,
+    "height": 865,
+    "errors": [],
+    "overflow": false,
+    "missingImages": 0,
+    "main": {
+      "x": 196,
+      "y": 58,
+      "width": 1144,
+      "height": 807,
+      "top": 58,
+      "right": 1340,
+      "bottom": 865,
+      "left": 196
+    },
+    "rows": 0
+  },
+  {
+    "name": "orders-maximized",
+    "width": 1920,
+    "height": 1080,
+    "errors": [],
+    "overflow": false,
+    "missingImages": 0,
+    "main": {
+      "x": 196,
+      "y": 58,
+      "width": 1724,
+      "height": 1022,
+      "top": 58,
+      "right": 1920,
+      "bottom": 1080,
+      "left": 196
+    },
+    "rows": 9,
+    "footer": {
+      "x": 218,
+      "y": 1024,
+      "width": 1680,
+      "height": 42,
+      "top": 1024,
+      "right": 1898,
+      "bottom": 1066,
+      "left": 218
+    }
+  }
+]

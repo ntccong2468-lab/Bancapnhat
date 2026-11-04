@@ -1,0 +1,20 @@
+[
+  {
+    "file": "hoodie.jpg",
+    "source": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=180&h=220&fit=crop&auto=format",
+    "purpose": "Public stock photo in synthetic UI preview only",
+    "bytes": 14537
+  },
+  {
+    "file": "jeans.jpg",
+    "source": "https://images.unsplash.com/photo-1542272604-787c3835535d?w=180&h=220&fit=crop&auto=format",
+    "purpose": "Public stock photo in synthetic UI preview only",
+    "bytes": 9903
+  },
+  {
+    "file": "shirt.jpg",
+    "source": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=180&h=220&fit=crop&auto=format",
+    "purpose": "Public stock photo in synthetic UI preview only",
+    "bytes": 10992
+  }
+]

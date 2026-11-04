@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## Ozon nhận đơn/phiếu nhặt hàng và mẫu UI chờ duyệt — 04.11.2026
+
+- Nhánh `fix/ozon-accept-picking-preview-20261104`, mã sửa `ccd7fc1`, nền `b460bb3` sau 1.6.2; chưa phát hành. Sửa đối soát ship bất đồng bộ theo cả tập đã gửi, chỉ đọc receipt, ba lượt chờ 1/2/4 giây cho cả lô và hai reader; không gửi lặp khi trạng thái chưa rõ. Hủy vẫn giữ journal.
+- Theo ủy quyền mới đã nhận thật **22/22 đơn**, đọc lại `awaiting_deliver`; snapshot 18:00:05 UTC, 90 ngày, 26 trang/2.522 posting, không còn đơn chờ nhận. 19 đơn đầu + 3 đến sau. API không yêu cầu KIZ bắt buộc, các trường hợp tùy chọn cho phép bỏ qua; không suy thành KIZ đã được chấp nhận.
+- File hiện tại 200 mã 31 ký tự, không crypto; một mẫu validate thật bị `MANDATORY_MARK_HAS_INCORRECT_CRYPTOTAIL` và `MANDATORY_MARK_IN_INCORRECT_STATUS`. Không gán/tiêu/mua mã hoặc kích hoạt license. Cần DataMatrix đầy đủ từ nguồn gốc, không thêm crypto giả; [hướng dẫn](research/2026-11-04-ozon-kiz-input.md).
+- PDF nhặt hàng sort từng dòng SKU theo preference WB, giữ số vận đơn gắn đúng posting. Lô thật 19 đơn/một task, không tải từng đơn. Phát hiện EAN-13 sản phẩm đứng riêng dù card cũng có OZN barcode: nhận diện mọi barcode đã đăng ký của đúng SKU, bảo vệ `scanit`/transport/QR. Kết quả 19 trang vận đơn giữ nguyên; xuất lại task có sẵn 8.009 giây, không mutation mới. Không coi đây là benchmark 1.000 đơn hay Windows seller.
+- 105 ca riêng biệt liên quan đạt; không full Windows/installer. [Bàn giao](validation/2026-11-04-ozon-accept-picking-handoff.md), [biên nhận](validation/2026-11-04-ozon-accept-picking-verified.json). Private journal/raw trong `/tmp/vncode-ozon-accept-20261104`; đọc trước khi tiếp tục, không chạy lại ship vì runner báo lỗi serialize sau khi đã xuất PDF.
+- Người dùng yêu cầu **xem ảnh và đồng ý trước khi thay UI**. TASTE/Impeccable đã tạo [preview riêng sáng/tối](design/previews/2026-11-04/README.md); review cuối ready-for-approval, chưa phải duyệt của người dùng. Không sửa production FXML/CSS. Bỏ KPI phải bỏ cả chiều cao ép 420/480 ở WelcomePane; nhóm cửa hàng cần cạnh selector thay bộ đếm FBS. Tài liệu DESIGN/sidecar của đề xuất nằm riêng dưới preview, không thay hệ thiết kế production.
+
 ## Đã phát hành 1.6.2 lên Latest — 04.11.2026
 
 - Latest `v1.6.2`, release `433607147`, công bố **08:22:03 UTC**; nguồn/tag bất biến `3968f8f4bb2239ddf61b48e9f6245086bd4ad529`. Kế thừa toàn bộ 1.6.1 và sửa `7875708`: nhãn Ozon gốc/nhãn kết hợp, số vận đơn thực trên phiếu nhặt hàng, chuyển báo cáo phạt sang Tài chính. [Bàn giao](validation/2026-11-04-vncode-162-handoff.md), [biên nhận Latest](validation/2026-11-04-vncode-162-published-latest.json).
