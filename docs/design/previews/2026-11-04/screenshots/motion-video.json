@@ -1,0 +1,16 @@
+{
+  "source": "Chromium capture of the local synthetic preview; no real API or seller data",
+  "programs": [],
+  "stream_groups": [],
+  "streams": [
+    {
+      "codec_name": "h264",
+      "width": 1340,
+      "height": 866
+    }
+  ],
+  "format": {
+    "duration": "20.840000",
+    "size": "2045588"
+  }
+}

@@ -35,3 +35,13 @@ Capture assertions found no horizontal overflow, missing images or page errors. 
 ## Approval boundary
 
 No production FXML, CSS, store record or dashboard layout was changed. The separate Java controller change in this branch concerns receipt readback only. User approval of these screenshots is still required before native UI implementation. Native keyboard/focus, localization, scaling, virtualized lists and preserved app handlers must be checked during that implementation.
+
+## Additional screens and motion requested later in the same session
+
+The user requested the other sections, the Lucian UX/UI reference and screenshots for approval. Added separate FBO, KIZ mapping, GS1, Znack configuration/stock, finance, history, template designer, settings, guides and tools views; see [motion contract](MOTION.md). Twenty-seven additional captures cover both themes at 1340×865, plus the order detail panel at 1440×900. The seven primary captures were refreshed as well. No clipping, missing images or script errors were observed in [the additional capture report](screenshots/extended-capture-report.json).
+
+The extension received its own scoped finish review. Three material findings were fixed in one batch: detail identity now follows the chosen row/marketplace; configuration drafts and saved values are scoped to the selected store, with a save/cancel guard on switching; the template inspector edits its selected Name/Article component and explicitly disables unsupported content edits. Spacing was tightened so the signature-check action fits, and Article/size values have readable separators.
+
+Final extension disposition: **ship**, for proposal readiness only. The reviewer found all scored fixes resolved and no material regression in the correction pass. [26 browser assertions](screenshots/motion-checks.json) cover retained selection/scroll/focus, per-tab state, draft save/cancel and store scope, selected KIZ identity, template target, FBO quantities, OS/manual reduced motion, script errors and absence of external/API requests. The source uses local fixtures; no native or live API result is claimed by these checks.
+
+The motion recording is captured from this same HTML preview. Browser recording initially lacked its packaged encoder; the existing system ffmpeg was used through an isolated `/tmp` Playwright encoder path. No dependency or runtime setting in the application was changed.

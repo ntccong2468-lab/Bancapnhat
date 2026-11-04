@@ -1,6 +1,6 @@
 ---
 name: VN Code — Desktop Preview Proposal
-description: PROPOSAL awaiting user screenshot approval; extracted from the separate synthetic HTML preview on 2026-11-04.
+description: PROPOSAL awaiting user screenshot approval; synthetic desktop sections and purposeful motion extracted on 2026-11-04.
 colors:
   bg: "#f4f6f9"
   surface: "#fff"
@@ -62,6 +62,24 @@ typography:
   navigation:
     fontFamily: "Inter, Arial, sans-serif"
     fontSize: "13px"
+    fontWeight: 500
+  form:
+    fontFamily: "Inter, Arial, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+  reading:
+    fontFamily: "Inter, Arial, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.8
+  drawer-title:
+    fontFamily: "Inter, Arial, sans-serif"
+    fontSize: "18px"
+    fontWeight: 700
+    lineHeight: 1.4
+  summary-number:
+    fontFamily: "Inter, Arial, sans-serif"
+    fontSize: "24px"
     fontWeight: 500
 rounded:
   detail: "4px"
@@ -140,6 +158,26 @@ components:
     height: "17px"
   selection-checkbox-checked:
     backgroundColor: "{colors.accent}"
+  detail-panel:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    width: "400px"
+  draft-footer:
+    textColor: "{colors.ink}"
+    typography: "{typography.form}"
+    padding: "12px 0 0"
+  workspace-tabs:
+    backgroundColor: "transparent"
+    textColor: "{colors.muted}"
+    typography: "{typography.control}"
+    rounded: "0"
+    padding: "0 2px 13px"
+  workspace-tabs-active:
+    textColor: "{colors.ink}"
+  template-workspace:
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.ink}"
+    rounded: "{rounded.surface}"
 ---
 
 # Design System: VN Code — Desktop Preview Proposal
@@ -150,9 +188,11 @@ components:
 
 Dispatch Workbench is the proposed visual direction for VN Code's separate HTML desktop preview. It is a **PROPOSAL awaiting user screenshot approval**, with synthetic store, order and product data. The calm white and graphite surfaces, restrained blue selection, fine rules and bundled Inter typography support a compact, readable workspace for Vietnamese-speaking sellers and warehouse staff.
 
-The component character is precise and restrained: flat controls, clear text states, inset data sheets and a small store-management popover. Light and dark themes share the same structure. This document governs only the preview directory; [the incumbent workspace system](../../vncode-workspace-system.md) remains the production design authority. The current [index.html](index.html) is a code-led desktop visual mock, not the JavaFX application runtime or an implementation approval.
+The component character is precise and restrained: flat controls, clear text states, inset data sheets, a small store-management popover and a detail panel beside the working list. Short motion connects the selected item to its detail and makes local changes visible without staging a page entrance. Light and dark themes share the same structure. This document governs only the preview directory; [the incumbent workspace system](../../vncode-workspace-system.md) remains the production design authority. The current [index.html](index.html) is a code-led desktop visual mock, not the JavaFX application runtime or an implementation approval.
 
-Tokens were extracted from [preview.css](preview.css), behaviors from [preview.js](preview.js), and checked against the [captured screens](screenshots/). Product facts and the chosen direction come from [PRODUCT.md](../../../../PRODUCT.md) and the [preview brief](../../2026-11-04-preview-brief.md). The finish review's `ship` disposition means the reviewer scored all seven listed material fixes resolved for preview readiness; see [REVIEW.md](REVIEW.md). It does not certify native integration or replace the pending user decision.
+Tokens were extracted from [preview.css](preview.css) and [more-screens.css](more-screens.css), behaviors from [preview.js](preview.js) and [more-screens.js](more-screens.js), and checked against representative [captured screens](screenshots/). Product facts and the chosen direction come from [PRODUCT.md](../../../../PRODUCT.md) and the [preview brief](../../2026-11-04-preview-brief.md). Motion references and adaptation decisions are recorded in [MOTION.md](MOTION.md), including the user-requested [Lucian UX/UI catalog](https://lucianlabs.dev/uxui-prompt/). The catalog informs interaction purpose; this document records the authored preview implementation. Review outcomes remain in [REVIEW.md](REVIEW.md) at their stated scope and never replace user screenshot approval or native runtime verification.
+
+The [screenshot gallery](gallery.html) and [motion recording](motion-demo.mp4) form the user-review evidence. The extension's final reviewer disposition is `ship` for proposal readiness only, with its three scored material fixes resolved. The proposal still awaits the user's approval before any production CSS or FXML work.
 
 **Key Characteristics:**
 
@@ -161,6 +201,7 @@ Tokens were extracted from [preview.css](preview.css), behaviors from [preview.j
 - Flat navigation and fine dividers; elevation reserved for temporary overlays.
 - Visible store identity and management controls, with a named delete confirmation.
 - Locally served Inter, line icons, and labelled synthetic content in both themes.
+- Short detail, tab and save feedback, with OS and local reduced-motion controls.
 
 ## Colors
 
@@ -199,6 +240,8 @@ Forest Green / Mint (`success` / `dark-success`) marks positive written states. 
 
 The sidecar's eight-step OKLCH ramps are synthesized swatch aids, not additional implemented colors or approved palette extensions.
 
+The added sections reuse this palette. The template canvas is a local artifact exception: white label paper and dark printed content stay constant in both UI themes. It is explicitly a non-printable example, not a new application accent.
+
 ## Typography
 
 **Body and heading font:** Inter, with Arial and sans-serif fallbacks. The preview serves regular and bold font files from `assets/`; it does not fetch fonts from a hosted service. There is no separate display or monospace face.
@@ -214,6 +257,10 @@ The sidecar's eight-step OKLCH ramps are synthesized swatch aids, not additional
 - **Control:** `typography.control` is the standard button voice. Quiet actions use lighter weight (500), and compact actions use smaller text (12px).
 - **Row title:** `typography.row-title` distinguishes product names; secondary details sit on their own line and truncate when required.
 - **Navigation:** `typography.navigation` supplies the rail; the selected destination increases weight (700). Group labels use smaller capitals (11px) with slight tracking (0.02em).
+- **Form:** `typography.form` supplies aligned settings labels, editable fields and the unsaved-draft strip.
+- **Reading:** `typography.reading` supplies the guide detail column; paragraph and list-item measures are capped (65ch).
+- **Drawer title:** `typography.drawer-title` identifies the order or KIZ detail panel, with the selected record's identifier immediately below it.
+- **Summary number:** `typography.summary-number` presents synthetic finance totals. This local finance summary does not restore overview KPI cards.
 
 **The Number Column Rule.** Use tabular numerals throughout the preview and right-align prices so batch values can be scanned vertically.
 
@@ -229,9 +276,23 @@ At the only compact-width breakpoint (`max-width: 1200px`), the rail narrows (17
 
 Spacing tokens capture reused intervals, not an enforced mathematical scale. Keep small icon/text gaps, clear separation between controls, and the largest available area for the list.
 
+### Added section layouts
+
+| Pattern | Implemented geometry | Where it is used |
+| --- | --- | --- |
+| Split working view | Flexible main column plus 305px side column; 24px gap. At the compact breakpoint, 270px side column and 18px gap. | GS1 membership, readiness and mailbox. |
+| Aligned form | Content width capped at 1000px; 185px label column, flexible field column, 20px gap; field content capped at 650px. Compact labels narrow to 155px. | Znack configuration, account information, settings and listing-copy setup. |
+| Three-part editor | 180px layer pane, flexible canvas and 235px properties pane. Compact widths become 155px and 210px. | Template designer, within the existing bordered sheet language. |
+| Guide reader | 340px index, flexible detail, 28px gap; compact index is 290px. Both columns scroll internally. | Guides and procedural reading. |
+| Detail overlay | Fixed to the right edge below the 58px header; 400px wide, 370px at the compact breakpoint. | Order details and KIZ matching. The underlying sheet is retained and partly covered, not relaid out. |
+
+Form sections use the final tightened spacing from the extension (18px bottom padding and margin; 16px heading separation; form rows have 14px vertical margin). Readiness items use two columns, while imported-code, finance and history views reuse the table sheet. The label paper uses a 58:40 aspect ratio and a maximum width (360px); it is a visual size reference rather than a physical print calibration.
+
+The [extended capture report](screenshots/extended-capture-report.json) records 27 additional captures: section examples at 1340 × 865 and an order drawer at 1440 × 900, with no reported document overflow, missing images or browser errors. It covers light and dark examples of eleven added section views, plus configuration subviews, FBO orders, listing copy and the drawer. This does not imply that every state or native scaling configuration has been verified.
+
 ## Elevation & Depth
 
-Navigation, data sheets and ordinary controls are flat at rest. Solid tonal surfaces and fine borders establish hierarchy. Shadows identify temporary layers: the store popover, modal dialog and toast. The dialog dims its owner with a translucent backdrop (`#07101e77`); its content surface stays opaque.
+Navigation, data sheets and ordinary controls are flat at rest. Solid tonal surfaces and fine borders establish hierarchy. Shadows identify temporary layers: the store popover, modal dialog and toast. The detail panel uses an opaque surface and a left rule without a drop shadow or backdrop. Its source row receives a thin inset accent outline. The dialog dims its owner with a translucent backdrop (`#07101e77`); its content surface stays opaque.
 
 ### Shadow Vocabulary
 
@@ -239,9 +300,29 @@ Navigation, data sheets and ordinary controls are flat at rest. Solid tonal surf
 - **Dialog:** `0 16px 60px #0004`, concentrating attention on a confirmation or local edit form.
 - **Toast:** `0 8px 20px #0002`, separating short-lived local feedback from the page.
 
-**The Temporary Layer Rule.** Reserve shadows for overlays; use tonal surfaces and rules for persistent workspace structure.
+**The Temporary Layer Rule.** Reserve elevation shadows for overlays; use tonal surfaces and rules for persistent workspace structure.
 
-The popover alone has entrance motion: a short reveal (`0.16s`, `cubic-bezier(.16,1,.3,1)`) clips its lower edge and translates it upward by a small amount at the start (4px). That animation runs only under `prefers-reduced-motion: no-preference`. Buttons have no authored motion transition; primary hover applies a brightness filter (1.08) without changing geometry.
+### Purposeful motion
+
+The interaction reference is adapted to a packing workspace: identify an item, inspect it beside its list, then return to the same selection and scroll position. The existing flat tabs receive a moving underline rather than the catalog's pill container. No page-wide entrance, row stagger, processing countdown, automatic incoming-order animation or animation library is added.
+
+| Trigger | Observed timing and easing | Visible response |
+| --- | --- | --- |
+| Open details | 220ms; `cubic-bezier(.16,1,.3,1)` | Opacity rises while the panel moves from 28px to its right-edge resting position. |
+| Close details | 140ms; `ease-in` | Panel moves 20px right and fades; removal returns focus to its connected opener. |
+| Change a tab within a view | 160ms; `cubic-bezier(.16,1,.3,1)` | Underline translates and scales from the previous tab to the active tab. |
+| First unsaved change | 180ms; `cubic-bezier(.16,1,.3,1)` | Save/Cancel strip rises 8px and fades in, only when values differ from the local saved snapshot. |
+| Change selection | 120ms; linear count fade | The count updates in place; table backgrounds transition separately. |
+| Hover controls or rows | 120ms; CSS default `ease` | Button background, text and border colors, or row background, transition. An enabled press has an immediate 1px downward transform. |
+| Show local feedback | 160ms; `cubic-bezier(.16,1,.3,1)` | Toast rises 6px and fades in; its text remains the actual local result. |
+| Open a popover | 160ms; `cubic-bezier(.16,1,.3,1)` | Existing clip reveal with a 4px initial upward offset. |
+| Change theme | 160ms; CSS default `ease` | Body background and text colors transition; theme classes update in place. |
+
+OS `prefers-reduced-motion: reduce` and the preview's **Giảm chuyển động trong bản mẫu** control remove spatial interaction motion. CSS suppresses animated descendants and pressed movement; JavaScript checks the combined preference before drawer, tab, selection and draft animations. Reduced-motion open/close still updates content and returns focus immediately. Repeated drawer commands cancel the prior drawer animation; handlers remain available during transitions.
+
+**The Continuity Rule.** Motion must preserve the selected record, list context and local draft; state feedback remains available when spatial motion is reduced.
+
+The [motion checks](screenshots/motion-checks.json) record 26 passing checks over local state, selected-row identity, template field targeting, focus restoration and both reduced-motion paths, with no recorded script errors or external requests. These are synthetic browser checks, not JavaFX or marketplace acceptance. Reference ideas such as field-error focus, typed-name deletion, true file-import progress and incoming-order streams are not implemented merely because they appear in MOTION.md's catalog mapping.
 
 ## Shapes
 
@@ -259,7 +340,7 @@ Restrained controls distinguish an action's importance without changing the row 
 - **Secondary:** Solid surface with ink text; hover uses the soft neutral fill.
 - **Quiet:** Transparent surface and border with lighter weight. The source's quiet rule keeps the background transparent on hover; navigation and popover entries have their own hover treatment.
 - **Destructive:** Danger-colored text on a neutral control. The header delete action combines the quiet, icon and danger variants; the confirmation action retains the bordered form.
-- **Focus / disabled:** Keyboard focus uses the shared blue outline (2px) with an offset (3px). Disabled buttons use reduced opacity (0.55) and the default cursor. No bespoke pressed animation is implemented.
+- **Focus / disabled / press:** Keyboard focus uses the shared blue outline (2px) with an offset (3px). Disabled buttons use reduced opacity (0.55) and the default cursor. The extension adds the short color transitions and enabled-button press offset documented under Purposeful motion; reduced motion removes the spatial press response.
 
 ### Chips
 
@@ -271,13 +352,49 @@ The recurring container is an inset data sheet, not a floating dashboard card. I
 
 ### Inputs / Fields
 
-Text inputs and selects have solid surfaces, a fine border, `control` corners and inset padding (9px vertical, 10px horizontal). Search adds an inline icon and left inset (11px), allows the field to flex, and caps the whole group (440px). Placeholders use muted text. Focus is the same keyboard outline as buttons; there is no authored field-error or disabled-field treatment to extract.
+Text inputs and selects have solid surfaces, a fine border, `control` corners and inset padding (9px vertical, 10px horizontal). Search adds an inline icon and left inset (11px), allows the field to flex, and caps the whole group (440px). Placeholders use muted text. Focus is the same keyboard outline as buttons. Aligned settings fields use the smaller form text and full column width; disabled form inputs and selects use reduced opacity (0.65). No authored field-error treatment or validation flow is implemented.
 
 Checkboxes have unchecked, checked and indeterminate states. Checked and mixed states share the accent fill and carry a white check or horizontal mark. In the preview, select-all applies to visible filtered results and its mixed state reflects that subset; the footer count includes selected rows even when filtered out. Search is a local text filter, while the category and status dropdowns are visual samples without business filtering.
 
 ### Navigation
 
-The rail groups existing destinations under small labels, with bottom utilities separated by a rule. Each row combines a line icon and text, uses compact padding and a minimum height (38px), and retains a visible active fill with stronger type. Hover uses the soft neutral background, including on the active item. Four destinations render complete preview surfaces: overview, FBS, products and Znack. Other destinations show local explanatory feedback; their presence does not prove native feature implementation. Tabs use text, a count and an active underline without pill containers. No mobile navigation pattern is implemented.
+The rail groups existing destinations under small labels, with bottom utilities separated by a rule. Each row combines a line icon and text, uses compact padding and a minimum height (38px), and retains a visible active fill with stronger type. Hover uses the soft neutral background, including on the active item. The original overview, FBS, products and Znack views now connect to the additional sections listed below. Store selection stays independent of navigation, and WB/Ozon FBS tabs use their respective written states. Presence of a route does not prove native feature implementation.
+
+Tabs retain flat text, optional counts and a thin accent underline. The extension moves a separate underline element and leaves the active button's bottom border transparent. Tab groups expose `tablist`, `tab` and `aria-selected`; Left/Right activates the adjacent tab and focuses the new active item. This documents the present keyboard behavior, not a full accessibility certification. No mobile navigation pattern is implemented.
+
+### Added preview surfaces
+
+| Surface | Local content and behavior | Boundary |
+| --- | --- | --- |
+| FBO packing (`fbo`) | Product, variant and synthetic GTIN rows; editable quantities update a batch label total. | Print actions are local demonstrations. In-place theme changes preserve quantities. |
+| KIZ links (`kiz`) | Link readiness, available quantities and a row-specific matching drawer. | The selected row supplies both the drawer identifier and GTIN; no real codes are read or assigned. |
+| GS1 RUS (`gs1`) | Membership example, readiness checks, prefix table and empty mailbox pane. | Member and prefix values are synthetic; signature, account and mailbox checks are not performed. |
+| Znack configuration (`config`) | Information, purchase history, deleted items, settings and seller-warehouse tabs. | Local draft editing is described below; no credentials or certificates are verified. |
+| Seller KIZ warehouse (`config`, `tab=warehouse`) | Import framing, category actions, available/used quantities and link access. | Import explains a future step; it does not read or upload a real file. |
+| Finance (`finance`) | WB summary and penalty-layout examples, date inputs and tab changes. | Ozon displays the unsupported-source state; there are no real finance or penalty results. |
+| Print history (`history`) | Synthetic batch, shipment, result and output-file rows. | Reprint does not create or send a real print job. |
+| Templates (`templates`) | Layer list, label canvas and properties pane. | Only product-name and Article text are locally wired; the preview cannot generate a usable label. |
+| Settings (`settings`) | Immediate light/dark theme control and local reduced-motion preference. | Language, background-slider and account/update controls illustrate placement rather than a released settings implementation. |
+| Guides (`guides`) | Topic index and reading column; choosing a topic updates its title. | Only the first topic carries the illustrated steps; other topic selections hide that step list. |
+| TN VED (`tnved`) | Classification examples with filter and copy affordances. | Example codes are not automatically applied to a product; copy remains a demonstration. |
+| FBO orders (`fboorders`) | Synthetic shipment, warehouse, date and status rows. | No warehouse shipment is created. |
+| Listing copy (`copy`) | Source/destination layout and an empty chosen-product section. | No listing is copied or marketplace data fetched. |
+
+### Detail panel and continuity
+
+Order and KIZ details open beside the retained list. Order content follows the clicked row's identifier, image, title and variant; KIZ matching follows that row's GTIN and product context. The panel focuses its close button, and closing or Escape returns focus to the opener when it still exists. It is a labelled non-modal aside with an internal scroll region and a separate action footer.
+
+The preview caches checkbox state, search text and sheet scroll by view, selected marketplace and applicable tab. Switching theme changes the body class in place, preserving fields, quantities and the current list. This is in-memory synthetic state for the current page; it does not prove database recovery, cross-session persistence or native virtualization.
+
+### Configuration draft feedback
+
+Configuration fields start disabled. **Chỉnh sửa cấu hình** enables them and focuses the first field. Comparing the local draft with the last local saved snapshot controls the unsaved strip; merely entering edit mode does not imply a change. Returning fields to the saved values hides the strip. Dirty values block tab, section and store changes until Save or Cancel.
+
+**Lưu cấu hình** copies the draft into the preview's in-memory saved values and explicitly reports that no API call occurred. **Hủy thay đổi** restores the last local saved values. Saved configuration is kept separately for the synthetic WB and Ozon stores. Theme changes retain the current fields, and editing a different store never substitutes another store's saved values. There is no disk write, credential validation or backend save.
+
+### Template canvas
+
+The editor separates layers, paper and properties with fine rules. Selecting **Tên sản phẩm** or **Article** targets that exact local text element; changing Article leaves the product title intact. **Màu · Size** and **Barcode** expose their layout but disable the text editor and show its limitation. Other geometric/property controls are visual samples. The paper bears **KHÔNG DÙNG ĐỂ IN**, and the canvas identifies itself as something other than an Ozon waybill. Save, print and template-management actions do not persist or emit production labels.
 
 ### Store management
 
@@ -289,7 +406,7 @@ Deletion opens a centered dialog (440px wide, 26px padding) naming **Cửa hàng
 
 The footer keeps selection, pagination samples, KIZ source access, label/picking-list actions and the main batch action adjacent to the current sheet. FBS and Znack tabs update local synthetic states. Confirmations and unimplemented actions use a `role="status"` toast (4.5 seconds). Existing Ozon carrier labels and combined KIZ output are product constraints, not generated artifacts of this mock.
 
-The [sidecar](.impeccable/design.json) contains ten self-contained representative HTML/CSS snippets with inline icons. These are visual documentation components; their controls do not execute the preview's application logic. Stock thumbnail provenance is recorded in [assets/PROVENANCE.json](assets/PROVENANCE.json).
+The [sidecar](.impeccable/design.json) contains thirteen self-contained representative HTML/CSS snippets with inline icons, including the added detail panel, draft strip and flat tabs. These are visual documentation components; their controls do not execute the preview's application logic or Web Animations handlers. Their ordinary hover, focus and reduced-motion styling is included. Stock thumbnail provenance is recorded in [assets/PROVENANCE.json](assets/PROVENANCE.json).
 
 ## Do's and Don'ts
 
@@ -300,6 +417,8 @@ The [sidecar](.impeccable/design.json) contains ten self-contained representativ
 - **Do** keep table scrolling inside the sheet and batch actions in the separate footer.
 - **Do** retain visible store identity, management access and a named delete confirmation.
 - **Do** use locally served Inter and labelled synthetic examples with recorded image provenance.
+- **Do** preserve selected-row identity, store-specific drafts and list context through short interaction motion.
+- **Do** retain immediate text and color feedback when spatial motion is reduced.
 
 ### Don't:
 
@@ -308,3 +427,5 @@ The [sidecar](.impeccable/design.json) contains ten self-contained representativ
 - **Don't** displace the header's store controls with the former FBS delay text.
 - **Don't** claim local simulations, tab counts or dropdown samples are live marketplace behavior.
 - **Don't** infer mobile support from the compact desktop breakpoint.
+- **Don't** turn the motion reference into decorative page entrances, row staggers, fake progress or a new animation dependency.
+- **Don't** present local configuration saves, template edits or import prompts as persisted app operations.

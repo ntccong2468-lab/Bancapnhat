@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-11-04T18:01:14Z",
+  "generatedAt": "2026-11-04T18:29:33Z",
   "title": "Design System: VN Code — Desktop Preview Proposal",
   "extensions": {
     "colorMeta": {
@@ -439,6 +439,22 @@
       "navigation": {
         "displayName": "Navigation Text",
         "purpose": "Unselected rail destinations; active rows use heavier weight."
+      },
+      "form": {
+        "displayName": "Form Text",
+        "purpose": "Aligned settings labels, fields and local draft feedback."
+      },
+      "reading": {
+        "displayName": "Guide Reading Text",
+        "purpose": "Guide paragraphs and steps within a 65ch text measure."
+      },
+      "drawer-title": {
+        "displayName": "Detail Panel Title",
+        "purpose": "The selected order or KIZ detail heading above its identity."
+      },
+      "summary-number": {
+        "displayName": "Finance Summary Number",
+        "purpose": "Synthetic financial totals within the finance view only."
       }
     },
     "shadows": [
@@ -456,23 +472,73 @@
         "name": "toast",
         "value": "0 8px 20px #0002",
         "purpose": "Short-lived local feedback."
+      },
+      {
+        "name": "detail-row-outline",
+        "value": "inset 0 0 0 1px var(--accent)",
+        "purpose": "Stroke-like state outline on the source row of an open detail panel; not an elevation shadow."
       }
     ],
     "motion": [
       {
-        "name": "popover-reveal-duration",
-        "value": "0.16s",
-        "purpose": "Only the popover entrance, under prefers-reduced-motion: no-preference."
-      },
-      {
-        "name": "popover-reveal-easing",
+        "name": "interaction-ease-out",
         "value": "cubic-bezier(.16,1,.3,1)",
-        "purpose": "Clip and vertical-translation reveal; ordinary buttons have no authored transition."
+        "purpose": "Shared drawer entrance, tab underline, draft strip, toast and popover reveal easing."
       },
       {
-        "name": "popover-reveal-transform",
-        "value": "translateY(-4px) to translateY(0)",
-        "purpose": "Observed start and end positions of the short reveal."
+        "name": "detail-enter-duration",
+        "value": "220ms",
+        "purpose": "Selected-row detail enters from translateX(28px) with opacity 0; list remains mounted."
+      },
+      {
+        "name": "detail-exit-duration",
+        "value": "140ms",
+        "purpose": "Detail moves to translateX(20px) with opacity 0; then focus returns to its connected opener."
+      },
+      {
+        "name": "detail-exit-easing",
+        "value": "ease-in",
+        "purpose": "Short close transition. Repeated drawer commands cancel the prior animation."
+      },
+      {
+        "name": "tab-indicator-duration",
+        "value": "160ms",
+        "purpose": "Translate and scale the flat underline from the previous tab to the current tab in the same view."
+      },
+      {
+        "name": "draft-strip-duration",
+        "value": "180ms",
+        "purpose": "Only the first changed draft reveals Save/Cancel, from translateY(8px) and opacity 0."
+      },
+      {
+        "name": "selection-feedback-duration",
+        "value": "120ms",
+        "purpose": "Changed selection count fades from opacity .4 to 1 with the Web Animations default linear easing."
+      },
+      {
+        "name": "control-state-duration",
+        "value": "120ms",
+        "purpose": "Button background/color/border and table-row background transitions, using CSS default ease."
+      },
+      {
+        "name": "button-press-offset",
+        "value": "translateY(1px)",
+        "purpose": "Immediate feedback on enabled buttons; removed by either reduced-motion preference."
+      },
+      {
+        "name": "toast-arrival-duration",
+        "value": "160ms",
+        "purpose": "Local result toast enters from a 6px downward offset and opacity 0; this is not API-progress timing."
+      },
+      {
+        "name": "theme-color-duration",
+        "value": "160ms",
+        "purpose": "Body background and text colors change in place with CSS default ease, preserving local fields and list context."
+      },
+      {
+        "name": "popover-reveal-duration",
+        "value": "160ms",
+        "purpose": "Original clip reveal from translateY(-4px), only when OS motion preference permits and local reduction is off."
       }
     ],
     "breakpoints": [
@@ -489,7 +555,7 @@
       "refersTo": "button-primary",
       "description": "The dominant batch action; hover brightness and focus outline follow the preview.",
       "html": "<button type=\"button\" class=\"ds-button-primary\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4v16 M4 12h16\"></path></svg>Nhận đơn đã chọn</button>",
-      "css": ".ds-button-primary{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-primary{background:var(--accent,#175bc5);color:#fff;border-color:var(--accent,#175bc5)}.ds-button-primary:hover{filter:brightness(1.08)}.ds-button-primary:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-primary:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+      "css": ".ds-button-primary{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-primary{background:var(--accent,#175bc5);color:#fff;border-color:var(--accent,#175bc5)}.ds-button-primary:hover{filter:brightness(1.08)}.ds-button-primary:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-primary:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.ds-button-primary{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-button-primary:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-button-primary{transition:none}.ds-button-primary:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-button-primary{transition:none}:host-context(.reduce-motion) .ds-button-primary:active:not(:disabled){transform:none}"
     },
     {
       "name": "Secondary Button",
@@ -497,7 +563,7 @@
       "refersTo": "button-secondary",
       "description": "A bordered neutral action for refresh and supporting tasks.",
       "html": "<button type=\"button\" class=\"ds-button-secondary\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M20 4v6h-6 M4 20v-6h6 M5.5 8a7 7 0 0 1 11.6-3L20 10 M4 14l2.9 5A7 7 0 0 0 18.5 16\"></path></svg>Cập nhật đơn</button>",
-      "css": ".ds-button-secondary{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-secondary:hover{background:var(--soft,#eef2f6)}.ds-button-secondary:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-secondary:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+      "css": ".ds-button-secondary{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-secondary:hover{background:var(--soft,#eef2f6)}.ds-button-secondary:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-secondary:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.ds-button-secondary{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-button-secondary:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-button-secondary{transition:none}.ds-button-secondary:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-button-secondary{transition:none}:host-context(.reduce-motion) .ds-button-secondary:active:not(:disabled){transform:none}"
     },
     {
       "name": "Quiet Button",
@@ -505,7 +571,7 @@
       "refersTo": "button-quiet",
       "description": "The transparent management action; its authored hover remains transparent.",
       "html": "<button type=\"button\" class=\"ds-button-quiet\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m14 4 6 6 M4 15 16 3l5 5L9 20H4z\"></path></svg>Quản lý</button>",
-      "css": ".ds-button-quiet{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-quiet{background:transparent;border-color:transparent;font-weight:500}.ds-button-quiet:hover{background:transparent}.ds-button-quiet:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-quiet:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+      "css": ".ds-button-quiet{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-quiet{background:transparent;border-color:transparent;font-weight:500}.ds-button-quiet:hover{background:transparent}.ds-button-quiet:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-quiet:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.ds-button-quiet{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-button-quiet:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-button-quiet{transition:none}.ds-button-quiet:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-button-quiet{transition:none}:host-context(.reduce-motion) .ds-button-quiet:active:not(:disabled){transform:none}"
     },
     {
       "name": "Destructive Button",
@@ -513,7 +579,7 @@
       "refersTo": "button-danger",
       "description": "The named dialog confirmation, using danger text on a neutral surface.",
       "html": "<button type=\"button\" class=\"ds-button-danger\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 6h18 M9 6V3h6v3 M5 6l1 15h12l1-15 M10 10v7 M14 10v7\"></path></svg>Xóa cửa hàng</button>",
-      "css": ".ds-button-danger{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-danger:hover{background:var(--soft,#eef2f6)}.ds-button-danger{color:var(--danger,#b52b3c)}.ds-button-danger:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-danger:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+      "css": ".ds-button-danger{font-family:Inter,Arial,sans-serif;font-size:14px;color:var(--ink,#172537);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#dce2ea);background:var(--surface,#fff);border-radius:6px;padding:8px 12px;min-height:36px;font-weight:600;white-space:nowrap}.ds-button-danger:hover{background:var(--soft,#eef2f6)}.ds-button-danger{color:var(--danger,#b52b3c)}.ds-button-danger:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-button-danger:disabled{opacity:.55;cursor:default}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.ds-button-danger{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-button-danger:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-button-danger{transition:none}.ds-button-danger:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-button-danger{transition:none}:host-context(.reduce-motion) .ds-button-danger:active:not(:disabled){transform:none}"
     },
     {
       "name": "Search Field",
@@ -529,7 +595,7 @@
       "refersTo": "navigation",
       "description": "Flat rail destinations with the selected weight and blue fill; hover uses the neutral fill.",
       "html": "<nav class=\"ds-nav\" aria-label=\"Ví dụ điều hướng\"><button type=\"button\" class=\"ds-nav-button ds-nav-active\" aria-current=\"page\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 10 12 3l9 7v10H3z M9 20v-7h6v7\"></path></svg>Tổng quan</button><button type=\"button\" class=\"ds-nav-button\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M3 5h11v12H3z M14 9h4l3 4v4h-7 M7 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4 M17 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4\"></path></svg>Đóng hàng FBS</button></nav>",
-      "css": ".ds-nav{width:172px;background:var(--nav,#f9fafc);color:var(--ink,#172537)}.ds-nav-button{font-family:Inter,Arial,sans-serif;display:inline-flex;align-items:center;cursor:pointer;width:100%;border:0;border-radius:6px;background:transparent;color:inherit;justify-content:flex-start;padding:10px 12px;margin-bottom:3px;font-size:13px;font-weight:500;gap:11px;min-height:38px;white-space:nowrap}.ds-nav-active{color:var(--selected-ink,#174b9a);background:var(--selected,#e8f0ff);font-weight:700}.ds-nav-button:hover{background:var(--soft,#eef2f6)}.ds-nav-button:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}"
+      "css": ".ds-nav{width:172px;background:var(--nav,#f9fafc);color:var(--ink,#172537)}.ds-nav-button{font-family:Inter,Arial,sans-serif;display:inline-flex;align-items:center;cursor:pointer;width:100%;border:0;border-radius:6px;background:transparent;color:inherit;justify-content:flex-start;padding:10px 12px;margin-bottom:3px;font-size:13px;font-weight:500;gap:11px;min-height:38px;white-space:nowrap}.ds-nav-active{color:var(--selected-ink,#174b9a);background:var(--selected,#e8f0ff);font-weight:700}.ds-nav-button:hover{background:var(--soft,#eef2f6)}.ds-nav-button:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}.ds-nav-button{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-nav-button:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-nav-button{transition:none}.ds-nav-button:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-nav-button{transition:none}:host-context(.reduce-motion) .ds-nav-button:active:not(:disabled){transform:none}"
     },
     {
       "name": "Marketplace Tag",
@@ -545,7 +611,7 @@
       "refersTo": "data-sheet",
       "description": "The table container with a sticky heading, selected row and aligned synthetic prices; this sample isolates the container from product thumbnails.",
       "html": "<div class=\"ds-sheet\"><table class=\"ds-table\"><thead class=\"ds-thead\"><tr><th class=\"ds-th\">Đơn hàng</th><th class=\"ds-th\">Sản phẩm</th><th class=\"ds-th ds-price\">Giá</th></tr></thead><tbody><tr class=\"ds-row ds-selected\"><td class=\"ds-td\">DEMO-0101-1</td><td class=\"ds-td\">Костюм спортивный</td><td class=\"ds-td ds-price\">1290 ₽</td></tr><tr class=\"ds-row\"><td class=\"ds-td\">DEMO-0102-1</td><td class=\"ds-td\">Брюки спортивные</td><td class=\"ds-td ds-price\">850 ₽</td></tr></tbody></table></div>",
-      "css": ".ds-sheet{font-family:Inter,Arial,sans-serif;font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink,#172537);flex:1;min-height:0;overflow:auto;border:1px solid var(--line,#dce2ea);border-radius:8px;background:var(--surface,#fff)}.ds-table{width:100%;border-collapse:collapse;table-layout:fixed;text-align:left}.ds-thead{position:sticky;top:0;z-index:1;background:var(--nav,#f9fafc)}.ds-th{height:42px;color:var(--muted,#5d6a7b);font-size:12px;font-weight:500;border-bottom:1px solid var(--line,#dce2ea);padding:10px 12px}.ds-td{height:71px;border-bottom:1px solid var(--line,#dce2ea);padding:9px 12px;vertical-align:middle}.ds-row:last-child .ds-td{border-bottom:0}.ds-row:hover{background:var(--soft,#eef2f6)}.ds-row.ds-selected{background:var(--selected,#e8f0ff)}.ds-price{text-align:right;font-size:13px;white-space:nowrap}.ds-th.ds-price{font-size:12px}"
+      "css": ".ds-sheet{font-family:Inter,Arial,sans-serif;font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink,#172537);flex:1;min-height:0;overflow:auto;border:1px solid var(--line,#dce2ea);border-radius:8px;background:var(--surface,#fff)}.ds-table{width:100%;border-collapse:collapse;table-layout:fixed;text-align:left}.ds-thead{position:sticky;top:0;z-index:1;background:var(--nav,#f9fafc)}.ds-th{height:42px;color:var(--muted,#5d6a7b);font-size:12px;font-weight:500;border-bottom:1px solid var(--line,#dce2ea);padding:10px 12px}.ds-td{height:71px;border-bottom:1px solid var(--line,#dce2ea);padding:9px 12px;vertical-align:middle}.ds-row:last-child .ds-td{border-bottom:0}.ds-row:hover{background:var(--soft,#eef2f6)}.ds-row.ds-selected{background:var(--selected,#e8f0ff)}.ds-price{text-align:right;font-size:13px;white-space:nowrap}.ds-th.ds-price{font-size:12px}.ds-row{transition:background-color 120ms}@media(prefers-reduced-motion:reduce){.ds-row{transition:none}}:host-context(.reduce-motion) .ds-row{transition:none}"
     },
     {
       "name": "Store Management Popover",
@@ -553,7 +619,7 @@
       "refersTo": "store-popover",
       "description": "The signature local overlay beside the active store. This specimen uses normal flow; the preview places it at fixed header coordinates.",
       "html": "<section class=\"ds-store-popover\" aria-label=\"Quản lý cửa hàng\"><p class=\"ds-store-copy\">Cửa hàng đang chọn<br><strong class=\"ds-store-name\">Cửa hàng minh họa</strong></p><button type=\"button\" class=\"ds-store-action\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m14 4 6 6 M4 15 16 3l5 5L9 20H4z\"></path></svg>Chỉnh sửa cửa hàng</button><div class=\"ds-store-rule\"></div><button type=\"button\" class=\"ds-store-action\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 4v16 M4 12h16\"></path></svg>Thêm cửa hàng</button></section>",
-      "css": ".ds-store-popover{font-family:Inter,Arial,sans-serif;width:280px;padding:8px;background:var(--surface,#fff);color:var(--ink,#172537);border:1px solid var(--line,#dce2ea);border-radius:8px;box-shadow:0 10px 30px #0003}.ds-store-copy{margin:0;padding:10px 10px 14px;line-height:1.6;color:var(--muted,#5d6a7b);font-size:12px}.ds-store-name{color:var(--ink,#172537)}.ds-store-action{font-family:Inter,Arial,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;border:0;justify-content:flex-start;font-size:13px;font-weight:600;padding:11px 10px;min-height:36px;white-space:nowrap;border-radius:6px;background:var(--surface,#fff);color:var(--ink,#172537)}.ds-store-action:hover{background:var(--soft,#eef2f6)}.ds-store-action:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-store-rule{height:1px;background:var(--line,#dce2ea);margin:7px}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}@media(prefers-reduced-motion:no-preference){.ds-store-popover{animation:ds-store-reveal .16s cubic-bezier(.16,1,.3,1)}@keyframes ds-store-reveal{from{clip-path:inset(0 0 15% 0);transform:translateY(-4px)}to{clip-path:inset(0);transform:translateY(0)}}}"
+      "css": ".ds-store-popover{font-family:Inter,Arial,sans-serif;width:280px;padding:8px;background:var(--surface,#fff);color:var(--ink,#172537);border:1px solid var(--line,#dce2ea);border-radius:8px;box-shadow:0 10px 30px #0003}.ds-store-copy{margin:0;padding:10px 10px 14px;line-height:1.6;color:var(--muted,#5d6a7b);font-size:12px}.ds-store-name{color:var(--ink,#172537)}.ds-store-action{font-family:Inter,Arial,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;border:0;justify-content:flex-start;font-size:13px;font-weight:600;padding:11px 10px;min-height:36px;white-space:nowrap;border-radius:6px;background:var(--surface,#fff);color:var(--ink,#172537)}.ds-store-action:hover{background:var(--soft,#eef2f6)}.ds-store-action:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-store-rule{height:1px;background:var(--line,#dce2ea);margin:7px}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}@media(prefers-reduced-motion:no-preference){.ds-store-popover{animation:ds-store-reveal .16s cubic-bezier(.16,1,.3,1)}@keyframes ds-store-reveal{from{clip-path:inset(0 0 15% 0);transform:translateY(-4px)}to{clip-path:inset(0);transform:translateY(0)}}}.ds-store-action{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-store-action:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-store-action{transition:none}.ds-store-action:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-store-action{transition:none}:host-context(.reduce-motion) .ds-store-action:active:not(:disabled){transform:none}@media(prefers-reduced-motion:reduce){.ds-store-popover{animation:none}}:host-context(.reduce-motion) .ds-store-popover{animation:none}"
     },
     {
       "name": "Selection Checkbox",
@@ -562,17 +628,42 @@
       "description": "An actual checkbox with checked and indeterminate CSS. The preview sets the indeterminate DOM property when only part of the filtered result is selected.",
       "html": "<label class=\"ds-selection\"><input class=\"ds-checkbox\" type=\"checkbox\" checked aria-label=\"Chọn đơn minh họa\">Chọn đơn minh họa</label>",
       "css": ".ds-selection{font-family:Inter,Arial,sans-serif;font-size:13px;color:var(--ink,#172537);display:flex;align-items:center;gap:9px}.ds-checkbox{appearance:none;width:17px;height:17px;padding:0;flex:none;border:1.5px solid #8190a2;vertical-align:middle;border-radius:4px;cursor:pointer;background:var(--surface,#fff)}.ds-checkbox:checked,.ds-checkbox:indeterminate{background:var(--accent,#175bc5);border-color:var(--accent,#175bc5);position:relative}.ds-checkbox:checked:after{content:\"\";position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg)}.ds-checkbox:indeterminate:after{content:\"\";position:absolute;left:3px;top:6px;width:8px;height:2px;background:white;border:0;transform:none}.ds-checkbox:focus-visible{outline:2px solid #3575d3;outline-offset:3px}"
+    },
+    {
+      "name": "Selected Item Detail Panel",
+      "kind": "custom",
+      "refersTo": "detail-panel",
+      "description": "Non-modal order/KIZ details with retained list context. This normal-flow specimen reproduces the entrance visually; row binding, close timing and focus return belong to the preview runtime.",
+      "html": "<aside class=\"ds-detail-panel\" aria-label=\"Chi tiết đơn minh họa\"><header class=\"ds-detail-head\"><div><h2 class=\"ds-detail-title\">Chi tiết đơn hàng</h2><small class=\"ds-detail-id\">DEMO-0102-1</small></div><button type=\"button\" class=\"ds-detail-close\" aria-label=\"Đóng chi tiết\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M6 6l12 12 M6 18 18 6\"></path></svg></button></header><div class=\"ds-detail-body\"><strong class=\"ds-detail-product\">Брюки спортивные мужские</strong><dl class=\"ds-detail-values\"><div class=\"ds-detail-value\"><dt>Article / Size</dt><dd>Q12-M · Đen · M</dd></div><div class=\"ds-detail-value\"><dt>Hạn giao</dt><dd>05.11.2026 · 15:00</dd></div></dl><p class=\"ds-detail-note\">Bản xem trước. Không nhận đơn, mua mã hoặc gửi lên API.</p></div><footer class=\"ds-detail-foot\"><button type=\"button\" class=\"ds-detail-button\">Đóng</button><button type=\"button\" class=\"ds-detail-button\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 3h9l5 5v13H5z M14 3v5h5 M8 12h8 M8 16h6\"></path></svg>Xem kết quả lô</button></footer></aside>",
+      "css": ".ds-detail-panel{font-family:Inter,Arial,sans-serif;width:400px;background:var(--surface,#fff);color:var(--ink,#172537);border-left:1px solid var(--line,#dce2ea);display:flex;flex-direction:column}.ds-detail-head{display:flex;align-items:center;justify-content:space-between;padding:23px 22px;border-bottom:1px solid var(--line,#dce2ea)}.ds-detail-title{font-size:18px;line-height:1.4;margin:0 0 6px;font-weight:700}.ds-detail-id{font-size:12px;color:var(--muted,#5d6a7b)}.ds-detail-body{padding:24px 22px;overflow:auto;flex:1;min-height:0}.ds-detail-product{font-size:13px;font-weight:600;line-height:1.6}.ds-detail-values{margin:20px 0;font-size:13px}.ds-detail-value{display:flex;align-items:baseline;justify-content:space-between;gap:18px;padding:12px 0;border-bottom:1px solid var(--line,#dce2ea)}.ds-detail-value dt{color:var(--muted,#5d6a7b)}.ds-detail-value dd{margin:0;text-align:right;line-height:1.5}.ds-detail-note{margin-top:28px;font-size:12px;line-height:1.6;color:var(--muted,#5d6a7b)}.ds-detail-foot{padding:16px 22px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--line,#dce2ea)}.ds-detail-button{font-family:Inter,Arial,sans-serif;font-size:14px;font-weight:600;color:var(--ink,#172537);background:var(--surface,#fff);border:1px solid var(--line,#dce2ea);border-radius:6px;padding:8px 12px;min-height:36px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.ds-detail-button:hover{background:var(--soft,#eef2f6)}.ds-detail-button:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-detail-button{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-detail-button:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-detail-button{transition:none}.ds-detail-button:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-detail-button{transition:none}:host-context(.reduce-motion) .ds-detail-button:active:not(:disabled){transform:none}.ds-detail-close{font-family:Inter,Arial,sans-serif;font-size:14px;font-weight:600;color:var(--ink,#172537);background:var(--surface,#fff);border:1px solid var(--line,#dce2ea);border-radius:6px;padding:8px 12px;min-height:36px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.ds-detail-close:hover{background:var(--soft,#eef2f6)}.ds-detail-close:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-detail-close{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-detail-close:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-detail-close{transition:none}.ds-detail-close:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-detail-close{transition:none}:host-context(.reduce-motion) .ds-detail-close:active:not(:disabled){transform:none}.ds-detail-close{width:36px;min-width:36px;padding:8px;background:transparent;border-color:transparent;font-weight:500}.ds-detail-close:hover{background:transparent}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}@media(max-width:1200px){.ds-detail-panel{width:370px}}@media(prefers-reduced-motion:no-preference){.ds-detail-panel{animation:ds-detail-enter 220ms cubic-bezier(.16,1,.3,1)}@keyframes ds-detail-enter{from{transform:translateX(28px);opacity:0}to{transform:translateX(0);opacity:1}}}:host-context(.reduce-motion) .ds-detail-panel{animation:none}"
+    },
+    {
+      "name": "Unsaved Configuration Strip",
+      "kind": "custom",
+      "refersTo": "draft-footer",
+      "description": "A changed-draft state with explicit local Save/Cancel. The specimen shows its revealed state; comparison, store scope and save/cancel behavior are supplied by more-screens.js.",
+      "html": "<div class=\"ds-draft-footer\"><span class=\"ds-draft-message\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m14 4 6 6 M4 15 16 3l5 5L9 20H4z\"></path></svg>Có thay đổi chưa lưu · Bản mẫu</span><div class=\"ds-draft-actions\"><button type=\"button\" class=\"ds-draft-cancel\">Hủy thay đổi</button><button type=\"button\" class=\"ds-draft-save\"><svg class=\"ds-icon\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6z\"></path></svg>Lưu cấu hình</button></div></div>",
+      "css": ".ds-draft-footer{font-family:Inter,Arial,sans-serif;display:flex;align-items:center;gap:12px;flex:none;min-height:42px;border-top:1px solid var(--line,#dce2ea);padding-top:12px;color:var(--ink,#172537)}.ds-draft-footer[hidden]{display:none}.ds-draft-message{display:flex;align-items:center;gap:9px;font-size:13px}.ds-draft-actions{display:flex;gap:8px;margin-left:auto}.ds-draft-cancel{font-family:Inter,Arial,sans-serif;font-size:14px;font-weight:600;color:var(--ink,#172537);background:var(--surface,#fff);border:1px solid var(--line,#dce2ea);border-radius:6px;padding:8px 12px;min-height:36px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.ds-draft-cancel:hover{background:var(--soft,#eef2f6)}.ds-draft-cancel:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-draft-cancel{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-draft-cancel:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-draft-cancel{transition:none}.ds-draft-cancel:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-draft-cancel{transition:none}:host-context(.reduce-motion) .ds-draft-cancel:active:not(:disabled){transform:none}.ds-draft-save{font-family:Inter,Arial,sans-serif;font-size:14px;font-weight:600;color:var(--ink,#172537);background:var(--surface,#fff);border:1px solid var(--line,#dce2ea);border-radius:6px;padding:8px 12px;min-height:36px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}.ds-draft-save:hover{background:var(--soft,#eef2f6)}.ds-draft-save{background:var(--accent,#175bc5);border-color:var(--accent,#175bc5);color:#fff}.ds-draft-save:hover{background:var(--accent,#175bc5);filter:brightness(1.08)}.ds-draft-save:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-draft-save{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-draft-save:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-draft-save{transition:none}.ds-draft-save:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-draft-save{transition:none}:host-context(.reduce-motion) .ds-draft-save:active:not(:disabled){transform:none}.ds-icon{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}@media(prefers-reduced-motion:no-preference){.ds-draft-footer{animation:ds-draft-enter 180ms cubic-bezier(.16,1,.3,1)}@keyframes ds-draft-enter{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}}:host-context(.reduce-motion) .ds-draft-footer{animation:none}"
+    },
+    {
+      "name": "Flat Workspace Tabs",
+      "kind": "nav",
+      "refersTo": "workspace-tabs",
+      "description": "Flat labels with an active underline. This specimen fixes the selected state; the preview measures a separate underline and animates it for 160ms, with arrow-key tab activation.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Ví dụ tab tài chính\"><button type=\"button\" class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Tổng hợp</button><button type=\"button\" class=\"ds-tab ds-tab-active\" role=\"tab\" aria-selected=\"true\">Lý do phạt</button></div>",
+      "css": ".ds-tabs{display:flex;gap:24px;border-bottom:1px solid var(--line,#dce2ea);flex:none;position:relative}.ds-tab{font-family:Inter,Arial,sans-serif;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:var(--muted,#5d6a7b);padding:0 2px 13px;min-height:35px;white-space:nowrap;position:relative}.ds-tab-active{color:var(--ink,#172537)}.ds-tab-active:after{content:\"\";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:var(--accent,#175bc5);pointer-events:none}.ds-tab:hover{background:transparent}.ds-tab:focus-visible{outline:2px solid #3575d3;outline-offset:3px}.ds-tab{transition:background-color 120ms,color 120ms,border-color 120ms}.ds-tab:active:not(:disabled){transform:translateY(1px)}@media(prefers-reduced-motion:reduce){.ds-tab{transition:none}.ds-tab:active:not(:disabled){transform:none}}:host-context(.reduce-motion) .ds-tab{transition:none}:host-context(.reduce-motion) .ds-tab:active:not(:disabled){transform:none}"
     }
   ],
   "narrative": {
     "northStar": "Dispatch Workbench",
-    "overview": "Dispatch Workbench is the proposed visual direction for VN Code's separate HTML desktop preview. It is a **PROPOSAL awaiting user screenshot approval**, with synthetic store, order and product data. The calm white and graphite surfaces, restrained blue selection, fine rules and bundled Inter typography support a compact, readable workspace for Vietnamese-speaking sellers and warehouse staff.\n\nThe component character is precise and restrained: flat controls, clear text states, inset data sheets and a small store-management popover. Light and dark themes share the same structure. This document governs only the preview directory; [the incumbent workspace system](../../vncode-workspace-system.md) remains the production design authority. The current [index.html](index.html) is a code-led desktop visual mock, not the JavaFX application runtime or an implementation approval.",
+    "overview": "Dispatch Workbench is the proposed visual direction for VN Code's separate HTML desktop preview. It is a **PROPOSAL awaiting user screenshot approval**, with synthetic store, order and product data. The calm white and graphite surfaces, restrained blue selection, fine rules and bundled Inter typography support a compact, readable workspace for Vietnamese-speaking sellers and warehouse staff.\n\nThe component character is precise and restrained: flat controls, clear text states, inset data sheets, a small store-management popover and a detail panel beside the working list. Short motion connects the selected item to its detail and makes local changes visible without staging a page entrance. Light and dark themes share the same structure. This document governs only the preview directory; [the incumbent workspace system](../../vncode-workspace-system.md) remains the production design authority. The current [index.html](index.html) is a code-led desktop visual mock, not the JavaFX application runtime or an implementation approval.",
     "keyCharacteristics": [
       "Neutral white and graphite grounds with one blue action and selection family.",
       "Dense, legible lists with tabular numbers and persistent batch controls.",
       "Flat navigation and fine dividers; elevation reserved for temporary overlays.",
       "Visible store identity and management controls, with a named delete confirmation.",
-      "Locally served Inter, line icons, and labelled synthetic content in both themes."
+      "Locally served Inter, line icons, and labelled synthetic content in both themes.",
+      "Short detail, tab and save feedback, with OS and local reduced-motion controls."
     ],
     "rules": [
       {
@@ -587,7 +678,12 @@
       },
       {
         "name": "The Temporary Layer Rule",
-        "body": "Reserve shadows for overlays; use tonal surfaces and rules for persistent workspace structure.",
+        "body": "Reserve elevation shadows for overlays; use tonal surfaces and rules for persistent workspace structure.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Continuity Rule",
+        "body": "Motion must preserve the selected record, list context and local draft; state feedback remains available when spatial motion is reduced.",
         "section": "elevation"
       }
     ],
@@ -596,14 +692,18 @@
       "**Do** keep tabular numbers, right-aligned prices and written status labels.",
       "**Do** keep table scrolling inside the sheet and batch actions in the separate footer.",
       "**Do** retain visible store identity, management access and a named delete confirmation.",
-      "**Do** use locally served Inter and labelled synthetic examples with recorded image provenance."
+      "**Do** use locally served Inter and labelled synthetic examples with recorded image provenance.",
+      "**Do** preserve selected-row identity, store-specific drafts and list context through short interaction motion.",
+      "**Do** retain immediate text and color feedback when spatial motion is reduced."
     ],
     "donts": [
       "**Don't** treat this proposal or the finish-review verdict as user screenshot approval or native implementation readiness.",
       "**Don't** restore the three overview counters or reserve their empty card band in this preview.",
       "**Don't** displace the header's store controls with the former FBS delay text.",
       "**Don't** claim local simulations, tab counts or dropdown samples are live marketplace behavior.",
-      "**Don't** infer mobile support from the compact desktop breakpoint."
+      "**Don't** infer mobile support from the compact desktop breakpoint.",
+      "**Don't** turn the motion reference into decorative page entrances, row staggers, fake progress or a new animation dependency.",
+      "**Don't** present local configuration saves, template edits or import prompts as persisted app operations."
     ]
   }
 }
