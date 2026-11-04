@@ -427,7 +427,11 @@ public final class ZnackCardRegistrationController {
         var intent=java.util.UUID.randomUUID();boolean autoSign=autoSignCheckBox.isSelected();boolean existingDraft=selected.stream().anyMatch(this::reviewableDraft);
         var keys=selected.stream().map(row->new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).toList();
         Task<RegistrationBatchPreflight.Review> task=new Task<>(){protected RegistrationBatchPreflight.Review call(){
-            sources.require(owner);return preflightReader.apply(owner,keys);
+            sources.require(owner);
+            // The current paired WB/Ozon + National Catalog receipt must contain every selected variant.
+            // Local SQLite selection alone is not authorization to register a remote card.
+            for (var key : keys) sources.requireMember(owner,key.cardId(),key.variantId());
+            return preflightReader.apply(owner,keys);
         }};
         registrationPreflightTask=task;var cancelledBySeller=new java.util.concurrent.atomic.AtomicBoolean();
         RegistrationBatchPreflight.readPill((StackPane)productTable.getParent(),"registrationPreflightStatus",task,()->cancelledBySeller.set(true));
@@ -435,8 +439,12 @@ public final class ZnackCardRegistrationController {
             if(!isCurrent(owner,epoch))return;registrationPreflightTask=null;
             var review=RegistrationBatchPreflight.reviewed(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,task.getValue(),existingDraft);
             if(review==null||!isCurrent(owner,epoch)){preparing=false;updateActionState();return;}
-            if(selected.stream().anyMatch(row->!RegistrationCardIndex.notSubmitted(row)&&!reviewableDraft(row)&&!reviewableReplacement(row))){
-                preparing=false;updateActionState();showError(new IllegalStateException("ZNACK_SOURCE_REVIEW_REQUIRED"));return;
+            var blocked = RegistrationThreeSourceReviewGate.blocked(selected,
+                    RegistrationCardIndex::notSubmitted, this::reviewableDraft, this::reviewableReplacement);
+            if(!blocked.isEmpty()){
+                preparing=false;updateActionState();
+                showWarning(RegistrationThreeSourceReviewGate.warning(blocked));
+                return;
             }
             var targets=new java.util.LinkedHashMap<com.vncode.app.features.products.ProductKey,RegistrationSourceConsent.Target>();
             try { for(int i=0;i<selected.size();i++){var row=selected.get(i);targets.put(keys.get(i),reviewableReplacement(row)
