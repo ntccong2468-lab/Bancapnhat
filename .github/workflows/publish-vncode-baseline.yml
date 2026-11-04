@@ -21,7 +21,9 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: vncode-complete-baseline
+  # Builds only read Latest and run on isolated Windows workers. Serialize repeat
+  # builds of the same immutable source without blocking unrelated release refs.
+  group: vncode-complete-baseline-${{ inputs.source_commit || github.sha }}
   cancel-in-progress: false
 jobs:
   baseline:
