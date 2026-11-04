@@ -1,24 +1,26 @@
 # VNCode consolidated baseline
 
-Bản nền hiện hành đã công bố: **VN Code 1.6.2**, tag bất biến `v1.6.2`, nguồn `3968f8f4bb2239ddf61b48e9f6245086bd4ad529`, phát hành 04.11.2026 08:22:03 UTC.
+Bản nền hiện hành đã công bố: **VN Code 1.6.3**, tag bất biến `v1.6.3`, nguồn `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`, phát hành 2026-11-04T23:11:51Z.
 
-Kế thừa toàn bộ 1.6.1. Bản mới giữ nguyên nhãn vận đơn Ozon, bỏ trang barcode sản phẩm đứng riêng khi nhận diện được, giữ nhãn kết hợp và luồng lấy nhãn theo lô. Phiếu nhặt hàng dùng đúng số trên nhãn từng đơn với đối chiếu `scanit`. Báo cáo lý do phạt chuyển từ Tổng quan sang Công cụ → Báo cáo tài chính.
+Kế thừa toàn bộ 1.6.2. Áp dụng giao diện native đã duyệt, ưu tiên diện tích danh sách và quản lý cửa hàng cạnh selector. Nhận Ozon đối soát sau cả lô; lỗi KIZ tùy chọn chỉ cho tiếp tục khi API xác nhận được nhận. PDF giữ vận đơn Ozon gốc, đặt KIZ kết hợp đúng đơn ngay sau, sắp xếp cùng WB trên toàn lô; bỏ barcode sản phẩm đứng riêng. Phiếu nhặt hàng giữ đúng số vận đơn. In KIZ và chấp nhận KIZ trên API là hai kết quả riêng.
 
-[Tải bộ cài EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.2/VN-code-1.6.2-Windows-x64.exe), [ghi chú 1.6.2](VN-code-1.6.2.md), [bàn giao](../validation/2026-11-04-vncode-162-handoff.md), [biên nhận Latest](../validation/2026-11-04-vncode-162-published-latest.json). Lịch sử tính năng nền ở [ghi chú 1.6.1](VN-code-1.6.1.md).
+[Tải bộ cài EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.3/VN-code-1.6.3-Windows-x64.exe), [ghi chú 1.6.3](VN-code-1.6.3.md), [bàn giao](../validation/2026-11-04-vncode-163-handoff.md), [biên nhận Latest](../validation/2026-11-04-vncode-163-published-latest.json). Lịch sử tính năng nền ở [ghi chú 1.6.2](VN-code-1.6.2.md).
 
 ## Gói nguồn và kiểm chứng
 
-Release giữ đủ 16 tệp: EXE, MSI, ZIP chạy độc lập kèm Java, source ZIP, Git history bundle, verification ZIP, tệp EXE `.sha256`, `build-info.json`, `release-notes.md`, `native-smoke.json`, `gs1-smoke.json`, `side-by-side-smoke.json`, `upgrade-baseline-smoke.json`, `previous-baseline.json`, `asset-manifest.json`, `SHA256SUMS`. Các tệp có tiền tố phiên bản dùng `VN-code-1.6.2-`.
+Release giữ đủ 16 tệp: EXE, MSI, ZIP chạy độc lập kèm Java, source ZIP, Git history bundle, verification ZIP, tệp EXE `.sha256`, `build-info.json`, `release-notes.md`, `native-smoke.json`, `gs1-smoke.json`, `side-by-side-smoke.json`, `upgrade-baseline-smoke.json`, `previous-baseline.json`, `asset-manifest.json`, `SHA256SUMS`. Các tệp có tiền tố phiên bản dùng `VN-code-1.6.3-`.
 
-Windows build `41789324429` trên đúng nguồn phát hành: **3.824 ca, 0 thất bại/lỗi, 2 bỏ qua theo OS**, 520 lớp; preflight 69/69. Native launcher, migration/snapshot, DPAPI, cài/gỡ độc lập và nâng cấp bằng đúng EXE từ Latest 1.6.1 giữ dữ liệu đều đạt. Node 138/138 trên nguồn ứng dụng, 141/141 ở publisher. Không chạy lại full Linux cho bản này; 302 ca liên quan đã đạt trước đóng gói.
+Windows build `41918387266` trên đúng nguồn phát hành: **3.844 ca, 0 thất bại/lỗi, 2 bỏ qua theo OS**, 521 lớp. Preflight, native launcher, migration/snapshot, DPAPI, cài/gỡ độc lập và nâng cấp bằng đúng EXE từ Latest 1.6.2 giữ dữ liệu đều đạt. Node 144/144 trên nguồn ứng dụng và 145/145 ở publisher. Không chạy lại full Linux; 296 ca mục tiêu riêng biệt đã đạt trước đóng gói.
 
-Publisher `41798807654` đạt. Cả 16 tệp đã tải công khai và đối chiếu SHA-256/kích thước. Source ZIP gồm 2.646 tệp: 2.417 tệp văn bản chỉ khác CRLF do Windows; nhị phân trùng byte. Runtime JAR đúng 1.6.2 và chứa các lớp sửa nhãn, scanit và Tài chính. Bộ đọc updater từ binary 1.6.1 nhận đúng Latest 1.6.2, MSI/hash/kích thước; chưa quan sát popup hay cài trên máy seller.
+Publisher `41931634446` đạt. Cả 16 tệp đã tải công khai và đối chiếu SHA-256/kích thước. Source ZIP gồm 2.769 tệp được đối chiếu với nguồn: 2.466 tệp văn bản chỉ khác CRLF do Windows; nhị phân trùng byte. Runtime JAR đúng 1.6.3, chứa giao diện đã duyệt, sửa nhận đơn và ghép nhãn. Bộ đọc updater từ binary 1.6.2 nhận đúng Latest 1.6.3, MSI/hash/kích thước; chưa quan sát popup hay cài trên máy seller.
 
 Bộ cài chưa ký Authenticode. [Rà soát bảo mật nền 1.6.1](../validation/2026-11-03-release-security-review.md) vẫn có cảnh báo định danh chứng thư và các mục medium; không tuyên bố mọi gate bảo mật đạt. Prototype migration mã hóa credential nằm ngoài runtime. Portal không được triển khai.
 
 ## Phạm vi API thật
 
-Các kết quả ghi thật trước bản nền 1.6.1 vẫn có giới hạn được ghi trong bàn giao 1.6.1. Lượt sửa 1.6.2 đọc API Ozon và đối chiếu `scanit` với một PDF thật đã lưu, không tạo tác vụ nhãn mới. Lô 100/1.000 dùng HTTP/PDF mô phỏng, không phải tốc độ cửa hàng thật. Nguồn báo cáo phạt Ozon vẫn chưa hỗ trợ khi hợp đồng API chưa được xác minh. Lượt phát hành không nhận đơn khách, mua/tiêu KIZ, kích hoạt license hoặc gửi lại Catalog.
+Trước đóng gói đã nhận 22 đơn và 2 đơn mới qua API Ozon, đọc lại xác nhận. PDF thật 25 vận đơn + 13 nhãn KIZ gilet = 38 trang, 2 trang nhặt hàng, 2 task theo lô/0 tải nhãn riêng; 6,999 giây xuất/9,401 giây đầu-cuối. Đối chiếu độc lập vận đơn gốc không đổi, 13 mã đúng reservation và thứ tự cùng WB. Không gửi 13 mã này lên API trong lượt xuất PDF; không coi in KIZ là Ozon đã chấp nhận mã. 12 đơn khác danh mục chỉ in vận đơn.
+
+Lô 1.000 dùng mô phỏng, chưa có benchmark 1.000 đơn thật. Các giới hạn nghiệm thu sản phẩm/Catalog của 1.6.1 tiếp tục áp dụng; nguồn báo cáo phạt Ozon vẫn chưa hỗ trợ khi hợp đồng API chưa được xác minh. Lượt công bố không nhận thêm đơn, mua KIZ, kích hoạt license hay gửi lại Catalog; dữ liệu thật giữ ngoài repository.
 
 ## Tiếp tục phát triển
 

@@ -1,0 +1,31 @@
+{
+  "version": "1.6.3",
+  "sourceCommit": "f8d2cf967ecc8fe9de32cd3b57c70de642751ff2",
+  "releaseId": 434558799,
+  "publishedAt": "2026-11-04T23:11:51Z",
+  "latest": true,
+  "buildRun": 41918387266,
+  "publisherRun": 41931634446,
+  "publisherSourceCommit": "b87a02eb46153a041b366ef98e6ea518e3c302fb",
+  "publisherToolTests": 145,
+  "failedPublicationRun": 41931139279,
+  "allPublicAssetsVerified": 16,
+  "updaterVerifiedFromBinary": "1.6.2",
+  "installer": {
+    "bytes": 149199360,
+    "sha256": "52dc01b4a545601bb18cd27221245bbb31e90ed822b88757c46c6a107d5224c1",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.3/VN-code-1.6.3-Windows-x64.exe"
+  },
+  "msi": {
+    "bytes": 148530437,
+    "sha256": "426e88c669a94b0f59c900bf31c4767ef449103c119f5d7f0e9c17e397a7e518",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.3/VN-code-1.6.3-Windows-x64.msi"
+  },
+  "previousPublicReleasesRetained": true,
+  "sellerPopupObserved": false,
+  "previousReleaseCountVerified": 12,
+  "previousAssetCountVerified": 194,
+  "liveMarketplaceMutationsDuringPublication": false,
+  "liveOzonEvidenceBeforePublication": "2026-11-04-vncode-163-ozon-live-recheck.json",
+  "livePairedPdfEvidenceBeforePublication": "2026-11-04-vncode-163-ozon-paired-pdf.json"
+}

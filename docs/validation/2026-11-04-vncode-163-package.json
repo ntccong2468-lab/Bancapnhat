@@ -1,0 +1,30 @@
+{
+  "version": "1.6.3",
+  "sourceCommit": "f8d2cf967ecc8fe9de32cd3b57c70de642751ff2",
+  "verifiedAt": "2026-11-04T23:12:20.324365+00:00",
+  "sourceFilesCompared": 2769,
+  "sourceEquivalentAfterTextCRLFNormalization": true,
+  "textLineEndingOnlyFiles": 2466,
+  "jar": "VN code/app/VNcode-1.6.3.jar",
+  "jarSha256": "e6ca29c3418eeffc9deba99a274f0f9f625f8c8e59e66f8e6cd29b06f1d52cdb",
+  "runtimeVersionVerified": true,
+  "runtimeIncludes": [
+    "com/vncode/app/integration/ozon/OzonCarrierLabelNumbers.class",
+    "com/vncode/app/integration/ozon/OzonProductBarcodePage.class",
+    "com/vncode/app/integration/ozon/OzonOfficialLabelSelector.class",
+    "com/vncode/app/integration/ozon/OzonPostingTrackingStore.class",
+    "com/vncode/app/ui/finance/FinancePenaltyController.class",
+    "com/vncode/app/shared/WorkspaceMotion.class",
+    "com/vncode/app/ui/workspace/WorkspaceDetailDrawer.class",
+    "com/vncode/app/integration/ozon/OzonUnitShipService.class",
+    "com/vncode/app/features/ozon/OzonProductVariant.class",
+    "com/vncode/app/integration/ozon/OzonPrintBundleService$CarrierGroup.class",
+    "com/vncode/app/integration/ozon/OzonCarrierLabelNumbers$Index.class",
+    "com/vncode/app/integration/ozon/OzonAcceptanceKizService.class",
+    "com/vncode/app/ui/finance/finance-penalty-view.fxml"
+  ],
+  "scanitInRuntimeDto": true,
+  "customShippingBadgeAbsent": true,
+  "approvedNativeThemeAndStoreActionsPresent": true,
+  "batchReceiptReadbackPresent": true
+}

@@ -1,41 +1,39 @@
-# VN Code 1.6.3 — bàn giao ứng viên phát hành
+# VN Code 1.6.3 — bàn giao phát hành
 
-Người dùng đã duyệt bản xem trước và yêu cầu áp dụng cùng sửa nhận đơn FBS Ozon. Phiên bản ứng dụng đã tăng lên **1.6.3**, kế thừa Latest 1.6.2 và sửa Ozon `ccd7fc1`. **Tại thời điểm ghi hồ sơ này chưa công bố Latest mới**; phải qua Windows full/native/upgrade rồi mới xuất bản.
+**Đã công bố [1.6.3 lên Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.3) lúc 2026-11-04T23:11:51Z**, release `434558799`. Nguồn ứng dụng/tag bất biến `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`, kế thừa toàn bộ 1.6.2 và sửa Ozon `ccd7fc1`. Nhánh phát triển `feature/vncode-163-approved-ui`; các commit sau nguồn ứng dụng chỉ cập nhật publisher và bằng chứng phát hành.
 
-Ứng viên ban đầu `6de9c73f34c429bfac0ba2af5ac4ea91538c8af1` / build `41895958691` **đã hủy**, vì người dùng yêu cầu bổ sung ghép PDF/KIZ trước phát hành. Không được xuất bản run này; pin nguồn/build mới sau commit. Tool publisher kiểm144/144; Latest vẫn1.6.2.
+## Phạm vi đã đưa vào bộ cài
 
-Nguồn phát hành hiện tại `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`; Windows full build `41918387266` bắt đầu 21:41:12 UTC, sau khi sửa ba kỳ vọng thứ tự trang cũ trong run `41902237002`. Mã ứng dụng giữ nguyên so với `14a1049`; publisher đã repin nguồn/run mới. Chỉ xuất bản sau khi toàn bộ gate thành công.
+- Giao diện JavaFX đã duyệt: hai theme, thanh điều hướng gọn, danh sách ưu tiên diện tích; Tổng quan bỏ ba KPI và khoảng trống. Quản lý/thêm/sửa và thùng rác cạnh chọn cửa hàng; thông tin đồng bộ vẫn trong menu. Giữ handler, phạm vi dữ liệu và xác nhận xóa.
+- Drawer chi tiết giữ danh sách, Enter/Escape và trả focus; bản nháp cấu hình Znack giữ riêng theo danh tính cửa hàng. Chuyển động ngắn có thể ngắt và giảm chuyển động theo hệ điều hành/tùy chọn. Sửa tương phản template editor ở theme sáng và bản địa hóa trạng thái trống.
+- Nhận Ozon đối soát chung sau cả tập đã gửi; trạng thái trả chậm được đọc lại, không gửi nhận trùng. Một đơn con lỗi không chặn đơn con hợp lệ khác. KIZ tùy chọn bị từ chối/chưa có mã chỉ cho tiếp tục khi Ozon mới nhất xác nhận được nhận; phản hồi chưa rõ hoặc yêu cầu KIZ bắt buộc giữ đối soát.
+- PDF Ozon vẫn tải theo lô, sort theo cùng cấu hình WB trên toàn bộ lô; giữ nguyên nội dung/kích thước vận đơn gốc và đặt nhãn KIZ kết hợp của đúng đơn ngay sau đó. Bỏ trang barcode sản phẩm riêng. Phiếu nhặt hàng sort cùng quy tắc và giữ đúng số vận đơn.
+- Theo yêu cầu đã xác nhận, KIZ bị Ozon từ chối vẫn có thể in từ reservation đúng đơn. Kết quả từ chối API được giữ riêng; xuất PDF không được ghi thành gán KIZ thành công. Không ghép mã vest sang danh mục khác hoặc đoán chủ trang theo vị trí.
+- Giữ schema 6, UpgradeCode, dữ liệu cửa hàng/GTIN/hàng đợi/history/license; không triển khai portal hoặc prototype credential migration.
 
-Bổ sung sau chốt UI: sort vận đơn across batch theo WB, đặt KIZ kết hợp ngay sau đúng vận đơn, không thay content/dimension carrier. KIZ bị từ chối vẫn in từ reservation đúng đơn theo yêu cầu mới; giữ API rejection riêng. Nhận không KIZ chỉ khi fresh Ozon cho phép và không có mandatory mark; pending/foreign/429 giữ nguyên cơ chế đối soát. Child bị từ chối không chặn child hợp lệ.
+[Ghi chú bản cập nhật](../releases/VN-code-1.6.3.md), [30 ảnh native](../design/native/2026-11-04/README.md), [review ship](../design/native/2026-11-04/REVIEW.md), [đối chiếu nguồn](2026-11-04-vncode-163-source-inclusion.json).
 
-[PDF thật mới](2026-11-04-vncode-163-ozon-paired-pdf.json): 25 vận đơn + 13 KIZ gilet, 38 trang, 2 trang picking;2native task/0individual;6.999s export/9.401s end-to-end. 13DataMatrix khớp reservation độc lập,25carrierbyte-identical,sort/picking/scanit đạt. 12đơn khác danh mục không ghép mã gilet. File/user raw KIZ và API data nằm riêng ngoàiGit; không đưa vào source ZIP. Không claim Ozon đã chấp nhận13KIZ mới; đây là local combined print của đơn đã nhận.
+## Kiểm chứng bộ cài và cập nhật
 
-## Những phần đã hoàn tất
+- [Windows build 41918387266](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41918387266) SUCCESS: **3.844 ca, 0 thất bại/lỗi, 2 bỏ qua theo hệ điều hành**, 521 lớp. Preflight UI/wrapper/Catalog đạt; không thay full suite bằng kiểm thử mục tiêu. [Biên nhận Windows](2026-11-04-vncode-163-windows.json).
+- Native/migration/snapshot, DPAPI, cài/gỡ độc lập và nâng cấp thụ động bằng đúng EXE từ 1.6.2 giữ dữ liệu đều đạt. Hash MSI nhúng khớp bản phát hành. Trước build có 296 ca riêng biệt/24 lớp mục tiêu và Node 144/144; không chạy full Linux.
+- [Publisher 41931634446](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/41931634446) SUCCESS; đủ 16 tài sản trước khi chuyển Latest. Không thay/xóa release cũ. [Biên nhận công bố](2026-11-04-vncode-163-publication-receipt.json).
+- [16 tài sản tải công khai](2026-11-04-vncode-163-public-assets.json) khớp kích thước/SHA-256; [source ZIP/JAR](2026-11-04-vncode-163-package.json) đúng nguồn, 2.769 tệp được đối chiếu, chỉ chuẩn hóa CRLF cho văn bản. JAR chứa UI đã duyệt và các lớp sửa nhận/ghép PDF; không có badge vận đơn tự tạo.
+- [Bộ cập nhật từ binary 1.6.2](2026-11-04-vncode-163-updater.json) đọc Latest 1.6.3 và chọn đúng MSI/hash/kích thước. Chưa quan sát popup hoặc cài trên máy seller. [Latest đã xác minh](2026-11-04-vncode-163-published-latest.json).
 
-- Áp dụng giao diện đã duyệt bằng JavaFX thật: hai theme, thanh điều hướng 196px, header58px, quản lý/thêm/sửa và thùng rác cạnh selector. Diagnostics vẫn ở overflow; giữ các handler, phạm vi cửa hàng và xác nhận xóa.
-- Tổng quan bỏ ba KPI và chiều cao trống. Danh sách sản phẩm/Ozon76px, Catalog71px, đơn nhiều mặt hàng tăng chiều cao để giữ đủ thông tin. Hành động hàng loạt có vùng riêng, không phủ danh sách.
-- Drawer chi tiết chia nhóm, Enter/Escape và trả focus; bản nháp cấu hình giữ riêng theo đủ danh tính shop. Chuyển động ngắn có thể ngắt, reduced motion hệ điều hành/tùy chọn. Không animation từng dòng, không tạo delay cho API.
-- Sửa tương phản template editor do nested `root`, trạng thái danh sách trống bản địa hóa, giữ chức năng chỉnh độ trong suốt theme sáng.
-- Ozon đối soát receipt sau khi gửi cả tập đã chọn, tối đa3vòng đọc1/2/4giây và2reader; giữ yêu cầu chưa rõ cho nền tiếp tục, không ship lại. Phiếu nhặt hàng sort theo cùng cấu hìnhWB và giữ mã vận đơn theo đúng posting. Nhận diện trang barcode sản phẩm bằng mọi barcode của đúng SKU, bảo vệ trang vận chuyển.
+Lượt công bố `41931139279` dừng sau khi đã tạo draft vì danh sách releases chưa cập nhật. Đã xác minh và dùng đúng draft ID `434558799`, không tạo bản nháp trùng; 145/145 ca công cụ publisher đạt, giữ nguyên bộ cài đã kiểm chứng. Dispatch dùng tên nhánh và khóa checkout bằng SHA; GitHub không nhận SHA làm workflow ref trong lượt này.
 
-[30 ảnh native](../design/native/2026-11-04/README.md), [review ship](../design/native/2026-11-04/REVIEW.md), [ghi chú bản cập nhật](../releases/VN-code-1.6.3.md).
+## Bằng chứng thật và giới hạn
 
-## Bằng chứng và giới hạn
+- Trước đóng gói đã nhận thêm 2/2 đơn mới qua service production, đọc lại `awaiting_deliver` sau phản hồi chậm đầu tiên, không gửi trùng. Lượt trước đó 22/22 đã được xác nhận. [Lần đọc hàng đợi 20:11 UTC](2026-11-04-vncode-163-ozon-queue-followup.json) còn 0 đơn chờ trong cửa sổ unfulfilled đã kiểm tra. [Biên nhận nhận đơn](2026-11-04-vncode-163-ozon-live-recheck.json).
+- Người dùng xác nhận file KIZ thuộc gilet. [PDF thật](2026-11-04-vncode-163-ozon-paired-pdf.json): 25 vận đơn + 13 KIZ gilet = 38 trang, 2 trang nhặt hàng; 2 task native/0 lượt tải nhãn riêng; 6,999 giây export/9,401 giây đầu-cuối. Đối chiếu độc lập 13 DataMatrix đúng reservation/đơn và không trùng, 25 vận đơn giữ nguyên byte nội dung; thứ tự và số vận đơn đạt. 12 đơn khác danh mục không dùng mã gilet.
+- 13 mã này không được gửi lên API trong lượt xuất PDF; đây là bằng chứng in kết hợp cục bộ, không phải Ozon đã chấp nhận KIZ. File, phản hồi API và KIZ thật giữ ngoài Git. Không mua KIZ có phí hoặc kích hoạt license thật.
+- Lô 1.000 là fixture, chưa có benchmark 1.000 đơn thật hay thao tác trên máy Windows seller. Ảnh UI dùng dữ liệu tổng hợp; API/PDF thật được phân biệt trong hồ sơ. Installer chưa ký Authenticode; giới hạn security review 1.6.1 vẫn còn.
 
-- [Prebuild](2026-11-04-vncode-163-prebuild.json):296ca riêng biệt/24lớp mục tiêu,0lỗi/bỏ qua; Node144/144. Tổng hợp XML thành công mới nhất mỗi lớp, không cộng trùng các lượt có giao nhau. Không phải full Linux.
-- Layout kiểm26màn với4ngôn ngữ/2theme, vùng nút cố định và danh sách co giãn. 30ảnh synthetic gồm12màn×2theme, Ozon1366×768/1920×1080 và drawer. Ít nhất7dòng đơn đầy đủ ở1440×900. Acceptance4/4 kiểm hành động cửa hàng, scope draft, focus/selection và mở lại trong lúc đóng.
-- Lượt UI tổng hợp trên Linux ghi warning nền khi fixture FXML xóa profile tạm; JUnit không thất bại, lượt native acceptance tách riêng đạt. Không dùng warning này để kết luận lỗi dữ liệu seller; full Windows vẫn là gate bắt buộc.
-- [API thật trước đóng gói](2026-11-04-ozon-accept-picking-verified.json):22/22đơn đọc lại đã nhận; snapshot cuối18:00:05UTC,19nhãn trong1task, xuất lại task có sẵn8.009giây. Không phải benchmark1000đơn hay thao tác trên Windows seller. File KIZ31ký tự bị từ chối crypto/trạng thái; không gán/tiêu/mua KIZ. Không lặp mutation thật trong bước phát hành.
-- Sau yêu cầu kiểm tra thật bổ sung, quét26trang lịch sử/4trang hàng đợi tìm2đơn mới; gửi2yêu cầu ship và xác nhận2/2 `awaiting_deliver`. Cả2trả trạng thái chậm ở lần đọc đầu, được bước đối soát production mới giải quyết không gửi trùng. Quét cuối không còn đơn chờ trong cửa sổunfulfilled±180ngày. [Biên nhận](2026-11-04-vncode-163-ozon-live-recheck.json). Không bắt buộcKIZ trên2đơn này; không coi đó là bằng chứng fileKIZ đã hợp lệ.
-- Theo yêu cầu mới đã xuất PDF thật cho25đơn:25trangvậnđơn+2trangnhặthàng,0thấtbại;2nhómtask,0requestnhãnlẻ;15,426giây cả đối chiếu dữ liệu,11,458giây riêngexport. Kiểm độc lập số in trên nhãn khớp đúng25/25dòng phiếu và sortWB. [Biên nhậnPDF](2026-11-04-vncode-163-ozon-pdf-live.json). Không có nhãnKIZ; file thật/ảnh ở artifactprivate khôngcommit. Đây là serviceproduction trongprofileisolated, không phải clickWindows hoặc benchmark1000đơn/cachelạnh.
-- Không đổi schema6, UpgradeCode, dữ liệu license/shop/GTIN/history; không triển khai portal hoặc prototype credential migration. Installer chưa ký Authenticode; giới hạn securityreview1.6.1 vẫn còn.
+## Tiếp tục và kinh nghiệm
 
-## Bước phát hành bắt buộc
+Run `41902237002` trước đó có 3 lỗi kỳ vọng thứ tự trang cũ trong `OzonLabelServiceTest`. Đã sửa đối chiếu theo danh tính và thứ tự WB, giữ kiểm tra nội dung byte/kích thước, chạy đạt 52 ca lớp nhãn và chạy lại full Windows. Mã ứng dụng không đổi so với `14a1049`; [biên nhận sửa kiểm thử](2026-11-04-vncode-163-windows-sort-regression.json).
 
-Pin SHA ứng dụng và build Windows `publish-vncode-baseline.yml`, chạy full suite/native/DPAPI/coexistence/passiveEXEupgrade từ1.6.2. Publisher pin đúng nguồn/run, đủ16asset; không sửa tag/binary cũ hoặc prune. Sau công bố tải/đối chiếu hash toàn bộ asset, sourceZIP/JAR và bộ đọc updater từbinary1.6.2. Ghi receipt/source/run trong hồ sơ phát hành bổ sung; chưa khẳng định popup/cài trên máy người dùng.
+Run chờ `41917831124` bị hủy trước khi có job; build được khóa theo SHA nguồn để không phải chờ nhánh khác trong repo. Giữ nguyên toàn bộ gate. Nguồn/build cũ `6de9c73`/`41895958691` đã hủy khi người dùng bổ sung yêu cầu PDF; chỉ nguồn `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`/`41918387266` được phát hành. Không dời tag hoặc thay binary/checksum đã công bố. Full Windows mất nhiều thời gian; giữ gate và dùng tiếp kết quả đã đạt. Luôn đối chiếu artifact, source ZIP, runtime và updater phiên bản đang cài trước báo phát hành hoàn tất.
 
-## Kiểm thử Windows và cập nhật kỳ vọng thứ tự
-
-Run `41902237002` đã chạy đủ 3.844 ca nhưng có 3 lỗi trong `OzonLabelServiceTest`: còn so theo thứ tự ngược Ozon trả về thay vì thứ tự WB đã duyệt. Đã sửa kiểm tra danh tính, nội dung byte và kích thước của cùng vận đơn sau sắp xếp; không sửa production. Cả 52 ca lớp này đạt trên Linux, đưa vào preflight Windows. Full Windows phải chạy lại trước phát hành; không dùng run lỗi. [Biên nhận](2026-11-04-vncode-163-windows-sort-regression.json).
-
-Run chờ `41917831124` đã hủy trước khi có job vì group build toàn repo đang bị một nhánh kiểm thử khác chiếm. Group mới khóa theo SHA nguồn; `41918387266` chạy ngay từ `f8d2cf9`, giữ nguyên toàn bộ gate và không can thiệp lượt kiểm thử khác.
+Đọc journal trước khi tiếp tục giao dịch Ozon thật; không chạy lại runner nhận đơn hoặc cấp KIZ vì thiếu output ở tiến trình cũ. Local print và API acceptance là hai trạng thái riêng. Giữ reservation theo đúng đơn khi KIZ bị từ chối; không dùng lỗi chung làm lý do tạo lại giao dịch chưa rõ kết quả.

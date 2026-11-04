@@ -1,0 +1,11 @@
+{
+  "checkedAtUtc": "2026-11-04T20:11:02Z",
+  "activePages": 4,
+  "activeUnique": 357,
+  "statuses": {
+    "delivering": 332,
+    "awaiting_deliver": 25
+  },
+  "awaitingReceipt": 0,
+  "liveMutations": 0
+}
