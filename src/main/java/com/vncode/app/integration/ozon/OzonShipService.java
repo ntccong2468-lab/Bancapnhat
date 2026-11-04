@@ -77,9 +77,8 @@ public final class OzonShipService {
             }
             throw new OzonApiException("reconcile_required", 0, false, true, null);
         }
-        if(OzonAcceptanceKizService.requiredBeforeAccept(shop,posting)) {
-            new OzonAcceptanceKizService(jobs).ensure(shop,posting,api,sources);
-            posting=refresh(api,shop.getId(),posting.postingNumber());
+        if(OzonAcceptanceKizService.requiredBeforeAccept(shop,posting,sources)) {
+            posting=new OzonAcceptanceKizService(jobs).prepareForReceipt(shop,posting,api,sources);
         }
         if (!posting.canShip()) {
             throw new IllegalStateException("Ozon does not currently allow this posting to be shipped.");

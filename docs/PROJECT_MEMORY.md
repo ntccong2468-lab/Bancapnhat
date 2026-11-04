@@ -2,6 +2,10 @@
 
 ## 1.6.3 — áp dụng giao diện đã duyệt và sửa nhận Ozon (đang kiểm thử phát hành)
 
+- Chốt yêu cầu mới: PDF theo lô phải ghép **vận đơn gốc → KIZ kết hợp của đúng đơn**, sort theo WB, không có barcode Ozon riêng. Nếu Ozon từ chối KIZ nhưng vẫn cho nhận đơn, tiếp tục nhận và vẫn in đúng KIZ đã dành cho đơn; giữ remote rejection riêng, không coi local print là API chấp nhận. KIZ bắt buộc/pending không bị giả trạng thái. Một child bị từ chối không chặn child khác.
+- Người dùng xác nhận `zl.txt` thuộc **gilet**. Kiểm thử thật 19:55 UTC: 25 vận đơn + 13 KIZ gilet = 38 trang, phiếu nhặt 2 trang; 2 task theo lô, 0 lượt lấy nhãn riêng; xuất 6.999 giây, tổng 9.401 giây. Đối chiếu độc lập nội dung 25 vận đơn không đổi, 13 DataMatrix đúng reservation/đơn và không trùng, cả hai PDF sort theo WB. 12 đơn bộ thể thao giữ vận đơn, không dùng KIZ gilet. Không gửi 13 mã này lên API, không mua KIZ/kích hoạt license; ghi local print riêng. [Bằng chứng](validation/2026-11-04-vncode-163-ozon-paired-pdf.json).
+- Hủy build `41895958691` của nguồn cũ theo yêu cầu bổ sung PDF; không phát hành run đó. Cần build đầy đủ từ commit mới và pin lại publisher. Latest vẫn 1.6.2 trong lúc chờ.
+
 - Người dùng đã duyệt preview và yêu cầu áp dụng vào VN Code cùng sửa nhận FBS Ozon. Nhánh `feature/vncode-163-approved-ui`, nền `034a2cf`; phiên bản mới 1.6.3, không thay Latest 1.6.2 đã phát hành. [Hướng native](design/2026-11-04-native-implementation.md), [30 ảnh JavaFX](design/native/2026-11-04/README.md).
 - Hai theme xanh trung tính/graphite, nav196/header58, hàng sản phẩm/Ozon76px, Catalog71px; danh sách ưu tiên vùng làm việc. Tổng quan bỏ KPI/chiều cao trống; quản lý thêm/sửa và thùng rác cạnh selector, diagnostics trong overflow. Giữ handler, dữ liệu, API guards và xác nhận xóa.
 - Drawer native chia nhóm có nhãn, Enter mở/Escape đóng/trả focus, giữ danh sách; đóng/mở nhanh không xóa drawer mới. Draft cấu hình giữ riêng theo đầy đủ danh tính shop. Reduced motion hệ điều hành/tùy chọn app; không animation từng dòng hay thời gian chờ API giả.

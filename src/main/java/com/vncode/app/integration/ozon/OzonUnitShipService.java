@@ -120,8 +120,7 @@ final class OzonUnitShipService {
             throw new OzonApiException("reconcile_required",0,false,true,null);
         if(OzonAcceptanceKizService.requiredBeforeAccept(shop,source,sources)) {
             if(OzonPackageBuilder.unitCount(source)>1)return startMarkedSplit(shop,api,source,raw,sources);
-            new OzonAcceptanceKizService(jobs).ensure(shop,source,api,sources);
-            source=OzonJson.requirePostingDetail(api.getPosting(number,true,true),number).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
+            source=new OzonAcceptanceKizService(jobs).prepareForReceipt(shop,source,api,sources);
         }
         if(!source.canShip()||!"awaiting_packaging".equals(source.status()))throw new IllegalStateException("OZON_SPLIT_NOT_SHIPPABLE");
         if(source.orderId().isBlank()||source.warehouseId().isBlank())throw new IllegalStateException("OZON_SPLIT_MISSING_IDENTITY");
@@ -197,7 +196,16 @@ final class OzonUnitShipService {
         var shipper=new OzonShipService(postings,new OzonProductGtinMappingRepository(),jobs,clients);
         // The source was frozen before the original split. On restart, never
         // silently use the seller's new selection for an existing transaction.
-        for(var child:children.values())if("awaiting_packaging".equals(child.status()))shipper.ship(shop,child.postingNumber(),true,receipt.sources());
+        IOException firstFailure=null;
+        for(var child:children.values())if("awaiting_packaging".equals(child.status()))try{
+            shipper.ship(shop,child.postingNumber(),true,receipt.sources());
+        }catch(IOException failure){
+            if(Thread.currentThread().isInterrupted()||failure instanceof OzonApiException apiError
+                    &&Set.of(401,403,429).contains(apiError.statusCode()))throw failure;
+            // One rejected child does not prevent other independent children from being accepted.
+            if(firstFailure==null)firstFailure=failure;else firstFailure.addSuppressed(failure);
+        }
+        if(firstFailure!=null)throw firstFailure;
         return reconcile(shop,api,receipts.find(shop,source.postingNumber()),false);
     }
 

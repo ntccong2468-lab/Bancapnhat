@@ -527,8 +527,10 @@ class OzonPrintBundleServiceTest {
         var batchFile=temporaryDirectory.resolve("whole-source.pdf");
         try(var original=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(officialPdf.toFile()));
             var batch=new PdfDocument(new PdfWriter(batchFile.toFile()))){
-            // Product page first, then two shipping pages and the second product label.
+            // A shuffled native task must be sorted by WB rules, without per-order downloads.
             original.copyPagesTo(List.of(2,1,1,2),batch);
+            new PdfCanvas(batch.getPage(2)).beginText().setFontAndSize(PdfFontFactory.createFont(),9).moveText(10,40).showText("POST-2").endText();
+            new PdfCanvas(batch.getPage(3)).beginText().setFontAndSize(PdfFontFactory.createFont(),9).moveText(10,40).showText("POST-1").endText();
         }
         var source=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(batchFile.toFile()));
         var batches=new java.util.concurrent.atomic.AtomicInteger();
@@ -540,27 +542,100 @@ class OzonPrintBundleServiceTest {
         };
         var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
                 (owner,number)->{throw new AssertionError("Do not repeat existing KIZ preparation or prepare blocked KIZ");},downloader);
+        new com.vncode.app.features.supply.OrderSortPreferenceService().save(new com.vncode.app.features.supply.OrderSortOptions(false,false,false,false));
         var labels=temporaryDirectory.resolve("whole-with-kiz.pdf");
-        var result=exporter.exportRequested(shop,List.of("POST-1","POST-2"),labels.toFile(),temporaryDirectory.resolve("whole-with-kiz-pick.pdf").toFile(),null,java.util.Map.of("POST-2","MAPPING_MISSING"));
+        var result=exporter.exportRequested(shop,List.of("POST-2","POST-1"),labels.toFile(),temporaryDirectory.resolve("whole-with-kiz-pick.pdf").toFile(),null,java.util.Map.of("POST-2","MAPPING_MISSING"));
         assertEquals(List.of("POST-1","POST-2"),result.successful());assertEquals(1,result.kizPages());assertEquals(3,result.totalPages());assertEquals(java.util.Set.of("POST-2"),result.carrierOnly().keySet());
         assertEquals(1,batches.get(),"Keep the grouped download flow even without KIZ for one posting");
         try(var output=Loader.loadPDF(labels.toFile())){
-            assertEquals(3,output.getNumberOfPages());assertPageMillimeters(output,2,58,40);
+            assertEquals(3,output.getNumberOfPages());assertPageMillimeters(output,1,58,40);
             assertFalse(new PDFTextStripper().getText(output).contains("Official Ozon product label"));
             assertTrue(pageText(output,0).contains("2345"));
-            assertTrue(pageText(output,1).contains("2345"));
-            assertTrue(pageText(output,0).contains("shipping"));assertTrue(pageText(output,1).contains("shipping"));
-            assertEquals(PRODUCT_BARCODE,decodeProductBarcode(output,2,203));
+            assertTrue(pageText(output,2).contains("2345"));
+            assertTrue(pageText(output,0).contains("POST-1"));assertTrue(pageText(output,2).contains("POST-2"));
+            assertTrue(pageText(output,0).contains("shipping"));assertTrue(pageText(output,2).contains("shipping"));
+            assertEquals(PRODUCT_BARCODE,decodeProductBarcode(output,1,203));
         }
         try(var official=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(batchFile.toFile()));
             var output=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(labels.toFile()))){
             // Copy the original vector label: large white last-four digits, black background,
             // barcode geometry and original 58x40 mm media all survive without reconstruction.
-            assertArrayEquals(official.getPage(2).getContentBytes(),output.getPage(1).getContentBytes());
-            assertArrayEquals(official.getPage(3).getContentBytes(),output.getPage(2).getContentBytes());
+            assertArrayEquals(official.getPage(3).getContentBytes(),output.getPage(1).getContentBytes());
+            assertArrayEquals(official.getPage(2).getContentBytes(),output.getPage(3).getContentBytes());
             assertEquals(official.getPage(2).getPageSize().toString(),output.getPage(1).getPageSize().toString());
         }
         assertEquals("CONSUMED",scalar("SELECT status FROM kiz_codes WHERE id=100"));assertEquals("2",scalar("SELECT count(*) FROM ozon_fbs_print_receipts"));assertTrue(source.isClosed());
+    }
+
+    @Test void opaqueWholeTaskKeepsCarrierPagesButNeverPairsOrConsumesReservedKiz()throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);seedUnmarkedPosting("POST-2","SKU-2","offer-2");
+        var file=temporaryDirectory.resolve("opaque-task.pdf");
+        try(var original=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(officialPdf.toFile()));var pdf=new PdfDocument(new PdfWriter(file.toFile()))){original.copyPagesTo(List.of(1,1),pdf);}
+        var source=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(file.toFile()));
+        var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
+            public File download(Shop owner,String number,File target){throw new AssertionError("No individual label requests");}
+            public boolean supportsWholeBatches(){return true;}
+            public OzonPrintBundleService.WholeCarrierBatch wholeBatch(Shop owner,String number){return new OzonPrintBundleService.WholeCarrierBatch(source,file.toFile(),List.of(1,2),List.of("POST-1","POST-2"),java.util.Set.of());}
+            public void close(){source.close();}
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Existing KIZ reservation");},downloader);
+        var result=exporter.exportRequested(shop,List.of("POST-1","POST-2"),temporaryDirectory.resolve("opaque-labels.pdf").toFile(),temporaryDirectory.resolve("opaque-pick.pdf").toFile(),null,Map.of("POST-2","KIZ_STOCK_SHORTAGE"));
+        assertEquals(2,result.successful().size());assertEquals(2,result.totalPages());assertEquals(0,result.kizPages());
+        assertEquals(Map.of("POST-1","OZON_LABEL_BATCH_IDENTITY_UNVERIFIED","POST-2","OZON_LABEL_BATCH_IDENTITY_UNVERIFIED"),result.carrierOnly());
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+    }
+
+    @Test void rejectedRemoteKizStillPrintsItsExactReservedCombinedLabelAndReportsApiRejection()throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        new OzonExemplarJobRepository().logAction(1,"accept_kiz","POST-1","rejected","OZON_ACCEPT_KIZ_REJECTED",null);
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("Keep the exact reservation; do not reserve another code");},
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        var result=exporter.exportRequested(shop,List.of("POST-1"),temporaryDirectory.resolve("rejected-carrier.pdf").toFile(),temporaryDirectory.resolve("rejected-pick.pdf").toFile(),null,Map.of());
+        assertEquals(List.of("POST-1"),result.successful());assertEquals(1,result.kizPages());
+        assertTrue(result.carrierOnly().isEmpty());
+        assertEquals(Map.of("POST-1","OZON_ACCEPT_KIZ_REJECTED"),result.remoteKizWarnings());
+        assertEquals("CONSUMED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("printed",scalar("SELECT check_status FROM ozon_exemplars WHERE job_id=51"));
+        assertEquals("rejected",new OzonExemplarJobRepository().latestActionStatus(1,"accept_kiz","POST-1"));
+        try(var pdf=Loader.loadPDF(result.labelFile())){
+            assertEquals(KizService.scannerSafeCode(RAW_KIZ),KizService.scannerSafeCode(decodeRenderedDataMatrixResult(pdf,1,300).getText()));
+        }
+    }
+
+    @Test void thousandWholeTaskLabelsSortAcrossBatchesWithoutIndividualDownloads()throws Exception {
+        var numbers=java.util.stream.IntStream.range(0,1000).mapToObj(i->"SORT-"+i).toList();
+        var selected=numbers.stream().map(number->new OzonPostingDto(number,number,number,"awaiting_deliver","","","","","","",
+                new OzonRequirements(List.of(),List.of(),List.of()),List.of(),false,
+                List.of(new OzonPostingItemDto(0,"P","SKU","article","Product "+number,1,"RUB","1")))).toList();
+        new OzonPostingRepository().upsertPage(1,selected);new OzonProductKizPolicyRepository().setRequired(1,"SKU",false);
+        var file=temporaryDirectory.resolve("whole-1000-source.pdf");
+        try(var pdf=new PdfDocument(new PdfWriter(file.toFile()))){
+            var font=PdfFontFactory.createFont();
+            for(int i=999;i>=0;i--)new PdfCanvas(pdf.addNewPage()).beginText().setFontAndSize(font,12).moveText(20,20).showText(numbers.get(i)).endText();
+        }
+        var source=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(file.toFile()));
+        var batches=new java.util.concurrent.atomic.AtomicInteger();
+        var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
+            public File download(Shop owner,String number,File target){throw new AssertionError("No individual label requests for 1000 orders");}
+            public boolean supportsWholeBatches(){return true;}
+            public OzonPrintBundleService.WholeCarrierBatch wholeBatch(Shop owner,String number){
+                batches.incrementAndGet();int start=Integer.parseInt(number.substring(5))/100*100;
+                return new OzonPrintBundleService.WholeCarrierBatch(source,file.toFile(),
+                        java.util.stream.IntStream.range(start,start+100).map(i->1000-i).boxed().toList(),numbers.subList(start,start+100),java.util.Set.of());
+            }
+            public void close(){source.close();}
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->new OzonPreparationResult(number,"NOT_REQUIRED",0,true,false,""),downloader);
+        var labels=temporaryDirectory.resolve("whole-1000.pdf");long started=System.nanoTime();
+        var result=exporter.exportRequested(shop,numbers.reversed(),labels.toFile(),temporaryDirectory.resolve("whole-1000-pick.pdf").toFile(),null,Map.of());
+        assertEquals(numbers,result.successful());assertEquals(1000,result.totalPages());assertEquals(10,batches.get());assertTrue(result.failures().isEmpty());
+        try(var pdf=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(labels.toFile()))){
+            for(int i=0;i<1000;i++)assertEquals(numbers.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(i+1)).strip());
+        }
+        System.out.println("OZON_SORTED_PDF_FIXTURE orders=1000 tasks=10 individual_downloads=0 elapsed_ms="+(System.nanoTime()-started)/1_000_000);
     }
 
     @Test void newlyDetectedKizPreparationFailureStillExportsTheOfficialCarrierLabel()throws Exception {

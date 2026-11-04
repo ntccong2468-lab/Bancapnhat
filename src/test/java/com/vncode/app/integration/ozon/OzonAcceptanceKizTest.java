@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OzonAcceptanceKizTest {
     @TempDir Path directory;
-    MockWebServer server;Shop shop;boolean multi,pending,rejected,foreign,optional,optionalNoMarks,requirementsMissing;
+    MockWebServer server;Shop shop;boolean multi,pending,rejected,foreign,optional,optionalNoMarks,requirementsMissing,validationRejected,firstChildRejected;
     final Map<String,JsonObject> sent=new ConcurrentHashMap<>();
     final Set<String> shipped=ConcurrentHashMap.newKeySet(),accepted=ConcurrentHashMap.newKeySet();
     final List<String> trace=new CopyOnWriteArrayList<>();
@@ -174,6 +174,49 @@ class OzonAcceptanceKizTest {
         var failure=assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true,new com.vncode.app.features.kiz.KizSourceSelection(false,false)));
         assertEquals("OZON_ACCEPT_KIZ_SOURCE_REQUIRED",failure.getMessage());assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
     }
+    @Test void optionalRejectedMarkStillAcceptsWhenFreshOzonResponseAllowsNoMark()throws Exception {
+        optional=true;optionalNoMarks=true;rejected=true;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
+        assertEquals(Set.of("PARENT"),shipped);assertTrue(accepted.isEmpty());
+        var jobs=new OzonExemplarJobRepository();
+        assertEquals("rejected",jobs.latestActionStatus(1,"accept_kiz","PARENT"));
+        assertEquals("skipped",jobs.latestActionStatus(1,"accept_kiz_optional","PARENT"));
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_codes WHERE status='CONSUMED'")){
+            assertTrue(r.next());assertEquals(0,r.getInt(1));
+        }
+        var before=jobs.bindings(jobs.find(1,"PARENT").id());
+        var preparation=new OzonExemplarService(new OzonPostingRepository(),new OzonProductGtinMappingRepository(),jobs,
+                (id,credentials)->new OzonApiClient(id,credentials,server.url("/"),new OkHttpClient.Builder().build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));
+        assertEquals("VALIDATED",preparation.stageForPrint(shop,"PARENT").stage());
+        var after=jobs.bindings(jobs.find(1,"PARENT").id());assertEquals(before.size(),after.size());
+        assertEquals(before.getFirst().kizId(),after.getFirst().kizId());
+        assertEquals(before.getFirst().rawCode(),after.getFirst().rawCode());
+        assertEquals(before.getFirst().exemplarId(),after.getFirst().exemplarId());
+        assertEquals("rejected",jobs.latestActionStatus(1,"accept_kiz","PARENT"));
+        assertEquals(1,sent.size());
+    }
+    @Test void optionalValidationRejectionShipsWithoutSubmittingInvalidMarks()throws Exception {
+        optional=true;optionalNoMarks=true;validationRejected=true;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
+        assertEquals(Set.of("PARENT"),shipped);assertTrue(sent.isEmpty());
+        assertEquals("rejected",new OzonExemplarJobRepository().latestActionStatus(1,"accept_kiz","PARENT"));
+    }
+    @Test void optionalMissingMappingDoesNotBlockAnOrderThatOzonAllowsToShip()throws Exception {
+        optional=true;optionalNoMarks=true;
+        try(var c=Database.getConnection();var s=c.createStatement()){s.executeUpdate("DELETE FROM ozon_product_gtin_mappings");}
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true).status());
+        assertEquals(Set.of("PARENT"),shipped);assertTrue(sent.isEmpty());
+    }
+    @Test void pendingOptionalMarksCannotBeTreatedAsRejectedOrResent()throws Exception {
+        optional=true;optionalNoMarks=true;pending=true;
+        assertEquals("OZON_ACCEPT_KIZ_PENDING",assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true)).getMessage());
+        assertTrue(shipped.isEmpty());assertNull(new OzonExemplarJobRepository().latestActionStatus(1,"accept_kiz_optional","PARENT"));
+    }
+    @Test void optionalRejectedMarkStillStopsWhenOzonDoesNotAllowShipping()throws Exception {
+        optional=true;rejected=true;
+        assertEquals("OZON_ACCEPT_KIZ_REJECTED",assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true)).getMessage());
+        assertTrue(shipped.isEmpty());
+    }
     @Test void missingRequirementsAreNeverTreatedAsProofOfNoMarking()throws Exception {
         requirementsMissing=true;optionalNoMarks=true;
         var failure=assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true,new com.vncode.app.features.kiz.KizSourceSelection(false,false)));
@@ -214,6 +257,12 @@ class OzonAcceptanceKizTest {
         service().shipPerUnit(shop,"PARENT",true);
         assertEquals(1,trace.stream().filter(p->p.equals("/v1/posting/fbs/split")).count());
         assertEquals(2,trace.stream().filter(p->p.equals("/v4/posting/fbs/ship")).count());
+    }
+    @Test void oneRejectedChildDoesNotStopTheOtherChildFromBeingReceived()throws Exception {
+        multi=true;firstChildRejected=true;
+        assertEquals("OZON_ACCEPT_KIZ_REJECTED",assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true)).getMessage());
+        assertEquals(Set.of("CHILD-A","CHILD-B"),sent.keySet());assertEquals(Set.of("CHILD-B"),shipped);
+        assertNotEquals("COMPLETE",new OzonUnitShipRepository().find(shop,"PARENT").state());
     }
     @Test void markedSplitReadsIndependentChildrenTogetherBeforeAssigningAnyKiz()throws Exception {
         multi=true;concurrentChildReads=new CountDownLatch(2);
@@ -283,9 +332,10 @@ class OzonAcceptanceKizTest {
         if(path.equals("/v3/posting/fbs/get"))return json(posting(number));
         if(path.equals("/v1/posting/fbs/split"))return json("{\"parent_posting\":{\"posting_number\":\"PARENT\",\"products\":[]},\"postings\":[{\"posting_number\":\"CHILD-A\"},{\"posting_number\":\"CHILD-B\"}]}");
         if(path.equals("/v6/fbs/posting/product/exemplar/create-or-get"))return json("{\"result\":{\"products\":[{\"product_id\":101,\"exemplars\":[{\"exemplar_id\":7001}]}]}}");
-        if(path.equals("/v5/fbs/posting/product/exemplar/validate"))return json("{\"products\":[{\"exemplars\":[{\"valid\":true}]}]}");
+        if(path.equals("/v5/fbs/posting/product/exemplar/validate"))return json("{\"products\":[{\"exemplars\":[{\"valid\":"+!validationRejected+"}]}]}");
         if(path.equals("/v6/fbs/posting/product/exemplar/set")){sent.put(number,body);return json("{}");}
         if(path.equals("/v5/fbs/posting/product/exemplar/status")) {
+            boolean rejected=this.rejected||firstChildRejected&&number.equals("CHILD-A");
             var raw=sent.get(number).deepCopy();raw.addProperty("status",pending?"validation_in_process":"ship_available");
             for(var p:raw.getAsJsonArray("products"))for(var e:p.getAsJsonObject().getAsJsonArray("exemplars"))for(var m:e.getAsJsonObject().getAsJsonArray("marks")){
                 var mark=m.getAsJsonObject();mark.addProperty("check_status",pending?"processing":rejected?"failed":"passed");var errors=new JsonArray();if(rejected)errors.add("NOT_IN_CIRCULATION");mark.add("error_codes",errors);

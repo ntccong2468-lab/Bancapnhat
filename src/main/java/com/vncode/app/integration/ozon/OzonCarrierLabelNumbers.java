@@ -17,20 +17,37 @@ final class OzonCarrierLabelNumbers {
     private OzonCarrierLabelNumbers() {}
 
     static Map<String,String> read(com.vncode.app.models.Shop shop,File file,PdfDocument pdf,List<Integer> pages,Map<String,OzonPostingDto> postings) throws IOException {
-        try{return read(file,pdf,pages,OzonPostingTrackingStore.withLabelNumbers(shop,postings));}
+        return index(shop,file,pdf,pages,postings).numbers();
+    }
+
+    static Index index(com.vncode.app.models.Shop shop,File file,PdfDocument pdf,List<Integer> pages,Map<String,OzonPostingDto> postings) throws IOException {
+        try{return index(file,pdf,pages,OzonPostingTrackingStore.withLabelNumbers(shop,postings));}
         catch(java.sql.SQLException error){throw new IOException("OZON_TRACKING_READ_FAILED",error);}
     }
 
     static Map<String,String> read(File file,PdfDocument pdf,List<Integer> pages,Map<String,OzonPostingDto> postings) throws IOException {
-        if(postings.isEmpty())return Map.of();
+        return index(file,pdf,pages,postings).numbers();
+    }
+
+    /** One text/identity pass per downloaded task; never infer ownership from page position. */
+    static Index index(File file,PdfDocument pdf,List<Integer> pages,Map<String,OzonPostingDto> postings) throws IOException {
         Map<String,String> found=new LinkedHashMap<>();Set<String> conflicts=new HashSet<>();
+        Map<String,List<Integer>> owned=new LinkedHashMap<>();List<Integer> unidentified=new ArrayList<>();
+        if(postings.isEmpty())return new Index(Map.of(),Map.of(),pages);
         try(var identities=new OzonLabelPageIdentity(file,pdf,List.copyOf(postings.keySet()),postings)){
             for(int page:pages){
                 if(Thread.currentThread().isInterrupted())throw new IOException("OZON_LABEL_BATCH_INTERRUPTED");
                 var text=new LabelText();
                 try{new PdfCanvasProcessor(text).processPageContent(pdf.getPage(page));}
-                catch(RuntimeException unreadable){continue;}
+                catch(RuntimeException unreadable){unidentified.add(page);continue;}
                 String visible=OzonLabelPageIdentity.normalize(text.getResultantText());
+                Set<String> owners=identities.matches(visible);
+                if(owners.isEmpty()&&postings.size()==1)owners=postings.keySet();
+                if(owners.isEmpty()&&file!=null)owners=identities.postingNumbers(page);
+                if(owners.size()!=1){unidentified.add(page);continue;}
+                String postingNumber=owners.iterator().next();var posting=postings.get(postingNumber);
+                if(posting==null){unidentified.add(page);continue;}
+                owned.computeIfAbsent(postingNumber,ignored->new ArrayList<>()).add(page);
                 var candidates=new LinkedHashMap<String,Float>();var matcher=NUMBER.matcher(visible);
                 while(matcher.find()){
                     String number=compact(matcher.group());
@@ -40,12 +57,6 @@ final class OzonCarrierLabelNumbers {
                     candidates.merge(number,size,Math::max);
                 }
                 if(candidates.isEmpty())continue;
-                Set<String> owners=identities.matches(visible);
-                if(owners.isEmpty()&&postings.size()==1)owners=postings.keySet();
-                if(owners.isEmpty()&&file!=null)owners=identities.postingNumbers(page);
-                if(owners.size()!=1)continue;
-                String postingNumber=owners.iterator().next();var posting=postings.get(postingNumber);
-                if(posting==null)continue;
                 Set<String> officialIds=new HashSet<>(List.of(compact(posting.lowerBarcode()).toLowerCase(Locale.ROOT),compact(posting.upperBarcode()).toLowerCase(Locale.ROOT),compact(posting.scanit()).toLowerCase(Locale.ROOT)));
                 // Numeric text could be a GTIN/order ID. Accept it only if the carrier metadata agrees.
                 candidates.keySet().removeIf(number->number.equals(compact(postingNumber))
@@ -63,7 +74,14 @@ final class OzonCarrierLabelNumbers {
             }
         }
         conflicts.forEach(found::remove);
-        return Map.copyOf(found);
+        return new Index(found,owned,unidentified);
+    }
+    record Index(Map<String,String> numbers,Map<String,List<Integer>> pagesByPosting,List<Integer> unidentifiedPages){
+        Index{
+            numbers=Map.copyOf(numbers);
+            var copy=new LinkedHashMap<String,List<Integer>>();pagesByPosting.forEach((number,pages)->copy.put(number,List.copyOf(pages)));
+            pagesByPosting=Collections.unmodifiableMap(copy);unidentifiedPages=List.copyOf(unidentifiedPages);
+        }
     }
     private static String compact(String text){return Objects.requireNonNullElse(text,"").replaceAll("[\\h]+","").strip();}
     private record Part(String text,float size) {}

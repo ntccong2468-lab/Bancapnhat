@@ -40,7 +40,7 @@
     },
     {
       "class": "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest",
-      "tests": 45,
+      "tests": 48,
       "failures": 0,
       "errors": 0,
       "skipped": 0
@@ -128,16 +128,51 @@
       "failures": 0,
       "errors": 0,
       "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonAcceptanceKizTest",
+      "tests": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonCarrierLabelNumbersTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonShipServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
     }
   ],
   "totals": {
-    "tests": 187,
+    "tests": 244,
     "failures": 0,
     "errors": 0,
     "skipped": 0
   },
   "nodeReleaseTools": {
-    "tests": 141,
+    "tests": 144,
     "failures": 0,
     "skipped": 0
   },
@@ -149,7 +184,9 @@
     "Aggregation deduplicates overlapping targeted runs; not a single full-suite run.",
     "Windows full suite and installer gates are still required.",
     "Linux combined FXML run logged legacy asynchronous fixture teardown warnings after clearing the temporary profile; no JUnit failure. The isolated native acceptance run passed.",
-    "After the user explicitly requested another real acceptance check, two newly arrived postings were shipped once each and verified. See separate receipt; not part of unit-test counts."
+    "After the user explicitly requested another real acceptance check, two newly arrived postings were shipped once each and verified. See separate receipt; not part of unit-test counts.",
+    "Final steering: print the exact reserved KIZ even if Ozon rejected it but permits receiving the posting; preserve the remote rejection separately from local printing. No fabricated API acceptance."
   ],
-  "newLiveEvidence": "2026-11-04-vncode-163-ozon-live-recheck.json"
+  "newLiveEvidence": "2026-11-04-vncode-163-ozon-live-recheck.json",
+  "pairedPdfEvidence": "2026-11-04-vncode-163-ozon-paired-pdf.json"
 }

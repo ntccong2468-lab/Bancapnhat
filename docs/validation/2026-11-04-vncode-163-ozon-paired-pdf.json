@@ -1,0 +1,89 @@
+{
+  "version": "1.6.3",
+  "kind": "real-carrier-and-user-imported-vest-kiz-export",
+  "runtime": "Production Java services in managed Linux; not a measurement on seller Windows",
+  "export": {
+    "checkedAtUtc": "2026-11-04T19:55:55.134219415Z",
+    "selected": 25,
+    "successful": 25,
+    "failed": 0,
+    "allOrdersPrinted": true,
+    "pickingSortedLikeWb": true,
+    "shippingPages": 25,
+    "totalPages": 38,
+    "pickingPages": 2,
+    "labelGroups": 2,
+    "isolatedLabelRequests": 0,
+    "distinctPersistedLabelTasks": 2,
+    "kizPages": 13,
+    "carrierOnly": 12,
+    "preflightMillis": 2346,
+    "exportMillis": 6999,
+    "endToEndMillis": 9401,
+    "stageMillis": {
+      "PREPARATION": 699,
+      "LABEL_NETWORK": 4054,
+      "PICKING": 155,
+      "COMPOSITION": 1796
+    },
+    "freshPostingReadPages": 1,
+    "liveLicenseActivated": false,
+    "paidKizPurchased": false,
+    "remoteKizSubmitted": false,
+    "kizSource": "User zl.txt; confirmed vest category only"
+  },
+  "independentVerification": {
+    "selected": 25,
+    "officialPagesUnchanged": 25,
+    "carrierOrderMatchesWb": true,
+    "combinedPages": 13,
+    "exactKizMatchesItsOwnOrder": true,
+    "allCombinedCodesUnique": true,
+    "vestCategoryOnly": true,
+    "standaloneOzonProductPages": 0,
+    "pickingSortedLikeWb": true,
+    "exactCarrierOnPickingRow": true,
+    "firstPairZeroBased": 0,
+    "liveMutationsDuringVerification": 0
+  },
+  "queueReadback": {
+    "checkedAtUtc": "2026-11-04T19:47:01Z",
+    "activePages": 4,
+    "activeUnique": 357,
+    "statuses": {
+      "delivering": 332,
+      "awaiting_deliver": 25
+    },
+    "awaitingReceipt": 0,
+    "liveMutations": 0
+  },
+  "import": {
+    "duplicates": 0,
+    "inserted": 200,
+    "classified": 0,
+    "userCategoryConfirmed": true,
+    "category": "Жилет"
+  },
+  "scope": {
+    "sellerConfirmedCategory": "gilet / Жилет, Ozon type 93086",
+    "combinedLabelsLocallyRecordedPrinted": 13,
+    "combinedCodesSentToOzonInThisExport": 0,
+    "nonVestOrdersCarrierOnly": 12,
+    "credentialsOrRawKizCommitted": false,
+    "officialCarrierContentChanged": false,
+    "paidKizPurchase": false,
+    "liveLicenseActivation": false
+  },
+  "fixtureBenchmark": {
+    "orders": 1000,
+    "groupedTasks": 10,
+    "individualDownloads": 0,
+    "elapsedMillis": 751,
+    "realMarketplaceTiming": false
+  },
+  "supersededBuild": {
+    "run": 41895958691,
+    "conclusion": "cancelled",
+    "reason": "User requested sorted interleaved combined KIZ labels before release; do not publish this older candidate."
+  }
+}

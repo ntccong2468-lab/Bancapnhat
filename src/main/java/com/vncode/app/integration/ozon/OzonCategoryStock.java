@@ -38,7 +38,8 @@ final class OzonCategoryStock {
      * Proof is limited to this posting, item, native product and current shop owner. */
     static Set<String> reservedCategorySkus(int shop,OzonPostingDto posting,OzonExemplarJob job){
         if(job==null||job.shopId()!=shop||!job.postingNumber().equals(posting.postingNumber())
-                ||!Set.of(OzonExemplarJobStage.RESERVED,OzonExemplarJobStage.VALIDATED,OzonExemplarJobStage.ACCEPTED).contains(job.stage()))return Set.of();
+                ||!Set.of(OzonExemplarJobStage.RESERVED,OzonExemplarJobStage.VALIDATED,OzonExemplarJobStage.SET_PENDING,
+                        OzonExemplarJobStage.VERIFYING,OzonExemplarJobStage.RECONCILE_REQUIRED,OzonExemplarJobStage.ACCEPTED).contains(job.stage()))return Set.of();
         try(var c=Database.getConnection()){
             String owner=KizWarehouseRepository.currentOwner(c,shop),token="ozon:"+job.id();
             var nativeIds=verifiedProducts(c,shop,posting.items());

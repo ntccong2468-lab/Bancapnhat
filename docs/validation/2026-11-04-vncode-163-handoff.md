@@ -2,7 +2,11 @@
 
 Người dùng đã duyệt bản xem trước và yêu cầu áp dụng cùng sửa nhận đơn FBS Ozon. Phiên bản ứng dụng đã tăng lên **1.6.3**, kế thừa Latest 1.6.2 và sửa Ozon `ccd7fc1`. **Tại thời điểm ghi hồ sơ này chưa công bố Latest mới**; phải qua Windows full/native/upgrade rồi mới xuất bản.
 
-Nguồn ứng dụng đã pin: `6de9c73f34c429bfac0ba2af5ac4ea91538c8af1`; Windows build `41895958691` đang chạy. Tool publisher1.6.3 kiểm144/144, pin đúng nguồn/run; chưa thay Latest.
+Ứng viên ban đầu `6de9c73f34c429bfac0ba2af5ac4ea91538c8af1` / build `41895958691` **đã hủy**, vì người dùng yêu cầu bổ sung ghép PDF/KIZ trước phát hành. Không được xuất bản run này; pin nguồn/build mới sau commit. Tool publisher kiểm144/144; Latest vẫn1.6.2.
+
+Bổ sung sau chốt UI: sort vận đơn across batch theo WB, đặt KIZ kết hợp ngay sau đúng vận đơn, không thay content/dimension carrier. KIZ bị từ chối vẫn in từ reservation đúng đơn theo yêu cầu mới; giữ API rejection riêng. Nhận không KIZ chỉ khi fresh Ozon cho phép và không có mandatory mark; pending/foreign/429 giữ nguyên cơ chế đối soát. Child bị từ chối không chặn child hợp lệ.
+
+[PDF thật mới](2026-11-04-vncode-163-ozon-paired-pdf.json): 25 vận đơn + 13 KIZ gilet, 38 trang, 2 trang picking;2native task/0individual;6.999s export/9.401s end-to-end. 13DataMatrix khớp reservation độc lập,25carrierbyte-identical,sort/picking/scanit đạt. 12đơn khác danh mục không ghép mã gilet. File/user raw KIZ và API data nằm riêng ngoàiGit; không đưa vào source ZIP. Không claim Ozon đã chấp nhận13KIZ mới; đây là local combined print của đơn đã nhận.
 
 ## Những phần đã hoàn tất
 
@@ -16,7 +20,7 @@ Nguồn ứng dụng đã pin: `6de9c73f34c429bfac0ba2af5ac4ea91538c8af1`; Windo
 
 ## Bằng chứng và giới hạn
 
-- [Prebuild](2026-11-04-vncode-163-prebuild.json):187ca riêng biệt/18lớp mục tiêu,0lỗi/bỏ qua; Node141/141. Tổng hợp XML thành công mới nhất mỗi lớp, không cộng trùng các lượt có giao nhau. Không phải full Linux.
+- [Prebuild](2026-11-04-vncode-163-prebuild.json):244ca riêng biệt/23lớp mục tiêu,0lỗi/bỏ qua; Node144/144. Tổng hợp XML thành công mới nhất mỗi lớp, không cộng trùng các lượt có giao nhau. Không phải full Linux.
 - Layout kiểm26màn với4ngôn ngữ/2theme, vùng nút cố định và danh sách co giãn. 30ảnh synthetic gồm12màn×2theme, Ozon1366×768/1920×1080 và drawer. Ít nhất7dòng đơn đầy đủ ở1440×900. Acceptance4/4 kiểm hành động cửa hàng, scope draft, focus/selection và mở lại trong lúc đóng.
 - Lượt UI tổng hợp trên Linux ghi warning nền khi fixture FXML xóa profile tạm; JUnit không thất bại, lượt native acceptance tách riêng đạt. Không dùng warning này để kết luận lỗi dữ liệu seller; full Windows vẫn là gate bắt buộc.
 - [API thật trước đóng gói](2026-11-04-ozon-accept-picking-verified.json):22/22đơn đọc lại đã nhận; snapshot cuối18:00:05UTC,19nhãn trong1task, xuất lại task có sẵn8.009giây. Không phải benchmark1000đơn hay thao tác trên Windows seller. File KIZ31ký tự bị từ chối crypto/trạng thái; không gán/tiêu/mua KIZ. Không lặp mutation thật trong bước phát hành.

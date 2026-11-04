@@ -764,9 +764,8 @@ public final class OzonDashboardController {
         var requested=List.of(posting.postingNumber());
         runPrintTask(selected,target,picking,carrierOnly.isEmpty()?requested:List.of(),sources,requested,carrierOnly,preflightMillis,progress->{
             var result=new OzonPrintBundleService(sources).exportRequested(selected,requested,target,picking,progress,carrierOnly);
-            String message=result.failures().isEmpty()?tr("ozon.dashboard.print_one_done"):
-                    MessageFormat.format(tr("ozon.batch.print_partial"),result.successful().size(),result.failures().size());
-            return new PrintOutput(message,result.successful().isEmpty()?List.of():List.of(target,picking),result.successful(),result.failures(),result.waiting(),result.carrierOnly());
+            String message=printSummary(result);
+            return new PrintOutput(message,result.successful().isEmpty()?List.of():List.of(target,picking),result.successful(),result.failures(),result.waiting(),result.carrierOnly(),result.remoteKizWarnings());
         });
     }
 
@@ -776,10 +775,13 @@ public final class OzonDashboardController {
         File picking=pickingTarget(target);
         runPrintTask(selected,target,picking,postingNumbers,sources,requestedNumbers,blocked,preflightMillis,progress->{
             var result=new OzonPrintBundleService(sources).exportRequested(selected,requestedNumbers,target,picking,progress,blocked);
-            String message=result.failures().isEmpty()?MessageFormat.format(tr("ozon.dashboard.print_all_done"),result.successful().size()):
-                    MessageFormat.format(tr("ozon.batch.print_partial"),result.successful().size(),result.failures().size());
-            return new PrintOutput(message,result.successful().isEmpty()?List.of():List.of(target,picking),result.successful(),result.failures(),result.waiting(),result.carrierOnly());
+            String message=printSummary(result);
+            return new PrintOutput(message,result.successful().isEmpty()?List.of():List.of(target,picking),result.successful(),result.failures(),result.waiting(),result.carrierOnly(),result.remoteKizWarnings());
         });
+    }
+
+    private String printSummary(OzonPrintBundleService.AvailableBatchExportResult result){
+        return MessageFormat.format(tr("ozon.dashboard.print_bundle_done"),result.successful().size(),result.kizPages(),result.carrierOnly().size(),result.failures().size());
     }
 
     private File choosePdf(String initialName) {
@@ -831,7 +833,7 @@ public final class OzonDashboardController {
                     var failures=new java.util.LinkedHashMap<>(preflightBlocked);result.postingNumbers().forEach(failures::remove);failures.putAll(result.failures());
                     report.finishAvailable(selected,Set.copyOf(result.postingNumbers()),failures,result.waiting(),result.carrierOnly());
                     String message=failures.isEmpty()?result.message():MessageFormat.format(tr("ozon.batch.print_partial"),result.postingNumbers().size(),failures.size());
-                    return new PrintOutput(message,result.files(),result.postingNumbers(),failures,result.waiting(),result.carrierOnly());
+                    return new PrintOutput(message,result.files(),result.postingNumbers(),failures,result.waiting(),result.carrierOnly(),result.remoteKizWarnings());
                 }catch(Exception failed){try{if(com.vncode.app.features.kiz.KizPurchasePendingException.isPending(failed))report.waitingForStock(selected,preflightBlocked);else report.finishAvailable(selected,Set.of(),preflightBlocked);}catch(RuntimeException storage){failed.addSuppressed(storage);}throw failed;}
                 } finally { timingResult.set(timer.snapshot()); timer.close(); }
             }
@@ -850,7 +852,7 @@ public final class OzonDashboardController {
             PrintOutput output = task.getValue();
             statusLabel.setText(output.message());
             String done=output.postingNumbers().stream().map(n->n+" · "+(output.carrierOnly().containsKey(n)
-                    ?MessageFormat.format(tr("ozon.fbs.pdf_created_carrier_only"),output.carrierOnly().get(n)):tr("ozon.fbs.pdf_created"))).collect(java.util.stream.Collectors.joining("\n"));
+                    ?MessageFormat.format(tr("ozon.fbs.pdf_created_carrier_only"),output.carrierOnly().get(n)):tr(output.remoteKizWarnings().containsKey(n)?"ozon.fbs.pdf_created_kiz_rejected":"ozon.fbs.pdf_created"))).collect(java.util.stream.Collectors.joining("\n"));
             String failures=output.failures().entrySet().stream().map(e->e.getKey()+" · "+tr(output.waiting().contains(e.getKey())?"ozon.batch.wait_rate_limit":"ozon.fbs.batch_incomplete")+" · "+e.getValue()).collect(java.util.stream.Collectors.joining("\n"));
             batchResultsArea.setText(readinessTimingText(preflightMillis)+printTimingText(timingResult.get())+(output.postingNumbers().isEmpty()?"":tr("ozon.fbs.pdf_batch_layout")+"\n\n")+done+(done.isBlank()||failures.isBlank()?"":"\n")+failures);
             batchResultsPanel.setVisible(true);batchResultsPanel.setManaged(true);batchResultsPanel.setExpanded(true);
@@ -1995,7 +1997,8 @@ public final class OzonDashboardController {
     }
 
     private record BatchTransitionResult(int requested,List<String> completed,List<String> failed,List<String> pending,List<String> notProcessed,Map<String,List<String>> children,Map<String,String> reasons) { }
-    record PrintOutput(String message, List<File> files, List<String> postingNumbers,Map<String,String> failures,Set<String> waiting,Map<String,String> carrierOnly) {
+    record PrintOutput(String message, List<File> files, List<String> postingNumbers,Map<String,String> failures,Set<String> waiting,Map<String,String> carrierOnly,Map<String,String> remoteKizWarnings) {
+        PrintOutput(String message,List<File> files,List<String> postingNumbers,Map<String,String> failures,Set<String> waiting,Map<String,String> carrierOnly){this(message,files,postingNumbers,failures,waiting,carrierOnly,Map.of());}
         PrintOutput(String message,List<File> files,List<String> postingNumbers){this(message,files,postingNumbers,Map.of(),Set.of(),Map.of());}
         PrintOutput(String message,List<File> files,List<String> postingNumbers,Map<String,String> failures,Set<String> waiting){this(message,files,postingNumbers,failures,waiting,Map.of());}
         PrintOutput {
@@ -2005,6 +2008,7 @@ public final class OzonDashboardController {
             failures=failures==null?Map.of():Map.copyOf(failures);
             waiting=waiting==null?Set.of():Set.copyOf(waiting);
             carrierOnly=carrierOnly==null?Map.of():Map.copyOf(carrierOnly);
+            remoteKizWarnings=remoteKizWarnings==null?Map.of():Map.copyOf(remoteKizWarnings);
         }
     }
 }
