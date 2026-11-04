@@ -22,7 +22,7 @@ Bổ sung sau chốt UI: sort vận đơn across batch theo WB, đặt KIZ kết
 
 ## Bằng chứng và giới hạn
 
-- [Prebuild](2026-11-04-vncode-163-prebuild.json):244ca riêng biệt/23lớp mục tiêu,0lỗi/bỏ qua; Node144/144. Tổng hợp XML thành công mới nhất mỗi lớp, không cộng trùng các lượt có giao nhau. Không phải full Linux.
+- [Prebuild](2026-11-04-vncode-163-prebuild.json):296ca riêng biệt/24lớp mục tiêu,0lỗi/bỏ qua; Node144/144. Tổng hợp XML thành công mới nhất mỗi lớp, không cộng trùng các lượt có giao nhau. Không phải full Linux.
 - Layout kiểm26màn với4ngôn ngữ/2theme, vùng nút cố định và danh sách co giãn. 30ảnh synthetic gồm12màn×2theme, Ozon1366×768/1920×1080 và drawer. Ít nhất7dòng đơn đầy đủ ở1440×900. Acceptance4/4 kiểm hành động cửa hàng, scope draft, focus/selection và mở lại trong lúc đóng.
 - Lượt UI tổng hợp trên Linux ghi warning nền khi fixture FXML xóa profile tạm; JUnit không thất bại, lượt native acceptance tách riêng đạt. Không dùng warning này để kết luận lỗi dữ liệu seller; full Windows vẫn là gate bắt buộc.
 - [API thật trước đóng gói](2026-11-04-ozon-accept-picking-verified.json):22/22đơn đọc lại đã nhận; snapshot cuối18:00:05UTC,19nhãn trong1task, xuất lại task có sẵn8.009giây. Không phải benchmark1000đơn hay thao tác trên Windows seller. File KIZ31ký tự bị từ chối crypto/trạng thái; không gán/tiêu/mua KIZ. Không lặp mutation thật trong bước phát hành.
@@ -33,3 +33,7 @@ Bổ sung sau chốt UI: sort vận đơn across batch theo WB, đặt KIZ kết
 ## Bước phát hành bắt buộc
 
 Pin SHA ứng dụng và build Windows `publish-vncode-baseline.yml`, chạy full suite/native/DPAPI/coexistence/passiveEXEupgrade từ1.6.2. Publisher pin đúng nguồn/run, đủ16asset; không sửa tag/binary cũ hoặc prune. Sau công bố tải/đối chiếu hash toàn bộ asset, sourceZIP/JAR và bộ đọc updater từbinary1.6.2. Ghi receipt/source/run trong hồ sơ phát hành bổ sung; chưa khẳng định popup/cài trên máy người dùng.
+
+## Kiểm thử Windows và cập nhật kỳ vọng thứ tự
+
+Run `41902237002` đã chạy đủ 3.844 ca nhưng có 3 lỗi trong `OzonLabelServiceTest`: còn so theo thứ tự ngược Ozon trả về thay vì thứ tự WB đã duyệt. Đã sửa kiểm tra danh tính, nội dung byte và kích thước của cùng vận đơn sau sắp xếp; không sửa production. Cả 52 ca lớp này đạt trên Linux, đưa vào preflight Windows. Full Windows phải chạy lại trước phát hành; không dùng run lỗi. [Biên nhận](2026-11-04-vncode-163-windows-sort-regression.json).

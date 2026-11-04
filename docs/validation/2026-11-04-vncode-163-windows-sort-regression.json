@@ -1,0 +1,34 @@
+{
+  "version": "1.6.3",
+  "failedBuild": 41902237002,
+  "failedBuildSource": "14a10498951e50ffb3d2603e88f5bfb8d6c15b68",
+  "windowsTotals": {
+    "tests": 3844,
+    "failures": 3,
+    "errors": 0,
+    "skipped": 2
+  },
+  "windowsClasses": 521,
+  "cause": "Three assertions still expected native reverse PDF page order. The approved behavior sorts identified carriers using WB ordering. Match original content by posting identity after sorting.",
+  "failedCases": [
+    "wholeBatchDropsLargeProductPagesWithoutChangingAnyCarrierContent",
+    "requestedCarrierBatchPrintsEveryLabelWithOneTaskEvenWhenAllLocalKizChecksAreBlocked(int)[1]",
+    "requestedCarrierBatchPrintsEveryLabelWithOneTaskEvenWhenAllLocalKizChecksAreBlocked(int)[2]"
+  ],
+  "productionCodeChangedForTestCorrection": false,
+  "correctedClass": "com.vncode.app.integration.ozon.OzonLabelServiceTest",
+  "targetedLinux": {
+    "tests": 52,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "guardsRetained": [
+    "Every carrier identity checked in WB order",
+    "Original content bytes and page size checked for the same posting",
+    "One task and three requests for 100/1000 carriers",
+    "Zero individual label downloads",
+    "No KIZ allocation for blocked carrier-only export"
+  ],
+  "fullWindowsRetryRequired": true
+}

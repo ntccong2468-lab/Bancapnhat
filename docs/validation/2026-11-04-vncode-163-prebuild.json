@@ -163,10 +163,17 @@
       "failures": 0,
       "errors": 0,
       "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonLabelServiceTest",
+      "tests": 52,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
     }
   ],
   "totals": {
-    "tests": 244,
+    "tests": 296,
     "failures": 0,
     "errors": 0,
     "skipped": 0
@@ -188,5 +195,6 @@
     "Final steering: print the exact reserved KIZ even if Ozon rejected it but permits receiving the posting; preserve the remote rejection separately from local printing. No fabricated API acceptance."
   ],
   "newLiveEvidence": "2026-11-04-vncode-163-ozon-live-recheck.json",
-  "pairedPdfEvidence": "2026-11-04-vncode-163-ozon-paired-pdf.json"
+  "pairedPdfEvidence": "2026-11-04-vncode-163-ozon-paired-pdf.json",
+  "windowsSortRegression": "2026-11-04-vncode-163-windows-sort-regression.json"
 }

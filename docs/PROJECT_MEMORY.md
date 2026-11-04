@@ -2,6 +2,8 @@
 
 ## 1.6.3 — áp dụng giao diện đã duyệt và sửa nhận Ozon (đang kiểm thử phát hành)
 
+- Windows `41902237002` đã chạy đủ 3.844 ca: 3 lỗi kỳ vọng thứ tự trang cũ trong `OzonLabelServiceTest`, 0 error và 2 OS skip. Đã sửa đối chiếu theo đúng danh tính vận đơn và thứ tự WB, giữ kiểm tra byte/kích thước, đủ 52 ca lớp này đạt. Không đổi mã ứng dụng; thêm lớp nhãn vào preflight và chạy lại full Windows trước phát hành. [Biên nhận](validation/2026-11-04-vncode-163-windows-sort-regression.json).
+
 - Chốt yêu cầu mới: PDF theo lô phải ghép **vận đơn gốc → KIZ kết hợp của đúng đơn**, sort theo WB, không có barcode Ozon riêng. Nếu Ozon từ chối KIZ nhưng vẫn cho nhận đơn, tiếp tục nhận và vẫn in đúng KIZ đã dành cho đơn; giữ remote rejection riêng, không coi local print là API chấp nhận. KIZ bắt buộc/pending không bị giả trạng thái. Một child bị từ chối không chặn child khác.
 - Người dùng xác nhận `zl.txt` thuộc **gilet**. Kiểm thử thật 19:55 UTC: 25 vận đơn + 13 KIZ gilet = 38 trang, phiếu nhặt 2 trang; 2 task theo lô, 0 lượt lấy nhãn riêng; xuất 6.999 giây, tổng 9.401 giây. Đối chiếu độc lập nội dung 25 vận đơn không đổi, 13 DataMatrix đúng reservation/đơn và không trùng, cả hai PDF sort theo WB. 12 đơn bộ thể thao giữ vận đơn, không dùng KIZ gilet. Không gửi 13 mã này lên API, không mua KIZ/kích hoạt license; ghi local print riêng. [Bằng chứng](validation/2026-11-04-vncode-163-ozon-paired-pdf.json).
 - Hủy build `41895958691` của nguồn cũ theo yêu cầu bổ sung PDF; không phát hành run đó. Cần build đầy đủ từ commit mới và pin lại publisher. Latest vẫn 1.6.2 trong lúc chờ.

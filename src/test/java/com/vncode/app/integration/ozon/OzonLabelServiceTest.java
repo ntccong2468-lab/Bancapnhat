@@ -396,12 +396,15 @@ class OzonLabelServiceTest {
         assertEquals(numbers,result.successful());assertEquals(blocked,result.carrierOnly());assertTrue(result.failures().isEmpty());assertEquals(count,result.totalPages());assertEquals(0,result.kizPages());
         assertEquals(1,timing.labelGroups());assertEquals(0,timing.isolatedLabels());assertEquals(3,server.getRequestCount());
         try(var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(output.toFile()))){
-            assertEquals(count,pdf.getNumberOfPages());for(int i=0;i<count;i++)assertEquals(reversed.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(i+1)).strip());
+            assertEquals(count,pdf.getNumberOfPages());
+            // Equal product fields use the posting-number tie-breaker of the WB sort.
+            // Ozon deliberately returns the reverse order in this fixture.
+            for(int i=0;i<count;i++)assertEquals(numbers.get(i),com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(pdf.getPage(i+1)).strip());
         }
         var create=server.takeRequest(1,TimeUnit.SECONDS);assertEquals("/v3/posting/fbs/package-label/create",create.getPath());assertEquals(count,com.google.gson.JsonParser.parseString(create.getBody().readUtf8()).getAsJsonObject().getAsJsonArray("posting_numbers").size());
         assertEquals("/v2/posting/fbs/package-label/get",server.takeRequest(1,TimeUnit.SECONDS).getPath());assertEquals("/cdn/requested.pdf",server.takeRequest(1,TimeUnit.SECONDS).getPath());
         String benchmark=System.getProperty("vncode.ozon.pdf.benchmark");if(benchmark!=null){
-            var value=new com.google.gson.JsonObject();value.addProperty("synthetic",true);value.addProperty("orders",count);value.addProperty("pages",result.totalPages());value.addProperty("totalMillis",timing.totalMillis());value.addProperty("labelGroups",timing.labelGroups());value.addProperty("isolatedLabels",timing.isolatedLabels());value.addProperty("httpRequests",3);value.addProperty("independentSyntheticPageIdentitiesChecked",true);value.addProperty("appVerifiesTaskMembershipAndCounts",true);value.addProperty("nativePageOrderPreserved",true);value.addProperty("appPairsEachPageToKiz",false);
+            var value=new com.google.gson.JsonObject();value.addProperty("synthetic",true);value.addProperty("orders",count);value.addProperty("pages",result.totalPages());value.addProperty("totalMillis",timing.totalMillis());value.addProperty("labelGroups",timing.labelGroups());value.addProperty("isolatedLabels",timing.isolatedLabels());value.addProperty("httpRequests",3);value.addProperty("independentSyntheticPageIdentitiesChecked",true);value.addProperty("appVerifiesTaskMembershipAndCounts",true);value.addProperty("wbSortVerifiedAcrossWholeBatch",true);value.addProperty("appPairsEachPageToKiz",false);
             for(var stage:OzonPrintTiming.Stage.values())value.addProperty(stage.name().toLowerCase()+"Millis",timing.millis(stage));
             java.nio.file.Files.writeString(java.nio.file.Path.of(benchmark+"-"+count+".json"),value.toString());
         }
@@ -451,8 +454,12 @@ class OzonLabelServiceTest {
             var pdf=new com.itextpdf.kernel.pdf.PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(output.toFile()))){
             assertEquals(count,pdf.getNumberOfPages());
             for(int i=0;i<count;i++){
-                org.junit.jupiter.api.Assertions.assertArrayEquals(original.getPage(i*2+2).getContentBytes(),pdf.getPage(i+1).getContentBytes(),"Carrier label stays exactly as Ozon returned it");
-                assertEquals(original.getPage(i*2+2).getPageSize().toString(),pdf.getPage(i+1).getPageSize().toString());
+                var sourceCarrier=original.getPage((count-1-i)*2+2);
+                var sortedCarrier=pdf.getPage(i+1);
+                assertTrue(com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(sourceCarrier).startsWith(numbers.get(i)));
+                assertTrue(com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor.getTextFromPage(sortedCarrier).startsWith(numbers.get(i)),"WB sort keeps the correct posting identity");
+                org.junit.jupiter.api.Assertions.assertArrayEquals(sourceCarrier.getContentBytes(),sortedCarrier.getContentBytes(),"The same posting's carrier stays exactly as Ozon returned it after sorting");
+                assertEquals(sourceCarrier.getPageSize().toString(),sortedCarrier.getPageSize().toString());
             }
         }
         try(var picking=org.apache.pdfbox.Loader.loadPDF(temporaryDirectory.resolve("mixed-picking.pdf").toFile())){

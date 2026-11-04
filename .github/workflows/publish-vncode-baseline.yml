@@ -59,12 +59,12 @@ jobs:
           "BASELINE_UPGRADE_REQUIRED=$((-not $baseline.skipUpgrade).ToString().ToLowerInvariant())" >> $env:GITHUB_ENV
       - name: Verify release tools
         run: node --test tools/*.test.mjs
-      - name: Verify Windows UI locking, wrapper and Catalog cooldown fixtures
+      - name: Verify Windows UI, Ozon label ordering, wrapper and Catalog cooldown fixtures
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-baseline-preflight-${{ github.run_id }}
         run: |
-          .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest' test
+          .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,OzonLabelServiceTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest' test
           if($LASTEXITCODE -ne 0){throw 'Windows fixture preflight failed.'}
       - name: Verify whole Java application and package
         shell: pwsh
