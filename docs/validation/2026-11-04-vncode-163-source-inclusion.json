@@ -1,13 +1,13 @@
 {
   "version": "1.6.3",
-  "sourceCommit": "3402c2f0892fea392eb1e9e7de3efb05e522275c",
-  "sourceTree": "850443c672ac229c93e35fb797059af216984500",
+  "sourceCommit": "f8d2cf967ecc8fe9de32cd3b57c70de642751ff2",
+  "sourceTree": "9d687b06fd9720aec04e7b3e4713d1bf78760cfe",
   "baseline": "1.6.2",
   "baselineCommit": "3968f8f4bb2239ddf61b48e9f6245086bd4ad529",
   "baselineIsAncestor": true,
   "ozonFixCommit": "ccd7fc1",
   "ozonFixIsAncestor": true,
-  "buildRun": 41917831124,
+  "buildRun": 41918387266,
   "workflow": "publish-vncode-baseline.yml",
   "applicationFilesSinceBaseline": {
     "pom.xml": "6b81f339c0dd4eb3672ca9e333b1399e1650e840e23dad693e93f75c0c5b3faa",
@@ -50,10 +50,12 @@
     "src/main/resources/com/vncode/app/ui/workspace/workspace-header-view.fxml": "df90c5e5a6da4d5d3b1291acc6767e945ca4c002502e24b69c4009dd87ecc453",
     "src/main/resources/com/vncode/app/ui/znack/znack-automation-view.fxml": "526d7606eeac94b3fbeeb5d046975c372c8d6f85c782ca9eca4b510bb5ecc38b"
   },
-  "recordedAtUtc": "2026-11-04T21:38:13.388769+00:00",
+  "recordedAtUtc": "2026-11-04T21:41:47.652769+00:00",
   "supersededSource": "6de9c73f34c429bfac0ba2af5ac4ea91538c8af1",
   "supersededBuild": 41895958691,
   "failedSortAssertionBuild": 41902237002,
   "failedSortAssertionSource": "14a10498951e50ffb3d2603e88f5bfb8d6c15b68",
-  "productionFilesUnchangedSinceFailedBuild": true
+  "productionFilesUnchangedSinceFailedBuild": true,
+  "cancelledQueuedRetry": 41917831124,
+  "queueIsolation": "Builds are isolated by immutable source; unrelated branch build remains untouched."
 }

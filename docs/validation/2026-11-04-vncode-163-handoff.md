@@ -4,7 +4,7 @@ Người dùng đã duyệt bản xem trước và yêu cầu áp dụng cùng s
 
 Ứng viên ban đầu `6de9c73f34c429bfac0ba2af5ac4ea91538c8af1` / build `41895958691` **đã hủy**, vì người dùng yêu cầu bổ sung ghép PDF/KIZ trước phát hành. Không được xuất bản run này; pin nguồn/build mới sau commit. Tool publisher kiểm144/144; Latest vẫn1.6.2.
 
-Nguồn phát hành hiện tại `3402c2f0892fea392eb1e9e7de3efb05e522275c`; Windows full build `41917831124` bắt đầu 21:37:32 UTC, sau khi sửa ba kỳ vọng thứ tự trang cũ trong run `41902237002`. Mã ứng dụng giữ nguyên so với `14a1049`; publisher đã repin nguồn/run mới. Chỉ xuất bản sau khi toàn bộ gate thành công.
+Nguồn phát hành hiện tại `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`; Windows full build `41918387266` bắt đầu 21:41:12 UTC, sau khi sửa ba kỳ vọng thứ tự trang cũ trong run `41902237002`. Mã ứng dụng giữ nguyên so với `14a1049`; publisher đã repin nguồn/run mới. Chỉ xuất bản sau khi toàn bộ gate thành công.
 
 Bổ sung sau chốt UI: sort vận đơn across batch theo WB, đặt KIZ kết hợp ngay sau đúng vận đơn, không thay content/dimension carrier. KIZ bị từ chối vẫn in từ reservation đúng đơn theo yêu cầu mới; giữ API rejection riêng. Nhận không KIZ chỉ khi fresh Ozon cho phép và không có mandatory mark; pending/foreign/429 giữ nguyên cơ chế đối soát. Child bị từ chối không chặn child hợp lệ.
 
@@ -37,3 +37,5 @@ Pin SHA ứng dụng và build Windows `publish-vncode-baseline.yml`, chạy ful
 ## Kiểm thử Windows và cập nhật kỳ vọng thứ tự
 
 Run `41902237002` đã chạy đủ 3.844 ca nhưng có 3 lỗi trong `OzonLabelServiceTest`: còn so theo thứ tự ngược Ozon trả về thay vì thứ tự WB đã duyệt. Đã sửa kiểm tra danh tính, nội dung byte và kích thước của cùng vận đơn sau sắp xếp; không sửa production. Cả 52 ca lớp này đạt trên Linux, đưa vào preflight Windows. Full Windows phải chạy lại trước phát hành; không dùng run lỗi. [Biên nhận](2026-11-04-vncode-163-windows-sort-regression.json).
+
+Run chờ `41917831124` đã hủy trước khi có job vì group build toàn repo đang bị một nhánh kiểm thử khác chiếm. Group mới khóa theo SHA nguồn; `41918387266` chạy ngay từ `f8d2cf9`, giữ nguyên toàn bộ gate và không can thiệp lượt kiểm thử khác.
