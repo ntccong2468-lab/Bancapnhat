@@ -1,5 +1,7 @@
 name: VN Code 1.6.2 - Three-source Windows test
 on:
+  push:
+    branches: [test/three-source-znack-162-20261104]
   pull_request:
     paths:
       - 'src/main/java/com/vncode/app/ui/znackregistration/**'
