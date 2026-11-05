@@ -106,8 +106,9 @@ class ZnackCardRegistrationControllerTest {
             var footer=(Label)loader.getNamespace().get("batchProgressLabel");assertTrue(footer.isVisible());assertTrue(footer.getText().contains("2/100"));assertTrue(footer.getText().contains("97"));
             assertTrue(button("registerSelectedButton").isDisabled(),"Another batch cannot be started while the durable queue runs");
             assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());
-            var host=(javafx.scene.layout.StackPane)table().getParent();assertTrue(host.lookup("#registrationBackgroundPill")!=null);
-            assertTrue(((javafx.scene.layout.HBox)host.lookup("#registrationBackgroundPill")).getChildren().stream().filter(Label.class::isInstance).map(Label.class::cast).anyMatch(l->l.getText().contains("Accepted article · 52")));
+            var host=(javafx.scene.layout.StackPane)table().getParent();assertNull(host.lookup("#registrationBackgroundPill"),"Progress must not cover the product rows");
+            assertTrue(footer.getTooltip().getText().contains("Accepted article · 52"));assertInstanceOf(ProgressIndicator.class,footer.getGraphic());
+            RegistrationScreenshot.capture((javafx.scene.Parent)loader.getRoot(),"wb-registration-progress");
             return null;
         });
     }
@@ -136,12 +137,11 @@ class ZnackCardRegistrationControllerTest {
             var state=ZnackCardRegistrationController.class.getDeclaredField("batchProgress");state.setAccessible(true);assertSame(progress,state.get(controller));
             assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());
             assertFalse(((TextField)loader.getNamespace().get("searchField")).isDisabled());
-            var pill=(javafx.scene.layout.HBox)((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill");
-            assertNotNull(pill);assertTrue(pill.getChildren().stream().noneMatch(ProgressIndicator.class::isInstance));return pill;
+            var footer=(Label)loader.getNamespace().get("batchProgressLabel");assertNull(footer.getGraphic());return footer;
         });
         fx(()->{pollBatchProgress(controller);return null;});
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
-        fx(()->{stopBatchPolling(controller);assertSame(errorPill,((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill"),"A repeated read error must not reset its dismissal timer");return null;});
+        fx(()->{stopBatchPolling(controller);assertSame(errorPill,loader.getNamespace().get("batchProgressLabel"),"A repeated read error keeps the same visible progress region");return null;});
         failRead.set(false);
         fx(()->{pollBatchProgress(controller);return null;});
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
@@ -149,8 +149,7 @@ class ZnackCardRegistrationControllerTest {
             stopBatchPolling(controller);
             String text=((Label)loader.getNamespace().get("batchProgressLabel")).getText();
             assertTrue(text.contains("2/100"));assertFalse(text.contains("SYNC_INTERNAL"));
-            var pill=(javafx.scene.layout.HBox)((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill");
-            assertNotSame(errorPill,pill);assertTrue(pill.getChildren().stream().anyMatch(ProgressIndicator.class::isInstance),"A successful read restores the still-running batch even when its counters did not change");return null;
+            assertNull(((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill"));assertInstanceOf(ProgressIndicator.class,((Label)loader.getNamespace().get("batchProgressLabel")).getGraphic(),"A successful read restores the still-running batch even when its counters did not change");return null;
         });
     }
     private static void stopBatchPolling(ZnackCardRegistrationController controller)throws Exception{
@@ -179,7 +178,7 @@ class ZnackCardRegistrationControllerTest {
         });awaitTasks();
         fx(()->{stopBatchPolling(controller);var row=table().getItems().stream().filter(item->item.chrtId()==1).findFirst().orElseThrow();assertFalse(row.hasFeed());
             @SuppressWarnings("unchecked") var status=(TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");assertEquals(I18nService.getInstance().tr("znack.registration.source.draft"),status.getCellData(row));
-            var pill=(javafx.scene.layout.HBox)((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill");assertTrue(pill.getChildren().stream().anyMatch(ProgressIndicator.class::isInstance));return null;});
+            assertInstanceOf(ProgressIndicator.class,((Label)loader.getNamespace().get("batchProgressLabel")).getGraphic());return null;});
     }
     @Test void backgroundRefreshPreservesSelectedNotCreatedCardsAndKeepsThePageVisible()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();
@@ -226,11 +225,11 @@ class ZnackCardRegistrationControllerTest {
         var controller=(ZnackCardRegistrationController)loader.getController();var calls=new java.util.concurrent.CopyOnWriteArrayList<String>();
         var current=new java.util.concurrent.atomic.AtomicReference<>(new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("controls",10,2,0,8,"Next","M","Created","XL","",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.RUNNING));
         fx(()->{stopBatchPolling(controller);var reader=controller.getClass().getDeclaredField("batchReader");reader.setAccessible(true);reader.set(controller,(java.util.function.Function<Shop,com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress>)owner->current.get());var control=controller.getClass().getDeclaredField("batchControl");control.setAccessible(true);control.set(controller,(java.util.function.BiFunction<Shop,String,Boolean>)(owner,action)->{assertFalse(Platform.isFxApplicationThread());calls.add(action);var before=current.get();var state=com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.valueOf(switch(action){case "PAUSE"->"PAUSED";case "RESUME"->"RUNNING";default->"CANCELLED";});current.set(new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress(before.runId(),before.total(),before.submitted(),before.failed(),before.remaining(),"","",before.lastSubmittedArticle(),before.lastSubmittedSize(),"",state));return true;});renderProgress(controller,current.get());stopBatchPolling(controller);assertFalse(batchMenu("znackPauseBatch").isDisable());assertTrue(batchMenu("znackResumeBatch").isDisable());batchMenu("znackPauseBatch").fire();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
-        fx(()->{renderProgress(controller,current.get());stopBatchPolling(controller);assertEquals(java.util.List.of("PAUSE"),calls);assertFalse(batchMenu("znackResumeBatch").isDisable());assertTrue(batchMenu("znackPauseBatch").isDisable());assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());assertTrue(((Label)loader.getNamespace().get("batchProgressLabel")).getText().contains(I18nService.getInstance().tr("znack.registration.batch_paused")));var pill=(javafx.scene.layout.HBox)((javafx.scene.layout.StackPane)table().getParent()).lookup("#registrationBackgroundPill");assertTrue(pill.getChildren().stream().noneMatch(ProgressIndicator.class::isInstance));batchMenu("znackResumeBatch").fire();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
+        fx(()->{renderProgress(controller,current.get());stopBatchPolling(controller);assertEquals(java.util.List.of("PAUSE"),calls);assertFalse(batchMenu("znackResumeBatch").isDisable());assertTrue(batchMenu("znackPauseBatch").isDisable());assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());assertTrue(((Label)loader.getNamespace().get("batchProgressLabel")).getText().contains(I18nService.getInstance().tr("znack.registration.batch_paused")));assertNull(((Label)loader.getNamespace().get("batchProgressLabel")).getGraphic());batchMenu("znackResumeBatch").fire();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
         fx(()->{renderProgress(controller,current.get());stopBatchPolling(controller);assertEquals(java.util.List.of("PAUSE","RESUME"),calls);var confirmation=controller.getClass().getDeclaredField("cancelPendingConfirmation");confirmation.setAccessible(true);confirmation.set(controller,(java.util.function.BooleanSupplier)()->false);batchMenu("znackCancelPendingBatch").fire();assertEquals(2,calls.size());confirmation.set(controller,(java.util.function.BooleanSupplier)()->true);batchMenu("znackCancelPendingBatch").fire();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
         fx(()->{renderProgress(controller,current.get());stopBatchPolling(controller);assertEquals(java.util.List.of("PAUSE","RESUME","CANCEL"),calls);assertTrue(batchMenu("znackPauseBatch").isDisable());assertTrue(batchMenu("znackResumeBatch").isDisable());assertTrue(batchMenu("znackCancelPendingBatch").isDisable());assertFalse(((Hyperlink)loader.getNamespace().get("reportLink")).isDisabled());assertTrue(((Label)loader.getNamespace().get("batchProgressLabel")).getText().contains("2/10"),"Accepted cards stay in the report after cancellation");return null;});
     }
-    private MenuItem batchMenu(String id){return ((Label)loader.getNamespace().get("titleLabel")).getContextMenu().getItems().stream().filter(item->id.equals(item.getId())).findFirst().orElseThrow();}
+    private MenuItem batchMenu(String id){return ((MenuButton)loader.getNamespace().get("moreActionsButton")).getItems().stream().filter(item->id.equals(item.getId())).findFirst().orElseThrow();}
     @Test void errorFilterSelectAllOpensCompleteCatalogReportEvenForUnmatchedHistoricalCards()throws Exception{
         var owner=new Shop(1,"Fixture","fixture");var raw=com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"]}").getAsJsonObject();
         var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","UNMATCHED","ЧЕРНЫЙ","1",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(raw));

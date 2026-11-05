@@ -1,0 +1,191 @@
+{
+  "recordedAt": "2026-11-05T19:28:10.177200+00:00",
+  "scope": "Linux Java 25, synthetic SQLite/HTTP and PDF fixtures; no seller API writes, no Windows installer validation yet",
+  "baseCommit": "69f9a8bdf0645fa027468918969334100ad8edc2",
+  "suites": [
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest",
+      "tests": 54,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 38.858
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.027
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.166
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintBatchReadTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 11.198
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonExemplarWorkflowTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 10.777
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonDurableReservationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.105
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonAcceptanceKizTest",
+      "tests": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 63.578
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonProductLabelBarcodeTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.495
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonCombinedLabelRendererTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.522
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonFboCombinedPrintTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.96
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintHistoryServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.088
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonFbsPrintReportTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.382
+    },
+    {
+      "class": "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.624
+    },
+    {
+      "class": "com.vncode.app.features.kiz.status.Kn3BatchReplacementTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 20.114
+    },
+    {
+      "class": "com.vncode.app.features.kiz.status.Kn3ReplacementTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.634
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizCategoryAllocatorTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.037
+    },
+    {
+      "class": "com.vncode.app.features.print.KizCategoryDeletionExportTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.619
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizWarehouseTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.847
+    }
+  ],
+  "totals": {
+    "tests": 191,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "reproductions": {
+    "stalePreflightAndSyncedRejection": {
+      "tests": 3,
+      "failuresBefore": 3,
+      "failuresAfter": 0
+    },
+    "partialCarrierIdentity": {
+      "tests": 1,
+      "failuresBefore": 1,
+      "failuresAfter": 0
+    },
+    "datamatrix203dpi": {
+      "before": "Synthetic page 36 could not decode at 203 dpi; same payload decoded at 300/600 dpi",
+      "after": "All 100 exact codes decoded at 203 and 300 dpi in initial export and reprint"
+    }
+  },
+  "batchPdf": {
+    "orders": 100,
+    "exports": 2,
+    "carrierPagesPerExport": 100,
+    "kizPagesPerExport": 100,
+    "totalPagesPerExport": 200,
+    "batchDownloads": 2,
+    "perOrderDownloads": 0,
+    "stockCodesAfterReprint": 100,
+    "uniqueBoundCodes": 100,
+    "decodedLabels": 400,
+    "usesSyntheticData": true
+  },
+  "limits": [
+    "Not a real Ozon API speed measurement",
+    "No real KIZ allocation/submission/purchase",
+    "Windows build and installer acceptance pending"
+  ]
+}

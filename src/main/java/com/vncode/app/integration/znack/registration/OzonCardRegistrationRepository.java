@@ -21,7 +21,11 @@ public final class OzonCardRegistrationRepository {
     private static final Gson JSON=new GsonBuilder().registerTypeAdapter(Instant.class,(JsonSerializer<Instant>)(value,type,context)->new JsonPrimitive(value.toString())).create();
     public record Row(ProductKey key,String sku,Status status,String gtin,String activeGtin,String feedId,Long goodId,
                       String payload,String scopeJson,String owner,byte[] signatureXml,String signatureHash,
-                      String signatureState,String error) {
+                      String signatureState,String error,String updatedAt) {
+        public Row(ProductKey key,String sku,Status status,String gtin,String activeGtin,String feedId,Long goodId,
+                   String payload,String scopeJson,String owner,byte[] signatureXml,String signatureHash,String signatureState,String error){
+            this(key,sku,status,gtin,activeGtin,feedId,goodId,payload,scopeJson,owner,signatureXml,signatureHash,signatureState,error,"");
+        }
         public Row { signatureXml=signatureXml==null?new byte[0]:signatureXml.clone(); }
         @Override public byte[] signatureXml(){return signatureXml.clone();}
         public boolean reviewableDraft(){
@@ -554,7 +558,7 @@ public final class OzonCardRegistrationRepository {
     }
     private static void requireKey(Connection c,ProductKey key)throws SQLException{if(key.marketplace()!=Marketplace.OZON||!key.cardId().matches("[1-9][0-9]{0,18}")||key.variantId().isBlank())throw new IllegalArgumentException("invalid_ozon_product");try(var p=c.prepareStatement("SELECT marketplace FROM shops WHERE id=?")){p.setInt(1,key.shopId());try(var r=p.executeQuery()){if(!r.next()||!Marketplace.OZON.name().equals(r.getString(1)))throw new IllegalArgumentException("shop_mismatch");}}}
     private static Row row(Connection c,ProductKey key)throws SQLException{try(var p=c.prepareStatement("SELECT * FROM ozon_card_registrations WHERE shop_id=? AND product_id=? AND offer_id=?")){bindKey(p,key);try(var r=p.executeQuery()){return r.next()?read(r):null;}}}
-    private static Row read(ResultSet r)throws SQLException{long good=r.getLong("good_id");Long goodId=r.wasNull()?null:good;return new Row(new ProductKey(r.getInt("shop_id"),Marketplace.OZON,r.getString("product_id"),r.getString("offer_id")),r.getString("sku"),Status.valueOf(r.getString("status")),r.getString("gtin"),r.getString("active_gtin"),r.getString("feed_id"),goodId,r.getString("payload_json"),r.getString("scope_json"),r.getString("owner"),r.getBytes("signature_xml"),r.getString("signature_sha256"),r.getString("signature_state"),r.getString("error"));}
+    private static Row read(ResultSet r)throws SQLException{long good=r.getLong("good_id");Long goodId=r.wasNull()?null:good;return new Row(new ProductKey(r.getInt("shop_id"),Marketplace.OZON,r.getString("product_id"),r.getString("offer_id")),r.getString("sku"),Status.valueOf(r.getString("status")),r.getString("gtin"),r.getString("active_gtin"),r.getString("feed_id"),goodId,r.getString("payload_json"),r.getString("scope_json"),r.getString("owner"),r.getBytes("signature_xml"),r.getString("signature_sha256"),r.getString("signature_state"),r.getString("error"),r.getString("updated_at"));}
     private static void bindKey(PreparedStatement p,ProductKey key)throws SQLException{bindKey(p,1,key);}
     private static void bindKey(PreparedStatement p,int start,ProductKey key)throws SQLException{p.setInt(start,key.shopId());p.setString(start+1,key.cardId());p.setString(start+2,key.variantId());}
     @FunctionalInterface private interface Bind{void bind(PreparedStatement p)throws SQLException;}

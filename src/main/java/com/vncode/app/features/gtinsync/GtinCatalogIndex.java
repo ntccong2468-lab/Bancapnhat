@@ -31,10 +31,11 @@ public final class GtinCatalogIndex {
         return exact.isEmpty()?ozon.candidates(product):exact;
     }
     public List<RegisteredGtin> attributes(String article,String color,String size,String russianSize){
-        var key=key(article,color,size);if(key.article().isBlank()||key.color().isBlank()||key.size().isBlank())return List.of();
-        var found=new LinkedHashSet<>(attributes.getOrDefault(key,List.of()));
+        var key=key(article,color,size);if(key.article().isBlank()||key.color().isBlank()||key.size().isBlank()&&(russianSize==null||russianSize.isBlank()))return List.of();
+        var found=new LinkedHashSet<RegisteredGtin>();
+        if(!key.size().isBlank())found.addAll(attributes.getOrDefault(key,List.of()));
         if(russianSize!=null&&!russianSize.isBlank())attributes.getOrDefault(key(article,color,russianSize),List.of()).stream().filter(GtinVariantIdentity::russianSize).forEach(found::add);
         return found.stream().filter(row->GtinVariantIdentity.sizeMatches(row,size,russianSize)).toList();
     }
-    private static Attributes key(String article,String color,String size){return new Attributes(GtinMatchingService.normalizeArticle(article),GtinMatchingService.normalize(color),GtinMatchingService.normalize(size));}
+    private static Attributes key(String article,String color,String size){return new Attributes(GtinMatchingService.normalizeArticle(article),GtinMatchingService.normalizeColor(color),GtinMatchingService.normalize(size));}
 }

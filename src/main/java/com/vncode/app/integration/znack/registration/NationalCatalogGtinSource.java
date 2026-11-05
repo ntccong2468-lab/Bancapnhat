@@ -91,7 +91,7 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             var registeredScope=ZnackRegistrationScope.fromSettings(settings);
             int listLimit=api.hasCatalogKey()?1000:10_000;
             var result=new NationalCatalogGtinSource(id,p->{requireOwner(shop,owner.source());return selectedGtins==null?api.products(settings.resolvedTrueApiBaseUrl(),token,p,listLimit):com.google.gson.JsonParser.parseString("{\"results\":[],\"total\":0}");},new BatchedCards(g->{requireOwner(shop,owner.source());var response=api.productCards(settings.resolvedTrueApiBaseUrl(),token,g);requireOwner(shop,owner.source());return response;}),owner.source(),()->{
-                requireOwner(shop,owner.source());return selectedGtins==null?ownedPublishedGtins(shop,registeredScope):List.copyOf(selectedGtins);
+                requireOwner(shop,owner.source());return selectedGtins==null?ownedKnownGtins(shop,registeredScope):List.copyOf(selectedGtins);
             },includeDocuments?g->{requireOwner(shop,owner.source());return api.permitDocuments(settings.resolvedTrueApiBaseUrl(),token,g,owner.inn());}:null).tolerate(issues).progress(progress);
             if(api.hasCatalogKey())result.catalogListWindow();
             if(!resumeScan&&selectedGtins==null)result.requireCompleteTotal();
@@ -219,14 +219,14 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             return new RegisteredGtin(gtin,article,color,size,unit,published,source,observedAt,details);
     }
     private static void requireOwner(Shop shop,String source){if(!source.equals(RegisteredGtinProof.source(shop)))throw new IllegalStateException("catalog_owner_changed");}
-    static List<String> ownedPublishedGtins(Shop shop,ZnackRegistrationScope scope)throws Exception {
+    static List<String> ownedKnownGtins(Shop shop,ZnackRegistrationScope scope)throws Exception {
         com.vncode.app.integration.listing.ListingIdentity.require(shop);scope.assertCurrent(shop);
         String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop);
         var result=new LinkedHashSet<String>();
         try(var c=com.vncode.app.config.Database.getConnection()){
             var scopedJson=new Gson().toJson(scope);
             if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON)try(var p=c.prepareStatement("""
-              SELECT r.gtin FROM ozon_card_registrations r WHERE r.shop_id=? AND r.status='PUBLISHED'
+              SELECT r.gtin FROM ozon_card_registrations r WHERE r.shop_id=? AND (r.status='PUBLISHED' OR r.good_id>0)
                 AND r.owner=? AND r.scope_json=? AND r.gtin<>''
               UNION SELECT r.active_gtin FROM ozon_card_registrations r
                 JOIN ozon_card_registration_history h ON h.shop_id=r.shop_id AND h.product_id=r.product_id
@@ -241,7 +241,7 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             // Legacy WB rows have no marketplace credential stamp and are not silently rebound.
             if(ownerColumn&&shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)try(var p=c.prepareStatement("""
               SELECT r.gtin FROM znack_card_registrations r JOIN znack_card_registration_scopes s
-              ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id WHERE r.shop_id=? AND r.status='PUBLISHED'
+              ON s.shop_id=r.shop_id AND s.chrt_id=r.chrt_id WHERE r.shop_id=? AND (r.status='PUBLISHED' OR r.good_id>0)
               AND s.participant_inn=? AND s.environment=? AND s.fingerprint=? AND s.owner_hash=? AND r.gtin<>''
               UNION SELECT x.active_gtin FROM znack_card_registration_replacements x
                 JOIN znack_card_registration_scopes s ON s.shop_id=x.shop_id AND s.chrt_id=x.chrt_id

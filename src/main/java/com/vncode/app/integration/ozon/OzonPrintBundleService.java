@@ -402,6 +402,9 @@ public final class OzonPrintBundleService {
         if(!selected.containsAll(carrierOnly.keySet()))throw new IllegalArgumentException("OZON_PRINT_REPORT_SELECTION_CHANGED");
         var selectedPostings=postings.findMany(frozen.getId(),selected);
         var selectedJobs=jobs.findMany(frozen.getId(),selected);
+        // Readiness is an earlier stock estimate, not a request to omit an existing label.
+        // Revalidate held/printed bindings below instead of silently forcing carrier-only output.
+        if(allowCarrierFallback)carrierOnly.keySet().removeIf(number->printable(selectedJobs.get(number)));
         boolean containsNewPrint=selected.stream().anyMatch(number->!accepted(selectedJobs.get(number)));
         if(containsNewPrint)LicenseRuntime.require(Permission.PRINT_NEW);
         var context=new PrintContext(selectedPostings,selectedJobs,policies.findExemptSkus(frozen.getId()),
@@ -562,9 +565,19 @@ public final class OzonPrintBundleService {
                         if(index.unidentifiedPages().isEmpty()&&index.pagesByPosting().keySet().containsAll(printed)){
                             for(String member:printed)groups.put(member,new CarrierGroup(batch.source(),index.pagesByPosting().get(member),List.of(member),true));
                         }else{
-                            // Preserve all official carrier pages, but never guess where to attach a KIZ.
-                            var group=new CarrierGroup(batch.source(),shippingPages,printed,false);
-                            for(String member:printed){groups.put(member,group);carrierOnly.put(member,"OZON_LABEL_BATCH_IDENTITY_UNVERIFIED");}
+                            var unknown=printed.stream().filter(member->!index.pagesByPosting().containsKey(member)).toList();
+                            if(!unknown.isEmpty()&&!index.unidentifiedPages().isEmpty()&&!index.pagesByPosting().isEmpty()){
+                                // One unreadable order must not remove labels from the rest of the task.
+                                // Only explicit identities are paired; unknown pages stay together, unpaired.
+                                for(String member:printed)if(index.pagesByPosting().containsKey(member))
+                                    groups.put(member,new CarrierGroup(batch.source(),index.pagesByPosting().get(member),List.of(member),true));
+                                var group=new CarrierGroup(batch.source(),index.unidentifiedPages(),unknown,false);
+                                for(String member:unknown){groups.put(member,group);carrierOnly.put(member,"OZON_LABEL_BATCH_IDENTITY_UNVERIFIED");}
+                            }else{
+                                // Preserve all official carrier pages, but never guess where to attach a KIZ.
+                                var group=new CarrierGroup(batch.source(),shippingPages,printed,false);
+                                for(String member:printed){groups.put(member,group);carrierOnly.put(member,"OZON_LABEL_BATCH_IDENTITY_UNVERIFIED");}
+                            }
                         }
                     }}
                     finally{OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,copied);}
@@ -617,10 +630,15 @@ public final class OzonPrintBundleService {
         }finally{context.labels.close();AtomicFilePublisher.deleteQuietly(labelStaging);AtomicFilePublisher.deleteQuietly(pickingStaging);}
     }
 
-    private Map<String,String> remoteKizWarnings(Shop shop,Set<String> printedWithKiz){
+    private Map<String,String> remoteKizWarnings(Shop shop,Set<String> printedWithKiz)throws IOException{
         var warnings=new LinkedHashMap<String,String>();
         for(String number:printedWithKiz)if("rejected".equals(jobs.latestActionStatus(shop.getId(),"accept_kiz",number)))
             warnings.put(number,"OZON_ACCEPT_KIZ_REJECTED");
+        try(var connection=Database.getConnection()){
+            new com.vncode.app.features.kiz.status.Kn3Repository().read(connection,shop.getId(),shop.getMarketplace(),printedWithKiz)
+                    .forEach((number,marks)->{if(marks.stream().anyMatch(mark->mark.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED))
+                        warnings.put(number,"OZON_ACCEPT_KIZ_REJECTED");});
+        }catch(java.sql.SQLException failure){throw new IOException("FBS_KN3_STORAGE",failure);}
         return Map.copyOf(warnings);
     }
 

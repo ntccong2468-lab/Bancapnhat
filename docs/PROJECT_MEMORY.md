@@ -1,5 +1,34 @@
 # Bộ nhớ dự án VNCode
 
+## Đã phát hành 1.6.4: gộp Znack và PDF Ozon — 06.11.2026, 00:13 MSK
+
+- Theo yêu cầu người dùng, Latest `v1.6.4` đã công bố `2026-11-05T21:13:28Z`, release `435647198`, source/tag `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`; gồm sửa Znack `33f3d6c` và PDF Ozon, kế thừa 1.6.3. [Bàn giao](validation/2026-11-05-vncode-164-handoff.md), [biên nhận Latest](validation/2026-11-05-vncode-164-published-latest.json).
+- Windows build `42095550861` đạt 3.864 ca/522 lớp, 0 thất bại/lỗi, 2 OS skip; native, dữ liệu, cài-gỡ và nâng cấp đúng EXE từ 1.6.3 giữ dữ liệu đạt. Full Java mất khoảng 84 phút. Nguồn build được khóa trước khi chờ, không bỏ gate hoặc dùng bộ cài của commit khác.
+- Publisher `23e604d`, run `42110439977` đạt; đủ 16 tài sản công khai khớp hash/size, 2.792 tệp source ZIP khớp nguồn; updater binary 1.6.3 đọc AVAILABLE 1.6.4, chọn đúng MSI. Giữ nguyên 16 tài sản/source của 1.6.3, không xóa release cũ. Chưa quan sát popup trên máy seller.
+- 150 test công cụ và CodeQL Java/JavaScript đạt sau khi sửa kiểm tra/đọc file qua cùng handle. Dependency review repo chưa khả dụng; không đổi dependency hay tắt gate. Chốt draft theo ID trả về, không tạo lại khi danh sách release cập nhật chậm.
+- API seller trong lượt này không có ghi/ký/nhận/mua mới: PDF 100 đơn và 10.000 GTIN là mô phỏng, API Znack/WB trước đó chỉ đọc. Giữ riêng bằng chứng Windows, mock và nghiệm thu API thật. Không đưa prototype credential migration vào runtime hoặc triển khai portal.
+
+## PDF Ozon và yêu cầu phát hành gộp Znack — 05.11.2026
+
+- Sửa preflight cũ bỏ KIZ đã giữ; xử lý KN3 readback từ chối làm mã chuyển CONSUMED/REJECTED để vẫn in đúng binding của đơn mà không đổi kết quả API hoặc trả mã về kho. Dùng đúng product_id/exemplar, giữ kiểm tra chủ tài khoản/nguồn/mapping mua; seller nhập theo danh mục. Trang không rõ danh tính không làm mất KIZ của những trang đã xác định trong cùng lô.
+- Căn vector DataMatrix theo điểm in 203 dpi sau khi phát hiện mã thứ 18 không đọc được ở 203 dpi. Lô tổng hợp 100 đơn → 200 trang, xuất/in lại 2 lô, 0 tải riêng, giữ 100 mã; tất cả được giải mã ở 203/300 dpi. 191 test/18 lớp đạt, không lỗi/skip. [Bàn giao và kinh nghiệm](validation/2026-11-05-ozon-combined-handoff.md), [bằng chứng](validation/2026-11-05-ozon-combined-tests.json).
+- Người dùng đã yêu cầu phát hành **gộp phần Znack trước đó và PDF Ozon vừa sửa**. Chuẩn bị 1.6.4 từ nhánh `fix/znack-state-wb-gtin-20261105`, giữ sửa Znack `33f3d6c`; Latest ở thời điểm này vẫn là 1.6.3. Còn gate Windows/native/nâng cấp và công bố; chưa gọi API ghi thật, mua KIZ hoặc kích hoạt license trong lượt sửa này.
+
+## Điểm đọc bộ nhớ cho AI — 05.11.2026, 21:23 MSK
+
+- Thêm [CURRENT.md](memory/CURRENT.md) làm điểm tiếp tục ngắn và [chỉ mục bộ nhớ](memory/README.md) dẫn tới lịch sử, bản phát hành, bàn giao và bằng chứng theo chủ đề. AGENTS hướng dẫn đọc lại đầu phiên và cập nhật sau thay đổi đáng kể; không cần nạp toàn bộ lịch sử vào context.
+- Đã đối chiếu GitHub: Latest `v1.6.3` ở `f8d2cf9`; sửa Znack `33f3d6c` thuộc [PR #20](https://github.com/ntccong2468-lab/Bancapnhat/pull/20) đang OPEN/draft, chưa merge hoặc phát hành. Không lẫn 500 test Linux và ca 10.000 mô phỏng với nghiệm thu ghi thật/Windows.
+- Repo đề xuất [Codex Memory Brain](https://github.com/ccycv/codex-memory-brain), MIT, SQLite/FTS5 và MCP theo README; revision đã đọc `a93df08868dea5afe8c91e7810e00943f5a5991a`. Chưa cài/kết nối MCP hoặc chuyển tài liệu cho dịch vụ ngoài. Tệp Git dùng được ngay trong nhánh này; không khẳng định mọi phiên ChatGPT tự có bộ nhớ.
+- Chỉ sửa tài liệu/hướng dẫn, không thay runtime, gọi API seller, tạo bộ cài hoặc đổi Latest. Giữ toàn bộ lịch sử và bàn giao cũ; bộ nhớ không tự mở rộng phạm vi ủy quyền của người dùng.
+
+## Znack: nhận diện Catalog, GTIN WB và báo cáo — 05.11.2026, chưa phát hành
+
+- Nhánh `fix/znack-state-wb-gtin-20261105`, base `d9af0b9` của 1.6.3. Đã đối chiếu WBCode công khai mới nhất 1.3.18 bằng binary/JAR xác minh SHA; không sao chép mã hoặc chạy license WBCode. [Bốn sơ đồ và so sánh](research/2026-11-05-wbcode-1318-vncode-znack.md), [bàn giao](validation/2026-11-05-znack-reconcile-handoff.md).
+- Sửa checkpoint cũ che trạng thái Catalog mới; tách chờ ký khỏi lỗi; đọc trực tiếp thẻ đã biết `good_id` chưa xuất hiện trong list. Cấp GTIN/feed receipt vẫn không được coi là đã có thẻ/công bố; yêu cầu chưa rõ kết quả không tự gửi lặp.
+- Chung quy tắc màu cho nhận diện/ghi, chỉ dùng size RU khi có nguồn rõ; giữ scalar color WB. API thật chỉ đọc: 1.982 biến thể WB / 1.380 thẻ Catalog; khớp duy nhất 248 → 263, thêm 15 trường hợp `зеленый`/`ЗЕЛЁНЫЙ`. Có 117 thẻ chờ ký, 2 nháp thuần, 1 thẻ lỗi. 204/229 biến thể khớp thẻ công bố lại khác nhóm TN VED; không bỏ kiểm tra để ép đồng bộ.
+- Một vùng tiến độ, nút Thao tác khác ở WB/Ozon; báo cáo 7 cột chính, loại nhật ký nền khỏi mặc định bằng SQL lọc owner/kind trước LIMIT. Giữ CSV, lịch sử cũ và dữ liệu kỹ thuật.
+- 500 ca ở 26 XML JUnit cuối đạt, không lỗi/skip. Ca 10.000 WB mô phỏng gửi 4 lô, xác minh đủ 10.000, mở lại không gửi trùng. Đã chụp JavaFX sáng/tối; chưa ghi/ký Catalog hay GTIN thật, chưa Windows build, chưa đổi Latest. Không coi số đo mock/API đọc là nghiệm thu ghi thật. Không đổi schema hoặc version.
+
 ## Đã phát hành 1.6.3 lên Latest — 04.11.2026
 
 - Latest `v1.6.3`, release `434558799`, công bố **2026-11-04T23:11:51Z**; nguồn/tag bất biến `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`. Nhánh `feature/vncode-163-approved-ui`; kế thừa 1.6.2 và sửa nhận Ozon `ccd7fc1`. [Bàn giao](validation/2026-11-04-vncode-163-handoff.md), [biên nhận](validation/2026-11-04-vncode-163-published-latest.json).

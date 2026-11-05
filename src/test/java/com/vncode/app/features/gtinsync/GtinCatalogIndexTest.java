@@ -4,6 +4,25 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 class GtinCatalogIndexTest {
+ @Test void explicitRussianSizeStillMatchesWhenManufacturerSizeIsMissing(){
+  var card=new GtinSyncModels.RegisteredGtin("00000000000017","SUIT-1","Black","54",true,true,"fixture",Instant.now(),new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@size_type",List.of("РОССИЯ")),List.of(),List.of()));
+  var index=new GtinCatalogIndex(List.of(card));
+  assertEquals(List.of(card),index.attributes("SUIT-1","Black","","54"));
+  assertTrue(index.attributes("SUIT-1","Black","","52").isEmpty());
+  assertTrue(index.attributes("SUIT-1","Black","","").isEmpty());
+  assertTrue(new GtinCatalogIndex(List.of(row(card.gtin(),"SUIT-1","Black","54",true))).attributes("SUIT-1","Black","","54").isEmpty());
+ }
+ @Test void colorSpellingUsesTheSameIdentityAsTheMarketplaceWriterWithoutDroppingShadeOrAmbiguity(){
+  var green=row("00000000000017","SUIT-1","ЗЕЛЁНЫЙ","XL",true);
+  var index=new GtinCatalogIndex(List.of(green));
+  assertEquals(List.of(green),index.attributes("SUIT-1","зеленый","XL"));
+  assertTrue(index.attributes("SUIT-1","темно-зеленый","XL").isEmpty());
+  assertTrue(index.attributes("SUIT-1","зеленый","L").isEmpty());
+  var duplicate=row("00000000000024","SUIT-1","зеленый","XL",true);
+  assertEquals(2,new GtinCatalogIndex(List.of(green,duplicate)).attributes("SUIT-1","ЗЕЛЁНЫЙ","XL").size());
+  var key=new GtinSyncModels.ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"1","1");
+  assertEquals(List.of(green),new GtinMatchingService().match(new GtinSyncModels.ProductSnapshot(key,"SUIT-1","зеленый","XL",List.of(),"fixture",Instant.now()),List.of(green)).candidates());
+ }
  @Test void registrationLookupCanDetectDraftsAndUnknownPackagingWithoutMakingThemEligibleForWrites(){
   var draft=row("00000000000017","PANTS-1","Brown","52",false);var unknown=new GtinSyncModels.RegisteredGtin("00000000000024","PANTS-2","Brown","52",false,false,"fixture",Instant.now());var rows=List.of(draft,unknown);
   assertTrue(new GtinCatalogIndex(rows).attributes("PANTS-1","Brown","52").isEmpty());assertTrue(new GtinCatalogIndex(rows).code(unknown.gtin()).isEmpty());

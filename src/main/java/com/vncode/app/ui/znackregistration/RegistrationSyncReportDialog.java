@@ -28,11 +28,14 @@ final class RegistrationSyncReportDialog {
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);dialog.setOnHidden(e->report.dispose());dialog.show();
     }
     static final class Report extends VBox {
+        private static final Set<String> ACTION_KINDS=Set.of(RegistrationAttemptReports.KIND,RegistrationPreflightReport.KIND,"catalog_repair","znack_marketplace");
         private final Shop owner;
         private final SyncRunRepository reports=new SyncRunRepository();
         private final ComboBox<SyncRunRepository.Run> runs=new ComboBox<>();
         private final TableView<SyncRunRepository.Item> table=new TableView<>();
-        private final Label summary=new Label(),events=new Label();
+        private final Label summary=new Label(),events=new Label(),feedback=new Label();
+        private final CheckBox background=new CheckBox(tr("znack.registration.report_background")),technical=new CheckBox(tr("znack.registration.report_technical"));
+        private final List<TableColumn<SyncRunRepository.Item,?>> technicalColumns=new ArrayList<>();
         private final Button previous=new Button("←"),next=new Button("→"),refresh=new Button(tr("znack.registration.refresh"));
         private final Button conflictNewCard=new Button(tr("znack.registration.conflict_new_card"));
         private final Consumer<OzonGtinConflictReview.Confirmed> createNewCard;
@@ -54,8 +57,21 @@ final class RegistrationSyncReportDialog {
             column(tr("fbo.column.color"),SyncRunRepository.Item::color);column(tr("fbo.column.size"),SyncRunRepository.Item::size);column("GTIN",SyncRunRepository.Item::gtin);column("Feed ID",row->identifier(row,"feedId"));column(tr("znack.registration.report_card_id"),row->identifier(row,"goodId"));
             column(tr("znack.registration.report_barcode"),row->RegistrationReportData.field(row,"barcodes"));column(tr("znack.registration.report_catalog_state"),RegistrationReportData::catalogState);column(tr("znack.registration.report_catalog_checked"),row->RegistrationReportData.field(row,"catalogCheckedAt"));column(tr("znack.registration.report_check_result"),row->result(row,"checkResult"));column(tr("znack.registration.report_sync_result"),row->result(row,"syncResult"));column(tr("znack.registration.report_updated"),SyncRunRepository.Item::updatedAt);column(tr("znack.registration.report_next_action"),RegistrationSyncReportDialog::nextAction);
             column(tr("znack.registration.status"),row->itemState(runs.getValue(),row));column(tr("jobs.step"),row->label("znack.registration.report_step."+row.step(),row.step()));
+            var visible=Set.of(4,5,6,7,8,17,18);
+            for(int i=0;i<table.getColumns().size();i++)if(!visible.contains(i)){var column=table.getColumns().get(i);technicalColumns.add(column);column.setVisible(false);}
+            for(int i:List.of(6,7))table.getColumns().get(i).setPrefWidth(75);
+            table.getColumns().get(5).setPrefWidth(230);table.getColumns().get(8).setPrefWidth(135);
+            var original=new ArrayList<>(table.getColumns());var ordered=new ArrayList<TableColumn<SyncRunRepository.Item,?>>();
+            for(int i:List.of(4,6,7,8,18,5,17))ordered.add(original.get(i));ordered.addAll(technicalColumns);table.getColumns().setAll(ordered);
+            original.get(6).setMinWidth(65);original.get(7).setMinWidth(65);
+            events.setVisible(false);events.setManaged(false);
+            feedback.setWrapText(true);feedback.setId("registrationSyncReportFeedback");feedback.visibleProperty().bind(feedback.textProperty().isNotEmpty());feedback.managedProperty().bind(feedback.visibleProperty());
+            table.setPlaceholder(new Label(tr("znack.registration.report_empty")));
+            background.setId("registrationSyncReportBackground");technical.setId("registrationSyncReportTechnical");
+            technical.setOnAction(e->{technicalColumns.forEach(column->column.setVisible(technical.isSelected()));events.setVisible(technical.isSelected());events.setManaged(technical.isSelected());});
+            background.setOnAction(e->{selected="";offset=0;load();});
             conflictNewCard.setId("registrationConflictNewCard");conflictNewCard.setVisible(createNewCard!=null);conflictNewCard.setManaged(createNewCard!=null);
-            getChildren().setAll(new FlowPane(8,8,runs,refresh),new FlowPane(8,8,search,state,export,conflictNewCard),summary,table,events,new HBox(8,previous,next));VBox.setVgrow(table,Priority.ALWAYS);
+            getChildren().setAll(new FlowPane(8,8,runs,refresh),new FlowPane(8,8,search,state,export,conflictNewCard),feedback,summary,table,events,new FlowPane(8,8,previous,next,background,technical));VBox.setVgrow(table,Priority.ALWAYS);
             runs.setOnAction(e->{if(busy)return;var run=runs.getValue();selected=run==null?"":run.id();offset=0;load();});
             previous.setOnAction(e->{offset=Math.max(0,offset-300);load();});next.setOnAction(e->{offset+=300;load();});refresh.setOnAction(e->load());
             filterDebounce.setOnFinished(e->{offset=0;load();});search.textProperty().addListener((o,a,b)->filterDebounce.playFromStart());state.valueProperty().addListener((o,before,current)->{if(!applyingFilters){offset=0;load();}});export.setOnAction(e->export());
@@ -66,26 +82,29 @@ final class RegistrationSyncReportDialog {
         private void reviewConflict(){
             var run=runs.getValue();var item=table.getSelectionModel().getSelectedItem();
             if(busy||closed||createNewCard==null||!OzonGtinConflictReview.candidate(owner,run,item))return;
-            timer.stop();busy=true;buttons();events.setText(tr("znack.registration.conflict_checking"));
+            timer.stop();busy=true;buttons();feedback.setText(tr("znack.registration.conflict_checking"));
             var task=new Task<OzonGtinConflictReview.Confirmed>(){protected OzonGtinConflictReview.Confirmed call()throws Exception{return (conflictReview==null?new OzonGtinConflictReview(owner):conflictReview).verify(owner,run,item);}};running=task;
             task.setOnSucceeded(e->{if(closed)return;busy=false;buttons();
-                if(!Objects.equals(run,runs.getValue())||!Objects.equals(item,table.getSelectionModel().getSelectedItem())){events.setText(tr("znack.registration.conflict_selected"));timer.playFromStart();return;}
+                if(!Objects.equals(run,runs.getValue())||!Objects.equals(item,table.getSelectionModel().getSelectedItem())){feedback.setText(tr("znack.registration.conflict_selected"));timer.playFromStart();return;}
                 createNewCard.accept(task.getValue());
             });
             Consumer<Throwable> failed=error->{if(closed)return;busy=false;buttons();String code=SyncFailure.of(error,0).code();
                 String message="OZON_GTIN_CONFLICT_NO_LONGER_CONFIRMED".equals(code)?"znack.registration.conflict_changed":
                         "OZON_GTIN_CONFLICT_REVIEW_CHANGED".equals(code)?"znack.registration.conflict_selected":"znack.registration.conflict_check_failed";
-                events.setText(tr(message)+" · "+code);timer.playFromStart();};
+                feedback.setText(tr(message)+" · "+code);timer.playFromStart();};
             task.setOnFailed(e->failed.accept(task.getException()));task.setOnCancelled(e->failed.accept(new java.io.InterruptedIOException("GTIN_SYNC_CANCELLED")));AppTaskExecutor.execute(task,failed);
         }
         private record Page(List<SyncRunRepository.Run> runs,SyncRunRepository.Run run,List<SyncRunRepository.Item> items,Map<String,Long> counts,List<SyncRunRepository.Event> events,long matched,Set<String> states,String scopeKey,List<SyncRunRepository.Item> failures){}
         private void load(){
-            if(closed)return;if(busy){pendingReload=true;return;}timer.stop();busy=true;buttons();String requested=selected;int start=offset;var filter=filter();
+            if(closed)return;if(busy){pendingReload=true;return;}timer.stop();busy=true;buttons();String requested=selected;int start=offset;var filter=filter();boolean includeBackground=background.isSelected();
             Task<Page> task=new Task<>(){protected Page call(){
-                ListingIdentity.require(owner);var owned=new ArrayList<SyncRunRepository.Run>();
-                for(var run:reports.list(owner.getId(),0,100))if(Set.of(RegistrationSources.KIND,RegistrationAttemptReports.KIND,RegistrationPreflightReport.KIND,"catalog_repair","znack_catalog_read","znack_marketplace").contains(run.kind())) {
-                    try{reports.assertOwner(owner,run.id());owned.add(run);}catch(SecurityException oldOwner){/* historical account */}
-                }
+                ListingIdentity.require(owner);var kinds=new HashSet<>(ACTION_KINDS);if(includeBackground)kinds.addAll(Set.of(RegistrationSources.KIND,"znack_catalog_read"));
+                var owned=new ArrayList<>(reports.listOwned(owner,kinds,0,100));
+                // An explicit report link remains reachable even beyond the recent page.
+                if(requested!=null&&!requested.isBlank()&&owned.stream().noneMatch(run->run.id().equals(requested)))reports.find(requested).ifPresent(run->{
+                    if(!ACTION_KINDS.contains(run.kind())&&!Set.of(RegistrationSources.KIND,"znack_catalog_read").contains(run.kind()))return;
+                    try{reports.assertOwner(owner,run.id());owned.addFirst(run);}catch(SecurityException oldOwner){/* Never display another account's history. */}
+                });
                 var run=owned.stream().filter(r->r.id().equals(requested)).findFirst().orElse(owned.stream().filter(r->Set.of(RegistrationAttemptReports.KIND,RegistrationPreflightReport.KIND).contains(r.kind())).findFirst().orElse(owned.isEmpty()?null:owned.getFirst()));
                 if(run==null)return new Page(owned,null,List.of(),Map.of(),List.of(),0,Set.of(),"znack.registration.report_scope_batch",List.of());
                 var items=reports.items(run.id(),start,300);RegistrationAttemptReports.refreshAll(owner,run);com.vncode.app.integration.znack.registration.CatalogErrorRepairService.refresh(owner,run,items);
@@ -95,7 +114,7 @@ final class RegistrationSyncReportDialog {
             }};running=task;
             task.setOnSucceeded(e->{if(closed)return;if(pendingReload){pendingReload=false;busy=false;load();return;}var page=task.getValue();runs.getItems().setAll(page.runs());runs.setValue(page.run());selected=page.run()==null?"":page.run().id();table.getItems().setAll(page.items());matched=page.matched();
                 String chosen=state.getValue();var states=new LinkedHashSet<String>();states.add("ALL");if(chosen!=null)states.add(chosen);page.states().stream().sorted().forEach(states::add);applyingFilters=true;try{state.getItems().setAll(states);state.setValue(chosen==null?"ALL":chosen);}finally{applyingFilters=false;}
-                summary.setText(page.run()==null?tr("znack.registration.report_empty"):owner.getMarketplace()+" · "+owner.getName()+" · "+tr(page.scopeKey())+"\n"+runState(page.run())+" · "+label("znack.registration.report_step."+page.run().step(),page.run().step())+" · "+reasonCode(page.run().error())+"\n"+summary(page.run(),page.counts())+"\n"+tr("znack.registration.report_filtered")+": "+(page.items().isEmpty()?0:start+1)+"–"+(start+page.items().size())+" / "+matched+" · "+tr(page.scopeKey())+": "+page.run().total()+failureSummary(page.failures()));
+                summary.setText(page.run()==null?tr("znack.registration.report_empty"):runState(page.run())+" · "+label("znack.registration.report_step."+page.run().step(),page.run().step())+" · "+reasonCode(page.run().error())+"\n"+summary(page.run(),page.counts())+"\n"+tr("znack.registration.report_filtered")+": "+(page.items().isEmpty()?0:start+1)+"–"+(start+page.items().size())+" / "+matched+" · "+tr(page.scopeKey())+": "+page.run().total()+failureSummary(page.failures().stream().limit(1).toList()));
                 events.setText(page.events().stream().map(event->event.time()+" · "+label("znack.registration.report_step."+event.step(),event.step())+" · "+label("jobs.status."+event.state(),event.state())+(event.error().isBlank()?"":" · "+reasonCode(event.error()))).collect(java.util.stream.Collectors.joining("\n")));
                 pendingReload=false;busy=false;buttons();timer.playFromStart();
             });
@@ -106,7 +125,7 @@ final class RegistrationSyncReportDialog {
         private RegistrationReportData.Filter filter(){return new RegistrationReportData.Filter(search.getText(),state.getValue());}
         private void export(){
             var run=runs.getValue();if(run==null||exporting)return;var chooser=new javafx.stage.FileChooser();chooser.setTitle(tr("jobs.export"));chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("CSV","*.csv"));chooser.setInitialFileName("VNCode-"+run.id()+".csv");var file=chooser.showSaveDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;var filter=filter();exporting=true;buttons();var task=new Task<Void>(){protected Void call()throws Exception{RegistrationReportData.exportCsv(owner,run,filter,file.toPath());return null;}};exportTask=task;
-            task.setOnSucceeded(e->{if(!closed){exporting=false;events.setText(tr("znack.registration.report_exported"));buttons();}});java.util.function.Consumer<Throwable> failed=error->{if(!closed){exporting=false;events.setText(tr("jobs.export")+" · "+reasonCode(SyncFailure.of(error,0).code()));buttons();}};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
+            task.setOnSucceeded(e->{if(!closed){exporting=false;feedback.setText(tr("znack.registration.report_exported"));buttons();}});java.util.function.Consumer<Throwable> failed=error->{if(!closed){exporting=false;feedback.setText(tr("jobs.export")+" · "+reasonCode(SyncFailure.of(error,0).code()));buttons();}};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);
         }
         private ListCell<SyncRunRepository.Run> runCell(){return new ListCell<>(){protected void updateItem(SyncRunRepository.Run run,boolean empty){super.updateItem(run,empty);setText(empty||run==null?"":run.created()+" · "+label("znack.registration.report_kind."+run.kind(),run.kind())+" · "+runState(run));}};}
         private void column(String text,Function<SyncRunRepository.Item,String> value){var column=new TableColumn<SyncRunRepository.Item,String>(text);column.setCellValueFactory(c->new ReadOnlyStringWrapper(value.apply(c.getValue())));column.setMinWidth(110);column.setPrefWidth(170);RegistrationTextCells.wrap(column);table.getColumns().add(column);}

@@ -1,0 +1,233 @@
+{
+  "version": "1.6.4",
+  "sourceCommit": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad",
+  "runId": 42095550861,
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42095550861",
+  "conclusion": "success",
+  "java": {
+    "tests": 3864,
+    "passed": 3862,
+    "skipped": 2,
+    "errors": 0,
+    "failures": 0
+  },
+  "testClasses": 522,
+  "skippedTests": [
+    {
+      "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "test": "privatePermissionsAreAppliedWhereSupported",
+      "reason": null
+    },
+    {
+      "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "test": "neverFallsBackToPlaintextOffWindows",
+      "reason": "Disabled on operating system: Windows Server 2022"
+    }
+  ],
+  "steps": [
+    {
+      "name": "Set up job",
+      "conclusion": "success",
+      "started_at": "2026-11-05T19:36:50Z",
+      "completed_at": "2026-11-05T19:36:51Z"
+    },
+    {
+      "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "conclusion": "success",
+      "started_at": "2026-11-05T19:36:51Z",
+      "completed_at": "2026-11-05T19:37:02Z"
+    },
+    {
+      "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+      "conclusion": "success",
+      "started_at": "2026-11-05T19:37:02Z",
+      "completed_at": "2026-11-05T19:37:14Z"
+    },
+    {
+      "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+      "conclusion": "success",
+      "started_at": "2026-11-05T19:37:14Z",
+      "completed_at": "2026-11-05T19:37:21Z"
+    },
+    {
+      "name": "Pin exact source and currently published baseline",
+      "conclusion": "success",
+      "started_at": "2026-11-05T19:37:21Z",
+      "completed_at": "2026-11-05T19:37:34Z"
+    },
+    {
+      "name": "Verify release tools",
+      "conclusion": "success",
+      "started_at": "2026-11-05T19:37:34Z",
+      "completed_at": "2026-11-05T19:37:42Z"
+    },
+    {
+      "name": "Verify Windows UI, Ozon label ordering, wrapper and Catalog cooldown fixtures",
+      "conclusion": "success",
+      "started_at": "2026-11-05T19:37:42Z",
+      "completed_at": "2026-11-05T19:41:59Z"
+    },
+    {
+      "name": "Verify whole Java application and package",
+      "conclusion": "success",
+      "started_at": "2026-11-05T19:41:59Z",
+      "completed_at": "2026-11-05T21:06:11Z"
+    },
+    {
+      "name": "Build final EXE from verified Java",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:06:11Z",
+      "completed_at": "2026-11-05T21:06:58Z"
+    },
+    {
+      "name": "Restore pinned baseline after installer packaging",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:06:58Z",
+      "completed_at": "2026-11-05T21:06:58Z"
+    },
+    {
+      "name": "Verify native migration and startup",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:06:58Z",
+      "completed_at": "2026-11-05T21:07:20Z"
+    },
+    {
+      "name": "Verify actual Windows data protection",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:07:20Z",
+      "completed_at": "2026-11-05T21:07:25Z"
+    },
+    {
+      "name": "Verify fresh install, coexistence and uninstall",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:07:25Z",
+      "completed_at": "2026-11-05T21:07:52Z"
+    },
+    {
+      "name": "Verify passive upgrade from pinned current Latest",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:07:52Z",
+      "completed_at": "2026-11-05T21:08:30Z"
+    },
+    {
+      "name": "Record same-version rebuild scope",
+      "conclusion": "skipped",
+      "started_at": "2026-11-05T21:08:30Z",
+      "completed_at": "2026-11-05T21:08:30Z"
+    },
+    {
+      "name": "Preserve final MSI before building portable runtime",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:08:30Z",
+      "completed_at": "2026-11-05T21:08:31Z"
+    },
+    {
+      "name": "Build complete portable runtime from same verified Java",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:08:31Z",
+      "completed_at": "2026-11-05T21:08:41Z"
+    },
+    {
+      "name": "Package all source, Git history, runtime and verification",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:08:41Z",
+      "completed_at": "2026-11-05T21:08:54Z"
+    },
+    {
+      "name": "Preserve installer and all rebuild inputs",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:08:54Z",
+      "completed_at": "2026-11-05T21:09:11Z"
+    },
+    {
+      "name": "Preserve failed verification reports",
+      "conclusion": "skipped",
+      "started_at": "2026-11-05T21:09:11Z",
+      "completed_at": "2026-11-05T21:09:11Z"
+    },
+    {
+      "name": "Post Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:09:11Z",
+      "completed_at": "2026-11-05T21:09:15Z"
+    },
+    {
+      "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:09:15Z",
+      "completed_at": "2026-11-05T21:09:15Z"
+    },
+    {
+      "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:09:15Z",
+      "completed_at": "2026-11-05T21:09:17Z"
+    },
+    {
+      "name": "Complete job",
+      "conclusion": "success",
+      "started_at": "2026-11-05T21:09:17Z",
+      "completed_at": "2026-11-05T21:09:17Z"
+    }
+  ],
+  "native": {
+    "appName": "VN code",
+    "version": "1.6.4",
+    "platform": "windows-x64",
+    "windowTitle": "VN code v1.6.4",
+    "schemaMigration": "3 to 6",
+    "nativeLauncher": "passed",
+    "rollbackSnapshotVerified": true,
+    "historyPreserved": true,
+    "liveMarketplaceMutations": false
+  },
+  "dataProtection": {
+    "appName": "VN code",
+    "version": "1.6.4",
+    "result": "passed",
+    "dpapiRoundTrip": true,
+    "protectedPasswordPersistence": true,
+    "unverifiedInvoiceBlocked": true,
+    "liveGS1Mutations": false,
+    "catalogKeyDpapiRoundTrip": true,
+    "catalogKeyPurposeIsolated": true
+  },
+  "installUninstall": {
+    "result": "passed",
+    "uninstallPreservesWcode": true,
+    "liveMarketplaceMutations": false,
+    "windowTitle": "VN code v1.6.4",
+    "independentRegistrations": true,
+    "wcodeVersion": "1.1.75",
+    "appName": "VN code",
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "version": "1.6.4",
+    "platform": "windows-x64",
+    "freshVncodeData": true,
+    "wcodeFilesUnchanged": true
+  },
+  "upgrade": {
+    "version": "1.6.4",
+    "fingerprint": "e8eb7ea0dc54e987fa5b0aa180d67cdd6e5a4f2c671dc5c6ddb40faf5943c123",
+    "appName": "VN code",
+    "passiveExeEmbeddedMsiSha256": "487df1c2377c5614052093aebce8742ada1c129513115431f2e510054e22d641",
+    "baselineInstallerBytes": 149199360,
+    "passiveExeInstallerSha256": "9d384ba29f1995ad0da4f51cb0b5faf7e2cde37a0e9455a856676689135b2d57",
+    "baselineInstallerSha256": "52dc01b4a545601bb18cd27221245bbb31e90ed822b88757c46c6a107d5224c1",
+    "result": "passed",
+    "singleRegistration": true,
+    "baselineTag": "v1.6.3",
+    "passiveExeHandoffVerified": true,
+    "singleShortcutPerLocation": true,
+    "windowTitle": "VN code v1.6.4",
+    "fromVersion": "1.6.3",
+    "liveMarketplaceMutations": false,
+    "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+    "dataPreserved": true
+  },
+  "installer": {
+    "name": "VN-code-1.6.4-Windows-x64.exe",
+    "bytes": 149207552,
+    "sha256": "9d384ba29f1995ad0da4f51cb0b5faf7e2cde37a0e9455a856676689135b2d57"
+  }
+}

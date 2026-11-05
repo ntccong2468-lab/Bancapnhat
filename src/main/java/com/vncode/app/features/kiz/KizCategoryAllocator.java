@@ -88,6 +88,13 @@ public final class KizCategoryAllocator {
         if(!hasProof(c,shop,owner,selection.code().getId(),token,selection.key(),selection.productId()))throw new IllegalStateException("KIZ_CATEGORY_RESERVATION_CHANGED");
     }
     public static boolean hasProof(Connection c,int shop,String owner,long code,String token,String key,String product)throws SQLException{
+        return hasProof(c,shop,owner,code,token,key,product,false);
+    }
+    /** Verify the original allocation for printing, including a code subsequently rejected by Ozon. */
+    public static boolean hasPrintProof(Connection c,int shop,String owner,long code,String token,String key,String product)throws SQLException{
+        return hasProof(c,shop,owner,code,token,key,product,true);
+    }
+    private static boolean hasProof(Connection c,int shop,String owner,long code,String token,String key,String product,boolean printing)throws SQLException{
         try(var p=c.prepareStatement("""
             SELECT 1 FROM kiz_stock_category_reservations proof
             JOIN kiz_stock_categories category ON category.id=proof.category_id
@@ -95,7 +102,7 @@ public final class KizCategoryAllocator {
             WHERE proof.code_id=? AND proof.token=? AND proof.allocation_key=? AND proof.product_id=?
               AND proof.shop_id=? AND proof.owner=? AND category.shop_id=proof.shop_id AND category.owner=proof.owner
               AND %s
-            """.formatted(KizWarehouseRepository.eligibleCategory("k")))){
+            """.formatted(printing?KizWarehouseRepository.categoryProvenance("k"):KizWarehouseRepository.eligibleCategory("k")))){
             p.setLong(1,code);p.setString(2,token);p.setString(3,key);p.setString(4,product);p.setInt(5,shop);p.setString(6,owner);p.setString(7,owner);try(var r=p.executeQuery()){return r.next();}
         }
     }

@@ -40,6 +40,21 @@ class RegistrationSyncReportDialogTest {
     @Test void sourceReceiptExplicitlyStatesThatItDidNotRegisterCards()throws Exception{
         fx(()->{assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_sources_only")));return null;});
     }
+    @Test void defaultReportKeepsSellerActionsVisibleAndBackgroundDetailsRemainOptIn()throws Exception{
+        var repository=new com.vncode.app.features.sync.SyncRunRepository();
+        String attempt=repository.begin(shop,com.vncode.app.features.sync.RegistrationAttemptReports.KIND,"PREFLIGHT");
+        repository.add(shop,attempt,"1","offer-1","sku-1","Fixture","Green","52","","NEEDS_ACTION","ZNACK_MISSING_PRODUCT_DOCUMENT","{}");
+        for(int n=0;n<105;n++)repository.begin(shop,"znack_catalog_read","READING");
+        fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,"");return null;});awaitIdle();
+        fx(()->{
+            assertEquals(attempt,((com.vncode.app.features.sync.SyncRunRepository.Item)table().getItems().getFirst()).runId());
+            assertEquals(7,table().getVisibleLeafColumns().size());assertFalse(label("events").isManaged());
+            ((CheckBox)report.lookup("#registrationSyncReportTechnical")).fire();
+            assertEquals(20,table().getVisibleLeafColumns().size());assertTrue(label("events").isManaged());
+            ((CheckBox)report.lookup("#registrationSyncReportBackground")).fire();return null;
+        });awaitIdle();
+        fx(()->{assertTrue(((ComboBox<?>)field("runs")).getItems().size()>1);return null;});
+    }
     @Test void registrationFailureShowsItsFieldInTheVisibleSummary()throws Exception{
         var repository=new com.vncode.app.features.sync.SyncRunRepository();
         String failed=repository.begin(shop,com.vncode.app.features.sync.RegistrationAttemptReports.KIND,"PREFLIGHT");
@@ -100,7 +115,7 @@ class RegistrationSyncReportDialogTest {
             public boolean belongsToAnother(com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey key,String gtin)throws java.io.IOException{throw new java.net.SocketTimeoutException();}
         }));return null;});awaitIdle();
         fx(()->{table().getSelectionModel().select(0);((Button)report.lookup("#registrationConflictNewCard")).fire();return null;});awaitIdle();
-        fx(()->{assertTrue(label("events").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.conflict_check_failed")));return null;});
+        fx(()->{assertTrue(label("feedback").isVisible());assertTrue(label("feedback").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.conflict_check_failed")));return null;});
         assertNull(chosen.get());assertEquals("GTIN_ON_ANOTHER_PRODUCT",repository.items(gtinRun,0,10).getFirst().error());
     }
     @Test void reportFiltersTheWholeRunAndShowsActualBarcodeCatalogTimeAndNextAction()throws Exception{

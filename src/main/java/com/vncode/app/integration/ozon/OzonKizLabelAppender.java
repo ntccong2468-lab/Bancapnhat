@@ -51,9 +51,9 @@ final class OzonKizLabelAppender {
                         "Mã KIZ đã lưu không khớp với sản phẩm trong đơn. Đồng bộ lại đơn trước khi in.", selected);
             }
             slots.add(new com.vncode.app.features.kiz.status.Kn3PrintProjection.Slot(
-                    selected.sku(), binding.exemplarId(), binding.rawCode()));
+                    selected.productId(), binding.exemplarId(), binding.rawCode()));
         }
-        var codes=com.vncode.app.features.kiz.status.Kn3PrintProjection.codes(shop,posting.postingNumber(),slots);
+        var codes=com.vncode.app.features.kiz.status.Kn3PrintProjection.ozonReservedCodes(shop,posting.postingNumber(),slots);
         int codeIndex=0;
         for (OzonExemplarJobRepository.KizBinding binding : bindings) {
             OzonPostingItemDto item = item(posting, binding.itemIndex());
@@ -132,9 +132,15 @@ final class OzonKizLabelAppender {
         // PdfCanvas keeps every module printer-sharp; unlike createAwtImage(), it is not a
         // 36x36 bitmap stretched across the label. Source (iText 8.0.3):
         // https://api.itextpdf.com/iText/java/8.0.3/com/itextpdf/barcodes/BarcodeDataMatrix.html
-        float moduleSide = MATRIX_SIDE / (matrix.getWidth() + 2f * matrix.getWs());
+        // Fractional 203 dpi dots blur alternating modules for some serials. Keep vector
+        // output, but align the modules and top-left corner to whole thermal-printer dots.
+        float dot = 72f / 203;
+        float moduleSide = (float) Math.floor(MATRIX_SIDE / (matrix.getWidth() + 2f * matrix.getWs()) / dot) * dot;
+        float x = Math.round(mm(2.5) / dot) * dot;
+        float top = Math.round(mm(5) / dot) * dot;
+        float y = HEIGHT - top - moduleSide * (matrix.getHeight() + 2f * matrix.getWs());
         PdfCanvas canvas = new PdfCanvas(page);
-        canvas.saveState().concatMatrix(1, 0, 0, 1, mm(2.5), HEIGHT - mm(5) - MATRIX_SIDE);
+        canvas.saveState().concatMatrix(1, 0, 0, 1, x, y);
         matrix.placeBarcode(canvas, ColorConstants.BLACK, moduleSide);
         canvas.restoreState();
     }

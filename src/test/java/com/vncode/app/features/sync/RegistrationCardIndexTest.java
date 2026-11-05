@@ -103,6 +103,39 @@ class RegistrationCardIndexTest {
         var onlyDraft=new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,base.source(),base.syncedAt(),signedFalseOnly);
         assertEquals(com.vncode.app.integration.znack.registration.CatalogCardState.DRAFT,com.vncode.app.integration.znack.registration.CatalogCardState.of(onlyDraft),"Unsigned draft alone is not approval to sign");
     }
+    @Test void freshIdentifiedCatalogStateSupersedesOldProcessingButNotANewerOrUncertainFeed(){
+        var base=card(GtinWriteTestFixture.GTIN,false);
+        for(String state:List.of("errors","notsigned","moderation")){
+            var data=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_id\":91,\"good_status\":\"draft\",\"good_signed\":false,\"good_detailed_status\":[\""+state+"\"]}").getAsJsonObject());
+            var actual=new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,base.source(),base.syncedAt(),data);var cards=index(actual);
+            var observed=cards.view(Status.PROCESSING,base.gtin(),List.of(),"A","Blue","M","",true,base.syncedAt().minusSeconds(20).toString());
+            assertEquals("source."+(state.equals("notsigned")?"not_signed":state),observed.status());
+            assertEquals(state.equals("errors"),RegistrationCardIndex.catalogRejected(Status.PROCESSING,"",observed));
+            assertEquals(!state.equals("errors"),RegistrationCardIndex.catalogCardInProgress(Status.PROCESSING,91L,"",observed));
+            assertEquals("status.processing",cards.view(Status.PROCESSING,base.gtin(),List.of(),"A","Blue","M","",true,base.syncedAt().plusSeconds(20).toString()).status());
+            assertEquals("status.feed_review_required",cards.view(Status.FEED_REVIEW_REQUIRED,base.gtin(),List.of(),"A","Blue","M","",true,base.syncedAt().minusSeconds(20).toString()).status());
+        }
+    }
+    @Test void oldLocalErrorCannotHideAnObservedUnsignedCard(){
+        var base=card(GtinWriteTestFixture.GTIN,false);
+        var data=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_id\":91,\"good_status\":\"draft\",\"good_signed\":false,\"good_detailed_status\":[\"notsigned\"]}").getAsJsonObject());
+        var view=index(new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,base.source(),base.syncedAt(),data)).view(Status.ERROR,base.gtin(),List.of(),"A","Blue","M",true);
+        assertEquals("source.not_signed",view.status());assertFalse(RegistrationCardIndex.catalogRejected(Status.ERROR,"CATALOG_REJECTED",view));
+    }
+    @Test void freshRejectedCardKeepsItsRemoteErrorEvenWhenVariantMetadataNeedsReview(){
+        var base=card(GtinWriteTestFixture.GTIN,false);
+        var data=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(com.google.gson.JsonParser.parseString("{\"good_id\":91,\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"]}").getAsJsonObject());
+        var view=index(new RegisteredGtin(base.gtin(),"A","","M",true,false,base.source(),base.syncedAt(),data)).view(Status.PROCESSING,base.gtin(),List.of(),"A","Blue","M","",true,base.syncedAt().minusSeconds(1).toString());
+        assertEquals("source.errors",view.status());assertEquals("GTIN_VARIANT_UNVERIFIED",view.detail());assertTrue(view.blocked());
+        assertTrue(RegistrationCardIndex.catalogRejected(Status.PROCESSING,"",view));assertFalse(RegistrationCardIndex.catalogCardInProgress(Status.PROCESSING,91L,"",view));
+    }
+    @Test void displayAndMatchingShareExplicitRussianSizeAndColorSpellings(){
+        var base=card(GtinWriteTestFixture.GTIN,true);
+        var card=new RegisteredGtin(base.gtin(),"A","ЗЕЛЁНЫЙ","54",true,true,base.source(),base.syncedAt(),new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@size_type",List.of("РОССИЯ")),List.of(),List.of()));
+        var cards=index(card);assertTrue(cards.view(Status.NOT_CREATED,"",List.of(),"A","зеленый","","54",true).published());
+        assertFalse(cards.view(Status.NOT_CREATED,"",List.of(),"A","темно-зеленый","","54",true).published());
+        assertTrue(cards.view(Status.NOT_CREATED,"",List.of(card.gtin()),"A","зеленый","","52",true).blocked());
+    }
     @Test void ambiguousAttributeMatchAndConflictingVariantAreBlocked(){
         var cards=index(card(GtinWriteTestFixture.GTIN,true),card("00000000000024",true));
         assertTrue(cards.view(Status.NOT_CREATED,"",List.of(),"A","Blue","M",true).blocked());

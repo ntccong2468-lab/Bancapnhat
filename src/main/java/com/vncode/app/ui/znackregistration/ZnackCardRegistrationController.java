@@ -178,12 +178,12 @@ public final class ZnackCardRegistrationController {
         readinessLabel.textProperty().addListener((o,a,b)->{boolean warning=!ready()&&b!=null&&!b.isBlank();readinessLabel.setVisible(warning);readinessLabel.setManaged(warning);});
         batchProgressLabel.setCursor(javafx.scene.Cursor.HAND);batchProgressLabel.setOnMouseClicked(event->onReport());
         extraActions.getChildren().clear();
-        var extraMenu=new ContextMenu(new CustomMenuItem(refreshButton,false),new CustomMenuItem(reportButton,false),new CustomMenuItem(newCardsSelectedButton,false),
+        var extraMenu=moreActionsButton;extraMenu.getItems().setAll(new CustomMenuItem(connectionButton,false),new CustomMenuItem(provenanceButton,false),new CustomMenuItem(refreshButton,false),new CustomMenuItem(reportButton,false),new CustomMenuItem(newCardsSelectedButton,false),
                 new CustomMenuItem(autoSignCheckBox,false),new CustomMenuItem(clearSelectionButton,false),new CustomMenuItem(selectionLabel,false));
         pauseBatchAction.setId("znackPauseBatch");resumeBatchAction.setId("znackResumeBatch");cancelPendingBatchAction.setId("znackCancelPendingBatch");
         pauseBatchAction.setOnAction(e->controlBatch("PAUSE"));resumeBatchAction.setOnAction(e->controlBatch("RESUME"));cancelPendingBatchAction.setOnAction(e->{if(cancelPendingConfirmation.getAsBoolean())controlBatch("CANCEL");});
         extraMenu.getItems().addAll(new SeparatorMenuItem(),pauseBatchAction,resumeBatchAction,cancelPendingBatchAction);
-        titleLabel.setContextMenu(extraMenu);titleLabel.setFocusTraversable(true);titleLabel.setTooltip(new Tooltip(tr("znack.registration.more_actions_hint")));
+        moreActionsButton.setAccessibleText(tr("znack.registration.more_actions"));
         com.vncode.app.shared.TableScrollLoader.install(productTable,()->shop!=null&&!loading&&productTable.getItems().size()<filteredCount,this::onLoadMore);
         workflowRefresh.setOnFinished(event->reload());
         batchRefresh.setOnFinished(event->pollBatchProgress());
@@ -250,7 +250,7 @@ public final class ZnackCardRegistrationController {
         refreshButton.setText(i18n.tr("znack.registration.refresh"));
         configButton.setText(i18n.tr("znack.registration.documents"));
         connectionButton.setText(i18n.tr("znack.connection.button"));
-        provenanceButton.setText(i18n.tr("znack.provenance.button"));
+        provenanceButton.setText(i18n.tr("znack.provenance.button"));moreActionsButton.setText(i18n.tr("znack.registration.more_actions"));
         signApprovedButton.setText(i18n.tr("znack.registration.sign_approved"));
         updateWbButton.setText(i18n.tr("znack.registration.update_wb"));
         wbPriceImpactLabel.setText(i18n.tr("gtinsync.wb_price_consent_body"));
@@ -475,19 +475,19 @@ public final class ZnackCardRegistrationController {
         String text=java.text.MessageFormat.format(tr("znack.registration.batch_progress_read_failed"),detail,code);
         if(batchProgress!=null)text=batchSummary(batchProgress)+" · "+text;
         batchProgressLabel.setText(text);batchProgressLabel.setVisible(true);batchProgressLabel.setManaged(true);
-        if(!text.equals(batchReadFailureText)){batchReadFailureText=text;registrationPill(text,false);}
+        batchReadFailureText=text;batchProgressLabel.setGraphic(null);
     }
     private String batchSummary(ZnackRegistrationBatchService.Progress progress){
         boolean paused="PAUSED".equals(progress.state().name()),cancelled="CANCELLED".equals(progress.state().name());
         String key=progress.waitingOffline()?"znack.registration.batch_submission_waiting":progress.running()||paused
                 ?"znack.registration.batch_submission_progress":"znack.registration.batch_submission_finished";
-        return tr("znack.registration.report_scope_batch")+" · "+(paused?tr("znack.registration.batch_paused")+" · ":cancelled?tr("znack.status_value.cancelled")+" · ":"")+java.text.MessageFormat.format(tr(key),progress.submitted(),progress.total(),progress.remaining(),progress.failed())+" · "+java.text.MessageFormat.format(tr("znack.registration.batch_receipts"),progress.acceptedFeeds(),progress.total(),progress.awaitingReadback());
+        return (paused?tr("znack.registration.batch_paused")+" · ":cancelled?tr("znack.status_value.cancelled")+" · ":"")+java.text.MessageFormat.format(tr(key),progress.submitted(),progress.total(),progress.remaining(),progress.failed());
     }
     private void renderBatchProgress(ZnackRegistrationBatchService.Progress progress){
         boolean recovered=!batchReadFailureText.isBlank();batchReadFailureText="";
         var previous=batchProgress;batchProgress=progress;
         batchProgressLabel.setVisible(progress!=null);batchProgressLabel.setManaged(progress!=null);
-        if(progress==null){batchProgressLabel.setText("");((StackPane)productTable.getParent()).getChildren().removeIf(node->"registrationBackgroundPill".equals(node.getId()));updateActionState();return;}
+        if(progress==null){batchProgressLabel.setText("");batchProgressLabel.setGraphic(null);((StackPane)productTable.getParent()).getChildren().removeIf(node->"registrationBackgroundPill".equals(node.getId()));updateActionState();return;}
         if(previous==null||!previous.runId().equals(progress.runId())||progress.running())lastRegistrationRun=progress.runId();
         reportLink.setText(tr("znack.registration.report")+" ("+progress.total()+")");
         String text=batchSummary(progress);
@@ -498,7 +498,9 @@ public final class ZnackCardRegistrationController {
                     ?(progress.lastSubmittedArticle()+" · "+progress.lastSubmittedSize()).strip():progress.currentArticle();
             String detail=progress.waitingOffline()?tr("znack.registration.batch_waiting_connection")
                     :progress.running()||progress.state()==ZnackRegistrationBatchService.State.NEEDS_ACTION?RegistrationDiagnostics.reason(progress.detail()):"";
-            RegistrationStatusPill.show((StackPane)productTable.getParent(),"registrationBackgroundPill",text+(article.isBlank()?"":" · "+article)+(detail.isBlank()?"":" · "+detail),progress.running(),!progress.running()&&!"PAUSED".equals(progress.state().name()));
+            batchProgressLabel.setTooltip(new Tooltip(java.text.MessageFormat.format(tr("znack.registration.batch_receipts"),progress.acceptedFeeds(),progress.total(),progress.awaitingReadback())+(article.isBlank()?"":" · "+article)+(detail.isBlank()?"":" · "+detail)));
+            if(progress.running()){var spinner=new ProgressIndicator();spinner.setPrefSize(16,16);spinner.setMaxSize(16,16);batchProgressLabel.setGraphic(spinner);}else batchProgressLabel.setGraphic(null);
+            ((StackPane)productTable.getParent()).getChildren().removeIf(node->"registrationBackgroundPill".equals(node.getId()));
             updateActionState();
         }
         boolean changed=previous==null||progress.submitted()!=previous.submitted()||progress.failed()!=previous.failed()||progress.state()!=previous.state()||!progress.detail().equals(previous.detail());
@@ -966,7 +968,7 @@ public final class ZnackCardRegistrationController {
     private boolean ready(){return readiness!=null&&readiness.ready();}
     private ZnackRegistrationQueryRepository readyQueries(Shop owner){return new ZnackRegistrationQueryRepository(sources.require(owner).run(),new RegistrationCardIndex(owner));}
     private RegistrationCardIndex.View view(Sku row){return cardIndex==null?new RegistrationCardIndex.View("source.unverified",value(row.gtin()),"SOURCE_SYNC_REQUIRED",false,false,true)
-            :cardIndex.view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),cardIndex.ownsWb(row.chrtId()));}
+            :cardIndex.viewWb(row);}
     private boolean replaceable(Sku row){return row!=null&&replaceable(row,view(row));}
     static boolean replaceable(Sku row,RegistrationCardIndex.View observed){
         if(row==null||observed==null||!row.canRegisterNew())return false;

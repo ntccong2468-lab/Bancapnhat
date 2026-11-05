@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
-import {readFile, readdir, lstat, mkdtemp, writeFile} from 'node:fs/promises';
+import {readFile, readdir, mkdtemp, writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {tmpdir} from 'node:os';
 import {pathToFileURL} from 'node:url';
+import {readRegularAsset} from './release-asset-file.mjs';
 import {requiredAssets, validateCompleteRelease} from './baseline-release.mjs';
 import {validateBuild, validateNativeSmoke, validateSideBySideSmoke, validateUpgradeSmoke} from './publish-vncode-windows.mjs';
 
@@ -54,15 +55,15 @@ async function main(){
   const dir=await mkdtemp(path.join(tmpdir(),'vncode-161-release-'));
   gh(['run','download',String(c.build),'--repo',c.repo,'--name',artifacts[0].name,'--dir',dir]);
   assert.deepEqual((await readdir(dir)).sort(),[...assets].sort(),'Unexpected or missing build assets');
-  const read=async name=>json(await readFile(path.join(dir,name)));
+  const read=async name=>json(await readRegularAsset(path.join(dir,name)));
   const info=await read('build-info.json'),manifest=await read('asset-manifest.json');
   const evidence={run,info,manifest,native:await read('native-smoke.json'),isolation:await read('side-by-side-smoke.json'),
     upgrade:await read('upgrade-baseline-smoke.json'),gs1:await read('gs1-smoke.json'),previous:await read('previous-baseline.json')};
   validateEvidence(evidence);
   const local={};
   for(const name of assets){
-    const file=path.join(dir,name),stat=await lstat(file);assert.ok(stat.isFile()&&!stat.isSymbolicLink());
-    local[name]={bytes:stat.size,sha256:sha256(await readFile(file))};
+    const bytes=await readRegularAsset(path.join(dir,name));
+    local[name]={bytes:bytes.length,sha256:sha256(bytes)};
     if(manifest.files[name])assert.deepEqual(local[name],manifest.files[name],`Manifest differs: ${name}`);
   }
   const installer=`VN-code-${c.version}-Windows-x64.exe`,msi=`VN-code-${c.version}-Windows-x64.msi`;
