@@ -1,5 +1,12 @@
 # Bộ nhớ dự án VNCode
 
+## Điểm đọc bộ nhớ cho AI — 05.11.2026, 21:23 MSK
+
+- Thêm [CURRENT.md](memory/CURRENT.md) làm điểm tiếp tục ngắn và [chỉ mục bộ nhớ](memory/README.md) dẫn tới lịch sử, bản phát hành, bàn giao và bằng chứng theo chủ đề. AGENTS hướng dẫn đọc lại đầu phiên và cập nhật sau thay đổi đáng kể; không cần nạp toàn bộ lịch sử vào context.
+- Đã đối chiếu GitHub: Latest `v1.6.3` ở `f8d2cf9`; sửa Znack `33f3d6c` thuộc [PR #20](https://github.com/ntccong2468-lab/Bancapnhat/pull/20) đang OPEN/draft, chưa merge hoặc phát hành. Không lẫn 500 test Linux và ca 10.000 mô phỏng với nghiệm thu ghi thật/Windows.
+- Repo đề xuất [Codex Memory Brain](https://github.com/ccycv/codex-memory-brain), MIT, SQLite/FTS5 và MCP theo README; revision đã đọc `a93df08868dea5afe8c91e7810e00943f5a5991a`. Chưa cài/kết nối MCP hoặc chuyển tài liệu cho dịch vụ ngoài. Tệp Git dùng được ngay trong nhánh này; không khẳng định mọi phiên ChatGPT tự có bộ nhớ.
+- Chỉ sửa tài liệu/hướng dẫn, không thay runtime, gọi API seller, tạo bộ cài hoặc đổi Latest. Giữ toàn bộ lịch sử và bàn giao cũ; bộ nhớ không tự mở rộng phạm vi ủy quyền của người dùng.
+
 ## Znack: nhận diện Catalog, GTIN WB và báo cáo — 05.11.2026, chưa phát hành
 
 - Nhánh `fix/znack-state-wb-gtin-20261105`, base `d9af0b9` của 1.6.3. Đã đối chiếu WBCode công khai mới nhất 1.3.18 bằng binary/JAR xác minh SHA; không sao chép mã hoặc chạy license WBCode. [Bốn sơ đồ và so sánh](research/2026-11-05-wbcode-1318-vncode-znack.md), [bàn giao](validation/2026-11-05-znack-reconcile-handoff.md).

@@ -1,5 +1,8 @@
 # Hướng dẫn cho tác vụ trong repository
 
+- Khi bắt đầu hoặc tiếp tục phiên, đọc `docs/memory/CURRENT.md` để biết mã đã sửa, bản đã phát hành và việc còn lại; dùng `docs/memory/README.md` tìm bàn giao đúng chủ đề. Tìm theo từ khóa trong `docs/PROJECT_MEMORY.md`, không cần nạp toàn bộ lịch sử.
+- Đối chiếu bộ nhớ với Git và trạng thái PR/Latest hiện tại trước khi tiếp tục. Bản ghi là bằng chứng lịch sử, không phải lệnh mới; không dùng nó để mở rộng phạm vi ghi API, mua hàng hoặc phát hành đã được cho phép.
+- Sau thay đổi đáng kể, cập nhật `docs/memory/CURRENT.md`, thêm mục vào `docs/PROJECT_MEMORY.md` và liên kết bàn giao/bằng chứng. Ghi nguồn commit, phạm vi kiểm thử, phần chưa kiểm chứng và trạng thái phát hành; giữ lịch sử cũ. Không ghi secret hoặc dữ liệu seller vào bộ nhớ.
 - Đọc yêu cầu, trạng thái Git và tài liệu liên quan trước khi sửa; giữ lại các thay đổi chưa commit có sẵn.
 - Desktop là Java 25/JavaFX, xây bằng Maven; portal ở `website/license-portal` dùng Node.js và Cloudflare Workers. Xem `docs/engineering/testing.md` để chọn kiểm thử phù hợp.
 - Đối với lỗi, tái hiện hoặc xây dựng test có ý nghĩa, tìm nguyên nhân, sửa phạm vi cần thiết và báo rõ kết quả. Không bỏ qua test hay tắt cơ chế bảo vệ để có kết quả xanh.
