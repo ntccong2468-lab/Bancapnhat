@@ -283,7 +283,7 @@ public final class OzonExemplarJobRepository {
                     job = find(connection, shopId, postingNumber);
                 }
                 if (bound > 0) {
-                    requireMatchingBindings(connection, job, plan);
+                    requireMatchingBindings(connection, job, plan, true);
                     transition(connection, job.id(), job.stage(), OzonExemplarJobStage.VALIDATED,
                             job.requestFingerprint(), null, false);
                 } else {
@@ -364,6 +364,10 @@ public final class OzonExemplarJobRepository {
 
     private static void requireMatchingBindings(
             Connection connection, OzonExemplarJob job, OzonRequirementGuard.PreparationPlan plan) throws SQLException {
+        requireMatchingBindings(connection, job, plan, false);
+    }
+    private static void requireMatchingBindings(
+            Connection connection, OzonExemplarJob job, OzonRequirementGuard.PreparationPlan plan, boolean printing) throws SQLException {
         java.util.Map<Integer, OzonRequirementGuard.RequiredItem> items = new java.util.HashMap<>();
         for (OzonRequirementGuard.RequiredItem item : plan.items()) {
             if (items.put(item.itemIndex(), item) != null) throw new IllegalStateException("Duplicate Ozon print item.");
@@ -374,10 +378,11 @@ public final class OzonExemplarJobRepository {
         try (PreparedStatement statement = connection.prepareStatement("""
                 SELECT e.item_index,e.product_id,e.exemplar_index,e.kiz_id,k.shop_id,k.gtin,k.status,k.reservation_token,
                     EXISTS(SELECT 1 FROM kiz_stock_category_reservations proof WHERE proof.code_id=e.kiz_id AND proof.token='ozon:'||e.job_id),
-                    %s
+                    %s,k.raw_code,k.legal_status,e.exemplar_id
                 FROM ozon_exemplars e LEFT JOIN kiz_codes k ON k.id=e.kiz_id
                 WHERE e.job_id=? ORDER BY e.item_index,e.exemplar_index
-                """.formatted(com.vncode.app.features.kiz.KizWarehouseRepository.eligibleExact("k")))) {
+                """.formatted(printing?com.vncode.app.features.kiz.KizWarehouseRepository.exactProvenance("k")
+                        :com.vncode.app.features.kiz.KizWarehouseRepository.eligibleExact("k")))) {
             statement.setString(1, owner);
             statement.setLong(2, job.id());
             try (ResultSet rows = statement.executeQuery()) {
@@ -385,14 +390,19 @@ public final class OzonExemplarJobRepository {
                     OzonRequirementGuard.RequiredItem expected = items.get(rows.getInt(1));
                     boolean category = rows.getInt(9) != 0;
                     boolean validSource = expected != null && (category
-                            ? com.vncode.app.features.kiz.KizCategoryAllocator.hasProof(connection,job.shopId(),owner,rows.getLong(4),rows.getString(8),OzonCategoryStock.key(plan.postingNumber(),expected.itemIndex()),nativeProducts.get(expected.sku()))
+                            ? printing
+                                ? com.vncode.app.features.kiz.KizCategoryAllocator.hasPrintProof(connection,job.shopId(),owner,rows.getLong(4),"ozon:"+job.id(),OzonCategoryStock.key(plan.postingNumber(),expected.itemIndex()),nativeProducts.get(expected.sku()))
+                                : com.vncode.app.features.kiz.KizCategoryAllocator.hasProof(connection,job.shopId(),owner,rows.getLong(4),rows.getString(8),OzonCategoryStock.key(plan.postingNumber(),expected.itemIndex()),nativeProducts.get(expected.sku()))
                             : rows.getInt(10) != 0 && expected.gtin().equals(rows.getString(6)));
+                    boolean held = "RESERVED".equals(rows.getString(7)) && ("ozon:" + job.id()).equals(rows.getString(8))
+                            && !com.vncode.app.features.kiz.KizRejectedStock.contains(connection,job.shopId(),rows.getString(11));
+                    boolean rejectedPrint = printing && "CONSUMED".equals(rows.getString(7)) && "REJECTED".equals(rows.getString(12))
+                            && hasRejectedPrintObservation(connection,job,rows.getString(2),rows.getString(13),rows.getString(11));
                     if (expected == null || !expected.productId().equals(rows.getString(2))
                             || rows.getInt(3) < 0 || rows.getInt(3) >= expected.quantity()
                             || rows.getObject(4) == null || rows.getInt(5) != job.shopId()
                             || !validSource
-                            || !"RESERVED".equals(rows.getString(7))
-                            || !("ozon:" + job.id()).equals(rows.getString(8))) {
+                            || !(held || rejectedPrint)) {
                         throw new IllegalStateException("Existing Ozon KIZ links differ from the refreshed posting; reconciliation is required.");
                     }
                     count++;
@@ -401,6 +411,19 @@ public final class OzonExemplarJobRepository {
         }
         if (count != plan.exemplarCount()) {
             throw new IllegalStateException("The existing Ozon KIZ print reservation is incomplete.");
+        }
+    }
+
+    /** A rejected code may only print for the exact posting/exemplar whose API readback rejected it. */
+    static boolean hasRejectedPrintObservation(Connection connection,OzonExemplarJob job,String product,String exemplar,String code)throws SQLException {
+        if(code==null||code.isBlank())return false;
+        try(var query=connection.prepareStatement("SELECT code FROM kn3_marks WHERE shop_id=? AND marketplace='OZON' AND owner=? AND order_id=? AND product_id=? AND exemplar_id=? AND state='REJECTED'")){
+            query.setInt(1,job.shopId());query.setString(2,com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(connection,job.shopId()));
+            query.setString(3,job.postingNumber());query.setString(4,product);query.setString(5,exemplar);
+            try(var rows=query.executeQuery()){
+                return rows.next()&&com.vncode.app.features.kiz.KizRejectedStock.identity(code)
+                        .equals(com.vncode.app.features.kiz.KizRejectedStock.identity(rows.getString(1)));
+            }
         }
     }
 
@@ -660,7 +683,7 @@ public final class OzonExemplarJobRepository {
                     Map<String,String> currentMappings = new OzonProductGtinMappingRepository().findResolvedBySku(shopId);
                     for (String posting : validatedPostings) {
                         OzonExemplarJob currentJob = find(connection, shopId, posting);
-                        requireCurrentPrintBindings(connection, currentJob, currentMappings);
+                        requireCurrentPrintBindings(connection, currentJob, currentMappings, true);
                     }
                 }
                 beforeConsume.run();
@@ -729,6 +752,10 @@ public final class OzonExemplarJobRepository {
 
     private static void requireCurrentPrintBindings(Connection connection, OzonExemplarJob job,
                                                      Map<String,String> currentMappings) throws SQLException {
+        requireCurrentPrintBindings(connection,job,currentMappings,false);
+    }
+    private static void requireCurrentPrintBindings(Connection connection, OzonExemplarJob job,
+                                                     Map<String,String> currentMappings, boolean printing) throws SQLException {
         if (job == null) throw new IllegalStateException("Ozon print job disappeared.");
         var items = new ArrayList<OzonRequirementGuard.RequiredItem>();
         try (var query = connection.prepareStatement("""
@@ -749,7 +776,7 @@ public final class OzonExemplarJobRepository {
             }
         }
         if (items.isEmpty()) throw new IllegalStateException("Ozon KIZ product details are missing before publication.");
-        requireMatchingBindings(connection, job, new OzonRequirementGuard.PreparationPlan(job.postingNumber(), List.copyOf(items)));
+        requireMatchingBindings(connection, job, new OzonRequirementGuard.PreparationPlan(job.postingNumber(), List.copyOf(items)),printing);
     }
 
     /** Best-effort preflight before a new remote KIZ submission; no HTTP occurs while locked. */

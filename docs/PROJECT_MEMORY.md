@@ -1,5 +1,11 @@
 # Bộ nhớ dự án VNCode
 
+## PDF Ozon và yêu cầu phát hành gộp Znack — 05.11.2026
+
+- Sửa preflight cũ bỏ KIZ đã giữ; xử lý KN3 readback từ chối làm mã chuyển CONSUMED/REJECTED để vẫn in đúng binding của đơn mà không đổi kết quả API hoặc trả mã về kho. Dùng đúng product_id/exemplar, giữ kiểm tra chủ tài khoản/nguồn/mapping mua; seller nhập theo danh mục. Trang không rõ danh tính không làm mất KIZ của những trang đã xác định trong cùng lô.
+- Căn vector DataMatrix theo điểm in 203 dpi sau khi phát hiện mã thứ 18 không đọc được ở 203 dpi. Lô tổng hợp 100 đơn → 200 trang, xuất/in lại 2 lô, 0 tải riêng, giữ 100 mã; tất cả được giải mã ở 203/300 dpi. 191 test/18 lớp đạt, không lỗi/skip. [Bàn giao và kinh nghiệm](validation/2026-11-05-ozon-combined-handoff.md), [bằng chứng](validation/2026-11-05-ozon-combined-tests.json).
+- Người dùng đã yêu cầu phát hành **gộp phần Znack trước đó và PDF Ozon vừa sửa**. Chuẩn bị 1.6.4 từ nhánh `fix/znack-state-wb-gtin-20261105`, giữ sửa Znack `33f3d6c`; Latest ở thời điểm này vẫn là 1.6.3. Còn gate Windows/native/nâng cấp và công bố; chưa gọi API ghi thật, mua KIZ hoặc kích hoạt license trong lượt sửa này.
+
 ## Điểm đọc bộ nhớ cho AI — 05.11.2026, 21:23 MSK
 
 - Thêm [CURRENT.md](memory/CURRENT.md) làm điểm tiếp tục ngắn và [chỉ mục bộ nhớ](memory/README.md) dẫn tới lịch sử, bản phát hành, bàn giao và bằng chứng theo chủ đề. AGENTS hướng dẫn đọc lại đầu phiên và cập nhật sau thay đổi đáng kể; không cần nạp toàn bộ lịch sử vào context.

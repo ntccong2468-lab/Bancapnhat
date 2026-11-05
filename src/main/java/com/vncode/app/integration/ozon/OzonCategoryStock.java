@@ -46,7 +46,8 @@ final class OzonCategoryStock {
             var items=new HashMap<Integer,OzonPostingItemDto>();posting.items().forEach(i->items.put(i.itemIndex(),i));
             var covered=new HashMap<Integer,Set<Integer>>();
             try(var p=c.prepareStatement("""
-                SELECT e.item_index,e.product_id,e.exemplar_index,k.status,k.reservation_token,proof.product_id
+                SELECT e.item_index,e.product_id,e.exemplar_index,k.status,k.reservation_token,proof.product_id,
+                  k.legal_status,k.raw_code,e.exemplar_id
                 FROM ozon_exemplars e JOIN ozon_exemplar_jobs job ON job.id=e.job_id
                 JOIN kiz_codes k ON k.id=e.kiz_id AND k.shop_id=job.shop_id
                 JOIN kiz_stock_category_reservations proof ON proof.code_id=k.id AND proof.token=?
@@ -55,14 +56,16 @@ final class OzonCategoryStock {
                   AND category.shop_id=proof.shop_id AND category.owner=proof.owner
                 WHERE job.id=? AND job.shop_id=? AND job.posting_number=? AND e.shop_id=job.shop_id
                   AND e.posting_number=job.posting_number AND proof.owner=? AND %s
-                """.formatted(KizWarehouseRepository.eligibleCategory("k")))){
+                """.formatted(KizWarehouseRepository.categoryProvenance("k")))){
                 p.setString(1,token);p.setLong(2,job.id());p.setInt(3,shop);p.setString(4,posting.postingNumber());p.setString(5,owner);p.setString(6,owner);
                 try(var r=p.executeQuery()){while(r.next()){
                     var item=items.get(r.getInt(1));int index=r.getInt(3);
                     boolean held="RESERVED".equals(r.getString(4))&&token.equals(r.getString(5));
                     boolean printed=job.stage()==OzonExemplarJobStage.ACCEPTED&&"CONSUMED".equals(r.getString(4));
+                    boolean rejectedPrint="CONSUMED".equals(r.getString(4))&&"REJECTED".equals(r.getString(7))
+                            &&OzonExemplarJobRepository.hasRejectedPrintObservation(c,job,r.getString(2),r.getString(9),r.getString(8));
                     if(item!=null&&item.productId().equals(r.getString(2))&&index>=0&&index<item.quantity()
-                            &&r.getString(6).equals(nativeIds.get(item.sku()))&&(held||printed))
+                            &&r.getString(6).equals(nativeIds.get(item.sku()))&&(held||printed||rejectedPrint))
                         covered.computeIfAbsent(item.itemIndex(),i->new HashSet<>()).add(index);
                 }}
             }
