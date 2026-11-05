@@ -12,6 +12,17 @@ class SyncRunRepositoryMetricsTest {
     @TempDir Path directory;
     @BeforeEach void initialize(){System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();}
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
+    @Test void sellerRunsRemainVisibleAfterHundredsOfBackgroundAndForeignOwnerRuns()throws Exception{
+        var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var repository=new SyncRunRepository();
+        var registration=repository.begin(shop,RegistrationAttemptReports.KIND,"REGISTER");
+        for(int i=0;i<105;i++)repository.begin(shop,"znack_catalog_read","READING");
+        var foreign=repository.begin(shop,RegistrationAttemptReports.KIND,"REGISTER");
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET owner='previous-account' WHERE id=?")){p.setString(1,foreign);p.executeUpdate();}
+        assertEquals(java.util.List.of(registration),repository.listOwned(shop,java.util.Set.of(RegistrationAttemptReports.KIND),0,100).stream().map(SyncRunRepository.Run::id).toList());
+        assertTrue(repository.listOwned(shop,java.util.Set.of(RegistrationAttemptReports.KIND),1,100).isEmpty());
+        assertEquals(100,repository.listOwned(shop,java.util.Set.of("znack_catalog_read"),0,100).size());
+        assertEquals(107,repository.list(shop.getId(),0,1000).size(),"Background audit records remain intact");
+    }
     @Test void countersSeparatePlannedSentPendingFailedUnknownAndActualAppliedEvidence()throws Exception{
         var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var repository=new SyncRunRepository();var run=repository.begin(shop,"znack_marketplace","MATCHING");String gtin=GtinWriteTestFixture.GTIN;
         var queued=repository.add(shop,run,"1","1","","","","",gtin,"AWAITING_CONFIRMATION","","{}");repository.update(shop,queued,"WAITING_REMOTE","READBACK","","confirmed-parent-only");

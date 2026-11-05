@@ -1,0 +1,12 @@
+{
+  "after_NOT_SIGNED": 34,
+  "after_PUBLISHED": 229,
+  "after_no_identity_match": 1719,
+  "after_unique": 263,
+  "barcode_already_present": 1,
+  "before_unique": 248,
+  "no_exact_article_in_catalog": 1533,
+  "published_identity_not_yet_on_wb": 228,
+  "published_tnved_compatible": 25,
+  "variants": 1982
+}

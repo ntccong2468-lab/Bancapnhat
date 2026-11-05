@@ -187,6 +187,19 @@ public final class SyncRunRepository {
             p.setInt(1,shopId);p.setInt(2,shopId);p.setInt(3,limit);p.setInt(4,offset);var out=new ArrayList<Run>();try(var r=p.executeQuery()){while(r.next())out.add(new Run(r.getString("id"),r.getInt("shop_id"),r.getString("marketplace"),r.getString("kind"),r.getString("state"),r.getString("step"),r.getInt("total"),r.getString("created_at"),r.getString("updated_at"),r.getString("error_code")));}return List.copyOf(out);
         }catch(SQLException e){throw storage(e);}
     }
+    /** Apply owner/kind filters before paging so frequent background reads cannot bury seller actions. */
+    public List<Run> listOwned(Shop shop,Set<String> kinds,int offset,int limit){
+        ListingIdentity.require(shop);
+        if(offset<0||limit<1||limit>1000||kinds==null||kinds.isEmpty()||kinds.size()>32)throw new IllegalArgumentException("SYNC_PAGE_LIMIT");
+        var ordered=kinds.stream().sorted().toList();
+        String marks=String.join(",",Collections.nCopies(ordered.size(),"?"));
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_runs WHERE shop_id=? AND marketplace=? AND owner=? AND kind IN ("+marks+") ORDER BY created_at DESC,rowid DESC LIMIT ? OFFSET ?")){
+            int i=1;p.setInt(i++,shop.getId());p.setString(i++,shop.getMarketplace().name());p.setString(i++,ListingIdentity.fingerprint(shop));
+            for(var kind:ordered)p.setString(i++,kind);p.setInt(i++,limit);p.setInt(i,offset);
+            var out=new ArrayList<Run>();try(var r=p.executeQuery()){while(r.next())out.add(new Run(r.getString("id"),r.getInt("shop_id"),r.getString("marketplace"),r.getString("kind"),r.getString("state"),r.getString("step"),r.getInt("total"),r.getString("created_at"),r.getString("updated_at"),r.getString("error_code")));}
+            return List.copyOf(out);
+        }catch(SQLException e){throw storage(e);}
+    }
     public Optional<Item> item(String run,String id){
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? AND id=?")){
             p.setString(1,run);p.setString(2,id);try(var r=p.executeQuery()){return r.next()?Optional.of(readItem(r,run)):Optional.empty();}

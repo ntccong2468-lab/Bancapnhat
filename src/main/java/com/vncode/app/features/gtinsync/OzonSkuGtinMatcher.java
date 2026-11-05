@@ -60,13 +60,7 @@ public final class OzonSkuGtinMatcher {
         return model(article);
     }
     private static String color(String value) {
-        return switch(n(value)) {
-            case "NÂU", "NAU", "BROWN", "КОРИЧНЕВЫЙ" -> "BROWN";
-            case "ĐEN", "DEN", "BLACK", "ЧЕРНЫЙ", "ЧЁРНЫЙ" -> "BLACK";
-            case "TRẮNG", "TRANG", "WHITE", "БЕЛЫЙ" -> "WHITE";
-            case "BE", "BEIGE", "БЕЖЕВЫЙ" -> "BEIGE";
-            default -> n(value);
-        };
+        return GtinMatchingService.normalizeColor(value);
     }
     public static boolean sameColor(String left,String right){return !color(left).isBlank()&&color(left).equals(color(right));}
     private static String kind(String value) {

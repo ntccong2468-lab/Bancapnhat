@@ -29,7 +29,7 @@ public final class ProductRepository {
                     WHERE b.shop_id=c.shop_id AND b.chrt_id=v.chrt_id),'') barcodes,
           COALESCE((SELECT COALESCE(p.c246x328_url,p.square_url,p.big_url,p.hq_url) FROM wb_product_photos p
                     WHERE p.shop_id=c.shop_id AND p.nm_id=c.nm_id ORDER BY p.photo_index LIMIT 1),'') image,
-          COALESCE((SELECT json_extract(ch.value_json,'$[0]') FROM wb_product_characteristics ch
+          COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),CASE WHEN json_type(ch.value_json)='text' THEN json_extract(ch.value_json,'$') END) FROM wb_product_characteristics ch
                     WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('color',ch.name)=1
                     ORDER BY ch.characteristic_id DESC LIMIT 1),'') color,
           CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('material',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('material',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END material,

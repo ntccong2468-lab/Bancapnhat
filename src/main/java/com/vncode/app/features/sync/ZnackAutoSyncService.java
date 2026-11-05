@@ -186,10 +186,10 @@ public final class ZnackAutoSyncService {
         String nativeGtin=registrationGtin(shop,product.key());
         if(!nativeGtin.isBlank()){
             var exact=index.code(nativeGtin);
-            if(exact.size()==1&&compatible(product.color(),exact.getFirst().color())&&GtinVariantIdentity.sizeMatches(exact.getFirst(),GtinVariantIdentity.primarySize(product),product.russianSize()))return exact;
+            if(exact.size()==1&&OzonSkuGtinMatcher.sameColor(product.color(),exact.getFirst().color())&&GtinVariantIdentity.sizeMatches(exact.getFirst(),GtinVariantIdentity.primarySize(product),product.russianSize()))return exact;
             return List.of();
         }
-        var present=index.codes(product.barcodes());if(!present.isEmpty())return present.stream().filter(row->compatible(product.color(),row.color())&&GtinVariantIdentity.sizeMatches(row,GtinVariantIdentity.primarySize(product),product.russianSize())).toList();
+        var present=index.codes(product.barcodes());if(!present.isEmpty())return present.stream().filter(row->OzonSkuGtinMatcher.sameColor(product.color(),row.color())&&GtinVariantIdentity.sizeMatches(row,GtinVariantIdentity.primarySize(product),product.russianSize())).toList();
         return shop.getMarketplace()==Marketplace.OZON?index.ozon(product):index.attributes(product.vendorArticle(),product.color(),GtinVariantIdentity.primarySize(product),product.russianSize());
     }
     private void advance(Shop shop,SyncRunRepository.Item item)throws Exception {

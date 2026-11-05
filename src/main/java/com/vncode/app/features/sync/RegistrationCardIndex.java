@@ -118,7 +118,7 @@ public final class RegistrationCardIndex {
     }
     /** Display proof is stricter than a local allocation/checkpoint or barcode format. */
     public Optional<RegisteredGtin> verifiedWb(Sku row){
-        var observed=view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),ownsWb(row.chrtId()));
+        var observed=viewWb(row);
         return verified(observed,row.vendorCode(),row.color(),row.size(),row.wbSize(),List.of(),false);
     }
     public Optional<RegisteredGtin> verifiedOzon(com.vncode.app.features.products.ProductRow row,Status status,String gtin,boolean nativeOwned){
@@ -138,24 +138,33 @@ public final class RegistrationCardIndex {
         return Optional.of(card);
     }
     public boolean ownsWb(long variant){return wbOwners.contains(variant);}
+    public View viewWb(Sku row){
+        return view(row.status(),row.gtin(),row.barcodes(),row.vendorCode(),row.color(),row.size(),row.wbSize(),ownsWb(row.chrtId()),row.registrationRevision());
+    }
     public boolean ownsOzon(String owner,String scope){return this.owner.equals(owner)&&scopeJson.equals(scope);}
     public View view(Status status,String gtin,List<String> barcodes,String article,String color,String size,boolean nativeOwned) {
         return view(status,gtin,barcodes,article,color,size,"",nativeOwned);
     }
     public View viewOzon(Status status,String gtin,com.vncode.app.features.products.ProductRow row,boolean nativeOwned) {
-        return view(status,gtin,row.barcodes(),row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize(),nativeOwned,ozon.candidates(row));
+        return viewOzon(status,gtin,row,nativeOwned,"");
+    }
+    public View viewOzon(Status status,String gtin,com.vncode.app.features.products.ProductRow row,boolean nativeOwned,String checkpointUpdatedAt) {
+        return view(status,gtin,row.barcodes(),row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize(),nativeOwned,ozon.candidates(row),checkpointUpdatedAt);
     }
     public View view(Status status,String gtin,List<String> barcodes,String article,String color,String size,String russianSize,boolean nativeOwned) {
-        return view(status,gtin,barcodes,article,color,size,russianSize,nativeOwned,List.of());
+        return view(status,gtin,barcodes,article,color,size,russianSize,nativeOwned,"");
     }
-    private View view(Status status,String gtin,List<String> barcodes,String article,String color,String size,String russianSize,boolean nativeOwned,List<RegisteredGtin> skuCandidates) {
+    public View view(Status status,String gtin,List<String> barcodes,String article,String color,String size,String russianSize,boolean nativeOwned,String checkpointUpdatedAt) {
+        return view(status,gtin,barcodes,article,color,size,russianSize,nativeOwned,List.of(),checkpointUpdatedAt);
+    }
+    private View view(Status status,String gtin,List<String> barcodes,String article,String color,String size,String russianSize,boolean nativeOwned,List<RegisteredGtin> skuCandidates,String checkpointUpdatedAt) {
         boolean nativeExists=status!=Status.NOT_CREATED || !safe(gtin).isBlank();
         if(nativeExists&&!nativeOwned)return new View("source.unverified",safe(gtin),"SOURCE_REGISTRATION_OWNER_CHANGED",true,false,true);
         var matches=new LinkedHashSet<RegisteredGtin>();
         if(!safe(gtin).isBlank())matches.addAll(codes.getOrDefault(normal(gtin),List.of()));
         else {
             for(var barcode:barcodes)matches.addAll(codes.getOrDefault(normal(barcode),List.of()));
-            if(matches.isEmpty()&&!GtinMatchingService.normalizeArticle(article).isBlank()&&!safe(color).isBlank()&&!safe(size).isBlank()){
+            if(matches.isEmpty()&&!GtinMatchingService.normalizeArticle(article).isBlank()&&!safe(color).isBlank()&&(!safe(size).isBlank()||!safe(russianSize).isBlank())){
                 matches.addAll(attributes.getOrDefault(key(article,color,size),List.of()).stream().filter(card->GtinVariantIdentity.sizeMatches(card,size,russianSize)).toList());
                 if(!safe(russianSize).isBlank())matches.addAll(attributes.getOrDefault(key(article,color,russianSize),List.of()).stream().filter(GtinVariantIdentity::russianSize).toList());
             }
@@ -168,17 +177,30 @@ public final class RegistrationCardIndex {
             boolean exactSellerSku=skuCandidates.size()==1&&skuCandidates.contains(card);
             boolean articleConflict=!safe(article).isBlank()&&!safe(card.article()).isBlank()
                     &&!GtinMatchingService.normalizeArticle(article).equals(GtinMatchingService.normalizeArticle(card.article()))&&!exactSellerSku;
-            if(articleConflict||(skuCandidates.contains(card)?!OzonSkuGtinMatcher.sameColor(color,card.color()):conflict(color,card.color()))||!safe(size).isBlank()&&!safe(card.size()).isBlank()&&!GtinVariantIdentity.sizeMatches(card,size,russianSize))return new View("source.ambiguous",card.gtin(),"GTIN_VARIANT_CONFLICT",true,false,true);
+            if(articleConflict||(skuCandidates.contains(card)?!OzonSkuGtinMatcher.sameColor(color,card.color()):conflict(color,card.color()))||(!safe(size).isBlank()||!safe(russianSize).isBlank())&&!safe(card.size()).isBlank()&&!GtinVariantIdentity.sizeMatches(card,size,russianSize))return new View("source.ambiguous",card.gtin(),"GTIN_VARIANT_CONFLICT",true,false,true);
             boolean missingVariant=safe(color).isBlank()||safe(card.color()).isBlank()
                     ||safe(size).isBlank()&&safe(russianSize).isBlank()||safe(card.size()).isBlank();
             if(missingVariant){
                 // A real remote card may still be in moderation/draft while its variant is unproven.
                 // Preserve that independent stage, but never present its GTIN as verified/published.
                 String observed=card.published()?"source.unverified":com.vncode.app.integration.znack.registration.CatalogCardState.of(card).viewStatus;
-                if(Set.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(status))observed="status."+status.name().toLowerCase(Locale.ROOT);
+                boolean pending=Set.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED).contains(status);
+                if(pending||Set.of(Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(status)
+                        &&(!RegisteredGtinProof.identifiedObservation(card)||!observedAfter(card,checkpointUpdatedAt)))observed="status."+status.name().toLowerCase(Locale.ROOT);
                 return new View(observed,card.gtin(),"GTIN_VARIANT_UNVERIFIED",true,false,true);
             }
             if(card.published())return new View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
+            var remote=com.vncode.app.integration.znack.registration.CatalogCardState.of(card);
+            // A later identified card read supersedes an old local checkpoint for display.
+            // A pending/uncertain feed must still be reconciled by feed-status before retry.
+            boolean pendingFeed=Set.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED).contains(status);
+            boolean active=pendingFeed||Set.of(Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING).contains(status);
+            boolean signAgrees=remote==com.vncode.app.integration.znack.registration.CatalogCardState.NOT_SIGNED
+                    &&Set.of(Status.READY_TO_SIGN,Status.SIGNING).contains(status);
+            if(!pendingFeed&&!signAgrees&&remote!=com.vncode.app.integration.znack.registration.CatalogCardState.UNPUBLISHED
+                    &&RegisteredGtinProof.identifiedObservation(card)&&(!active||observedAfter(card,checkpointUpdatedAt)))
+                return new View(remote.viewStatus,card.gtin(),remote.reason,true,false,true,
+                        com.vncode.app.integration.znack.registration.CatalogCardState.reviewableDraft(card));
             if(status==Status.ERROR&&com.vncode.app.integration.znack.registration.CatalogCardState.of(card)==com.vncode.app.integration.znack.registration.CatalogCardState.MODERATION)
                 return new View("source.moderation",card.gtin(),"CATALOG_CARD_MODERATION",true,false,true);
             if(com.vncode.app.integration.znack.registration.CatalogCardState.of(card)==com.vncode.app.integration.znack.registration.CatalogCardState.ERRORS
@@ -193,8 +215,12 @@ public final class RegistrationCardIndex {
         if(status==Status.PUBLISHED)return new View("source.unverified",safe(gtin),"SOURCE_PUBLISHED_NOT_CONFIRMED",true,false,true);
         return new View("status."+status.name().toLowerCase(Locale.ROOT),safe(gtin),nativeExists?"SOURCE_NATIVE_CHECKPOINT":"SOURCE_CARD_NOT_CREATED",nativeExists,false,false);
     }
-    private static boolean conflict(String a,String b){return !safe(a).isBlank()&&!safe(b).isBlank()&&!GtinMatchingService.normalize(a).equals(GtinMatchingService.normalize(b));}
-    private static String key(String a,String c,String s){return GtinMatchingService.normalizeArticle(a)+"\u001f"+GtinMatchingService.normalize(c)+"\u001f"+GtinMatchingService.normalize(s);}
+    private static boolean observedAfter(RegisteredGtin card,String checkpointUpdatedAt){
+        try{return !safe(checkpointUpdatedAt).isBlank()&&!card.syncedAt().isBefore(Instant.parse(checkpointUpdatedAt));}
+        catch(java.time.format.DateTimeParseException legacy){return false;}
+    }
+    private static boolean conflict(String a,String b){return !safe(a).isBlank()&&!safe(b).isBlank()&&!OzonSkuGtinMatcher.sameColor(a,b);}
+    private static String key(String a,String c,String s){return GtinMatchingService.normalizeArticle(a)+"\u001f"+GtinMatchingService.normalizeColor(c)+"\u001f"+GtinMatchingService.normalize(s);}
     private static String normal(String code){return code!=null&&code.matches("[0-9]{8,14}")?"0".repeat(14-code.length())+code:safe(code);}
     private static String safe(String value){return value==null?"":value;}
 }

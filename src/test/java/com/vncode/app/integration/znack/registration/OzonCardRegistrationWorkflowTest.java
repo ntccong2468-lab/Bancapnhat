@@ -785,13 +785,15 @@ class OzonCardRegistrationWorkflowTest {
         assertThrows(SecurityException.class,()->workflow.prepare(shop,new ProductKey(99,Marketplace.OZON,"501","fixture-offer")));
         assertThrows(SecurityException.class,()->workflow.prepare(shop,new ProductKey(2,Marketplace.WILDBERRIES,"501","11")));assertEquals(0,sessions.get());
     }
-    @Test void registryRefreshSelectsOnlyPublishedCardsBoundToCurrentEnterpriseAndCredentials()throws Exception {
+    @Test void registryRefreshSelectsKnownCardsBoundToCurrentEnterpriseAndCredentials()throws Exception {
         published();var scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(2,"Fixture")).getSettings());
-        assertEquals(List.of(row().gtin()),NationalCatalogGtinSource.ownedPublishedGtins(shop,scope));
+        assertEquals(List.of(row().gtin()),NationalCatalogGtinSource.ownedKnownGtins(shop,scope));
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_card_registrations SET owner='stale-owner'");}
-        assertTrue(NationalCatalogGtinSource.ownedPublishedGtins(shop,scope).isEmpty());
+        assertTrue(NationalCatalogGtinSource.ownedKnownGtins(shop,scope).isEmpty());
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE ozon_card_registrations SET owner=?,status='READY_TO_SIGN'")){p.setString(1,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop));p.executeUpdate();}
-        assertTrue(NationalCatalogGtinSource.ownedPublishedGtins(shop,scope).isEmpty());
+        assertEquals(List.of(row().gtin()),NationalCatalogGtinSource.ownedKnownGtins(shop,scope),"The observed unsigned card is queried even outside product-list");
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE ozon_card_registrations SET status='READY_TO_SUBMIT',good_id=NULL");}
+        assertTrue(NationalCatalogGtinSource.ownedKnownGtins(shop,scope).isEmpty(),"An allocation alone does not prove a remote card exists");
     }
     @Test void completedNativeSkuOverridesArticleRuleWithoutChangingSiblingSize()throws Exception {
         published();onMarketplace=true;workflow.complete(shop,key,true,null);
@@ -805,7 +807,7 @@ class OzonCardRegistrationWorkflowTest {
         api.accepted=false;workflow.register(shop,key,draft,true,true,null);
         assertEquals(GtinWriteTestFixture.GTIN,mappings.findResolvedBySku(2).get("9001"));assertEquals("00000000000024",mappings.findResolvedBySku(2).get("9002"));
         var scope=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(2,"Fixture")).getSettings());
-        assertEquals(List.of(GtinWriteTestFixture.GTIN),NationalCatalogGtinSource.ownedPublishedGtins(shop,scope),"The previous published active card is re-read while its replacement is pending");
+        assertEquals(List.of(GtinWriteTestFixture.GTIN),NationalCatalogGtinSource.ownedKnownGtins(shop,scope),"The previous published active card is re-read while its replacement is pending");
     }
     @Test void publicationKeepsTheActualCatalogIdentityAndTradeUnitProofForCompletion()throws Exception{
         published();var proof=new GtinSyncRepository().catalogItem(shop.getId(),Marketplace.OZON,row().gtin());assertEquals("91",proof.details().single("@catalog_id"));assertEquals("published",proof.details().single("@catalog_status"));assertTrue(proof.tradeUnit());com.vncode.app.features.gtinsync.RegisteredGtinProof.requireCurrent(shop,row().gtin());

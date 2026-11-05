@@ -29,14 +29,15 @@
         <Label fx:id="selectionLabel"/>
         <CheckBox fx:id="autoSignCheckBox" selected="true" wrapText="true" text="Tự ký khi thẻ được duyệt"/>
         <Button fx:id="newCardsSelectedButton" text="Tạo thẻ mới cho tập đã chọn" onAction="#onNewCardsSelected"/>
+        <Button fx:id="connectionButton" text="Kiểm tra kết nối" onAction="#onConnection" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
+        <Button fx:id="provenanceButton" text="Nguồn dữ liệu" onAction="#onProvenance" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
     </VBox>
     <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6">
         <TextField fx:id="searchField" accessibleText="%products.search" promptText="Tìm theo tên, article, SKU..." prefWidth="280"/>
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
         <ComboBox fx:id="statusFilter" accessibleText="%ui.filter.status" prefWidth="195"/>
         <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
-        <Button fx:id="connectionButton" text="Kiểm tra kết nối" onAction="#onConnection" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
-        <Button fx:id="provenanceButton" text="Nguồn dữ liệu" onAction="#onProvenance" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
+        <MenuButton fx:id="moreActionsButton" text="%znack.registration.more_actions" styleClass="btn-secondary"/>
     </FlowPane>
     <StackPane fx:id="registrationTableHost" minHeight="0" VBox.vgrow="ALWAYS">
         <TableView fx:id="productTable" minHeight="0">
@@ -67,7 +68,6 @@
         <Button fx:id="loadMoreButton" text="Tải thêm" onAction="#onLoadMore" styleClass="btn-secondary"/>
         <Pane HBox.hgrow="ALWAYS"/>
         <Hyperlink fx:id="reportLink" text="Báo cáo" visible="false" managed="false" onAction="#onReport"/>
-        <MenuButton fx:id="moreActionsButton" text="⋯" visible="false" managed="false"/>
     </HBox>
     <Label fx:id="batchProgressLabel" wrapText="true" visible="false" managed="false" styleClass="text-muted"/>
     <Label fx:id="summaryLabel" wrapText="true" styleClass="text-muted"/>

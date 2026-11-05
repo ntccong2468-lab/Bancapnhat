@@ -21,12 +21,17 @@ class RegisteredCatalogOwnershipTest {
         try(var c=Database.getConnection();var insert=c.prepareStatement("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,status,created_at,updated_at) VALUES(1,11,101,?,'PUBLISHED','fixture','fixture')");var stamp=c.prepareStatement("INSERT INTO znack_card_registration_scopes(shop_id,chrt_id,participant_inn,environment,fingerprint,owner_hash,created_at) VALUES(1,11,?,?,?,?, 'fixture')")){
             insert.setString(1,GtinWriteTestFixture.GTIN);insert.executeUpdate();stamp.setString(1,scope.inn());stamp.setString(2,scope.environment());stamp.setString(3,scope.fingerprint());stamp.setString(4,ListingIdentity.fingerprint(shop));stamp.executeUpdate();
         }
-        assertEquals(List.of(GtinWriteTestFixture.GTIN),NationalCatalogGtinSource.ownedPublishedGtins(shop,scope));
+        assertEquals(List.of(GtinWriteTestFixture.GTIN),NationalCatalogGtinSource.ownedKnownGtins(shop,scope));
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_card_registrations SET status='PROCESSING',good_id=91 WHERE shop_id=1");}
+        assertEquals(List.of(GtinWriteTestFixture.GTIN),NationalCatalogGtinSource.ownedKnownGtins(shop,scope),"An observed draft outside the list still needs a direct card read");
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_card_registrations SET status='READY_TO_SUBMIT',good_id=NULL WHERE shop_id=1");}
+        assertTrue(NationalCatalogGtinSource.ownedKnownGtins(shop,scope).isEmpty(),"A local allocation is not an observed Catalog card");
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_card_registrations SET status='PUBLISHED' WHERE shop_id=1");}
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE znack_card_registration_scopes SET owner_hash='' WHERE shop_id=1");}
-        assertTrue(NationalCatalogGtinSource.ownedPublishedGtins(shop,scope).isEmpty());
+        assertTrue(NationalCatalogGtinSource.ownedKnownGtins(shop,scope).isEmpty());
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_card_registration_scopes SET owner_hash=? WHERE shop_id=1")){p.setString(1,ListingIdentity.fingerprint(shop));p.executeUpdate();}
         GtinWriteTestFixture.saveSettings(shop,"B".repeat(40),ZnackModels.PRODUCTION_TRUE_API);
         var current=ZnackRegistrationScope.fromSettings(new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture")).getSettings());
-        assertTrue(NationalCatalogGtinSource.ownedPublishedGtins(shop,current).isEmpty());
+        assertTrue(NationalCatalogGtinSource.ownedKnownGtins(shop,current).isEmpty());
     }
 }

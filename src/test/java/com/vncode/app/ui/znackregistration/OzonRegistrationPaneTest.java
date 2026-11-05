@@ -145,7 +145,7 @@ class OzonRegistrationPaneTest {
         });awaitIdle();
         fx(()->{stopBatchPolling();assertEquals(java.util.List.of("1"),table().getItems().stream().map(row->row.key().cardId()).toList());
             var checkpoints=OzonRegistrationPane.class.getDeclaredField("states");checkpoints.setAccessible(true);assertTrue(((java.util.Map<?,?>)checkpoints.get(pane)).isEmpty(),"Presentation must not invent a native feed or checkpoint");
-            var pill=(javafx.scene.layout.HBox)pane.lookup("#ozonRegistrationBatchStatus");assertTrue(pill.getChildren().stream().anyMatch(javafx.scene.control.ProgressIndicator.class::isInstance));
+            assertNull(pane.lookup("#ozonRegistrationBatchStatus"));assertInstanceOf(javafx.scene.control.ProgressIndicator.class,((javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress")).getGraphic());
             String text=((javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress")).getText();assertFalse(text.contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.batch_waiting_connection")));return null;});
     }
     @Test void backgroundRefreshPreservesTheEntireFrozenNotCreatedSelection()throws Exception{
@@ -188,8 +188,7 @@ class OzonRegistrationPaneTest {
                 render.invoke(pane,new com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.Progress("detail-progress",100,2,1,97,"Next article","52",code,state,"Accepted article","XL"));
                 String text=((javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress")).getText();
                 assertTrue(text.contains("2/100"));assertTrue(text.contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.reason."+code)));
-                var pill=(javafx.scene.layout.HBox)pane.lookup("#ozonRegistrationBatchStatus");
-                assertTrue(pill.getChildren().stream().filter(javafx.scene.control.Label.class::isInstance).map(javafx.scene.control.Label.class::cast).anyMatch(label->label.getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.reason."+code))));
+                assertNull(pane.lookup("#ozonRegistrationBatchStatus"),"Progress remains below the list, without a duplicate overlay");
             }
             render.invoke(pane,new com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.Progress("detail-progress",100,2,1,97,"","","api_key=sensitive-detail feed_id=private-feed",com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.State.WAITING,"",""));
             String text=((javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress")).getText();assertFalse(text.contains("sensitive-detail"));assertFalse(text.contains("private-feed"));
@@ -210,24 +209,24 @@ class OzonRegistrationPaneTest {
             assertTrue(text.contains("2/100"));assertTrue(text.contains("SYNC_INTERNAL"));assertFalse(text.contains("sensitive-progress-secret"));assertFalse(text.contains("private-feed"));
             assertFalse(text.contains("api_key"));assertFalse(text.contains("feed_id"));
             var state=OzonRegistrationPane.class.getDeclaredField("batchState");state.setAccessible(true);assertSame(progress,state.get(pane));
-            var pill=(javafx.scene.layout.HBox)pane.lookup("#ozonRegistrationBatchStatus");assertNotNull(pill);assertTrue(pill.getChildren().stream().noneMatch(javafx.scene.control.ProgressIndicator.class::isInstance));
+            var pill=(javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress");assertNotNull(pill);assertNull(pill.getGraphic());
             assertFalse(((javafx.scene.control.ComboBox<?>)pane.lookup("#ozonRegistrationStatusFilter")).isDisabled());return pill;
         });
-        fx(()->{pollBatchProgress();return null;});awaitIdle();fx(()->{stopBatchPolling();assertSame(errorPill,pane.lookup("#ozonRegistrationBatchStatus"));return null;});
+        fx(()->{pollBatchProgress();return null;});awaitIdle();fx(()->{stopBatchPolling();assertSame(errorPill,pane.lookup("#ozonRegistrationBatchProgress"));return null;});
         failRead.set(false);fx(()->{pollBatchProgress();return null;});awaitIdle();
         fx(()->{
             stopBatchPolling();String text=((javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress")).getText();assertTrue(text.contains("2/100"));assertFalse(text.contains("SYNC_INTERNAL"));
-            var pill=(javafx.scene.layout.HBox)pane.lookup("#ozonRegistrationBatchStatus");assertNotSame(errorPill,pill);assertTrue(pill.getChildren().stream().anyMatch(javafx.scene.control.ProgressIndicator.class::isInstance));return null;
+            var pill=(javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress");assertSame(errorPill,pill);assertInstanceOf(javafx.scene.control.ProgressIndicator.class,pill.getGraphic());return null;
         });
     }
     @Test void ozonDurableQueueCanPauseResumeAndCancelPendingWithAnExplicitConfirmation()throws Exception{
         var calls=new java.util.concurrent.CopyOnWriteArrayList<String>();var current=new java.util.concurrent.atomic.AtomicReference<>(new com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.Progress("controls",10,2,0,8,"Next","M","",com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.State.RUNNING,"Created","XL"));
         fx(()->{stopBatchPolling();var reader=OzonRegistrationPane.class.getDeclaredField("batchReader");reader.setAccessible(true);reader.set(pane,(java.util.function.Function<Shop,com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.Progress>)owner->current.get());var control=OzonRegistrationPane.class.getDeclaredField("batchControl");control.setAccessible(true);control.set(pane,(java.util.function.BiFunction<Shop,String,Boolean>)(owner,action)->{assertFalse(Platform.isFxApplicationThread());calls.add(action);var before=current.get();var state=com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.State.valueOf(switch(action){case "PAUSE"->"PAUSED";case "RESUME"->"RUNNING";default->"CANCELLED";});current.set(new com.vncode.app.integration.znack.registration.OzonRegistrationBatchService.Progress(before.runId(),before.total(),before.submitted(),before.failed(),before.remaining(),"","","",state,before.lastSubmittedArticle(),before.lastSubmittedSize()));return true;});renderProgress(current.get());stopBatchPolling();assertFalse(batchMenu("ozonZnackPauseBatch").isDisable());batchMenu("ozonZnackPauseBatch").fire();return null;});awaitIdle();
-        fx(()->{renderProgress(current.get());stopBatchPolling();assertEquals(java.util.List.of("PAUSE"),calls);assertTrue(batchMenu("ozonZnackPauseBatch").isDisable());assertFalse(batchMenu("ozonZnackResumeBatch").isDisable());assertFalse(((javafx.scene.control.ComboBox<?>)pane.lookup("#ozonRegistrationStatusFilter")).isDisabled());var pill=(javafx.scene.layout.HBox)pane.lookup("#ozonRegistrationBatchStatus");assertTrue(pill.getChildren().stream().noneMatch(javafx.scene.control.ProgressIndicator.class::isInstance));batchMenu("ozonZnackResumeBatch").fire();return null;});awaitIdle();
+        fx(()->{renderProgress(current.get());stopBatchPolling();assertEquals(java.util.List.of("PAUSE"),calls);assertTrue(batchMenu("ozonZnackPauseBatch").isDisable());assertFalse(batchMenu("ozonZnackResumeBatch").isDisable());assertFalse(((javafx.scene.control.ComboBox<?>)pane.lookup("#ozonRegistrationStatusFilter")).isDisabled());assertNull(((javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress")).getGraphic());batchMenu("ozonZnackResumeBatch").fire();return null;});awaitIdle();
         fx(()->{renderProgress(current.get());stopBatchPolling();assertEquals(java.util.List.of("PAUSE","RESUME"),calls);var confirmation=OzonRegistrationPane.class.getDeclaredField("cancelPendingConfirmation");confirmation.setAccessible(true);confirmation.set(pane,(java.util.function.BooleanSupplier)()->false);batchMenu("ozonZnackCancelPendingBatch").fire();assertEquals(2,calls.size());confirmation.set(pane,(java.util.function.BooleanSupplier)()->true);batchMenu("ozonZnackCancelPendingBatch").fire();return null;});awaitIdle();
         fx(()->{renderProgress(current.get());stopBatchPolling();assertEquals(java.util.List.of("PAUSE","RESUME","CANCEL"),calls);assertTrue(batchMenu("ozonZnackPauseBatch").isDisable());assertTrue(batchMenu("ozonZnackResumeBatch").isDisable());assertTrue(batchMenu("ozonZnackCancelPendingBatch").isDisable());assertFalse(button("report").isDisabled());assertTrue(((javafx.scene.control.Label)pane.lookup("#ozonRegistrationBatchProgress")).getText().contains("2/10"));return null;});
     }
-    private javafx.scene.control.MenuItem batchMenu(String id){var header=(javafx.scene.layout.HBox)pane.getChildren().getFirst();return ((javafx.scene.control.Label)header.getChildren().getFirst()).getContextMenu().getItems().stream().filter(item->id.equals(item.getId())).findFirst().orElseThrow();}
+    private javafx.scene.control.MenuItem batchMenu(String id){return ((javafx.scene.control.MenuButton)pane.lookup("#ozonRegistrationMoreActions")).getItems().stream().filter(item->id.equals(item.getId())).findFirst().orElseThrow();}
     @Test void categoryFilterUsesShopCategoriesForAllMatchingSelectionAndSurvivesSoftRefresh()throws Exception{
         try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE ozon_products SET category=CASE WHEN CAST(product_id AS INTEGER)<=500 THEN 'Category A' ELSE 'Category B' END WHERE shop_id=1");}
         fx(()->{button("refresh").fire();return null;});awaitIdle();

@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Znack: nhận diện Catalog, GTIN WB và báo cáo — 05.11.2026, chưa phát hành
+
+- Nhánh `fix/znack-state-wb-gtin-20261105`, base `d9af0b9` của 1.6.3. Đã đối chiếu WBCode công khai mới nhất 1.3.18 bằng binary/JAR xác minh SHA; không sao chép mã hoặc chạy license WBCode. [Bốn sơ đồ và so sánh](research/2026-11-05-wbcode-1318-vncode-znack.md), [bàn giao](validation/2026-11-05-znack-reconcile-handoff.md).
+- Sửa checkpoint cũ che trạng thái Catalog mới; tách chờ ký khỏi lỗi; đọc trực tiếp thẻ đã biết `good_id` chưa xuất hiện trong list. Cấp GTIN/feed receipt vẫn không được coi là đã có thẻ/công bố; yêu cầu chưa rõ kết quả không tự gửi lặp.
+- Chung quy tắc màu cho nhận diện/ghi, chỉ dùng size RU khi có nguồn rõ; giữ scalar color WB. API thật chỉ đọc: 1.982 biến thể WB / 1.380 thẻ Catalog; khớp duy nhất 248 → 263, thêm 15 trường hợp `зеленый`/`ЗЕЛЁНЫЙ`. Có 117 thẻ chờ ký, 2 nháp thuần, 1 thẻ lỗi. 204/229 biến thể khớp thẻ công bố lại khác nhóm TN VED; không bỏ kiểm tra để ép đồng bộ.
+- Một vùng tiến độ, nút Thao tác khác ở WB/Ozon; báo cáo 7 cột chính, loại nhật ký nền khỏi mặc định bằng SQL lọc owner/kind trước LIMIT. Giữ CSV, lịch sử cũ và dữ liệu kỹ thuật.
+- 500 ca ở 26 XML JUnit cuối đạt, không lỗi/skip. Ca 10.000 WB mô phỏng gửi 4 lô, xác minh đủ 10.000, mở lại không gửi trùng. Đã chụp JavaFX sáng/tối; chưa ghi/ký Catalog hay GTIN thật, chưa Windows build, chưa đổi Latest. Không coi số đo mock/API đọc là nghiệm thu ghi thật. Không đổi schema hoặc version.
+
 ## Đã phát hành 1.6.3 lên Latest — 04.11.2026
 
 - Latest `v1.6.3`, release `434558799`, công bố **2026-11-04T23:11:51Z**; nguồn/tag bất biến `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`. Nhánh `feature/vncode-163-approved-ui`; kế thừa 1.6.2 và sửa nhận Ozon `ccd7fc1`. [Bàn giao](validation/2026-11-04-vncode-163-handoff.md), [biên nhận](validation/2026-11-04-vncode-163-published-latest.json).
