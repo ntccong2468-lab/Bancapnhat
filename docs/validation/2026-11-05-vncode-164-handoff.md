@@ -1,25 +1,35 @@
-# VN Code 1.6.4 — gộp Znack và PDF Ozon
+# VN Code 1.6.4 — phát hành gộp Znack và PDF Ozon
 
-## Nguồn đã khóa và quyền phát hành
+**Đã công bố [1.6.4 lên Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.4) lúc 06.11.2026 00:13:28 MSK (`2026-11-05T21:13:28Z`)**, release `435647198`. Người dùng yêu cầu gộp cả sửa Znack trước đó và sửa PDF Ozon vừa hoàn tất.
 
-Người dùng yêu cầu gộp cả sửa Znack trước đó và sửa PDF Ozon rồi phát hành xuống app. Nguồn ứng dụng: `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`, nhánh `fix/znack-state-wb-gtin-20261105`. Bao gồm Latest 1.6.3 `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2` và sửa Znack `33f3d6c5c7f380d7980cea6fb1e312328902be58`; [bằng chứng kế thừa và hash 26 đầu vào runtime](2026-11-05-vncode-164-source-inclusion.json).
+Nguồn ứng dụng/tag: `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`, nhánh `fix/znack-state-wb-gtin-20261105`. Bao gồm Latest 1.6.3 `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2` và sửa Znack `33f3d6c5c7f380d7980cea6fb1e312328902be58`. [Đối chiếu nguồn và 26 đầu vào runtime](2026-11-05-vncode-164-source-inclusion.json). Các commit sau nguồn ứng dụng chỉ cập nhật công cụ phát hành/bằng chứng; PR #20 còn OPEN/draft, chưa merge.
 
-- [Windows build 42095550861](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42095550861): đang chạy; preflight giao diện/nhãn/Catalog đã đạt, full Java đang chạy. Còn native, cài-gỡ và nâng cấp 1.6.3 → 1.6.4 trước công bố.
-- Draft GitHub ID `435647198`, tag dự kiến `v1.6.4`, target đúng nguồn trên. **Chưa công bố; Latest vẫn 1.6.3 tại thời điểm ghi**. Chỉ trình phát hành có đủ bằng chứng và hash mới chuyển Latest.
-- `tools/publish-vncode-164.mjs` khóa source/build/draft ID, kiểm tra đủ 16 tài sản và bằng chứng nâng cấp. Không xóa hay ghi đè tài sản phát hành cũ; không dùng `baseline-release.mjs prune`.
-- PR #20 được cập nhật phạm vi thành Znack + PDF Ozon. Các build PR trùng nguồn đã hủy; chỉ dùng build Windows dispatch nguồn khóa trên làm bằng chứng phát hành.
+## Những sửa đã có trong bộ cài
 
-## Kiểm chứng trước bộ cài
+- Znack: trạng thái Catalog mới, có danh tính phù hợp, không bị checkpoint cũ che; thẻ chờ ký tách khỏi lỗi; đọc bổ sung thẻ có `good_id` chưa có trong trang danh sách. Giữ đối soát feed chưa rõ kết quả, không gửi lặp. Thống nhất màu/size giữa ghép GTIN và ghi WB, giữ màu WB dạng chuỗi và kiểm tra đúng biến thể/TN VED/chủ sở hữu.
+- Đăng ký WB/Ozon có một vùng tiến độ; báo cáo mặc định tập trung vào thao tác seller. Giữ nút, lịch sử/CSV và dữ liệu kỹ thuật. [So sánh và bốn sơ đồ](../research/2026-11-05-wbcode-1318-vncode-znack.md), [bàn giao Znack](2026-11-05-znack-reconcile-handoff.md).
+- PDF Ozon: preflight cũ không bỏ KIZ đã dành cho đơn; phản hồi KN3 từ chối không làm mất nhãn kết hợp của đúng posting/product/exemplar khi có binding và chứng cứ. Giữ nguyên phản hồi từ chối, không đổi thành API chấp nhận hoặc trả mã về kho.
+- Tải vận đơn theo lô, giữ nguyên vận đơn gốc và ghép KIZ đúng đơn; trang chưa xác định được không làm mất KIZ của các đơn đã nhận diện. In lại giữ mã, seller nhập theo danh mục, kho mua theo mapping. Căn DataMatrix theo lưới 203 dpi. [Bàn giao PDF và test](2026-11-05-ozon-combined-handoff.md).
+- Không đổi schema 6 hoặc UpgradeCode, không triển khai portal hay prototype credential migration. [Ghi chú cập nhật](../releases/VN-code-1.6.4.md).
 
-- [Znack](2026-11-05-znack-reconcile-handoff.md): 500 test/26 lớp; 10.000 GTIN mô phỏng; API thật chỉ đọc. Chưa chứng minh ghi/ký Catalog hoặc GTIN thật trong lượt sửa này.
-- [PDF Ozon](2026-11-05-ozon-combined-handoff.md): 191 test/18 lớp; lô 100 đơn, 200 trang/lần xuất hoặc in lại, 400 lần giải mã ở 203/300 dpi; giữ mã đúng đơn và phản hồi từ chối riêng.
-- 150 test công cụ phát hành đạt; actionlint 1.7.12 kiểm tra workflow đạt.
-- Đã tải portable 1.6.3 công khai, kiểm tra SHA-256 theo manifest và chạy parser updater từ chính JAR đã phát hành: đọc Latest 1.6.3 thành CURRENT, chọn đúng MSI/hash/size. Chạy lại với metadata công khai sau khi phát hành 1.6.4 để xác nhận AVAILABLE; không kích hoạt license hoặc sửa dữ liệu seller.
+## Kiểm chứng phát hành
 
-## Kiểm tra CI bổ sung
+- [Windows build 42095550861](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42095550861) SUCCESS: **3.864 ca / 522 lớp, 0 thất bại/lỗi, 2 bỏ qua theo hệ điều hành**. Full Java chạy khoảng 84 phút; preflight UI/nhãn/Catalog, native/migration/snapshot, DPAPI, cài-gỡ và nâng cấp thụ động đúng EXE từ 1.6.3 đều đạt; dữ liệu và đăng ký cài đặt được giữ. [Biên nhận Windows](2026-11-05-vncode-164-windows.json).
+- [Publisher 42110439977](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42110439977) SUCCESS, nguồn publisher `23e604df98e389f8c3f72f87781e04a52a931677`. Xác minh đủ 16 tài sản rồi mới công bố; draft được khóa bằng ID trả về. [Receipt](2026-11-05-vncode-164-publication-receipt.json), [Latest/tag](2026-11-05-vncode-164-published-latest.json).
+- **16 tài sản được tải lại không dùng token**, đúng kích thước và SHA-256 của receipt. [Bằng chứng tải công khai](2026-11-05-vncode-164-public-assets.json). Nguồn và toàn bộ 16 tài sản 1.6.3 được đối chiếu còn nguyên, không xóa hay ghi đè release cũ.
+- Source ZIP có **2.792 tệp**, đối chiếu từng tệp với commit; chỉ chuẩn hóa CRLF đối với văn bản. JAR đúng 1.6.4, có lớp sửa Znack/PDF. [Biên nhận gói](2026-11-05-vncode-164-package.json).
+- [Updater từ chính binary 1.6.3](2026-11-05-vncode-164-updater.json) đọc metadata Latest công khai và báo **AVAILABLE 1.6.4**, chọn đúng MSI/hash/size. Không khẳng định đã quan sát popup hoặc cài trên máy seller.
 
-CI cho nguồn ứng dụng `86d76d8`: CodeQL Java, lint/audit và scanner OpenQodex đạt. Dependency review không chạy được do repository chưa hỗ trợ/bật Dependency graph; không có thay đổi dependency trong bản sửa. CodeQL JavaScript báo ba lỗi kiểm tra rồi mở lại đường dẫn ở công cụ phát hành cũ 1.6.1–1.6.3 (7.7). Đã sửa trình phát hành hiện tại và ba script đó để kiểm tra/đọc cùng một file handle, từ chối symlink/thư mục, có test; không thay đổi bộ cài hoặc tài sản các bản cũ. Chờ CI xác nhận sửa công cụ. Không gọi toàn bộ PR checks là xanh khi dependency review vẫn chưa khả dụng.
+EXE: `VN-code-1.6.4-Windows-x64.exe`, **149.207.552 byte**, SHA-256 `9d384ba29f1995ad0da4f51cb0b5faf7e2cde37a0e9455a856676689135b2d57`.
 
-## Việc phải chốt
+MSI cho cập nhật trong app: `VN-code-1.6.4-Windows-x64.msi`, **148.538.629 byte**, SHA-256 `487df1c2377c5614052093aebce8742ada1c129513115431f2e510054e22d641`.
 
-Sau khi Windows hoàn tất: tải artifact, đối chiếu nguồn và hash, chạy publisher nguồn riêng với build khóa; đọc lại Latest/tag/assets, tải và kiểm hash công khai, kiểm updater 1.6.3. Lưu receipt, cập nhật trạng thái bộ nhớ và PR. Kiểm thử Windows dùng dữ liệu tổng hợp; không khẳng định đã quan sát popup trên máy seller.
+## Phạm vi và kinh nghiệm
+
+- Trước build: Znack 500 test/26 lớp và 10.000 GTIN mô phỏng; PDF 191 test/18 lớp, 100 đơn tổng hợp tạo 200 trang mỗi lượt xuất/in lại, đọc 400 mã ở 203/300 dpi. Không dùng các số này làm benchmark hoặc bằng chứng ghi API thật.
+- API Znack/WB ở lượt sửa này chỉ đọc. Không ghi/ký Catalog, nhận đơn, gán KIZ, mua KIZ hoặc kích hoạt license thật mới để kiểm thử 1.6.4. Nghiệm thu thật các lượt trước có thời điểm và bàn giao riêng.
+- 150 test công cụ, actionlint, CodeQL Java/JavaScript và scanner OpenQodex đạt ở publisher; không gọi scanner là review AI độc lập. Dependency review không khả dụng do repository chưa hỗ trợ/bật Dependency graph; không đổi dependency. [Biên nhận và giới hạn CI](2026-11-05-vncode-164-tool-checks.json).
+- Đã sửa ba cảnh báo CodeQL ở script phát hành cũ 1.6.1–1.6.3 và dùng cùng helper cho 1.6.4: kiểm tra/đọc trên cùng file handle, từ chối symlink/thư mục. Không chạy lại các publisher cũ hoặc thay bộ cài cũ. Không tắt gate để có kết quả xanh.
+- Build PR trùng đã hủy, giữ build nguồn khóa. Môi trường Codex kết nối lại lúc CI hoàn tất; đã đọc lại trạng thái run/commit thay vì khởi động build/phát hành lần nữa. Luôn lấy draft theo ID và đối chiếu receipt trước khi tiếp tục.
+
+Yêu cầu gộp và phát hành đã hoàn tất. Khi điều tra seller, đọc journal và phân biệt reservation/in cục bộ với Ozon chấp nhận mã; không gửi lại hoặc cấp lại mã chỉ vì tệp tạm không còn.

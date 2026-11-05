@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Đã phát hành 1.6.4: gộp Znack và PDF Ozon — 06.11.2026, 00:13 MSK
+
+- Theo yêu cầu người dùng, Latest `v1.6.4` đã công bố `2026-11-05T21:13:28Z`, release `435647198`, source/tag `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`; gồm sửa Znack `33f3d6c` và PDF Ozon, kế thừa 1.6.3. [Bàn giao](validation/2026-11-05-vncode-164-handoff.md), [biên nhận Latest](validation/2026-11-05-vncode-164-published-latest.json).
+- Windows build `42095550861` đạt 3.864 ca/522 lớp, 0 thất bại/lỗi, 2 OS skip; native, dữ liệu, cài-gỡ và nâng cấp đúng EXE từ 1.6.3 giữ dữ liệu đạt. Full Java mất khoảng 84 phút. Nguồn build được khóa trước khi chờ, không bỏ gate hoặc dùng bộ cài của commit khác.
+- Publisher `23e604d`, run `42110439977` đạt; đủ 16 tài sản công khai khớp hash/size, 2.792 tệp source ZIP khớp nguồn; updater binary 1.6.3 đọc AVAILABLE 1.6.4, chọn đúng MSI. Giữ nguyên 16 tài sản/source của 1.6.3, không xóa release cũ. Chưa quan sát popup trên máy seller.
+- 150 test công cụ và CodeQL Java/JavaScript đạt sau khi sửa kiểm tra/đọc file qua cùng handle. Dependency review repo chưa khả dụng; không đổi dependency hay tắt gate. Chốt draft theo ID trả về, không tạo lại khi danh sách release cập nhật chậm.
+- API seller trong lượt này không có ghi/ký/nhận/mua mới: PDF 100 đơn và 10.000 GTIN là mô phỏng, API Znack/WB trước đó chỉ đọc. Giữ riêng bằng chứng Windows, mock và nghiệm thu API thật. Không đưa prototype credential migration vào runtime hoặc triển khai portal.
+
 ## PDF Ozon và yêu cầu phát hành gộp Znack — 05.11.2026
 
 - Sửa preflight cũ bỏ KIZ đã giữ; xử lý KN3 readback từ chối làm mã chuyển CONSUMED/REJECTED để vẫn in đúng binding của đơn mà không đổi kết quả API hoặc trả mã về kho. Dùng đúng product_id/exemplar, giữ kiểm tra chủ tài khoản/nguồn/mapping mua; seller nhập theo danh mục. Trang không rõ danh tính không làm mất KIZ của những trang đã xác định trong cùng lô.

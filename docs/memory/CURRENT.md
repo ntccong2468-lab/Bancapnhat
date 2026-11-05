@@ -1,32 +1,32 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **05.11.2026, 22:30 MSK (UTC+03:00)**. Đây là trạng thái đã đối chiếu ở thời điểm ghi; kiểm tra Git/PR/Latest lại khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **06.11.2026, 00:17 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
 
-## Mã đang làm và bản đã phát hành
+## Mã và bản đã phát hành
 
-- Repository: `ntccong2468-lab/Bancapnhat`.
-- Nhánh đang làm: `fix/znack-state-wb-gtin-20261105`; mã sửa nghiệp vụ tại `33f3d6c5c7f380d7980cea6fb1e312328902be58`, nền `d9af0b9`.
-- [PR #20](https://github.com/ntccong2468-lab/Bancapnhat/pull/20): **OPEN / draft, chưa merge**, base `feature/vncode-163-approved-ui`.
-- Nguồn 1.6.4 đã khóa: `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`, chứa cả Znack và PDF Ozon. Windows build `42095550861` đang chạy; draft release ID `435647198` chưa công bố. [Bàn giao phát hành 1.6.4](../validation/2026-11-05-vncode-164-handoff.md).
-- **Latest là v1.6.3**, nguồn/tag `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`, công bố 05.11.2026 02:11:51 MSK (`2026-11-04T23:11:51Z`). [Bàn giao phát hành](../validation/2026-11-04-vncode-163-handoff.md).
-- **Sửa Znack và PDF Ozon trong PR #20 chưa có trong Latest.** Người dùng đã yêu cầu gộp và phát hành: mã hiện tại mang phiên bản **1.6.4**, chờ full Windows/build/nâng cấp trước khi công bố. Không chọn nhánh mặc định cũ `update/vn-code-1.3.0` làm nền công việc mới.
+- Repository: `ntccong2468-lab/Bancapnhat`; nhánh `fix/znack-state-wb-gtin-20261105`.
+- **Latest đã là v1.6.4**, release `435647198`, công bố **06.11.2026 00:13:28 MSK** (`2026-11-05T21:13:28Z`). Nguồn/tag khóa `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`.
+- Bản này chứa cả sửa Znack `33f3d6c5c7f380d7980cea6fb1e312328902be58` và sửa PDF Ozon, kế thừa đầy đủ 1.6.3. Mã nguồn Znack đầy đủ được ghi chính xác trong [đối chiếu nguồn](../validation/2026-11-05-vncode-164-source-inclusion.json).
+- Publisher `23e604df98e389f8c3f72f87781e04a52a931677`; các commit sau nguồn ứng dụng ghi công cụ phát hành/bằng chứng, không phải một bộ cài khác.
+- [PR #20](https://github.com/ntccong2468-lab/Bancapnhat/pull/20) OPEN/draft, base `feature/vncode-163-approved-ui`; không tự merge. Không chọn default branch cũ `update/vn-code-1.3.0` làm nền.
+- [Bàn giao phát hành 1.6.4](../validation/2026-11-05-vncode-164-handoff.md), [Latest/receipt](../validation/2026-11-05-vncode-164-published-latest.json). Bộ cài và 16 tài sản 1.6.3 được giữ nguyên.
 
-## Sửa gần nhất
+## Đã sửa trong 1.6.4
 
-- Đã sửa thêm PDF Ozon mất KIZ vì preflight cũ, trạng thái KN3 từ chối, và một trang chưa nhận diện ảnh hưởng cả lô. Căn DataMatrix theo điểm in 203 dpi. **191 test/18 lớp đạt**; 100 đơn tổng hợp có đủ 100 vận đơn + 100 KIZ, in lại giữ mã, đọc đủ ở 203/300 dpi. [Bàn giao PDF](../validation/2026-11-05-ozon-combined-handoff.md).
-- Đối chiếu WBCode 1.3.18: trạng thái Catalog mới có danh tính phù hợp không bị checkpoint cũ che; chờ ký tách khỏi lỗi; đọc bổ sung thẻ có `good_id`. GTIN được cấp hoặc receipt không chứng minh thẻ đã công bố; không gửi lại feed chưa rõ kết quả.
-- Chung quy tắc màu/size cho ghép và ghi GTIN; giữ màu WB dạng chuỗi. Giữ kiểm tra đúng biến thể, chủ sở hữu và TN VED.
-- WB/Ozon có một vùng tiến độ; báo cáo mặc định bảy cột và thao tác seller. Lọc báo cáo theo owner/kind trước LIMIT; lịch sử, CSV, dữ liệu kỹ thuật và các nút cũ còn nguyên. Không đổi schema.
-- [Báo cáo so sánh và bốn sơ đồ](../research/2026-11-05-wbcode-1318-vncode-znack.md); [bàn giao, quyết định và kinh nghiệm](../validation/2026-11-05-znack-reconcile-handoff.md).
+- Znack: trạng thái Catalog mới có danh tính phù hợp không bị checkpoint cũ che; chờ ký tách khỏi lỗi; đọc bổ sung thẻ đã biết `good_id`. Giữ yêu cầu chưa rõ kết quả để đối soát, không gửi trùng.
+- GTIN: chung quy tắc màu/size khi ghép và ghi, giữ màu WB dạng chuỗi; không bỏ kiểm tra đúng biến thể/chủ sở hữu/TN VED. WB/Ozon có một vùng tiến độ và báo cáo gọn, giữ lịch sử/CSV/chức năng chi tiết.
+- PDF Ozon: preflight cũ không bỏ KIZ đã dành cho đơn; KN3 từ chối vẫn in đúng mã đã gắn posting/product/exemplar có chứng cứ, giữ riêng kết quả API và không trả mã về kho. Giữ kho seller nhập theo danh mục và kho mua theo mapping.
+- Tải vận đơn theo lô, giữ nguyên vận đơn gốc → KIZ đúng đơn; trang chưa rõ danh tính không làm mất KIZ của các đơn đã nhận diện. Căn DataMatrix theo điểm in 203 dpi; in lại giữ mã. Không đổi schema/UpgradeCode.
 
-## Đã kiểm chứng và còn thiếu
+## Kiểm chứng và giới hạn
 
-- **500 test / 26 báo cáo JUnit đạt**, Linux/JavaFX; không phải kiểm thử bộ cài Windows. [Bằng chứng](../validation/2026-11-05-znack-tests.json).
-- **10.000 GTIN WB mô phỏng**: 4 lượt ghi, đọc lại đủ 10.000, mở lại không gửi trùng. Thời gian mô phỏng không phải tốc độ API thật. [Bằng chứng](../validation/2026-11-05-znack-wb-10000-mock.json).
-- **API thật chỉ đọc**: 1.982 biến thể WB / 1.380 thẻ Catalog; khớp duy nhất 248 → 263. Trong 229 biến thể khớp thẻ công bố, 204 khác nhóm TN VED; 25 cùng nhóm vẫn cần kiểm tra đầy đủ trước khi ghi. [Số đếm](../validation/2026-11-05-znack-readonly-identity-counts.json).
-- Đã xem ảnh JavaFX sáng/tối. **Chưa ghi/ký Catalog hoặc giá/GTIN thật cho sửa mới; chưa full Windows/build/upgrade/phát hành.** Không gọi số đo mock hoặc lần đọc API là nghiệm thu ghi thật.
-- Prototype mã hóa credential có bàn giao riêng, chưa được đưa vào runtime; không gộp nhầm khi phát hành.
+- Windows build `42095550861` SUCCESS: **3.864 ca, 0 thất bại/lỗi, 2 bỏ qua theo OS, 522 lớp**; native/migration/snapshot/DPAPI/cài-gỡ và nâng cấp thụ động 1.6.3 → 1.6.4 giữ dữ liệu đạt. [Bằng chứng](../validation/2026-11-05-vncode-164-windows.json).
+- Publisher `42110439977` SUCCESS, đủ 16 tài sản công khai đúng hash/size; 2.792 tệp source ZIP đối chiếu đúng nguồn. Updater từ chính binary 1.6.3 đọc Latest 1.6.4 thành AVAILABLE và chọn đúng MSI/hash/size. Chưa quan sát popup trên máy seller.
+- Trước build: Znack 500 test/26 lớp; 10.000 GTIN WB mô phỏng; [PDF Ozon 191 test/18 lớp](../validation/2026-11-05-ozon-combined-handoff.md), 100 đơn có 200 trang/lượt, in lại giữ mã, đọc đủ 203/300 dpi.
+- API thật trong lượt sửa Znack chỉ đọc. **Không có nghiệm thu ghi/ký Catalog, GTIN hay nhận đơn/KIZ thật mới trong lượt 1.6.4.** Bằng chứng ghi thật trước đó có thời điểm và bàn giao riêng; không dùng mock để khẳng định giao dịch thật.
+- CodeQL Java/JavaScript, lint/audit, scanner và 150 test công cụ đạt ở publisher. Dependency review không khả dụng vì Dependency graph của repo; không có thay đổi dependency. [Phạm vi CI](../validation/2026-11-05-vncode-164-tool-checks.json).
+- Prototype credential migration vẫn chưa đưa vào runtime; không triển khai portal. Bộ nhớ nằm trong Git; chưa cài/kết nối MCP memory.
 
-## Bước tiếp tục
+## Tiếp tục
 
-Người dùng đã yêu cầu phát hành **cả sửa Znack và PDF Ozon**: chuẩn bị **1.6.4** từ nhánh trên, chạy full Windows/native/build/nâng cấp từ 1.6.3 rồi công bố Latest. Giữ nguyên tài sản 1.6.3; không đưa prototype credential migration vào runtime. Chưa cài/kết nối MCP memory. Đọc bàn giao/receipt trước giao dịch thật; dữ liệu riêng trong `/tmp` có thể mất khi đổi môi trường.
+Yêu cầu gộp Znack + PDF Ozon và phát hành đã hoàn tất. Nếu điều tra dữ liệu seller, đọc bàn giao và journal trước; không chạy lại giao dịch chỉ vì tệp trong `/tmp` bị mất. Giữ riêng việc in KIZ cục bộ và Ozon chấp nhận mã; chỉ ghép đúng đơn/nguồn/danh mục. Đọc [so sánh và sơ đồ Znack](../research/2026-11-05-wbcode-1318-vncode-znack.md) khi cần tiếp tục luồng Catalog/GTIN.

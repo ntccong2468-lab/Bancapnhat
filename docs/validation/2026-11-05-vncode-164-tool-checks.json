@@ -1,0 +1,31 @@
+{
+  "sourceCommit": "23e604df98e389f8c3f72f87781e04a52a931677",
+  "applicationSource": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad",
+  "runId": 42097896083,
+  "jobs": [
+    {
+      "name": "changed-dependencies",
+      "conclusion": "failure"
+    },
+    {
+      "name": "codeql (javascript-typescript, none)",
+      "conclusion": "success"
+    },
+    {
+      "name": "codeql (java-kotlin, manual)",
+      "conclusion": "success"
+    },
+    {
+      "name": "lint-and-audit",
+      "conclusion": "success"
+    },
+    {
+      "name": "openqodex-scan",
+      "conclusion": "success"
+    }
+  ],
+  "dependencyReviewLimitation": "Repository dependency graph unsupported/disabled; no dependency change in application patch",
+  "releaseToolTests": 150,
+  "workflowSyntax": "actionlint 1.7.12 passed",
+  "scope": "CodeQL and changed-file scanners; not an independent AI review, no seller mutation"
+}

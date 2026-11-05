@@ -12,7 +12,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 | --- | --- |
 | Toàn bộ lịch sử sửa, quyết định, kinh nghiệm | [PROJECT_MEMORY.md](../PROJECT_MEMORY.md) |
 | Sửa PDF Ozon thiếu nhãn kết hợp và phát hành gộp Znack 1.6.4 | [Bàn giao](../validation/2026-11-05-ozon-combined-handoff.md), [191 test](../validation/2026-11-05-ozon-combined-tests.json) |
-| Phát hành gộp 1.6.4: nguồn, build và kiểm tra updater | [Bàn giao 1.6.4](../validation/2026-11-05-vncode-164-handoff.md), [đối chiếu nguồn](../validation/2026-11-05-vncode-164-source-inclusion.json) |
+| Latest 1.6.4: Znack + PDF, Windows/nâng cấp và updater đã xác minh | [Bàn giao 1.6.4](../validation/2026-11-05-vncode-164-handoff.md), [đối chiếu nguồn](../validation/2026-11-05-vncode-164-source-inclusion.json) |
 | Znack, nhận diện Catalog, GTIN WB, sơ đồ WBCode/VN Code | [So sánh](../research/2026-11-05-wbcode-1318-vncode-znack.md), [bàn giao](../validation/2026-11-05-znack-reconcile-handoff.md) |
 | Nhận đơn Ozon, KIZ, phiếu nhặt hàng | [Bàn giao Ozon](../validation/2026-11-04-ozon-accept-picking-handoff.md), [định dạng KIZ](../research/2026-11-04-ozon-kiz-input.md) |
 | PDF Ozon theo lô, cache, giới hạn benchmark | [Bàn giao PDF](../validation/2026-11-03-ozon-batch-pdf-audit.md) |
