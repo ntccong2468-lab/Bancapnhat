@@ -7,6 +7,7 @@ Cập nhật: **05.11.2026, 22:30 MSK (UTC+03:00)**. Đây là trạng thái đ�
 - Repository: `ntccong2468-lab/Bancapnhat`.
 - Nhánh đang làm: `fix/znack-state-wb-gtin-20261105`; mã sửa nghiệp vụ tại `33f3d6c5c7f380d7980cea6fb1e312328902be58`, nền `d9af0b9`.
 - [PR #20](https://github.com/ntccong2468-lab/Bancapnhat/pull/20): **OPEN / draft, chưa merge**, base `feature/vncode-163-approved-ui`.
+- Nguồn 1.6.4 đã khóa: `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`, chứa cả Znack và PDF Ozon. Windows build `42095550861` đang chạy; draft release ID `435647198` chưa công bố. [Bàn giao phát hành 1.6.4](../validation/2026-11-05-vncode-164-handoff.md).
 - **Latest là v1.6.3**, nguồn/tag `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`, công bố 05.11.2026 02:11:51 MSK (`2026-11-04T23:11:51Z`). [Bàn giao phát hành](../validation/2026-11-04-vncode-163-handoff.md).
 - **Sửa Znack và PDF Ozon trong PR #20 chưa có trong Latest.** Người dùng đã yêu cầu gộp và phát hành: mã hiện tại mang phiên bản **1.6.4**, chờ full Windows/build/nâng cấp trước khi công bố. Không chọn nhánh mặc định cũ `update/vn-code-1.3.0` làm nền công việc mới.
 
