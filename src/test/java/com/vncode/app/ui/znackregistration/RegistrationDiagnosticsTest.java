@@ -4,6 +4,14 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationDiagnosticsTest {
+    @Test void publishedCatalogStatusIsIndependentOfMarketplaceMatchingAndOldErrors(){
+        var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","A","Blue","M",true,true,"National Catalog",java.time.Instant.now());
+        var candidate=new com.vncode.app.features.sync.RegistrationCardIndex.View("source.ambiguous",card.gtin(),"GTIN_VARIANT_CONFLICT",true,false,true);
+        assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.status.published"),RegistrationDiagnostics.cardStatus(candidate,java.util.Optional.of(card)));
+        var resolved=new com.vncode.app.features.sync.RegistrationCardIndex.View("status.published",card.gtin(),"SOURCE_PUBLISHED_CONFIRMED",true,true,false);
+        assertFalse(RegistrationDiagnostics.activeReason(resolved,"GTIN_VARIANT_CONFLICT").contains("GTIN_VARIANT_CONFLICT"));
+        assertEquals(RegistrationDiagnostics.reason("SOURCE_PUBLISHED_CONFIRMED"),RegistrationDiagnostics.activeReason(resolved,"CATALOG_REJECTED: old rejection"));
+    }
     @Test void legacyRepairWarningKeepsTheOriginalReasonAndRedactsSecrets(){
         for(var language:com.vncode.app.shared.AppLanguage.values()){
             var bundle=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",language.toLocale());

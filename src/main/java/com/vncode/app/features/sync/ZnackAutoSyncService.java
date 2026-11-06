@@ -178,12 +178,20 @@ public final class ZnackAutoSyncService {
     private static SyncRunRepository.Item reportItem(String run,String product,String variant,String sku,String article,String color,String size,String gtin,String state,String error,String evidence){return new SyncRunRepository.Item(UUID.randomUUID().toString(),run,product,variant,sku,article,color,size,gtin,state,"MATCHING",error,"",evidence);}
     private List<RegisteredGtin> match(Shop shop,ProductRow product,GtinCatalogIndex index)throws Exception {
         var matched=candidates(shop,product,index);
+        if(shop.getMarketplace()==Marketplace.WILDBERRIES)return matched;
         var compatible=matched.stream().filter(card->GtinTnvedIdentity.compatible(product.tnved(),card.details().values("tnved"))).toList();
         if(!matched.isEmpty()&&compatible.isEmpty())throw new IllegalArgumentException("GTIN_TNVED_GROUP_CHANGED");
         return compatible;
     }
     private List<RegisteredGtin> candidates(Shop shop,ProductRow product,GtinCatalogIndex index)throws Exception {
         String nativeGtin=registrationGtin(shop,product.key());
+        if(shop.getMarketplace()==Marketplace.WILDBERRIES){
+            java.util.function.Predicate<RegisteredGtin> exact=card->GtinVariantIdentity.matchesWb(card,product.vendorArticle(),product.color(),GtinVariantIdentity.primarySize(product),product.russianSize());
+            var nativeMatch=index.code(nativeGtin).stream().filter(exact).toList();
+            if(!nativeMatch.isEmpty())return nativeMatch;
+            var present=index.codes(product.barcodes()).stream().filter(exact).toList();
+            return present.isEmpty()?index.attributes(product.vendorArticle(),product.color(),GtinVariantIdentity.primarySize(product),product.russianSize()).stream().filter(exact).toList():present;
+        }
         if(!nativeGtin.isBlank()){
             var exact=index.code(nativeGtin);
             if(exact.size()==1&&OzonSkuGtinMatcher.sameColor(product.color(),exact.getFirst().color())&&GtinVariantIdentity.sizeMatches(exact.getFirst(),GtinVariantIdentity.primarySize(product),product.russianSize()))return exact;

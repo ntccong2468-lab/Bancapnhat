@@ -33,7 +33,12 @@ class CatalogSyncServiceTest {
         service=new CatalogSyncService(plans,gtins,edits,(s,k)->snapshot,s->listing,k->codes,(s,g)->{},(s,selected)->{});
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
-    @Test void wbChangedGroupCannotPreviewOldRegisteredGtin()throws Exception{changedGroup(Marketplace.WILDBERRIES);}
+    @Test void wbGtinAppendDoesNotRequireMatchingTnved()throws Exception{
+        setup(Marketplace.WILDBERRIES);changeGroup();codes.expectedRevision=snapshot.revision();
+        var plan=service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.GTIN),Map.of()));
+        assertEquals(1,plan.rows().size());var result=service.run(shop,plan.id(),true);
+        assertEquals(State.SUCCEEDED,result.rows().getFirst().state());assertEquals(1,codes.writes);assertEquals(0,listing.writes);
+    }
     @Test void ozonChangedGroupCannotPreviewOldRegisteredGtin()throws Exception{changedGroup(Marketplace.OZON);}
     private void changeGroup(){snapshot=new ProductSnapshot(snapshot.key(),"live:group-changed",snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),List.of(new ProductAttribute("88","ТН ВЭД",List.of("6112110000"),"")),snapshot.variants(),snapshot.dimensions(),snapshot.documents(),Instant.now());}
     private void changedGroup(Marketplace market)throws Exception{
@@ -41,7 +46,7 @@ class CatalogSyncServiceTest {
         assertEquals("GTIN_TNVED_GROUP_CHANGED",failure.getMessage());assertEquals(0,codes.writes);assertEquals(0,listing.writes);
     }
     @Test void tnvedGroupIsRecheckedAfterPreviewBeforeDispatch()throws Exception{
-        setup(Marketplace.WILDBERRIES);var plan=service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.GTIN),Map.of()));changeGroup();
+        setup(Marketplace.OZON);var plan=service.preview(shop,List.of(new Selection(key,source.gtin())),new Options(Set.of(Field.GTIN),Map.of()));changeGroup();
         var result=service.run(shop,plan.id(),true);assertEquals(State.BLOCKED,result.rows().getFirst().state());assertEquals("GTIN_TNVED_GROUP_CHANGED",result.rows().getFirst().issue());assertEquals(0,codes.writes);
     }
     @Test void metadataBeforeGtinWb()throws Exception{neverAddsGtinUntilAttributesWereReadBackAndPersistsRecovery(Marketplace.WILDBERRIES);}
@@ -186,13 +191,13 @@ class CatalogSyncServiceTest {
         public RemoteSubmission finishAssets(Shop s,RemoteSubmission r){throw new AssertionError("No files in fixture");}
     }
     class Codes implements GtinMarketplaceAdapter {
-        int writes;boolean lostReply;
+        int writes;boolean lostReply;String expectedRevision="live:updated";
         public GtinSyncModels.Capability capability(GtinSyncModels.ProductKey key){return new GtinSyncModels.Capability(true,false,"");}
         public GtinSyncModels.ProductSnapshot read(GtinSyncModels.ProductKey key){return new GtinSyncModels.ProductSnapshot(key,"article","","",barcodes,ListingIdentity.hash(snapshot.revision()+barcodes),Instant.now());}
         public void validateIdentity(GtinSyncModels.ProductSnapshot target,GtinSyncModels.RegisteredGtin registered){if(!target.article().equals(registered.article()))throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");}
         public boolean conflicts(GtinSyncModels.ProductKey key,String gtin){return false;}
         public GtinSyncModels.Submission submit(GtinSyncModels.Preview p)throws IOException {
-            assertEquals("live:updated",snapshot.revision(),"Attributes must have completed readback before barcode submission");
+            assertEquals(expectedRevision,snapshot.revision(),"Attributes must have completed readback before barcode submission");
             writes++;barcodes.add(p.newGtin());if(lostReply)throw new IOException("response lost after fixture commit");return new GtinSyncModels.Submission("");
         }
         public GtinSyncModels.Verification verify(GtinSyncModels.Preview p,GtinSyncModels.Submission s){return barcodes.contains(p.newGtin())?GtinSyncModels.Verification.APPLIED:GtinSyncModels.Verification.PENDING;}

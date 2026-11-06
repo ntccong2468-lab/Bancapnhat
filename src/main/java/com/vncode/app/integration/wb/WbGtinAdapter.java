@@ -57,21 +57,7 @@ public final class WbGtinAdapter implements GtinBatchAdapter {
                 ||!OzonSkuGtinMatcher.sameColor(target.color(),source.color())
                 ||!GtinVariantIdentity.sizeMatches(source,target.size(),text(size,"wbSize")))
             throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
-        var targetTariffs=new LinkedHashSet<String>();boolean unreadable=false;
-        for(var raw:array(card,"characteristics")){
-            var attribute=object(raw);
-            if(!com.vncode.app.features.products.ProductFieldNames.matches("tnved",text(attribute,"name")))continue;
-            var value=attribute.get("value");var values=value!=null&&value.isJsonArray()?value.getAsJsonArray().asList():value==null?List.<JsonElement>of():List.of(value);
-            for(var entry:values){String code=entry.isJsonPrimitive()?com.vncode.app.features.products.ProductFieldNames.tnvedCode(entry.getAsString()):"";
-                if(!code.matches("[0-9]{4}|[0-9]{10}"))unreadable=true;else targetTariffs.add(code);
-            }
-        }
-        if(unreadable||targetTariffs.size()>1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
-        if(!targetTariffs.isEmpty()){
-            String targetCode=targetTariffs.iterator().next(),registered=source.details().single("tnved");
-            if(!registered.matches("[0-9]{4}|[0-9]{10}")||!(targetCode.length()==10&&registered.length()==10?targetCode.equals(registered):targetCode.substring(0,4).equals(registered.substring(0,4))))
-                throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
-        }
+        // Keep WB's current TN VED in the full-card payload. It is not a GTIN match condition.
     }
     private static JsonObject strictSize(JsonObject card,String variant){
         for(var raw:array(card,"sizes")){var size=object(raw);if(variant.equals(text(size,"chrtID")))return size;}

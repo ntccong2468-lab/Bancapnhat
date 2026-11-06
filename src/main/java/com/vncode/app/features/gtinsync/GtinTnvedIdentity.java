@@ -3,7 +3,7 @@ package com.vncode.app.features.gtinsync;
 import com.vncode.app.features.products.*;
 import java.util.*;
 
-/** A known change of the first four TN VED digits requires another registered card. */
+/** Ozon GTIN identity still includes TN VED; WB appends use article, color and size. */
 public final class GtinTnvedIdentity {
     private GtinTnvedIdentity(){}
     public static boolean compatible(String marketplace,List<String> registered){return compatible(List.of(marketplace==null?"":marketplace),registered);}
@@ -16,6 +16,7 @@ public final class GtinTnvedIdentity {
         var out=new HashSet<String>();for(String value:values){String code=ProductFieldNames.tnvedCode(value);if(code.length()>=4)out.add(code.substring(0,4));}return out;
     }
     public static void requireCompatible(ProductSnapshot product,GtinSyncModels.RegisteredGtin source){
+        if(product.key().marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)return;
         var target=product.attributes().stream().filter(a->ProductFieldNames.matches("tnved",a.name())&&(a.complexId()==null||a.complexId().isBlank()||a.complexId().equals("0"))).flatMap(a->a.values().stream()).toList();
         if(!compatible(target,source.details().values("tnved")))throw new IllegalArgumentException("GTIN_TNVED_GROUP_CHANGED");
     }

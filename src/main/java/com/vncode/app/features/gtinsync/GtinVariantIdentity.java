@@ -6,6 +6,12 @@ import com.vncode.app.integration.marketplace.Marketplace;
 /** Uses the same explicit size field as the marketplace catalog reader; never converts sizes. */
 public final class GtinVariantIdentity {
     private GtinVariantIdentity(){}
+    /** WB variant proof is independent of the Catalog tariff code. No size conversion. */
+    public static boolean matchesWb(GtinSyncModels.RegisteredGtin card,String article,String color,String size,String russianSize){
+        String expected=GtinMatchingService.normalizeArticle(article);
+        return !expected.isBlank()&&expected.equals(GtinMatchingService.normalizeArticle(card.article()))
+                &&OzonSkuGtinMatcher.sameColor(color,card.color())&&sizeMatches(card,size,russianSize);
+    }
     public static String primarySize(com.vncode.app.features.products.ProductRow product){return product.manufacturerSize().isBlank()?product.size():product.manufacturerSize();}
     public static boolean russianSize(GtinSyncModels.RegisteredGtin source){
         var types=source.details().values("@size_type");
