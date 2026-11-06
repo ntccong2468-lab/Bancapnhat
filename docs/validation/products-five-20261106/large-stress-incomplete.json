@@ -1,0 +1,63 @@
+{
+  "capturedAt": "2026-11-06T20:08:34.889581+00:00",
+  "sourceCommit": "af3bf5c7330bfc1b1ebf3693d4f97190e06e8a54",
+  "mode": "synthetic API, real application services/SQLite",
+  "outcome": "INTERRUPTED_AFTER_PROFILING_SLOW_STRESS; not a pass",
+  "sampledApplicationFrames": [
+    [
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.requireShop(GtinSyncRepository.java:480)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.lambda$catalogItems$0(GtinSyncRepository.java:81)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository$$Lambda/0x000000006e5984b8.run(Unknown Source)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.transaction(GtinSyncRepository.java:499)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.catalogItems(GtinSyncRepository.java:81)",
+      "at com.vncode.app.features.gtinsync.RegisteredGtinProof.requireCurrent(RegisteredGtinProof.java:85)",
+      "at com.vncode.app.integration.wb.WbGtinAdapter.beforeSubmit(WbGtinAdapter.java:110)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runBatchesExclusive(GtinSyncCoordinator.java:169)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runBatches(GtinSyncCoordinator.java:135)",
+      "- locked <0x00000006053d94d8> (a com.vncode.app.integration.wb.WbGtinAdapter)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runItems(GtinSyncCoordinator.java:55)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runJob(GtinSyncCoordinator.java:53)"
+    ],
+    [
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.itemFor(GtinSyncRepository.java:474)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.lambda$requireValidatingBatch$0(GtinSyncRepository.java:378)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository$$Lambda/0x000000006e8edd28.run(Unknown Source)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.transaction(GtinSyncRepository.java:499)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.requireValidatingBatch(GtinSyncRepository.java:378)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.lambda$runBatchesExclusive$11(GtinSyncCoordinator.java:169)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator$$Lambda/0x000000006e8ed248.run(Unknown Source)",
+      "at com.vncode.app.integration.wb.WbGtinAdapter.beforeSubmit(WbGtinAdapter.java:101)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runBatchesExclusive(GtinSyncCoordinator.java:169)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runBatches(GtinSyncCoordinator.java:135)",
+      "- locked <0x00000006053d94d8> (a com.vncode.app.integration.wb.WbGtinAdapter)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runItems(GtinSyncCoordinator.java:55)"
+    ],
+    [
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.requireShop(GtinSyncRepository.java:480)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.lambda$catalogItems$0(GtinSyncRepository.java:81)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository$$Lambda/0x000000006e5984b8.run(Unknown Source)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.transaction(GtinSyncRepository.java:499)",
+      "at com.vncode.app.features.gtinsync.GtinSyncRepository.catalogItems(GtinSyncRepository.java:81)",
+      "at com.vncode.app.features.gtinsync.RegisteredGtinProof.requireCurrent(RegisteredGtinProof.java:85)",
+      "at com.vncode.app.integration.wb.WbGtinAdapter.requireWrites(WbGtinAdapter.java:227)",
+      "at com.vncode.app.integration.wb.WbGtinAdapter.beforeSubmit(WbGtinAdapter.java:101)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runBatchesExclusive(GtinSyncCoordinator.java:169)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runBatches(GtinSyncCoordinator.java:135)",
+      "- locked <0x00000006053d94d8> (a com.vncode.app.integration.wb.WbGtinAdapter)",
+      "at com.vncode.app.features.gtinsync.GtinSyncCoordinator.runItems(GtinSyncCoordinator.java:55)"
+    ]
+  ],
+  "workerCpuSeconds": 1507.72,
+  "completedClassCount": 147,
+  "completedTests": 1044,
+  "completedFailures": 0,
+  "testClass": "GtinBulkPipelineTest",
+  "observedTestMethod": "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+  "methodEvidence": "All three saved main-thread stack samples name this WB method. CPU duration is cumulative for the test JVM, not measured per-method latency.",
+  "excludedFromFunctionalRerun": [
+    "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+    "ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites",
+    "wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay"
+  ],
+  "correction": "Earlier commentary and metadata labelled this Ozon; saved stacks prove WB at capture. No completed 10k method report exists."
+}

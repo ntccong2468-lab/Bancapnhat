@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "fd20aa84304baed67277263e4814f2ba2569612e",
+  "version": "1.6.4",
+  "artifact": "target/VNcode-1.6.4.jar",
+  "sha256": "41a51706d1528ae43a6596981d23d4a4b551a7f4a072682add941d032e8aa4e5",
+  "buildCommand": "DISPLAY=:168 XDG_CACHE_HOME=/tmp/products-five-cache /workspace/toolchains/mvn-vncode -B '-Dtest=*Test,*Tests,Test*,*TestCase,!GtinBulkPipelineTest#*TenThousand*' verify",
+  "buildExit": 0,
+  "finishedAt": "2026-11-06T20:30:52Z",
+  "productionClassFilesCompared": 1933,
+  "classBytesMatchTestedOutput": true,
+  "keyClassHashes": {
+    "com/vncode/app/features/products/ConfiguredProductDeclaration.class": "fa5a61fc9db166c4fd2feda946d794c39bde1b9fa19a22d3654872c4ee3d12ad",
+    "com/vncode/app/features/products/ProductBulkEditService.class": "89fc36f344b17a18eed7cbdeaa161bcd59cb4b90fe927a9a11d5f0518be2e7e5",
+    "com/vncode/app/ui/products/ProductBulkEditPane.class": "fcfdb9e96b5b8c46e262eec822b61798982248d52aee85e3c7615578afa91356",
+    "com/vncode/app/ui/znackregistration/RegistrationDocumentConfigDialog.class": "c85885055c7ce4b59e35cf2977346c96cee7801800df2e9c4039fd33c04eebe6"
+  },
+  "forbiddenTestFixtureProbeEntries": [],
+  "nativeWindowsInstallerBuilt": false,
+  "published": false,
+  "liveWritesSourceCommit": "af3bf5c7330bfc1b1ebf3693d4f97190e06e8a54",
+  "differenceFromLiveCore": "Final commit changes only UI declaration label wording and one matching UI assertion; product service/adapter logic unchanged."
+}

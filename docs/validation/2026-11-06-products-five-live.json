@@ -1,0 +1,93 @@
+{
+  "runtimeSourceCommit": "af3bf5c7330bfc1b1ebf3693d4f97190e06e8a54",
+  "execution": "Production ProductBulkEditService -> ProductEditApiSession -> WbListingAdapter -> ListingHttpClient; isolated SQLite and local test-license fixture",
+  "liveWb": {
+    "startedAt": "2026-11-06T19:44:09.994103406Z",
+    "mode": "LIVE_PRODUCTION_SERVICE_RESEND_CURRENT_VALUES",
+    "licenseAuthority": "LOCAL_TEST_FIXTURE_NO_REMOTE_ACTIVATION",
+    "businessValueChangesRequested": 0,
+    "licenseActivations": 0,
+    "phase": "COMPLETE",
+    "mutationsAttempted": 5,
+    "readCalls": 43,
+    "fields": [
+      {
+        "field": "brand",
+        "state": "RECONCILED",
+        "writeCalls": 1,
+        "readbackRounds": 1,
+        "issueCodes": []
+      },
+      {
+        "field": "material",
+        "state": "RECONCILED",
+        "writeCalls": 1,
+        "readbackRounds": 1,
+        "issueCodes": []
+      },
+      {
+        "field": "gender",
+        "state": "RECONCILED",
+        "writeCalls": 1,
+        "readbackRounds": 1,
+        "issueCodes": []
+      },
+      {
+        "field": "tnved",
+        "state": "RECONCILED",
+        "writeCalls": 1,
+        "readbackRounds": 1,
+        "issueCodes": []
+      },
+      {
+        "field": "documents",
+        "state": "RECONCILED",
+        "writeCalls": 1,
+        "readbackRounds": 4,
+        "issueCodes": []
+      }
+    ],
+    "allBusinessFieldsUnchanged": true,
+    "completedAt": "2026-11-06T19:44:50.626124536Z"
+  },
+  "ozon": {
+    "httpStatus": 403,
+    "code": 7,
+    "apiKeyDisabled": true,
+    "writes": 0
+  },
+  "documentWireCheck": {
+    "matchesConfiguredDocument": true,
+    "occurrences": 1,
+    "wbType": 2,
+    "meaning": "Declaration of conformity"
+  },
+  "comparedFields": [
+    "title",
+    "description",
+    "brand",
+    "vendorArticle",
+    "category",
+    "dimensions",
+    "images",
+    "attributes",
+    "variant identities/colors/sizes/barcodes",
+    "document identities/types/numbers/dates/owner/scope"
+  ],
+  "businessValueChangesTested": false,
+  "newLegalApprovalTested": false,
+  "sellerDataCommitted": false,
+  "credentialValuesCommitted": false,
+  "probeProvenance": {
+    "executedPrivateSourceSha256": "444eaabe050fb67d061e8658f7aff83c8ccd884042d925fea685f3ba091bfd2d",
+    "storedGuardedSourceSha256": "ca345fb623bc65cfd9fc7a899292f8d1717fcad968fd09022c6b69a133671a85",
+    "storedSourceChange": "Added mandatory --execute-current-values argument after the completed live run; guarded copy compiled but not run for more mutations.",
+    "productionCoreSource": "af3bf5c7330bfc1b1ebf3693d4f97190e06e8a54",
+    "mutationAllowlist": [
+      "content/v2/cards/update"
+    ],
+    "mutationAttemptLimit": 5,
+    "journalComplete": true,
+    "repeatExecutionAllowed": false
+  }
+}
