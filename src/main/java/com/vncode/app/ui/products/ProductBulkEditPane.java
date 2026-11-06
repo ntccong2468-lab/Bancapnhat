@@ -250,7 +250,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private boolean compactInputPresent(){return field.equals("documents")?!number.getText().isBlank()&&!type.getText().isBlank()&&(existingOzonDocument()||from.getValue()!=null&&(endless.isSelected()||until.getValue()!=null)):!value.getText().isBlank();}
     private void updateCompactConfirmation(){
         if(compactConfirmation==null||shop==null)return;
-        String proposal=field.equals("documents")?String.join(" · ",type.getText(),number.getText(),Objects.toString(from.getValue(),""),endless.isSelected()?tr("bulk.document_endless"):Objects.toString(until.getValue(),"")):perProductTnved.isEmpty()?value.getText().strip():tr("tnved.per_product_selected")+" "+perProductTnved.size();
+        String proposal=field.equals("documents")?String.join(" · ",tr("bulk.declaration"),number.getText(),Objects.toString(from.getValue(),""),endless.isSelected()?tr("bulk.document_endless"):Objects.toString(until.getValue(),"")):perProductTnved.isEmpty()?value.getText().strip():tr("tnved.per_product_selected")+" "+perProductTnved.size();
         compactConfirmation.setText(java.text.MessageFormat.format(tr("bulk.confirmation"),keys.size(),shop.getName(),shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"WB":"Ozon",tr("bulk.field."+field),proposal.isBlank()?tr("bulk.no_proposal"):proposal));
     }
     private void lookup(){

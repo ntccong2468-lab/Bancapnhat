@@ -84,7 +84,7 @@ class ProductBulkDialogTest {
  @Test void configuredDeclarationIsTheDefaultAndThereIsNoCertificateSelector()throws Exception{
   configureDeclaration(shop,"DEFAULT-DECL");
   fx(()->{pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
-  fx(()->{assertNull(pane.lookup("#bulkExistingDocument"));assertTrue(pane.lookupAll(".radio-button").isEmpty());assertEquals("DEFAULT-DECL",((TextField)pane.lookup("#editDocumentNumber")).getText());assertFalse(((Button)pane.lookup("#editApply")).isDisabled());
+  fx(()->{assertNull(pane.lookup("#bulkExistingDocument"));assertTrue(pane.lookupAll(".radio-button").isEmpty());assertEquals("DEFAULT-DECL",((TextField)pane.lookup("#editDocumentNumber")).getText());assertFalse(((Button)pane.lookup("#editApply")).isDisabled());assertTrue(((Label)pane.lookup("#bulkEditConfirmation")).getText().contains(I18nService.getInstance().tr("bulk.declaration")));
    var method=ProductBulkEditPane.class.getDeclaredMethod("edit");method.setAccessible(true);var edit=(ProductBulkEdit)method.invoke(pane);var document=edit.documents().getFirst();assertEquals("declaration",document.type());assertEquals("",document.id());assertNotNull(document.validFrom());assertNotNull(document.validUntil());assertEquals("false",document.metadata().get("isEndless"));return null;});
  }
  @Test void defaultDocumentUsesOnlyTheSelectedShopConfiguration()throws Exception{
