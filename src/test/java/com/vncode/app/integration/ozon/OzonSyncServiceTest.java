@@ -199,6 +199,21 @@ class OzonSyncServiceTest {
         assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).syncUnfulfilled());
         var saved=new OzonPostingRepository().find(1,"P-1");assertNotNull(saved);assertTrue(saved.requirements().blocksPreparation());assertFalse(saved.canShip());
     }
+    @Test void malformedDetailForOneUnfulfilledPostingDoesNotDropHealthyPostings()throws Exception{
+        var bad=com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","P-BAD")).getAsJsonObject();bad.remove("optional");
+        var good=com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","P-GOOD")).getAsJsonObject();
+        var rows=new com.google.gson.JsonArray();rows.add(bad);rows.add(good);var response=new com.google.gson.JsonObject();response.add("postings",rows);response.addProperty("has_next",false);
+        var detail=com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","P-BAD")).getAsJsonObject();
+        detail.getAsJsonArray("products").get(0).getAsJsonObject().remove("quantity");
+        var wrapped=new com.google.gson.JsonObject();wrapped.add("result",detail);
+        server.enqueue(json(response.toString()));server.enqueue(json(wrapped.toString()));
+
+        assertEquals("FBS_INCOMPLETE_POSTING",assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).syncUnfulfilled()).getMessage());
+
+        var repository=new OzonPostingRepository();assertNotNull(repository.find(1,"P-GOOD"));
+        assertEquals(2,repository.find(1,"P-GOOD").items().getFirst().quantity());
+        assertTrue(repository.find(1,"P-BAD").requirements().blocksPreparation());assertEquals(2,server.getRequestCount());
+    }
     @Test void refreshRejectsAForeignPostingWithoutWritingIt()throws Exception{
         server.enqueue(json("{\"result\":{\"posting_number\":\"OTHER\",\"status\":\"awaiting_deliver\",\"products\":[]}}"));
         assertEquals("FBS_FOREIGN_POSTING",assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).refresh("EXPECTED",false)).getMessage());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));

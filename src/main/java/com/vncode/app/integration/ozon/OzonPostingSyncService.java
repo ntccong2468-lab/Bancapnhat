@@ -143,9 +143,9 @@ public final class OzonPostingSyncService {
                     var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;
                     if(!full.status().equals("unknown")&&OzonJson.hasCompletePostingDetails(object,full))usable.add(full);
                     else {api.requireSyncOwner(shopId);postings.recordIncomplete(shopId,posting,started);complete=false;}
-                }catch(OzonApiException unavailable){
+                }catch(IOException unavailable){
+                    if(!postingDetailFailure(unavailable))throw unavailable;
                     api.requireSyncOwner(shopId);postings.recordIncomplete(shopId,posting,started);
-                    if(unavailable.statusCode()!=404)throw unavailable;
                     complete=false;
                 }
             }

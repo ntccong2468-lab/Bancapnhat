@@ -353,6 +353,22 @@ class FbsSyncServiceTest {
         assertEquals(status,error.statusCode());assertEquals(2,server.getRequestCount());
         assertEquals(2,count("SELECT count(*) FROM ozon_postings WHERE status='awaiting_packaging'"));
     }
+    @Test void malformedDetailForOneQueuePostingDoesNotDropHealthyPostings()throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        var bad=unitPosting("P-BAD","ORDER-BAD","awaiting_packaging",1).getAsJsonObject("result");bad.remove("optional");
+        var good=unitPosting("P-GOOD","ORDER-GOOD","awaiting_packaging",1).getAsJsonObject("result");
+        var rows=new JsonArray();rows.add(bad);rows.add(good);var response=new JsonObject();response.add("postings",rows);response.addProperty("has_next",false);
+        var detail=unitPosting("P-BAD","ORDER-BAD","awaiting_packaging",1);
+        detail.getAsJsonObject("result").getAsJsonArray("products").get(0).getAsJsonObject().remove("quantity");
+        server.enqueue(new MockResponse().setBody(response.toString()));server.enqueue(new MockResponse().setBody(detail.toString()));
+
+        var result=assertDoesNotThrow(()->service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,""));
+
+        assertTrue(result.complete());assertEquals("FBS_INCOMPLETE_POSTING",result.warning().code());
+        assertEquals("awaiting_packaging",repository.find(shop.getId(),"P-GOOD").status());
+        assertEquals(1,repository.find(shop.getId(),"P-GOOD").items().getFirst().quantity());
+        assertTrue(repository.find(shop.getId(),"P-BAD").requirements().blocksPreparation());assertEquals(2,server.getRequestCount());
+    }
     @Test void ozonEmptyProductsInAnActiveOrderCannotEraseExistingProducts()throws Exception{
         var service=ozon();var repository=new OzonPostingRepository();
         var old=unitPosting("P-EMPTY","ORDER","awaiting_packaging",1);repository.upsertDetail(shop.getId(),OzonJson.parsePostingDetail(old));

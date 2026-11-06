@@ -86,8 +86,7 @@ public final class FbsSyncService {
                     try{if(kn3!=null)kn3.ozon(shop,item,api);}
                     catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}
                 }catch(IOException unavailable){
-                    boolean missing=unavailable instanceof OzonApiException upstream&&upstream.statusCode()==404;
-                    if(!missing&&!"FBS_INCOMPLETE_POSTING".equals(unavailable.getMessage()))throw unavailable;
+                    if(!postingDetailFailure(unavailable))throw unavailable;
                     // Advance past this unreadable posting without deleting its cached data.
                     // Carry the warning in the checkpoint so a later page cannot clear it.
                     ListingIdentity.require(shop);incomplete=true;
@@ -119,9 +118,9 @@ public final class FbsSyncService {
                     var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;
                     if(!full.status().equals("unknown")&&OzonJson.hasCompletePostingDetails(object,full))usable.add(full);
                     else {ListingIdentity.require(shop);repository.recordIncomplete(shop.getId(),item,started);partial++;if(item.status().equals("unknown"))unclassified=true;}
-                }catch(OzonApiException unavailable){
+                }catch(IOException unavailable){
+                    if(!postingDetailFailure(unavailable))throw unavailable;
                     ListingIdentity.require(shop);repository.recordIncomplete(shop.getId(),item,started);
-                    if(unavailable.statusCode()!=404)throw unavailable;
                     partial++;if(item.status().equals("unknown"))unclassified=true;
                 }
             }
@@ -191,6 +190,10 @@ public final class FbsSyncService {
         boolean done=response.getOrders().size()<1000;long next=WbFbsResponseValidator.next(after,response.getNext(),response.getOrders().size(),1000);
         WbFbsResponseValidator.orders(response);ListingIdentity.require(shop);orders.saveOrders(shop.getId(),response.getOrders());
         return next(cursor,Long.toString(next),done,response.getOrders().size());
+    }
+    private static boolean postingDetailFailure(IOException failure){
+        if(failure instanceof OzonApiException upstream)return upstream.statusCode()==404;
+        return "FBS_INCOMPLETE_POSTING".equals(failure.getMessage());
     }
     private static SyncCoordinator.Page next(Cursor before,String after,boolean done,int count){return new SyncCoordinator.Page(done?"":JSON.toJson(new Cursor(after,before.from(),before.to(),before.pages()+1,before.concurrentRead(),before.incomplete(),before.unclassified(),before.seenCursors())),done,count);}
     private static SyncCoordinator.Page nextOzon(Cursor before,String after,boolean done,int count,boolean concurrent,boolean incomplete,boolean unclassified)throws IOException {
