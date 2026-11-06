@@ -10,8 +10,8 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Window;
 
 /** Edits the registration permit, not an unrelated marketplace document attachment. */
-final class RegistrationDocumentConfigDialog {
-    static void show(Window window,Shop shop,Runnable saved){
+public final class RegistrationDocumentConfigDialog {
+    public static void show(Window window,Shop shop,Runnable saved){
         var owner=new Shop(shop.getId(),shop.getName(),shop.getMarketplace(),shop.getClientId(),shop.getApiKey());
         var read=new Task<ZnackModels.Settings>(){protected ZnackModels.Settings call(){ListingIdentity.require(owner);return repository(owner).getSettings();}};
         read.setOnSucceeded(e->show(window,owner,read.getValue(),saved));

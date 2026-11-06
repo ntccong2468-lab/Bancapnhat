@@ -84,7 +84,7 @@ public final class ProductBulkEditService {
                 }
                 changes=Map.of("attribute:"+candidates.getFirst().id(),values);
             }
-            List<ProductDocument> documents=edit.documents();if(documents!=null){for(var d:documents)if(d.marketplace()!=shop.getMarketplace())throw new IllegalArgumentException("Foreign document");if(shop.getMarketplace()==Marketplace.WILDBERRIES){var merged=new ArrayList<>(fresh.documents());for(var d:documents){merged.removeIf(old->!d.number().isBlank()&&d.number().equals(old.number())&&d.type().equals(old.type()));merged.add(d);}documents=List.copyOf(merged);}}
+            List<ProductDocument> documents=edit.documents();if(documents!=null){for(var d:documents)if(d.marketplace()!=shop.getMarketplace())throw new IllegalArgumentException("Foreign document");if(shop.getMarketplace()==Marketplace.WILDBERRIES)documents=mergeWbDocuments(fresh,documents);}
             var before=edit.field().equals("brand")?List.of(Objects.toString(fresh.brand(),"")):edit.field().equals("documents")?fresh.documents().stream().map(ProductDocument::number).toList():fresh.attributes().stream().filter(a->changes.containsKey("attribute:"+a.id())).flatMap(a->a.values().stream()).toList();
             var p=adapter.previewUpdate(shop,fresh,changes,documents);var preview=p.preview();
             String hash=ListingIdentity.hash(preview.documentsJson()),shared=sharedDocuments.get(hash);
@@ -119,15 +119,7 @@ public final class ProductBulkEditService {
         documentBudget(shop,documents);
         if(documents!=null){
             for(var d:documents)if(d.marketplace()!=shop.getMarketplace())throw new IllegalArgumentException("Foreign document");
-            if(shop.getMarketplace()==Marketplace.WILDBERRIES){
-                var merged=new ArrayList<>(fresh.documents());
-                for(var d:documents){
-                    var existing=merged.stream().filter(old->Objects.equals(old.number(),d.number())&&documentType(old.type()).equals(documentType(d.type()))).findFirst();
-                    merged.removeIf(old->Objects.equals(old.number(),d.number())&&documentType(old.type()).equals(documentType(d.type())));
-                    merged.add(existing.isPresent()?new ProductDocument(existing.get().id(),d.type(),d.number(),d.validFrom(),d.validUntil(),d.owner(),d.scope(),d.file(),d.marketplace(),d.state(),d.source(),d.checkedAt(),d.metadata()):d);
-                }
-                documents=List.copyOf(merged);
-            }
+            if(shop.getMarketplace()==Marketplace.WILDBERRIES)documents=mergeWbDocuments(fresh,documents);
         }
         var p=adapter().previewUpdate(shop,fresh,changes,documents);
         long bytes=((long)p.preview().requestJson().length()+p.preview().documentsJson().length())*2;
@@ -140,7 +132,20 @@ public final class ProductBulkEditService {
         var item=new EditItem(fresh.key(),changes,documents,p,null,p.preview().publishable()?CopyState.AWAITING_CONFIRMATION:CopyState.NEEDS_DATA,p.preview().issues(),before);
         var result=new ProductEditPreview(UUID.randomUUID().toString(),shop.getId(),ListingIdentity.fingerprint(shop),List.of(fresh.key()),null,List.of(item));repo.insert(result);return result;
     }
-    private static String documentType(String type){return switch(type){case "1","certificate","CERTIFICATE_OF_CONFORMITY"->"1";case "2","declaration","DECLARATION"->"2";case "3","CERTIFICATE_OF_REGISTRATION"->"3";default->type;};}
+    private static List<ProductDocument> mergeWbDocuments(ProductSnapshot fresh,List<ProductDocument> changes){
+        var merged=new ArrayList<>(fresh.documents());
+        for(var d:changes){
+            var old=merged.stream().filter(item->Objects.equals(item.number(),d.number())&&documentType(item.type()).equals(documentType(d.type()))).findFirst().orElse(null);
+            merged.removeIf(item->Objects.equals(item.number(),d.number())&&documentType(item.type()).equals(documentType(d.type())));
+            String id=old!=null?old.id():fresh.documents().stream().anyMatch(item->!Objects.toString(d.id(),"").isBlank()&&Objects.equals(item.id(),d.id()))?d.id():"";
+            var metadata=new HashMap<String,String>(old==null?Map.of():old.metadata());metadata.putAll(d.metadata());
+            merged.add(new ProductDocument(id,d.type(),d.number(),d.validFrom(),d.validUntil(),
+                    old!=null&&Objects.toString(d.owner(),"").isBlank()?old.owner():d.owner(),
+                    old!=null&&Objects.toString(d.scope(),"").isBlank()?old.scope():d.scope(),d.file(),d.marketplace(),d.state(),d.source(),d.checkedAt(),metadata));
+        }
+        return List.copyOf(merged);
+    }
+    private static String documentType(String type){return switch(Objects.toString(type,"").strip().toUpperCase(Locale.ROOT)){case "1","CERTIFICATE","CERTIFICATE_OF_CONFORMITY","CONFORMITY_CERTIFICATE"->"1";case "2","DECLARATION","CONFORMITY_DECLARATION","DECLARATION_OF_CONFORMITY"->"2";case "3","CERTIFICATE_OF_REGISTRATION"->"3";default->type;};}
     public ProductEditResult apply(Shop shop,String id,boolean confirmed)throws IOException {return apply(shop,id,confirmed,p->{});}
     public ProductEditResult apply(Shop shop,String id,boolean confirmed,java.util.function.Consumer<Progress> listener)throws IOException {
         return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(shop.getId(),()->applyActive(shop,id,confirmed,listener));
