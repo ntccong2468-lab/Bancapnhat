@@ -1,0 +1,134 @@
+{
+  "baselineCommit": "e386aee",
+  "releasedSource": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad",
+  "latestAtStart": "v1.6.4",
+  "branch": "audit/code-doctor-20261106",
+  "uploadedArchive": "code-doctor-skill-for-codex-web.zip",
+  "archiveSha256": "69b4a91d0909e14d46eda1c71b9b9548e9269897bd07395cc6bc217e12afd504",
+  "installedSkill": ".agents/skills/code-doctor/SKILL.md",
+  "skillSha256": "8270891e2fe2927e452a05cb2b6cf8ec656890dfc9372e9872a427a597d46cac",
+  "verbatimInstall": true,
+  "baseline": {
+    "classes": [
+      {
+        "tests": 58,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "class": "com.vncode.app.ui.FxmlSmokeTest"
+      },
+      {
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "class": "com.vncode.app.integration.ozon.OzonAcceptanceKizTest"
+      },
+      {
+        "tests": 54,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "class": "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest"
+      },
+      {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "class": "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest"
+      },
+      {
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "class": "com.vncode.app.features.sync.RegistrationCardIndexTest"
+      },
+      {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "class": "com.vncode.app.features.gtinsync.GtinMatchingServiceTest"
+      },
+      {
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest"
+      }
+    ],
+    "tests": 197,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "runtimeSource": "e386aee"
+  },
+  "reproductions": {
+    "red-ozon-sync": {
+      "tests": 4,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    "red-realtime": {
+      "tests": 4,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    "red-page-delay": {
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0
+    },
+    "green-ozon-sync": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "green-realtime": {
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "red-background-queue": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "red-manual-queue": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "nodeTools": {
+    "tests": 150,
+    "passed": 150,
+    "failed": 0,
+    "skipped": 0
+  },
+  "build": {
+    "command": "DISPLAY=:166 /workspace/toolchains/mvn-vncode -q -Dtest=FbsSyncServiceTest,OzonSyncServiceTest,SyncCoordinatorTest package",
+    "result": "passed",
+    "scope": "Final source, 3 sync classes executed, Java JAR packaged; no new Windows installer or publication"
+  },
+  "scope": "Synthetic HTTP/SQLite/PDF and Linux JavaFX startup; no live seller writes, KIZ purchases or license activation",
+  "sourceCommit": "c2e9dcfc56b4287f7ece05bc058e310fa5bd9942",
+  "skillInstallCommit": "338d46e20fa82376005daaf39ac5ae4bea2b3c3f",
+  "pullRequest": "https://github.com/ntccong2468-lab/Bancapnhat/pull/21",
+  "latestAtEnd": {
+    "tag": "v1.6.4",
+    "releaseId": 435647198,
+    "source": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad",
+    "unchanged": true
+  }
+}

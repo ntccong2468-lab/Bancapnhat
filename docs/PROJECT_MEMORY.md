@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## Cài Code Doctor và kiểm tra runtime — 06.11.2026, 21:29 MSK (UTC+03:00)
+
+- Người dùng gửi `code-doctor-skill-for-codex-web.zip`; cài nguyên văn skill vào `.agents/skills/code-doctor/SKILL.md`, bổ sung route ở AGENTS và [cách dùng](engineering/code-doctor.md). ZIP chỉ có Markdown; đã kiểm tra path/symlink, hash ZIP `69b4a91d0909e14d46eda1c71b9b9548e9269897bd07395cc6bc217e12afd504`, hash skill `8270891e2fe2927e452a05cb2b6cf8ec656890dfc9372e9872a427a597d46cac`.
+- [PR #21](https://github.com/ntccong2468-lab/Bancapnhat/pull/21) OPEN/draft; nhánh `audit/code-doctor-20261106`, base `e386aee`; cài skill `338d46e`; nguồn sửa cuối `c2e9dcfc56b4287f7ece05bc058e310fa5bd9942`. Latest vẫn 1.6.4/source `86d76d8`, sửa mới chưa phát hành. [Báo cáo, nguyên nhân và đầy đủ lệnh](validation/2026-11-06-code-doctor.md).
+- Repro HTTP/SQLite cho thấy một đơn Ozon 404/thiếu quantity làm dừng 100 đơn phía sau trong lô 101, và kẹt checkpoint fallback FBS nền. Đã cách ly lỗi riêng của đơn, giữ dữ liệu/cảnh báo, đi tiếp trang và không ghi `last_complete` sai; lỗi xác thực/429/mạng/danh tính vẫn dừng. Nhịp trang còn lại 1 giây, thử lại sau lượt 15 giây; không để một cảnh báo kéo dài toàn bộ lượt quét.
+- Baseline 197 ca/7 lớp; 507 ca/25 báo cáo JUnit cuối, 0 thất bại/lỗi/skip; 150 test công cụ; package Java đạt. Nhóm rộng trước tinh chỉnh delay/hàng đợi, sau đó chạy lại 72 ca ba lớp đồng bộ và package trên nguồn cuối, có hash/provenance trong JSON. Không gọi đó là full suite hoặc Windows.
+- Chạy production `Launcher`/JAR mới trên Linux/Xvfb, hồ sơ trống riêng: mở workspace, chụp ảnh, đóng bình thường và lấy lại khóa dữ liệu. Classes 2.942 ms, JAR 5.915 ms; không phải benchmark Windows/seller. Không cấp quyền seller API hoặc kích hoạt license; không gọi giao dịch thật.
+- Kinh nghiệm: lỗi riêng của một posting phải giữ chẩn đoán mà không chặn cả tập; khi chuyển sang warning phải lưu cờ qua checkpoint tới cuối lượt và xem lại delay của scheduler. Giữ test dừng 401/429 để không biến cơ chế tiếp tục thành bỏ qua lỗi toàn hệ thống. Bộ nhớ và report không thay thế ủy quyền ghi hoặc phát hành.
+
 ## Đã phát hành 1.6.4: gộp Znack và PDF Ozon — 06.11.2026, 00:13 MSK
 
 - Theo yêu cầu người dùng, Latest `v1.6.4` đã công bố `2026-11-05T21:13:28Z`, release `435647198`, source/tag `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`; gồm sửa Znack `33f3d6c` và PDF Ozon, kế thừa 1.6.3. [Bàn giao](validation/2026-11-05-vncode-164-handoff.md), [biên nhận Latest](validation/2026-11-05-vncode-164-published-latest.json).
@@ -246,7 +255,7 @@
 
 ## Đã phát hành 1.5.15 — 24.10.2026
 
-- **Latest v1.5.15 đã công bố lúc 19:47:09 UTC**, Release `422945241`, bất biến. Người dùng yêu cầu tạo bộ cài và đưa lên Latest sau sửa gửi Catalog liên tục. Nhánh `release/vn-code-1.5.15`, mã ứng dụng/tag `9f6155dbbbdd6af80e09897f2f2863b479b97a33`, hash cây `92e3150566270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7`.
+- **Latest v1.5.15 đã công bố lúc 19:47:09 UTC**, Release `422945241`, bất biến. Người dùng yêu cầu tạo bộ cài và đưa lên Latest sau sửa gửi Catalog liên tục. Nhánh `release/vn-code-1.5.15`, mã ứng dụng/tag `9f6155dbbbdd6af80e09897f2f2863b479b97a33`, hash cây `92e3150766270de6ef53ef92592bb4f1e112b4e4c78fd0e843a8097decb8e4c7`.
 - Kế thừa toàn bộ 1.5.14, thêm tối ưu kết nối/session/metadata, bỏ tự dừng sau năm lỗi tạm thời, khôi phục pause tự động cũ, ưu tiên thẻ chưa gửi và sửa HTTP 429 ngay khi cấp/gửi cho WB/Ozon. Giữ GTIN/feed/payload gốc, thời hạn Retry-After, manual Pause/Cancel và đối soát kết quả ghi chưa rõ. Không bỏ guard dữ liệu, owner, quota hoặc license.
 - Windows build `40123187426` thành công từ đúng SHA; Linux `clean verify` cùng **3.009 ca, 3.007 đạt, 2 bỏ qua theo OS, không lỗi/thất bại**. 117 Node contracts đạt; bộ hồi quy Catalog trước đóng gói 1.246 ca, gồm lô giả lập 117 thẻ. Native mở app, DPAPI, cài/gỡ và nâng cấp bằng EXE từ 1.5.14 giữ dữ liệu đều đạt.
 - Công bố `40124695253` từ `5a7c0fc` thành công. Đủ 16 tài sản; checksum và tải công khai đủ 11 tài sản bắt buộc đã xác minh. Đối chiếu gói đúng bản sửa Catalog, phiên bản và 1.149 file nguồn/test/pom. Bộ cập nhật từ runtime 1.5.14 đã đọc JSON Latest công khai, nhận 1.5.15 và chọn đúng MSI/hash/kích thước. Chưa quan sát popup trên thiết bị seller; chưa ghi Catalog/sàn hoặc mua KIZ có phí trong lượt phát hành này. Giữ các release cũ, bộ cài chưa có Authenticode.

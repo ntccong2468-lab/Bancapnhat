@@ -1,0 +1,230 @@
+{
+  "scope": "Latest reports from 25 related classes. The broader command passed before final page-delay and queue validation fixes; all FbsSyncServiceTest, OzonSyncServiceTest and SyncCoordinatorTest cases ran again with final production sources during Maven package. Not the whole Java suite.",
+  "classes": [
+    {
+      "class": "com.vncode.app.features.sync.FbsSyncServiceTest",
+      "seconds": 5.933,
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonSyncServiceTest",
+      "seconds": 67.498,
+      "tests": 33,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncCoordinatorTest",
+      "seconds": 15.487,
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPostingRepositoryTest",
+      "seconds": 0.306,
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPostingTrackingStoreTest",
+      "seconds": 0.953,
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonAcceptanceKizTest",
+      "seconds": 61.071,
+      "tests": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest",
+      "seconds": 35.901,
+      "tests": 54,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest",
+      "seconds": 0.024,
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest",
+      "seconds": 1.227,
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonPrintBatchReadTest",
+      "seconds": 10.183,
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonLabelServiceTest",
+      "seconds": 25.753,
+      "tests": 52,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest",
+      "seconds": 0.605,
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+      "seconds": 3.816,
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "seconds": 3.263,
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinMatchingServiceTest",
+      "seconds": 0.011,
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest",
+      "seconds": 0.077,
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "seconds": 8.656,
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "seconds": 12.313,
+      "tests": 51,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "seconds": 89.938,
+      "tests": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "seconds": 11.614,
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationSubmissionEngineTest",
+      "seconds": 0.006,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.FxmlSmokeTest",
+      "seconds": 20.082,
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.MainApplicationActivationTest",
+      "seconds": 4.168,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.shared.AppDataLockTest",
+      "seconds": 0.152,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.shared.LocalDataMigrationActivationTest",
+      "seconds": 0.259,
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 507,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "runtimeSha256": {
+    "src/main/java/com/vncode/app/features/sync/FbsSyncService.java": "c1551c2d6b61fd1c555e311f72a016f4fb616295f9af2b822bc9383744eea2b1",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingSyncService.java": "6fc6217c6ce7e4573960972e58bbd956a2765f1b6fda2cd0adcfc2a9ea2f221e"
+  },
+  "broaderRuntimeSha256": {
+    "src/main/java/com/vncode/app/features/sync/FbsSyncService.java": "810069b7dfe8f3ea62dade670dbaafb6fe3708216a9d94fc919fab56be2da680",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingSyncService.java": "0a55183d3758bfbaac3e773532042c203dec02d359f66c81da1cf1a802d72d88"
+  },
+  "finalRuntimeSpecificTests": {
+    "classes": [
+      "FbsSyncServiceTest",
+      "OzonSyncServiceTest",
+      "SyncCoordinatorTest"
+    ],
+    "tests": 72,
+    "command": "DISPLAY=:166 /workspace/toolchains/mvn-vncode -q -Dtest=FbsSyncServiceTest,OzonSyncServiceTest,SyncCoordinatorTest package",
+    "result": "passed"
+  },
+  "sourceCommit": "c2e9dcfc56b4287f7ece05bc058e310fa5bd9942"
+}
