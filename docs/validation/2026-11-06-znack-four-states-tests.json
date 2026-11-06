@@ -1,0 +1,141 @@
+{
+  "classes": 14,
+  "totals": {
+    "tests": 330,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "reports": [
+    {
+      "name": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "tests": "51",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "tests": "29",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "tests": "23",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+      "tests": "27",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": "38",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "tests": "40",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+      "tests": "20",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+      "tests": "34",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "runtimeSourceCommit": "5710392b9caaade838a94f33b6e4bdfe8d64cc3a",
+  "baselineBeforeFix": [
+    {
+      "name": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+      "tests": "27",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "tests": "29",
+      "failures": "1",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "tests": "51",
+      "failures": "0",
+      "errors": "1",
+      "skipped": "0"
+    },
+    {
+      "name": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "tests": "23",
+      "failures": "0",
+      "errors": "1",
+      "skipped": "0"
+    }
+  ],
+  "scope": "14 unique JUnit classes across the two final commands; UI on Linux/Xvfb; not full Java or Windows acceptance"
+}

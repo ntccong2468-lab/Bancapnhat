@@ -11,6 +11,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
 | Toàn bộ lịch sử sửa, quyết định, kinh nghiệm | [PROJECT_MEMORY.md](../PROJECT_MEMORY.md) |
+| Code Doctor API thật, bốn bộ lọc Znack và GTIN WB không so TN VED | [Bàn giao](../validation/2026-11-06-znack-four-states-wb-gtin.md), [API thật](../validation/2026-11-06-code-doctor-live.json), [330 ca](../validation/2026-11-06-znack-four-states-tests.json) |
 | Code Doctor: cài skill, sửa kẹt đồng bộ Ozon và chạy JAR | [Cách dùng](../engineering/code-doctor.md), [báo cáo](../validation/2026-11-06-code-doctor.md), [507 ca/25 lớp](../validation/2026-11-06-code-doctor-tests.json) |
 | Sửa PDF Ozon thiếu nhãn kết hợp và phát hành gộp Znack 1.6.4 | [Bàn giao](../validation/2026-11-05-ozon-combined-handoff.md), [191 test](../validation/2026-11-05-ozon-combined-tests.json) |
 | Latest 1.6.4: Znack + PDF, Windows/nâng cấp và updater đã xác minh | [Bàn giao 1.6.4](../validation/2026-11-05-vncode-164-handoff.md), [đối chiếu nguồn](../validation/2026-11-05-vncode-164-source-inclusion.json) |
