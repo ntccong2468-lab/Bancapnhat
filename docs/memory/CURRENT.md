@@ -1,6 +1,15 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **07.11.2026, 21:36 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **07.11.2026, 22:35 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+
+## 1.6.6 — đã được yêu cầu phát hành, đang chuẩn bị Windows
+
+- Người dùng mới yêu cầu **gom toàn bộ sửa và phát hành Latest sau khi xong audit**. Yêu cầu mới thay thế mốc chỉ giữ hotfix chưa phát hành bên dưới; vẫn giữ nguyên 1.6.5 immutable. Không tự mua KIZ, ghi seller API, kích hoạt license hoặc Gmail để kiểm build.
+- Nhánh `release/vn-code-1.6.6`, nguồn chức năng `2e5b50a` trên toàn bộ hotfix Ozon/WB/feed đã push vào PR #22; version nâng 1.6.6 và đúng một paint thanh tải sửa phẳng. [Ghi chú 1.6.6](../releases/VN-code-1.6.6.md), [audit và giới hạn](../validation/2026-11-07-report-pdf-app-audit.md).
+- Báo cáo ảnh: 1.141 đã xác nhận + 16 chờ + 273 cần xử lý + 552 chưa ghép = 1.982; không cộng thiếu GTIN vào Bị chặn. Chờ readback không khóa danh sách. PDF sửa snapshot barcode cũ, đọc metadata thiếu theo SKU batch 1.000, owner/danh tính chặt; báo rõ carrier-only, không coi nó là đủ nhãn KIZ.
+- 3 shop fixture độc lập × 3 đơn × 2 đơn vị: mỗi PDF đủ 3 carrier + 6 KIZ, quét lại mã. 1.001 SKU/2 HTTP read. PDF seller cũ thực có 17 carrier + 5 combined; chưa có DB/profile để nghiệm thu lại toàn bộ shop thật. Không suy mock thành giao dịch thật.
+- Linux rộng **3.974 ca/527 lớp, 0 lỗi/thất bại, 2 OS skip**, tách 3 stress TenThousand khỏi lệnh. 40 UI/version sau bump đạt, Node 155 và portal 67 đạt. 16 FXML + 10 Java pages/4 locale/2 theme/2 size không tràn fixed actions. OpenQodex chỉ Gitleaks trên 2.903 tệp; 10 candidate cũ đã triage, 19 suppression skill Python cũ, không AI/CodeQL toàn xanh.
+- Tiếp theo: commit/push source 1.6.6, dispatch `publish-vncode-baseline.yml` với **SHA đọc từ Git**, giữ full Windows suite/3 stress, native/migration/DPAPI/coexistence/upgrade từ 1.6.5; kiểm artifact rồi mới tạo draft/tag/pin ID/publish. Không thay app input sau SHA build. Source build và run ID phải ghi lại ngay sau dispatch; tuyệt đối không gõ lại SHA bằng tay.
 
 ## Hotfix Znack WB/GTIN và Ozon — hoàn tất mã, chưa phát hành
 

@@ -504,3 +504,12 @@ Sửa WB 046/EAN-13 tương đương đã có → Hoàn tất; Catalog đã côn
 Kinh nghiệm: trạng thái yêu cầu đang xử lý có thể bắt đầu từ biên nhận, không cần giả good_id/công bố. Điều kiện refresh phải theo cả acceptedFeeds, không chỉ số thẻ đã đọc được; thay đổi quy tắc hiển thị không được nới quyền submit/retry hoặc guard owner/biến thể.
 
 Đã commit/push và mở [draft PR #22](https://github.com/ntccong2468-lab/Bancapnhat/pull/22) vào `release/vn-code-1.6.5`, chưa merge/Latest; các commit bàn giao sau nguồn `a43b7e1` chỉ đổi tài liệu.
+
+
+## 07.11.2026 — Audit báo cáo/PDF/toàn app và yêu cầu phát hành 1.6.6
+
+Nguồn chức năng `2e5b50a`, kế thừa toàn bộ Ozon `86b1dcc`, WB `a95201d`, feed `a43b7e1`, đã push PR #22. Sửa đếm GTIN chồng thiếu mã vào Bị chặn, giữ readback sàn riêng lỗi cục bộ; tổng theo toàn scope. Sửa observer pending không khóa danh sách; PDF snapshot metadata sau chuẩn bị, bổ sung SKU theo batch 1.000 có owner/danh tính, không ghi cursor/proof; báo rõ đơn carrier-only kể cả không reserve KIZ. Finance copy thống nhất, phát hiện thanh updater còn gradient đang hiệu lực và sửa màu phẳng trong nguồn 1.6.6. [Audit/ca trước-sau](validation/2026-11-07-report-pdf-app-audit.md).
+
+Linux 3.974 ca/527 lớp, 0 fail/error, 2 OS skip; tách 3 stress 10.000 GTIN để chạy full trên Windows. Sau bump/UI 40 ca đạt; Node 155, portal 67 đạt. 16 FXML/10 Java pages, 4 locale/2 theme/2 size: 1.880 fixed action checks không tràn. Ba shop fixture độc lập có đủ 3 carrier/6 KIZ trên mỗi PDF; 1.001 SKU dùng 2 HTTP read, không giao dịch thật. OpenQodex chỉ Gitleaks trên 2.903 tệp, 10 candidate secret cũ không đổi/triage khớp, thêm 19 suppression import skill Python cũ, không coi Ruff đã chạy; IMPECCABLE/TASTE đối chiếu native thay DOM.
+
+Người dùng mới **yêu cầu gom tất cả sửa và đưa Latest sau hoàn tất**, nên được chuẩn bị phát hành 1.6.6 trên `release/vn-code-1.6.6`; các mốc hotfix chưa được phép publish trước đó đã được thay thế. Phải chờ đúng Windows SHA/full suite/native/upgrade 1.6.5 rồi pin draft ID và publish; không đổi 1.6.5 immutable, không prune. Không mở rộng quyền sang seller API, mua KIZ, Gmail/license activation. Source/run thực phải ghi khi dispatch, không gõ lại SHA. Kinh nghiệm: metadata đã chuẩn bị sau snapshot cũ vẫn có thể làm bỏ KIZ; thành công tải vận đơn không phải đủ nhãn kết hợp; trình đọc trạng thái không nên khóa danh sách như worker ghi.

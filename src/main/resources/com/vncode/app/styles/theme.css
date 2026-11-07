@@ -1044,7 +1044,7 @@
 }
 
 .update-progress-bar > .bar {
-    -fx-background-color: linear-gradient(to right, -accent, derive(-accent, 20%));
+    -fx-background-color: -accent;
     -fx-background-radius: 999px;
     -fx-background-insets: 0;
 }

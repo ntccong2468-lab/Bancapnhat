@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| **1.6.6 đã được yêu cầu Latest**, audit báo cáo/PDF/toàn ứng dụng và UI; đang chuẩn bị Windows | [Báo cáo](../validation/2026-11-07-report-pdf-app-audit.md), [ghi chú](../releases/VN-code-1.6.6.md) |
 | Znack WB/GTIN: nhận feed sang Đang xử lý ngay, 046 hoàn tất, cập nhật nền/shared writer; gồm Ozon trước đó — chưa phát hành | [Bàn giao/sơ đồ](../validation/2026-11-07-wb-znack-auto-gtin-handoff.md), [445 ca/build](../validation/wb-znack-auto-20261107/verification.json), [đọc API thật](../validation/wb-znack-auto-20261107/live-read.json), [ảnh](../validation/assets/wb-znack-auto-20261107/README.md) |
 | Ozon tự thay KIZ, bỏ nút thủ công, nhường lô và PDF preflight cũ — chưa phát hành | [Bàn giao](../validation/2026-11-07-ozon-auto-kiz-handoff.md), [237 ca/baseline](../validation/ozon-auto-kiz-20261107/verification.json) |
 | **Latest 1.6.5 đã công bố**: 3.935 ca Windows, 16 asset tải/kiểm, updater 1.6.4 → 1.6.5 | [Bàn giao](../validation/2026-11-07-vncode-165-release-handoff.md), [Latest/binary công khai](../validation/2026-11-07-vncode-165-published-latest.json), [updater](../validation/2026-11-07-vncode-165-updater.json), [nguồn](../validation/2026-11-07-vncode-165-source-inclusion.json), [security/giới hạn](../validation/2026-11-07-vncode-165-security.json) |
