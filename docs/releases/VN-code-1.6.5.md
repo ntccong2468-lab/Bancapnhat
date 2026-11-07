@@ -1,6 +1,8 @@
-# VN Code 1.6.5 — bản gộp, chưa phát hành
+# VN Code 1.6.5
 
-**Trạng thái: chuẩn bị trên nhánh `release/vn-code-1.6.5`; chưa công bố, chưa đưa lên Latest.** Theo chỉ đạo cuối của chủ dự án ngày 07.11.2026, chỉ gộp chỉnh sửa vào bản mới. Latest vẫn là **1.6.4**, app chưa nhận thông báo cập nhật 1.6.5.
+Gộp các sửa Ozon FBS/PDF/KIZ, trạng thái Znack, cập nhật GTIN WB và năm nút sửa sản phẩm. Thêm liên kết Catalog–Ozon đã duyệt để dùng chung cho nhận diện thẻ, mua KIZ và cập nhật GTIN khi tên/article hai bên khác cách ghi. Giữ dữ liệu và các receipt/checkpoint khi nâng cấp từ 1.6.4.
+
+Theo chỉ đạo mới ngày 07.11.2026, bản này được chuẩn bị để phát hành lên Latest sau khi bộ cài Windows và bước nâng cấp đã được kiểm chứng. Chỉ đạo phát hành này thay thế mốc trước đó chỉ gom bản mới. Các bản phát hành và tag cũ được giữ nguyên.
 
 Kế thừa đầy đủ nguồn 1.6.4 và các sửa trên PR #21 đến `bba83919094e6e0f713302a365f9fa87a340c6a6`; nguồn gộp ban đầu đến `5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c`. Sau phần gộp, bổ sung sửa PDF và nhận đơn Ozon theo các yêu cầu tiếp theo; nguồn và nghiệm thu mới được ghi riêng trong bàn giao Ozon ngày 07.11. Nguồn bổ sung Ozon: `3c865b6d6c15d616d083c65502a02778d77de6f2`, kế thừa PDF `8845573`. Không ghi đè tag hoặc bộ cài cũ.
 
@@ -42,7 +44,7 @@ Kế thừa đầy đủ nguồn 1.6.4 và các sửa trên PR #21 đến `bba83
 
 ## Ghép Catalog–Ozon khác tên/article — bổ sung theo đối chiếu WBCode 1.3.20
 
-Nguồn bổ sung `cae86ef71149a9be505b060360a7a9db8e07c5b4`, kế thừa PDF/nhận/thay KIZ Ozon `3c865b6`. Hồi quy cuối 476/476 ca / 28 lớp và package đạt; chưa nghiệm thu mua/ghi GTIN thật bằng liên kết mới.
+Nguồn bổ sung `cae86ef71149a9be505b060360a7a9db8e07c5b4`, kế thừa PDF/nhận/thay KIZ Ozon `3c865b6`. Hồi quy mục tiêu 476/476 ca / 28 lớp và package đạt. Đã có một lượt ghi/readback GTIN qua API thật; phần duyệt/submit theo chứng thư và mua KIZ thật có phạm vi kiểm riêng ở dưới.
 
 - Thêm **Ghép thẻ Catalog** cho những biến thể Ozon đã chọn: tìm mẫu, đề xuất màu/size rõ ràng, đọc mới hai nguồn, seller duyệt rồi lưu cả nhóm. Tên/article hai bên được khác; không gộp chỉ theo tên gần giống hoặc cùng size.
 - Dùng một liên kết native đã duyệt cho nhận diện thẻ, mua KIZ và GTIN. Cho phép khác TN VED ở đường này; mua lấy mã/giấy tờ Catalog. Registration hoặc barcode cũ không được thay quyết định mới.
@@ -64,7 +66,9 @@ Giữ số schema 6, UpgradeCode và thư mục dữ liệu; thêm bảng journa
 
 ## Giới hạn nghiệm thu
 
-Đây chưa phải bản được phát hành hoặc chứng nhận hoàn tất mọi luồng thật. Năm nút WB đã kiểm bằng gửi lại giá trị hiện có và đọc lại; Cặp Ozon mới đã kiểm API thật: 9 đơn gilet và 9 mã KIZ được xác nhận, các đơn chuyển chờ giao; credential Secrets cũ trước đó bị 403 không đại diện cho kết quả mới. Không dùng kiểm nhận đơn này làm bằng chứng đã sửa thông tin bài Ozon hoặc đồng bộ GTIN thật. Mapping KIZ đã kiểm chọn dữ liệu thật nhưng chưa mua có phí; chuỗi Catalog ký/công bố/GTIN mới, benchmark 1.000 đơn thật và stress 10.000 GTIN còn giới hạn ghi trong bàn giao. Báo cáo phạt Ozon, tự xuất PDF chờ mua sau restart và các phần chưa hoàn tất không được mô tả là tính năng mới đã xong.
+Năm nút WB đã kiểm bằng gửi lại giá trị hiện có và đọc lại. API Ozon đã xác nhận 9 đơn gilet/9 KIZ chuyển chờ giao và một GTIN được thêm, giữ barcode cũ, đọc lại đúng biến thể. Đây là các lượt nghiệm thu API có phạm vi và thời điểm riêng, không phải chứng nhận mọi nút bấm và giao dịch thật trong app.
+
+Mapping KIZ đã kiểm chọn dữ liệu thật nhưng chưa mua có phí; đường duyệt liên kết/submit theo chứng thư và chuỗi ký/công bố Catalog mới chưa nghiệm thu đầy đủ trên hệ thống thật. Benchmark 1.000 đơn thật, stress 10.000 GTIN, báo cáo phạt Ozon và tự tiếp tục xuất PDF chờ mua sau restart còn các giới hạn trong bàn giao. Phản hồi từ chối hoặc giới hạn của sàn/Catalog được giữ để xử lý và đối soát, không biến thành thành công.
 
 [Danh mục toàn bộ sửa và phần còn thiếu](../validation/2026-11-07-change-inventory.md), [Code Doctor](../validation/2026-11-06-code-doctor.md), [Znack/GTIN](../validation/2026-11-06-znack-four-states-wb-gtin.md), [năm nút sản phẩm](../validation/2026-11-06-products-five-audit.md), [KIZ mapping](../validation/2026-11-07-kiz-mapping-live-audit.md).
 

@@ -2,6 +2,11 @@
 
 Cập nhật: **07.11.2026, 17:22 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
 
+## Đang phát hành 1.6.5 theo chỉ đạo mới
+
+- Người dùng hiện yêu cầu **gom tất cả sửa và đẩy Latest để app nhận cập nhật**. Chỉ đạo này thay thế các mốc phía dưới chỉ gom/chưa phát hành; không yêu cầu xác nhận lại quyền publish.
+- Chuẩn bị build Windows trên SHA cố định, giữ toàn bộ source runtime đến `cae86ef` và biên nhận API `1da051e`, kiểm full Java, bộ cài và nâng cấp từ Latest 1.6.4. Chưa đổi Latest ở mốc ghi này; chỉ công bố sau khi xác minh đúng artifact/source/checksum. Không ghi đè hoặc xóa các bản cũ.
+
 ## API GTIN Ozon thật và Catalog từ khóa mới — 07.11.2026
 
 - Người dùng yêu cầu nghiệm thu thật rồi lưu bản mới, sau đó **bỏ mua KIZ**, chỉ ghép/cập nhật GTIN, chọn một mẫu và cung cấp Catalog key mới để đối chiếu tất cả. [Bàn giao API thật](../validation/2026-11-07-ozon-live-gtin-acceptance.md), [biên nhận](../validation/ozon-live-gtin-20261107/live-api.json). Runtime vẫn `cae86ef`/JAR `f1f8fa13…`; không đổi code để vượt license/chứng thư và không phát hành Latest.
