@@ -67,17 +67,30 @@ public final class ZnackRegistrationBatchService {
     public String start(Shop requested,List<Sku> selected,boolean autoSign,RegistrationSourceConsent.Prepared consent){
         Shop shop=freeze(requested);if(shop.getMarketplace()!=Marketplace.WILDBERRIES)throw new IllegalArgumentException("WB_REGISTRATION_REQUIRED");
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.GTIN);
-        if(RUNNING.contains(key(shop)))throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
         var unique=new LinkedHashMap<Long,Sku>();for(var sku:List.copyOf(selected))if(sku!=null)unique.putIfAbsent(sku.chrtId(),sku);
         if(unique.isEmpty())throw new IllegalArgumentException("ZNACK_EMPTY_SELECTION");
+        var previous=store.latest(shop);
+        if(RUNNING.contains(key(shop))&&(previous==null||!active(previous.state())))
+            throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
+        if(previous!=null&&active(previous.state())){
+            var queued=store.items(shop,previous.id()).stream().map(item->item.sku().chrtId()).collect(java.util.stream.Collectors.toSet());
+            unique.keySet().removeAll(queued);
+            if(unique.isEmpty())return previous.id();
+            var keys=unique.values().stream().map(row->new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).collect(java.util.stream.Collectors.toSet());
+            consent=RegistrationSourceConsent.restrict(consent,keys);
+        }
         for(var sku:unique.values()){
             var product=new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(sku.nmId()),Long.toString(sku.chrtId()));
             boolean replacement=consent!=null&&consent.action(product)==RegistrationSourceConsent.Action.REPLACE;
             if(replacement){if(!Set.of(Status.PUBLISHED,Status.ERROR).contains(sku.status())||!sku.hasGtin()||!sku.hasFeed()||sku.goodId()==null)throw new RegistrationValidationException("CATALOG_REPLACEMENT_READBACK_REQUIRED");}
             else if(sku.tnvedGroupChanged()||!RegistrationCardIndex.notSubmitted(sku)&&!sku.canReviewExistingDraft())throw new RegistrationValidationException("ZNACK_BATCH_REQUIRES_KNOWN_UNSUBMITTED_CARD");
         }
-        var previous=store.latest(shop);if(previous!=null&&(active(previous.state())||"PAUSED".equals(previous.state())))throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
         String scope=strictScope?JSON.toJson(currentScope(shop)):"";
+        if(previous!=null&&active(previous.state())){
+            store.append(shop,previous.id(),List.copyOf(unique.values()),autoSign,scope,consent);
+            request(shop);dispatch(shop,previous.id());return previous.id();
+        }
+        if(previous!=null&&"PAUSED".equals(previous.state()))throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
         var reports=new RegistrationAttemptReports(shop,List.copyOf(unique.values()));String run=reports.queue();
         try{store.create(shop,run,List.copyOf(unique.values()),autoSign,scope,consent);}
         catch(RuntimeException unavailable){reports.stopPending(SyncFailure.of(unavailable,0).code(),false);throw unavailable;}

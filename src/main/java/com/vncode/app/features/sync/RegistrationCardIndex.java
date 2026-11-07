@@ -47,6 +47,14 @@ public final class RegistrationCardIndex {
         }
         return status==Status.ERROR&&com.vncode.app.integration.znack.registration.CatalogFeedback.rejectionMessage(error);
     }
+    /** A durable feed receipt moves the row to Processing; it is not proof of card creation or permission to resend. */
+    public static boolean acceptedRequestInProgress(Status status,boolean hasFeed,String error,View observed) {
+        if(!hasFeed||status==null||catalogRejected(status,error,observed))return false;
+        return switch(status) {
+            case FEED_SUBMITTING,FEED_REVIEW_REQUIRED,FEED_SUBMITTED,PROCESSING,READY_TO_SIGN,SIGNING,PUBLISHED,ERROR -> true;
+            default -> false;
+        };
+    }
     public static boolean registrationInProgress(Status status,String feedId,View observed) {
         if(observed!=null){
             if(observed.published()||observed.status().equals("source.errors"))return false;

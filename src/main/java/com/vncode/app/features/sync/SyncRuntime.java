@@ -48,6 +48,11 @@ public final class SyncRuntime implements AutoCloseable {
                 return SyncCoordinator.Page.complete(count);
             }
             case ZNACK:{
+                if(shop.getMarketplace()==Marketplace.WILDBERRIES){
+                    var sources=new RegistrationSources();
+                    if("SYNC_STORAGE_BUSY".equals(sources.check(shop).reason()))sources.refresh(shop,phase->{});
+                }
+                WbAutomaticGtinUpdate.enableForCurrentSources(shop);
                 // Persisted direct WB jobs also resume after a restart or a temporary 429.
                 // The queue preserves paused jobs, consent and ambiguous-write checkpoints.
                 boolean wbPending=shop.getMarketplace()==Marketplace.WILDBERRIES&&new WbGtinQueueAutoResume(shop).step(shop);

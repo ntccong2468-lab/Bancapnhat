@@ -1,0 +1,96 @@
+{
+  "at_utc": "2026-11-07T17:38:41.142739+00:00",
+  "base_commit": "61f5ae5dd1a11472b135dc3f36f77865c7e72bee",
+  "scope": "Ozon automatic seller-imported category KIZ replacement and combined printing; WB runtime unchanged",
+  "runs": {
+    "baseline_manual_click": {
+      "totals": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 1,
+        "skipped": 0
+      },
+      "classes": [
+        "com.vncode.app.ui.ozon.OzonBulkUiTest"
+      ],
+      "log_sha256": "1538d1f3024f99177c8697914fe6572b54b8cc8ab4dbe23c0e3eac50904e1724",
+      "build_success": false
+    },
+    "baseline_pdf": {
+      "totals": {
+        "tests": 6,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0
+      },
+      "classes": [
+        "com.vncode.app.integration.ozon.OzonAcceptanceKizTest",
+        "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest",
+        "com.vncode.app.ui.ozon.OzonBulkUiTest"
+      ],
+      "log_sha256": "e91bd91c366b4f43a876f3a8dbf5699646909804c3a8f6b7f5fab5bedcda5ee4",
+      "build_success": false
+    },
+    "first_regression": {
+      "totals": {
+        "tests": 139,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "classes": [
+        "com.vncode.app.features.kiz.status.Kn3BatchReplacementTest",
+        "com.vncode.app.integration.ozon.OzonAcceptanceKizTest",
+        "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest",
+        "com.vncode.app.ui.kiz.Kn3BatchUiTest",
+        "com.vncode.app.ui.ozon.OzonBulkUiTest"
+      ],
+      "log_sha256": "957cce697c3dc389592008d70301db6198a063b487fc963bea13ba0b5b36cd25",
+      "build_success": true
+    },
+    "final_regression": {
+      "totals": {
+        "tests": 237,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "classes": [
+        "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest",
+        "com.vncode.app.features.kiz.status.Kn3ProtocolTest",
+        "com.vncode.app.features.kiz.status.Kn3ReplacementTest",
+        "com.vncode.app.integration.ozon.OzonAcceptanceKizTest",
+        "com.vncode.app.integration.ozon.OzonAcceptanceSourceSnapshotTest",
+        "com.vncode.app.integration.ozon.OzonExemplarStateMachineTest",
+        "com.vncode.app.integration.ozon.OzonExemplarWorkflowTest",
+        "com.vncode.app.integration.ozon.OzonPerUnitShipServiceTest",
+        "com.vncode.app.integration.ozon.OzonPrintBatchReadTest",
+        "com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest",
+        "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest",
+        "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest",
+        "com.vncode.app.integration.ozon.OzonShipRateLimitTest",
+        "com.vncode.app.integration.ozon.OzonShipServiceTest",
+        "com.vncode.app.ui.kiz.Kn3BatchUiTest",
+        "com.vncode.app.ui.ozon.OzonAcceptanceRetryTest",
+        "com.vncode.app.ui.ozon.OzonBulkUiTest",
+        "com.vncode.app.ui.ozon.OzonPrintedQueueUiTest",
+        "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest"
+      ],
+      "log_sha256": "2be571490b9b5d770feb0cc8af68ea885ee22e4e481536c0abef56fb946f6660",
+      "build_success": true
+    }
+  },
+  "final_command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode '-Dtest=OzonAcceptanceKizTest,OzonPrintBundleServiceTest,OzonExemplarWorkflowTest,OzonExemplarStateMachineTest,OzonAcceptanceSourceSnapshotTest,OzonPrintBatchReadTest,OzonPrintReadinessServiceTest,OzonPrintBundleRollbackTest,OzonPerUnitShipServiceTest,OzonShipServiceTest,OzonShipRateLimitTest,OzonShipmentSourcesUiTest,OzonPrintedQueueUiTest,OzonAcceptanceRetryTest,Kn3ReplacementTest,Kn3ProtocolTest,Kn3OzonPrintProjectionTest,Kn3BatchUiTest,OzonBulkUiTest' test",
+  "seller_pdf": {
+    "sha256": "719aad3e1de6f560f235313acca4162b0555e79e43e0ae4cabc412e389feecb9",
+    "pages": 22,
+    "combined_kiz_pages": 5,
+    "official_carrier_pages": 17,
+    "raw_data_committed": false
+  },
+  "vendor_api_calls": 0,
+  "paid_kiz_purchases": 0,
+  "license_activations": 0,
+  "published": false,
+  "windows_tested": false
+}

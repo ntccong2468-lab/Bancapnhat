@@ -1,0 +1,287 @@
+{
+  "at_utc": "2026-11-07T18:35:37.648248+00:00",
+  "source_commit": "a43b7e13590025dee2410d461f2b60ef601d5d97",
+  "parent_ozon_fix": "86b1dcc",
+  "released_base": "61f5ae5dd1a11472b135dc3f36f77865c7e72bee",
+  "tests": {
+    "tests": 445,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": [
+    {
+      "name": "com.vncode.app.config.SqliteWriteTransactionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.989
+    },
+    {
+      "name": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.497
+    },
+    {
+      "name": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.196
+    },
+    {
+      "name": "com.vncode.app.features.sync.RegistrationSourcesTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.316
+    },
+    {
+      "name": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "tests": 31,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6.3
+    },
+    {
+      "name": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.593
+    },
+    {
+      "name": "com.vncode.app.features.sync.WbAutomaticGtinUpdateTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.309
+    },
+    {
+      "name": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "tests": 51,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6.565
+    },
+    {
+      "name": "com.vncode.app.integration.wb.WbGtinPriceRepairTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.377
+    },
+    {
+      "name": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.311
+    },
+    {
+      "name": "com.vncode.app.integration.wb.WbSyncRepositoryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.013
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonConsentRecoveryTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.338
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonReviewedReplacementE2eTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 11.748
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonSourceConsentPolicyTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.162
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.554
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.WbSourceReviewHttpEndToEndTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.841
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest",
+      "tests": 85,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 20.016
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.842
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 46.192
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournalTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.584
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationStorageConcurrencyTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.542
+    },
+    {
+      "name": "com.vncode.app.ui.gtinsync.WbGtinPriceConsentTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.001
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 13.04
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.431
+    }
+  ],
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -Dvncode.item4.capture.dir=/workspace/vncode-wb-znack-hotfix-work/ui -Dtest=RegistrationStorageConcurrencyTest,ZnackRegistrationQueryRepositoryTest,ZnackCardRegistrationControllerTest,WbAutomaticGtinUpdateTest,ZnackAutoSyncServiceTest,ZnackGtinBackgroundServiceTest,RegistrationSourcesTest,ZnackRegistrationBatchServiceTest,RegistrationSourceConsentTest,RegistrationCommandJournalTest,ZnackCardRegistrationWorkflowTest,ZnackRegistrationBatchHttpIntegrationTest,WbSourceReviewHttpEndToEndTest,WbGtinAdapterTest,WbGtinProductReaderTest,WbGtinPriceRepairTest,WbGtinPriceConsentTest,CatalogSyncServiceTest,RegistrationCardIndexTest,SqliteWriteTransactionTest,WbSyncRepositoryTest,OzonSourceConsentPolicyTest,OzonReviewedReplacementE2eTest,OzonConsentRecoveryTest test",
+  "runtime_unchanged_during_final_run": true,
+  "runtime_sha256": {
+    "src/main/java/com/vncode/app/features/gtinsync/WbRegisteredBarcode.java": "18528e79dc9feb928f616d1a6bab60236c5f203d13664e4fd52914c34b20e426",
+    "src/main/java/com/vncode/app/features/sync/RegistrationCardIndex.java": "e013cbff8a8646b4c7d8b8063e9ccb3335c9d8c98e4961f7c0d7a4cc91d17e98",
+    "src/main/java/com/vncode/app/features/sync/RegistrationSources.java": "04fba3d58a24f44deec8ebb1ada8bb492524816e7d6c27e2e271b930ff1cc22e",
+    "src/main/java/com/vncode/app/features/sync/SyncRuntime.java": "971b6479744cf195da6913eb6ccccd2d38bd15941ab11746a9d70dfdde668863",
+    "src/main/java/com/vncode/app/features/sync/WbAutomaticGtinUpdate.java": "715f122e0a59aacd9e671d0121a457302a074efde232011ae13829e132966011",
+    "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java": "0415d2f8fe8fe7fe2317f5749f486da7e5aae1f326777a1eaf3d488db22a9457",
+    "src/main/java/com/vncode/app/integration/wb/WbProductRepository.java": "56a5a6dd5b96beb88ebc1f5b908abab051514a3be71d66caa51a4ce49133cd50",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogFeedback.java": "9e59c2a46defa21e3e9dbce863d01aa9d5ec6e33afff21668acf0072e1181b37",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSourceConsent.java": "9781c4f89b6acb4fc7b514ac34d78c597624a23dc1cba9f88821f784017b5c39",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java": "b82a44b1f80e80452b41156912cb12c394a4643082275b4ecd36a203853f8539",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java": "b5d2a962e647568b7daf8776d8b3fce435f0d3e6a78775e9efb86af51e83cb87",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchStore.java": "caf10ce11a0ec4d5c775dbe45b6d7a74cc32f16d7fdaa67b56182850e11619aa",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationCommandJournal.java": "7c80a06a05ffb9b148d90e610595975ccfe33c9d2a6451feb73caa0bdbdb6487",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java": "105bc0aeb23e47b23bcdd26c91531ce129a4e3fe52812dd710c0ec28bfcedf27",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepository.java": "973da60fd48cf887cac24e097ddd5e71366139c209934dbf50979fc0a65506bb",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "a3d1afbaa5b154fbc14ec564f2a65cdb17e213fad11a2f2683afc25018c0ce32",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "5e03a6bac8d02c1c9fd26ba17a9c64c5a7ec9c4c48936fffeb47bf23fab6d3bd",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "a41780dd9b8eef4dca12818b4f002e5f787ec151328bb8ea2dc6bdf954710383",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "51e87a4f1cd34282ac9cfa59ddf7bc1f61d24213ad352c5e1d916561da0ce32e",
+    "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml": "564614c5642d51ca1a2f1eaf47802a225bae42344e46f3b26f5e7363f13994a4"
+  },
+  "baseline": {
+    "046_completion": {
+      "tests": 2,
+      "failures": 2,
+      "errors": 0
+    },
+    "storage_busy": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "error": "SQLITE_BUSY before initial registration claim; independent five-second writer timeout"
+    },
+    "feed_acknowledged_filter": {
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "branches": [
+        "native SQL",
+        "Catalog observation"
+      ]
+    },
+    "feed_acknowledged_ui_refresh": {
+      "tests": 3,
+      "failures": 1,
+      "errors": 0,
+      "detail": "Two query regressions already pass; new receipt alone does not schedule UI refresh before controller fix"
+    }
+  },
+  "package_command": "/workspace/toolchains/mvn-vncode -DskipTests package",
+  "package": {
+    "path": "target/VNcode-1.6.5.jar",
+    "version": "1.6.5",
+    "size": 7511660,
+    "sha256": "51e24808ac1f2a574068c6cbfd4ae99a9105bee20c20dd3270bbec50481adc73",
+    "classes": 1955,
+    "test_fixture_packaged": false,
+    "published": false,
+    "installer": false,
+    "production_class_bytes_match": true,
+    "built_at_utc": "2026-11-07T18:34:49Z"
+  },
+  "scope": "Mock HTTP/JavaFX/SQLite regression; independent live read evidence below; no new seller mutation",
+  "not_run": [
+    "Windows installer/seller desktop",
+    "new real Catalog feed, signing or marketplace GTIN mutation",
+    "whole 4000-test suite on this source",
+    "independent AI/security review"
+  ],
+  "previous_wb_source": "a95201dc1148cd11ce21eff42daef79af8e8c1f9",
+  "finished_at_utc": "2026-11-07T18:34:11Z",
+  "targeted_after_receipt_fix": {
+    "tests": 96,
+    "classes": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+}

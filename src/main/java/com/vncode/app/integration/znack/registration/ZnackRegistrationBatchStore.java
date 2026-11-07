@@ -83,6 +83,47 @@ final class ZnackRegistrationBatchStore {
             return run;
         });}catch(SQLException e){throw storage(e);}
     }
+    /** Append separately reviewed native cards without cancelling or replaying an earlier request. */
+    void append(Shop shop,String run,List<Sku> rows,boolean autoSign,String scope,RegistrationSourceConsent.Prepared consent){
+        if(consent==null)throw new RegistrationValidationException("ZNACK_SOURCE_REVIEW_REQUIRED");
+        try{SqliteWriteTransaction.run(c->{
+            requireOwner(c,shop);
+            try(var p=c.prepareStatement("SELECT state,scope,auto_sign FROM znack_registration_batches WHERE id=? AND shop_id=? AND owner=?")){
+                p.setString(1,run);p.setInt(2,shop.getId());p.setString(3,ListingIdentity.fingerprint(shop));
+                try(var r=p.executeQuery()){
+                    if(!r.next()||!Set.of("QUEUED","RUNNING","WAITING_NETWORK","WAITING_REMOTE").contains(r.getString(1)))throw new IllegalStateException("ZNACK_REGISTRATION_BATCH_ALREADY_RUNNING");
+                    if(!scope.equals(r.getString(2)))throw new ZnackRegistrationScope.ScopeChangedException();
+                    if(autoSign!=r.getBoolean(3))throw new RegistrationValidationException("ZNACK_BATCH_SIGNING_MODE_CHANGED");
+                }
+            }
+            int offset;
+            var existing=new HashSet<Long>();
+            try(var p=c.prepareStatement("SELECT position,sku_json FROM znack_registration_batch_items WHERE run_id=?")){
+                p.setString(1,run);int next=0;try(var r=p.executeQuery()){while(r.next()){
+                    next=Math.max(next,r.getInt(1)+1);existing.add(JSON.fromJson(r.getString(2),Sku.class).chrtId());
+                }}offset=next;
+            }
+            if((long)offset+rows.size()>100000)throw new IllegalArgumentException("registration_selection_limit");
+            if(rows.stream().anyMatch(row->existing.contains(row.chrtId())))throw new RegistrationValidationException("ZNACK_REGISTRATION_ALREADY_QUEUED");
+            String now=Instant.now().toString();
+            try(var p=c.prepareStatement("INSERT INTO znack_registration_batch_items(run_id,position,sku_json,state,updated_at) VALUES(?,?,?,'QUEUED',?)");
+                var report=c.prepareStatement("INSERT INTO sync_run_items(id,run_id,product_id,variant_id,sku,article,color,size,gtin,state,step,error_code,child_job,evidence_json,updated_at) VALUES(?,?,?,?,'',?,?,?,'','QUEUED','PREFLIGHT','','','{}',?)")){
+                int position=offset;for(var row:rows){
+                    p.setString(1,run);p.setInt(2,position++);p.setString(3,JSON.toJson(row));p.setString(4,now);p.addBatch();
+                    String[] values={UUID.randomUUID().toString(),run,Long.toString(row.nmId()),Long.toString(row.chrtId()),text(row.vendorCode()),text(row.color()),text(row.size()),now};
+                    for(int i=0;i<values.length;i++)report.setString(i+1,values[i]);report.addBatch();
+                }p.executeBatch();report.executeBatch();
+            }
+            RegistrationSourceConsent.persist(c,shop,run,rows.stream().map(row->new com.vncode.app.features.products.ProductKey(shop.getId(),shop.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).toList(),consent,offset);
+            try(var p=c.prepareStatement("UPDATE sync_runs SET total=(SELECT count(*) FROM sync_run_items WHERE run_id=?),state='RUNNING',finished_at=NULL,updated_at=? WHERE id=? AND shop_id=? AND owner=?")){
+                p.setString(1,run);p.setString(2,now);p.setString(3,run);p.setInt(4,shop.getId());p.setString(5,ListingIdentity.fingerprint(shop));if(p.executeUpdate()!=1)throw new SecurityException("SYNC_OWNER_CHANGED");
+            }
+            try(var p=c.prepareStatement("UPDATE znack_registration_batches SET state=CASE WHEN state='RUNNING' THEN state ELSE 'QUEUED' END,retry_at=NULL,updated_at=? WHERE id=?")){
+                p.setString(1,now);p.setString(2,run);p.executeUpdate();
+            }
+            return null;
+        });}catch(SQLException error){throw storage(error);}
+    }
     Batch latest(Shop shop){
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM znack_registration_batches WHERE shop_id=? AND owner=? ORDER BY created_at DESC LIMIT 1")){
             requireOwner(c,shop);p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));try(var r=p.executeQuery()){return r.next()?batch(r):null;}

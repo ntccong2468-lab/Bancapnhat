@@ -89,7 +89,7 @@ public final class RegistrationSources {
     public Readiness refresh(Shop shop,Consumer<String> progress)throws Exception {
         String active=System.getProperty("vncode.appdata.dir","")+"/"+shop.getId();
         if(!ACTIVE.add(active))throw new IllegalStateException("SOURCE_SYNC_RUNNING");
-        try{return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
+        try{var readiness=ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
             var verified=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(verified);String scope=verified.source();
             String run=reports.begin(shop,KIND,"READING_MARKETPLACE");
             try {
@@ -114,12 +114,13 @@ public final class RegistrationSources {
                 // A completed paired receipt no longer needs unfinished read progress.
                 // Clear before committing SUCCEEDED so a crash can only cause a safe re-read.
                 if(shop.getMarketplace()==Marketplace.OZON)OzonCatalogSyncService.completeRegistration(shop,scope);
-                reports.stage(shop,run,"SUCCEEDED","SOURCES_COMPLETE","");progress.accept("SOURCES_COMPLETE");return check(shop);
+                reports.stage(shop,run,"SUCCEEDED","SOURCES_COMPLETE","");
+                progress.accept("SOURCES_COMPLETE");return check(shop);
             }catch(Exception error){
                 try{reports.stage(shop,run,"FAILED",reports.step(run),SyncFailure.of(error,0).code());}catch(RuntimeException changed){error.addSuppressed(changed);}
                 throw error;
             }
-        });}finally{ACTIVE.remove(active);}
+        });WbAutomaticGtinUpdate.enableForCurrentSources(shop);return readiness;}finally{ACTIVE.remove(active);}
     }
     private static void assertScope(Shop shop,String scope){if(Thread.currentThread().isInterrupted())throw new IllegalStateException("SOURCE_SYNC_CANCELLED");if(!scope.equals(RegisteredGtinProof.current(shop).source()))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");}
     private static void readMarketplace(Shop shop,Consumer<List<Member>> sink)throws Exception {

@@ -990,6 +990,45 @@ class OzonPrintBundleServiceTest {
         assertEquals(List.of("POST-1"),result.successful());assertTrue(result.carrierOnly().containsKey("POST-1"));assertEquals(0,result.kizPages());assertTrue(result.failures().isEmpty());
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
+    void staleReadinessEstimateCannotSuppressFreshCombinedKizPreparation(boolean wholeBatch)throws Exception {
+        seedPosting(1);
+        var preparations=new java.util.concurrent.atomic.AtomicInteger();
+        var operation=new OzonPrintBundleService.Preparation(){
+            public boolean refreshEveryNewPrint(){return true;}
+            public boolean recheckReadiness(){return true;}
+            public OzonPreparationResult prepare(Shop owner,String number)throws IOException {
+                preparations.incrementAndGet();
+                try{seedValidatedExemplar(RAW_KIZ);}catch(Exception failure){throw new IOException(failure);}
+                return new OzonPreparationResult(number,"VALIDATED",1,true,false,"");
+            }
+        };
+        var downloads=new java.util.concurrent.atomic.AtomicInteger();
+        var source=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(officialPdf.toFile()));
+        var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
+            public File download(Shop owner,String number,File target)throws IOException {
+                assertFalse(wholeBatch);downloads.incrementAndGet();
+                Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;
+            }
+            public boolean supportsWholeBatches(){return wholeBatch;}
+            public OzonPrintBundleService.WholeCarrierBatch wholeBatch(Shop owner,String number){
+                downloads.incrementAndGet();return new OzonPrintBundleService.WholeCarrierBatch(source,officialPdf.toFile(),List.of(1,2),List.of("POST-1"),java.util.Set.of());
+            }
+            public void close(){source.close();}
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),operation,downloader);
+        var result=exporter.exportRequested(shop,List.of("POST-1"),temporaryDirectory.resolve("stale-stock.pdf").toFile(),
+                temporaryDirectory.resolve("stale-stock-pick.pdf").toFile(),null,Map.of("POST-1","KIZ_NOT_INCLUDED"));
+        assertEquals(1,result.kizPages(),"An earlier estimate must not prevent fresh stock reservation");
+        assertEquals(2,result.totalPages());assertTrue(result.carrierOnly().isEmpty());
+        assertEquals(1,preparations.get());assertEquals(1,downloads.get());
+        try(var output=Loader.loadPDF(result.labelFile())){
+            assertEquals(KizService.scannerSafeCode(RAW_KIZ),KizService.scannerSafeCode(decodeRenderedDataMatrixResult(output,1,300).getText()));
+            assertFalse(new PDFTextStripper().getText(output).contains("Official Ozon product label"));
+        }
+    }
+
     @Test void availableBatchPublishesOnlyCompletePostingsAndReportsTheFailedOrder() throws Exception {
         for(int i=1;i<=3;i++) {seedUnmarkedPosting("POST-"+i,"SKU-"+i,"offer-"+i);new OzonProductKizPolicyRepository().setRequired(1,"SKU-"+i,false);}
         var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),

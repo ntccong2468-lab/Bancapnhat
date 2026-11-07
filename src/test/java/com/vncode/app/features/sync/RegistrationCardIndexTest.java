@@ -15,7 +15,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationCardIndexTest {
-    @Test void processingFilterRequiresAnObservedCardRatherThanAnAllocationOrFeedReceipt(){
+    @Test void cardReadbackProofIsIndependentFromTheProcessingFilter(){
         var local=new RegistrationCardIndex.View("status.feed_submitted","00000000000017","SOURCE_NATIVE_CHECKPOINT",true,false,false);
         for(var state:List.of(Status.READY_TO_SUBMIT,Status.FEED_SUBMITTING,Status.FEED_SUBMITTED,Status.FEED_REVIEW_REQUIRED)){
             assertFalse(RegistrationCardIndex.catalogCardInProgress(state,null,"",local),state.name());
@@ -26,6 +26,15 @@ class RegistrationCardIndexTest {
         assertFalse(RegistrationCardIndex.awaitingCatalogCard(Status.PROCESSING,91L,"CATALOG_CARD_IN_MODERATION",local));
         var foreign=new RegistrationCardIndex.View("source.unverified",local.gtin(),"SOURCE_REGISTRATION_OWNER_CHANGED",true,false,true);
         assertFalse(RegistrationCardIndex.catalogCardInProgress(Status.PROCESSING,91L,"CATALOG_CARD_IN_MODERATION",foreign));
+    }
+    @Test void anAcknowledgedFeedIsProcessingButAnUncertainPostIsNotAnAcknowledgement(){
+        for(var status:List.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.FEED_SUBMITTED,Status.PROCESSING,Status.READY_TO_SIGN,Status.SIGNING,Status.PUBLISHED,Status.ERROR)){
+            assertTrue(RegistrationCardIndex.acceptedRequestInProgress(status,true,"NETWORK_TIMEOUT",null),status.name());
+            assertFalse(RegistrationCardIndex.acceptedRequestInProgress(status,false,"NETWORK_TIMEOUT",null),status.name());
+        }
+        assertFalse(RegistrationCardIndex.acceptedRequestInProgress(Status.ERROR,true,"CATALOG_REJECTED: missing field",null));
+        assertFalse(RegistrationCardIndex.acceptedRequestInProgress(Status.FEED_SUBMITTED,true,"",new RegistrationCardIndex.View("source.errors","","CATALOG_CARD_ERRORS",true,false,true)));
+        assertFalse(RegistrationCardIndex.acceptedRequestInProgress(Status.READY_TO_SUBMIT,false,"",null));
     }
     @TempDir Path directory;Shop shop;
     @BeforeEach void init()throws Exception{System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);RegistrationSourceFixture.ready(shop);}
