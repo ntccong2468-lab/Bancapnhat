@@ -2,7 +2,9 @@
 
 **VN code** là ứng dụng Windows do Nguyễn Thành Công phát triển và quản lý, phục vụ seller trên Wildberries và Ozon.
 
-Bản phát hành mới nhất: **VNCode 1.6.3**. [Tải bộ cài Windows 64-bit](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.3/VN-code-1.6.3-Windows-x64.exe) · [Release Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/latest) · [Bản nền](docs/releases/BASELINE.md) · [Ghi chú 1.6.3](docs/releases/VN-code-1.6.3.md).
+Bản phát hành mới nhất: **VNCode 1.6.4**. [Tải bộ cài Windows 64-bit](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.4/VN-code-1.6.4-Windows-x64.exe) · [Release Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/latest) · [Bản nền](docs/releases/BASELINE.md) · [Ghi chú 1.6.4](docs/releases/VN-code-1.6.4.md).
+
+**1.6.5 đang được chuẩn bị, chưa phát hành lên Latest.** [Phạm vi bản gộp](docs/releases/VN-code-1.6.5.md) gồm các sửa Code Doctor, đồng bộ Ozon, Znack/GTIN, giấy tờ và mapping KIZ mới nhất.
 
 Ứng dụng quản lý đơn, đồng bộ sản phẩm/GTIN, đăng ký thẻ Catalog, mua và gán KIZ, in tem và báo cáo. Repository chứa toàn bộ mã nguồn ứng dụng, website/Portal, kiểm thử và công cụ build. Bản phát hành mới đóng gói mã nguồn ZIP, Git bundle, bộ cài EXE/MSI, runtime Windows kèm Java và checksum để tiếp tục chỉnh sửa từ một bản nền.
 
@@ -28,7 +30,7 @@ Workflow **Build complete VNCode baseline** kiểm tra và đóng gói từ mộ
 
 ## Phạm vi kiểm chứng
 
-[Bàn giao 1.6.3](docs/validation/2026-11-04-vncode-163-handoff.md) và [biên nhận Latest](docs/validation/2026-11-04-vncode-163-published-latest.json) ghi rõ 3.844 ca Windows, nâng cấp từ 1.6.2, 16 tệp tải công khai và bộ cập nhật của binary 1.6.2. Xem [30 ảnh giao diện native sáng/tối đã duyệt](docs/design/native/2026-11-04/README.md).
+[Bàn giao 1.6.4](docs/validation/2026-11-05-vncode-164-handoff.md) và [biên nhận Latest](docs/validation/2026-11-05-vncode-164-published-latest.json) ghi rõ 3.864 ca Windows, nâng cấp từ 1.6.3, 16 tệp tải công khai và bộ cập nhật của binary 1.6.3. Kết quả này thuộc nguồn 1.6.4, không phải chứng nhận cho bản 1.6.5 đang chuẩn bị. Xem [30 ảnh giao diện native sáng/tối đã duyệt](docs/design/native/2026-11-04/README.md).
 
 Nghiệm thu Ozon thật trước đóng gói: 22 đơn và 2 đơn mới được nhận, đọc lại xác nhận; PDF 25 vận đơn + 13 KIZ gilet = 38 trang, 2 tác vụ theo lô, không tải nhãn riêng, xuất 6,999 giây. KIZ in từ reservation đúng đơn; kết quả này không xác nhận Ozon chấp nhận KIZ. Lô 1.000 dùng mô phỏng, chưa có benchmark 1.000 đơn thật. Nghiệm thu sửa sản phẩm/Catalog của bản nền vẫn giữ giới hạn trong hồ sơ: gửi lại giá trị đang có của năm trường, thẻ Catalog mới ở draft/moderation chưa ký/công bố. Không coi HTTP 200, số liệu mô phỏng hoặc ảnh giao diện là kết quả nghiệp vụ trên shop thật. [Giới hạn bảo mật còn lại](docs/validation/2026-11-03-release-security-review.md) tiếp tục áp dụng.
 

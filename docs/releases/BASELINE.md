@@ -1,6 +1,8 @@
 # VNCode consolidated baseline
 
-Bản nền hiện hành đã công bố: **VN Code 1.6.3**, tag bất biến `v1.6.3`, nguồn `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`, phát hành 2026-11-04T23:11:51Z.
+Bản đã công bố trên Latest hiện là **VN Code 1.6.4**, tag bất biến `v1.6.4`, nguồn `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`; xem [bàn giao và kiểm chứng 1.6.4](../validation/2026-11-05-vncode-164-handoff.md). **1.6.5 chỉ đang được chuẩn bị, chưa phát hành**; xem [phạm vi bản gộp](VN-code-1.6.5.md).
+
+Phần dưới giữ hồ sơ nền **1.6.3**, tag `v1.6.3`, nguồn `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`, phát hành 2026-11-04T23:11:51Z. Không dùng các số liệu này làm kết quả kiểm thử 1.6.5.
 
 Kế thừa toàn bộ 1.6.2. Áp dụng giao diện native đã duyệt, ưu tiên diện tích danh sách và quản lý cửa hàng cạnh selector. Nhận Ozon đối soát sau cả lô; lỗi KIZ tùy chọn chỉ cho tiếp tục khi API xác nhận được nhận. PDF giữ vận đơn Ozon gốc, đặt KIZ kết hợp đúng đơn ngay sau, sắp xếp cùng WB trên toàn lô; bỏ barcode sản phẩm đứng riêng. Phiếu nhặt hàng giữ đúng số vận đơn. In KIZ và chấp nhận KIZ trên API là hai kết quả riêng.
 

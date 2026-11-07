@@ -1,0 +1,239 @@
+{
+  "schema": 1,
+  "candidateVersion": "1.6.5",
+  "state": "unpublished",
+  "branch": "release/vn-code-1.6.5",
+  "preparedFromCommit": "bba83919094e6e0f713302a365f9fa87a340c6a6",
+  "applicationChangesThroughCommit": "5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c",
+  "latestMustRemain": {
+    "version": "1.6.4",
+    "sourceCommit": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad"
+  },
+  "ownerInstruction": "Consolidate only; do not publish to Latest.",
+  "includedChanges": [
+    {
+      "change": "Latest 1.6.4",
+      "sourceCommit": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Code Doctor install",
+      "sourceCommit": "338d46e20fa82376005daaf39ac5ae4bea2b3c3f",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Ozon error isolation",
+      "sourceCommit": "c2e9dcfc56b4287f7ece05bc058e310fa5bd9942",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Znack filters and WB GTIN",
+      "sourceCommit": "5710392b9caaade838a94f33b6e4bdfe8d64cc3a",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Configured declaration and aliases",
+      "sourceCommit": "af3bf5c7330bfc1b1ebf3693d4f97190e06e8a54",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Localized declaration",
+      "sourceCommit": "fd20aa84304baed67277263e4814f2ba2569612e",
+      "includedByAncestry": true
+    },
+    {
+      "change": "KIZ mapping and TN VED",
+      "sourceCommit": "5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Complete change inventory",
+      "sourceCommit": "bba83919094e6e0f713302a365f9fa87a340c6a6",
+      "includedByAncestry": true
+    }
+  ],
+  "runtimeFilesUnchangedSinceApplicationSource": true,
+  "pomChangeIsVersionOnly": true,
+  "schemaUpgradeCodeAndDataPathsUnchanged": true,
+  "newSellerApiMutationsPerformed": false,
+  "paidKizPurchasePerformed": false,
+  "runtimeFilesChangedSincePublishedBaseline": [
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/GtinTnvedIdentity.java",
+      "sha256": "b23072007f525f4a1ae60a12f257419b4217395efa4227658bb8b91bf579b970",
+      "bytes": 1580
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/GtinVariantIdentity.java",
+      "sha256": "645972b61002520e28e00aa7c4665850078c1e7510928349591a2c768723ba43",
+      "bytes": 2936
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java",
+      "sha256": "4c60312f145819eb96aed2302e64dfee0330e0b9f233707e85b14badc746e5b9",
+      "bytes": 15617
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/WbCatalogMappingService.java",
+      "sha256": "dbf914b6fe222fd5c063e4cdf0d597cadd9235a124f133fa7d98eb8b79dd45b6",
+      "bytes": 8802
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/products/ConfiguredProductDeclaration.java",
+      "sha256": "144ea9f097dd3cfab6b5111a9abc04c7ee758735bb2162a8e73d95a0f4b8b364",
+      "bytes": 3249
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+      "sha256": "ab9884d9250b8c6884424303eaae0459ee0d14f4455e3f0daa4b6844186d7405",
+      "bytes": 29536
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/FbsSyncService.java",
+      "sha256": "c1551c2d6b61fd1c555e311f72a016f4fb616295f9af2b822bc9383744eea2b1",
+      "bytes": 18751
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/RegistrationCardIndex.java",
+      "sha256": "47d7e05255e9d19abbf41411cddf499780c96f2bf79b02e2cd8972c775dc7e1d",
+      "bytes": 20789
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+      "sha256": "c2c1b19fec98d7fa2e3e732d0dced16d75c64a73ab4c1632a47453f974c1e313",
+      "bytes": 33390
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPostingSyncService.java",
+      "sha256": "6fc6217c6ce7e4573960972e58bbd956a2765f1b6fda2cd0adcfc2a9ea2f221e",
+      "bytes": 11932
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbGtinAdapter.java",
+      "sha256": "5fd2479eee6898af0d754abd489cf36e110b94de418e8b8cd85468681b13d9c0",
+      "bytes": 33219
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+      "sha256": "33e9871930a63474e9f2aa33ccae69b4e69003f75b605411b5b785eaecf095ac",
+      "bytes": 41714
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+      "sha256": "eab53b9891ece0b6c9884f2929eeb162f3111b2ef431adfb4a0e15a8af9f7c2d",
+      "bytes": 67074
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java",
+      "sha256": "a0cb8ea8a760de461b7197ee2faad3a896f366efba3699cabcb72cdffc7a0e25",
+      "bytes": 10779
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDocumentConfigDialog.java",
+      "sha256": "6bbdcb68fbc7b95bf6d8f9bc6e50f271360a6e74c16ad4cdbd7e1e234e8d2f8b",
+      "bytes": 4628
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+      "sha256": "c3a9c86088580881b2aac8e6a1fd0da75b32376bf5cbf7d1ed5b434474958caf",
+      "bytes": 103898
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepository.java",
+      "sha256": "11957b225d173bfadff23a3e1893fcdecc5be7cc5bd9c8851e1238e907ed90a7",
+      "bytes": 21951
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "sha256": "c2b7553007bad8069c774d451c46b6d8e39991f570654d81ba2f0fdf9f54a2c2",
+      "bytes": 216044
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "ffe7917e0993fff070d51b614d2dc4878cc7e26de89d583c4bc222b807b2c99f",
+      "bytes": 353425
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "976f8ff0e75ec88e15de803bef51a02c8caaead5c9dccc08bd07ab577b33c2f9",
+      "bytes": 251847
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "d11f28cda33894a1028f2c6f89dcabf798aa645c1fba2a11394a60ab144461f6",
+      "bytes": 209558
+    }
+  ],
+  "testFilesChangedSincePublishedBaseline": [
+    {
+      "path": "src/test/java/com/vncode/app/features/catalogsync/CatalogSyncServiceTest.java",
+      "sha256": "b3fe2c2c5a7fed73298db4dd6ac117de9385dc94fcfb51187c9a6c09e9f7f448",
+      "bytes": 22524
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kizmapping/OzonCatalogMappingServiceTest.java",
+      "sha256": "8f1c639903a373401a7459a7b51061ba3fe9d88b1640bc9ed4bc649cad7b6d8e",
+      "bytes": 20414
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kizmapping/WbCatalogMappingServiceTest.java",
+      "sha256": "59caf8d5d0544409b947c9723537bfdb27213905726731cd3f4950bf204d49f3",
+      "bytes": 7522
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/products/ProductBulkEditServiceTest.java",
+      "sha256": "cb6b69243f6c939a30161941cca5b306504bef32cb9e771b4410f0d2393ad201",
+      "bytes": 19859
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/sync/FbsSyncServiceTest.java",
+      "sha256": "8eb8a968d1abaa389c36ee887e34897cf073ccf1b494b7b4107e45ef5d49d4d9",
+      "bytes": 37391
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/sync/RegistrationCardIndexTest.java",
+      "sha256": "eed0998bac77e3ba27acca591756a69ed1300af5ffb12b3edfbbfbf8829ae647",
+      "bytes": 24679
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java",
+      "sha256": "bc29e646bfd7a1e89342f7f36b00957c52c54f8fa31af24bb6681bbeaad0162b",
+      "bytes": 37421
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonSyncServiceTest.java",
+      "sha256": "8720a9899ca01b29e38c1b80c254fadddb204e33e21fb66ca6bd67ee41dc1d0f",
+      "bytes": 35441
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbGtinAdapterTest.java",
+      "sha256": "1c9d83d800c8e663dcdd8407e1a6bc94b76b4d96137b469a9b88594daa24c83f",
+      "bytes": 50278
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/products/ProductBulkDialogTest.java",
+      "sha256": "9b4175915e6f74d377f2018b949d6393d425ffe6089d62e8464388277609a488",
+      "bytes": 28323
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/OzonRegistrationPaneTest.java",
+      "sha256": "ee5732fcb7246af5c0a4bd83854ac19cecf431402eb15357ce1dec1dd554dece",
+      "bytes": 71192
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/RegistrationDiagnosticsTest.java",
+      "sha256": "e993e063fae2e6051acdb3c7ae9d6932664d19e09f2c4f4952eac41308edbdcd",
+      "bytes": 12626
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+      "sha256": "d63acb7d4f0ce266f6a81e15678055003189738ee81ec994374bb6d24baf6ffb",
+      "bytes": 82404
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepositoryTest.java",
+      "sha256": "dc217cc0483f67d8e961f91ca77bfa2336a4aa3f476a46f32f57e0b9718c1386",
+      "bytes": 26225
+    }
+  ]
+}
