@@ -69,6 +69,33 @@ final class OzonAcceptanceKizService {
     }
     void ensure(Shop shop,OzonPostingDto posting,OzonApiClient api,KizSourceSelection sources)throws IOException {
         if(!requiredBeforeAccept(shop,posting,sources))return;
+        var replacements=new OzonAcceptanceKizReplacement();
+        for(int attempt=0;attempt<1000;attempt++) {
+            if(Thread.currentThread().isInterrupted())throw new IOException("OZON_ACCEPT_KIZ_PENDING");
+            try {
+                var job=jobs.find(shop.getId(),posting.postingNumber());
+                var ticket=replacements.active(shop,job);
+                if(ticket==null&&job!=null){
+                    var observed=new com.vncode.app.features.kiz.status.Kn3Repository().read(shop,posting.postingNumber());
+                    var bound=jobs.bindings(job.id());
+                    if(observed.stream().anyMatch(m->m.state()==Kn3Mark.State.REJECTED&&bound.stream().anyMatch(b->OzonAcceptanceKizReplacement.matches(b,m)))){
+                        if(job.mutationAttemptedAt()!=null&&!job.mutationAttemptedAt().isBlank()){
+                            verify(shop,posting,api,job);return;
+                        }
+                        throw detailedRejection(shop,posting,job,observed,OzonExemplarService.exemplarPayload(posting.postingNumber(),bound,true),"");
+                    }
+                }
+                if(ticket!=null&&ticket.state().equals("PREPARED"))sendPreparedReplacement(shop,posting,api,job,ticket,replacements);
+                ensureOnce(shop,posting,api,sources);
+                return;
+            }catch(RejectedMarks failure){
+                if(!replacements.prepare(shop,posting,failure.job,failure.marks,failure.payload,failure.remoteAnchor,sources,jobs))throw failure;
+            }
+        }
+        throw new IOException("OZON_ACCEPT_KIZ_RETRY_LIMIT");
+    }
+    private void ensureOnce(Shop shop,OzonPostingDto posting,OzonApiClient api,KizSourceSelection sources)throws IOException {
+        if(!requiredBeforeAccept(shop,posting,sources))return;
         if(sources!=null&&!sources.anySelected())throw new IOException("OZON_ACCEPT_KIZ_SOURCE_REQUIRED");
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
         new OzonPostingRepository().upsertDetail(shop.getId(),posting);
@@ -101,9 +128,10 @@ final class OzonAcceptanceKizService {
         if(hasMarks(remote))throw new IOException("OZON_ACCEPT_KIZ_EXISTING_MARKS");
         jobs.persistRemoteExemplars(job,plan,ids);
         var bindings=jobs.bindings(job.id());
-        var validation=OzonExemplarJson.validation(api.validateExemplars(
-                OzonExemplarService.exemplarPayload(posting.postingNumber(),bindings,false)),bindings.size());
-        if(validation.rejected())throw recordRejection(shop,posting,job);
+        var rawValidation=api.validateExemplars(OzonExemplarService.exemplarPayload(posting.postingNumber(),bindings,false));
+        var validation=OzonExemplarJson.validation(rawValidation,bindings.size());
+        if(validation.rejected())throw detailedRejection(shop,posting,job,validationMarks(posting,rawValidation,bindings),
+                OzonExemplarService.exemplarPayload(posting.postingNumber(),bindings,true),"");
         if(!validation.allMarksPassed())throw new IOException("OZON_ACCEPT_KIZ_PENDING");
         var payload=OzonExemplarService.exemplarPayload(posting.postingNumber(),bindings,true);
         String fingerprint=ListingIdentity.hash(payload.toString());
@@ -137,19 +165,103 @@ final class OzonAcceptanceKizService {
             ListingIdentity.require(shop);
             var raw=api.exemplarStatus(request);
             var marks=OzonKn3Protocol.parse(posting.postingNumber(),raw);
-            if(marks.stream().anyMatch(m->m.state()==Kn3Mark.State.REJECTED))throw recordRejection(shop,posting,job);
+            boolean identitiesMatch=marks.size()==bindings.size()&&bindings.stream().allMatch(binding->
+                    marks.stream().anyMatch(mark->OzonAcceptanceKizReplacement.matches(binding,mark)));
+            if(identitiesMatch&&marks.stream().anyMatch(m->m.state()==Kn3Mark.State.REJECTED)){
+                var rejected=marks.stream().filter(m->m.state()==Kn3Mark.State.REJECTED).findFirst().orElseThrow();
+                throw detailedRejection(shop,posting,job,marks,OzonKn3Protocol.replacement(posting.postingNumber(),raw,rejected,rejected.code()),rejected.fingerprint());
+            }
             boolean same=marks.size()==bindings.size()&&bindings.stream().allMatch(binding->marks.stream().anyMatch(mark->
                     mark.productId().equals(binding.productId())&&mark.exemplarId().equals(binding.exemplarId())
                             &&mark.fingerprint().equals(Kn3Mark.fingerprint(binding.rawCode()))&&mark.state()==Kn3Mark.State.ACCEPTED));
             if(same&&OzonExemplarJson.status(raw,bindings.size()).accepted()) {
                 if(job.stage()==OzonExemplarJobStage.SET_PENDING)job=jobs.transition(job,OzonExemplarJobStage.VERIFYING,job.requestFingerprint(),null,false);
                 if(job.stage()==OzonExemplarJobStage.VERIFYING||job.stage()==OzonExemplarJobStage.RECONCILE_REQUIRED)jobs.consumeAccepted(job);
+                new OzonAcceptanceKizReplacement().settle(shop,job,marks);
                 jobs.logAction(shop.getId(),"accept_kiz",posting.postingNumber(),"reconciled",null,job.requestFingerprint());
                 return;
             }
             if(attempt<7)try{Thread.sleep(250);}catch(InterruptedException stopped){Thread.currentThread().interrupt();throw new IOException("OZON_ACCEPT_KIZ_PENDING",stopped);}
         }
         throw new IOException("OZON_ACCEPT_KIZ_PENDING");
+    }
+    private void sendPreparedReplacement(Shop shop,OzonPostingDto posting,OzonApiClient api,OzonExemplarJob job,
+            OzonAcceptanceKizReplacement.Ticket ticket,OzonAcceptanceKizReplacement replacements)throws IOException {
+        ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
+        var payload=ticket.payload();
+        if(ticket.remoteRejected()){
+            var request=new JsonObject();request.addProperty("posting_number",posting.postingNumber());var fresh=api.exemplarStatus(request);
+            var current=OzonKn3Protocol.parse(posting.postingNumber(),fresh);
+            var target=current.stream().filter(m->m.state()==Kn3Mark.State.REJECTED&&m.fingerprint().equals(ticket.oldHash())).findFirst().orElseThrow(()->new IOException("OZON_ACCEPT_KIZ_EXISTING_MARKS"));
+            var replacement=jobs.bindings(job.id()).stream().filter(b->b.productId().equals(target.productId())&&b.exemplarId().equals(target.exemplarId())
+                    &&Kn3Mark.fingerprint(b.rawCode()).equals(ticket.newHash())).findFirst().orElseThrow(()->new IOException("OZON_ACCEPT_KIZ_EXISTING_MARKS"));
+            payload=OzonKn3Protocol.replacement(posting.postingNumber(),fresh,target,replacement.rawCode());
+            // Sibling mandatory marks must still be the exact owned bindings.
+            var bound=jobs.bindings(job.id());
+            if(current.size()!=bound.size()||current.stream().filter(m->m!=target).anyMatch(m->bound.stream().noneMatch(b->OzonAcceptanceKizReplacement.matches(b,m))))
+                throw new IOException("OZON_ACCEPT_KIZ_EXISTING_MARKS");
+        }else{
+            var remote=api.createOrGetExemplars(OzonExemplarService.createRequest(posting));
+            var ids=OzonExemplarJson.exemplarIdsByProduct(remote);var bound=jobs.bindings(job.id());
+            if(hasMarks(remote)||ids.values().stream().mapToInt(List::size).sum()!=bound.size()
+                    ||bound.stream().anyMatch(b->!ids.getOrDefault(b.productId(),List.of()).contains(b.exemplarId())))
+                throw new IOException("OZON_ACCEPT_KIZ_EXISTING_MARKS");
+        }
+        var sendingTicket=new OzonAcceptanceKizReplacement.Ticket(ticket.id(),ticket.state(),payload,ticket.oldHash(),ticket.newHash(),ticket.remoteRejected());
+        var validationPayload=payload.deepCopy();
+        for(var product:validationPayload.getAsJsonArray("products"))
+            for(var exemplar:product.getAsJsonObject().getAsJsonArray("exemplars"))exemplar.getAsJsonObject().remove("exemplar_id");
+        var raw=api.validateExemplars(validationPayload);var status=OzonExemplarJson.validation(raw,jobs.bindings(job.id()).size());
+        if(status.rejected())throw detailedRejection(shop,posting,job,validationMarks(posting,raw,jobs.bindings(job.id())),payload,ticket.remoteRejected()?ticket.oldHash():"");
+        if(!status.allMarksPassed())throw new IOException("OZON_ACCEPT_KIZ_PENDING");
+        jobs.requireCurrentBindingsBeforeSend(shop,posting.postingNumber(),job.id());
+        String fingerprint=ListingIdentity.hash(payload.toString());
+        if(!replacements.claim(shop,job,sendingTicket,fingerprint))throw new IOException("OZON_ACCEPT_KIZ_PENDING");
+        try {
+            ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);api.setExemplars(payload);
+            replacements.state(shop,sendingTicket,"AWAITING");
+            jobs.logAction(shop.getId(),"accept_kiz",posting.postingNumber(),"submitted",null,fingerprint);
+            var current=jobs.find(shop.getId(),posting.postingNumber());
+            if(current.stage()==OzonExemplarJobStage.SET_PENDING)jobs.transition(current,OzonExemplarJobStage.VERIFYING,fingerprint,null,false);
+        }catch(OzonApiException failure){
+            if(!failure.ambiguousMutation()){
+                replacements.state(shop,sendingTicket,"FAILED");
+                var current=jobs.find(shop.getId(),posting.postingNumber());
+                if(current.stage()==OzonExemplarJobStage.SET_PENDING)jobs.transition(current,OzonExemplarJobStage.VALIDATED,fingerprint,failure.safeErrorCode(),false);
+            }
+            jobs.logAction(shop.getId(),"accept_kiz",posting.postingNumber(),failure.ambiguousMutation()?"ambiguous":"rejected",failure.safeErrorCode(),fingerprint);
+            throw failure;
+        }
+    }
+    private IOException detailedRejection(Shop shop,OzonPostingDto posting,OzonExemplarJob job,List<Kn3Mark> marks,JsonObject payload,String remoteAnchor){
+        var generic=recordRejection(shop,posting,job);
+        return marks.stream().anyMatch(m->m.state()==Kn3Mark.State.REJECTED)?new RejectedMarks(job,marks,payload,remoteAnchor):generic;
+    }
+    /** Validation has no exemplar IDs: resolve only a unique exact product/code pair, never array order. */
+    private static List<Kn3Mark> validationMarks(OzonPostingDto posting,JsonObject raw,List<OzonExemplarJobRepository.KizBinding> bindings){
+        var rejected=new HashSet<String>();var root=OzonKn3Protocol.result(raw);
+        for(var product:OzonJson.array(root,"products")){
+            if(!product.isJsonObject())continue;var p=product.getAsJsonObject();String id=OzonJson.text(p,"product_id");
+            for(var exemplar:OzonJson.array(p,"exemplars")){
+                if(!exemplar.isJsonObject())continue;
+                for(var value:OzonJson.array(exemplar.getAsJsonObject(),"marks")){
+                    if(!value.isJsonObject())continue;var mark=value.getAsJsonObject();
+                    boolean invalid=mark.has("valid")&&mark.get("valid").isJsonPrimitive()
+                            &&mark.getAsJsonPrimitive("valid").isBoolean()&&!mark.get("valid").getAsBoolean();
+                    invalid|=!OzonJson.array(mark,"errors").isEmpty();
+                    if(!invalid||!"mandatory_mark".equals(OzonJson.text(mark,"mark_type")))continue;
+                    String hash=Kn3Mark.fingerprint(OzonJson.text(mark,"mark"));
+                    var exact=bindings.stream().filter(b->b.productId().equals(id)&&Kn3Mark.fingerprint(b.rawCode()).equals(hash)).toList();
+                    if(exact.size()==1)rejected.add(id+":"+exact.getFirst().exemplarId());
+                }
+            }
+        }
+        return bindings.stream().map(b->new Kn3Mark(posting.postingNumber(),b.productId(),b.exemplarId(),b.rawCode(),
+                rejected.contains(b.productId()+":"+b.exemplarId())?Kn3Mark.State.REJECTED:Kn3Mark.State.PENDING,"VALIDATION_REJECTED")).toList();
+    }
+    private static final class RejectedMarks extends IOException {
+        final OzonExemplarJob job;final List<Kn3Mark> marks;final JsonObject payload;final String remoteAnchor;
+        RejectedMarks(OzonExemplarJob job,List<Kn3Mark> marks,JsonObject payload,String remoteAnchor){super("OZON_ACCEPT_KIZ_REJECTED");this.job=job;this.marks=List.copyOf(marks);this.payload=payload.deepCopy();this.remoteAnchor=remoteAnchor;}
     }
     private IOException recordRejection(Shop shop,OzonPostingDto posting,OzonExemplarJob job){
         jobs.logAction(shop.getId(),"accept_kiz",posting.postingNumber(),"rejected","OZON_ACCEPT_KIZ_REJECTED",job.requestFingerprint());

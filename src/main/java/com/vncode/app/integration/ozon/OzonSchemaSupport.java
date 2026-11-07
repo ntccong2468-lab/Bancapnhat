@@ -334,6 +334,7 @@ public final class OzonSchemaSupport {
             statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_fbo_supplies_order ON ozon_fbo_supplies(shop_id,order_id)");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_ozon_fbo_items_order ON ozon_fbo_supply_items(shop_id,order_id,supply_id)");
         }
+        OzonAcceptanceKizReplacement.initialize(connection);
     }
 
     private static boolean columnExists(Connection connection, String table, String column) throws SQLException {

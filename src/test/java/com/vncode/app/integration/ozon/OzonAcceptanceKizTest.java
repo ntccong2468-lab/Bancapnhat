@@ -20,6 +20,8 @@ class OzonAcceptanceKizTest {
     final Map<String,JsonObject> sent=new ConcurrentHashMap<>();
     final Set<String> shipped=ConcurrentHashMap.newKeySet(),accepted=ConcurrentHashMap.newKeySet();
     final List<String> trace=new CopyOnWriteArrayList<>();
+    boolean rejectFirstImportedMark,rejectFirstImportedValidation,holdReplacementValidation,foreignValidationMark,invalidGtd,statusMetadata,rejectSecondCandidateValidation;
+    String firstImportedMark,secondImportedMark;
     volatile CountDownLatch concurrentChildReads;
     final java.util.concurrent.atomic.AtomicBoolean childReadsOverlapped=new java.util.concurrent.atomic.AtomicBoolean();
     @BeforeEach void setup()throws Exception {
@@ -71,6 +73,146 @@ class OzonAcceptanceKizTest {
                 assertTrue(r.next());assertEquals(2,r.getInt(1));
             }
         }
+    }
+    @Test void rejectedImportedMarkIsReplacedFromTheSameCategoryBeforeReceipt()throws Exception {
+        importedCategoryStock(2);rejectFirstImportedMark=true;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,
+                com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).status());
+        assertEquals(2,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertEquals(1,shipped.size());
+        var bound=new OzonExemplarJobRepository().bindings(new OzonExemplarJobRepository().find(1,"PARENT").id());
+        assertNotEquals(firstImportedMark,bound.getFirst().rawCode());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_rejected_stock WHERE shop_id=1")){
+            assertTrue(r.next());assertEquals(1,r.getInt(1));
+        }
+    }
+    @Test void invalidImportedMarkInValidationIsReplacedWithoutSubmittingIt()throws Exception {
+        importedCategoryStock(2);rejectFirstImportedValidation=true;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,
+                com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).status());
+        assertEquals(2,trace.stream().filter(p->p.equals("/v5/fbs/posting/product/exemplar/validate")).count());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertNotEquals(firstImportedMark,sent.get("PARENT").getAsJsonArray("products").get(0).getAsJsonObject()
+                .getAsJsonArray("exemplars").get(0).getAsJsonObject().getAsJsonArray("marks").get(0).getAsJsonObject().get("mark").getAsString());
+    }
+    @Test void exhaustedImportedCategoryNeverUsesPurchasedStockOrResubmitsTheDiscardedCode()throws Exception {
+        importedCategoryStock(1);rejected=true;
+        for(int attempt=0;attempt<2;attempt++)assertEquals("OZON_ACCEPT_KIZ_REJECTED",assertThrows(java.io.IOException.class,
+                ()->service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY)).getMessage());
+        assertTrue(shipped.isEmpty());assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_codes WHERE order_id=1 AND status='AVAILABLE'")){
+            assertTrue(r.next());assertEquals(2,r.getInt(1));
+        }
+    }
+    @Test void pendingImportedCodeIsReconciledWithoutReplacingOrResubmittingIt()throws Exception {
+        importedCategoryStock(2);pending=true;
+        for(int attempt=0;attempt<2;attempt++)assertEquals("OZON_ACCEPT_KIZ_PENDING",assertThrows(java.io.IOException.class,
+                ()->service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY)).getMessage());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_rejected_stock")){
+            assertTrue(r.next());assertEquals(0,r.getInt(1));
+        }
+    }
+    @Test void preparedImportedReplacementSurvivesANewServiceInstance()throws Exception {
+        importedCategoryStock(3);rejectFirstImportedValidation=true;holdReplacementValidation=true;
+        assertEquals("OZON_ACCEPT_KIZ_PENDING",assertThrows(java.io.IOException.class,
+                ()->service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY)).getMessage());
+        var jobs=new OzonExemplarJobRepository();var job=jobs.find(1,"PARENT");long held=jobs.bindings(job.id()).getFirst().kizId();
+        assertEquals("PREPARED",new OzonAcceptanceKizReplacement().active(shop,job).state());
+        Database.initDatabase(); // Re-open an existing database as startup does; retain the unsent intent.
+        holdReplacementValidation=false;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).status());
+        assertEquals(held,jobs.bindings(job.id()).getFirst().kizId());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertNull(new OzonAcceptanceKizReplacement().active(shop,job));
+    }
+    @Test void validationForAnotherProductCannotDiscardOrReplaceTheLocalMark()throws Exception {
+        importedCategoryStock(2);rejectFirstImportedValidation=true;foreignValidationMark=true;
+        assertEquals("OZON_ACCEPT_KIZ_REJECTED",assertThrows(java.io.IOException.class,
+                ()->service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY)).getMessage());
+        assertTrue(sent.isEmpty());assertEquals(1,trace.stream().filter(p->p.equals("/v5/fbs/posting/product/exemplar/validate")).count());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_rejected_stock")){
+            assertTrue(r.next());assertEquals(0,r.getInt(1));
+        }
+    }
+    @Test void invalidGtdCannotRetireAValidImportedMark()throws Exception {
+        importedCategoryStock(2);invalidGtd=true;
+        assertEquals("OZON_ACCEPT_KIZ_REJECTED",assertThrows(java.io.IOException.class,
+                ()->service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY)).getMessage());
+        assertTrue(sent.isEmpty());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_rejected_stock")){
+            assertTrue(r.next());assertEquals(0,r.getInt(1));
+        }
+    }
+    @Test void interruptedReplacementAfterTheMutationBoundaryIsReadBackWithoutAnotherSet()throws Exception {
+        importedCategoryStock(3);rejectFirstImportedValidation=true;holdReplacementValidation=true;
+        assertThrows(java.io.IOException.class,()->service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY));
+        var jobs=new OzonExemplarJobRepository();var job=jobs.find(1,"PARENT");var replacements=new OzonAcceptanceKizReplacement();
+        var ticket=replacements.active(shop,job);long code=jobs.bindings(job.id()).getFirst().kizId();
+        assertTrue(replacements.claim(shop,job,ticket,com.vncode.app.integration.listing.ListingIdentity.hash(ticket.payload().toString())));
+        var oldRemote=ticket.payload().deepCopy();oldRemote.getAsJsonArray("products").get(0).getAsJsonObject()
+                .getAsJsonArray("exemplars").get(0).getAsJsonObject().getAsJsonArray("marks").get(0).getAsJsonObject().addProperty("mark",firstImportedMark);
+        sent.put("PARENT",oldRemote);rejectFirstImportedMark=true;holdReplacementValidation=false;
+        Database.initDatabase();
+        assertEquals("OZON_ACCEPT_KIZ_PENDING",assertThrows(java.io.IOException.class,
+                ()->service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY)).getMessage());
+        assertEquals(0,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertEquals(code,jobs.bindings(job.id()).getFirst().kizId());assertEquals("SENDING",replacements.active(shop,job).state());
+    }
+    @Test void replacementKeepsOtherRemoteMarksAndExemplarMetadata()throws Exception {
+        importedCategoryStock(2);rejectFirstImportedMark=true;statusMetadata=true;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).status());
+        var exemplar=sent.get("PARENT").getAsJsonArray("products").get(0).getAsJsonObject().getAsJsonArray("exemplars").get(0).getAsJsonObject();
+        assertEquals("GTD-ORIGINAL",exemplar.get("gtd").getAsString());assertEquals("RNPT-ORIGINAL",exemplar.get("rnpt").getAsString());
+        assertEquals(2,exemplar.getAsJsonArray("marks").size());
+        assertEquals("SIBLING-ORIGINAL",exemplar.getAsJsonArray("marks").get(1).getAsJsonObject().get("mark").getAsString());
+    }
+    @Test void exhaustedGiletPoolCannotTakeAnImportedMarkAssignedToAnotherProductCategory()throws Exception {
+        importedCategoryStock(1);rejected=true;
+        new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto("9002","other","202","Other","",false,"",List.of())),"");
+        var categories=new com.vncode.app.features.kiz.KizStockCategoryRepository();var other=categories.create(shop,"Other category");
+        categories.assignProducts(shop,other.id(),List.of(new com.vncode.app.features.products.ProductKey(1,Marketplace.OZON,"9002","other")));
+        var file=directory.resolve("other-stock.txt");java.nio.file.Files.writeString(file,"01"+com.vncode.app.testsupport.CategoryStockFixture.GTIN+"210000000009999\u001d91ABCD\u001d92RklYVFVSRS1OT1QtQS1SRUFMLUNSWVBUTy1TSUdOQVRVUkU=\n");
+        new com.vncode.app.features.kiz.KizWarehouseRepository().commitToCategory(shop,com.vncode.app.features.kiz.KizImportReader.read(file),other.id());
+        assertEquals("OZON_ACCEPT_KIZ_REJECTED",assertThrows(java.io.IOException.class,
+                ()->service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY)).getMessage());
+        assertEquals(1,categories.list(shop).stream().filter(c->c.id().equals(other.id())).findFirst().orElseThrow().ready());
+        assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());assertTrue(shipped.isEmpty());
+    }
+    @Test void aCandidateRejectedInValidationAfterARemoteRejectionKeepsTheOriginalRemoteSlot()throws Exception {
+        importedCategoryStock(3);rejectFirstImportedMark=true;rejectSecondCandidateValidation=true;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).status());
+        assertEquals(2,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        var jobs=new OzonExemplarJobRepository();String finalCode=jobs.bindings(jobs.find(1,"PARENT").id()).getFirst().rawCode();
+        assertNotEquals(firstImportedMark,finalCode);assertNotEquals(secondImportedMark,finalCode);
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_rejected_stock")){assertTrue(r.next());assertEquals(2,r.getInt(1));}
+    }
+    @Test void aPreviouslyPrintedImportedMarkCanBeReplacedAfterAnExactOzonRejection()throws Exception {
+        importedCategoryStock(2);rejectFirstImportedMark=true;
+        var posting=OzonJson.requirePostingDetail(JsonParser.parseString(posting("PARENT")).getAsJsonObject(),"PARENT");
+        new OzonPostingRepository().upsertDetail(1,posting);var jobs=new OzonExemplarJobRepository();
+        var plan=OzonRequirementGuard.plan(posting,Map.of(),Set.of(),Set.of("101"));
+        var local=jobs.stageLocalForPrint(1,plan,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY,()->{});
+        assertEquals(OzonExemplarJobStage.ACCEPTED,jobs.consumePrinted(local.job()).stage());
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).status());
+        assertEquals(2,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertNotEquals(firstImportedMark,jobs.bindings(jobs.find(1,"PARENT").id()).getFirst().rawCode());
+    }
+    @Test void exhaustedOptionalImportedMarksStillAllowReceiptWhenOzonExplicitlyPermitsIt()throws Exception {
+        importedCategoryStock(3);optional=true;optionalNoMarks=true;rejected=true;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).status());
+        assertEquals(3,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertEquals(1,shipped.size());
+        var jobs=new OzonExemplarJobRepository();assertEquals("skipped",jobs.latestActionStatus(1,"accept_kiz_optional","PARENT"));
+        var bound=jobs.bindings(jobs.find(1,"PARENT").id()).getFirst();
+        try(var c=Database.getConnection()){
+            assertTrue(OzonExemplarJobRepository.hasRejectedPrintObservation(c,jobs.find(1,"PARENT"),bound.productId(),bound.exemplarId(),bound.rawCode()));
+        }
+    }
+    private void importedCategoryStock(int count)throws Exception {
+        new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto("9001","fixture","101","Fixture","",false,"",List.of())),"");
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_product_gtin_mappings");}
+        com.vncode.app.testsupport.CategoryStockFixture.add(shop,"9001",directory,count);
     }
     @Test void purchasedAcceptanceStillRequiresProductGtinEvenWhenImportedCategoryHasStock()throws Exception {
         new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto("9001","fixture","101","Fixture","",false,"",List.of())),"");
@@ -332,13 +474,35 @@ class OzonAcceptanceKizTest {
         if(path.equals("/v3/posting/fbs/get"))return json(posting(number));
         if(path.equals("/v1/posting/fbs/split"))return json("{\"parent_posting\":{\"posting_number\":\"PARENT\",\"products\":[]},\"postings\":[{\"posting_number\":\"CHILD-A\"},{\"posting_number\":\"CHILD-B\"}]}");
         if(path.equals("/v6/fbs/posting/product/exemplar/create-or-get"))return json("{\"result\":{\"products\":[{\"product_id\":101,\"exemplars\":[{\"exemplar_id\":7001}]}]}}");
-        if(path.equals("/v5/fbs/posting/product/exemplar/validate"))return json("{\"products\":[{\"exemplars\":[{\"valid\":"+!validationRejected+"}]}]}");
+        if(path.equals("/v5/fbs/posting/product/exemplar/validate")){
+            if(invalidGtd)return json("{\"products\":[{\"product_id\":101,\"error\":\"GTD_INVALID\",\"exemplars\":[{\"valid\":false,\"marks\":[{\"valid\":true,\"mark_type\":\"mandatory_mark\",\"mark\":\"unrelated\",\"errors\":[]}]}]}]}");
+            if(rejectFirstImportedValidation||rejectSecondCandidateValidation&&firstImportedMark!=null){
+                var result=body.deepCopy();var product=result.getAsJsonArray("products").get(0).getAsJsonObject();
+                var exemplar=product.getAsJsonArray("exemplars").get(0).getAsJsonObject();
+                var mark=exemplar.getAsJsonArray("marks").get(0).getAsJsonObject();String value=mark.get("mark").getAsString();
+                if(rejectFirstImportedValidation&&firstImportedMark==null)firstImportedMark=value;
+                if(rejectSecondCandidateValidation&&!value.equals(firstImportedMark)&&secondImportedMark==null)secondImportedMark=value;
+                boolean valid=!value.equals(rejectSecondCandidateValidation?secondImportedMark:firstImportedMark);
+                if(valid&&holdReplacementValidation)return json("{\"products\":[]}");
+                if(foreignValidationMark)product.addProperty("product_id",999);
+                mark.addProperty("valid",valid);exemplar.addProperty("valid",valid);
+                var errors=new JsonArray();if(!valid)errors.add("INVALID_MARK");mark.add("errors",errors);
+                return json(result.toString());
+            }
+            return json("{\"products\":[{\"exemplars\":[{\"valid\":"+!validationRejected+"}]}]}");
+        }
         if(path.equals("/v6/fbs/posting/product/exemplar/set")){sent.put(number,body);return json("{}");}
         if(path.equals("/v5/fbs/posting/product/exemplar/status")) {
             boolean rejected=this.rejected||firstChildRejected&&number.equals("CHILD-A");
             var raw=sent.get(number).deepCopy();raw.addProperty("status",pending?"validation_in_process":"ship_available");
+            if(statusMetadata)for(var p:raw.getAsJsonArray("products"))for(var e:p.getAsJsonObject().getAsJsonArray("exemplars")){
+                var exemplar=e.getAsJsonObject();exemplar.addProperty("gtd","GTD-ORIGINAL");exemplar.addProperty("rnpt","RNPT-ORIGINAL");
+                if(exemplar.getAsJsonArray("marks").size()==1){var sibling=new JsonObject();sibling.addProperty("mark_type","other_mark");sibling.addProperty("mark","SIBLING-ORIGINAL");exemplar.getAsJsonArray("marks").add(sibling);}
+            }
             for(var p:raw.getAsJsonArray("products"))for(var e:p.getAsJsonObject().getAsJsonArray("exemplars"))for(var m:e.getAsJsonObject().getAsJsonArray("marks")){
-                var mark=m.getAsJsonObject();mark.addProperty("check_status",pending?"processing":rejected?"failed":"passed");var errors=new JsonArray();if(rejected)errors.add("NOT_IN_CIRCULATION");mark.add("error_codes",errors);
+                var mark=m.getAsJsonObject();
+                if(rejectFirstImportedMark){if(firstImportedMark==null)firstImportedMark=mark.get("mark").getAsString();rejected=firstImportedMark.equals(mark.get("mark").getAsString());}
+                mark.addProperty("check_status",pending?"processing":rejected?"failed":"passed");var errors=new JsonArray();if(rejected)errors.add("NOT_IN_CIRCULATION");mark.add("error_codes",errors);
             }
             if(!pending&&!rejected)accepted.add(number);return json(raw.toString());
         }
