@@ -82,9 +82,36 @@ class OzonAcceptanceKizTest {
         assertEquals(1,shipped.size());
         var bound=new OzonExemplarJobRepository().bindings(new OzonExemplarJobRepository().find(1,"PARENT").id());
         assertNotEquals(firstImportedMark,bound.getFirst().rawCode());
+        var observations=new com.vncode.app.features.kiz.status.Kn3Repository().read(shop,"PARENT");
+        assertEquals(1,observations.size());
+        assertEquals(com.vncode.app.features.kiz.status.Kn3Mark.State.ACCEPTED,observations.getFirst().state(),
+                "A successful automatic replacement must remove the stale red KN3 target");
+        assertEquals(com.vncode.app.features.kiz.status.Kn3Mark.fingerprint(bound.getFirst().rawCode()),observations.getFirst().fingerprint());
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_rejected_stock WHERE shop_id=1")){
             assertTrue(r.next());assertEquals(1,r.getInt(1));
         }
+    }
+    @Test void rejectedStockYieldsAfterABoundedPassAndAFreshAcceptedReadNeverBurnsAnotherCode()throws Exception {
+        importedCategoryStock(20);rejected=true;
+        var progress=new ArrayList<OzonKizProgress.Stage>();
+        try(var scope=OzonKizProgress.listen(progress::add)){
+            assertEquals("OZON_ACCEPT_KIZ_REJECTED",assertThrows(java.io.IOException.class,()->
+                    service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY)).getMessage());
+        }
+        assertEquals(OzonAcceptanceKizService.MAX_MARK_ATTEMPTS,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertTrue(progress.containsAll(List.of(OzonKizProgress.Stage.READ,OzonKizProgress.Stage.VALIDATE,
+                OzonKizProgress.Stage.REPLACE,OzonKizProgress.Stage.VERIFY)));
+        var jobs=new OzonExemplarJobRepository();var job=jobs.find(1,"PARENT");
+        assertNull(new OzonAcceptanceKizReplacement().active(shop,job),"No unsent extra candidate may be held at the pass boundary");
+        assertThrows(IllegalStateException.class,()->jobs.consumeAccepted(job),"A retired code cannot be accepted without fresh exact readback");
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_codes WHERE id IN (SELECT code_id FROM kiz_import_entries) AND status='AVAILABLE'")){
+            assertTrue(r.next());assertEquals(20-OzonAcceptanceKizService.MAX_MARK_ATTEMPTS,r.getInt(1));
+        }
+        rejected=false;
+        assertEquals("awaiting_deliver",service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).status());
+        assertEquals(OzonAcceptanceKizService.MAX_MARK_ATTEMPTS,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
+        assertEquals(com.vncode.app.features.kiz.status.Kn3Mark.State.ACCEPTED,
+                new com.vncode.app.features.kiz.status.Kn3Repository().read(shop,"PARENT").getFirst().state());
     }
     @Test void invalidImportedMarkInValidationIsReplacedWithoutSubmittingIt()throws Exception {
         importedCategoryStock(2);rejectFirstImportedValidation=true;
@@ -94,6 +121,39 @@ class OzonAcceptanceKizTest {
         assertEquals(1,trace.stream().filter(p->p.equals("/v6/fbs/posting/product/exemplar/set")).count());
         assertNotEquals(firstImportedMark,sent.get("PARENT").getAsJsonArray("products").get(0).getAsJsonObject()
                 .getAsJsonArray("exemplars").get(0).getAsJsonObject().getAsJsonArray("marks").get(0).getAsJsonObject().get("mark").getAsString());
+    }
+    @Test void printAutomaticallyRepairsARejectedMarkAfterReceiptWithoutShippingAgain()throws Exception {
+        importedCategoryStock(3);
+        service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY);
+        var jobs=new OzonExemplarJobRepository();var original=jobs.bindings(jobs.find(1,"PARENT").id()).getFirst();
+        firstImportedMark=original.rawCode();rejectFirstImportedMark=true;optional=true;optionalNoMarks=true;
+        new com.vncode.app.features.kiz.status.Kn3Repository().observe(shop,"PARENT",List.of(
+                new com.vncode.app.features.kiz.status.Kn3Mark("PARENT",original.productId(),original.exemplarId(),original.rawCode(),
+                        com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,"invalid_mark")));
+        var batch=exemplarService().openPrintBatch(shop,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY);
+        assertTrue(batch.repairRejectedForPrint("PARENT"));
+        var replacement=jobs.bindings(jobs.find(1,"PARENT").id()).getFirst();
+        assertNotEquals(original.kizId(),replacement.kizId());
+        assertEquals(original.productId(),replacement.productId());assertEquals(original.exemplarId(),replacement.exemplarId());
+        assertEquals("ACCEPTED",batch.stageForPrint("PARENT").stage());
+        assertEquals(2,trace.stream().filter("/v6/fbs/posting/product/exemplar/set"::equals).count());
+        assertEquals(1,trace.stream().filter("/v4/posting/fbs/ship"::equals).count());
+        assertEquals(com.vncode.app.features.kiz.status.Kn3Mark.State.ACCEPTED,
+                new com.vncode.app.features.kiz.status.Kn3Repository().read(shop,"PARENT").getFirst().state());
+        int reads=trace.size();assertFalse(batch.repairRejectedForPrint("PARENT"));assertEquals(reads,trace.size());
+    }
+    @Test void staleRedPrintStateReadsFreshOzonBeforeReservingAReplacement()throws Exception {
+        importedCategoryStock(3);
+        service().shipPerUnit(shop,"PARENT",true,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY);
+        var jobs=new OzonExemplarJobRepository();var original=jobs.bindings(jobs.find(1,"PARENT").id()).getFirst();
+        new com.vncode.app.features.kiz.status.Kn3Repository().observe(shop,"PARENT",List.of(
+                new com.vncode.app.features.kiz.status.Kn3Mark("PARENT",original.productId(),original.exemplarId(),original.rawCode(),
+                        com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,"invalid_mark")));
+        assertTrue(exemplarService().openPrintBatch(shop,com.vncode.app.features.kiz.KizSourceSelection.SELLER_ONLY).repairRejectedForPrint("PARENT"));
+        assertEquals(original.kizId(),jobs.bindings(jobs.find(1,"PARENT").id()).getFirst().kizId());
+        assertEquals(1,trace.stream().filter("/v6/fbs/posting/product/exemplar/set"::equals).count());
+        assertEquals(com.vncode.app.features.kiz.status.Kn3Mark.State.ACCEPTED,
+                new com.vncode.app.features.kiz.status.Kn3Repository().read(shop,"PARENT").getFirst().state());
     }
     @Test void exhaustedImportedCategoryNeverUsesPurchasedStockOrResubmitsTheDiscardedCode()throws Exception {
         importedCategoryStock(1);rejected=true;
@@ -324,8 +384,11 @@ class OzonAcceptanceKizTest {
         assertEquals("rejected",jobs.latestActionStatus(1,"accept_kiz","PARENT"));
         assertEquals("skipped",jobs.latestActionStatus(1,"accept_kiz_optional","PARENT"));
         try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT count(*) FROM kiz_codes WHERE status='CONSUMED'")){
-            assertTrue(r.next());assertEquals(0,r.getInt(1));
+            assertTrue(r.next());assertEquals(1,r.getInt(1),"An exactly rejected code is retired, never returned to stock");
         }
+        assertEquals(com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,
+                new com.vncode.app.features.kiz.status.Kn3Repository().read(shop,"PARENT").getFirst().state(),
+                "Receipt success must not become a green KN3 verdict");
         var before=jobs.bindings(jobs.find(1,"PARENT").id());
         var preparation=new OzonExemplarService(new OzonPostingRepository(),new OzonProductGtinMappingRepository(),jobs,
                 (id,credentials)->new OzonApiClient(id,credentials,server.url("/"),new OkHttpClient.Builder().build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));
@@ -468,6 +531,7 @@ class OzonAcceptanceKizTest {
         preflight.run(shop,List.of("PARENT"),new com.vncode.app.features.kiz.KizSourceSelection(true,true),p->{fail("Seller category covers this order");return false;},s->{},()->false);
         assertTrue(sent.isEmpty());assertTrue(shipped.isEmpty());
     }
+    private OzonExemplarService exemplarService(){return new OzonExemplarService(new OzonPostingRepository(),new OzonProductGtinMappingRepository(),new OzonExemplarJobRepository(),(id,credentials)->new OzonApiClient(id,credentials,server.url("/"),new OkHttpClient.Builder().readTimeout(1,TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));}
     private OzonShipService service(){return new OzonShipService(new OzonPostingRepository(),new OzonProductGtinMappingRepository(),new OzonExemplarJobRepository(),(id,credentials)->new OzonApiClient(id,credentials,server.url("/"),new OkHttpClient.Builder().readTimeout(1,TimeUnit.SECONDS).build(),new OzonApiRateLimiter(Duration.ZERO),new OzonRetryPolicy(1,Duration.ofMillis(1),Duration.ofMillis(1))));}
     private MockResponse respond(RecordedRequest request) {
         String path=request.getPath();trace.add(path);var body=JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject();String number=OzonJson.text(body,"posting_number");

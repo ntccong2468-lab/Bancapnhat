@@ -71,13 +71,28 @@ public final class OzonPrintBundleService {
                 return service.openPrintBatch(shop,sources).stageForPrint(postingNumber);
             }
             @Override public boolean refreshEveryNewPrint() { return true; }
+            @Override public boolean recheckReadiness() { return true; }
             @Override public boolean validateShopOwner() { return true; }
+            @Override public void refreshProducts(Shop shop,java.util.Collection<OzonPostingDto> selected,Map<String,OzonProductDto> products)throws IOException{
+                service.openPrintBatch(shop,sources).refreshPrintProducts(selected,products);
+            }
+            @Override public boolean repairRejected(Shop shop,String number)throws IOException {
+                return service.openPrintBatch(shop,sources).repairRejectedForPrint(number);
+            }
             @Override public Preparation forBatch(Shop shop) {
                 OzonExemplarService.PrintBatch batch = service.openPrintBatch(shop,sources);
                 return new Preparation() {
                     private final Map<String,OzonPreparationResult> prepared=new LinkedHashMap<>();
                     private final Map<String,String> failures=new LinkedHashMap<>();
                     private final Map<String,OzonApiException> apiFailures=new LinkedHashMap<>();
+                    @Override public boolean recheckReadiness() { return true; }
+                    @Override public boolean repairRejected(Shop selected,String number)throws IOException {
+                        MarketplaceGuard.requireOzon(selected);
+                        if(selected.getId()!=shop.getId())throw new IOException("Ozon print shop changed.");
+                        boolean repaired=batch.repairRejectedForPrint(number);
+                        if(repaired)discard(number);
+                        return repaired;
+                    }
                     @Override public OzonPreparationResult prepare(Shop selected, String number) throws IOException {
                         MarketplaceGuard.requireOzon(selected);
                         if (selected.getId() != shop.getId()) throw new IOException("Ozon print shop changed.");
@@ -101,6 +116,10 @@ public final class OzonPrintBundleService {
                     @Override public void discard(String number){prepared.remove(number);failures.remove(number);apiFailures.remove(number);}
                     @Override public boolean refreshEveryNewPrint() { return true; }
                     @Override public boolean validateShopOwner() { return true; }
+                    @Override public void refreshProducts(Shop selected,java.util.Collection<OzonPostingDto> postings,Map<String,OzonProductDto> products)throws IOException{
+                        if(selected.getId()!=shop.getId())throw new IOException("Ozon print shop changed.");
+                        batch.refreshPrintProducts(postings,products);
+                    }
                 };
             }
         };
@@ -183,13 +202,19 @@ public final class OzonPrintBundleService {
                 : context.postings.get(safePosting);
         if (posting == null) throw new IOException("The selected Ozon posting is not available locally. Refresh first.");
 
-        OzonExemplarJob job = context == null ? jobs.find(shop.getId(), safePosting)
+        Preparation operation = context == null ? preparation : context.preparation;
+        boolean repaired=operation.repairRejected(shop,safePosting);
+        if(repaired){
+            posting=Objects.requireNonNullElse(postings.find(shop.getId(),safePosting),posting);
+            if(context!=null)context.postings.put(safePosting,posting);
+        }
+        OzonExemplarJob job = context == null || repaired ? jobs.find(shop.getId(), safePosting)
                 : context.jobs.get(safePosting);
+        if(context!=null&&repaired&&job!=null)context.jobs.put(safePosting,job);
         // ACCEPTED stores a frozen already-printed binding; only that reprint is a recovery path.
         boolean newPrint = !accepted(job);
         if (newPrint) LicenseRuntime.require(Permission.PRINT_NEW);
         Set<String> exemptions = context == null ? policies.findExemptSkus(shop.getId()) : context.exemptions;
-        Preparation operation = context == null ? preparation : context.preparation;
         boolean requiresKiz = OzonRequirementGuard.requiresAny(posting, exemptions);
         if ((newPrint && operation.refreshEveryNewPrint()) || (requiresKiz && !printable(job))) {
             requireNotInterrupted();
@@ -244,6 +269,10 @@ public final class OzonPrintBundleService {
             if (newPrint) LicenseRuntime.require(Permission.PRINT_NEW);
             Map<String, OzonProductDto> products = context == null ? catalogFor(shop, List.of(posting))
                     : context.products;
+            if(context==null&&!bindings.isEmpty()){products=new LinkedHashMap<>(products);operation.refreshProducts(shop,List.of(posting),products);}
+            else if(posting.items().stream().anyMatch(item->OzonPrintProductSnapshot.missing(item,context.products)&&!context.productIssues.containsKey(item.sku())))
+                refreshPrintProducts(shop,context,List.of(posting));
+            requireProductSnapshot(context,posting,products,bindings);
             OfficialLabelDownloader downloader=context==null?labels:context.labels;
             VerifiedCarrierPage carrier=destination==null?null:downloader.verifiedCarrierPage(shop,safePosting);
             int officialPages;
@@ -342,7 +371,7 @@ public final class OzonPrintBundleService {
                         List<String> window=safePostings.subList(index,Math.min(index+OzonExemplarService.PRINT_BATCH_SIZE,safePostings.size())).stream()
                                 .filter(number->!accepted(context.jobs.get(number))).toList();
                         long prepareStarted=OzonPrintTiming.tick();
-                        try { context.preparation.prefetch(frozenShop,window); }
+                        try { context.preparation.prefetch(frozenShop,window);refreshPrintProducts(frozenShop,context,postings.findMany(frozenShop.getId(),window).values()); }
                         finally { OzonPrintTiming.add(OzonPrintTiming.Stage.PREPARATION,prepareStarted); }
                     }
                     ExportResult result = exportInternal(frozenShop,safePostings.get(index),labelPart,null,false,context,destination);
@@ -359,7 +388,7 @@ public final class OzonPrintBundleService {
             requireNotInterrupted();
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             var frozenProofs=Map.copyOf(context.printProofs);
-            ownedPublish(frozenShop,context.preparation.validateShopOwner(),containsNewPrint,()->{
+            ownedPublish(frozenShop,context.preparation.validateShopOwner(),containsNewPrint||safePostings.stream().anyMatch(n->!accepted(context.jobs.get(n))),()->{
                 publishPrintedBundle(frozenShop,safePostings,frozenProofs,finishedPicking,pickingTarget,finishedLabels,labelTarget,context.preparation.validateShopOwner());
             });
             labelStaging=null;pickingStaging=null;
@@ -402,15 +431,16 @@ public final class OzonPrintBundleService {
         if(!selected.containsAll(carrierOnly.keySet()))throw new IllegalArgumentException("OZON_PRINT_REPORT_SELECTION_CHANGED");
         var selectedPostings=postings.findMany(frozen.getId(),selected);
         var selectedJobs=jobs.findMany(frozen.getId(),selected);
-        // Readiness is an earlier stock estimate, not a request to omit an existing label.
-        // Revalidate held/printed bindings below instead of silently forcing carrier-only output.
+        // Readiness is an earlier estimate, not an instruction to omit KIZ. The production
+        // preparation rechecks current detail/stock in batch even when no job was reserved yet.
         if(allowCarrierFallback&&!carrierOnly.isEmpty()){
             var pendingJobs=carrierOnly.keySet().stream().map(selectedJobs::get)
                     .filter(OzonPrintBundleService::awaitingPrintRevalidation).map(OzonExemplarJob::id).toList();
             var held=jobs.bindingCounts(frozen.getId(),pendingJobs);
             carrierOnly.keySet().removeIf(number->{
                 var job=selectedJobs.get(number);
-                return printable(job)||awaitingPrintRevalidation(job)&&held.getOrDefault(job.id(),0)>0;
+                return printable(job)||awaitingPrintRevalidation(job)&&held.getOrDefault(job.id(),0)>0
+                        ||preparation.recheckReadiness()&&selectedPostings.containsKey(number);
             });
         }
         boolean containsNewPrint=selected.stream().anyMatch(number->!accepted(selectedJobs.get(number)));
@@ -433,7 +463,7 @@ public final class OzonPrintBundleService {
                         var window=selected.subList(index,Math.min(index+OzonExemplarService.PRINT_BATCH_SIZE,selected.size())).stream()
                                 .filter(n->context.postings.containsKey(n)&&!carrierOnly.containsKey(n)&&!accepted(context.jobs.get(n))).toList();
                         long started=OzonPrintTiming.tick();
-                        try{context.preparation.prefetch(frozen,window);}
+                        try{context.preparation.prefetch(frozen,window);refreshPrintProducts(frozen,context,postings.findMany(frozen.getId(),window).values());}
                         catch(IOException failure){
                             if(!allowCarrierFallback||deferredLabelFailure(failure))throw failure;
                             for(String pending:window)carrierOnly.put(pending,com.vncode.app.shared.FriendlyErrorService.format(failure));
@@ -483,7 +513,9 @@ public final class OzonPrintBundleService {
                             source.copyPagesTo(1,source.getNumberOfPages(),destination);destination.flushCopiedObjects(source);
                         }
                     }finally{OzonPrintTiming.add(OzonPrintTiming.Stage.COMPOSITION,copiedAt);}
-                    successful.add(number);if(result.kizPages()>0){var proof=context.printProofs.get(number);if(proof==null)throw new IOException("OZON_PRINT_KIZ_PROOF_MISSING");successfulWithKiz.put(number,proof);}totalPages+=result.totalPages();kizPages+=result.kizPages();
+                    successful.add(number);if(result.kizPages()>0){var proof=context.printProofs.get(number);if(proof==null)throw new IOException("OZON_PRINT_KIZ_PROOF_MISSING");successfulWithKiz.put(number,proof);}
+                    else carrierOnly.putIfAbsent(number,unassignedKizReason());
+                    totalPages+=result.totalPages();kizPages+=result.kizPages();
                 }
             }
             if(successful.isEmpty())return new AvailableBatchExportResult(null,null,List.of(),Map.copyOf(failures),Set.copyOf(waiting),0,0,Map.of());
@@ -494,7 +526,7 @@ public final class OzonPrintBundleService {
             finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingStarted);}
             File finishedLabels=labelStaging,finishedPicking=pickingStaging;
             List<String> frozenSuccess=List.copyOf(successful);var frozenKizSuccess=Map.copyOf(successfulWithKiz);
-            ownedPublish(frozen,context.preparation.validateShopOwner(),containsNewPrint,()->{
+            ownedPublish(frozen,context.preparation.validateShopOwner(),containsNewPrint||frozenSuccess.stream().anyMatch(n->!accepted(context.jobs.get(n))),()->{
                 publishPrintedBundle(frozen,frozenSuccess,frozenKizSuccess,finishedPicking,pickingTarget,finishedLabels,labelTarget,context.preparation.validateShopOwner());
             });
             labelStaging=null;pickingStaging=null;
@@ -540,6 +572,8 @@ public final class OzonPrintBundleService {
                     carrierOnly.put(number,com.vncode.app.shared.FriendlyErrorService.format(failure));
                 }finally{context.preparation.discard(number);}
             }
+            refreshPrintProducts(shop,context,prepared.values().stream().filter(plan->!plan.bindings().isEmpty()).map(PreparedPrint::posting).toList());
+            available=sortedForPrinting(selected,context);
             labelStaging=AtomicFilePublisher.stagingFile(labelTarget,".whole-batch.pdf");
             pickingStaging=AtomicFilePublisher.stagingFile(pickingTarget,".whole-picking.pdf");
             try(var destination=new PdfDocument(new PdfWriter(labelStaging))){
@@ -597,9 +631,11 @@ public final class OzonPrintBundleService {
                     requireNotInterrupted();var group=groups.get(number);
                     if(group==null||!copiedGroups.add(group))continue;
                     var plan=group.identified()?prepared.get(number):null;
+                    if(plan!=null&&plan.bindings().isEmpty())carrierOnly.putIfAbsent(number,unassignedKizReason());
                     byte[] bytes=null;int appended=0;long composed=OzonPrintTiming.tick();
                     if(plan!=null&&!plan.bindings().isEmpty()){
                         try{
+                            requireProductSnapshot(context,plan.posting(),context.products,plan.bindings());
                             var buffer=new java.io.ByteArrayOutputStream();
                             try(var part=new PdfDocument(new PdfWriter(buffer))){appended=kizLabels.append(part,shop,plan.posting(),plan.bindings(),context.products);}
                             if(appended!=plan.bindings().size())throw new IOException("OZON_KIZ_LABEL_COUNT_MISMATCH");bytes=buffer.toByteArray();
@@ -631,7 +667,7 @@ public final class OzonPrintBundleService {
             try{pickingLists.exportBatch(pickingStaging,shop,orderedSuccess.stream().map(context.postings::get).toList(),context.carrierNumbers);}
             finally{OzonPrintTiming.add(OzonPrintTiming.Stage.PICKING,pickingAt);}
             requireNotInterrupted();var labelsFile=labelStaging;var pickingFile=pickingStaging;
-            ownedPublish(shop,context.preparation.validateShopOwner(),containsNewPrint,()->
+            ownedPublish(shop,context.preparation.validateShopOwner(),containsNewPrint||orderedSuccess.stream().anyMatch(n->!accepted(context.jobs.get(n))),()->
                     publishPrintedBundle(shop,orderedSuccess,Map.copyOf(proofs),pickingFile,pickingTarget,labelsFile,labelTarget,context.preparation.validateShopOwner()));
             labelStaging=null;pickingStaging=null;carrierOnly.keySet().retainAll(successful);
             return new AvailableBatchExportResult(labelTarget,pickingTarget,orderedSuccess,Map.copyOf(failures),Set.copyOf(waiting),totalPages,kizPages,Map.copyOf(carrierOnly),remoteKizWarnings(shop,proofs.keySet()));
@@ -779,11 +815,34 @@ public final class OzonPrintBundleService {
         return Map.copyOf(products);
     }
 
+    private static void refreshPrintProducts(Shop shop,PrintContext context,java.util.Collection<OzonPostingDto> selected)throws IOException{
+        if(selected.isEmpty())return;
+        var skus=selected.stream().flatMap(posting->posting.items().stream()).map(OzonPostingItemDto::sku).collect(java.util.stream.Collectors.toSet());
+        skus.forEach(context.products::remove);context.products.putAll(catalogFor(shop,selected));
+        try{context.preparation.refreshProducts(shop,selected,context.products);}
+        catch(java.io.InterruptedIOException interrupted){throw interrupted;}
+        catch(IOException failure){
+            // Carrier labels and already-read products remain usable. Only the exact SKUs
+            // still missing metadata receive this diagnostic; never invent an OZN barcode.
+            for(var posting:selected)for(var item:posting.items())if(OzonPrintProductSnapshot.missing(item,context.products))
+                context.productIssues.put(item.sku(),com.vncode.app.shared.FriendlyErrorService.format(failure));
+        }
+        for(var posting:selected)for(var item:posting.items())if(!OzonPrintProductSnapshot.missing(item,context.products))context.productIssues.remove(item.sku());
+    }
+    private static void requireProductSnapshot(PrintContext context,OzonPostingDto posting,Map<String,OzonProductDto> products,List<OzonExemplarJobRepository.KizBinding> bindings)throws IOException{
+        if(context==null||bindings.isEmpty())return;
+        for(var binding:bindings){var item=posting.items().stream().filter(row->row.itemIndex()==binding.itemIndex()).findFirst().orElse(null);
+            if(item!=null&&OzonPrintProductSnapshot.missing(item,products)&&context.productIssues.containsKey(item.sku()))
+                throw new IOException("OZON_LABEL_PRODUCT_REFRESH_FAILED: "+context.productIssues.get(item.sku()));
+        }
+    }
+
     private static final class PrintContext {
         final Map<String, OzonPostingDto> postings;
         final Map<String, OzonExemplarJob> jobs;
         final Set<String> exemptions;
         final Map<String, OzonProductDto> products;
+        final Map<String,String> productIssues=new LinkedHashMap<>();
         final Map<String,OzonExemplarJobRepository.PrintProof> printProofs=new LinkedHashMap<>();
         final Map<String,String> carrierNumbers=new LinkedHashMap<>();
         final Preparation preparation;
@@ -793,7 +852,7 @@ public final class OzonPrintBundleService {
             this.postings = new LinkedHashMap<>(postings);
             this.jobs = new LinkedHashMap<>(jobs);
             this.exemptions = Set.copyOf(exemptions);
-            this.products = products;
+            this.products = new LinkedHashMap<>(products);
             this.preparation = preparation;
         }
     }
@@ -893,6 +952,9 @@ public final class OzonPrintBundleService {
     private static String safeStage(String value) {
         return value != null && value.matches("[A-Z_]{1,64}") ? value : "UNKNOWN";
     }
+    private static String unassignedKizReason(){
+        return "OZON_PRINT_KIZ_NOT_ASSIGNED: "+com.vncode.app.shared.I18nService.getInstance().tr("ozon.dashboard.print_kiz_unassigned");
+    }
 
     @FunctionalInterface
     interface Preparation {
@@ -902,6 +964,9 @@ public final class OzonPrintBundleService {
         default boolean validateShopOwner(){return false;}
         default void prefetch(Shop shop,List<String> numbers)throws IOException {}
         default void discard(String number) {}
+        default boolean repairRejected(Shop shop,String number)throws IOException { return false; }
+        default boolean recheckReadiness() { return false; }
+        default void refreshProducts(Shop shop,java.util.Collection<OzonPostingDto> postings,Map<String,OzonProductDto> products)throws IOException {}
     }
 
     @FunctionalInterface

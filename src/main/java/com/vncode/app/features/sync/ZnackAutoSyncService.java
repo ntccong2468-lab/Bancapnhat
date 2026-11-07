@@ -50,24 +50,25 @@ public final class ZnackAutoSyncService {
         if(runs.step(active.get()).equals("ZNACK_SOURCE"))return prepare(shop,active.get());
         String id=active.get();int processed=0;boolean waiting=false,blocked=false,review=false;SyncFailure retry=null;
         var registeredCandidates=RegistrationMarketplaceConsent.publishedCandidates(shop);
+        boolean automaticWb=WbAutomaticGtinUpdate.enabled(shop);
         var seenChildren=new HashSet<String>();
         try(var bulk=bulkProduction?new GtinBulkSession(shop):null){boolean prepared=false;
         for(int offset=0;;offset+=1000){var items=runs.items(id,offset,1000);if(items.isEmpty())break;
             for(var item:items){
                 if(Set.of("SUCCEEDED","UNCHANGED","CANCELLED").contains(item.state()))continue;
                 if(Set.of("NEEDS_ACTION","FAILED").contains(item.state())){blocked=true;continue;}
-                if(!sellerReviewed(item)&&!RegistrationSourcePolicy.permitsAutomatic(shop,new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId()),item.gtin())){
+                if(!automaticWb&&!sellerReviewed(item)&&!RegistrationSourcePolicy.permitsAutomatic(shop,new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId()),item.gtin())){
                     if(!item.state().equals("AWAITING_CONFIRMATION"))runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
                     review=true;continue;
                 }
                 if(item.childJob().isBlank()){
-                    if(!registeredCandidates.contains(new RegistrationMarketplaceConsent.Candidate(item.productId(),item.variantId(),item.gtin()))){
+                    if(!automaticWb&&!registeredCandidates.contains(new RegistrationMarketplaceConsent.Candidate(item.productId(),item.variantId(),item.gtin()))){
                         if(!item.state().equals("AWAITING_CONFIRMATION"))runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
                         review=true;continue;
                     }
                     if(processed>=3){waiting=true;continue;}
                     var key=new ProductKey(shop.getId(),shop.getMarketplace(),item.productId(),item.variantId());
-                    if(!RegistrationMarketplaceConsent.allowed(shop,key,item.gtin())||!RegisteredGtinProof.sameCode(registrationGtin(shop,key),item.gtin())){
+                    if(!automaticWb&&(!RegistrationMarketplaceConsent.allowed(shop,key,item.gtin())||!RegisteredGtinProof.sameCode(registrationGtin(shop,key),item.gtin()))){
                         if(!item.state().equals("AWAITING_CONFIRMATION"))runs.update(shop,item,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
                         review=true;continue;
                     }
@@ -82,7 +83,7 @@ public final class ZnackAutoSyncService {
                             runs.update(shop,item,"NEEDS_ACTION","VALIDATING",reason,null);blocked=true;
                         }else{
                             // Link the durable confirmed child BEFORE the first marketplace write.
-                            runs.linkReviewed(shop,id,catalog.confirm(shop,plan.id()),false);waiting=true;
+                            runs.linkReviewed(shop,id,catalog.confirm(shop,plan.id(),automaticWb),false);waiting=true;
                         }
                     }catch(Exception error){runs.update(shop,item,"NEEDS_ACTION","VALIDATING",SyncFailure.of(error,0).code(),null);blocked=true;}
                     continue;
@@ -90,7 +91,7 @@ public final class ZnackAutoSyncService {
                 if(!seenChildren.add(item.childJob()))continue;
                 if(CatalogSyncService.running(shop,item.childJob())){waiting=true;continue;}
                 var members=runs.childItems(shop,id,item.childJob());
-                if(members.stream().anyMatch(member->!sellerReviewed(member)&&!RegistrationSourcePolicy.permitsAutomatic(shop,new ProductKey(shop.getId(),shop.getMarketplace(),member.productId(),member.variantId()),member.gtin()))){
+                if(!automaticWb&&members.stream().anyMatch(member->!sellerReviewed(member)&&!RegistrationSourcePolicy.permitsAutomatic(shop,new ProductKey(shop.getId(),shop.getMarketplace(),member.productId(),member.variantId()),member.gtin()))){
                     for(var member:members)if(!Set.of("SUCCEEDED","UNCHANGED","CANCELLED").contains(member.state()))runs.update(shop,member,"AWAITING_CONFIRMATION","REVIEW","GTIN_CONFIRMATION_REQUIRED",null);
                     review=true;continue;
                 }
@@ -143,6 +144,14 @@ public final class ZnackAutoSyncService {
                 for(var row:page.rows()){
                     if(!selected.isEmpty()&&!selected.contains(row.key()))continue;
                     seen.add(row.key());productCount++;
+                    var existingWb=shop.getMarketplace()==Marketplace.WILDBERRIES?WbRegisteredBarcode.first(row.barcodes()):Optional.<String>empty();
+                    if(existingWb.isPresent()){
+                        var evidence=reportEvidence(row,null,selected.isEmpty()?"STORE":"SELECTED","");
+                        evidence.addProperty("checkResult","MARKETPLACE_BARCODE_PRESENT");
+                        evidence.addProperty("marketplaceVerified",true);evidence.addProperty("syncResult","ALREADY_UPDATED");evidence.addProperty("nextAction","");
+                        buffered.add(reportItem(id,row.key().cardId(),row.key().variantId(),"",row.vendorArticle(),row.color(),row.size(),existingWb.get(),"SUCCEEDED","",evidence.toString()));
+                        continue;
+                    }
                     List<RegisteredGtin> candidates;
                     try{candidates=match(shop,row,index);}catch(IllegalArgumentException changed){buffered.add(reportItem(id,row.key().cardId(),row.key().variantId(),"",row.vendorArticle(),row.color(),row.size(),"","NEEDS_ACTION",SyncFailure.of(changed,0).code(),reportEvidence(row,null,selected.isEmpty()?"STORE":"SELECTED",SyncFailure.of(changed,0).code()).toString()));continue;}
                     String error=candidates.size()>1?"GTIN_AMBIGUOUS":candidates.isEmpty()?"ZNACK_MAPPING_UNVERIFIED":"";

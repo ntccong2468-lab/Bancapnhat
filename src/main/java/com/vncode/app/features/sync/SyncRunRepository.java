@@ -172,7 +172,7 @@ public final class SyncRunRepository {
         String submitted="("+has+") AND (("+verified+") OR COALESCE(json_extract("+safe+",'$.marketplaceSubmitted'),0)=1)";
         String unknown="NOT ("+verified+") AND (COALESCE(json_extract("+safe+",'$.checkResult'),'')='UNKNOWN' OR COALESCE(json_extract("+safe+",'$.syncResult'),'')='UNKNOWN' OR state='RECONCILING')";
         String without="NOT ("+has+") AND NOT COALESCE(("+unknown+"),0)";
-        String failed="NOT ("+verified+") AND (state='FAILED' OR COALESCE(json_extract("+safe+",'$.syncResult'),'')='FAILED')",blocked="state IN ('NEEDS_ACTION','FAILED','CANCELLED')";
+        String failed="NOT ("+verified+") AND (state='FAILED' OR COALESCE(json_extract("+safe+",'$.syncResult'),'')='FAILED')",blocked="("+has+") AND NOT ("+verified+") AND state IN ('NEEDS_ACTION','FAILED','CANCELLED')";
         String pending="("+has+") AND NOT ("+verified+") AND NOT ("+unknown+") AND state IN ('QUEUED','RUNNING','WAITING_REMOTE','RECONCILING','SENDING','READBACK')";
         String query="SELECT COUNT(*),"+sum(has)+","+sum(verified)+","+sum(submitted)+","+sum(pending)+","+sum(failed)+","+sum(blocked)+","+sum(unknown)+","+sum(without)+" FROM sync_run_items WHERE run_id=? AND product_id NOT LIKE 'catalog:%'";
         try(var c=Database.getConnection();var p=c.prepareStatement(query)){

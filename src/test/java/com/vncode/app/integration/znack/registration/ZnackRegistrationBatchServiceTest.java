@@ -41,6 +41,30 @@ class ZnackRegistrationBatchServiceTest {
         workflow=new ZnackCardRegistrationWorkflow(repository,ignored->session,Runnable::run,false,(owner,nm,id,gtin)->false,RegistrationWorkflowTestFixtures::emptyLookup,(owner,key)->snapshot(key));
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
+    @Test void anotherReviewedCardCanJoinARunningBatchWithoutResettingTheEarlierConsentOrDuplicatingIt()throws Exception {
+        var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->draft,workers::add);
+        var rows=selection();String run=startReviewed(service,List.of(rows.get(0)));
+        String originalIntent;
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT intent_id FROM znack_source_consents WHERE position=0")){
+            assertTrue(r.next());originalIntent=r.getString(1);
+        }
+        assertEquals(run,startReviewed(service,List.of(rows.get(0),rows.get(1))));
+        assertEquals(2,service.latest(shop).total());assertEquals(1,workers.size());assertEquals(0,api.allocations.get());
+        try(var c=Database.getConnection();var s=c.createStatement();var r=s.executeQuery("SELECT position,intent_id FROM znack_source_consents ORDER BY position")){
+            assertTrue(r.next());assertEquals(0,r.getInt(1));assertEquals(originalIntent,r.getString(2));
+            assertTrue(r.next());assertEquals(1,r.getInt(1));assertNotEquals(originalIntent,r.getString(2));assertFalse(r.next());
+        }
+        workers.remove().run();
+        assertEquals(2,api.allocations.get());assertEquals(2,api.submits.get());assertEquals(2,service.latest(shop).submitted());
+        assertEquals(ZnackRegistrationBatchService.State.COMPLETE,service.latest(shop).state());
+    }
+    @Test void appendWithoutTheNewCardsReviewedSourceCannotAllocateOrInvalidateTheExistingQueue()throws Exception {
+        var workers=new ArrayDeque<Runnable>();var service=service((owner,row,sign)->draft,workers::add);
+        var rows=selection();String run=startReviewed(service,List.of(rows.get(0)));
+        assertThrows(IllegalArgumentException.class,()->service.start(shop,List.of(rows.get(1)),false));
+        assertEquals(run,service.latest(shop).runId());assertEquals(1,service.latest(shop).total());assertEquals(1,workers.size());
+        workers.remove().run();assertEquals(1,api.allocations.get());assertEquals(1,api.submits.get());
+    }
     @Test @Timeout(600) void continuous117CardQueueSurvivesWriteLimitsAndDelayedReadbacksWithoutDuplicateIdentities()throws Exception{
         try(var c=Database.getConnection();var s=c.createStatement()){
             c.setAutoCommit(false);

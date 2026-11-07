@@ -37,7 +37,6 @@
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
         <ComboBox fx:id="statusFilter" accessibleText="%ui.filter.status" prefWidth="195"/>
         <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
-        <MenuButton fx:id="moreActionsButton" text="%znack.registration.more_actions" styleClass="btn-secondary"/>
     </FlowPane>
     <StackPane fx:id="registrationTableHost" minHeight="0" VBox.vgrow="ALWAYS">
         <TableView fx:id="productTable" minHeight="0">

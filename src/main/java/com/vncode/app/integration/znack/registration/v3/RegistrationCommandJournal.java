@@ -40,11 +40,8 @@ public final class RegistrationCommandJournal {
     }
     private <T>T transaction(Work<T> work){
         if(!profile.equals(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize()))throw new IllegalStateException("REGISTRATION_PROFILE_CHANGED");
-        try(var c=Database.getConnection();var s=c.createStatement()){
-            s.execute("BEGIN IMMEDIATE");
-            try{T value=work.apply(c);s.execute("COMMIT");return value;}
-            catch(SQLException|RuntimeException failure){try{s.execute("ROLLBACK");}catch(SQLException rollback){failure.addSuppressed(rollback);}throw failure;}
-        }catch(SQLException failure){throw new IllegalStateException("REGISTRATION_JOURNAL_UNAVAILABLE",failure);}
+        try{return com.vncode.app.config.SqliteWriteTransaction.run(work::apply);}
+        catch(SQLException failure){throw new IllegalStateException("REGISTRATION_JOURNAL_UNAVAILABLE",failure);}
     }
     private void recover(Connection c)throws SQLException {
         var ids=new ArrayList<String>();

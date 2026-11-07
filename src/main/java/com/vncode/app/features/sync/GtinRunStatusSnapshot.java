@@ -40,7 +40,7 @@ public final class GtinRunStatusSnapshot {
                     if(reason==null||reason.isBlank())reason=has?"GTIN_READBACK_PENDING":ZnackGtinBackgroundService.unknownSource(row.evidence())?"SOURCE_CARD_NOT_VERIFIED":"GTIN_MISSING";
                     reasons.merge(com.vncode.app.integration.znack.ZnackSanitizer.message(reason),1,Integer::sum);
                 }
-                boolean failed=Set.of("NEEDS_ACTION","FAILED","CANCELLED").contains(row.state());if(failed)blocked++;
+                boolean failed=Set.of("NEEDS_ACTION","FAILED","CANCELLED").contains(row.state());if(has&&failed&&!proof)blocked++;
                 boolean waiting=has&&!failed&&!Set.of("SUCCEEDED","UNCHANGED","AWAITING_CONFIRMATION").contains(row.state());
                 if(waiting&&!proof)pending++;
                 if(waiting&&!proof)unsettled=true;
@@ -48,7 +48,7 @@ public final class GtinRunStatusSnapshot {
             }
             if(rows.size()<1000)break;
         }
-        for(var key:context.selected())if(!seen.contains(key)){total++;blocked++;unknown++;reasons.merge("SOURCE_CARD_NOT_VERIFIED",1,Integer::sum);}
+        for(var key:context.selected())if(!seen.contains(key)){total++;unknown++;reasons.merge("SOURCE_CARD_NOT_VERIFIED",1,Integer::sum);}
         requireCurrent(context);repo.assertOwner(context.shop(),run);
         var progress=new ZnackGtinBackgroundService.Progress(Math.max(0,with-pending),with,verified,pending,blocked,submitted);
         return new Snapshot(new ZnackGtinBackgroundService.Result(run,progress,new ZnackGtinBackgroundService.Inventory(total,with,total-with-unknown,0,unknown)),!unsettled,reasons);

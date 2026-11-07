@@ -35,7 +35,6 @@
                 <ProgressIndicator fx:id="loadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" visible="false"/>
                 <Button fx:id="cancelSelectionButton" onAction="#onCancelSelection" text="%ozon.batch.cancel_selection" visible="false" managed="false"/>
                 <Button fx:id="kizInventoryButton" onAction="#onOpenKizInventory" text="%kiz.shipment.title" styleClass="btn-secondary" prefHeight="36"/>
-                <Button fx:id="addAgainKizButton" visible="false" managed="false" onAction="#onAddAgainKiz" text="%kn3.batch.title" styleClass="btn-primary"/>
 <Button fx:id="refreshButton" prefHeight="36" mnemonicParsing="false" onAction="#onRefresh" text="Refresh"><graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15"/></graphic></Button>
                 </children>
         </FlowPane>

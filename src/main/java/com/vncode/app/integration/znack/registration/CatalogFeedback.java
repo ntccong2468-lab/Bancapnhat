@@ -27,6 +27,7 @@ public final class CatalogFeedback {
             if(error instanceof SecurityException||error instanceof ZnackRegistrationScope.ScopeChangedException
                     ||error instanceof com.vncode.app.features.license.LicenseGate.LicenseDeniedException)return false;
         }
+        if(com.vncode.app.config.SqliteWriteTransaction.isBusy(failure))return true;
         for(Throwable error=failure;error!=null;error=error.getCause())if(error instanceof java.io.IOException||error instanceof InterruptedException||error instanceof com.vncode.app.shared.RateLimitDeferral.Deferred)return true;
         return false;
     }

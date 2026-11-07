@@ -22,20 +22,9 @@ public class WbProductRepository {
         if (cards == null || cards.isEmpty()) {
             return;
         }
-        try (Connection conn = Database.getConnection()) {
-            conn.setAutoCommit(false);
-            try {
-                saveProductBatch(conn, shopId, cards);
-                conn.commit();
-            } catch (Exception ex) {
-                conn.rollback();
-                throw ex;
-            } finally {
-                conn.setAutoCommit(true);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
+        try {
+            com.vncode.app.config.SqliteWriteTransaction.run(conn -> {saveProductBatch(conn,shopId,cards);return null;});
+        } catch (SQLException error) { throw new RuntimeException(error); }
     }
 
     void saveProductBatch(Connection conn, int shopId, List<WbProductCard> cards) throws SQLException {

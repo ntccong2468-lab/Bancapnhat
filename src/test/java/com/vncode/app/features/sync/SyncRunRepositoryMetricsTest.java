@@ -36,6 +36,7 @@ class SyncRunRepositoryMetricsTest {
         repository.add(shop,run,"9","9","","","","",gtin,"NEEDS_ACTION","OZON_BARCODE_BAD_CODE","{\"marketplaceSubmitted\":true,\"syncResult\":\"FAILED\"}");
         repository.add(shop,run,"catalog:unlinked","","","","","",gtin,"FAILED","CATALOG_CARD_READ_FAILED","{}");
         var counts=repository.marketplaceCounts(run);assertEquals(9L,counts.get("TOTAL"));assertEquals(6L,counts.get("WITH_GTIN"));assertEquals(2L,counts.get("WITHOUT_GTIN"));assertEquals(5L,counts.get("SUBMITTED"));assertEquals(1L,counts.get("UPDATED"));assertEquals(5L,counts.get("NOT_UPDATED"));assertEquals(2L,counts.get("PENDING"));assertEquals(2L,counts.get("FAILED"));assertEquals(2L,counts.get("UNVERIFIED"));
+        assertEquals(2L,counts.get("BLOCKED"),"Verified marketplace updates and rows without GTIN are not blocked marketplace updates");
     }
     @Test void duplicateAddAndAllReadPathsReturnPersistedTimestampAndOriginalFacts()throws Exception{
         var shop=GtinWriteTestFixture.shop(Marketplace.OZON);var repository=new SyncRunRepository();var run=repository.begin(shop,"znack_marketplace","MATCHING");

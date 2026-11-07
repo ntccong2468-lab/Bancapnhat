@@ -206,9 +206,9 @@ class ZnackRegistrationBatchHttpIntegrationTest {
         assertEquals(0, first.latest(shop).failed());
         assertEquals(ZnackRegistrationBatchService.State.WAITING_REMOTE, first.latest(shop).state());
         var queries=new com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepository();
-        assertEquals(0,queries.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",20,0)).filtered(),
-                "Receipt IDs cannot move products to the Catalog processing filter");
-        assertEquals(3,queries.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",20,0)).filtered());
+        assertEquals(3,queries.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",20,0)).filtered(),
+                "Every acknowledged feed moves to Processing before its product card is visible");
+        assertEquals(0,queries.page(new SearchCriteria(1,"",List.of(),"NOT_CREATED",20,0)).filtered());
         assertTrue(queries.allEligible(new SearchCriteria(1,"",List.of(),"NOT_CREATED",20,0)).isEmpty(),
                 "Select all must not re-submit requests that are awaiting Catalog readback");
         for (int i = 0; i < 3; i++) {
@@ -403,6 +403,12 @@ class ZnackRegistrationBatchHttpIntegrationTest {
             String feed = query.get("feed_id");
             var payload=feedPayloads.get(feed);int index=gtins.indexOf(payload.get("gtin").getAsString());
             assertEquals(feed, repository.find(1, 11 + index).feedId(), "Save the accepted feed before GET readback");
+            if(!cardsVisible){
+                var queries=new com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepository();
+                assertTrue(queries.page(new SearchCriteria(1,gtins.get(index),List.of(),"IN_PROGRESS",20,0)).rows().stream().anyMatch(row->row.chrtId()==11+index),
+                        "Each receipt must be visible in Processing while its first status read is still in flight");
+                assertNull(repository.find(1,11+index).goodId(),"Processing a receipt must not invent a Catalog card identity");
+            }
             if(rejectOptional&&(payload.has("is_kit")||payload.has("good_images"))){
                 var item=new JsonObject();item.addProperty("gtin",gtins.get(index));var errors=new com.google.gson.JsonArray();
                 if(payload.has("is_kit")){var error=new JsonObject();error.addProperty("text","Создание комплектов в товарной группе с ТНВЭД:6103109000 не допускается. Исключите параметр is_kit.");errors.add(error);}

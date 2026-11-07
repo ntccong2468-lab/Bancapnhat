@@ -42,7 +42,28 @@ class GtinBackgroundStatusTest {
  }
  @Test void resultCopySeparatesMarketplaceUpdatesFromUnmatchedAndUnconfirmedGtins(){
   var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(10,10,7,2,1),new ZnackGtinBackgroundService.Inventory(15,12,3,2));
-  String text=GtinBackgroundStatus.summary(result);assertTrue(text.contains("7/12"));assertTrue(text.contains("5"));assertTrue(text.contains("3"));assertFalse(text.contains("gtin.background.summary"));
+  String expected=java.text.MessageFormat.format(I18nService.getInstance().tr("gtin.background.summary"),7,15,2,3,0,3);
+  assertEquals(expected,GtinBackgroundStatus.summary(result));
+ }
+ @Test void screenshotSummaryUsesTheWholeSelectionAndDoesNotRepeatMissingRowsAsBlocked(){
+  var result=new ZnackGtinBackgroundService.Result("screenshot",new ZnackGtinBackgroundService.Progress(1414,1430,1141,16,273),new ZnackGtinBackgroundService.Inventory(1982,1430,552,0));
+  String expected=java.text.MessageFormat.format(I18nService.getInstance().tr("gtin.background.summary"),1141,1982,16,552,0,273);
+  assertEquals(expected,GtinBackgroundStatus.summary(result));
+ }
+ @org.junit.jupiter.params.ParameterizedTest
+ @org.junit.jupiter.params.provider.ValueSource(ints={600,940})
+ void theLongStatusSummaryFitsTheWorkAreaWithoutClipping(int width)throws Exception{
+  var completed=new CountDownLatch(1);var result=new ZnackGtinBackgroundService.Result("synthetic-report",new ZnackGtinBackgroundService.Progress(1414,1430,1141,16,273),new ZnackGtinBackgroundService.Inventory(1982,1430,552,0));
+  var language=I18nService.getInstance().getCurrentLanguage();
+  var host=fx(()->{I18nService.getInstance().setLanguage(AppLanguage.VI);var pane=new StackPane(new TableView<>());var scene=new Scene(pane,width,300);ThemeService.applyTheme(scene);
+   var task=new Task<ZnackGtinBackgroundService.Result>(){protected ZnackGtinBackgroundService.Result call(){return result;}};
+   GtinBackgroundStatus.attach(pane,task,()->{},ignored->completed.countDown());assertTrue(GtinBackgroundStatus.holdsRows(pane));AppTaskExecutor.execute(task,ignored->fail("Synthetic report task failed"));return pane;});
+  try{assertTrue(completed.await(4,TimeUnit.SECONDS));fx(()->{host.resize(width,300);host.applyCss();host.layout();
+   var pill=host.lookup("#gtinBackgroundPill");assertNotNull(pill);var bounds=pill.localToScene(pill.getBoundsInLocal());
+   assertTrue(bounds.getMinX()>=0&&bounds.getMaxX()<=width,"The result must fit the available content width: "+bounds);
+   assertFalse(GtinBackgroundStatus.holdsRows(host));assertTrue(pill.lookupAll(".label").stream().map(Label.class::cast).anyMatch(label->label.getText().equals(GtinBackgroundStatus.summary(result))));
+   com.vncode.app.testsupport.UiEvidence.capture(host.getScene(),"gtin-status-summary-"+width);return null;});}
+  finally{fx(()->{host.getChildren().removeIf(node->"gtinBackgroundPill".equals(node.getId()));I18nService.getInstance().setLanguage(language);return null;});}
  }
  @Test void conciseFinalReportKeepsUnconfirmedGtinsSeparateAndShowsReasons(){
   var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(10,10,7,2,1),new ZnackGtinBackgroundService.Inventory(15,12,3,0));
@@ -52,7 +73,7 @@ class GtinBackgroundStatusTest {
  @Test void missingRequestedRowsRemainUnknownAndAreNotReportedAsAbsentGtins(){
   var result=new ZnackGtinBackgroundService.Result("run",new ZnackGtinBackgroundService.Progress(0,0,0,0,0),new ZnackGtinBackgroundService.Inventory(3,0,0,0,3));
   var i18n=I18nService.getInstance();String known=java.text.MessageFormat.format(i18n.tr("gtin.background.summary"),0,0,0,0,0,0);
-  assertEquals(known+" · "+i18n.tr("znack.registration.report_unverified")+": 3",GtinBackgroundStatus.summary(result));
+  assertEquals(java.text.MessageFormat.format(i18n.tr("gtin.background.summary"),0,3,0,0,3,0),GtinBackgroundStatus.summary(result));
   var legacy=new ZnackGtinBackgroundService.Result("legacy",new ZnackGtinBackgroundService.Progress(0,0,0,0,0),new ZnackGtinBackgroundService.Inventory(0,0,0,0));assertEquals(known,GtinBackgroundStatus.summary(legacy));
  }
  @Test void failedCatalogAuthenticationReplacesSpinnerWithSpecificCryptoProError()throws Exception{
@@ -107,10 +128,20 @@ class GtinBackgroundStatusTest {
   var pane=fx(()->{var host=new StackPane();new Scene(host,800,500);
    GtinBackgroundStatus.observe(host,context,initial,refreshes::incrementAndGet,value->{if(value.progress().pending()==1)pending.countDown();if(value.progress().succeeded()==1)verified.countDown();},javafx.util.Duration.millis(30),javafx.util.Duration.millis(160));
    host.getChildren().addListener((javafx.collections.ListChangeListener<javafx.scene.Node>)change->{if(host.lookup("#gtinBackgroundPill")==null)gone.countDown();});return host;});
-  assertTrue(pending.await(4,TimeUnit.SECONDS));assertEquals(1,gone.getCount());fx(()->{assertEquals(0,refreshes.get());assertTrue(GtinBackgroundStatus.holdsRows(pane));return null;});
+  assertTrue(pending.await(4,TimeUnit.SECONDS));assertEquals(1,gone.getCount());fx(()->{assertEquals(0,refreshes.get());assertFalse(GtinBackgroundStatus.holdsRows(pane),"Waiting for marketplace readback must not freeze registration row refresh");return null;});
   repo.registrationProgress(shop,item,item.gtin(),"SUCCEEDED","VERIFIED","","{\"marketplaceVerified\":true}");
   assertTrue(verified.await(4,TimeUnit.SECONDS));fx(()->{assertTrue(pane.lookupAll(".progress-indicator").isEmpty());assertTrue(pane.lookupAll(".label").stream().map(n->((Label)n).getText()).anyMatch(t->t.contains("1/1")));return null;});
   assertTrue(gone.await(4,TimeUnit.SECONDS));assertEquals(1,refreshes.get());
+ }
+ @Test void onlyTheActiveMutationHoldsRowsWhileReadbackObservationStaysNonblocking()throws Exception{
+  var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+  var repo=new com.vncode.app.features.sync.SyncRunRepository();String run=repo.begin(shop,"znack_marketplace","READBACK");
+  repo.add(shop,run,"100","101","","","","",com.vncode.app.features.gtinsync.GtinWriteTestFixture.GTIN,"WAITING_REMOTE","","{}");
+  var context=com.vncode.app.features.sync.GtinRunStatusSnapshot.capture(shop,java.util.Set.of());var read=new CountDownLatch(1);
+  var pane=fx(()->{var host=new StackPane(new TableView<>());new Scene(host,600,400);
+   GtinBackgroundStatus.observe(host,context,com.vncode.app.features.sync.GtinRunStatusSnapshot.read(context,run).result(),()->{},ignored->read.countDown(),javafx.util.Duration.millis(20),javafx.util.Duration.millis(100));return host;});
+  try{assertTrue(read.await(4,TimeUnit.SECONDS));fx(()->{assertFalse(GtinBackgroundStatus.holdsRows(pane));assertFalse(pane.lookupAll(".progress-indicator").isEmpty(),"Readback is still visibly pending, but the list remains live");return null;});}
+  finally{fx(()->{pane.getChildren().removeIf(node->"gtinBackgroundPill".equals(node.getId()));return null;});}
  }
  @Test void oldRunAndChangedOwnerNeverOverwriteTheCurrentStatusPill()throws Exception{
   var shop=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
