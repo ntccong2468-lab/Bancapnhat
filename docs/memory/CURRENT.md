@@ -1,6 +1,12 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **07.11.2026, 19:36 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **07.11.2026, 20:39 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+
+## Hotfix Ozon tự thay KIZ — chưa phát hành
+
+- Hoàn tất sửa theo yêu cầu mới bỏ nút **Thay KIZ chỉ Ozon**, tự thay mã seller nhập đúng danh mục trong nhận đơn/in nhãn, xử lý vòng 8 mã/45 giây rồi nhường các đơn khác và tự quay lại. Giữ journal/unknown mutation, cập nhật KN3 từ readback, không giả việc nhận đơn thành KIZ xanh. WB runtime giữ nguyên ở phần này.
+- Sửa PDF bỏ KIZ do preflight cũ dù lúc in đã có mã; tải vận đơn vẫn theo lô. **237/237 ca, 19 lớp, 0 skip**, mock HTTP/JavaFX/SQLite; chưa API seller thật/Windows/bộ cài. [Bàn giao và giới hạn](../validation/2026-11-07-ozon-auto-kiz-handoff.md), [biên nhận](../validation/ozon-auto-kiz-20261107/verification.json). Nhánh `fix/ozon-fbs-acceptance-pause`, nền `61f5ae5`; version POM vẫn 1.6.5, không phải artifact đã công bố.
+- Tiếp tục yêu cầu vừa tới sau phần Ozon: Znack WB/GTIN WB, `SYNC_STORAGE_BUSY`, 046 đã có trên WB → hoàn tất, Catalog có/WB thiếu → cập nhật nền, truy vết gửi Catalog và bỏ “Thao tác khác”. Latest 1.6.5 bên dưới không bao gồm hotfix này.
 
 ## Latest 1.6.5 đã hoàn tất
 

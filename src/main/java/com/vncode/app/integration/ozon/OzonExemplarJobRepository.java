@@ -568,6 +568,9 @@ public final class OzonExemplarJobRepository {
     }
 
     public OzonExemplarJob consumeAccepted(OzonExemplarJob job) {
+        return consumeAccepted(job,List.of());
+    }
+    OzonExemplarJob consumeAccepted(OzonExemplarJob job,List<com.vncode.app.features.kiz.status.Kn3Mark> freshMarks) {
         if (job.stage() != OzonExemplarJobStage.VERIFYING
                 && job.stage() != OzonExemplarJobStage.RECONCILE_REQUIRED) {
             throw new IllegalStateException("Ozon KIZ can only be consumed after remote verification.");
@@ -591,8 +594,10 @@ public final class OzonExemplarJobRepository {
                 consume.setString(2, now);
                 consume.setLong(3, job.id());
                 consume.setString(4, "ozon:" + job.id());
-                int expected = bindings(job.id()).size();
-                if (consume.executeUpdate() != expected) {
+                var bound=bindings(job.id());
+                int expected = bound.size();
+                int retired=confirmedRetiredBindings(connection,job,bound,freshMarks);
+                if (consume.executeUpdate()+retired != expected) {
                     throw new IllegalStateException("One or more durable Ozon KIZ reservations are no longer owned by the job.");
                 }
                 transition(connection, job.id(), job.stage(), OzonExemplarJobStage.ACCEPTED,
@@ -608,6 +613,37 @@ public final class OzonExemplarJobRepository {
         } catch (SQLException exception) {
             throw new RuntimeException(exception);
         }
+    }
+
+    /** A later exact accepted read may settle a previously retired code, only for its original job. */
+    private static int confirmedRetiredBindings(Connection connection,OzonExemplarJob job,List<KizBinding> bound,
+            List<com.vncode.app.features.kiz.status.Kn3Mark> freshMarks)throws SQLException {
+        if(freshMarks.size()!=bound.size()||bound.stream().anyMatch(b->freshMarks.stream().noneMatch(m->
+                m.orderId().equals(job.postingNumber())&&m.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.ACCEPTED
+                &&OzonAcceptanceKizReplacement.matches(b,m))))return 0;
+        int count=0;
+        try(var query=connection.prepareStatement("""
+                SELECT e.product_id,e.exemplar_id,k.raw_code,m.code FROM ozon_exemplars e
+                JOIN kiz_codes k ON k.id=e.kiz_id AND k.shop_id=e.shop_id
+                JOIN kn3_marks m ON m.shop_id=e.shop_id AND m.marketplace='OZON' AND m.owner=?
+                  AND m.order_id=e.posting_number AND m.product_id=e.product_id AND m.exemplar_id=e.exemplar_id
+                  AND m.state='ACCEPTED'
+                WHERE e.job_id=? AND k.status='CONSUMED' AND k.legal_status='REJECTED'
+                  AND EXISTS(SELECT 1 FROM kiz_rejected_stock r WHERE r.shop_id=k.shop_id
+                    AND r.marketplace='OZON' AND r.owner=m.owner AND r.identity=
+                    CASE WHEN instr(k.raw_code,char(29))>0 THEN substr(k.raw_code,1,instr(k.raw_code,char(29))-1) ELSE k.raw_code END)
+                  AND NOT EXISTS(SELECT 1 FROM ozon_exemplars other WHERE other.kiz_id=k.id AND other.job_id<>e.job_id)
+                """)){
+            query.setString(1,com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(connection,job.shopId()));
+            query.setLong(2,job.id());
+            try(var rows=query.executeQuery()){while(rows.next()){
+                String product=rows.getString(1),exemplar=rows.getString(2),code=rows.getString(3);
+                if(com.vncode.app.features.kiz.status.Kn3Mark.fingerprint(code).equals(com.vncode.app.features.kiz.status.Kn3Mark.fingerprint(rows.getString(4)))
+                        &&freshMarks.stream().anyMatch(m->m.productId().equals(product)&&m.exemplarId().equals(exemplar)
+                        &&m.fingerprint().equals(com.vncode.app.features.kiz.status.Kn3Mark.fingerprint(code))))count++;
+            }}
+        }
+        return count;
     }
 
     /** Consumes locally reserved KIZ only after the printable PDF has been published successfully. */

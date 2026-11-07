@@ -486,3 +486,8 @@ Người dùng yêu cầu gom mọi sửa và công bố; đã phát hành **v1.
 - Không thực hiện giao dịch seller trong lượt release. Biên nhận API thật trước: 9 gilet/9 KIZ Ozon và 1 GTIN qua transport/readback; các giới hạn paid KIZ, PKI/approve/submit/ký-công bố, 1.000 đơn thật và dữ liệu tài chính vẫn ở bàn giao. Không replay vì mất `/tmp`.
 
 Kinh nghiệm: lấy SHA dispatch từ Git, không gõ lại (lượt sai đã hủy trước packaging). Pin draft bằng ID phản hồi tạo; `release.created_at` theo commit nguồn, không dùng nó để kết luận draft cũ hoặc tạo trùng. GitHub khóa asset sau Publish, nên kiểm và tải đủ trước công bố; lưu receipt sau đó trong Git/Actions. GitHub API/Git có tạm 401, sau đó GET/dry-run lại đạt; nguyên nhân refresh chưa xác minh, không sửa source, tắt proxy/credential hay chạy lại build vì lỗi truy cập. Câu hỏi kết nối lại đã được giải quyết trong phiên. Mọi commit sau SHA app chỉ tooling/docs; không dùng HEAD tài liệu làm nguồn giả của binary.
+
+
+## 07.11.2026 — Ozon tự thay KIZ, không nút thủ công; chưa phát hành
+
+Người dùng yêu cầu bỏ Thay KIZ riêng Ozon sau lỗi đứng 10/15, KN3_CHANGED và PDF thiếu nhãn kết hợp. Đã sửa fair retry theo journal/đúng danh mục, cập nhật cache từ exact readback, sửa preflight cũ không được bỏ prepare KIZ hiện tại. 237/237 ca/19 lớp mock HTTP+JavaFX, WB runtime không đổi. Không API seller thật, mua KIZ, license activation hay phát hành; Latest immutable 1.6.5 giữ nguyên. Kinh nghiệm: counter kết thúc đơn không thể thay pha API; kết quả kho trước đó là ước tính; receipt nhận đơn không chứng minh mã được sàn chấp nhận. [Bàn giao/giới hạn](validation/2026-11-07-ozon-auto-kiz-handoff.md), [biên nhận](validation/ozon-auto-kiz-20261107/verification.json). Yêu cầu mới Znack/GTIN WB được xếp sau khi hoàn tất phần này.

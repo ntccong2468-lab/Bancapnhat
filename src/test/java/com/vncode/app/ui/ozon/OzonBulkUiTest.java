@@ -186,6 +186,69 @@ class OzonBulkUiTest {
         assertEquals(0, ShopBatchRegistry.activeCount());
     }
 
+    @Test void automaticKizFlowHasNoManualButtonAndShowsTheCurrentOrderDuringASlowReceipt() throws Exception {
+        var repository=new OzonPostingRepository();
+        repository.upsertPage(1,java.util.stream.IntStream.rangeClosed(1,15)
+                .mapToObj(i->posting("auto-"+String.format(java.util.Locale.ROOT,"%02d",i),"awaiting_packaging")).toList());
+        new com.vncode.app.features.kiz.ShipmentKizRepository().saveSelection(shop,"OZON:FBS",
+                new com.vncode.app.features.kiz.KizSourceSelection(false,false));
+        new com.vncode.app.features.kiz.status.Kn3Repository().observe(shop,"auto-15",List.of(
+                new com.vncode.app.features.kiz.status.Kn3Mark("auto-15","11","1","fixture-rejected",
+                        com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,"VALIDATION_REJECTED")));
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var calls=new AtomicInteger();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number,sources)->{
+                if(calls.incrementAndGet()==11){entered.countDown();assertTrue(release.await(15,TimeUnit.SECONDS));}
+                repository.upsertDetail(1,posting(number,"awaiting_deliver"));
+                return new OzonShipResult(number,"awaiting_deliver",false);
+            });controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==15);
+        fx(()->{assertNull(loader.getNamespace().get("addAgainKizButton"));
+            node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==15&&stockSourceLoaded()&&!node("moveToPackingButton",Button.class).isDisabled());
+        try {
+            com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                    dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,
+                    dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow());
+            assertTrue(entered.await(5,TimeUnit.SECONDS));
+            awaitFx(()->node("statusLabel",Label.class).getText().contains("11/15"));
+            fx(()->{assertTrue(ShopBatchRegistry.hasShop(shop.getId()));
+                assertTrue(node("moveToPackingButton",Button.class).isDisabled());return null;});
+            release.countDown();
+            awaitFx(()->ShopBatchRegistry.activeCount()==0&&!node("loadingIndicator",ProgressIndicator.class).isVisible());
+            fx(()->{assertEquals(15,calls.get());assertTrue(selected().isEmpty());return null;});
+        } finally {release.countDown();}
+    }
+
+    @Test void automaticKizReplacementYieldsToOtherOrdersAndResumesWithoutAnotherClick() throws Exception {
+        var repository=new OzonPostingRepository();
+        repository.upsertPage(1,java.util.stream.IntStream.rangeClosed(1,4)
+                .mapToObj(i->posting("yield-"+i,"awaiting_packaging")).toList());
+        new com.vncode.app.features.kiz.ShipmentKizRepository().saveSelection(shop,"OZON:FBS",
+                new com.vncode.app.features.kiz.KizSourceSelection(false,false));
+        var calls=new java.util.concurrent.CopyOnWriteArrayList<String>();
+        var yielded=new AtomicBoolean();
+        fx(()->{
+            controller.setPostingAcceptor((owner,number,sources)->{
+                calls.add(number);
+                if(calls.size()==2&&!yielded.getAndSet(true))throw new OzonKizReplacementDeferredException();
+                repository.upsertDetail(1,posting(number,"awaiting_deliver"));
+                return new OzonShipResult(number,"awaiting_deliver",false);
+            });controller.setShop(shop,false);return null;
+        });
+        awaitFx(()->table("newOrdersTable").getItems().size()==4);
+        fx(()->{node("selectFilteredButton",Button.class).fire();return null;});
+        awaitFx(()->selected().size()==4&&stockSourceLoaded()&&!node("moveToPackingButton",Button.class).isDisabled());
+        com.vncode.app.testsupport.FxDialogDriver.choose(()->node("moveToPackingButton",Button.class).fire(),
+                dialog->dialog.getScene().getWindow() instanceof Stage stage&&stage.getOwner()==window,
+                dialog->dialog.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow());
+        awaitFx(()->ShopBatchRegistry.activeCount()==0&&!node("loadingIndicator",ProgressIndicator.class).isVisible());
+        assertEquals(5,calls.size());assertEquals(4,Set.copyOf(calls).size());
+        assertEquals(calls.get(1),calls.getLast(),"The deferred order resumes after the others");
+        fx(()->{assertTrue(selected().isEmpty());assertNull(loader.getNamespace().get("addAgainKizButton"));return null;});
+    }
+
     @Test void longAcceptanceKeepsTablesBrowsableButPreventsChangingTheBatch() throws Exception {
         var repository=new OzonPostingRepository();
         repository.upsertPage(1,java.util.stream.IntStream.range(0,101)

@@ -222,6 +222,18 @@ public final class OzonExemplarService {
             return OzonExemplarService.this.stageForPrintBatch(this, postingNumbers, null);
         }
 
+        /** Only an observed rejection or a durable replacement intent can start a remote repair. */
+        public boolean repairRejectedForPrint(String number)throws IOException {
+            var job=jobs.find(shop.getId(),number);
+            if(job==null)return false;
+            var bound=jobs.bindings(job.id());
+            var marks=new com.vncode.app.features.kiz.status.Kn3Repository().read(shop,number);
+            if(new OzonAcceptanceKizReplacement().active(shop,job)==null&&marks.stream().noneMatch(m->
+                    m.state()==com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED
+                    &&bound.stream().anyMatch(b->OzonAcceptanceKizReplacement.matches(b,m))))return false;
+            return new OzonAcceptanceKizService(jobs).repairRejectedForPrint(shop,readDetail(number),api,sources);
+        }
+
         /** Fresh paginated reads, filtered by native order number. Missing/legacy rows use get. */
         private Map<String,OzonPostingDto> readBatchDetails(List<String> numbers)throws IOException {
             var local=postings.findMany(shop.getId(),numbers);var selected=new ArrayList<OzonPostingDto>();

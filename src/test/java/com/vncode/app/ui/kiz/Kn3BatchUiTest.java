@@ -35,8 +35,7 @@ class Kn3BatchUiTest {
         new Kn3Repository().observe(shop,hidden,List.of(new Kn3Mark(hidden,"501","11","synthetic",Kn3Mark.State.REJECTED,"invalid_mark")));
         var loader=fx(()->{var l=FxmlViewLoader.loader(com.vncode.app.ui.ozon.OzonDashboardController.class,"ozon-dashboard-view.fxml");l.load();return l;});com.vncode.app.ui.ozon.OzonDashboardController controller=loader.getController();
         try{fx(()->{controller.setShop(shop,false);((TabPane)loader.getNamespace().get("orderStatusTabs")).getSelectionModel().select((Tab)loader.getNamespace().get("packingOrdersTab"));return null;});
-            for(int n=0;n<500&&!fx(()->((Button)loader.getNamespace().get("addAgainKizButton")).isVisible());n++)Thread.sleep(10);
-            assertTrue(fx(()->((Button)loader.getNamespace().get("addAgainKizButton")).isVisible()));var report=new Kn3BatchReplacement().report(shop,ids);assertEquals(1,report.rows().size());assertEquals(hidden,report.rows().getFirst().mark().orderId());assertEquals("9001",report.rows().getFirst().productId());assertEquals("501",report.rows().getFirst().barcode());
+            assertNull(fx(()->loader.getNamespace().get("addAgainKizButton")),"Ozon replaces rejected KIZ automatically");var report=new Kn3BatchReplacement().report(shop,ids);assertEquals(1,report.rows().size());assertEquals(hidden,report.rows().getFirst().mark().orderId());assertEquals("9001",report.rows().getFirst().productId());assertEquals("501",report.rows().getFirst().barcode());
         }finally{fx(()->{controller.dispose();return null;});}
     }
     @Test void kn3UsesRemoteVerdictAndHasNoPerOrderReplacementButton()throws Exception{
