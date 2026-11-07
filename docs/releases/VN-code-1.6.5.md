@@ -2,7 +2,7 @@
 
 Gộp các sửa Ozon FBS/PDF/KIZ, trạng thái Znack, cập nhật GTIN WB và năm nút sửa sản phẩm. Thêm liên kết Catalog–Ozon đã duyệt để dùng chung cho nhận diện thẻ, mua KIZ và cập nhật GTIN khi tên/article hai bên khác cách ghi. Giữ dữ liệu và các receipt/checkpoint khi nâng cấp từ 1.6.4.
 
-Theo chỉ đạo mới ngày 07.11.2026, bản này được chuẩn bị để phát hành lên Latest sau khi bộ cài Windows và bước nâng cấp đã được kiểm chứng. Chỉ đạo phát hành này thay thế mốc trước đó chỉ gom bản mới. Các bản phát hành và tag cũ được giữ nguyên.
+Đã phát hành lên **Latest lúc 19:24:35 MSK ngày 07.11.2026** theo chỉ đạo gom tất cả sửa và công bố mới nhất. Tag `v1.6.5`/nguồn app `4ffea8a2732ad04d1a3fc481d472867ba2683a8a`, release `437689422`; mọi bản/tag cũ giữ nguyên. Windows: 3.935 ca, 0 lỗi/thất bại, 2 bỏ qua; native và nâng cấp từ 1.6.4 giữ dữ liệu đạt. [Bàn giao](../validation/2026-11-07-vncode-165-release-handoff.md). Gói `release-notes.md`/source ZIP công bố giữ nguyên nội dung tại SHA build; mục này cập nhật trạng thái sau công bố.
 
 Kế thừa đầy đủ nguồn 1.6.4 và các sửa trên PR #21 đến `bba83919094e6e0f713302a365f9fa87a340c6a6`; nguồn gộp ban đầu đến `5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c`. Sau phần gộp, bổ sung sửa PDF và nhận đơn Ozon theo các yêu cầu tiếp theo; nguồn và nghiệm thu mới được ghi riêng trong bàn giao Ozon ngày 07.11. Nguồn bổ sung Ozon: `3c865b6d6c15d616d083c65502a02778d77de6f2`, kế thừa PDF `8845573`. Không ghi đè tag hoặc bộ cài cũ.
 

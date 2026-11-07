@@ -107,5 +107,6 @@
   "artifactId": 13581316597,
   "fullBuildRun": 42382780334,
   "draftReleaseId": 437689422,
-  "publicDownloadVerification": "not yet; draft still unpublished"
+  "publicDownloadVerification": "passed all 16 assets; bytes and SHA-256 identical to the verified Windows artifact and immutable GitHub release",
+  "publicReceipt": "2026-11-07-vncode-165-published-latest.json"
 }

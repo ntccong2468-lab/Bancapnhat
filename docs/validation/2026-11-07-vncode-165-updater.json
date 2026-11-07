@@ -1,0 +1,19 @@
+{
+  "verifiedAtUtc": "2026-11-07T16:27:05.308781346Z",
+  "installedBinaryVersion": "1.6.4",
+  "configuredDefaultSource": "https://github.com/ntccong2468-lab/Bancapnhat",
+  "normalizedSource": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat",
+  "manifestPublicKeyPinned": false,
+  "latestVersion": "1.6.5",
+  "checkStatus": "AVAILABLE",
+  "updateAvailable": true,
+  "selectedDownload": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.5/VN-code-1.6.5-Windows-x64.msi",
+  "sha256": "dd05125f066764487db6a43a69c094709c48cebf43a2f9946351bb4c43872539",
+  "size": 148604165,
+  "scope": "Actual published 1.6.4 updater against public GitHub through the inherited Cloud proxy; client sets no Authorization header, proxy may attach repository credentials; isolated blank profile and Windows asset selection after network; no installation or seller/license API mutation; seller popup not observed",
+  "installedBinaryJarSha256": "f43de3105cb5beda6ae752708084f0e7a0b76e5513d3d89290810cc926ee531c",
+  "installedBinaryPortableZipSha256": "8cd780cdb94dad1e18bbb5cb1695e956606839eb3a25adcdae3a15c6f31ec748",
+  "explicitAuthorizationHeaderInApp": false,
+  "anonymousNetworkAccessIndependentlyProven": false,
+  "sellerPopupObserved": false
+}

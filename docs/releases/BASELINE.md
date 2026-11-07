@@ -1,6 +1,10 @@
 # VNCode consolidated baseline
 
-Bản đã công bố trên Latest hiện là **VN Code 1.6.4**, tag bất biến `v1.6.4`, nguồn `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`; xem [bàn giao và kiểm chứng 1.6.4](../validation/2026-11-05-vncode-164-handoff.md). **1.6.5 chỉ đang được chuẩn bị, chưa phát hành**; xem [phạm vi bản gộp](VN-code-1.6.5.md).
+Bản đã công bố trên Latest hiện là **VN Code 1.6.5**, tag bất biến `v1.6.5`, nguồn `4ffea8a2732ad04d1a3fc481d472867ba2683a8a`, release `437689422`, công bố 07.11.2026 19:24:35 MSK (16:24:35 UTC). [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.5/VN-code-1.6.5-Windows-x64.exe), [ghi chú](VN-code-1.6.5.md), [bàn giao](../validation/2026-11-07-vncode-165-release-handoff.md), [công bố](../validation/2026-11-07-vncode-165-publication.json).
+
+Windows run `42382780334` đạt 3.935 ca/524 lớp, 0 lỗi/thất bại, 2 bỏ qua; native, migration 3→6, DPAPI, cài/gỡ độc lập và nâng cấp từ Latest 1.6.4 giữ dữ liệu đều đạt. Publisher `42391068158` đạt, giữ đủ 16 asset; Node 155/155 và portal 67/67 ở phạm vi riêng. Payload kiểm 2.875 tệp source ZIP và JAR 1.949 class, launcher production/đúng feed; updater binary 1.6.4 đã xác nhận AVAILABLE 1.6.5. Bộ cài chưa ký Authenticode; Java CodeQL vẫn giữ cảnh báo thumbprint chứng thư, không tuyên bố mọi gate bảo mật đạt.
+
+Bản 1.6.4 và mọi tài sản cũ được giữ: [bàn giao 1.6.4](../validation/2026-11-05-vncode-164-handoff.md). Các số liệu dưới đây là lịch sử của bản nền cũ.
 
 Phần dưới giữ hồ sơ nền **1.6.3**, tag `v1.6.3`, nguồn `f8d2cf967ecc8fe9de32cd3b57c70de642751ff2`, phát hành 2026-11-04T23:11:51Z. Không dùng các số liệu này làm kết quả kiểm thử 1.6.5.
 
