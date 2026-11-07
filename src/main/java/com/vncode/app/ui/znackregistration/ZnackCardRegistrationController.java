@@ -506,7 +506,9 @@ public final class ZnackCardRegistrationController {
             ((StackPane)productTable.getParent()).getChildren().removeIf(node->"registrationBackgroundPill".equals(node.getId()));
             updateActionState();
         }
-        boolean changed=previous==null||progress.submitted()!=previous.submitted()||progress.failed()!=previous.failed()||progress.state()!=previous.state()||!progress.detail().equals(previous.detail());
+        boolean changed=previous==null||progress.submitted()!=previous.submitted()||progress.failed()!=previous.failed()
+                ||progress.acceptedFeeds()!=previous.acceptedFeeds()||progress.awaitingReadback()!=previous.awaitingReadback()
+                ||progress.state()!=previous.state()||!progress.detail().equals(previous.detail());
         boolean watchingProcessing=statusFilter.getValue()==StatusFilter.IN_PROGRESS&&progress.running()
                 &&System.nanoTime()-lastBatchRowsRefreshNanos>=java.util.concurrent.TimeUnit.SECONDS.toNanos(3);
         if(changed||watchingProcessing)requestBatchRowsRefresh();
@@ -1253,6 +1255,7 @@ public final class ZnackCardRegistrationController {
         if(completedOnWb(row))return tr("znack.registration.filter.completed");
         var observed=view(row);
         if(RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),observed))return tr("znack.registration.filter.error");
+        if(RegistrationCardIndex.acceptedRequestInProgress(row.status(),row.hasFeed(),row.errorMessage(),observed))return tr("znack.registration.filter.in_progress");
         if(!RegistrationCardIndex.needsMatchReview(observed)&&RegistrationCardIndex.awaitingCatalogCard(row.status(),row.goodId(),row.errorMessage(),observed))return tr("znack.registration.filter.not_created");
         return tr("znack.registration.filter.in_progress");
     }

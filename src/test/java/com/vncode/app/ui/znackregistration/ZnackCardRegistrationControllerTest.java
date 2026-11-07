@@ -134,6 +134,30 @@ class ZnackCardRegistrationControllerTest {
             RegistrationScreenshot.capture((javafx.scene.Parent)loader.getRoot(),"wb-completed-046");return null;
         });
     }
+    @Test void eachNewFeedReceiptRefreshesNotCreatedRowsBeforeAnyCardReadback()throws Exception {
+        var controller=(ZnackCardRegistrationController)loader.getController();
+        var before=new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("receipt-run",2,0,0,2,"Article","XL","","","CATALOG_REQUEST_ACCEPTED_CARD_PENDING",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.RUNNING,0,0);
+        var accepted=new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("receipt-run",2,0,0,2,"Article","XL","","","CATALOG_REQUEST_ACCEPTED_CARD_PENDING",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.RUNNING,1,1);
+        fx(()->{stopBatchPolling(controller);((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;});awaitTasks();
+        fx(()->{assertTrue(table().getItems().stream().anyMatch(row->row.chrtId()==1));renderProgress(controller,before);stopBatchPolling(controller);return null;});
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,gtin,feed_id,status,created_at,updated_at) VALUES(1,1,101,'00000000000017','accepted-feed','FEED_SUBMITTED','fixture','fixture')");
+        }
+        var shop=new Shop(1,"Fixture","fixture");var nativeRows=new com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepository();
+        nativeRows.bindScope(shop,1,com.vncode.app.integration.znack.registration.ZnackRegistrationScope.fromSettings(new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(1,"Fixture")).getSettings()));
+        fx(()->{
+            renderProgress(controller,accepted);
+            var field=ZnackCardRegistrationController.class.getDeclaredField("batchRowsRefresh");field.setAccessible(true);var timer=(javafx.animation.PauseTransition)field.get(controller);
+            assertEquals(javafx.animation.Animation.Status.RUNNING,timer.getStatus(),"A new receipt must refresh rows even when card/readback counters have not changed");timer.stop();
+            var refresh=ZnackCardRegistrationController.class.getDeclaredMethod("refreshBatchRows");refresh.setAccessible(true);refresh.invoke(controller);return null;
+        });awaitTasks();
+        fx(()->{stopBatchPolling(controller);assertTrue(table().getItems().stream().noneMatch(row->row.chrtId()==1));((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(2);return null;});awaitTasks();
+        fx(()->{
+            var row=table().getItems().stream().filter(item->item.chrtId()==1).findFirst().orElseThrow();assertEquals("accepted-feed",row.feedId());assertNull(row.goodId());
+            @SuppressWarnings("unchecked") var status=(TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");assertEquals(I18nService.getInstance().tr("znack.registration.filter.in_progress"),status.getCellData(row));
+            RegistrationScreenshot.capture(loader.getRoot(),"wb-feed-acknowledged");return null;
+        });
+    }
     @Test void progressReadFailureIsVisibleSafeAndRecoversWithoutLosingKnownCounts()throws Exception{
         var controller=(ZnackCardRegistrationController)loader.getController();
         var progress=new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("read-progress",100,2,1,97,"Next article","XL","Accepted article","52","CATALOG_CARD_IN_MODERATION",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.RUNNING);

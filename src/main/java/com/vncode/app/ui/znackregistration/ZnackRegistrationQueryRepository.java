@@ -94,7 +94,7 @@ public final class ZnackRegistrationQueryRepository {
     }
 
     private static final String REJECTED="(COALESCE(r.status,'')='ERROR' AND (TRIM(COALESCE(r.error_message,''))='CATALOG_REJECTED' OR SUBSTR(TRIM(COALESCE(r.error_message,'')),1,17)='CATALOG_REJECTED:'))";
-    private static final String IN_PROGRESS="(COALESCE(r.good_id,0)>0 AND (r.status IN ('READY_TO_SIGN','SIGNING') OR (r.status='PROCESSING' AND r.error_message IN ('CATALOG_CARD_DRAFT','CATALOG_CARD_IN_MODERATION'))))";
+    private static final String IN_PROGRESS="((NULLIF(TRIM(r.feed_id),'') IS NOT NULL AND r.status IN ('FEED_SUBMITTING','FEED_REVIEW_REQUIRED','FEED_SUBMITTED','PROCESSING','READY_TO_SIGN','SIGNING','PUBLISHED','ERROR') AND NOT "+REJECTED+") OR (COALESCE(r.good_id,0)>0 AND (r.status IN ('READY_TO_SIGN','SIGNING') OR (r.status='PROCESSING' AND r.error_message IN ('CATALOG_CARD_DRAFT','CATALOG_CARD_IN_MODERATION')))))";
     private Query filter(SearchCriteria criteria) {
         var params=new ArrayList<Object>();params.add(criteria.shopId());var sql=new StringBuilder(FROM);
         if(!receipt.isBlank()){sql.append(" AND EXISTS(SELECT 1 FROM sync_run_items member JOIN sync_runs source ON source.id=member.run_id WHERE source.id=? AND source.state='SUCCEEDED' AND source.shop_id=c.shop_id AND member.product_id=CAST(c.nm_id AS TEXT) AND member.variant_id=CAST(s.chrt_id AS TEXT))");params.add(receipt);}
@@ -125,12 +125,13 @@ public final class ZnackRegistrationQueryRepository {
         if(observations==null)return true;var state=view(row);
         boolean onMarketplace=com.vncode.app.features.gtinsync.WbRegisteredBarcode.first(row.barcodes()).isPresent()
                 ||state.published()&&com.vncode.app.features.gtinsync.RegisteredGtinProof.contains(row.barcodes(),state.gtin());
+        boolean accepted=RegistrationCardIndex.acceptedRequestInProgress(row.status(),row.hasFeed(),row.errorMessage(),state);
         return switch(safe(criteria.status())){
             case "", "ALL" -> true;
             case "COMPLETED" -> onMarketplace;
             case "MATCH_REVIEW" -> RegistrationCardIndex.needsMatchReview(state);
-            case "NOT_CREATED" -> !onMarketplace&&!RegistrationCardIndex.needsMatchReview(state)&&RegistrationCardIndex.awaitingCatalogCard(row.status(),row.goodId(),row.errorMessage(),state);
-            case "IN_PROGRESS" -> !onMarketplace&&(state.published()||RegistrationCardIndex.needsMatchReview(state)||RegistrationCardIndex.catalogCardInProgress(row.status(),row.goodId(),row.errorMessage(),state));
+            case "NOT_CREATED" -> !onMarketplace&&!accepted&&!RegistrationCardIndex.needsMatchReview(state)&&RegistrationCardIndex.awaitingCatalogCard(row.status(),row.goodId(),row.errorMessage(),state);
+            case "IN_PROGRESS" -> !onMarketplace&&(accepted||state.published()||RegistrationCardIndex.needsMatchReview(state)||RegistrationCardIndex.catalogCardInProgress(row.status(),row.goodId(),row.errorMessage(),state));
             case "ERROR" -> !onMarketplace&&RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),state);
             case "GTIN_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsGtinReview();
             case "FEED_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsFeedReview();
@@ -189,6 +190,7 @@ public final class ZnackRegistrationQueryRepository {
                     else if(RegistrationCardIndex.catalogCardInProgress(row.status(),row.goodId(),row.errorMessage(),state)) {
                         if(row.status()==Status.READY_TO_SIGN)ready++;else waiting++;
                     }
+                    else if(RegistrationCardIndex.acceptedRequestInProgress(row.status(),row.hasFeed(),row.errorMessage(),state))waiting++;
                 }
             }
         }else{
@@ -200,6 +202,7 @@ public final class ZnackRegistrationQueryRepository {
                 else if(RegistrationCardIndex.catalogCardInProgress(status,r.getObject("good_id")==null?null:r.getLong("good_id"),r.getString("error_message"),null)) {
                     if(status==Status.READY_TO_SIGN)ready+=n;else waiting+=n;
                 }
+                else if(RegistrationCardIndex.acceptedRequestInProgress(status,r.getBoolean("has_feed"),r.getString("error_message"),null))waiting+=n;
             }
         }
         }
