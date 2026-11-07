@@ -86,7 +86,7 @@ class RegistrationSyncReportDialogTest {
         repository.add(shop,gtinRun,"4","v4","","","","","","NEEDS_ACTION","ZNACK_MAPPING_UNVERIFIED","{}");
         var counts=repository.marketplaceCounts(gtinRun);assertEquals(1L,counts.get("UPDATED"));assertEquals(3L,counts.get("WITH_GTIN"));assertEquals(1L,counts.get("WITHOUT_GTIN"));assertEquals(2L,counts.get("NOT_UPDATED"));
         fx(()->{report.dispose();report=new RegistrationSyncReportDialog.Report(shop,gtinRun);return null;});awaitIdle();
-        fx(()->{assertTrue(label("summary").getText().contains("1/3"));assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_scope_store")));assertEquals(4,table().getItems().size());return null;});
+        fx(()->{assertTrue(label("summary").getText().contains("1/4"),"Progress denominator covers the complete selected scope, including unmatched products");assertTrue(label("summary").getText().contains(GtinBackgroundStatus.summary(counts)));assertTrue(label("summary").getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.report_scope_store")));assertEquals(4,table().getItems().size());return null;});
         assertEquals("WAITING_REMOTE",repository.items(gtinRun,0,10).getFirst().state(),"Reporting must not bypass native candidate activation");
     }
     @Test void sellerSelectsConfirmedOzonConflictAndOpensOnlyThatProductForNewCard()throws Exception {

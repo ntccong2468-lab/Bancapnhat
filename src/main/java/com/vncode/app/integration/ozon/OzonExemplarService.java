@@ -222,6 +222,10 @@ public final class OzonExemplarService {
             return OzonExemplarService.this.stageForPrintBatch(this, postingNumbers, null);
         }
 
+        void refreshPrintProducts(java.util.Collection<OzonPostingDto> selected,Map<String,OzonProductDto> products)throws IOException{
+            OzonPrintProductSnapshot.refreshMissing(shop,selected,products,api);
+        }
+
         /** Only an observed rejection or a durable replacement intent can start a remote repair. */
         public boolean repairRejectedForPrint(String number)throws IOException {
             var job=jobs.find(shop.getId(),number);

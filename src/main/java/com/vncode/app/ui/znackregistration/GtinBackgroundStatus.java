@@ -17,7 +17,8 @@ final class GtinBackgroundStatus {
     private static final Map<String,Task<ZnackGtinBackgroundService.Result>> RUNNING=new HashMap<>();
     private static final Map<Task<ZnackGtinBackgroundService.Result>,GtinRunStatusSnapshot.Context> CONTEXTS=new java.util.concurrent.ConcurrentHashMap<>();
     private GtinBackgroundStatus(){}
-    static boolean holdsRows(StackPane host){return host.getChildren().stream().filter(node->"gtinBackgroundPill".equals(node.getId())).filter(HBox.class::isInstance).map(HBox.class::cast).anyMatch(box->box.getChildren().stream().anyMatch(ProgressIndicator.class::isInstance));}
+    static boolean holdsRows(StackPane host){return host.getChildren().stream().filter(node->"gtinBackgroundPill".equals(node.getId()))
+            .map(node->node.getProperties().get("gtinMutationTask")).anyMatch(value->value instanceof Task<?> task&&!terminal(task.getState()));}
     static void start(StackPane host,Shop owner,Set<ProductKey> selected,Runnable refresh){
         start(host,owner,selected,refresh,result->{});
     }
@@ -53,7 +54,7 @@ final class GtinBackgroundStatus {
     static void attach(StackPane host,Task<ZnackGtinBackgroundService.Result> task,Runnable refresh,java.util.function.Consumer<ZnackGtinBackgroundService.Result> completed){
         remove(host);var text=new Label();text.textProperty().bind(javafx.beans.binding.Bindings.when(task.messageProperty().isEmpty()).then(I18nService.getInstance().tr("gtin.background.phase.PREPARING")).otherwise(task.messageProperty()));text.setWrapText(true);text.setMinWidth(0);
         text.maxWidthProperty().bind(javafx.beans.binding.Bindings.max(100,host.widthProperty().subtract(90)));
-        var spinner=new ProgressIndicator();spinner.setMaxSize(20,20);var pill=new HBox(10,spinner,text);pill.setAlignment(Pos.CENTER);install(host,pill);
+        var spinner=new ProgressIndicator();spinner.setMaxSize(20,20);var pill=new HBox(10,spinner,text);pill.getProperties().put("gtinMutationTask",task);pill.setAlignment(Pos.CENTER);install(host,pill);
         var listener=new javafx.beans.value.ChangeListener<javafx.concurrent.Worker.State>(){
             public void changed(javafx.beans.value.ObservableValue<? extends javafx.concurrent.Worker.State> o,javafx.concurrent.Worker.State old,javafx.concurrent.Worker.State state){
                 if(state==javafx.concurrent.Worker.State.SUCCEEDED){
@@ -112,8 +113,7 @@ final class GtinBackgroundStatus {
         new Observer().read();
     }
     static String resultText(GtinRunStatusSnapshot.Snapshot snapshot){
-        var result=snapshot.result();var stock=result.inventory();int updated=result.progress().succeeded();
-        var i18n=I18nService.getInstance();String counts=java.text.MessageFormat.format(i18n.tr("gtin.background.final_counts"),updated,Math.max(0,stock.withGtin()-updated),stock.withoutGtin(),stock.unknown());
+        String counts=summary(snapshot.result());
         String reasons=snapshot.reasons().entrySet().stream().sorted(Map.Entry.comparingByKey()).limit(12).map(e->e.getValue()+" · "+RegistrationDiagnostics.reason(e.getKey())).collect(java.util.stream.Collectors.joining("\n"));
         return counts+(reasons.isBlank()?"":"\n\n"+reasons);
     }
@@ -127,8 +127,15 @@ final class GtinBackgroundStatus {
     }
     static String summary(ZnackGtinBackgroundService.Result result){
         var p=result.progress();var stock=result.inventory();
-        String summary=java.text.MessageFormat.format(I18nService.getInstance().tr("gtin.background.summary"),p.succeeded(),stock.withGtin(),Math.max(0,stock.withGtin()-p.succeeded()),stock.withoutGtin(),p.pending(),p.blocked()+stock.blockedBeforeUpdate());
-        return stock.unknown()>0?summary+" · "+I18nService.getInstance().tr("znack.registration.report_unverified")+": "+stock.unknown():summary;
+        return summary(stock.total(),stock.withGtin(),p.succeeded(),p.blocked()+stock.blockedBeforeUpdate(),stock.withoutGtin(),stock.unknown());
+    }
+    static String summary(Map<String,Long> counts){
+        long total=counts.getOrDefault("TOTAL",0L),with=counts.getOrDefault("WITH_GTIN",0L),missing=counts.getOrDefault("WITHOUT_GTIN",0L);
+        return summary(total,with,counts.getOrDefault("UPDATED",0L),counts.getOrDefault("BLOCKED",0L),missing,Math.max(0,total-with-missing));
+    }
+    private static String summary(long total,long with,long updated,long blocked,long missing,long unknown){
+        long actionable=Math.min(Math.max(0,blocked),Math.max(0,with-updated));
+        return java.text.MessageFormat.format(I18nService.getInstance().tr("gtin.background.summary"),updated,total,Math.max(0,with-updated-actionable),missing,unknown,actionable);
     }
     private static boolean terminal(javafx.concurrent.Worker.State state){return state==javafx.concurrent.Worker.State.SUCCEEDED||state==javafx.concurrent.Worker.State.FAILED||state==javafx.concurrent.Worker.State.CANCELLED;}
     private static void finish(StackPane host,String message){remove(host);var text=new Label(message);text.setWrapText(true);text.setMaxWidth(680);var pill=new HBox(text);install(host,pill);RegistrationStatusPill.dismissAfter(host,pill,javafx.util.Duration.seconds(8));}

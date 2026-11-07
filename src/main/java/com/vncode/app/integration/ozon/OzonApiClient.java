@@ -158,6 +158,21 @@ public final class OzonApiClient {
         return postJson("v3/product/info/list", request, "catalog");
     }
 
+    /** Posting product_id may itself be an SKU; use the API's explicit SKU filter for print repair. */
+    public JsonObject productInfoBySkus(List<String> skus)throws IOException {
+        boundedStrings(skus,1000,"SKU");var values=new JsonArray();
+        for(String sku:skus){
+            if(!validSku(sku))throw new IllegalArgumentException("Invalid Ozon SKU");
+            var number=new java.math.BigInteger(sku);
+            values.add(number);
+        }
+        var request=new JsonObject();request.add("sku",values);
+        return postJson("v3/product/info/list",request,"catalog");
+    }
+    static boolean validSku(String sku){
+        return sku!=null&&sku.matches("[1-9][0-9]{0,18}")&&new java.math.BigInteger(sku).compareTo(java.math.BigInteger.valueOf(Long.MAX_VALUE))<=0;
+    }
+
     public JsonObject productAttributes(List<String> productIds) throws IOException {
         JsonArray ids = boundedStrings(productIds, 1000, "product id");
         JsonObject filter = new JsonObject();
