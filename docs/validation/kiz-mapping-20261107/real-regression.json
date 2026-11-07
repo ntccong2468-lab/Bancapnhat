@@ -1,0 +1,21 @@
+{
+  "sourceCommit": "5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c",
+  "beforeFalseAmbiguity": true,
+  "afterTnvedDifferent": true,
+  "afterRealRegistryEligible": true,
+  "afterFullDataEligible": true,
+  "assertionsPassed": true,
+  "scope": "Actual HTTP responses + production parser/repository/review; no certificate/company or paid-order acceptance is claimed.",
+  "marketplaceIdentityBeforeAfter": {
+    "sameArticle": true,
+    "sameColor": true,
+    "sameSize": true,
+    "sameRussianSize": true,
+    "sameBarcodeSet": true
+  },
+  "sampleBarcodeQuery": {
+    "strings": 4,
+    "normalizedGtins": 3,
+    "returnedCatalogCards": 1
+  }
+}

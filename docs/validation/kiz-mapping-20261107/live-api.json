@@ -1,0 +1,259 @@
+{
+  "sourceCommit": "5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c",
+  "baselineCommit": "8feb54d81509b39e98db9dbecdacc26230f21712",
+  "mode": "LIVE_READ_ONLY_API_AND_PRODUCTION_RULES_NO_MOCK_HTTP",
+  "access": {
+    "startedAt": "2026-11-07T09:23:48.967640+00:00",
+    "mode": "LIVE_API_READ_ONLY_NO_FIXTURES",
+    "sellerMutations": 0,
+    "paidPurchases": 0,
+    "checks": {
+      "ozon_roles": {
+        "httpStatus": 403,
+        "elapsedMs": 1561,
+        "rootKeys": [
+          "code",
+          "message"
+        ],
+        "code": 7,
+        "apiKeyDisabled": true
+      },
+      "wb_first_page": {
+        "httpStatus": 200,
+        "elapsedMs": 5155,
+        "rootKeys": [
+          "cards",
+          "cursor"
+        ],
+        "cards": 100,
+        "cursorKeys": [
+          "updatedAt",
+          "nmID",
+          "total"
+        ],
+        "firstCardKeys": [
+          "nmID",
+          "imtID",
+          "nmUUID",
+          "subjectID",
+          "subjectName",
+          "vendorCode",
+          "brand",
+          "title",
+          "description",
+          "needKiz",
+          "kizMarked",
+          "photos",
+          "dimensions",
+          "characteristics",
+          "sizes",
+          "createdAt",
+          "updatedAt",
+          "documents"
+        ]
+      },
+      "catalog_first_page": {
+        "httpStatus": 200,
+        "elapsedMs": 2660,
+        "rootKeys": [
+          "apiversion",
+          "result"
+        ],
+        "total": 1380,
+        "goods": 1000,
+        "firstGoodKeys": [
+          "good_id",
+          "gtin",
+          "good_name",
+          "tnved",
+          "brand_name",
+          "good_status",
+          "good_detailed_status",
+          "updated_date"
+        ]
+      }
+    },
+    "fullRead": {
+      "wbPages": 4,
+      "wbCards": 388,
+      "wbVariants": 1982,
+      "catalogListRequests": 2,
+      "catalogListedGtins": 1380,
+      "catalogDetailBatches": 56,
+      "catalogRawRows": 1380,
+      "source": "FRESH_REAL_HTTP_RESPONSES",
+      "mockResponses": 0,
+      "testLicenseFixtures": 0,
+      "remoteMutations": 0
+    },
+    "completedAt": "2026-11-07T09:26:34.661703+00:00",
+    "outcome": "COMPLETE_LIVE_READ"
+  },
+  "sdkBeforeFix": {
+    "startedAt": "2026-11-07T09:32:26.923751148Z",
+    "mockResponses": 0,
+    "licenseFixtures": 0,
+    "paidRequests": 0,
+    "mixedBarcodeCatalogRequest": "HTTP_200",
+    "selectedCodes": 4,
+    "returnedCards": 1,
+    "cardsParsed": 1,
+    "codesNotReturned": 2,
+    "mappingReview": {
+      "reasons": [
+        "GTIN_AMBIGUOUS"
+      ],
+      "mapped": 0
+    },
+    "registryRead": "HTTP_200",
+    "registryDocumentStatus": "REGISTRY_CHECKED",
+    "activeRegistryDocuments": 1,
+    "completedAt": "2026-11-07T09:32:31.627207992Z"
+  },
+  "sdkAfterFix": {
+    "startedAt": "2026-11-07T09:40:31.407552390Z",
+    "mockResponses": 0,
+    "licenseFixtures": 0,
+    "paidRequests": 0,
+    "marketplaceRereadViaProductionSdk": true,
+    "tnvedStillDifferent": true,
+    "mixedBarcodeCatalogRequest": "HTTP_200",
+    "selectedCodes": 4,
+    "returnedCards": 1,
+    "cardsParsed": 1,
+    "codesNotReturned": 2,
+    "mappingReview": {
+      "reasons": [
+        "GTIN_DOCUMENT_MISSING"
+      ],
+      "mapped": 0
+    },
+    "registryRead": "HTTP_200",
+    "registryDocumentStatus": "REGISTRY_CHECKED",
+    "activeRegistryDocuments": 1,
+    "reviewAfterRealRegistryRead": {
+      "reasons": [],
+      "mapped": 1
+    },
+    "differentTnvedNoLongerBlocksThisRealVariant": true,
+    "paidPurchaseVerified": false,
+    "certificateOwnerVerified": false,
+    "completedAt": "2026-11-07T09:40:37.515824125Z"
+  },
+  "baselineAnalysis": {
+    "mode": "FRESH_REAL_API_DATA_PRODUCTION_PARSER_REPOSITORY_REVIEW",
+    "mockHttpResponses": 0,
+    "licenseFixtures": 0,
+    "certificateFixtures": 0,
+    "paidRequests": 0,
+    "remoteMutations": 0,
+    "wbCards": 388,
+    "wbVariants": 1982,
+    "catalogParsed": 1380,
+    "catalogStates": {
+      "DRAFT": 2,
+      "ERRORS": 1,
+      "NOT_SIGNED": 117,
+      "PUBLISHED": 1260
+    },
+    "catalogParseErrors": {},
+    "catalogCardsWithDocuments": 1373,
+    "documentTypes": {
+      "DECLARATION": 1373
+    },
+    "physicalDataReviewOnly": {
+      "uniquePublishedAttributeCandidateNotYetInWbBarcodes": 228,
+      "issues": 1982,
+      "reasonCounts": {
+        "GTIN_AMBIGUOUS": 1833,
+        "GTIN_CARD_NOT_FOUND": 149
+      },
+      "mappedByCurrentReview": 0,
+      "variantsWithCodesAbsentFromCatalog": 1981,
+      "multipleOrderableCodesButOnlyOnePublishedCatalogMatch": 1,
+      "variantsWithPublishedCatalogBarcode": 1,
+      "orderableBarcodeCountPerVariant": {
+        "1": 149,
+        "2": 1832,
+        "3": 1
+      }
+    },
+    "singlePublishedCandidateGateCounts": {
+      "GTIN_TNVED_GROUP_CHANGED": 1
+    },
+    "certificateOwnerVerified": false,
+    "mappingProofWritten": false,
+    "purchaseAuthorized": false,
+    "fullAppScopePreflight": "SIGNATURE_NOT_TESTED",
+    "scopeLimitation": "Physical-data review of fresh real HTTP reads. Actual certificate/company binding is not configured or invented; no verified mapping or purchase is claimed.",
+    "finishedAt": "2026-11-07T09:30:04.175977034Z"
+  },
+  "afterAnalysisWithRealRegistry": {
+    "mode": "FRESH_REAL_API_DATA_PRODUCTION_PARSER_REPOSITORY_REVIEW",
+    "mockHttpResponses": 0,
+    "licenseFixtures": 0,
+    "certificateFixtures": 0,
+    "paidRequests": 0,
+    "remoteMutations": 0,
+    "realRegistryEnrichedCards": 1,
+    "wbCards": 388,
+    "wbVariants": 1982,
+    "catalogParsed": 1380,
+    "catalogStates": {
+      "DRAFT": 2,
+      "ERRORS": 1,
+      "NOT_SIGNED": 117,
+      "PUBLISHED": 1260
+    },
+    "catalogParseErrors": {},
+    "catalogCardsWithDocuments": 1373,
+    "documentTypes": {
+      "DECLARATION": 1373
+    },
+    "physicalDataReviewOnly": {
+      "variantsWithPublishedCatalogBarcode": 1,
+      "orderableBarcodeCountPerVariant": {
+        "1": 149,
+        "2": 1832,
+        "3": 1
+      },
+      "uniquePublishedAttributeCandidateNotYetInWbBarcodes": 228,
+      "issues": 1981,
+      "reasonCounts": {
+        "GTIN_CARD_NOT_FOUND": 1981
+      },
+      "mappedByCurrentReview": 1,
+      "variantsWithCodesAbsentFromCatalog": 1981,
+      "multipleOrderableCodesButOnlyOnePublishedCatalogMatch": 1
+    },
+    "singlePublishedCandidateGateCounts": {
+      "ALL_CURRENT_PHYSICAL_GATES_PASS": 1
+    },
+    "certificateOwnerVerified": false,
+    "mappingProofWritten": false,
+    "purchaseAuthorized": false,
+    "fullAppScopePreflight": "SIGNATURE_NOT_TESTED",
+    "scopeLimitation": "Physical-data review of fresh real HTTP reads. Actual certificate/company binding is not configured or invented; no verified mapping or purchase is claimed.",
+    "finishedAt": "2026-11-07T09:42:48.974656385Z"
+  },
+  "acceptance": {
+    "realHttpReadVerified": true,
+    "wbDifferentTnvedDataEligibilityVerified": true,
+    "registryReadVerified": true,
+    "fullApplicationSourceSyncWithSellerCertificateVerified": false,
+    "verifiedMappingPersistenceVerified": false,
+    "paidKizOrderVerified": false,
+    "ozonLiveMappingVerified": false,
+    "sourceOnlyOzonTnvedGateRemoved": true,
+    "mockHttpResponses": 0,
+    "licenseFixtures": 0,
+    "remoteMutations": 0
+  },
+  "limitations": [
+    "The live API responses are real. Catalog/company/certificate scope was not invented; physical-data review uses an explicitly unverified diagnostic source and never writes a verified mapping.",
+    "Initial WB/Catalog HTTP collection used standard-library urllib with inherited proxy/CA; fresh post-fix WB, Catalog and permit calls used production SDK readers.",
+    "The initial audit helper hit a Gson Instant serialization error; it was fixed to use production ProductJson.GSON before interpreting mapping results. This was a diagnostic helper error, not an app defect.",
+    "Ozon access returns 403/code 7 because the API key is disabled.",
+    "No paid order, CryptoPro signature, license activation or seller marketplace/catalog mutation was sent."
+  ]
+}

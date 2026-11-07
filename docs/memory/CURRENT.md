@@ -1,6 +1,6 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **06.11.2026, 23:33 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **07.11.2026, 12:52 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
 
 ## Mã và bản đã phát hành
 
@@ -10,6 +10,17 @@ Cập nhật: **06.11.2026, 23:33 MSK (UTC+03:00)**. Đối chiếu Git/PR/Lates
 - Publisher `23e604df98e389f8c3f72f87781e04a52a931677`; các commit sau nguồn ứng dụng ghi công cụ phát hành/bằng chứng, không phải một bộ cài khác.
 - [PR #20](https://github.com/ntccong2468-lab/Bancapnhat/pull/20) OPEN/draft, base `feature/vncode-163-approved-ui`; không tự merge. Không chọn default branch cũ `update/vn-code-1.3.0` làm nền.
 - [Bàn giao phát hành 1.6.4](../validation/2026-11-05-vncode-164-handoff.md), [Latest/receipt](../validation/2026-11-05-vncode-164-published-latest.json). Bộ cài và 16 tài sản 1.6.3 được giữ nguyên.
+
+## KIZ mapping mua KIZ: API thật và bỏ chặn khác TN VED — 07.11.2026
+
+- Chỉ đạo mới của người dùng: dùng Code Doctor/soi code, **kiểm qua API thật, không dùng giả lập làm nghiệm thu**, rồi **khác TN VED cũng được mapping mua KIZ**. Nguồn sửa **`5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c`**, kế thừa `8feb54d`, cùng PR #21, chưa phát hành. [Báo cáo và sơ đồ](../validation/2026-11-07-kiz-mapping-live-audit.md), [biên nhận live](../validation/kiz-mapping-20261107/live-api.json).
+- **Quyết định mới thay thế quy tắc cũ:** bỏ so TN VED marketplace/Catalog ở cả `WbCatalogMappingService.problem` và `OzonCatalogMappingService.problem`. Dùng TN VED/giấy tờ của thẻ Catalog cho đơn mua; không đổi mã trên sàn hay nội dung Catalog. Giữ kiểm nguồn/doanh nghiệp/chứng thư, publication, màu/size, trade-unit, độ mới, giấy tờ và proof trước mua. Các ghi chú “KIZ mapping giữ chặn TN VED” phía dưới là lịch sử đã bị chỉ đạo này thay thế; không phục hồi gate cũ.
+- API thật mới: WB **388 bài/1.982 biến thể/4 trang**, Catalog **1.380 thẻ/2 trang+56 batch**, parse production 1.260 published, 117 notsigned, 2 draft, 1 errors. Không có mock HTTP hoặc license/chứng thư fixture. Ozon vẫn **403/code 7, API key deactivated**, chưa nghiệm thu mapping HTTP Ozon thành công.
+- Repro thật: WB đếm tất cả barcode hợp lệ rồi báo `GTIN_AMBIGUOUS` dù chỉ có một thẻ Catalog. Đã chọn theo thẻ Catalog thực sự đủ điều kiện, giữ mơ hồ nếu có nhiều thẻ hợp lệ; chuyển đúng `missing_catalog_card` thành `GTIN_CARD_NOT_FOUND`. Hai test kỳ vọng TN VED cũ được cập nhật; không chạy test giả lập trong lượt này.
+- Gọi SDK production mới cho cùng mẫu WB/Catalog/registry: TN VED vẫn khác, article/màu/size/size Nga/tập barcode không đổi, registry HTTP 200/1 giấy tờ active; review sau registry chọn **1 ứng viên**, 0 issue. Toàn dữ liệu sau bổ sung registry mẫu: **1 ứng viên đạt điều kiện dữ liệu / 1.981 barcode chưa có thẻ tương ứng**. **Đây không phải mapping đã lưu proof hoặc giao dịch mua**. [Assertion](../validation/kiz-mapping-20261107/real-regression.json).
+- **228 biến thể có ứng viên published đúng article/màu/cỡ nhưng GTIN chưa nằm trong barcode WB.** Cần cập nhật đúng GTIN hoặc có hồ sơ đăng ký đúng biến thể đã xác minh để dùng proof mua hiện có; không coi chúng là không có thẻ. Catalog/WB raw chỉ nằm trong `/tmp` 0700, không commit seller data. Đọc bổ sung vẫn theo từng GTIN; tập thật có 3.816 mã barcode chuẩn hóa, 3.815 không nằm trong Catalog list. Chưa đo/đổi luồng fallback đó thành batch, không nhận số lượng này là số HTTP đã thực hiện.
+- Hồ sơ phân tích chưa có bộ cấu hình chứng thư/OMS của seller. Marker `LIVE_API_DIAGNOSTIC_OWNER_NOT_VERIFIED` không phải scope đã xác minh; không tạo proof hoặc chứng thư giả để qua gate. `SIGNATURE_NOT_TESTED` là trạng thái của cache phân tích trống, không phải phản hồi API hay chẩn đoán app seller. **Chưa thử đồng bộ có chứng thư, lưu verified mapping hoặc mua KIZ có phí**; không gọi enqueue/resume, ký, kích hoạt license hay ghi marketplace/Catalog.
+- Maven `-Dmaven.test.skip=true package` **BUILD SUCCESS**, hai class mapping trong JAR khớp output, không bundle probe/fixture. Không dùng 3.880 ca của phiên trước làm số nghiệm thu nguồn này. OpenQodex 0.16.0/Gitleaks 8.21.2 chạy trên 4 tệp đổi, status ran/0 finding; 21 scanner khác không chọn, không có AI reviewer độc lập. [Build](../validation/kiz-mapping-20261107/build.json), [scanner](../validation/kiz-mapping-20261107/scanner.json), [mã tái lập](../validation/kiz-mapping-20261107/README.md).
 
 ## Code Doctor và sửa mới chưa phát hành
 
@@ -62,4 +73,4 @@ Cập nhật: **06.11.2026, 23:33 MSK (UTC+03:00)**. Đối chiếu Git/PR/Lates
 
 ## Tiếp tục
 
-Cài skill, sửa/kiểm Code Doctor, bốn bộ lọc/GTIN WB và kiểm năm nút/giấy tờ đã hoàn tất trong phạm vi báo cáo trên nhánh audit; tiếp tục từ nguồn `fd20aa8`. Lượt năm POST sản phẩm WB đã COMPLETE: không gửi lại. Stress 10.000 và nghiệm thu ghi Ozon/Windows chưa đạt; đọc các giới hạn trước khi tiếp tục. Không tự gộp màu hoặc ghi 229 GTIN chỉ vì có ứng viên matching. Việc phát hành gộp 1.6.4 trước đó đã hoàn tất và giữ nguyên. Không tự merge hoặc phát hành sửa audit khi chưa được yêu cầu. Nếu điều tra dữ liệu seller, đọc bàn giao và journal trước; không chạy lại giao dịch chỉ vì tệp trong `/tmp` bị mất. Giữ riêng việc in KIZ cục bộ và Ozon chấp nhận mã; chỉ ghép đúng đơn/nguồn/danh mục. Đọc [so sánh và sơ đồ Znack](../research/2026-11-05-wbcode-1318-vncode-znack.md) khi cần tiếp tục luồng Catalog/GTIN.
+Cài skill, sửa/kiểm Code Doctor, bốn bộ lọc/GTIN WB và kiểm năm nút/giấy tờ đã hoàn tất trong phạm vi báo cáo trên nhánh audit; tiếp tục từ nguồn `5ad16bf` và bàn giao KIZ API ngày 07.11.2026. Lượt năm POST sản phẩm WB đã COMPLETE: không gửi lại. Stress 10.000 và nghiệm thu ghi Ozon/Windows chưa đạt; đọc các giới hạn trước khi tiếp tục. Không tự gộp màu hoặc ghi 229 GTIN chỉ vì có ứng viên matching. Việc phát hành gộp 1.6.4 trước đó đã hoàn tất và giữ nguyên. Không tự merge hoặc phát hành sửa audit khi chưa được yêu cầu. Nếu điều tra dữ liệu seller, đọc bàn giao và journal trước; không chạy lại giao dịch chỉ vì tệp trong `/tmp` bị mất. Giữ riêng việc in KIZ cục bộ và Ozon chấp nhận mã; chỉ ghép đúng đơn/nguồn/danh mục. Đọc [so sánh và sơ đồ Znack](../research/2026-11-05-wbcode-1318-vncode-znack.md) khi cần tiếp tục luồng Catalog/GTIN.

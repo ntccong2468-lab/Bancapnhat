@@ -11,6 +11,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
 | Toàn bộ lịch sử sửa, quyết định, kinh nghiệm | [PROJECT_MEMORY.md](../PROJECT_MEMORY.md) |
+| KIZ mapping mua KIZ: API thật, bỏ chặn khác TN VED WB/Ozon | [Báo cáo/sơ đồ](../validation/2026-11-07-kiz-mapping-live-audit.md), [HTTP thật](../validation/kiz-mapping-20261107/live-api.json), [assertion](../validation/kiz-mapping-20261107/real-regression.json), [build](../validation/kiz-mapping-20261107/build.json) |
 | Năm nút sửa sản phẩm, WB POST thật và giấy tờ mặc định tuyên bố | [Báo cáo](../validation/2026-11-06-products-five-audit.md), [5 ghi thật](../validation/2026-11-06-products-five-live.json), [3.880 ca và giới hạn stress](../validation/products-five-20261106/tests.json), [ảnh](../validation/assets/products-five-20261106/configured-declaration.png) |
 | Code Doctor API thật, bốn bộ lọc Znack và GTIN WB không so TN VED | [Bàn giao](../validation/2026-11-06-znack-four-states-wb-gtin.md), [API thật](../validation/2026-11-06-code-doctor-live.json), [330 ca](../validation/2026-11-06-znack-four-states-tests.json) |
 | Code Doctor: cài skill, sửa kẹt đồng bộ Ozon và chạy JAR | [Cách dùng](../engineering/code-doctor.md), [báo cáo](../validation/2026-11-06-code-doctor.md), [507 ca/25 lớp](../validation/2026-11-06-code-doctor-tests.json) |

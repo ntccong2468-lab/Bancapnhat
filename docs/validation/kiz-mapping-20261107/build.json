@@ -1,0 +1,20 @@
+{
+  "sourceCommit": "5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c",
+  "command": "/workspace/toolchains/mvn-vncode -B -Dmaven.test.skip=true package",
+  "exit": 0,
+  "outcome": "BUILD_SUCCESS",
+  "finishedAt": "2026-11-07T09:39:10Z",
+  "durationSeconds": 20.538,
+  "testsRunByThisCommand": false,
+  "reason": "User requested real API checks rather than simulated acceptance. Existing policy assertions were updated, but simulated JUnit tests were not run in this turn.",
+  "artifact": "target/VNcode-1.6.4.jar",
+  "artifactSha256": "7a0c85693ce38a4169b4b2ec226b04ea8e990fae10581c78ea7834ed20ffd8ca",
+  "keyClassesMatchBuiltOutput": true,
+  "classHashes": {
+    "com/vncode/app/features/kizmapping/WbCatalogMappingService.class": "1853557e39ef66968f7a560a2e1dee4b04c206b1bf920e9686385081ef4926ac",
+    "com/vncode/app/features/kizmapping/OzonCatalogMappingService.class": "d59f24c3d04076cad5b13dfbefed858776fb71fc9fa4ab84abeefaf0b24b5045"
+  },
+  "forbiddenProbeFixtureEntries": [],
+  "windowsInstallerVerified": false,
+  "published": false
+}
