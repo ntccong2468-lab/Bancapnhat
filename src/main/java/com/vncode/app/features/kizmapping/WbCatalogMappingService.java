@@ -38,7 +38,7 @@ public final class WbCatalogMappingService {
             try{enriched.addAll(NationalCatalogGtinSource.forSelection(shop,Set.of(code),true).read(shop.getId()));}
             catch(Exception error){if(CatalogFeedback.rateLimited(error)||error instanceof InterruptedException
                     ||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException)
-                    ||error instanceof SecurityException)throw error;readIssues.put(code,SyncFailure.of(error,0).code());}
+                    ||error instanceof SecurityException)throw error;readIssues.put(code,"missing_catalog_card".equals(error.getMessage())?"GTIN_CARD_NOT_FOUND":SyncFailure.of(error,0).code());}
         }
         requireScope(shop,scope);
         repo.mergeCatalog(shop.getId(),shop.getMarketplace(),enriched);ZnackCatalogSyncService.project(shop,enriched);
@@ -61,10 +61,13 @@ public final class WbCatalogMappingService {
         for(var row:rows){
             var codes=codes(row);if(codes.isEmpty())continue;
             if(eligible(row,catalog,duplicate,failures,scope)!=null){mapped++;continue;}
-            String code=codes.iterator().next(),reason;
+            // Marketplace barcodes are not necessarily Catalog cards. Only actual
+            // Catalog candidates can make this choice ambiguous.
+            var observed=codes.stream().filter(catalog::containsKey).toList();
+            String code=observed.isEmpty()?codes.iterator().next():observed.getFirst(),reason;
             var card=catalog.get(code);
-            if(codes.stream().anyMatch(duplicate::contains))reason="GTIN_MULTIPLE_SIZES";
-            else if(codes.size()>1)reason="GTIN_AMBIGUOUS";
+            if(observed.size()>1)reason="GTIN_AMBIGUOUS";
+            else if(duplicate.contains(code))reason="GTIN_MULTIPLE_SIZES";
             else if(failures.containsKey(code))reason=Set.of("ZNACK_AUTH_REQUIRED","ZNACK_HTTP_403").contains(failures.get(code))?"GTIN_ACCESS_DENIED":failures.get(code);
             else {reason=problem(row,card,scope);if(reason.isBlank())reason="GTIN_AMBIGUOUS";}
             issues.add(new Issue(row.vendorArticle(),row.size(),code,reason));
@@ -72,8 +75,9 @@ public final class WbCatalogMappingService {
         return new Result(mapped,issues);
     }
     private static RegisteredGtin eligible(ProductRow row,Map<String,RegisteredGtin> catalog,Set<String> duplicates,Map<String,String> failures,String scope){
-        var codes=codes(row);if(codes.size()!=1)return null;String code=codes.iterator().next();var card=catalog.get(code);
-        return duplicates.contains(code)||failures.containsKey(code)||!problem(row,card,scope).isBlank()?null:card;
+        var usable=codes(row).stream().filter(code->!duplicates.contains(code)&&!failures.containsKey(code))
+                .map(catalog::get).filter(Objects::nonNull).filter(card->problem(row,card,scope).isBlank()).toList();
+        return usable.size()==1?usable.getFirst():null;
     }
     private static String problem(ProductRow row,RegisteredGtin card,String scope){
         if(card==null)return "GTIN_CARD_NOT_FOUND";
@@ -83,7 +87,8 @@ public final class WbCatalogMappingService {
         if(!card.tradeUnit())return "GTIN_NOT_TRADE_UNIT";
         if(!GtinVariantIdentity.sizeMatches(card,GtinVariantIdentity.primarySize(row),row.russianSize()))return "GTIN_SIZE_MISMATCH";
         if(!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";
-        if(!GtinTnvedIdentity.compatible(row.tnved(),card.details().values("tnved")))return "GTIN_TNVED_GROUP_CHANGED";
+        // KIZ mapping follows the observed Catalog identity, regardless of the
+        // marketplace's TN VED. Order metadata still comes from the Catalog card.
         return card.details().documents().stream().anyMatch(WbCatalogMappingService::activeDocument)?"":"GTIN_DOCUMENT_MISSING";
     }
     private static void requireScope(Shop shop,String scope){ListingIdentity.require(shop);if(!scope.equals(RegisteredGtinProof.current(shop).source()))throw new SecurityException("CATALOG_OWNER_CHANGED");}

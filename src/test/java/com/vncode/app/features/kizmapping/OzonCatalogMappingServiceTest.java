@@ -83,12 +83,12 @@ class OzonCatalogMappingServiceTest {
         op.targets.add(target(1,List.of(a,b),false,""));op.targets.add(target(2,List.of(c,gtin(4)),false,""));op.cards.add(card(c));
         var result=run(op);assertEquals(1,result.mapped());assertEquals(List.of("GTIN_AMBIGUOUS"),reasons(result));assertEquals(Map.of("2",c),op.verified);
     }
-    @Test void mismatchedSizeColorAndTnvedRemainBlocked()throws Exception{
+    @Test void mismatchedSizeAndColorRemainBlockedButDifferentMarketplaceTnvedDoesNot()throws Exception{
         var op=new Fake();for(int i=1;i<=3;i++)op.targets.add(target(i,List.of(gtin(i)),false,""));
         var base=card(gtin(1));op.cards.add(new RegisteredGtin(base.gtin(),base.article(),"Brown","54",true,true,SOURCE,Instant.now(),base.details()));
         base=card(gtin(2));op.cards.add(new RegisteredGtin(base.gtin(),base.article(),"Black","52",true,true,SOURCE,Instant.now(),base.details()));
         base=card(gtin(3));op.cards.add(new RegisteredGtin(base.gtin(),base.article(),"Brown","52",true,true,SOURCE,Instant.now(),new CatalogProductData(Map.of("tnved",List.of("6201000000")),List.of(),base.details().documents())));
-        assertEquals(List.of("GTIN_SIZE_MISMATCH","GTIN_COLOR_MISMATCH","GTIN_TNVED_GROUP_CHANGED"),reasons(run(op)));assertTrue(op.verified.isEmpty());
+        var result=run(op);assertEquals(List.of("GTIN_SIZE_MISMATCH","GTIN_COLOR_MISMATCH"),reasons(result));assertEquals(1,result.mapped());assertEquals(Map.of("3",gtin(3)),op.verified);
     }
     @Test void unsignedRejectedAndExpiredDocumentsAreNotReportedAsMapped()throws Exception{
         var op=new Fake();for(int i=1;i<=3;i++)op.targets.add(target(i,List.of(gtin(i)),false,""));

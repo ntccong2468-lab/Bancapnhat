@@ -63,7 +63,7 @@ public final class OzonCatalogMappingService {
                 if(CatalogFeedback.rateLimited(error)||error instanceof InterruptedException
                         ||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException)
                         ||error instanceof SecurityException)throw error;
-                failures.put(code,SyncFailure.of(error,0).code());
+                failures.put(code,"missing_catalog_card".equals(error.getMessage())?"GTIN_CARD_NOT_FOUND":SyncFailure.of(error,0).code());
             }
         }
         requireScope(shop,scope);operations.enrich(shop,enriched);merge(catalog,enriched);
@@ -143,7 +143,8 @@ public final class OzonCatalogMappingService {
         var row=target.row();
         if(!GtinVariantIdentity.sizeMatches(card,GtinVariantIdentity.primarySize(row),row.russianSize()))return "GTIN_SIZE_MISMATCH";
         if(!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";
-        if(!GtinTnvedIdentity.compatible(row.tnved(),card.details().values("tnved")))return "GTIN_TNVED_GROUP_CHANGED";
+        // Marketplace TN VED differences do not block a verified KIZ mapping.
+        // Keep the Catalog card's own TN VED and permit data for the purchase.
         if(card.details().documents().stream().noneMatch(OzonCatalogMappingService::activeDocument))return "GTIN_DOCUMENT_MISSING";
         return "";
     }

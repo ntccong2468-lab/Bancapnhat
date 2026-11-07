@@ -62,11 +62,11 @@ class WbCatalogMappingServiceTest {
                 reasons(review(List.of(product(1, "Article", "Brown", "54")), card())));
     }
 
-    @Test void aDifferentKnownTnvedGroupCannotUseTheOldCard() {
+    @Test void aDifferentMarketplaceTnvedDoesNotBlockTheObservedCatalogCard() {
         var row = product(1, "Article", "Brown", "52", "6201000000");
         var result = review(List.of(row), card());
-        assertEquals(0, result.mapped());
-        assertEquals(List.of("GTIN_TNVED_GROUP_CHANGED"), reasons(result));
+        assertEquals(1, result.mapped());
+        assertTrue(result.issues().isEmpty());
     }
 
     @Test void expiredAndRevokedDocumentsDoNotAuthorizeMapping() {
