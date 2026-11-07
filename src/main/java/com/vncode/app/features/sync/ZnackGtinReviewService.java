@@ -28,6 +28,7 @@ public final class ZnackGtinReviewService {
             var sources=new RegistrationSources();var ready=sources.check(shop);
             if(!ready.ready())ready=sources.refresh(shop,progress);
             if(!ready.ready())throw new IllegalStateException(ready.reason());
+            if(shop.getMarketplace()==Marketplace.OZON)new com.vncode.app.integration.znack.registration.OzonExistingCardLinkService().refreshApproved(shop,Set.of(),()->Thread.currentThread().isInterrupted());
         }
     },new ZnackAutoSyncService(false),(shop,key)->shop.getMarketplace()==Marketplace.OZON?new OzonProductSnapshotReader().readForSynchronization(shop,key):new WbProductSnapshotReader().readForSynchronization(shop,key));refreshSelectedProof=true;}
     ZnackGtinReviewService(MarketplaceRefresh marketplace,ZnackAutoSyncService source,ProductSnapshotReader products){this.marketplace=marketplace;this.source=source;this.products=products;}

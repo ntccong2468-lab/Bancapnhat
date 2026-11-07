@@ -33,4 +33,25 @@ class OzonExistingCardLinkServiceTest {
         var before=review(91,"a".repeat(64));GtinWriteTestFixture.saveSettings(shop,"B".repeat(40),com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);
         var service=new OzonExistingCardLinkService((s,k,g)->before);assertThrows(SecurityException.class,()->service.approve(shop,before));assertNull(OzonReviewedGtinLinks.read(shop,key));
     }
+    private OzonExistingCardLinkService.Review second(){var r=review(92,"b".repeat(64));return new OzonExistingCardLinkService.Review(new ProductKey(2,Marketplace.OZON,"502","offer-502"),"00000000000024",92,"9002",r.ozonTitle(),"different-second-article",r.ozonColor(),r.ozonSize(),r.catalogArticle(),r.catalogColor(),r.catalogSize(),r.tnved(),r.owner(),r.source(),r.revision(),r.catalogRevision());}
+    @Test void batchApprovalPersistsEveryReviewedPairWithoutClaimingBarcodeWrites()throws Exception{
+        var first=review(91,"a".repeat(64));var second=second();var byKey=java.util.Map.of(first.key(),first,second.key(),second);
+        new OzonExistingCardLinkService((s,k,g)->byKey.get(k)).approveBatch(shop,java.util.List.of(first,second));
+        assertEquals(first.gtin(),OzonReviewedGtinLinks.read(shop,first.key()).gtin());assertEquals(second.gtin(),OzonReviewedGtinLinks.read(shop,second.key()).gtin());
+        assertTrue(new com.vncode.app.features.gtinsync.GtinSyncRepository().verifiedMappings(shop).isEmpty());
+    }
+    @Test void aLateChangedPairDoesNotSaveTheEarlierPairs()throws Exception{
+        var first=review(91,"a".repeat(64));var second=second();
+        var service=new OzonExistingCardLinkService((s,k,g)->k.equals(first.key())?first:review(93,"c".repeat(64)));
+        assertThrows(IllegalStateException.class,()->service.approveBatch(shop,java.util.List.of(first,second)));
+        assertNull(OzonReviewedGtinLinks.read(shop,first.key()));assertNull(OzonReviewedGtinLinks.read(shop,second.key()));
+    }
+    @Test void aDatabaseGtinConflictRollsBackTheWholeApprovalBatch()throws Exception{
+        var first=review(91,"a".repeat(64));var second=second();var existing=new ProductKey(2,Marketplace.OZON,"503","already-owned");
+        OzonReviewedGtinLinks.save(shop,existing,new OzonReviewedGtinLinks.Link(second.gtin(),92,"9003",second.owner(),second.source(),second.revision()));
+        var byKey=java.util.Map.of(first.key(),first,second.key(),second);
+        assertThrows(IllegalStateException.class,()->new OzonExistingCardLinkService((s,k,g)->byKey.get(k)).approveBatch(shop,java.util.List.of(first,second)));
+        assertNull(OzonReviewedGtinLinks.read(shop,first.key()));assertNull(OzonReviewedGtinLinks.read(shop,second.key()));assertEquals(second.gtin(),OzonReviewedGtinLinks.read(shop,existing).gtin());
+    }
+
 }

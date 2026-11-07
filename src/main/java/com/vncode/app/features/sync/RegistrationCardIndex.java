@@ -79,6 +79,7 @@ public final class RegistrationCardIndex {
     }
     private final Map<String,List<RegisteredGtin>> codes=new HashMap<>(),attributes=new HashMap<>();
     private final OzonSkuGtinMatcher ozon;
+    private final java.util.Map<com.vncode.app.features.products.ProductKey,String> reviewedOzon;
     private final Set<Long> wbOwners=new HashSet<>();
     private final String owner,scopeJson,catalogSource;
     private final com.vncode.app.integration.marketplace.Marketplace marketplace;
@@ -102,6 +103,7 @@ public final class RegistrationCardIndex {
         }
         catalogErrors=scoped.stream().filter(c->com.vncode.app.integration.znack.registration.CatalogCardState.of(c)==com.vncode.app.integration.znack.registration.CatalogCardState.ERRORS).count();
         ozon=new OzonSkuGtinMatcher(scoped,true);
+        reviewedOzon=marketplace==com.vncode.app.integration.marketplace.Marketplace.OZON?OzonReviewedVariantProof.matchingIndex(shop):java.util.Map.of();
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT chrt_id FROM znack_card_registration_scopes WHERE shop_id=? AND owner_hash=? AND participant_inn=? AND environment=? AND fingerprint=?")) {
             p.setInt(1,shop.getId());p.setString(2,owner);p.setString(3,nativeScope.inn());p.setString(4,nativeScope.environment());p.setString(5,nativeScope.fingerprint());
             try(var rows=p.executeQuery()){while(rows.next())wbOwners.add(rows.getLong(1));}
@@ -124,7 +126,7 @@ public final class RegistrationCardIndex {
         return verified(observed,row.vendorCode(),row.color(),row.size(),row.wbSize(),List.of(),false);
     }
     public Optional<RegisteredGtin> verifiedOzon(com.vncode.app.features.products.ProductRow row,Status status,String gtin,boolean nativeOwned){
-        var candidates=ozon.candidates(row);var observed=viewOzon(status,gtin,row,nativeOwned);
+        var candidates=ozonCandidates(row);var observed=viewOzon(status,gtin,row,nativeOwned);
         return verified(observed,row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize(),candidates,true);
     }
     private Optional<RegisteredGtin> verified(View observed,String article,String color,String size,String russianSize,List<RegisteredGtin> skuCandidates,boolean ozonColor){
@@ -151,7 +153,19 @@ public final class RegistrationCardIndex {
         return viewOzon(status,gtin,row,nativeOwned,"");
     }
     public View viewOzon(Status status,String gtin,com.vncode.app.features.products.ProductRow row,boolean nativeOwned,String checkpointUpdatedAt) {
-        return view(status,gtin,row.barcodes(),row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize(),nativeOwned,ozon.candidates(row),checkpointUpdatedAt);
+        if(reviewedOzon.containsKey(row.key())){
+            var candidates=ozonCandidates(row);String selected=reviewedOzon.get(row.key());
+            if(candidates.size()!=1)return new View("source.unverified",selected,"GTIN_REVIEW_CHANGED",true,false,true);
+            // A current, explicitly reviewed native pair supersedes a historical
+            // registration/barcode. Its own proof already includes owner/scope.
+            return view(Status.NOT_CREATED,candidates.getFirst().gtin(),List.of(),row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize(),true,candidates,"");
+        }
+        return view(status,gtin,row.barcodes(),row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize(),nativeOwned,ozonCandidates(row),checkpointUpdatedAt);
+    }
+    private java.util.List<RegisteredGtin> ozonCandidates(com.vncode.app.features.products.ProductRow row){
+        if(reviewedOzon.containsKey(row.key()))return codes.getOrDefault(normal(reviewedOzon.get(row.key())),java.util.List.of()).stream()
+                .filter(c->OzonSkuGtinMatcher.sameColor(row.color(),c.color())&&GtinVariantIdentity.sizeMatches(c,GtinVariantIdentity.primarySize(row),row.russianSize())).toList();
+        return ozon.candidates(row);
     }
     public View view(Status status,String gtin,List<String> barcodes,String article,String color,String size,String russianSize,boolean nativeOwned) {
         return view(status,gtin,barcodes,article,color,size,russianSize,nativeOwned,"");

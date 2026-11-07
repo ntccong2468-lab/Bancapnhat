@@ -10,11 +10,16 @@ public final class GtinCatalogIndex {
     private final Map<String,List<RegisteredGtin>> codes=new HashMap<>();
     private final Map<Attributes,List<RegisteredGtin>> attributes=new HashMap<>();
     private final OzonSkuGtinMatcher ozon;
+    private final Map<com.vncode.app.features.products.ProductKey,String> reviewed;
     public GtinCatalogIndex(List<RegisteredGtin> rows){
         this(rows,false);
     }
     /** Registration must also find existing drafts/errors; ordinary write matching stays published-only. */
     public GtinCatalogIndex(List<RegisteredGtin> rows,boolean includeDrafts){
+        this(rows,includeDrafts,Map.of());
+    }
+    public GtinCatalogIndex(List<RegisteredGtin> rows,boolean includeDrafts,Map<com.vncode.app.features.products.ProductKey,String> reviewed){
+        this.reviewed=Map.copyOf(reviewed);
         ozon=new OzonSkuGtinMatcher(rows,includeDrafts);
         for(var row:rows)if((row.published()||includeDrafts)&&(row.tradeUnit()||includeDrafts)&&RegisteredGtinValidator.isValid(row.gtin())&&!GtinNormalizer.isTechnicalRange(row.gtin())){
             codes.computeIfAbsent(GtinNormalizer.normalize(row.gtin()),key->new ArrayList<>()).add(row);
@@ -22,11 +27,14 @@ public final class GtinCatalogIndex {
         }
     }
     public List<RegisteredGtin> code(String gtin){return RegisteredGtinValidator.isValid(gtin)?List.copyOf(codes.getOrDefault(GtinNormalizer.normalize(gtin),List.of())):List.of();}
+    public boolean reviewed(com.vncode.app.features.products.ProductRow row){return reviewed.containsKey(row.key());}
     public List<RegisteredGtin> codes(List<String> barcodes){var result=new LinkedHashSet<RegisteredGtin>();for(String barcode:barcodes)result.addAll(code(barcode));return List.copyOf(result);}
     public List<RegisteredGtin> attributes(String article,String color,String size){
         return attributes(article,color,size,"");
     }
     public List<RegisteredGtin> ozon(com.vncode.app.features.products.ProductRow product){
+        if(reviewed.containsKey(product.key()))return code(reviewed.get(product.key())).stream()
+                .filter(c->OzonSkuGtinMatcher.sameColor(product.color(),c.color())&&GtinVariantIdentity.sizeMatches(c,GtinVariantIdentity.primarySize(product),product.russianSize())).toList();
         var exact=attributes(product.vendorArticle(),product.color(),GtinVariantIdentity.primarySize(product),product.russianSize());
         return exact.isEmpty()?ozon.candidates(product):exact;
     }

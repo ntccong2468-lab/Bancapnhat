@@ -45,10 +45,13 @@ public final class KizCrossMarketplaceProof {
 
     /** Explicit seller print/accept action only. Reads seller sources, never purchases or writes to a marketplace. */
     public static RefreshResult refreshMissing(Shop ozon,Collection<String> skus,BooleanSupplier cancelled)throws IOException {
-        return refreshMissing(ozon,skus,cancelled,new ObservationReader(){
+        var direct=new com.vncode.app.integration.znack.registration.OzonExistingCardLinkService().refreshApproved(ozon,skus,cancelled);
+        var cross=refreshMissing(ozon,skus,cancelled,new ObservationReader(){
             public ProductSnapshot wb(Shop shop,ProductKey key)throws Exception{return new com.vncode.app.integration.wb.WbProductSnapshotReader().readForIdentityProof(shop,key);}
             public com.vncode.app.integration.znack.registration.OzonExistingCardLinkService.Review ozon(Shop shop,GtinSyncModels.ProductKey key,String gtin)throws Exception{return new com.vncode.app.integration.znack.registration.OzonExistingCardLinkService().read(shop,key,gtin);}
         });
+        var issues=new LinkedHashMap<>(cross.issues());issues.putAll(direct.issues());
+        return new RefreshResult(direct.attempted()+cross.attempted(),direct.verified()+cross.verified(),issues);
     }
     @FunctionalInterface interface RefreshBatch {RefreshResult run(Collection<String> skus)throws IOException;}
     /** Background reconciliation only: no purchase, order acceptance, or marketplace mutation. */

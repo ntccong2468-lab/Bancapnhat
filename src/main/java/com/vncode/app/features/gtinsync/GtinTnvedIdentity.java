@@ -3,7 +3,7 @@ package com.vncode.app.features.gtinsync;
 import com.vncode.app.features.products.*;
 import java.util.*;
 
-/** Ozon GTIN identity still includes TN VED; WB appends use article, color and size. */
+/** Unreviewed Ozon matches retain TN VED checks; an explicitly reviewed native pair may differ. */
 public final class GtinTnvedIdentity {
     private GtinTnvedIdentity(){}
     public static boolean compatible(String marketplace,List<String> registered){return compatible(List.of(marketplace==null?"":marketplace),registered);}
@@ -17,6 +17,10 @@ public final class GtinTnvedIdentity {
     }
     public static void requireCompatible(ProductSnapshot product,GtinSyncModels.RegisteredGtin source){
         if(product.key().marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)return;
+        if(product.revision().startsWith("live:")&&!product.metadata().getOrDefault("owner","").isBlank()&&!product.metadata().getOrDefault("sku","").isBlank()){
+            var shop=new com.vncode.app.features.shop.ShopRepository().findById(product.key().shopId());
+            if(shop!=null&&OzonReviewedVariantProof.matches(shop,product,source))return;
+        }
         var target=product.attributes().stream().filter(a->ProductFieldNames.matches("tnved",a.name())&&(a.complexId()==null||a.complexId().isBlank()||a.complexId().equals("0"))).flatMap(a->a.values().stream()).toList();
         if(!compatible(target,source.details().values("tnved")))throw new IllegalArgumentException("GTIN_TNVED_GROUP_CHANGED");
     }

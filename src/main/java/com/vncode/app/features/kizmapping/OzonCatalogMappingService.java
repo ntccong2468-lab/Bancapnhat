@@ -19,7 +19,7 @@ import java.util.function.Consumer;
 /** Read both sources and adopt only an exact, current Ozon barcode readback. Never writes seller cards. */
 public final class OzonCatalogMappingService {
     public record Issue(String article,String size,String sku,String gtin,String reason){}
-    public record Result(int mapped,int exempt,List<Issue> issues){public Result{issues=List.copyOf(issues);}}
+    public record Result(int mapped,int exempt,List<Issue> issues,int linked){public Result{issues=List.copyOf(issues);}public Result(int mapped,int exempt,List<Issue> issues){this(mapped,exempt,issues,0);}}
     record Target(ProductRow row,String sku,boolean exempt,String existing){
         Target{Objects.requireNonNull(row);sku=Objects.requireNonNullElse(sku,"");existing=Objects.requireNonNullElse(existing,"");}
     }
@@ -32,6 +32,7 @@ public final class OzonCatalogMappingService {
         void enrich(Shop shop,List<RegisteredGtin> cards);
         default Map<Target,Long> confirm(Shop shop,Map<Target,String> candidates)throws Exception{var result=new HashMap<Target,Long>();for(var target:candidates.keySet())result.put(target,0L);return Map.copyOf(result);}
         void verified(Shop shop,Target target,String gtin,long generation);
+        default Map<ProductKey,String> reviewed(Shop shop){return Map.of();}
     }
     private final Operations operations;
     public OzonCatalogMappingService(){this(new LocalOperations());}
@@ -44,11 +45,11 @@ public final class OzonCatalogMappingService {
         String receipt=operations.synchronize(shop,progress);requireScope(shop,scope);
         var targets=operations.targets(shop,receipt);requireScope(shop,scope);
         if(targets.size()>100000)throw new IllegalStateException("SYNC_REPORT_LIMIT");
-        var catalog=new HashMap<String,RegisteredGtin>();merge(catalog,operations.catalog(shop));
+        var catalog=new HashMap<String,RegisteredGtin>();merge(catalog,operations.catalog(shop));var reviewed=operations.reviewed(shop);
         var needed=new LinkedHashSet<String>();
         for(var target:targets){
             requireTarget(shop,target);
-            if(target.exempt())continue;
+            if(target.exempt()||reviewed.containsKey(target.row().key()))continue;
             for(String code:codes(target.row())){
                 var card=catalog.get(code);
                 if(card==null||!scope.equals(card.source())||card.details().documents().stream().noneMatch(OzonCatalogMappingService::activeDocument))needed.add(code);
@@ -67,11 +68,21 @@ public final class OzonCatalogMappingService {
             }
         }
         requireScope(shop,scope);operations.enrich(shop,enriched);merge(catalog,enriched);
-        var duplicate=duplicates(targets);var issues=new ArrayList<Issue>();var candidates=new LinkedHashMap<Target,String>();int mapped=0,exempt=0;
+        var duplicate=duplicates(targets);var issues=new ArrayList<Issue>();var candidates=new LinkedHashMap<Target,String>();int mapped=0,exempt=0,linked=0;
         for(var target:targets){
             requireScope(shop,scope);
             if(target.exempt()){exempt++;continue;}
             var row=target.row();var codes=codes(row);
+            // The current reviewed native pair takes precedence over historical barcodes
+            // and broad rules, including when its proof has become invalid.
+            if(reviewed.containsKey(row.key())){
+                String code=reviewed.get(row.key());
+                if(!RegisteredGtinValidator.isValid(code)){issues.add(issue(target,"","GTIN_REVIEW_CHANGED"));continue;}
+                String reason=problem(target,catalog.get(normalized(code)),scope,duplicate);
+                if(!reason.isBlank()){issues.add(issue(target,code,reason));continue;}
+                if(codes.contains(normalized(code)))candidates.put(target,code);else linked++;
+                continue;
+            }
             var usable=codes.stream().filter(code->!failures.containsKey(code))
                     .filter(code->problem(target,catalog.get(code),scope,duplicate).isBlank()).toList();
             if(usable.size()==1){
@@ -103,7 +114,7 @@ public final class OzonCatalogMappingService {
             operations.verified(shop,entry.getKey(),entry.getValue(),confirmed.get(entry.getKey()));mapped++;
         }
         progress.accept(new NationalCatalogGtinSource.Progress("MAPPING_COMPLETE",mapped+exempt,targets.size()));
-        return new Result(mapped,exempt,issues);
+        return new Result(mapped,exempt,issues,linked);
     }
 
     private void requireScope(Shop shop,String expected){
@@ -164,7 +175,18 @@ public final class OzonCatalogMappingService {
         public String scope(Shop shop){var scope=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(scope);return scope.source();}
         public String synchronize(Shop shop,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception{
             var receipt=new RegistrationSources(progress).refresh(shop,step->progress.accept(new NationalCatalogGtinSource.Progress(step,0,0)));
-            if(!receipt.ready())throw new IllegalStateException(receipt.reason());return receipt.run();
+            if(!receipt.ready())throw new IllegalStateException(receipt.reason());
+            // A fresh list may change updated_at even for a renamed product. Refresh only
+            // stale explicit pairs before consuming their shared purchase/matching proof.
+            new OzonExistingCardLinkService().refreshApproved(shop,List.of(),()->Thread.currentThread().isInterrupted());
+            return receipt.run();
+        }
+        public Map<ProductKey,String> reviewed(Shop shop){
+            var result=new LinkedHashMap<ProductKey,String>();
+            try(var c=Database.getConnection()){
+                for(var claim:OzonReviewedVariantProof.purchaseClaims(c,shop))result.put(new ProductKey(shop.getId(),Marketplace.OZON,claim.productId(),claim.offerId()),claim.metadata()==null?"":claim.gtin());
+            }catch(java.sql.SQLException error){throw new IllegalStateException("SYNC_STORAGE",error);}
+            return Map.copyOf(result);
         }
         public List<Target> targets(Shop shop,String receipt)throws Exception{
             ListingIdentity.require(shop);

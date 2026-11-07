@@ -134,7 +134,7 @@ public final class ZnackAutoSyncService {
             project(shop,source);
             var buffered=new ArrayList<SyncRunRepository.Item>();
             if(selected.isEmpty())for(var issue:issues){buffered.add(reportItem(id,"catalog:"+issue.gtin(),"catalog","","","","",issue.gtin(),"NEEDS_ACTION",issue.code(),"{}"));if(buffered.size()==1000){runs.addBatch(shop,id,buffered);buffered.clear();}}
-            var index=new GtinCatalogIndex(source);
+            var index=new GtinCatalogIndex(source,false,shop.getMarketplace()==Marketplace.OZON?OzonReviewedVariantProof.matchingIndex(shop):Map.of());
             var verified=gtins.verifiedMappings(shop);
             String cursor=null;int productCount=0;var seen=new HashSet<ProductKey>();
             do{
@@ -148,7 +148,10 @@ public final class ZnackAutoSyncService {
                     String error=candidates.size()>1?"GTIN_AMBIGUOUS":candidates.isEmpty()?"ZNACK_MAPPING_UNVERIFIED":"";
                     String sku=sku(shop,row.key());String gtin=candidates.size()==1?candidates.getFirst().gtin():"";
                     var evidence=reportEvidence(row,candidates.size()==1?candidates.getFirst():null,selected.isEmpty()?"STORE":"SELECTED",error);if(candidates.isEmpty()&&!issues.isEmpty())evidence.addProperty("checkResult","UNKNOWN");
-                    if(shop.getMarketplace()==Marketplace.OZON&&candidates.size()==1&&index.attributes(row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize()).isEmpty()&&index.ozon(row).contains(candidates.getFirst()))evidence.addProperty("matchRule","OZON_SELLER_SKU_MODEL_SIZE");
+                    if(shop.getMarketplace()==Marketplace.OZON&&candidates.size()==1){
+                        if(index.reviewed(row))evidence.addProperty("matchRule","OZON_REVIEWED_NATIVE_VARIANT");
+                        else if(index.attributes(row.vendorArticle(),row.color(),GtinVariantIdentity.primarySize(row),row.russianSize()).isEmpty()&&index.ozon(row).contains(candidates.getFirst()))evidence.addProperty("matchRule","OZON_SELLER_SKU_MODEL_SIZE");
+                    }
                     var previous=verified.get(new GtinSyncModels.ProductKey(shop.getId(),shop.getMarketplace(),row.key().cardId(),row.key().variantId()));
                     boolean unchanged=error.isBlank()&&previous!=null&&RegisteredGtinProof.sameCode(previous.gtin(),gtin)&&previous.stillApplied(row.barcodes());
                     if(unchanged){evidence.addProperty("marketplaceVerified",true);evidence.addProperty("marketplaceVerifiedAt",previous.verifiedAt().toString());evidence.addProperty("syncResult","ALREADY_UPDATED");evidence.addProperty("nextAction","");}
@@ -179,11 +182,13 @@ public final class ZnackAutoSyncService {
     private List<RegisteredGtin> match(Shop shop,ProductRow product,GtinCatalogIndex index)throws Exception {
         var matched=candidates(shop,product,index);
         if(shop.getMarketplace()==Marketplace.WILDBERRIES)return matched;
+        if(index.reviewed(product))return matched;
         var compatible=matched.stream().filter(card->GtinTnvedIdentity.compatible(product.tnved(),card.details().values("tnved"))).toList();
         if(!matched.isEmpty()&&compatible.isEmpty())throw new IllegalArgumentException("GTIN_TNVED_GROUP_CHANGED");
         return compatible;
     }
     private List<RegisteredGtin> candidates(Shop shop,ProductRow product,GtinCatalogIndex index)throws Exception {
+        if(shop.getMarketplace()==Marketplace.OZON&&index.reviewed(product))return index.ozon(product);
         String nativeGtin=registrationGtin(shop,product.key());
         if(shop.getMarketplace()==Marketplace.WILDBERRIES){
             java.util.function.Predicate<RegisteredGtin> exact=card->GtinVariantIdentity.matchesWb(card,product.vendorArticle(),product.color(),GtinVariantIdentity.primarySize(product),product.russianSize());
@@ -292,6 +297,11 @@ public final class ZnackAutoSyncService {
     static void requireSkuMatch(Shop shop,SyncRunRepository.Item item,ProductSnapshot fresh){
         if(shop.getMarketplace()!=Marketplace.OZON)return;
         var evidence=com.google.gson.JsonParser.parseString(item.evidence()).getAsJsonObject();
+        if(evidence.has("matchRule")&&"OZON_REVIEWED_NATIVE_VARIANT".equals(evidence.get("matchRule").getAsString())){
+            var source=new GtinSyncRepository().catalogItem(shop.getId(),Marketplace.OZON,item.gtin());
+            if(!OzonReviewedVariantProof.matches(shop,new OzonShopBrand().apply(shop,fresh),source))throw new IllegalArgumentException("GTIN_REVIEW_CHANGED");
+            return;
+        }
         if(!evidence.has("matchRule")||!"OZON_SELLER_SKU_MODEL_SIZE".equals(evidence.get("matchRule").getAsString()))return;
         var source=new GtinSyncRepository().catalogItem(shop.getId(),Marketplace.OZON,item.gtin());
         var variant=fresh.variants().stream().filter(v->v.id().equals(item.variantId())).findFirst().orElseThrow(()->new IllegalArgumentException("VARIANT_NOT_FOUND"));

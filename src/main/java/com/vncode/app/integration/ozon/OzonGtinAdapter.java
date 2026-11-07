@@ -98,6 +98,12 @@ public final class OzonGtinAdapter implements GtinBatchAdapter {
             if(revision.isBlank())return "";
             var full=new OzonShopBrand().apply(shop,new OzonProductSnapshotReader(ignored->client).readForGtinRegistrationProof(shop,registrationKey));
             if(!sku.equals(full.metadata().getOrDefault("sku","")))return "";
+            if(OzonReviewedVariantProof.version2(revision)){
+                if(!OzonReviewedVariantProof.matches(shop,full,source))return "";
+                OzonReviewedVariantProof.observe(shop,full,source);
+                String token="ozon-reviewed-v2:"+ListingIdentity.hash(String.join("\n",key.toString(),source.gtin(),Long.toString(goodId),sku,owner,current.source(),revision));
+                return target.postWriteFingerprint().isBlank()||token.equals(target.postWriteFingerprint())?token:"";
+            }
             String token="ozon-reg-v1:"+ListingIdentity.hash(String.join("\n",key.toString(),source.gtin(),Long.toString(goodId),sku,owner,current.source(),revision,physicalRevision(full)));
             // A fresh preview proves the full saved registration snapshot before a write.
             // Recovery uses only the immutable, pre-dispatch token stored in that preview.

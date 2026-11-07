@@ -124,6 +124,17 @@ public final class KizRegistrationIdentityRepository {
                 }catch(RuntimeException malformed){/* Invalid claims stay blocked. */}
             }}
             ListingIdentity.require(shop);
+            if(includePublished&&shop.getMarketplace()==Marketplace.OZON){
+                for(var claim:com.vncode.app.features.gtinsync.OzonReviewedVariantProof.purchaseClaims(c,shop)){
+                    result.claimed.add(claim.sku());var nativeKey=new Key(claim.productId(),claim.sku());
+                    if(claim.metadata()==null){result.identities.remove(nativeKey);result.ambiguous.add(claim.sku());continue;}
+                    var identity=new Identity(claim.productId(),claim.offerId(),claim.sku(),GtinNormalizer.normalize(claim.gtin()),claim.metadata());
+                    // This is the latest explicitly reviewed association for this exact native
+                    // variant. Keep historical registration records, but do not let their old
+                    // GTIN override the seller's current published-card choice.
+                    result.identities.put(nativeKey,identity);
+                }
+            }
             if(proof!=null&&!proof.source().equals(RegisteredGtinProof.current(shop).source()))throw missing();
             return result;
         }catch(SQLException failure){throw new IllegalStateException("KIZ_REGISTRATION_IDENTITY_READ_FAILED",failure);}

@@ -32,6 +32,30 @@ class OzonCatalogMappingServiceTest {
         assertEquals(1,result.mapped());assertEquals(1,result.exempt());assertTrue(result.issues().isEmpty());
         assertEquals(Map.of("1",code),op.verified);assertEquals("MAPPING_COMPLETE",progress.getLast().phase());
     }
+    @Test void reviewedNativePairIsCountedSeparatelyWithoutPretendingTheBarcodeWasWritten()throws Exception{
+        var target=target(1,List.of("seller-code"),false,"");String gtin=gtin(1);
+        var op=new Fake(){@Override public Map<ProductKey,String> reviewed(Shop shop){return Map.of(target.row().key(),gtin);}};
+        op.targets.add(target);op.cards.add(card(gtin));var result=run(op);
+        assertEquals(0,result.mapped());assertEquals(1,result.linked());assertTrue(result.issues().isEmpty());assertTrue(op.verified.isEmpty());
+    }
+    @Test void aReviewedPairCannotBeReplacedByAnOlderUsableBarcodeDuringMapping()throws Exception{
+        String old=gtin(1),selected=gtin(2);var target=target(1,List.of(old),false,old);
+        var op=new Fake(){@Override public Map<ProductKey,String> reviewed(Shop shop){return Map.of(target.row().key(),selected);}};
+        op.targets.add(target);op.cards.addAll(List.of(card(old),card(selected)));var result=run(op);
+        assertEquals(1,result.linked());assertEquals(0,result.mapped());assertTrue(op.verified.isEmpty());assertTrue(result.issues().isEmpty());
+    }
+    @Test void readbackConfirmsOnlyTheReviewedGtinWhenOlderCatalogBarcodesRemain()throws Exception{
+        String old=gtin(1),selected=gtin(2);var target=target(1,List.of(old,selected),false,old);
+        var op=new Fake(){@Override public Map<ProductKey,String> reviewed(Shop shop){return Map.of(target.row().key(),selected);}};
+        op.targets.add(target);op.cards.addAll(List.of(card(old),card(selected)));var result=run(op);
+        assertEquals(1,result.mapped());assertEquals(0,result.linked());assertEquals(Map.of("1",selected),op.verified);assertTrue(result.issues().isEmpty());
+    }
+    @Test void anInvalidReviewedClaimCannotFallBackToAnOlderBarcode()throws Exception{
+        String old=gtin(1);var target=target(1,List.of(old),false,old);
+        var op=new Fake(){@Override public Map<ProductKey,String> reviewed(Shop shop){return Map.of(target.row().key(),"");}};
+        op.targets.add(target);op.cards.add(card(old));var result=run(op);
+        assertEquals(0,result.mapped());assertEquals(0,result.linked());assertEquals(List.of("GTIN_REVIEW_CHANGED"),reasons(result));assertTrue(op.verified.isEmpty());
+    }
     @Test void registryOnlyActiveCertificateCanAuthorizeTheObservedBarcode()throws Exception{
         var op=new Fake();String code=gtin(1);op.cards.add(card(code,List.of()));op.targets.add(target(1,List.of(code),false,""));
         var registry=new CatalogProductData.Document("CERTIFICATE_OF_CONFORMITY","fixture","2020-01-01","",false,"",Map.of("registryStatus","active"));

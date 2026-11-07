@@ -77,6 +77,36 @@ class OzonGtinAdapterTest {
         var plan=preview();var submission=adapter.submit(plan);assertEquals(Verification.APPLIED,adapter.verify(plan,submission));assertTrue(adapter.hasBarcode(key,"9001",GTIN));
         transport.card.addProperty("sku",9002);assertFalse(adapter.hasBarcode(key,"9002",GTIN));
     }
+    private void reviewedNativeAlias()throws Exception {
+        var pk=new com.vncode.app.features.products.ProductKey(2,Marketplace.OZON,key.productId(),key.variantId());
+        var full=new OzonShopBrand().apply(shop,new OzonProductSnapshotReader(ignored->transport).readForRegistrationProof(shop,pk));
+        var old=new GtinSyncRepository().catalogItem(2,Marketplace.OZON,GTIN);var fields=new java.util.LinkedHashMap<>(old.details().fields());fields.put("tnved",List.of("6109100000"));
+        var card=new RegisteredGtin(GTIN,"CATALOG COMPLETELY DIFFERENT ARTICLE",old.color(),old.size(),true,true,old.source(),Instant.now(),new com.vncode.app.features.catalogsync.CatalogProductData(fields,old.details().attributes(),old.details().documents()));
+        new GtinSyncRepository().saveCatalog(2,Marketplace.OZON,List.of(card));OzonReviewedVariantProof.observe(shop,full,card);
+        com.vncode.app.integration.znack.registration.OzonReviewedGtinLinks.read(shop,key);
+        try(var c=Database.getConnection();var stmt=c.createStatement()){
+            stmt.execute("DELETE FROM ozon_card_registrations WHERE shop_id=2 AND product_id='501'");
+            try(var q=c.prepareStatement("INSERT INTO ozon_reviewed_gtin_links VALUES(2,'501','fixture-offer',?,91,'9001',?,?,?,?)")){
+                q.setString(1,GTIN);q.setString(2,com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop));q.setString(3,RegisteredGtinProof.source(shop));q.setString(4,OzonReviewedVariantProof.revision(full,card));q.setString(5,Instant.now().toString());q.executeUpdate();
+            }
+        }
+    }
+    @Test void reviewedNativeAliasWritesTheExactSkuDespiteDifferentCatalogArticleAndTnved()throws Exception{
+        reviewedNativeAlias();var p=preview();var submission=adapter.submit(p);assertEquals(Verification.APPLIED,adapter.verify(p,submission));
+        assertEquals(1,transport.writes.get());assertTrue(transport.card.getAsJsonArray("barcodes").asList().stream().anyMatch(v->v.getAsString().equals("legacy")));
+    }
+    @Test void aCosmeticRenameBeforeANewPreviewDoesNotRequireReapprovingTheNativeAlias()throws Exception{
+        reviewedNativeAlias();transport.title="Renamed Ozon presentation";transport.card.addProperty("name",transport.title);
+        var p=preview();var submission=adapter.submit(p);assertEquals(Verification.APPLIED,adapter.verify(p,submission));assertEquals(1,transport.writes.get());
+    }
+    @Test void reviewedAliasStillRequiresBarcodeReadbackAfterHttp200()throws Exception{
+        reviewedNativeAlias();transport.apply=false;var p=preview();var submission=adapter.submit(p);assertEquals(Verification.PENDING,adapter.verify(p,submission));
+        transport.card.getAsJsonArray("barcodes").add(GTIN);assertEquals(Verification.APPLIED,adapter.verify(p,submission));assertEquals(1,transport.writes.get());
+    }
+    @Test void aDifferentColorCannotReuseTheReviewedAliasAtTheTransportBoundary()throws Exception{
+        reviewedNativeAlias();var p=preview();var guarded=new OzonGtinAdapter(shop,transport,id->{transport.color="Red";});
+        assertThrows(GtinKnownUnsentException.class,()->guarded.submit(p));assertEquals(0,transport.writes.get());
+    }
     @Test void actualReadbackUpdatesOnlyTheSelectedOwnedProductCache()throws Exception {
         try(var c=Database.getConnection();var s=c.createStatement()){
             s.execute("INSERT INTO ozon_products(shop_id,product_id,offer_id,name,sku,synced_at) VALUES(2,'501','fixture-offer','Fixture','9001','fixture'),(2,'502','other-offer','Sibling','9002','fixture')");

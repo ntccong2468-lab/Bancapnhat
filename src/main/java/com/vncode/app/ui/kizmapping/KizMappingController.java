@@ -57,7 +57,7 @@ public class KizMappingController {
     private long shopGeneration;
     private final javafx.animation.PauseTransition syncRetry=new javafx.animation.PauseTransition();
     private record MappingIssue(String article,String size,String sku,String gtin,String reason){}
-    private record MappingReport(int mapped,int exempt,List<MappingIssue> issues){MappingReport{issues=List.copyOf(issues);}}
+    private record MappingReport(int mapped,int exempt,List<MappingIssue> issues,int linked){MappingReport{issues=List.copyOf(issues);}MappingReport(int mapped,int exempt,List<MappingIssue> issues){this(mapped,exempt,issues,0);}}
     private record Synced(List<ZnackGtinInventorySummary> summaries,MappingReport mapping){}
 
     @FXML
@@ -187,7 +187,7 @@ public class KizMappingController {
                         mapped=new MappingReport(result.mapped(),0,result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),"",issue.gtin(),issue.reason())).toList());
                     }else{
                         var result=new com.vncode.app.features.kizmapping.OzonCatalogMappingService().synchronize(owner,progress);
-                        mapped=new MappingReport(result.mapped(),result.exempt(),result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),issue.sku(),issue.gtin(),issue.reason())).toList());
+                        mapped=new MappingReport(result.mapped(),result.exempt(),result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),issue.sku(),issue.gtin(),issue.reason())).toList(),result.linked());
                     }
                     ZnackPurchaseCoordinator.create(current).resumeEligibleIntroductionsAsync(current.getSettings());
                     return new Synced(mappingRepository.findGtinSummaries(shopId),mapped);
@@ -204,7 +204,7 @@ public class KizMappingController {
             syncing = false;
             summaries = task.getValue().summaries();
             var result=task.getValue().mapping();
-            syncStatusLabel.setText(java.text.MessageFormat.format(tr("mapping.complete_counts"),result.mapped(),result.exempt(),result.issues().size()));syncStatusLabel.setVisible(true);
+            syncStatusLabel.setText(java.text.MessageFormat.format(tr("mapping.complete_counts"),result.mapped(),result.exempt(),result.issues().size())+(result.linked()>0?" · "+java.text.MessageFormat.format(tr("ozon.catalog_link.linked_count"),result.linked()):""));syncStatusLabel.setVisible(true);
             if(task.getValue().mapping()!=null&&!task.getValue().mapping().issues().isEmpty())showMappingIssues(task.getValue().mapping());
             categoryFilter.rebuild(summaries.stream().map(ZnackGtinInventorySummary::category).toList());
             applyFilter();

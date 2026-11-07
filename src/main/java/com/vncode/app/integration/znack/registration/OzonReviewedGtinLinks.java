@@ -46,11 +46,23 @@ public final class OzonReviewedGtinLinks {
         }
     }
     static void save(Shop shop,ProductKey key,Link link) {
+        saveBatch(shop,java.util.Map.of(key,link));
+    }
+    static void saveBatch(Shop shop,java.util.Map<ProductKey,Link> links) {
+        if(links.isEmpty()||links.size()>1000)throw new IllegalArgumentException("GTIN_SELECTION_LIMIT");
         String owner=ListingIdentity.fingerprint(shop),source=RegisteredGtinProof.source(shop);
-        if(!owner.equals(link.owner())||!source.equals(link.source())||!RegisteredGtinValidator.isValid(link.gtin())||!link.revision().matches("[0-9a-f]{64}")||link.goodId()<=0||!link.sku().matches("[1-9][0-9]{0,18}"))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
-        try{SqliteWriteTransaction.run(c->{schema(c);if(!owner.equals(ListingIdentity.fingerprint(c,key.shopId(),Marketplace.OZON))||!source.equals(RegisteredGtinProof.source(shop)))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
+        var codes=new java.util.HashSet<String>();
+        for(var entry:links.entrySet()){
+            var key=entry.getKey();var link=entry.getValue();
+            if(key.shopId()!=shop.getId()||key.marketplace()!=Marketplace.OZON||shop.getMarketplace()!=Marketplace.OZON||!owner.equals(link.owner())||!source.equals(link.source())||!RegisteredGtinValidator.isValid(link.gtin())||!link.revision().matches("(?:ov2:)?[0-9a-f]{64}")||link.goodId()<=0||!link.sku().matches("[1-9][0-9]{0,18}"))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
+            if(!codes.add(RegisteredGtinProof.canonicalCode(link.gtin())))throw new IllegalArgumentException("GTIN_MULTIPLE_OZON_VARIANTS");
+        }
+        try{SqliteWriteTransaction.run(c->{schema(c);if(!owner.equals(ListingIdentity.fingerprint(c,shop.getId(),Marketplace.OZON))||!source.equals(RegisteredGtinProof.source(shop)))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
             try(var p=c.prepareStatement("INSERT INTO ozon_reviewed_gtin_links VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,product_id,offer_id) DO UPDATE SET gtin=excluded.gtin,good_id=excluded.good_id,sku=excluded.sku,owner=excluded.owner,source=excluded.source,revision=excluded.revision,approved_at=excluded.approved_at")){
-                p.setInt(1,key.shopId());p.setString(2,key.productId());p.setString(3,key.variantId());p.setString(4,RegisteredGtinProof.canonicalCode(link.gtin()));p.setLong(5,link.goodId());p.setString(6,link.sku());p.setString(7,owner);p.setString(8,source);p.setString(9,link.revision());p.setString(10,Instant.now().toString());p.executeUpdate();
+                for(var entry:links.entrySet()){
+                    var key=entry.getKey();var link=entry.getValue();
+                    p.setInt(1,key.shopId());p.setString(2,key.productId());p.setString(3,key.variantId());p.setString(4,RegisteredGtinProof.canonicalCode(link.gtin()));p.setLong(5,link.goodId());p.setString(6,link.sku());p.setString(7,owner);p.setString(8,source);p.setString(9,link.revision());p.setString(10,Instant.now().toString());p.addBatch();
+                }p.executeBatch();
             }return null;
         });}catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
     }
