@@ -269,9 +269,13 @@ public final class OzonPrintBundleService {
             if (newPrint) LicenseRuntime.require(Permission.PRINT_NEW);
             Map<String, OzonProductDto> products = context == null ? catalogFor(shop, List.of(posting))
                     : context.products;
-            if(context==null&&!bindings.isEmpty()){products=new LinkedHashMap<>(products);operation.refreshProducts(shop,List.of(posting),products);}
-            else if(posting.items().stream().anyMatch(item->OzonPrintProductSnapshot.missing(item,context.products)&&!context.productIssues.containsKey(item.sku())))
-                refreshPrintProducts(shop,context,List.of(posting));
+            if(!bindings.isEmpty()){
+                if(context==null){
+                    products=new LinkedHashMap<>(products);
+                    operation.refreshProducts(shop,List.of(posting),products);
+                }else if(posting.items().stream().anyMatch(item->OzonPrintProductSnapshot.missing(item,context.products)&&!context.productIssues.containsKey(item.sku())))
+                    refreshPrintProducts(shop,context,List.of(posting));
+            }
             requireProductSnapshot(context,posting,products,bindings);
             OfficialLabelDownloader downloader=context==null?labels:context.labels;
             VerifiedCarrierPage carrier=destination==null?null:downloader.verifiedCarrierPage(shop,safePosting);

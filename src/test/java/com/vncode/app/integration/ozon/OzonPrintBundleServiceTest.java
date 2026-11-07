@@ -463,6 +463,44 @@ class OzonPrintBundleServiceTest {
         assertFalse(Files.exists(picking));
     }
 
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
+    void singleCarrierOnlyExportDoesNotRequireBatchContextOrProductMetadata(boolean metadataPresent)throws Exception {
+        seedUnmarkedPosting("POST-2","SKU-2","offer-blue-68");
+        new OzonProductKizPolicyRepository().setRequired(1,"SKU-2",false);
+        if(metadataPresent)new OzonCatalogRepository().upsertPage(1,List.of(new OzonProductDto(
+                "POST-2-PRODUCT","offer-blue-68","SKU-2","Product SKU-2","",false,"",List.of("OZN0000002"))),"fixture");
+        else try(var c=Database.getConnection();var s=c.createStatement()){s.execute("DELETE FROM ozon_products WHERE shop_id=1");}
+        var prepared=new java.util.concurrent.atomic.AtomicInteger();
+        var operation=new OzonPrintBundleService.Preparation(){
+            public boolean refreshEveryNewPrint(){return true;}
+            public OzonPreparationResult prepare(Shop owner,String number){
+                prepared.incrementAndGet();return new OzonPreparationResult(number,"NOT_REQUIRED",0,true,false,"");
+            }
+            public void refreshProducts(Shop owner,java.util.Collection<OzonPostingDto> selected,Map<String,OzonProductDto> products){
+                throw new AssertionError("A carrier-only print needs no remote combined-label metadata");
+            }
+        };
+        var downloads=new java.util.concurrent.atomic.AtomicInteger();
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),operation,
+                (owner,number,target)->{
+                    downloads.incrementAndGet();
+                    try(var source=new PdfDocument(new com.itextpdf.kernel.pdf.PdfReader(officialPdf.toFile()));
+                            var destination=new PdfDocument(new PdfWriter(target))){source.copyPagesTo(1,1,destination);}
+                    return target;
+                });
+        Path labels=temporaryDirectory.resolve("single-carrier.pdf"),picking=temporaryDirectory.resolve("single-carrier-picking.pdf");
+        var result=exporter.export(shop,"POST-2",labels.toFile(),picking.toFile());
+        assertEquals(1,prepared.get());assertEquals(1,downloads.get());
+        assertEquals(1,result.officialPages());assertEquals(0,result.kizPages());assertEquals(1,result.totalPages());
+        try(var pdf=Loader.loadPDF(labels.toFile())){
+            assertEquals(1,pdf.getNumberOfPages());assertTrue(pageText(pdf,0).contains("Official Ozon shipping page"));
+        }
+        try(var pdf=Loader.loadPDF(picking.toFile())){assertTrue(new PDFTextStripper().getText(pdf).contains("POST-2"));}
+        assertEquals("1",scalar("SELECT count(*) FROM ozon_fbs_print_receipts WHERE shop_id=1 AND posting_number='POST-2'"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_exemplar_jobs"));
+    }
+
     @Test
     void printAllMergesEveryPostingIntoOneLabelFileAndOnePickingFile() throws Exception {
         seedUnmarkedPosting("POST-1", "SKU-1", "offer-black-64");
