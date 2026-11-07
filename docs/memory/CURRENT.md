@@ -1,6 +1,12 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **07.11.2026, 12:52 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **07.11.2026, 13:42 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+
+## Báo cáo tổng hợp theo yêu cầu chủ dự án
+
+- [Danh mục chỉnh sửa và phần còn thiếu](../validation/2026-11-07-change-inventory.md): 15 mục sửa Code Doctor chưa phát hành, 29 nhóm chức năng kế thừa Latest và 12 nhóm sửa audit trước đó; các nhóm có phần giao nhau, không cộng thành số lỗi độc lập. Ghi riêng kiểm API thật, mô phỏng, Windows và việc chưa nghiệm thu. Không sửa runtime hoặc phát hành trong lượt lập báo cáo.
+- Xác nhận thiếu tính năng báo cáo phạt Ozon: `FinancePenaltySyncService` trả `OZON_PENALTY_UNAVAILABLE`; không dùng release note cũ ghi WB/Ozon để khẳng định đã triển khai. Mua KIZ lưu qua restart nhưng continuation xuất PDF chờ mua vẫn chỉ trong phiên mở. Các phần này cần giữ trong backlog.
+- CI HEAD `23eb77a`: security run `42361945862` fail vì Dependency graph chưa bật; CodeQL Java/JS, OpenQodex, lint/audit success. Build `42361945964` tại checkpoint vẫn chạy baseline/macOS arm64; macOS x64 crash JVM exit 134 ở `Gs1PrefixRequestDialogTest`, chưa xác định nguyên nhân. Không dùng số test của nguồn cũ để báo nguồn `5ad16bf` đã đạt Windows/full suite.
 
 ## Mã và bản đã phát hành
 

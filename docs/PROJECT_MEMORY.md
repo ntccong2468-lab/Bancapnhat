@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## Báo cáo tổng hợp chỉnh sửa, Code Doctor/soi code và phần còn thiếu — 07.11.2026, 13:42 MSK (UTC+03:00)
+
+- Chủ dự án yêu cầu liệt kê tất cả chỉnh sửa, gồm riêng các sửa bằng Code Doctor và soi code. Đã đối chiếu Git/Latest/PR, bàn giao và các đường source còn thiếu; lập [danh mục](validation/2026-11-07-change-inventory.md) với 15 mục Code Doctor mới, 29 nhóm chức năng đã kế thừa trong Latest và 12 nhóm audit trước đó. Không cộng các nhóm giao nhau thành số lỗi riêng biệt, không gọi việc có source là nghiệm thu thật.
+- Latest vẫn `v1.6.4`/`86d76d8`; nguồn app mới `5ad16bf`, PR #21 draft, HEAD khi kiểm `23eb77a`; chưa có bản phát hành chứa sửa audit. Phiên này chỉ lập báo cáo, không gửi lại API seller hoặc thực hiện mua/ký/license/deploy.
+- Phần thiếu đã xác nhận bằng source: báo cáo phạt Ozon trả `OZON_PENALTY_UNAVAILABLE`; auto PDF chờ mua KIZ chưa tiếp tục sau restart. Phần kiểm thật chưa hoàn tất: Ozon key 403/code 7, chuỗi ký/công bố/GTIN mới, mua KIZ có chứng thư, 1.000 đơn thật và ba stress 10.000 GTIN. Prototype DPAPI và Memory MCP chưa triển khai runtime/kết nối.
+- CI checkpoint: security `42361945862` failure do Dependency graph chưa bật; CodeQL Java/JS/OpenQodex/lint success. Build `42361945964` còn baseline/macOS arm64, x64 đã fail JVM abort/exit 134 tại `Gs1PrefixRequestDialogTest`; chưa kết luận nguyên nhân. Không sửa/tắt gate để có kết quả xanh.
+- Kinh nghiệm: release note cũ từng ghi báo cáo phạt WB/Ozon nhưng source hiện chỉ hỗ trợ WB; kiểm mã trước khi báo hoàn thành. Phải tách rõ mã đã sửa, bản đã xuống app và nghiệp vụ đã có readback API thật. Báo cáo giữ các quyết định mới khác TN VED và vận đơn Ozon nguyên bản thay các chỉ đạo trung gian đã bị thay thế.
+
 ## KIZ mapping mua KIZ: API thật và bỏ chặn khác TN VED — 07.11.2026, 12:52 MSK (UTC+03:00)
 
 - Chỉ đạo mới của người dùng: dùng Code Doctor/soi code, **kiểm qua API thật, không dùng giả lập làm nghiệm thu**, rồi **khác TN VED cũng được mapping mua KIZ**. Nguồn sửa **`5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c`**, kế thừa `8feb54d`, cùng PR #21, chưa phát hành. [Báo cáo và sơ đồ](validation/2026-11-07-kiz-mapping-live-audit.md), [biên nhận live](validation/kiz-mapping-20261107/live-api.json).

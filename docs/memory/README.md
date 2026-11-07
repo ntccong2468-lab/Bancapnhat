@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| Tổng hợp chỉnh sửa, Code Doctor/soi code, phần thiếu và chưa phát hành ngày 07.11 | [Danh mục đối chiếu](../validation/2026-11-07-change-inventory.md) |
 | Toàn bộ lịch sử sửa, quyết định, kinh nghiệm | [PROJECT_MEMORY.md](../PROJECT_MEMORY.md) |
 | KIZ mapping mua KIZ: API thật, bỏ chặn khác TN VED WB/Ozon | [Báo cáo/sơ đồ](../validation/2026-11-07-kiz-mapping-live-audit.md), [HTTP thật](../validation/kiz-mapping-20261107/live-api.json), [assertion](../validation/kiz-mapping-20261107/real-regression.json), [build](../validation/kiz-mapping-20261107/build.json) |
 | Năm nút sửa sản phẩm, WB POST thật và giấy tờ mặc định tuyên bố | [Báo cáo](../validation/2026-11-06-products-five-audit.md), [5 ghi thật](../validation/2026-11-06-products-five-live.json), [3.880 ca và giới hạn stress](../validation/products-five-20261106/tests.json), [ảnh](../validation/assets/products-five-20261106/configured-declaration.png) |
