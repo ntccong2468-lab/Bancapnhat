@@ -2,7 +2,7 @@
 
 Cập nhật: **07.11.2026, 22:35 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
 
-## 1.6.6 — đã được yêu cầu phát hành, đang chuẩn bị Windows
+## 1.6.6 — Windows đã đạt, đang phát hành Latest
 
 - Người dùng mới yêu cầu **gom toàn bộ sửa và phát hành Latest sau khi xong audit**. Yêu cầu mới thay thế mốc chỉ giữ hotfix chưa phát hành bên dưới; vẫn giữ nguyên 1.6.5 immutable. Không tự mua KIZ, ghi seller API, kích hoạt license hoặc Gmail để kiểm build.
 - Nhánh `release/vn-code-1.6.6`, nguồn chức năng `2e5b50a` trên toàn bộ hotfix Ozon/WB/feed đã push vào PR #22; version nâng 1.6.6 và đúng một paint thanh tải sửa phẳng. [Ghi chú 1.6.6](../releases/VN-code-1.6.6.md), [audit và giới hạn](../validation/2026-11-07-report-pdf-app-audit.md).
@@ -11,7 +11,7 @@ Cập nhật: **07.11.2026, 22:35 MSK (UTC+03:00)**. Đối chiếu Git/PR/Lates
 - Linux rộng **3.974 ca/527 lớp, 0 lỗi/thất bại, 2 OS skip**, tách 3 stress TenThousand khỏi lệnh. 40 UI/version sau bump đạt, Node 155 và portal 67 đạt. 16 FXML + 10 Java pages/4 locale/2 theme/2 size không tràn fixed actions. OpenQodex chỉ Gitleaks, quét lại nguồn cuối trên 2.917 tệp; 10 candidate cũ đã triage, 19 suppression skill Python cũ, không AI/CodeQL toàn xanh.
 - Soi cuối phát hiện nhánh in riêng đơn Ozon không cần KIZ đọc batch context null: tái hiện hai ca NullPointer, sửa để chỉ đọc metadata combined khi có binding. Chạy lại **150 ca/5 lớp Ozon, 0 lỗi/thất bại/skip**. Thêm đúng guard và hai ca, không đổi WB, yêu cầu KIZ, schema hoặc API ghi.
 - Mốc app **`bd3175d61cb1bb133999e8a6e5b011902d50c7cb`**, [Windows run `42407000935`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42407000935), **đã hủy trước đóng gói** vì có guard in đơn lẻ cần thêm. Chốt/push nguồn mới rồi dispatch lại bằng SHA đọc từ Git; giữ full suite/3 stress, native/migration/DPAPI/coexistence/upgrade từ 1.6.5. Không dùng run bị hủy làm bằng chứng. Sau chốt nguồn không thay app input; tooling/docs sau này không phải nguồn binary.
-- **Nguồn app cuối `ac8ba1c939e22d0318877a3a2ba7242359cce78e`**, [Windows `42408546769`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42408546769), dispatch 19:55:38 UTC, đang full suite; không dispatch lại chỉ vì chậm. [Security `42408547869`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42408547869) đã xong: lint/audit + JS đạt, Java giữ tám finding cũ/1 high thumbprint, không có finding mới, byte nguồn tám vị trí không đổi từ 1.6.5. Chưa tạo draft/tag 1.6.6 hoặc thay Latest tại mốc này.
+- **Nguồn app cuối `ac8ba1c939e22d0318877a3a2ba7242359cce78e`**, [Windows `42408546769`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42408546769), dispatch 19:55:38 UTC, đã SUCCESS; không dispatch lại build đã đạt. [Security `42408547869`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42408547869) đã xong: lint/audit + JS đạt, Java giữ tám finding cũ/1 high thumbprint, không có finding mới, byte nguồn tám vị trí không đổi từ 1.6.5. Tag `v1.6.6` đã trỏ đúng nguồn app; draft **437862752** đã tạo từ phản hồi POST. Chưa đổi Latest tại mốc này; publisher 166 đã pin đúng draft/build/source.
 
 ## Hotfix Znack WB/GTIN và Ozon — hoàn tất mã, chưa phát hành
 
@@ -151,3 +151,5 @@ Cập nhật: **07.11.2026, 22:35 MSK (UTC+03:00)**. Đối chiếu Git/PR/Lates
 ## Tiếp tục
 
 Cài skill, sửa/kiểm Code Doctor, bốn bộ lọc/GTIN WB và kiểm năm nút/giấy tờ đã hoàn tất trong phạm vi báo cáo trên nhánh audit; tiếp tục từ nguồn `5ad16bf` và bàn giao KIZ API ngày 07.11.2026. Lượt năm POST sản phẩm WB đã COMPLETE: không gửi lại. Stress 10.000 và nghiệm thu ghi Ozon/Windows chưa đạt; đọc các giới hạn trước khi tiếp tục. Không tự gộp màu hoặc ghi 229 GTIN chỉ vì có ứng viên matching. Việc phát hành gộp 1.6.4 trước đó đã hoàn tất và giữ nguyên. Không tự merge hoặc phát hành sửa audit khi chưa được yêu cầu. Nếu điều tra dữ liệu seller, đọc bàn giao và journal trước; không chạy lại giao dịch chỉ vì tệp trong `/tmp` bị mất. Giữ riêng việc in KIZ cục bộ và Ozon chấp nhận mã; chỉ ghép đúng đơn/nguồn/danh mục. Đọc [so sánh và sơ đồ Znack](../research/2026-11-05-wbcode-1318-vncode-znack.md) khi cần tiếp tục luồng Catalog/GTIN.
+
+- Windows nguồn cuối đạt **3.979 ca/527 lớp, 0 lỗi/thất bại, 2 OS skip (3.977 đạt)**; ba ca 10.000, guard in riêng và PDF ba shop đều có trong XML và đạt. Native/migration/DPAPI/cài-gỡ/nâng cấp 1.6.5 giữ dữ liệu đạt. Artifact **13592011248**, đủ 16 tệp/hash, source ZIP 2.917 tệp khớp Git, JAR 1.956 class không fixture. [Build](../validation/2026-11-07-vncode-166-build.json), [payload](../validation/2026-11-07-vncode-166-package.json). Node publisher 160/160 và actionlint đạt. Nguồn app không đổi sau SHA build.

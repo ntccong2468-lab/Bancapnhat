@@ -4248,7 +4248,7 @@
   "releaseSourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
   "releaseVersion": "1.6.6",
   "fullWindowsBuildRun": 42408546769,
-  "fullWindowsPending": true,
+  "fullWindowsPending": false,
   "localLogSha256": "cf087de7f9a75522613186765320837630b4b2b5e3919dd05df6816598aa5f01",
   "afterVersionAndPaint": {
     "tests": 40,
@@ -4283,5 +4283,24 @@
     },
     "scope": "Carrier-only print, combined labels, product metadata, batched carrier labels, picking and exemplar workflow. Mock HTTP and isolated SQLite; no seller API writes.",
     "logSha256": "6590b3126f6669d16aa95287aaba44c094cbd0ebd0dd20fe2bd3268419e582ca"
+  },
+  "fullWindows": {
+    "sourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+    "runId": 42408546769,
+    "tests": 3979,
+    "classes": 527,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 3977,
+    "allThreeTenThousandCasesPassed": true,
+    "allNativeGatesPassed": true,
+    "passiveUpgradeFrom": "1.6.5"
+  },
+  "publisherTools": {
+    "tests": 160,
+    "failures": 0,
+    "skipped": 0,
+    "actionlint": "1.7.12, all workflow syntax passed, ShellCheck/Pyflakes excluded"
   }
 }
