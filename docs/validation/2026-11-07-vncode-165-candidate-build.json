@@ -1,0 +1,339 @@
+{
+  "schema": 1,
+  "version": "1.6.5",
+  "sourceCommit": "286549c5c74c2e67c931940adfcc43a19cc481be",
+  "state": "unpublished-candidate",
+  "verifiedAt": "2026-11-07T11:10:41.443588+00:00",
+  "nodeTools": {
+    "tests": 150,
+    "passed": 150,
+    "failed": 0
+  },
+  "initialCombinedJava": {
+    "classes": [
+      {
+        "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 6.613
+      },
+      {
+        "class": "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest",
+        "tests": 20,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 3.106
+      },
+      {
+        "class": "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.014
+      },
+      {
+        "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.376
+      },
+      {
+        "class": "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.737
+      },
+      {
+        "class": "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest",
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.776
+      },
+      {
+        "class": "com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.019
+      },
+      {
+        "class": "com.vncode.app.features.products.ProductBulkEditServiceTest",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 4.437
+      },
+      {
+        "class": "com.vncode.app.features.products.ProductBulkEditWbIntegrationTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 2.033
+      },
+      {
+        "class": "com.vncode.app.features.sync.FbsSyncServiceTest",
+        "tests": 23,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 5.131
+      },
+      {
+        "class": "com.vncode.app.features.sync.RegistrationCardIndexTest",
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 4.546
+      },
+      {
+        "class": "com.vncode.app.features.sync.SyncCoordinatorTest",
+        "tests": 16,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 15.55
+      },
+      {
+        "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 12.08
+      },
+      {
+        "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.205
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonGtinAdapterTest",
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 11.39
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonLabelServiceTest",
+        "tests": 52,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 29.7
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonListingAdapterTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.405
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonPrintBatchReadTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 12.19
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.02
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest",
+        "tests": 54,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 40.22
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 1.271
+      },
+      {
+        "class": "com.vncode.app.integration.ozon.OzonSyncServiceTest",
+        "tests": 33,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 68.98
+      },
+      {
+        "class": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+        "tests": 51,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 12.81
+      },
+      {
+        "class": "com.vncode.app.integration.wb.WbListingAdapterTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.513
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.RegistrationSubmissionEngineTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.009
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 13.59
+      },
+      {
+        "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+        "tests": 34,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 87.7
+      },
+      {
+        "class": "com.vncode.app.ui.FxmlSmokeTest",
+        "tests": 58,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 24.67
+      },
+      {
+        "class": "com.vncode.app.ui.products.ProductBulkDialogTest",
+        "tests": 30,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 8.366
+      },
+      {
+        "class": "com.vncode.app.ui.products.ProductBulkEditPaneTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.297
+      },
+      {
+        "class": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+        "tests": 40,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 17.13
+      },
+      {
+        "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 0.051
+      },
+      {
+        "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+        "tests": 38,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 36.89
+      },
+      {
+        "class": "com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest",
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "seconds": 5.326
+      }
+    ],
+    "totals": {
+      "tests": 737,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "result": "failed",
+    "failure": "ZnackCardRegistrationControllerTest.selectedReplacementUsesReviewedDurableBatch: Seller source review did not become ready"
+  },
+  "isolatedFailedMethodRerun": {
+    "tests": 1,
+    "failed": 0,
+    "result": "passed"
+  },
+  "wholeAffectedClassRerunAndPackage": {
+    "tests": 38,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "result": "passed"
+  },
+  "failureRootCause": "Not established; did not reproduce alone or in the whole affected class. Initial combined failure is not discarded.",
+  "fullJavaSuiteVerified": false,
+  "windowsInstallerBuiltOrVerified": false,
+  "newSellerApiWrites": false,
+  "jar": {
+    "name": "VNcode-1.6.5.jar",
+    "bytes": 7431599,
+    "sha256": "40d83b15d75fb2b67336c79edbba94b98ac9c5bd5e1d86db5f907a4eb7e7f379",
+    "versionPropertiesVerified": true,
+    "productionClassesMatched": 1933,
+    "fixtureOrProbeBundled": false
+  },
+  "startup": {
+    "version": "1.6.5",
+    "entryPoint": "com.vncode.app.Launcher",
+    "result": "passed",
+    "platform": "Linux",
+    "workspaceOpenedMillis": 6168,
+    "viewportPixels": [
+      1300,
+      700
+    ],
+    "freshProfile": true,
+    "shops": 0,
+    "licenseStatus": "UNVERIFIED",
+    "sellerApiAllowed": false,
+    "licenseActivationRequested": false,
+    "normalShutdown": true,
+    "dataLockReleased": true,
+    "scope": "Production JavaFX startup and shutdown on Linux/Xvfb, disposable empty profile; no seller mutation or Windows installer test"
+  }
+}

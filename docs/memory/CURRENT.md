@@ -1,6 +1,12 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **07.11.2026, 13:42 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **07.11.2026, 14:06 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+
+## Bản gộp 1.6.5 — chưa phát hành
+
+- Chỉ đạo cuối thay yêu cầu công bố trước đó: **chỉ gộp bản mới, chưa đưa lên Latest**. Đã chuẩn bị nhánh **`release/vn-code-1.6.5`**, nguồn `286549c5c74c2e67c931940adfcc43a19cc481be`, kế thừa toàn bộ PR #21 đến `bba8391` và Latest 1.6.4. Hai khai báo phiên bản POM cùng 1.6.5; chưa tạo tag/release hoặc gọi publisher. [Phạm vi bản gộp](../releases/VN-code-1.6.5.md), [đối chiếu nguồn](../validation/2026-11-07-vncode-165-source-inclusion.json).
+- Đã push nhánh nguồn; Node 150/150 đạt. Nhóm Java 737 ca có 1 lỗi UI xác nhận nguồn; chạy riêng ca đó 1/1 và cả lớp controller 38/38 đạt, package thành công; nguyên nhân lượt lỗi chưa xác định, không gọi full suite đạt. JAR 1.933 class khớp output, không fixture/probe; chạy JAR Linux/Xvfb/profile trống mở sau 6.168 ms, đóng/nhả lock đạt. Gói nội bộ có JAR/source/checksum, **chưa có Windows installer**. [Bàn giao và giới hạn](../validation/2026-11-07-vncode-165-candidate-handoff.md), [build](../validation/2026-11-07-vncode-165-candidate-build.json). Latest phải giữ 1.6.4 cho tới khi có chỉ đạo công bố mới.
+- Công việc tiếp theo người dùng vừa yêu cầu, **sau khi hoàn tất gộp đang dở**: Code Doctor/soi code sửa PDF Ozon thiếu KIZ kết hợp; kiểm quy tắc mapping và đề xuất liên kết cùng sản phẩm/cùng size khi tên và SKU Catalog/Ozon khác cách ghi, phục vụ mua KIZ, đồng bộ và đẩy GTIN. Chưa có chỉ đạo tự xác nhận mọi cặp chỉ dựa tên gần giống hoặc size; giữ đúng biến thể và quyết định cho phép khác TN VED mới nhất.
 
 ## Báo cáo tổng hợp theo yêu cầu chủ dự án
 
@@ -10,7 +16,7 @@ Cập nhật: **07.11.2026, 13:42 MSK (UTC+03:00)**. Đối chiếu Git/PR/Lates
 
 ## Mã và bản đã phát hành
 
-- Repository: `ntccong2468-lab/Bancapnhat`; nhánh đang làm **`audit/code-doctor-20261106`**, nền `e386aee` của `fix/znack-state-wb-gtin-20261105`.
+- Repository: `ntccong2468-lab/Bancapnhat`; nhánh bản gộp đang làm **`release/vn-code-1.6.5`**, kế thừa nhánh audit **`audit/code-doctor-20261106`** và nền `e386aee` của `fix/znack-state-wb-gtin-20261105`.
 - **Latest đã là v1.6.4**, release `435647198`, công bố **06.11.2026 00:13:28 MSK** (`2026-11-05T21:13:28Z`). Nguồn/tag khóa `86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad`.
 - Bản này chứa cả sửa Znack `33f3d6c5c7f380d7980cea6fb1e312328902be58` và sửa PDF Ozon, kế thừa đầy đủ 1.6.3. Mã nguồn Znack đầy đủ được ghi chính xác trong [đối chiếu nguồn](../validation/2026-11-05-vncode-164-source-inclusion.json).
 - Publisher `23e604df98e389f8c3f72f87781e04a52a931677`; các commit sau nguồn ứng dụng ghi công cụ phát hành/bằng chứng, không phải một bộ cài khác.

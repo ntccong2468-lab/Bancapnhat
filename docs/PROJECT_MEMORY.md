@@ -1,5 +1,12 @@
 # Bộ nhớ dự án VNCode
 
+## Gộp 1.6.5, giữ chưa phát hành — 07.11.2026, MSK (UTC+03:00)
+
+- Chỉ đạo cuối của người dùng thay yêu cầu công bố: **chỉ gộp bản mới, chưa đưa lên Latest**. Nguồn/version `286549c5c74c2e67c931940adfcc43a19cc481be`, nhánh đã push `release/vn-code-1.6.5`; kế thừa mọi sửa hoàn thành từ Latest 1.6.4/PR #21 đến `bba8391`. POM hai version 1.6.5; không đổi schema/UpgradeCode/runtime ngoài các sửa kế thừa. [Ghi chú](releases/VN-code-1.6.5.md), [đối chiếu nguồn](validation/2026-11-07-vncode-165-source-inclusion.json).
+- Node 150/150 đạt. Nhóm Java 34 lớp/737 ca có một failure ở `selectedReplacementUsesReviewedDurableBatch`; ca riêng đạt 1/1, cả lớp controller chạy lại 38/38 và package đạt, không nới test/sửa production. Chưa xác định nguyên nhân lượt lỗi, không nhận toàn nhóm/full suite đã đạt. [Bàn giao](validation/2026-11-07-vncode-165-candidate-handoff.md), [biên nhận](validation/2026-11-07-vncode-165-candidate-build.json).
+- JAR 1.6.5 có 1.933 class khớp output, không fixture/probe; startup production trên Linux/Xvfb/profile trống 6.168 ms, đóng/nhả khóa đạt, 0 shop/license UNVERIFIED/không kích hoạt. Gói nội bộ có JAR/source ZIP/metadata/checksum tại `/workspace/artifacts/VN-code-1.6.5-consolidated-286549c/`, không phải Windows installer. Không dùng chứng cứ build 1.6.4 để chứng nhận 1.6.5.
+- Không tạo tag/release hoặc gọi publisher, không gửi API seller/mua/ký thật. Latest phải giữ v1.6.4. Công việc kế tiếp sau phần gộp theo chỉ đạo mới: Code Doctor/soi code sửa PDF Ozon thiếu KIZ kết hợp; kiểm quy tắc và đề xuất mapping khi cùng sản phẩm/cùng size nhưng khác cách ghi tên/SKU để dùng mua KIZ/đồng bộ/đẩy GTIN. Giữ 1.6.5 chưa công bố và tách nguồn/bằng chứng mới khỏi gói đầu.
+
 ## Báo cáo tổng hợp chỉnh sửa, Code Doctor/soi code và phần còn thiếu — 07.11.2026, 13:42 MSK (UTC+03:00)
 
 - Chủ dự án yêu cầu liệt kê tất cả chỉnh sửa, gồm riêng các sửa bằng Code Doctor và soi code. Đã đối chiếu Git/Latest/PR, bàn giao và các đường source còn thiếu; lập [danh mục](validation/2026-11-07-change-inventory.md) với 15 mục Code Doctor mới, 29 nhóm chức năng đã kế thừa trong Latest và 12 nhóm audit trước đó. Không cộng các nhóm giao nhau thành số lỗi riêng biệt, không gọi việc có source là nghiệm thu thật.
