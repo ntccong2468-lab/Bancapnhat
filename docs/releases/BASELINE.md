@@ -1,6 +1,12 @@
 # VNCode consolidated baseline
 
-Bản đã công bố trên Latest hiện là **VN Code 1.6.5**, tag bất biến `v1.6.5`, nguồn `4ffea8a2732ad04d1a3fc481d472867ba2683a8a`, release `437689422`, công bố 07.11.2026 19:24:35 MSK (16:24:35 UTC). [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.5/VN-code-1.6.5-Windows-x64.exe), [ghi chú](VN-code-1.6.5.md), [bàn giao](../validation/2026-11-07-vncode-165-release-handoff.md), [công bố](../validation/2026-11-07-vncode-165-publication.json).
+Bản Latest hiện là **VN Code 1.6.6**, tag immutable `v1.6.6`, nguồn `ac8ba1c939e22d0318877a3a2ba7242359cce78e`, release `437862752`, công bố **08.11.2026 00:46:11 MSK (07.11.2026 21:46:11 UTC)**. [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.6/VN-code-1.6.6-Windows-x64.exe), [ghi chú](VN-code-1.6.6.md), [bàn giao](../validation/2026-11-07-vncode-166-release-handoff.md), [công bố](../validation/2026-11-07-vncode-166-publication.json).
+
+Windows `42408546769`: **3.979 ca/527 lớp, 0 lỗi/thất bại, 2 OS skip**, ba stress 10.000 và native/migration/DPAPI/cài-gỡ/nâng cấp 1.6.5 giữ dữ liệu đạt. Publisher `42417349432` đạt, đủ 16 asset tải/kiểm thực; 15 release cũ/242 asset không đổi. Source ZIP 2.917 tệp khớp Git, JAR 1.956 class đúng launcher/feed; updater binary 1.6.5 nhận AVAILABLE 1.6.6/đúng MSI. Node 160/160, portal 67/67 ở phạm vi riêng. Bộ cài chưa ký Authenticode; Java CodeQL giữ tám finding cũ/1 high thumbprint, không gọi toàn bộ security gate đạt.
+
+Các mốc dưới đây giữ lịch sử các bản nền cũ; số liệu của chúng không dùng làm kết quả 1.6.6.
+
+Bản nền trước: **VN Code 1.6.5**, tag bất biến `v1.6.5`, nguồn `4ffea8a2732ad04d1a3fc481d472867ba2683a8a`, release `437689422`, công bố 07.11.2026 19:24:35 MSK (16:24:35 UTC). [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.5/VN-code-1.6.5-Windows-x64.exe), [ghi chú](VN-code-1.6.5.md), [bàn giao](../validation/2026-11-07-vncode-165-release-handoff.md), [công bố](../validation/2026-11-07-vncode-165-publication.json).
 
 Windows run `42382780334` đạt 3.935 ca/524 lớp, 0 lỗi/thất bại, 2 bỏ qua; native, migration 3→6, DPAPI, cài/gỡ độc lập và nâng cấp từ Latest 1.6.4 giữ dữ liệu đều đạt. Publisher `42391068158` đạt, giữ đủ 16 asset; Node 155/155 và portal 67/67 ở phạm vi riêng. Payload kiểm 2.875 tệp source ZIP và JAR 1.949 class, launcher production/đúng feed; updater binary 1.6.4 đã xác nhận AVAILABLE 1.6.5. Bộ cài chưa ký Authenticode; Java CodeQL vẫn giữ cảnh báo thumbprint chứng thư, không tuyên bố mọi gate bảo mật đạt.
 

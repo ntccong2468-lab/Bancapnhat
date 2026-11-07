@@ -2,9 +2,9 @@
 
 **VN code** là ứng dụng Windows do Nguyễn Thành Công phát triển và quản lý, phục vụ seller trên Wildberries và Ozon.
 
-Bản phát hành mới nhất: **VNCode 1.6.5**. [Tải bộ cài Windows 64-bit](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.5/VN-code-1.6.5-Windows-x64.exe) · [Release Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/latest) · [Bản nền](docs/releases/BASELINE.md) · [Ghi chú 1.6.5](docs/releases/VN-code-1.6.5.md).
+Bản phát hành mới nhất: **VNCode 1.6.6**. [Tải bộ cài Windows 64-bit](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.6/VN-code-1.6.6-Windows-x64.exe) · [Release Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/latest) · [Bản nền](docs/releases/BASELINE.md) · [Ghi chú 1.6.6](docs/releases/VN-code-1.6.6.md).
 
-**1.6.5 đã phát hành lên Latest ngày 07.11.2026.** Gộp Code Doctor, Ozon FBS/PDF kết hợp/KIZ, Znack/GTIN, năm nút sản phẩm/giấy tờ và liên kết Catalog–Ozon khác tên/article đã duyệt. [Bàn giao và giới hạn kiểm chứng](docs/validation/2026-11-07-vncode-165-release-handoff.md).
+**1.6.6 đã phát hành lên Latest lúc 21:46:11 UTC ngày 07.11.2026 (00:46:11 MSK ngày 08.11).** Kế thừa toàn bộ 1.6.5, gộp Ozon tự thay KIZ/PDF kết hợp, Znack nhận feed/GTIN WB nền, shared writer, báo cáo đúng phạm vi và audit giao diện. [Bàn giao và giới hạn kiểm chứng](docs/validation/2026-11-07-vncode-166-release-handoff.md).
 
 Ứng dụng quản lý đơn, đồng bộ sản phẩm/GTIN, đăng ký thẻ Catalog, mua và gán KIZ, in tem và báo cáo. Repository chứa toàn bộ mã nguồn ứng dụng, website/Portal, kiểm thử và công cụ build. Bản phát hành mới đóng gói mã nguồn ZIP, Git bundle, bộ cài EXE/MSI, runtime Windows kèm Java và checksum để tiếp tục chỉnh sửa từ một bản nền.
 
@@ -30,7 +30,7 @@ Workflow **Build complete VNCode baseline** kiểm tra và đóng gói từ mộ
 
 ## Phạm vi kiểm chứng
 
-[Bàn giao 1.6.5](docs/validation/2026-11-07-vncode-165-release-handoff.md) và [biên nhận công bố](docs/validation/2026-11-07-vncode-165-publication.json): 3.935 ca Windows (3.933 đạt, 2 bỏ qua, 0 lỗi/thất bại), native/migration/DPAPI/cài-gỡ/nâng cấp từ 1.6.4 giữ dữ liệu đạt; đủ 16 tệp phát hành. [Payload](docs/validation/2026-11-07-vncode-165-package.json) đối chiếu 2.875 tệp source ZIP và JAR 1.949 class đúng nguồn. Updater từ binary 1.6.4 đã đọc 1.6.5 thành AVAILABLE và chọn đúng MSI/hash/kích thước; chưa quan sát popup trên máy seller. [Phạm vi bảo mật/scanner](docs/validation/2026-11-07-vncode-165-security.json) giữ cả Java gate thất bại ở thumbprint chứng thư. Xem [30 ảnh giao diện native sáng/tối đã duyệt](docs/design/native/2026-11-04/README.md).
+[Bàn giao 1.6.6](docs/validation/2026-11-07-vncode-166-release-handoff.md) và [biên nhận công bố](docs/validation/2026-11-07-vncode-166-publication.json): **3.979 ca Windows** (3.977 đạt, 2 bỏ qua, 0 lỗi/thất bại), native/migration/DPAPI/cài-gỡ/nâng cấp từ 1.6.5 giữ dữ liệu đạt; đủ 16 tệp đã tải và kiểm hash. [Payload](docs/validation/2026-11-07-vncode-166-package.json): 2.917 tệp source ZIP khớp Git, JAR 1.956 class đúng nguồn. Updater binary 1.6.5 nhận AVAILABLE 1.6.6 và đúng MSI/hash/kích thước; chưa quan sát popup máy seller. Node 160/160, portal 67/67 trong phạm vi riêng. [Security](docs/validation/2026-11-07-vncode-166-security.json) giữ Java gate thất bại ở tám finding cũ/1 high thumbprint; không có finding mới. [Audit và ảnh native](docs/validation/2026-11-07-report-pdf-app-audit.md).
 
 Hồ sơ Ozon thật trước đó ngày 04.11: 22 đơn và 2 đơn mới được nhận, đọc lại xác nhận; PDF 25 vận đơn + 13 KIZ gilet = 38 trang, 2 tác vụ theo lô, không tải nhãn riêng, xuất 6,999 giây. KIZ in từ reservation đúng đơn; kết quả này không xác nhận Ozon chấp nhận KIZ. Lô 1.000 dùng mô phỏng, chưa có benchmark 1.000 đơn thật. Nghiệm thu sửa sản phẩm/Catalog của bản nền vẫn giữ giới hạn trong hồ sơ: gửi lại giá trị đang có của năm trường, thẻ Catalog mới ở draft/moderation chưa ký/công bố. Không coi HTTP 200, số liệu mô phỏng hoặc ảnh giao diện là kết quả nghiệp vụ trên shop thật. [Giới hạn bảo mật còn lại](docs/validation/2026-11-03-release-security-review.md) tiếp tục áp dụng.
 

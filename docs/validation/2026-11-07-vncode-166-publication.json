@@ -1,0 +1,74 @@
+{
+  "version": "1.6.6",
+  "sourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+  "buildRun": 42408546769,
+  "releaseId": 437862752,
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.6",
+  "publishedAt": "2026-11-07T21:46:11Z",
+  "assets": {
+    "VN-code-1.6.6-Windows-x64.exe": {
+      "bytes": 149293568,
+      "sha256": "161a2578413e13454ce575f51c61192c9ec7b9bd187f5728fd645456454ccf9f"
+    },
+    "VN-code-1.6.6-Windows-x64.msi": {
+      "bytes": 148624645,
+      "sha256": "0d54a04db7e1f51932439eef99b8f87d81069f6dc0c1a3eb0c1badaaaa5250b2"
+    },
+    "VN-code-1.6.6-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "2e3179924221b89afb280540e8d58e76e0d6cdd6ad50ee7e17227c622a8e60b6"
+    },
+    "VN-code-1.6.6-Windows-x64.zip": {
+      "bytes": 148213914,
+      "sha256": "14b5c2cb64994cbb8b18bd434eb3d7c5333768cde3be6819d999ff2b60aab0dd"
+    },
+    "VN-code-1.6.6-source.zip": {
+      "bytes": 38284719,
+      "sha256": "197f4ca8c05301711dbcf84d8d1f3b648c9d2bcddd5b5d4986636e8902503d85"
+    },
+    "VN-code-1.6.6-history.bundle": {
+      "bytes": 45051951,
+      "sha256": "1aa88045996c910a769be1a0e44dc441c06e8d054980ea6e11f48a8478c190b7"
+    },
+    "VN-code-1.6.6-verification.zip": {
+      "bytes": 2382951,
+      "sha256": "0a551292802b08c9dd9997d6b4a2994860193dc50a3d624effba6db2f3e8a563"
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "4c2cdbcd704c5fdd0d0045493deba505663ac76072218f8f3fc83ce721dcba24"
+    },
+    "release-notes.md": {
+      "bytes": 2736,
+      "sha256": "3355af1d0f024817cc521afc002a6d1508c09641bcd5e93ba46c8df4fd96ce2e"
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "81e29fe6e786da1e4adea406b4e321960b0612eef09a060f65499085be654d84"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "7a63499bbc6c9f58b03b30716c38acd1a1b09459ac7e5fc6d1e4eba2a663d4d1"
+    },
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "d870d3c2640d52611373307c6c0878219e08391bffe4262dec57ea40f3b9004c"
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "4312569578e7aa606ff21e705de8ccde7dbca7c1438949e31fce8fa09efd7406"
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "84931676b61d60a9930bbaecb5692900b71caf28e1140ab7ce014bb827865ad1"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "c694168d8578eff7b3b726120a25f50c0551c982ed92521d2034bb31d356df70"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "8d3b502ad65e299976bba8c7e6ff4fc8004199597aabe790a520e981f0e03563"
+    }
+  }
+}
