@@ -86,7 +86,7 @@ public final class ZnackRegistrationQueryRepository {
             c.setAutoCommit(false);requireOwner(c,criteria.shopId());
             if(count(c,query)>MAX_SELECTION)throw new IllegalArgumentException("registration_selection_limit");
             try(var p=prepare(c,SELECT+query.where()+" ORDER BY c.vendor_code COLLATE NOCASE,s.tech_size COLLATE NOCASE,c.nm_id,s.chrt_id",query.parameters());var r=p.executeQuery()) {
-                while(r.next()) {Sku row=map(r);if(!matches(criteria,row))continue;var view=observations==null?null:view(row);boolean change=groupChanged(r);boolean register=!row.canReviewExistingDraft()&&(row.canRegister()||row.canResume()||row.needsGtinReview())||change;boolean replace=row.canRegisterNew()&&(!r.getBoolean("pending_replacement")||row.status()==Status.ERROR);if("NOT_CREATED".equals(criteria.status())&&!RegistrationCardIndex.notSubmitted(row)&&!(view!=null&&view.canReviewDraft()&&!row.hasFeed()))register=false;
+                while(r.next()) {Sku row=map(r);if(!matches(criteria,row))continue;if(mode<2&&com.vncode.app.features.gtinsync.WbRegisteredBarcode.first(row.barcodes()).isPresent())continue;var view=observations==null?null:view(row);boolean change=groupChanged(r);boolean register=!row.canReviewExistingDraft()&&(row.canRegister()||row.canResume()||row.needsGtinReview())||change;boolean replace=row.canRegisterNew()&&(!r.getBoolean("pending_replacement")||row.status()==Status.ERROR);if("NOT_CREATED".equals(criteria.status())&&!RegistrationCardIndex.notSubmitted(row)&&!(view!=null&&view.canReviewDraft()&&!row.hasFeed()))register=false;
                     if(view!=null){register=view.canReviewDraft()&&!row.hasFeed()||register&&!view.blocked()&&(!view.published()||change);replace=replace&&ZnackCardRegistrationController.replaceable(row,view);}if(switch(mode){case 1->row.canSignApproved()&&(view==null||(!view.blocked()&&!view.published()));case 2->register||replace||RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),view);case 3->replace;default->register;})rows.add(row);}
             }
             c.commit();return List.copyOf(rows);
@@ -106,14 +106,15 @@ public final class ZnackRegistrationQueryRepository {
         var subjects=criteria.subjects()==null?List.<String>of():criteria.subjects().stream().filter(v->v!=null&&!v.isBlank()).distinct().toList();
         if(!subjects.isEmpty()) {sql.append(" AND c.subject_name IN (").append(String.join(",",Collections.nCopies(subjects.size(),"?"))).append(")");params.addAll(subjects);}
         String status=observations==null?safe(criteria.status()):"ALL";
+        String onWb=com.vncode.app.features.gtinsync.WbRegisteredBarcode.existsSql("s");
         switch(status) {
             case "","ALL" -> {}
-            case "NOT_CREATED" -> sql.append(" AND COALESCE(r.status,'NOT_CREATED')<>'PUBLISHED' AND NOT ").append(REJECTED).append(" AND NOT ").append(IN_PROGRESS);
+            case "NOT_CREATED" -> sql.append(" AND NOT ").append(onWb).append(" AND NOT ").append(REJECTED).append(" AND NOT ").append(IN_PROGRESS);
             case "GTIN_REVIEW_REQUIRED" -> sql.append(" AND NULLIF(TRIM(r.gtin),'') IS NULL AND r.good_id IS NULL AND NULLIF(TRIM(r.feed_id),'') IS NULL AND COALESCE(r.wb_updated,0)=0 AND r.status IN ('CHECKING','ALLOCATING_GTIN','GTIN_REVIEW_REQUIRED','ERROR')");
             case "FEED_REVIEW_REQUIRED" -> sql.append(" AND NULLIF(TRIM(r.gtin),'') IS NOT NULL AND (r.status IN ('FEED_SUBMITTING','FEED_REVIEW_REQUIRED') OR (NULLIF(TRIM(r.feed_id),'') IS NULL AND r.status IN ('ERROR','GTIN_GENERATED','CHECKING')))");
-            case "IN_PROGRESS" -> sql.append(" AND ").append(IN_PROGRESS);
-            case "ERROR" -> sql.append(" AND ").append(REJECTED);
-            case "COMPLETED" -> sql.append(" AND r.status='PUBLISHED'");
+            case "IN_PROGRESS" -> sql.append(" AND NOT ").append(onWb).append(" AND ").append(IN_PROGRESS);
+            case "ERROR" -> sql.append(" AND NOT ").append(onWb).append(" AND ").append(REJECTED);
+            case "COMPLETED" -> sql.append(" AND ").append(onWb);
             default -> {sql.append(" AND r.status=?");params.add(status);}
         }
         return new Query(sql.toString(),List.copyOf(params));
@@ -122,14 +123,15 @@ public final class ZnackRegistrationQueryRepository {
     private com.vncode.app.features.sync.RegistrationCardIndex.View view(Sku row){return observations.viewWb(row);}
     private boolean matches(SearchCriteria criteria,Sku row){
         if(observations==null)return true;var state=view(row);
-        boolean onMarketplace=state.published()&&com.vncode.app.features.gtinsync.RegisteredGtinProof.contains(row.barcodes(),state.gtin());
+        boolean onMarketplace=com.vncode.app.features.gtinsync.WbRegisteredBarcode.first(row.barcodes()).isPresent()
+                ||state.published()&&com.vncode.app.features.gtinsync.RegisteredGtinProof.contains(row.barcodes(),state.gtin());
         return switch(safe(criteria.status())){
             case "", "ALL" -> true;
             case "COMPLETED" -> onMarketplace;
             case "MATCH_REVIEW" -> RegistrationCardIndex.needsMatchReview(state);
-            case "NOT_CREATED" -> !RegistrationCardIndex.needsMatchReview(state)&&RegistrationCardIndex.awaitingCatalogCard(row.status(),row.goodId(),row.errorMessage(),state);
+            case "NOT_CREATED" -> !onMarketplace&&!RegistrationCardIndex.needsMatchReview(state)&&RegistrationCardIndex.awaitingCatalogCard(row.status(),row.goodId(),row.errorMessage(),state);
             case "IN_PROGRESS" -> !onMarketplace&&(state.published()||RegistrationCardIndex.needsMatchReview(state)||RegistrationCardIndex.catalogCardInProgress(row.status(),row.goodId(),row.errorMessage(),state));
-            case "ERROR" -> RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),state);
+            case "ERROR" -> !onMarketplace&&RegistrationCardIndex.catalogRejected(row.status(),row.errorMessage(),state);
             case "GTIN_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsGtinReview();
             case "FEED_REVIEW_REQUIRED" -> !state.blocked()&&!state.published()&&row.needsFeedReview();
             default -> state.status().equals("status."+criteria.status().toLowerCase(Locale.ROOT));

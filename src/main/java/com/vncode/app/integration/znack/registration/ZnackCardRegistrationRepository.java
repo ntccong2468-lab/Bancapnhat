@@ -36,8 +36,8 @@ public class ZnackCardRegistrationRepository {
         boolean newRow = action == RegistrationAction.REGISTER && sku.status() == Status.NOT_CREATED
                 && !sku.hasIdentity() && sku.registrationRevision().isBlank();
         String now = Instant.now().toString();
-        try (Connection connection = Database.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
+        try { return com.vncode.app.config.SqliteWriteTransaction.run(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("""
                      INSERT INTO znack_card_registrations(shop_id,chrt_id,nm_id,vendor_code,source_barcode,
                          status,created_at,updated_at)
                      SELECT ?,?,?,?,?,?,?,?
@@ -70,7 +70,8 @@ public class ZnackCardRegistrationRepository {
             statement.setLong(index++,sku.goodId()==null?-1:sku.goodId());
             statement.setInt(index++,sku.wbUpdated()?1:0); statement.setString(index,sku.registrationRevision());
             return statement.executeUpdate()==1;
-        } catch(SQLException error) { throw new RuntimeException(error); }
+            }
+        }); } catch(SQLException error) { throw new RuntimeException(error); }
     }
 
     public ZnackRegistrationScope scope(int shopId,long chrtId) {
@@ -651,13 +652,12 @@ public class ZnackCardRegistrationRepository {
 
     public void updateProgress(int shopId, long chrtId, Status status, String feedId, Long goodId,
                                String errorMessage, Boolean wbUpdated) {
-        try (Connection connection = Database.getConnection();
-             PreparedStatement statement = connection.prepareStatement("""
+        try { com.vncode.app.config.SqliteWriteTransaction.run(connection -> {
+            try (PreparedStatement statement = connection.prepareStatement("""
                      UPDATE znack_card_registrations SET status=?,feed_id=COALESCE(?,feed_id),
                          good_id=COALESCE(?,good_id),error_message=?,
                          wb_updated=COALESCE(?,wb_updated),updated_at=? WHERE shop_id=? AND chrt_id=? AND status<>'PUBLISHED'
                      """)) {
-            connection.setAutoCommit(false);
             statement.setString(1, status.name());
             statement.setString(2, feedId);
             if (goodId == null) statement.setNull(3, java.sql.Types.BIGINT); else statement.setLong(3, goodId);
@@ -668,8 +668,9 @@ public class ZnackCardRegistrationRepository {
             statement.setLong(8, chrtId);
             int changed=statement.executeUpdate();
             if(changed>0&&status==Status.PUBLISHED)com.vncode.app.features.sync.SyncStreamStore.request(connection,shopId,"ZNACK");
-            connection.commit();
-        } catch (SQLException error) {
+            }
+            return null;
+        }); } catch (SQLException error) {
             throw new RuntimeException(error);
         }
     }

@@ -98,6 +98,7 @@ class ZnackCardRegistrationControllerTest {
     }
     @Test void registrationProgressCountsAcceptedFeedsAndDoesNotLockBrowsing()throws Exception{
         fx(()->{
+            table().getSelectionModel().selectFirst();
             var controller=(ZnackCardRegistrationController)loader.getController();
             var preparing=ZnackCardRegistrationController.class.getDeclaredField("preparing");preparing.setAccessible(true);preparing.setBoolean(controller,true);
             var actions=ZnackCardRegistrationController.class.getDeclaredMethod("updateActionState");actions.setAccessible(true);actions.invoke(controller);
@@ -107,12 +108,30 @@ class ZnackCardRegistrationControllerTest {
             var render=ZnackCardRegistrationController.class.getDeclaredMethod("renderBatchProgress",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress.class);render.setAccessible(true);
             render.invoke(controller,new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("durable-test",100,2,1,97,"Next article","XL","Accepted article","52","CATALOG_CARD_IN_MODERATION",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.RUNNING));
             var footer=(Label)loader.getNamespace().get("batchProgressLabel");assertTrue(footer.isVisible());assertTrue(footer.getText().contains("2/100"));assertTrue(footer.getText().contains("97"));
-            assertTrue(button("registerSelectedButton").isDisabled(),"Another batch cannot be started while the durable queue runs");
+            assertFalse(button("registerSelectedButton").isDisabled(),"A separately reviewed new card can join the running durable queue");
             assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());
             var host=(javafx.scene.layout.StackPane)table().getParent();assertNull(host.lookup("#registrationBackgroundPill"),"Progress must not cover the product rows");
             assertTrue(footer.getTooltip().getText().contains("Accepted article · 52"));assertInstanceOf(ProgressIndicator.class,footer.getGraphic());
             RegistrationScreenshot.capture((javafx.scene.Parent)loader.getRoot(),"wb-registration-progress");
             return null;
+        });
+    }
+
+    @Test void actualWb046BarcodeShowsCompletionAndHasNoUpdateButtonOrMoreActionsButton()throws Exception {
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,1,'04631993764370')");
+        }
+        fx(()->{button("refreshButton").fire();return null;});awaitTasks();
+        fx(()->{
+            assertNull(loader.getNamespace().get("moreActionsButton"));assertNotNull(table().getContextMenu());
+            var row=table().getItems().stream().filter(item->item.chrtId()==1).findFirst().orElseThrow();
+            @SuppressWarnings("unchecked") var status=(TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");
+            assertEquals(I18nService.getInstance().tr("znack.registration.filter.completed"),status.getCellData(row));
+            @SuppressWarnings("unchecked") var actions=(TableColumn<Sku,Sku>)loader.getNamespace().get("actionColumn");
+            var cell=actions.getCellFactory().call(actions);var update=cell.getClass().getDeclaredMethod("updateItem",Sku.class,boolean.class);update.setAccessible(true);update.invoke(cell,row,false);
+            var action=assertInstanceOf(Button.class,cell.getGraphic());assertTrue(action.isDisabled());
+            assertEquals(I18nService.getInstance().tr("znack.registration.filter.completed"),action.getText());
+            RegistrationScreenshot.capture((javafx.scene.Parent)loader.getRoot(),"wb-completed-046");return null;
         });
     }
     @Test void progressReadFailureIsVisibleSafeAndRecoversWithoutLosingKnownCounts()throws Exception{
@@ -180,7 +199,7 @@ class ZnackCardRegistrationControllerTest {
             assertFalse(((ComboBox<?>)loader.getNamespace().get("statusFilter")).isDisabled());assertFalse(((TextField)loader.getNamespace().get("searchField")).isDisabled());return null;
         });awaitTasks();
         fx(()->{stopBatchPolling(controller);var row=table().getItems().stream().filter(item->item.chrtId()==1).findFirst().orElseThrow();assertFalse(row.hasFeed());
-            @SuppressWarnings("unchecked") var status=(TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");assertEquals(I18nService.getInstance().tr("znack.registration.source.draft"),status.getCellData(row));
+            @SuppressWarnings("unchecked") var status=(TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");assertEquals(I18nService.getInstance().tr("znack.registration.filter.in_progress"),status.getCellData(row));
             assertInstanceOf(ProgressIndicator.class,((Label)loader.getNamespace().get("batchProgressLabel")).getGraphic());return null;});
     }
     @Test void backgroundRefreshPreservesSelectedNotCreatedCardsAndKeepsThePageVisible()throws Exception{
@@ -232,7 +251,7 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{renderProgress(controller,current.get());stopBatchPolling(controller);assertEquals(java.util.List.of("PAUSE","RESUME"),calls);var confirmation=controller.getClass().getDeclaredField("cancelPendingConfirmation");confirmation.setAccessible(true);confirmation.set(controller,(java.util.function.BooleanSupplier)()->false);batchMenu("znackCancelPendingBatch").fire();assertEquals(2,calls.size());confirmation.set(controller,(java.util.function.BooleanSupplier)()->true);batchMenu("znackCancelPendingBatch").fire();return null;});awaitTasks();com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();
         fx(()->{renderProgress(controller,current.get());stopBatchPolling(controller);assertEquals(java.util.List.of("PAUSE","RESUME","CANCEL"),calls);assertTrue(batchMenu("znackPauseBatch").isDisable());assertTrue(batchMenu("znackResumeBatch").isDisable());assertTrue(batchMenu("znackCancelPendingBatch").isDisable());assertFalse(((Hyperlink)loader.getNamespace().get("reportLink")).isDisabled());assertTrue(((Label)loader.getNamespace().get("batchProgressLabel")).getText().contains("2/10"),"Accepted cards stay in the report after cancellation");return null;});
     }
-    private MenuItem batchMenu(String id){return ((MenuButton)loader.getNamespace().get("moreActionsButton")).getItems().stream().filter(item->id.equals(item.getId())).findFirst().orElseThrow();}
+    private MenuItem batchMenu(String id){return table().getContextMenu().getItems().stream().filter(item->id.equals(item.getId())).findFirst().orElseThrow();}
     @Test void errorFilterSelectAllOpensCompleteCatalogReportEvenForUnmatchedHistoricalCards()throws Exception{
         var owner=new Shop(1,"Fixture","fixture");var raw=com.google.gson.JsonParser.parseString("{\"good_status\":\"draft\",\"good_detailed_status\":[\"errors\"]}").getAsJsonObject();
         var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","UNMATCHED","ЧЕРНЫЙ","1",true,false,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(owner),java.time.Instant.now(),com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(raw));
@@ -284,7 +303,7 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{button("refreshButton").fire();return null;});awaitTasks();
         fx(()->{
             @SuppressWarnings("unchecked") var column=(javafx.scene.control.TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");
-            assertEquals(I18nService.getInstance().tr("znack.registration.status.published"),column.getCellData(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow()));
+            assertEquals(I18nService.getInstance().tr("znack.registration.filter.completed"),column.getCellData(table().getItems().stream().filter(row->row.chrtId()==1).findFirst().orElseThrow()));
             assertTrue(((Label)loader.getNamespace().get("summaryLabel")).getText().contains("2"));
             RegistrationScreenshot.capture(loader.getRoot(),"wb-registration");
             var filter=(javafx.scene.control.ComboBox<?>)loader.getNamespace().get("statusFilter");filter.getSelectionModel().select(filter.getItems().stream().map(value->((Enum<?>)value).name()).toList().indexOf("COMPLETED"));return null;
@@ -293,7 +312,7 @@ class ZnackCardRegistrationControllerTest {
         });awaitTasks();fx(()->{assertTrue(table().getItems().stream().anyMatch(row->row.chrtId()==3),"A published Catalog card still waits for marketplace GTIN readback");
             @SuppressWarnings("unchecked") var column=(javafx.scene.control.TableColumn<Sku,String>)loader.getNamespace().get("statusColumn");
             var row=table().getItems().stream().filter(item->item.chrtId()==3).findFirst().orElseThrow();
-            assertEquals(I18nService.getInstance().tr("znack.registration.status.published"),column.getCellData(row));
+            assertEquals(I18nService.getInstance().tr("znack.registration.filter.in_progress"),column.getCellData(row));
             @SuppressWarnings("unchecked") var marketplace=(TableColumn<Sku,String>)loader.getNamespace().get("marketplaceSyncColumn");
             assertTrue(marketplace.getCellData(row).contains(I18nService.getInstance().tr("znack.registration.awaiting_wb_gtin")));return null;});
     }
@@ -314,7 +333,7 @@ class ZnackCardRegistrationControllerTest {
             assertEquals(I18nService.getInstance().tr("znack.registration.table_size_unknown"),russian.getCellData(unknown));
             assertEquals(I18nService.getInstance().tr("znack.registration.status"),registration.getText());
             assertEquals(I18nService.getInstance().tr("znack.registration.column_moderation"),moderation.getText());
-            assertEquals(I18nService.getInstance().tr("znack.registration.status.published"),registration.getCellData(known));
+            assertEquals(I18nService.getInstance().tr("znack.registration.filter.in_progress"),registration.getCellData(known));
             assertTrue(moderation.getCellData(known).contains(I18nService.getInstance().tr("znack.registration.status.published")));
             assertTrue(marketplace.getCellData(known).contains(I18nService.getInstance().tr("znack.registration.awaiting_wb_gtin")));
             assertTrue(marketplace.getCellData(known).contains(java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.table_checked_at"),"")));

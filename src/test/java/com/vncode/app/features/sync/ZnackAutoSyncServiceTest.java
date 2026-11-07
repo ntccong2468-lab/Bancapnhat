@@ -53,6 +53,27 @@ class ZnackAutoSyncServiceTest {
         String run=service.review(shop);var item=new SyncRunRepository().items(run,0,10).getFirst();assertEquals("AWAITING_CONFIRMATION",item.state());assertEquals("GTIN_CONFIRMATION_REQUIRED",item.error());assertEquals(observation.gtin(),item.gtin());assertEquals(0,writes);
     }
     @Test void wbSourceRequiresReviewThenChainsToSingleVerifiedGtinWriteAndDurableReport()throws Exception{pipeline(Marketplace.WILDBERRIES);}
+    @Test void pairedWbSourcesEnableAutomaticMissingGtinAppendWithoutANativeRegistrationReceipt()throws Exception {
+        init(Marketplace.WILDBERRIES);
+        WbAutomaticGtinUpdate.enableForCurrentSources(shop);
+        assertTrue(WbAutomaticGtinUpdate.enabled(shop));
+        for(int turn=0;turn<5;turn++)if(service.step(shop,"").complete())break;
+        assertEquals(1,writes);assertTrue(barcodes.contains(GtinWriteTestFixture.GTIN));assertTrue(barcodes.contains("legacy"));
+        var reports=new SyncRunRepository();var run=reports.list(shop.getId(),0,10).stream().filter(r->r.kind().equals("znack_marketplace")).findFirst().orElseThrow();
+        assertEquals("SUCCEEDED",run.state());assertEquals("SUCCEEDED",reports.items(run.id(),0,10).getFirst().state());
+        assertFalse(reports.items(run.id(),0,10).getFirst().childJob().isBlank());
+    }
+    @Test void actualWb046BarcodeIsAlreadyCompleteWithoutCatalogVariantMatchOrAnotherWrite()throws Exception {
+        init(Marketplace.WILDBERRIES);
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,201,'04631993764370')");
+        }
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"different-model","Green","XL",true,true,observation.source(),Instant.now());
+        WbAutomaticGtinUpdate.enableForCurrentSources(shop);
+        String run=service.review(shop);var row=new SyncRunRepository().items(run,0,10).getFirst();
+        assertEquals("SUCCEEDED",row.state());assertEquals("04631993764370",row.gtin());assertEquals("",row.childJob());assertEquals(0,writes);
+        assertTrue(new GtinSyncRepository().verifiedMappings(shop).isEmpty(),"WB barcode presence is not Catalog ownership proof");
+    }
     @Test void reportingFailureCannotReplaceTheOriginalCatalogReadFailure()throws Exception{
         init(Marketplace.WILDBERRIES);var original=new java.io.IOException("CATALOG_READ_FAILED");
         service=new ZnackAutoSyncService((s,issues)->{

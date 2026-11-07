@@ -111,6 +111,28 @@ class ZnackRegistrationQueryRepositoryTest {
         var all=query.page(new SearchCriteria(1,"",List.of(),"ALL",300,0));
         assertEquals(all.filtered(),seen.size(),"Removing review filters must not hide any products");
     }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(booleans={false,true})
+    void actualWb046BarcodeCompletesTheVariantEvenWhenCatalogUsesDifferentDetails(boolean observed)throws Exception {
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        try(var c=Database.getConnection();var st=c.createStatement()){
+            st.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,501,'04631993764370'),(1,502,'2050012345678'),(1,503,'4631993764370'),(1,504,'046-not-a-code')");
+        }
+        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(
+                "04631993764370","another-article","Blue","XL",true,true,
+                com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now())));
+        var query=observed?new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop)):
+                new ZnackRegistrationQueryRepository(receipt);
+        assertTrue(query.page(new SearchCriteria(1,"04631993764370",List.of(),"COMPLETED",300,0)).rows().stream().anyMatch(row->row.chrtId()==501));
+        for(String filter:List.of("NOT_CREATED","IN_PROGRESS","ERROR"))
+            assertTrue(query.page(new SearchCriteria(1,"04631993764370",List.of(),filter,300,0)).rows().stream().noneMatch(row->row.chrtId()==501),filter);
+        assertTrue(query.page(new SearchCriteria(1,"2050012345678",List.of(),"COMPLETED",300,0)).rows().isEmpty());
+        assertTrue(query.page(new SearchCriteria(1,"4631993764370",List.of(),"COMPLETED",300,0)).rows().stream().anyMatch(row->row.chrtId()==503),"Equivalent EAN-13 must not be appended a second time as a zero-padded GTIN-14");
+        assertTrue(query.page(new SearchCriteria(1,"046-not-a-code",List.of(),"COMPLETED",300,0)).rows().isEmpty());
+        assertTrue(query.allEligible(new SearchCriteria(1,"04631993764370",List.of(),"ALL",300,0)).stream().noneMatch(row->row.chrtId()==501),"An existing WB GTIN must not trigger a new Catalog allocation");
+    }
     @Test void observedModerationAndDraftsAreNotCountedOrFilteredAsCatalogErrors()throws Exception {
         var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
         String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
@@ -217,7 +239,7 @@ class ZnackRegistrationQueryRepositoryTest {
         var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
         for(var query:List.of(repository,observed)){
             var notCreated=new SearchCriteria(1,"",List.of(),"NOT_CREATED",300,0);
-            assertEquals(query==repository?1_229:1_230,query.page(notCreated).filtered());
+            assertEquals(1_230,query.page(notCreated).filtered(),"A local PUBLISHED checkpoint without a WB barcode is not marketplace completion");
             var selected=query.allEligible(notCreated).stream().map(Sku::chrtId).toList();
             assertTrue(selected.containsAll(List.of(10L,11L,12L,13L,1_230L)),"Selection must include every safe unsent checkpoint, beyond the loaded page");
             assertFalse(selected.stream().anyMatch(id->id>=14&&id<=20),"An accepted or uncertain feed must not be submitted as a new card");

@@ -38,6 +38,12 @@ public final class RegistrationSourceConsent {
     private static final Gson JSON=new Gson();
     private RegistrationSourceConsent(){}
 
+    /** Drop already queued targets without changing any reviewed value or granting a new action. */
+    static Prepared restrict(Prepared prepared,Set<ProductKey> keys){
+        if(prepared==null||keys.isEmpty()||!prepared.keys().containsAll(keys))throw new IllegalArgumentException("ZNACK_SOURCE_REVIEW_REQUIRED");
+        return new Prepared(prepared.intent,prepared.owner,prepared.scope,prepared.items.stream().filter(item->keys.contains(item.key())).toList(),prepared.repairApproved);
+    }
+
     /** Call only after the seller reviewed these exact variant values and visible images. */
     public static Prepared prepare(Shop shop,UUID intent,List<RegistrationDynamicPreflight.Plan> plans,
                                    Map<ProductKey,Target> targets,Map<ProductKey,Set<String>> reviewedImages,
@@ -63,11 +69,15 @@ public final class RegistrationSourceConsent {
 
     /** Must be called within the transaction creating the same run and its exact items. */
     public static void persist(Connection c,Shop shop,String runId,List<ProductKey> expected,Prepared prepared)throws SQLException{
+        persist(c,shop,runId,expected,prepared,0);
+    }
+    static void persist(Connection c,Shop shop,String runId,List<ProductKey> expected,Prepared prepared,int offset)throws SQLException{
+        if(offset<0||offset>100000)throw new IllegalArgumentException("ZNACK_SOURCE_REVIEW_REQUIRED");
         Objects.requireNonNull(c);Objects.requireNonNull(prepared);if(runId==null||runId.isBlank()||runId.length()>200)throw new IllegalStateException("ZNACK_SOURCE_REVIEW_REQUIRED");
         String owner=ListingIdentity.fingerprint(c,shop.getId(),shop.getMarketplace());
         if(!prepared.owner.equals(owner)||!prepared.scope.equals(RegisteredGtinProof.source(shop)))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
         var keys=new LinkedHashSet<>(expected);if(keys.size()!=expected.size()||keys.size()!=prepared.items.size()||!keys.equals(prepared.items.stream().map(Item::key).collect(java.util.stream.Collectors.toSet())))throw new IllegalArgumentException("ZNACK_SOURCE_REVIEW_REQUIRED");
-        var positions=new HashMap<ProductKey,Integer>();for(int index=0;index<expected.size();index++)positions.put(expected.get(index),index);
+        var positions=new HashMap<ProductKey,Integer>();for(int index=0;index<expected.size();index++)positions.put(expected.get(index),Math.addExact(offset,index));
         try(var s=c.createStatement()){
             s.execute("CREATE TABLE IF NOT EXISTS znack_source_consents(intent_id TEXT NOT NULL,run_id TEXT NOT NULL,position INTEGER NOT NULL,shop_id INTEGER NOT NULL,marketplace TEXT NOT NULL,product_id TEXT NOT NULL,variant_id TEXT NOT NULL,owner TEXT NOT NULL,scope TEXT NOT NULL,action TEXT NOT NULL,source_revision TEXT NOT NULL,schema_revision TEXT NOT NULL,payload_hash TEXT NOT NULL,sku_hash TEXT NOT NULL,expected_gtin_hash TEXT NOT NULL,expected_good_id INTEGER,image_hashes TEXT NOT NULL,repair_policy TEXT NOT NULL,repair_limit INTEGER NOT NULL,phase TEXT NOT NULL,approved_at TEXT NOT NULL,PRIMARY KEY(intent_id,shop_id,marketplace,product_id,variant_id),UNIQUE(run_id,shop_id,marketplace,product_id,variant_id),UNIQUE(run_id,position))");
             s.execute("CREATE TABLE IF NOT EXISTS znack_source_consent_fields(intent_id TEXT NOT NULL,run_id TEXT NOT NULL,shop_id INTEGER NOT NULL,marketplace TEXT NOT NULL,product_id TEXT NOT NULL,variant_id TEXT NOT NULL,field TEXT NOT NULL,value_hash TEXT NOT NULL,source TEXT NOT NULL,source_value_hash TEXT NOT NULL,dictionary_hash TEXT NOT NULL,observed_at TEXT NOT NULL,dictionary_observed_at TEXT NOT NULL,PRIMARY KEY(intent_id,shop_id,marketplace,product_id,variant_id,field))");
@@ -81,8 +91,8 @@ public final class RegistrationSourceConsent {
         }
         // Keep the previously reviewed identity separately: allocation later binds a
         // new GTIN to expected_gtin_hash, which must not erase the old-card proof.
-        try(var p=c.prepareStatement("UPDATE znack_source_consents SET replaced_gtin_hash=expected_gtin_hash,replaced_good_id=expected_good_id,expected_gtin_hash='',expected_good_id=NULL WHERE run_id=? AND action='REPLACE'")){
-            p.setString(1,runId);p.executeUpdate();
+        try(var p=c.prepareStatement("UPDATE znack_source_consents SET replaced_gtin_hash=expected_gtin_hash,replaced_good_id=expected_good_id,expected_gtin_hash='',expected_good_id=NULL WHERE run_id=? AND intent_id=? AND action='REPLACE'")){
+            p.setString(1,runId);p.setString(2,prepared.intent.toString());p.executeUpdate();
         }
         try(var p=c.prepareStatement("UPDATE znack_source_consents SET ozon_conflict_gtin=? WHERE run_id=? AND position=? AND action='REPLACE' AND marketplace='OZON'")){
             for(var item:prepared.items)if(!item.ozonConflictGtin().isBlank()) {p.setString(1,item.ozonConflictGtin());p.setString(2,runId);p.setInt(3,positions.get(item.key()));if(p.executeUpdate()!=1)throw new SQLException("ZNACK_SOURCE_REVIEW_REQUIRED");}
