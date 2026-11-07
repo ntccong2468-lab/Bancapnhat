@@ -1,6 +1,16 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **07.11.2026, 20:39 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **07.11.2026, 21:36 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+
+## Hotfix Znack WB/GTIN và Ozon — hoàn tất mã, chưa phát hành
+
+- Nhánh `fix/wb-znack-auto-gtin`, nguồn cuối **`a43b7e13590025dee2410d461f2b60ef601d5d97`**, WB trước đó `a95201d`, kế thừa Ozon `86b1dcc` trên nền đã công bố `61f5ae5`. Latest immutable **1.6.5 / 437689422** kiểm lại vẫn giữ nguyên; POM/JAR cục bộ 1.6.5 không phải binary đã công bố. Không tự merge/publish hoặc ghi đè asset 1.6.5 từ bàn giao này.
+- Yêu cầu cuối đã đổi ranh giới trạng thái: **Catalog trả và app lưu `feed_id` → riêng thẻ đó sang Đang xử lý ngay, không chờ `good_id` hoặc cả lô**. Chưa có biên nhận vẫn Chưa tạo/đối soát, không POST lại mù; từ chối Catalog đã xác nhận → Lỗi. Đã sửa bộ lọc SQL/observation, đếm, nhãn trạng thái và trigger làm mới khi số accepted feeds tăng. Nhận feed không chứng minh thẻ đã được tạo/công bố, không mở quyền ký/ghi lại. HTTP fixture kiểm ngay trong GET trạng thái đầu tiên khi chưa có good_id.
+- WB đọc có barcode 046 (EAN-13 chuẩn hóa tương đương) → Hoàn tất, không cập nhật trùng. Catalog có thẻ đã công bố và WB thiếu → cập nhật nền gắn với owner/cấu hình/biên nhận nguồn hiện tại; vẫn kiểm đúng biến thể, giá và readback. Không dùng tiền tố 046 làm proof Catalog/KIZ.
+- Sửa `SYNC_STORAGE_BUSY` trước claim gửi HTTP bằng shared writer cho repository/journal/WB save; không giữ transaction qua HTTP. Cho thêm thẻ đã duyệt vào lô đang chạy một cách nguyên tử, loại trùng, giữ intent/danh tính/mode ký và guard pause/cancel. Bỏ nút Thao tác khác; chức năng nâng cao ở menu chuột phải/Shift+F10.
+- **445/445 ca, 24 lớp, 0 skip** tại đúng nguồn; JavaFX/SQLite/mock HTTP và WB/Ozon consent/readback. Build JAR đạt, 1.955 class trùng byte output, không fixture, SHA256 `51e24808ac1f2a574068c6cbfd4ae99a9105bee20c20dd3270bbec50481adc73`. [Bàn giao/luồng](../validation/2026-11-07-wb-znack-auto-gtin-handoff.md), [lệnh/baseline/hash](../validation/wb-znack-auto-20261107/verification.json), [ảnh](../validation/assets/wb-znack-auto-20261107/README.md).
+- API thật chỉ đọc ở nguồn `a95201d`: WB 100 bài/504 biến thể; 440 có barcode 046 hoặc EAN-13 tương đương qua query production, 64 không; Catalog HTTP 200 với tập 1.380 của key môi trường. Không đối chiếu toàn shop hoặc gán tập key này với doanh nghiệp của key seller mới. [Biên nhận đọc thật](../validation/wb-znack-auto-20261107/live-read.json). **0 ghi seller mới**, chưa có hồ sơ OMS/chứng thư để kiểm đăng ký/ký/công bố thật, chưa Windows/bộ cài/full suite/security AI. Không giả license/chứng thư để vượt guard.
+- Phần Ozon tự thay KIZ và PDF đã hoàn tất trước, [237 ca/bàn giao](../validation/2026-11-07-ozon-auto-kiz-handoff.md). Mục Ozon bên dưới ghi “WB tiếp theo” là trạng thái lịch sử, đã được mục này thay thế. Quy tắc kho seller nhập theo danh mục, kho mua theo mapping vẫn giữ nguyên.
 
 ## Hotfix Ozon tự thay KIZ — chưa phát hành
 

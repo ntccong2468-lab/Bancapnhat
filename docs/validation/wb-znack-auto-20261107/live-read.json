@@ -1,0 +1,35 @@
+{
+  "at_utc": "2026-11-07T17:57:47.500186+00:00",
+  "results": [
+    {
+      "service": "WB",
+      "http": 200,
+      "elapsed_ms": 3192,
+      "cards": 100,
+      "variants": 504,
+      "variants_with_046": 420
+    },
+    {
+      "service": "Catalog",
+      "http": 200,
+      "elapsed_ms": 880,
+      "total": 1380,
+      "sample_count": 1
+    }
+  ],
+  "business_writes": 0,
+  "credential_values_recorded": false,
+  "production_decision": {
+    "production_model_cards": 100,
+    "variants": 504,
+    "completed_by_046_rule": 440,
+    "repository_completed": 440,
+    "repository_not_created_without_catalog": 64,
+    "business_writes": 0,
+    "catalog_publication_claimed": false
+  },
+  "source_commit": "a95201dc1148cd11ce21eff42daef79af8e8c1f9",
+  "scope": "One actual WB page and one Catalog list connectivity read. Real WB JSON parsed through production model, repository and registration query in an isolated local database; no signing profile or seller mutation.",
+  "whole_store_read": false,
+  "raw_seller_data_committed": false
+}
