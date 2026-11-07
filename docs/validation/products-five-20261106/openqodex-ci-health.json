@@ -1,0 +1,125 @@
+{
+  "schema": 1,
+  "status": "complete",
+  "selected": 5,
+  "scanners": [
+    {
+      "scanner": "semgrep",
+      "wanted": true,
+      "status": "ran"
+    },
+    {
+      "scanner": "gitleaks",
+      "wanted": true,
+      "status": "ran"
+    },
+    {
+      "scanner": "sqllint",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "squawk",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "sqlfluff",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "osv-scanner",
+      "wanted": true,
+      "status": "ran"
+    },
+    {
+      "scanner": "cargo-deny",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "actionlint",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "zizmor",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "hadolint",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "trivy",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "checkov",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "tflint",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "kube-linter",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "kubeconform",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "shellcheck",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "ruff",
+      "wanted": true,
+      "status": "ran"
+    },
+    {
+      "scanner": "brakeman",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "rubocop",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "bandit",
+      "wanted": true,
+      "status": "ran"
+    },
+    {
+      "scanner": "oxlint",
+      "wanted": false,
+      "status": "no_matching_files"
+    },
+    {
+      "scanner": "golangci",
+      "wanted": false,
+      "status": "no_matching_files"
+    }
+  ],
+  "findings": {
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "nitpick": 3,
+    "info": 0
+  },
+  "outsideAdvisories": 7
+}

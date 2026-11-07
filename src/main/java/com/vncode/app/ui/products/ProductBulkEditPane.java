@@ -250,7 +250,7 @@ public final class ProductBulkEditPane extends BorderPane {
     private boolean compactInputPresent(){return field.equals("documents")?!number.getText().isBlank()&&!type.getText().isBlank()&&(existingOzonDocument()||from.getValue()!=null&&(endless.isSelected()||until.getValue()!=null)):!value.getText().isBlank();}
     private void updateCompactConfirmation(){
         if(compactConfirmation==null||shop==null)return;
-        String proposal=field.equals("documents")?String.join(" · ",type.getText(),number.getText(),Objects.toString(from.getValue(),""),endless.isSelected()?tr("bulk.document_endless"):Objects.toString(until.getValue(),"")):perProductTnved.isEmpty()?value.getText().strip():tr("tnved.per_product_selected")+" "+perProductTnved.size();
+        String proposal=field.equals("documents")?String.join(" · ",tr("bulk.declaration"),number.getText(),Objects.toString(from.getValue(),""),endless.isSelected()?tr("bulk.document_endless"):Objects.toString(until.getValue(),"")):perProductTnved.isEmpty()?value.getText().strip():tr("tnved.per_product_selected")+" "+perProductTnved.size();
         compactConfirmation.setText(java.text.MessageFormat.format(tr("bulk.confirmation"),keys.size(),shop.getName(),shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"WB":"Ozon",tr("bulk.field."+field),proposal.isBlank()?tr("bulk.no_proposal"):proposal));
     }
     private void lookup(){
@@ -316,13 +316,14 @@ public final class ProductBulkEditPane extends BorderPane {
             };
             suggestions.getItems().addListener((javafx.collections.ListChangeListener<String>)change->{for(var row:rows.getChildren())if(row instanceof HBox h&&h.getChildren().getFirst() instanceof ComboBox<?> raw){@SuppressWarnings("unchecked")var box=(ComboBox<String>)raw;String current=box.getEditor().getText();box.getItems().setAll(suggestions.getItems());box.getEditor().setText(current);}});
         }else if(field.equals("documents")){
-            var existing=new ComboBox<ProductDocument>();existing.setId("bulkExistingDocument");existing.setPromptText(tr("bulk.document_existing"));existing.setMaxWidth(Double.MAX_VALUE);
-            existing.setConverter(new javafx.util.StringConverter<>(){public String toString(ProductDocument d){return d==null?"":d.type()+" · "+d.number();}public ProductDocument fromString(String t){return null;}});
-            var declaration=new RadioButton("Декларация ("+tr("bulk.declaration")+")");var certificate=new RadioButton("Сертификат ("+tr("bulk.certificate")+")");var group=new ToggleGroup();declaration.setToggleGroup(group);certificate.setToggleGroup(group);declaration.setSelected(true);type.setText("declaration");declaration.setOnAction(e->type.setText("declaration"));certificate.setOnAction(e->type.setText("certificate"));
-            form.getChildren().setAll(existing,new FlowPane(12,8,declaration,certificate),line("copy.doc.number",number),new FlowPane(8,8,new Label(tr("copy.doc.from")),from),new FlowPane(8,8,new Label(tr("copy.doc.to")),until,endless));
-            existing.setOnAction(e->{var d=existing.getValue();if(d==null)return;selectedDocument=d;number.setText(d.number());type.setText(d.type());from.setValue(d.validFrom());until.setValue(d.validUntil());endless.setSelected(Boolean.parseBoolean(d.metadata().getOrDefault("isEndless","false")));name.setText(d.metadata().getOrDefault("name",""));country.setText(d.metadata().getOrDefault("certificate_country",""));accordance.setText(d.metadata().getOrDefault("accordance_type",""));productType.setText(d.metadata().getOrDefault("product_type",""));registry.setText(d.metadata().getOrDefault("link_to_registry",""));file=d.file()==null||!"file".equalsIgnoreCase(d.file().getScheme())?null:java.nio.file.Path.of(d.file());certificate.setSelected(documentType(d.type()).equals("certificate"));declaration.setSelected(!certificate.isSelected());});
+            var configured=new Label(tr("bulk.document_configured"));configured.setId("bulkConfiguredDocument");configured.setWrapText(true);
+            var kind=new Label(tr("bulk.document_conformity_declaration"));kind.setId("bulkDocumentDeclaration");kind.getStyleClass().add("h3");kind.setWrapText(true);
+            var configure=new Button(tr("znack.registration.config"));configure.setId("bulkConfigureDocument");
+            configure.setOnAction(e->com.vncode.app.ui.znackregistration.RegistrationDocumentConfigDialog.show(getScene()==null?null:getScene().getWindow(),shop,this::loadConfiguredDocument));
+            type.setText("declaration");
+            form.getChildren().setAll(configured,new FlowPane(12,8,kind,configure),line("copy.doc.number",number),new FlowPane(8,8,new Label(tr("copy.doc.from")),from),new FlowPane(8,8,new Label(tr("copy.doc.to")),until,endless));
             if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON){var advanced=new TitledPane(tr("edit.technical"),new VBox(6,line("copy.doc.name",name),line("copy.doc.certificate_country",country),line("copy.doc.accordance_type",accordance),line("copy.doc.product_type",productType),line("copy.doc.link_to_registry",registry),chooseFile));advanced.setExpanded(false);form.getChildren().add(advanced);}
-            var captured=shop;long epoch=generation;reads.submitLocal(new ShopReadCoordinator.Key(shop.getId(),"bulk-documents",UUID.randomUUID().toString()),()->new ProductRepository().shopDocuments(captured)).whenComplete((docs,error)->Platform.runLater(()->{if(!disposed&&epoch==generation&&shop==captured&&error==null)existing.getItems().setAll(docs);}));
+            loadConfiguredDocument();
         }else form.getChildren().setAll(value);
         if(Set.of("brand","gender","material").contains(field)){
             proposalRows.setId("bulkProposalRows");proposalRows.setPrefHeight(180);proposalRows.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);proposalRows.getColumns().clear();
@@ -338,6 +339,16 @@ public final class ProductBulkEditPane extends BorderPane {
         setBottom(new VBox(8,status,new HBox(10,progress,apply)));buttons();
         if(Set.of("brand","gender","material").contains(field))loadDefaultProposal(defaultValue);
     }
+    private void loadConfiguredDocument(){
+        if(disposed||shop==null||!field.equals("documents"))return;
+        var owner=shop;long epoch=generation,inputRevision=revision;status.setText(tr("bulk.document_loading"));
+        reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"configured-product-document",UUID.randomUUID().toString()),()->ConfiguredProductDeclaration.load(owner)).whenComplete((document,error)->Platform.runLater(()->{
+            if(disposed||generation!=epoch||shop!=owner||!field.equals("documents")||revision!=inputRevision)return;
+            if(error!=null){selectedDocument=null;number.clear();from.setValue(null);until.setValue(null);status.setText(tr(unwrap(error).getMessage()!=null&&unwrap(error).getMessage().equals("PRODUCT_DEFAULT_DECLARATION_TYPE")?"bulk.document_configured_type":"bulk.document_configured_missing"));buttons();return;}
+            selectedDocument=document;type.setText("declaration");number.setText(document.number());from.setValue(document.validFrom());until.setValue(document.validUntil());endless.setSelected(Boolean.parseBoolean(document.metadata().getOrDefault("isEndless","false")));
+            status.setText(tr(document.validUntil()==null?"bulk.document_expiry_required":"bulk.choose_apply"));buttons();
+        }));
+    }
     private void loadDefaultProposal(Consumer<String> accept){
         var owner=shop;var selected=keys;String editedField=field;long epoch=generation,inputRevision=revision;
         status.setText(tr("bulk.proposal_loading"));
@@ -352,7 +363,7 @@ public final class ProductBulkEditPane extends BorderPane {
         var column=new TableColumn<ProductSuggestionService.ProposalRow,String>(tr(key));column.setMinWidth(100);column.setPrefWidth(160);
         column.setCellValueFactory(row->new ReadOnlyStringWrapper(value.apply(row.getValue())));proposalRows.getColumns().add(column);
     }
-    private static String documentType(String value){return switch(Objects.toString(value,"").strip().toLowerCase(Locale.ROOT)){case "1","certificate","certificate_of_conformity"->"certificate";case "2","declaration"->"declaration";default->Objects.toString(value,"").strip().toLowerCase(Locale.ROOT);};}
+    private static String documentType(String value){if(ConfiguredProductDeclaration.isDeclaration(value))return "declaration";return switch(Objects.toString(value,"").strip().toLowerCase(Locale.ROOT)){case "1","certificate","certificate_of_conformity","conformity_certificate"->"certificate";default->Objects.toString(value,"").strip().toLowerCase(Locale.ROOT);};}
     private void addMaterial(VBox rows,Label total,Label output){addMaterial(rows,total,output,"",0);}
     private void commitMaterialPercentages(){
         if(compactForm==null)return;

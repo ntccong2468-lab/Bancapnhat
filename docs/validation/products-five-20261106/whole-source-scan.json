@@ -1,0 +1,485 @@
+{
+  "runtimeSourceCommit": "af3bf5c7330bfc1b1ebf3693d4f97190e06e8a54",
+  "scope": "Whole nonignored working source snapshot, no Git history. Includes synthetic manual probes; before final declaration label localization and audit documents.",
+  "inventory": {
+    "copiedFiles": 2822,
+    "skippedNonRegular": 0,
+    "snapshot": "working source tree, no Git history; scanner includes every nonignored file"
+  },
+  "openqodexVersion": "0.16.0",
+  "gitleaksVerification": {
+    "version": "8.21.2",
+    "archiveSha256": "5bc41815076e6ed6ef8fbecc9d9b75bcae31f39029ceb55da08086315316e3ba",
+    "matchesOfficialChecksums": true
+  },
+  "scanners": [
+    {
+      "scanner": "semgrep",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "gitleaks",
+      "status": "ran",
+      "version": "8.21.2",
+      "rawCount": 10,
+      "keptCount": 10,
+      "durationMs": 9375,
+      "resolveMs": 1028,
+      "files": 2822,
+      "reason": null,
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "sqllint",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "squawk",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "sqlfluff",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "osv-scanner",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "cargo-deny",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "actionlint",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "zizmor",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "hadolint",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "trivy",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "checkov",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "tflint",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "kube-linter",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "kubeconform",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "shellcheck",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "ruff",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "brakeman",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "rubocop",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "bandit",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "oxlint",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    {
+      "scanner": "golangci",
+      "status": "disabled",
+      "version": null,
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 0,
+      "resolveMs": 0,
+      "files": 0,
+      "reason": "disabled in .openqodex/config.yaml",
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    }
+  ],
+  "selectedScanners": 1,
+  "otherScannersDisabled": 21,
+  "cliExit": 0,
+  "directGitleaksExit": 1,
+  "scannerCandidates": 10,
+  "confirmedAuthSecretFindings": 0,
+  "dispositions": [
+    {
+      "file": "docs/releases/VN-code-1.2.0-api-evidence.md",
+      "line": 9,
+      "rule": "generic-api-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Public OpenAPI documentation URL, not an authentication credential."
+    },
+    {
+      "file": "docs/validation/2026-10-14-vn-code-license-pin.md",
+      "line": 3,
+      "rule": "generic-api-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Pinned Ed25519 PUBLIC key, not signing/private key."
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/wb/WbApiDiagnosticSafetyTest.java",
+      "line": 18,
+      "rule": "generic-api-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Synthetic test-only credential used by redaction assertions."
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/wb/WbApiDiagnosticSafetyTest.java",
+      "line": 70,
+      "rule": "generic-api-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Synthetic second credential in the redaction test; no environment or seller value."
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "line": 482,
+      "rule": "generic-api-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Test-only idempotency/request key for replay coverage; not an API credential."
+    },
+    {
+      "file": "src/test/java/com/vncode/app/ui/StartupProgressTest.java",
+      "line": 64,
+      "rule": "jwt",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Deliberately fake JWT for log-redaction assertions; 16-character signature cannot be a real Ed25519 license signature."
+    },
+    {
+      "file": "website/license-portal/src/signing-key.js",
+      "line": 8,
+      "rule": "private-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Literal PEM boundary string used to validate uploaded key format; no key body."
+    },
+    {
+      "file": "website/license-portal/HUONG-DAN-CAP-NHAT-035.md",
+      "line": 9,
+      "rule": "generic-api-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Ed25519 PUBLIC key in deployment instructions."
+    },
+    {
+      "file": "website/license-portal/README.md",
+      "line": 14,
+      "rule": "generic-api-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Ed25519 PUBLIC key in deployment instructions."
+    },
+    {
+      "file": "website/license-portal/test/signing-key.test.js",
+      "line": 11,
+      "rule": "private-key",
+      "scannerSeverity": "high",
+      "disposition": "FALSE_POSITIVE",
+      "reason": "Synthetic literal PEM marker used as invalid test input; no private key body."
+    }
+  ],
+  "limitations": [
+    "This whole-source pass selected Gitleaks only; it is not an all-scanner or independent AI review.",
+    "CI source af3bf5c separately ran Semgrep, Gitleaks, OSV, Ruff and Bandit on the workflow change scope; see openqodex-ci-health.json.",
+    "Initial offline/install resolution failed and was not counted as a successful scan. The final proxy-enabled run reports scanner status ran.",
+    "Raw findings/snippets are deliberately not committed. Public findings retain path, rule, line and manual disposition only."
+  ]
+}

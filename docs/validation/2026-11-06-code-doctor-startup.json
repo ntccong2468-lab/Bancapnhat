@@ -1,0 +1,25 @@
+{
+  "version": "1.6.4",
+  "entryPoint": "com.vncode.app.Launcher",
+  "result": "passed",
+  "platform": "Linux",
+  "workspaceOpenedMillis": 5915,
+  "viewportPixels": [
+    1300,
+    700
+  ],
+  "freshProfile": true,
+  "shops": 0,
+  "licenseStatus": "UNVERIFIED",
+  "sellerApiAllowed": false,
+  "licenseActivationRequested": false,
+  "normalShutdown": true,
+  "dataLockReleased": true,
+  "scope": "Production JavaFX startup and shutdown on Linux/Xvfb, disposable empty profile; no seller mutation or Windows installer test",
+  "artifact": "target/VNcode-1.6.4.jar",
+  "artifactSha256": "8552e3e69044c6fef753de29841b3d82f6a8ca9eddec10c5f363f4a60c00b638",
+  "releasedInstaller": false,
+  "sourceClasspathStartupMillis": 2942,
+  "sourceCommit": "c2e9dcfc56b4287f7ece05bc058e310fa5bd9942",
+  "screenshotSha256": "dd7999769636133e3e2f5f8e11a8452f08101ece0fc2405d10f10612d28652cc"
+}

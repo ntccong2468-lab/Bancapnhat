@@ -117,10 +117,14 @@ class OzonRegistrationPaneTest {
         var confirmed=new com.vncode.app.integration.znack.registration.OzonCardRegistrationRepository.Row(key,"10001",com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status.PROCESSING,unsent.gtin(),"","accepted-feed",91L,"{}","{}","owner",null,"","","CATALOG_CARD_IN_MODERATION");
         assertFalse(OzonRegistrationPane.matchesFilter("NOT_CREATED",confirmed,nativeView));assertTrue(OzonRegistrationPane.matchesFilter("IN_PROGRESS",confirmed,nativeView));
     }
-    @Test void aPublishedCandidateWithVariantConflictBelongsOnlyToMatchingReview(){
+    @Test void statusMenuContainsFourStagesAndTheAllOption()throws Exception{
+        fx(()->{var choices=(javafx.scene.control.ComboBox<?>)pane.lookup("#ozonRegistrationStatusFilter");assertEquals(java.util.List.of("ALL","NOT_CREATED","IN_PROGRESS","COMPLETED","ERROR"),choices.getItems());return null;});
+    }
+    @Test void aPublishedCandidateWithVariantConflictStaysInProcessingInsteadOfDisappearing(){
         var candidate=new com.vncode.app.features.sync.RegistrationCardIndex.View("source.ambiguous","00000000000017","GTIN_VARIANT_CONFLICT",true,false,true);
         assertTrue(OzonRegistrationPane.matchesFilter("MATCH_REVIEW",null,candidate));
-        for(String filter:java.util.List.of("ERROR","NOT_CREATED","IN_PROGRESS","COMPLETED"))assertFalse(OzonRegistrationPane.matchesFilter(filter,null,candidate),filter);
+        assertTrue(OzonRegistrationPane.matchesFilter("IN_PROGRESS",null,candidate));
+        for(String filter:java.util.List.of("ERROR","NOT_CREATED","COMPLETED"))assertFalse(OzonRegistrationPane.matchesFilter(filter,null,candidate),filter);
     }
     @Test void syncedCatalogDraftAppearsInProcessingWithoutInventingANativeFeed(){
         var draft=new com.vncode.app.features.sync.RegistrationCardIndex.View("source.draft","00000000000017","CATALOG_CARD_DRAFT",true,false,true);

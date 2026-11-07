@@ -65,9 +65,35 @@ public final class FbsSyncService {
             // A checkpoint from a previous app version contains the bare detail cursor.
             String detailAfter=after.startsWith("D:")?after.substring(2):after;
             var ids=repository.findStatusNumbersAfter(shop.getId(),detailAfter,3,Instant.parse(cursor.to()));
-            SyncFailure warning=null;
-            for(String id:ids){var started=Instant.now();var detail=api.getPosting(id,false);var item=OzonJson.requirePostingDetail(detail,id).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));if(!id.equals(item.postingNumber()))throw new IOException("FBS_FOREIGN_POSTING");var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;if(!OzonJson.hasCompletePostingDetails(object,item)){if(OzonJson.isTerminalPosting(item)){ListingIdentity.require(shop);repository.updateStatusPageIfUnchanged(shop.getId(),List.of(item),Instant.parse(cursor.to()),started);}else warning=new SyncFailure("FBS_INCOMPLETE_POSTING",Duration.ofSeconds(15),false);continue;}ListingIdentity.require(shop);if(repository.upsertPageIfUnchanged(shop.getId(),List.of(item),started)==0)continue;try{if(kn3!=null)kn3.ozon(shop,item,api);}catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}}
-            return warning(nextOzon(cursor,ids.isEmpty()?"":"D:"+ids.getLast(),ids.size()<3,ids.size()+readbacks,cursor.concurrentRead(),cursor.incomplete(),cursor.unclassified()),warning);
+            boolean incomplete=cursor.incomplete();
+            // Keep normal page cadence while valid rows remain; retry the bad row
+            // only after the whole pass instead of delaying every later page.
+            var incompleteDelay=Duration.ofSeconds(ids.size()<3?15:1);
+            SyncFailure warning=incomplete?new SyncFailure("FBS_INCOMPLETE_POSTING",incompleteDelay,false):null;
+            for(String id:ids){
+                try{
+                    var started=Instant.now();var detail=api.getPosting(id,false);
+                    var item=OzonJson.requirePostingDetail(detail,id).withTrackingOwner(api.syncOwnerFingerprint(shop.getId()));
+                    if(!id.equals(item.postingNumber()))throw new IOException("FBS_FOREIGN_POSTING");
+                    var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;
+                    if(!OzonJson.hasCompletePostingDetails(object,item)){
+                        if(OzonJson.isTerminalPosting(item)){
+                            ListingIdentity.require(shop);repository.updateStatusPageIfUnchanged(shop.getId(),List.of(item),Instant.parse(cursor.to()),started);
+                        }else{incomplete=true;warning=new SyncFailure("FBS_INCOMPLETE_POSTING",incompleteDelay,false);}
+                        continue;
+                    }
+                    ListingIdentity.require(shop);if(repository.upsertPageIfUnchanged(shop.getId(),List.of(item),started)==0)continue;
+                    try{if(kn3!=null)kn3.ozon(shop,item,api);}
+                    catch(IOException|com.vncode.app.shared.RateLimitDeferral.Deferred unavailable){warning=SyncFailure.of(unavailable,0);}
+                }catch(IOException unavailable){
+                    if(!postingDetailFailure(unavailable))throw unavailable;
+                    // Advance past this unreadable posting without deleting its cached data.
+                    // Carry the warning in the checkpoint so a later page cannot clear it.
+                    ListingIdentity.require(shop);incomplete=true;
+                    warning=new SyncFailure("FBS_INCOMPLETE_POSTING",incompleteDelay,false);
+                }
+            }
+            return warning(nextOzon(cursor,ids.isEmpty()?"":"D:"+ids.getLast(),ids.size()<3,ids.size()+readbacks,cursor.concurrentRead(),incomplete,cursor.unclassified()),warning);
         }
         if(stream==SyncCoordinator.Stream.SUPPLIES||stream==SyncCoordinator.Stream.SUPPLY_CONTENT)return SyncCoordinator.Page.complete(0);
         var started=Instant.now();
@@ -92,9 +118,9 @@ public final class FbsSyncService {
                     var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;
                     if(!full.status().equals("unknown")&&OzonJson.hasCompletePostingDetails(object,full))usable.add(full);
                     else {ListingIdentity.require(shop);repository.recordIncomplete(shop.getId(),item,started);partial++;if(item.status().equals("unknown"))unclassified=true;}
-                }catch(OzonApiException unavailable){
+                }catch(IOException unavailable){
+                    if(!postingDetailFailure(unavailable))throw unavailable;
                     ListingIdentity.require(shop);repository.recordIncomplete(shop.getId(),item,started);
-                    if(unavailable.statusCode()!=404)throw unavailable;
                     partial++;if(item.status().equals("unknown"))unclassified=true;
                 }
             }
@@ -164,6 +190,10 @@ public final class FbsSyncService {
         boolean done=response.getOrders().size()<1000;long next=WbFbsResponseValidator.next(after,response.getNext(),response.getOrders().size(),1000);
         WbFbsResponseValidator.orders(response);ListingIdentity.require(shop);orders.saveOrders(shop.getId(),response.getOrders());
         return next(cursor,Long.toString(next),done,response.getOrders().size());
+    }
+    private static boolean postingDetailFailure(IOException failure){
+        if(failure instanceof OzonApiException upstream)return upstream.statusCode()==404;
+        return "FBS_INCOMPLETE_POSTING".equals(failure.getMessage());
     }
     private static SyncCoordinator.Page next(Cursor before,String after,boolean done,int count){return new SyncCoordinator.Page(done?"":JSON.toJson(new Cursor(after,before.from(),before.to(),before.pages()+1,before.concurrentRead(),before.incomplete(),before.unclassified(),before.seenCursors())),done,count);}
     private static SyncCoordinator.Page nextOzon(Cursor before,String after,boolean done,int count,boolean concurrent,boolean incomplete,boolean unclassified)throws IOException {

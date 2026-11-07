@@ -38,17 +38,18 @@ class WbGtinAdapterTest {
             assertEquals("GTIN_VARIANT_IDENTITY_UNVERIFIED",assertThrows(IllegalArgumentException.class,this::preview).getMessage());assertEquals(0,transport.writes.get());
         }
     }
-    @Test void anObservedMarketplaceTnvedCannotBeWrittenWithAnUnverifiedOrDifferentRegisteredScope()throws Exception{
-        transport.card.getAsJsonArray("characteristics").add(JsonParser.parseString("{\"id\":15000001,\"name\":\"ТН ВЭД\",\"value\":[\"6204420000\"]}"));
-        assertEquals("GTIN_VARIANT_IDENTITY_UNVERIFIED",assertThrows(IllegalArgumentException.class,this::preview).getMessage());
+    @Test void matchingWbVariantAcceptsADifferentCatalogTnvedAndPreservesTheListing()throws Exception{
+        var tariff=JsonParser.parseString("{\"id\":15000001,\"name\":\"ТН ВЭД\",\"value\":[\"6204420000\"]}");
+        transport.card.getAsJsonArray("characteristics").add(tariff);
         var row=new GtinSyncRepository().catalogItem(1,Marketplace.WILDBERRIES,GTIN);
-        var fields=new java.util.LinkedHashMap<>(row.details().fields());fields.put("tnved",List.of("6204420000"));
-        var same=new com.vncode.app.features.catalogsync.CatalogProductData(fields,List.of(),List.of());
-        new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(row.gtin(),row.article(),row.color(),row.size(),true,true,row.source(),Instant.now(),same)));
-        assertNotNull(preview());fields.put("tnved",List.of("6103109000"));
+        var fields=new java.util.LinkedHashMap<>(row.details().fields());fields.put("tnved",List.of("6103109000"));
         var different=new com.vncode.app.features.catalogsync.CatalogProductData(fields,List.of(),List.of());
         new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(row.gtin(),row.article(),row.color(),row.size(),true,true,row.source(),Instant.now(),different)));
-        assertEquals("GTIN_VARIANT_IDENTITY_UNVERIFIED",assertThrows(IllegalArgumentException.class,this::preview).getMessage());assertEquals(0,transport.writes.get());
+        var plan=preview();var submitted=adapter.submit(plan);
+        assertEquals(Verification.APPLIED,adapter.verify(plan,submitted));assertEquals(1,transport.writes.get());
+        var sentTariff=transport.sent.get(0).getAsJsonObject().getAsJsonArray("characteristics").asList().stream().map(JsonElement::getAsJsonObject).filter(value->value.get("id").getAsInt()==15000001).findFirst().orElseThrow();
+        assertEquals(tariff.getAsJsonObject().get("value"),sentTariff.get("value"));
+        assertEquals("owned-document",transport.sent.get(0).getAsJsonObject().getAsJsonObject("documents").getAsJsonArray("items").get(0).getAsJsonObject().get("id").getAsString());
     }
     @Test void registryRussiaSizeUsesTheObservedWbSizeWithoutConvertingTheManufacturerSize()throws Exception{
         catalogProof("Fixture","черный","50",true);var p=preview();var sent=adapter.submit(p);assertEquals(Verification.APPLIED,adapter.verify(p,sent));

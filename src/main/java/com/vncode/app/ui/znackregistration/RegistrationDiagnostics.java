@@ -7,6 +7,20 @@ import com.vncode.app.shared.I18nService;
 /** The exact card and remote request are available from the row, even before a sync report exists. */
 final class RegistrationDiagnostics {
     private RegistrationDiagnostics(){}
+    /** The remote publication stage and the ability to bind a marketplace variant are independent. */
+    static String cardStatus(com.vncode.app.features.sync.RegistrationCardIndex.View view,
+            java.util.Optional<com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin> card){
+        var i18n=I18nService.getInstance();
+        if(com.vncode.app.features.sync.RegistrationCardIndex.needsMatchReview(view)&&card.isPresent())
+            return i18n.tr("znack.registration."+com.vncode.app.integration.znack.registration.CatalogCardState.of(card.get()).viewStatus);
+        String text=i18n.tr("znack.registration."+view.status());
+        return view.status().equals("source.unverified")?text+" · "+reason(view.detail()):text;
+    }
+    static String activeReason(com.vncode.app.features.sync.RegistrationCardIndex.View view,String stored){
+        String current=reason(view.detail());
+        if(view.published()||view.status().startsWith("source.")&&!view.status().equals("source.errors"))return current;
+        return current+(stored==null||stored.isBlank()?"":"\n"+reason(stored));
+    }
     /** A feed receipt is not evidence that the product card exists or entered moderation. */
     static String pendingCardAction(com.vncode.app.integration.znack.registration.ZnackCardRegistrationModels.Status status,
             Long goodId,String feed,String detail,String observedStatus){

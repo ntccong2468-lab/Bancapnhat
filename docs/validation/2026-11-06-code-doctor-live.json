@@ -1,0 +1,147 @@
+{
+  "checkedDateMsk": "2026-11-06",
+  "runtimeSourceCommit": "c2e9dcfc56b4287f7ece05bc058e310fa5bd9942",
+  "jarSha256": "8552e3e69044c6fef753de29841b3d82f6a8ca9eddec10c5f363f4a60c00b638",
+  "scope": "Live reads using production SDK, parser, pagination and local repositories; not an end-to-end seller write or certificate-owner acceptance.",
+  "productionSdk": {
+    "startedAt": "2026-11-06T19:02:27.628469100Z",
+    "mode": "LIVE_READ_ONLY_PRODUCTION_SDK",
+    "licenseAuthority": "ISOLATED_LOCAL_TEST_FIXTURE_NO_REMOTE_ACTIVATION",
+    "certificateOwnerVerified": false,
+    "sellerMutations": 0,
+    "licenseActivations": 0,
+    "wb": {
+      "nonemptySyncPages": 4,
+      "variantReaderRows": 1982,
+      "cardsWritten": 388,
+      "localRemoteVariantKeysEqual": true,
+      "localListRows": 1982,
+      "localListPages": 4
+    },
+    "catalog": {
+      "maxGtinsPerDetailRequest": 25,
+      "cards": 1380,
+      "states": {
+        "DRAFT": 2,
+        "ERRORS": 1,
+        "NOT_SIGNED": 117,
+        "PUBLISHED": 1260
+      },
+      "listRequests": 2,
+      "tradeUnits": 1380,
+      "missingSize": 2,
+      "detailBatchRequests": 56,
+      "missingArticle": 6,
+      "persistedRows": 1380,
+      "missingColor": 2
+    },
+    "matching": {
+      "variantsByCandidateCount": {
+        "NO_CANDIDATE": 1719,
+        "UNIQUE_CANDIDATE": 263
+      },
+      "uniqueCandidateRemoteStates": {
+        "NOT_SIGNED": 34,
+        "PUBLISHED": 229
+      },
+      "uniqueCandidateAlreadyInWbBarcodes": 1,
+      "uniqueCandidateAttributesOnly": 262,
+      "publishedUniqueCandidates": 229,
+      "publishedTnvedGroupConflict": 204,
+      "publishedTnvedUnknown": 0,
+      "publishedTnvedGroupCompatible": 25,
+      "authorizesWrites": false
+    },
+    "completedAt": "2026-11-06T19:03:46.556872601Z",
+    "elapsedMs": 78928,
+    "outcome": "COMPLETE_READ_PARSE_PERSIST_MATCH"
+  },
+  "freshJvmCacheCheck": {
+    "sellerMutations": 0,
+    "catalogCards": 1380,
+    "checkedAt": "2026-11-06T19:04:01.771690827Z",
+    "wbVariants": 1982,
+    "states": {
+      "DRAFT": 2,
+      "ERRORS": 1,
+      "NOT_SIGNED": 117,
+      "PUBLISHED": 1260
+    },
+    "freshJvm": true,
+    "networkRequests": 0,
+    "sameCountsAndStates": true
+  },
+  "independentRawCheck": {
+    "rawDetailCards": 1380,
+    "uniqueGoodIds": 1380,
+    "independentStatusCounts": {
+      "NOT_SIGNED": 117,
+      "PUBLISHED": 1260,
+      "ERRORS": 1,
+      "DRAFT": 2
+    },
+    "equalsProductionParser": true,
+    "tnvedConflictGroups": [
+      {
+        "wbGroup": "6112",
+        "catalogGroup": "6103",
+        "variants": 166
+      },
+      {
+        "wbGroup": "6211",
+        "catalogGroup": "6103",
+        "variants": 33
+      },
+      {
+        "wbGroup": "6211",
+        "catalogGroup": "6203",
+        "variants": 5
+      }
+    ]
+  },
+  "ozon": {
+    "httpStatus": 403,
+    "vendorCode": 7,
+    "reason": "API_KEY_DEACTIVATED",
+    "readEndpointsTested": [
+      "POST /v1/roles",
+      "POST /v3/product/list",
+      "POST /v4/posting/fbs/unfulfilled/list"
+    ],
+    "ordersAccepted": 0,
+    "kizAssigned": 0,
+    "userSteering": "Continue WB/Catalog first; do not retry deactivated key."
+  },
+  "tnvedNote": "The 204 cross-group matches describe the baseline policy before the user requested WB GTIN appends to ignore TN VED. These differences are informational under the new WB policy, not a reason to block a matching WB variant.",
+  "privacy": {
+    "rawResponsesCommitted": false,
+    "sellerIdentitiesCommitted": false,
+    "credentialValuesCommitted": false,
+    "licenseActivationRequests": 0,
+    "sellerMutationRequests": 0
+  },
+  "newWbPolicy": {
+    "runtimeSourcesLaterCommittedAs": "5710392b9caaade838a94f33b6e4bdfe8d64cc3a",
+    "execution": "target/classes plus test-only local license fixture; no app license activation; production matcher and live WB content reads",
+    "result": {
+      "checkedAt": "2026-11-06T19:19:48.314778198Z",
+      "wbVariants": 1982,
+      "uniquePublishedMatches": 229,
+      "crossTnvedGroupMatchesAllowed": 204,
+      "ambiguousMatches": 0,
+      "requestedArticleVariantCount": 5,
+      "requestedArticleMatchingFacts": {
+        "ARTICLE_PRESENT_true": 5,
+        "COLOR_MATCH_false": 5,
+        "SIZE_MATCH_true": 5
+      },
+      "liveApiSampleVariants": 5,
+      "freshApiVariantIdentityChecksPassed": 5,
+      "certificateOwnerVerified": false,
+      "licenseAuthority": "LOCAL_TEST_FIXTURE",
+      "sellerMutationRequests": 0,
+      "gtinsWritten": 0,
+      "mode": "PRODUCTION_MATCHER_AND_LIVE_WB_READ_VALIDATION_ONLY"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "publicHelpersCompiledNotRunForAdditionalApiCalls": true,
+  "archivalChanges": "Required explicit owner-only /tmp directory guards. read-access.py archives equivalent code from the original inline access check. No seller data or key values included.",
+  "helpers": [
+    {
+      "path": "read-access.py",
+      "sha256": "345dd17b4520d2f7f8ddf7d74625f8b9bb42a0bcbe3afcdb8f4052fdcf2f62d0"
+    },
+    {
+      "path": "fetch-live.py",
+      "sha256": "6e80bcb3439aaffb848bf1e083a73513438d6b4b93994aafb04f7a9b7515d737"
+    },
+    {
+      "path": "KizMappingApiAudit.java",
+      "sha256": "f9a6264eea48a092764fb69ea79c063f79545712883ea28dff2e54865ef8d4e2"
+    },
+    {
+      "path": "KizMappingFreshRead.java",
+      "sha256": "7b50d59656eabb539d712daa8a4b5bcd8421ba1f6259f722c0bb56a97a7ddbc1"
+    }
+  ],
+  "originalExecutedJavaSources": [
+    {
+      "path": "KizMappingApiAudit.java",
+      "sha256": "87a7fcee5450a72f0a664ed589f57d2be4744b5b5270aa541123e5083293de0e"
+    },
+    {
+      "path": "KizMappingFreshRead.java",
+      "sha256": "cb80c24ef64045d074985daf3b105e12e35f667ff9536813d8982eeecb6803e7"
+    }
+  ]
+}

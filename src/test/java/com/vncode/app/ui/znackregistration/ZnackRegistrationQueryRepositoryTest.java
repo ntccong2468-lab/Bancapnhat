@@ -91,9 +91,25 @@ class ZnackRegistrationQueryRepositoryTest {
         new GtinSyncRepository().saveCatalog(1,Marketplace.WILDBERRIES,List.of(new RegisteredGtin(code,"another-article","Blue","XL",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),Instant.now(),data)));
         var observed=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
         assertTrue(observed.page(new SearchCriteria(1,"",List.of(),"MATCH_REVIEW",300,0)).rows().stream().anyMatch(r->r.chrtId()==501));
-        for(String filter:List.of("ERROR","NOT_CREATED","IN_PROGRESS","COMPLETED"))assertTrue(observed.page(new SearchCriteria(1,"",List.of(),filter,300,0)).rows().stream().noneMatch(r->r.chrtId()==501),filter);
+        assertTrue(observed.page(new SearchCriteria(1,"",List.of(),"IN_PROGRESS",300,0)).rows().stream().anyMatch(r->r.chrtId()==501));
+        for(String filter:List.of("ERROR","NOT_CREATED","COMPLETED"))assertTrue(observed.page(new SearchCriteria(1,"",List.of(),filter,300,0)).rows().stream().noneMatch(r->r.chrtId()==501),filter);
         var row=observed.page(new SearchCriteria(1,"",List.of(),"MATCH_REVIEW",300,0)).rows().stream().filter(r->r.chrtId()==501).findFirst().orElseThrow();
         assertEquals(Status.NOT_CREATED,row.status());assertFalse(row.hasFeed());assertFalse(row.hasGtin());
+    }
+    @Test void everyObservedRowAppearsInExactlyOneOfTheFourStages()throws Exception{
+        var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");
+        String receipt=com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+        var query=new ZnackRegistrationQueryRepository(receipt,new com.vncode.app.features.sync.RegistrationCardIndex(shop));
+        var seen=new java.util.HashSet<Long>();
+        for(String stage:List.of("NOT_CREATED","IN_PROGRESS","COMPLETED","ERROR")){
+            int offset=0;ZnackRegistrationQueryRepository.Page page;
+            do{page=query.page(new SearchCriteria(1,"",List.of(),stage,300,offset));
+                for(var row:page.rows())assertTrue(seen.add(row.chrtId()),"A row must not belong to two stages");
+                offset+=page.rows().size();
+            }while(offset<page.filtered());
+        }
+        var all=query.page(new SearchCriteria(1,"",List.of(),"ALL",300,0));
+        assertEquals(all.filtered(),seen.size(),"Removing review filters must not hide any products");
     }
     @Test void observedModerationAndDraftsAreNotCountedOrFilteredAsCatalogErrors()throws Exception {
         var shop=new com.vncode.app.models.Shop(1,"Fixture WB","fixture");

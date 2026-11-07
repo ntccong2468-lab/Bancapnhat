@@ -299,6 +299,76 @@ class FbsSyncServiceTest {
         server.enqueue(new MockResponse().setBody(page.toString()));server.enqueue(new MockResponse().setBody(unitPosting("P-OLD","ORDER","awaiting_packaging",1).toString()));
         var second=service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,"");assertNull(second.warning());assertFalse(repository.find(shop.getId(),"P-OLD").requirements().blocksPreparation());assertTrue(repository.find(shop.getId(),"P-OLD").canShip());
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"missing","incomplete"})
+    void ozonStatusFallbackContinuesPastBadPostingAndRetainsWarningAcrossPages(String failure)throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        var cached=new ArrayList<OzonPostingDto>();
+        for(int i=0;i<5;i++)cached.add(OzonJson.parsePostingDetail(unitPosting("P-00"+i,"ORDER-"+i,"awaiting_packaging",1)));
+        repository.upsertPage(shop.getId(),cached);
+        server.setDispatcher(new Dispatcher(){@Override public MockResponse dispatch(RecordedRequest request){
+            if(request.getPath().equals("/v4/posting/fbs/list"))return new MockResponse().setBody("{\"postings\":[],\"has_next\":false}");
+            assertEquals("/v3/posting/fbs/get",request.getPath());
+            String number=JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("posting_number").getAsString();
+            if(number.equals("P-000")){
+                if(failure.equals("missing"))return new MockResponse().setResponseCode(404).setBody("{}");
+                var partial=unitPosting(number,"ORDER-0","awaiting_deliver",1);
+                partial.getAsJsonObject("result").getAsJsonArray("products").get(0).getAsJsonObject().remove("quantity");
+                return new MockResponse().setBody(partial.toString());
+            }
+            return new MockResponse().setBody(unitPosting(number,"ORDER-"+number.charAt(number.length()-1),"awaiting_deliver",1).toString());
+        }});
+        var list=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");
+        var first=assertDoesNotThrow(()->service.step(shop,SyncCoordinator.Stream.FBS_STATUS,list.checkpoint()));
+        assertFalse(first.complete());assertEquals("FBS_INCOMPLETE_POSTING",first.warning().code());
+        assertEquals(Duration.ofSeconds(1),first.warning().delay(),
+                "One unreadable posting must not delay every remaining detail page by the retry interval");
+        var store=new SyncStreamStore();var now=java.time.Instant.now();
+        var before=store.ensure(shop,SyncCoordinator.Stream.FBS_STATUS.name(),now);
+        store.finish(shop,SyncCoordinator.Stream.FBS_STATUS.name(),before,first.checkpoint(),false,now,now,first.warning());
+        var resumed=store.existing(shop.getId(),SyncCoordinator.Stream.FBS_STATUS.name());
+        var tail=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,resumed.checkpoint());
+        assertTrue(tail.complete());assertEquals("FBS_INCOMPLETE_POSTING",tail.warning().code(),
+                "The scan cannot claim complete health after an earlier posting was unreadable");
+        assertEquals(Duration.ofSeconds(15),tail.warning().delay());
+        store.finish(shop,SyncCoordinator.Stream.FBS_STATUS.name(),resumed,tail.checkpoint(),true,now,now,tail.warning());
+        var saved=store.existing(shop.getId(),SyncCoordinator.Stream.FBS_STATUS.name());
+        assertNull(saved.lastComplete());assertEquals("FBS_INCOMPLETE_POSTING",saved.error());
+        assertEquals(4,count("SELECT count(*) FROM ozon_postings WHERE status='awaiting_deliver'"));
+        assertEquals("awaiting_packaging",repository.find(shop.getId(),"P-000").status());
+        assertEquals(1,repository.find(shop.getId(),"P-000").items().getFirst().quantity());
+        assertEquals(6,server.getRequestCount());
+    }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints={401,429})
+    void ozonStatusFallbackStopsForAuthenticationAndRateLimits(int status)throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        repository.upsertPage(shop.getId(),List.of(
+                OzonJson.parsePostingDetail(unitPosting("P-000","ORDER-0","awaiting_packaging",1)),
+                OzonJson.parsePostingDetail(unitPosting("P-001","ORDER-1","awaiting_packaging",1))));
+        server.enqueue(new MockResponse().setBody("{\"postings\":[],\"has_next\":false}"));
+        server.enqueue(new MockResponse().setResponseCode(status).setBody("{}"));
+        var list=service.step(shop,SyncCoordinator.Stream.FBS_STATUS,"");
+        var error=assertThrows(OzonApiException.class,()->service.step(shop,SyncCoordinator.Stream.FBS_STATUS,list.checkpoint()));
+        assertEquals(status,error.statusCode());assertEquals(2,server.getRequestCount());
+        assertEquals(2,count("SELECT count(*) FROM ozon_postings WHERE status='awaiting_packaging'"));
+    }
+    @Test void malformedDetailForOneQueuePostingDoesNotDropHealthyPostings()throws Exception{
+        var service=ozon();var repository=new OzonPostingRepository();
+        var bad=unitPosting("P-BAD","ORDER-BAD","awaiting_packaging",1).getAsJsonObject("result");bad.remove("optional");
+        var good=unitPosting("P-GOOD","ORDER-GOOD","awaiting_packaging",1).getAsJsonObject("result");
+        var rows=new JsonArray();rows.add(bad);rows.add(good);var response=new JsonObject();response.add("postings",rows);response.addProperty("has_next",false);
+        var detail=unitPosting("P-BAD","ORDER-BAD","awaiting_packaging",1);
+        detail.getAsJsonObject("result").getAsJsonArray("products").get(0).getAsJsonObject().remove("quantity");
+        server.enqueue(new MockResponse().setBody(response.toString()));server.enqueue(new MockResponse().setBody(detail.toString()));
+
+        var result=assertDoesNotThrow(()->service.step(shop,SyncCoordinator.Stream.FBS_QUEUE,""));
+
+        assertTrue(result.complete());assertEquals("FBS_INCOMPLETE_POSTING",result.warning().code());
+        assertEquals("awaiting_packaging",repository.find(shop.getId(),"P-GOOD").status());
+        assertEquals(1,repository.find(shop.getId(),"P-GOOD").items().getFirst().quantity());
+        assertTrue(repository.find(shop.getId(),"P-BAD").requirements().blocksPreparation());assertEquals(2,server.getRequestCount());
+    }
     @Test void ozonEmptyProductsInAnActiveOrderCannotEraseExistingProducts()throws Exception{
         var service=ozon();var repository=new OzonPostingRepository();
         var old=unitPosting("P-EMPTY","ORDER","awaiting_packaging",1);repository.upsertDetail(shop.getId(),OzonJson.parsePostingDetail(old));

@@ -81,12 +81,14 @@ public final class RegistrationCardIndex {
     private final OzonSkuGtinMatcher ozon;
     private final Set<Long> wbOwners=new HashSet<>();
     private final String owner,scopeJson,catalogSource;
+    private final com.vncode.app.integration.marketplace.Marketplace marketplace;
     private final long catalogErrors;
     public RegistrationCardIndex(Shop shop) {
         this(shop,false);
     }
     public static RegistrationCardIndex forDisplay(Shop shop){return new RegistrationCardIndex(shop,true);}
     private RegistrationCardIndex(Shop shop,boolean historical) {
+        marketplace=shop.getMarketplace();
         var sources=new RegistrationSources();var ready=historical?sources.requireDisplay(shop):sources.require(shop);
         var scope=RegisteredGtinProof.current(shop);owner=ListingIdentity.fingerprint(shop);catalogSource=scope.source();
         var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
@@ -170,6 +172,16 @@ public final class RegistrationCardIndex {
             }
         }
         if(matches.isEmpty()&&!nativeExists)matches.addAll(skuCandidates);
+        if(marketplace==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES){
+            java.util.function.Predicate<RegisteredGtin> exact=card->GtinVariantIdentity.matchesWb(card,article,color,size,russianSize);
+            var compatible=matches.stream().filter(exact).toList();
+            if(compatible.isEmpty()){
+                var alternatives=new LinkedHashSet<RegisteredGtin>(attributes.getOrDefault(key(article,color,size),List.of()));
+                if(!safe(russianSize).isBlank())attributes.getOrDefault(key(article,color,russianSize),List.of()).stream().filter(GtinVariantIdentity::russianSize).forEach(alternatives::add);
+                compatible=alternatives.stream().filter(exact).toList();
+            }
+            if(!compatible.isEmpty()){matches.clear();matches.addAll(compatible);}
+        }
         if(matches.size()>1)return new View("source.ambiguous","","GTIN_AMBIGUOUS_MATCH",true,false,true);
         if(matches.size()==1) {
             var card=matches.iterator().next();

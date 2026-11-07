@@ -59,7 +59,7 @@ class ProductBulkDialogTest {
   assertEquals(2,adapter.sent.size());assertTrue(adapter.sent.stream().allMatch(r->r.contains("New brand")));var result=service.result(shop,service.list(shop).getFirst());assertEquals(2,result.items().size());assertTrue(result.items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
  }
  @Test void genderAndMaterialAreBatchPickersAndDocumentsHaveVisibleCalendars()throws Exception{
-  fx(()->{pane.open(shop,"gender",keys);pane.compact();pane.applyCss();pane.layout();assertEquals(5,pane.lookupAll(".radio-button").size());assertNull(pane.lookup("#editResults"));pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkMaterialName"));assertNotNull(pane.lookup("#bulkMaterialPercent"));pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkExistingDocument"));assertNotNull(pane.lookup("#editDocumentFrom"));assertNotNull(pane.lookup("#editDocumentUntil"));return null;});idle();
+  fx(()->{pane.open(shop,"gender",keys);pane.compact();pane.applyCss();pane.layout();assertEquals(5,pane.lookupAll(".radio-button").size());assertNull(pane.lookup("#editResults"));pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();assertNotNull(pane.lookup("#bulkMaterialName"));assertNotNull(pane.lookup("#bulkMaterialPercent"));pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();assertNull(pane.lookup("#bulkExistingDocument"));assertNotNull(pane.lookup("#bulkConfiguredDocument"));assertTrue(pane.lookupAll(".radio-button").isEmpty());assertNotNull(pane.lookup("#editDocumentFrom"));assertNotNull(pane.lookup("#editDocumentUntil"));return null;});idle();
  }
  @Test void actualModalUsesOneLocalizedActionRowAndHasNoPreviewInstructions()throws Exception{
   var language=I18nService.getInstance().getCurrentLanguage();
@@ -75,19 +75,34 @@ class ProductBulkDialogTest {
   });idle();assertEquals(2,adapter.sent.size());assertTrue(adapter.sent.stream().allMatch(payload->payload.contains("Modal brand")));
   fx(()->{for(var window:java.util.List.copyOf(javafx.stage.Window.getWindows()))if(window.getScene()!=null&&window.getScene().getRoot() instanceof DialogPane dialog&&"productBulkEditDialog".equals(dialog.getId())){var cancel=dialog.getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)dialog.lookupButton(cancel)).fire();}return null;});}finally{fx(()->{I18nService.getInstance().setLanguage(language);return null;});}
  }
- @Test void choosingAnExistingNumericCertificateKeepsItsIdentityAndMetadata()throws Exception{
-  var before=snapshot(keys.getFirst());var document=new ProductDocument("existing-doc","1","CERT-42",java.time.LocalDate.now().minusDays(1),java.time.LocalDate.now().plusYears(1),"Existing applicant","scope",null,shop.getMarketplace(),DocumentState.UNVERIFIED,"",null,Map.of("applicant","Existing applicant","tradeName","Original trade name","productNumber","Original product number"));
-  new ProductRepository().saveVerifiedSnapshot(shop,new ProductSnapshot(before.key(),before.revision(),before.title(),before.description(),before.brand(),before.vendorArticle(),before.categoryId(),before.media(),before.attributes(),before.variants(),before.dimensions(),List.of(document),before.checkedAt(),before.metadata()));
-  fx(()->{pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
-  fx(()->{var existing=(ComboBox<ProductDocument>)pane.lookup("#bulkExistingDocument");assertEquals(1,existing.getItems().size());assertNull(existing.getValue());assertTrue(((Button)pane.lookup("#editApply")).isDisabled());existing.getSelectionModel().selectFirst();assertTrue(pane.lookupAll(".radio-button").stream().map(n->(RadioButton)n).anyMatch(r->r.getText().startsWith("Сертификат")&&r.isSelected()));pane.lookupAll(".radio-button").stream().map(n->(RadioButton)n).filter(r->r.getText().startsWith("Сертификат")).findFirst().orElseThrow().fire();var method=ProductBulkEditPane.class.getDeclaredMethod("edit");method.setAccessible(true);var edit=(ProductBulkEdit)method.invoke(pane);var retained=edit.documents().getFirst();assertEquals("existing-doc",retained.id());assertEquals("1",retained.type());assertEquals("Original trade name",retained.metadata().get("tradeName"));assertEquals("Original product number",retained.metadata().get("productNumber"));assertEquals("Existing applicant",retained.owner());pane.lookupAll(".check-box").stream().map(n->(CheckBox)n).findFirst().orElseThrow().setSelected(true);var noExpiry=((ProductBulkEdit)method.invoke(pane)).documents().getFirst();assertNull(noExpiry.validUntil());assertEquals("true",noExpiry.metadata().get("isEndless"));return null;});
+ void configureDeclaration(Shop owner,String number)throws Exception{
+  var repository=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(owner.getId(),owner.getName()));
+  var date=java.time.LocalDate.now().minusDays(1).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.uuuu"));
+  repository.saveSettings(repository.getSettings().withDefaultGoodsDocument("CONFORMITY_DECLARATION",number,date));
+  try(var c=Database.getConnection();var statement=c.prepareStatement("UPDATE znack_settings SET document_expiry_date=? WHERE shop_id=?")){statement.setString(1,java.time.LocalDate.now().plusYears(1).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.uuuu")));statement.setInt(2,owner.getId());statement.executeUpdate();}
  }
- @Test void documentPickerIncludesOtherCardsOfTheShopButExcludesAnotherShop()throws Exception{
-  var second=snapshot(keys.get(1));var doc=new ProductDocument("other-card-doc","2","DECL-88",java.time.LocalDate.now().minusDays(1),java.time.LocalDate.now().plusYears(1),"","",null,shop.getMarketplace(),DocumentState.UNVERIFIED,"",null);
-  new ProductRepository().saveVerifiedSnapshot(shop,new ProductSnapshot(second.key(),second.revision(),second.title(),second.description(),second.brand(),second.vendorArticle(),second.categoryId(),second.media(),second.attributes(),second.variants(),second.dimensions(),List.of(doc),second.checkedAt(),second.metadata()));
-  var other=new Shop(2,"Other shop","other-fixture");try(var connection=Database.getConnection();var statement=connection.createStatement()){statement.execute("INSERT INTO shops(id,name,api_key) VALUES(2,'Other shop','other-fixture')");}
-  var foreign=new ProductKey(2,shop.getMarketplace(),"999","");new ProductRepository().saveVerifiedSnapshot(other,new ProductSnapshot(foreign,"live:foreign","Other","","","other","9",List.of(),List.of(),List.of(),second.dimensions(),List.of(new ProductDocument("foreign-doc","2","FOREIGN-99",doc.validFrom(),doc.validUntil(),"","",null,other.getMarketplace(),DocumentState.UNVERIFIED,"",null)),second.checkedAt(),Map.of("owner",ListingIdentity.fingerprint(other))));
+ @Test void configuredDeclarationIsTheDefaultAndThereIsNoCertificateSelector()throws Exception{
+  configureDeclaration(shop,"DEFAULT-DECL");
+  fx(()->{pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{assertNull(pane.lookup("#bulkExistingDocument"));assertTrue(pane.lookupAll(".radio-button").isEmpty());assertEquals("DEFAULT-DECL",((TextField)pane.lookup("#editDocumentNumber")).getText());assertFalse(((Button)pane.lookup("#editApply")).isDisabled());assertTrue(((Label)pane.lookup("#bulkEditConfirmation")).getText().contains(I18nService.getInstance().tr("bulk.declaration")));
+   var method=ProductBulkEditPane.class.getDeclaredMethod("edit");method.setAccessible(true);var edit=(ProductBulkEdit)method.invoke(pane);var document=edit.documents().getFirst();assertEquals("declaration",document.type());assertEquals("",document.id());assertNotNull(document.validFrom());assertNotNull(document.validUntil());assertEquals("false",document.metadata().get("isEndless"));return null;});
+ }
+ @Test void defaultDocumentUsesOnlyTheSelectedShopConfiguration()throws Exception{
+  configureDeclaration(shop,"OWN-DECL");
+  var other=new Shop(2,"Other shop","other-fixture");try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO shops(id,name,api_key) VALUES(2,'Other shop','other-fixture')");}
+  configureDeclaration(other,"FOREIGN-DECL");
   fx(()->{pane.open(shop,"documents",List.of(keys.getFirst()));pane.compact();pane.applyCss();pane.layout();return null;});idle();
-  fx(()->{var picker=(ComboBox<ProductDocument>)pane.lookup("#bulkExistingDocument");assertEquals(List.of("DECL-88"),picker.getItems().stream().map(ProductDocument::number).toList());return null;});
+  fx(()->{assertEquals("OWN-DECL",((TextField)pane.lookup("#editDocumentNumber")).getText());return null;});
+ }
+ @Test void aConfiguredCertificateCannotBeRelabelledAsADeclaration()throws Exception{
+  configureDeclaration(shop,"CERT-ONLY");try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_settings SET document_type='CONFORMITY_CERTIFICATE' WHERE shop_id=1");}
+  fx(()->{pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{assertEquals("",((TextField)pane.lookup("#editDocumentNumber")).getText());assertTrue(((Button)pane.lookup("#editApply")).isDisabled());assertEquals(I18nService.getInstance().tr("bulk.document_configured_type"),((Label)pane.lookup("#editStatus")).getText());return null;});assertTrue(adapter.sent.isEmpty());
+ }
+ @Test void missingConfiguredExpiryIsNotInventedAsAnEndlessDocument()throws Exception{
+  configureDeclaration(shop,"DECL-WITHOUT-EXPIRY");try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE znack_settings SET document_expiry_date='' WHERE shop_id=1");}
+  fx(()->{pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
+  fx(()->{assertEquals("DECL-WITHOUT-EXPIRY",((TextField)pane.lookup("#editDocumentNumber")).getText());assertNull(((DatePicker)pane.lookup("#editDocumentUntil")).getValue());assertTrue(((Button)pane.lookup("#editApply")).isDisabled());return null;});assertTrue(adapter.sent.isEmpty());
  }
  @Test void materialPercentagesDoNotFilterAwayTheIngredientDictionary()throws Exception{
   fx(()->{pane.open(shop,"material",keys);pane.compact();pane.applyCss();pane.layout();var box=(ComboBox<String>)pane.lookup("#bulkMaterialName");box.getEditor().setText("хлопок");((Spinner<Integer>)pane.lookup("#bulkMaterialPercent")).getValueFactory().setValue(80);return null;});
@@ -190,8 +205,9 @@ class ProductBulkDialogTest {
   try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE shops SET marketplace='OZON',client_id='fixture-client' WHERE id=1");}
   var before=snapshot(keys.getFirst());String source="https://api-seller.ozon.ru/v1/product/certificate/list";var document=new ProductDocument("77","declaration","EXISTING",java.time.LocalDate.now().minusDays(1),java.time.LocalDate.now().plusYears(1),"","",null,shop.getMarketplace(),DocumentState.UNVERIFIED,source,Instant.now());
   new ProductRepository().saveVerifiedSnapshot(shop,new ProductSnapshot(before.key(),before.revision(),before.title(),before.description(),before.brand(),before.vendorArticle(),before.categoryId(),before.media(),before.attributes(),before.variants(),before.dimensions(),List.of(document),before.checkedAt(),before.metadata()));
+  configureDeclaration(shop,document.number());
   fx(()->{pane.open(shop,"documents",keys);pane.compact();pane.applyCss();pane.layout();return null;});idle();
-  fx(()->{((ComboBox<ProductDocument>)pane.lookup("#bulkExistingDocument")).getSelectionModel().selectFirst();var edit=ProductBulkEditPane.class.getDeclaredMethod("edit");edit.setAccessible(true);var selected=((ProductBulkEdit)edit.invoke(pane)).documents().getFirst();assertEquals("77",selected.id());assertEquals(source,selected.source());assertEquals(document.checkedAt(),selected.checkedAt());assertNull(selected.file());return null;});
+  fx(()->{assertNull(pane.lookup("#bulkExistingDocument"));var edit=ProductBulkEditPane.class.getDeclaredMethod("edit");edit.setAccessible(true);var selected=((ProductBulkEdit)edit.invoke(pane)).documents().getFirst();assertEquals("77",selected.id());assertEquals(source,selected.source());assertEquals(document.checkedAt(),selected.checkedAt());assertNull(selected.file());return null;});
  }
  class Adapter implements ListingTargetAdapter {
   List<String> sent=new CopyOnWriteArrayList<>();CountDownLatch entered,release;

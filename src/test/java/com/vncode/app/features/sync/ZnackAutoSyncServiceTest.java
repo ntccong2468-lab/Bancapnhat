@@ -46,11 +46,11 @@ class ZnackAutoSyncServiceTest {
         service=new ZnackAutoSyncService((s,issues)->{sourceReads++;return List.of(observation);},(s,k)->snapshot,catalog);
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
-    @Test void automaticMatchingReportsChangedTnvedGroupInsteadOfReusingTheOldCard()throws Exception{
+    @Test void wbMatchingAllowsADifferentTnvedGroupAfterVariantProof()throws Exception{
         init(Marketplace.WILDBERRIES);
         observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),observation.article(),observation.color(),observation.size(),true,true,observation.source(),Instant.now(),new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"tnved",List.of("6103109000")),List.of(),List.of()));
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,101,88,'ТНВЭД','[\"6112110000\"]')");}
-        String run=service.review(shop);var item=new SyncRunRepository().items(run,0,10).getFirst();assertEquals("NEEDS_ACTION",item.state());assertEquals("GTIN_TNVED_GROUP_CHANGED",item.error());assertEquals(0,writes);
+        String run=service.review(shop);var item=new SyncRunRepository().items(run,0,10).getFirst();assertEquals("AWAITING_CONFIRMATION",item.state());assertEquals("GTIN_CONFIRMATION_REQUIRED",item.error());assertEquals(observation.gtin(),item.gtin());assertEquals(0,writes);
     }
     @Test void wbSourceRequiresReviewThenChainsToSingleVerifiedGtinWriteAndDurableReport()throws Exception{pipeline(Marketplace.WILDBERRIES);}
     @Test void reportingFailureCannotReplaceTheOriginalCatalogReadFailure()throws Exception{

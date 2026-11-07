@@ -199,6 +199,21 @@ class OzonSyncServiceTest {
         assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).syncUnfulfilled());
         var saved=new OzonPostingRepository().find(1,"P-1");assertNotNull(saved);assertTrue(saved.requirements().blocksPreparation());assertFalse(saved.canShip());
     }
+    @Test void malformedDetailForOneUnfulfilledPostingDoesNotDropHealthyPostings()throws Exception{
+        var bad=com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","P-BAD")).getAsJsonObject();bad.remove("optional");
+        var good=com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","P-GOOD")).getAsJsonObject();
+        var rows=new com.google.gson.JsonArray();rows.add(bad);rows.add(good);var response=new com.google.gson.JsonObject();response.add("postings",rows);response.addProperty("has_next",false);
+        var detail=com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","P-BAD")).getAsJsonObject();
+        detail.getAsJsonArray("products").get(0).getAsJsonObject().remove("quantity");
+        var wrapped=new com.google.gson.JsonObject();wrapped.add("result",detail);
+        server.enqueue(json(response.toString()));server.enqueue(json(wrapped.toString()));
+
+        assertEquals("FBS_INCOMPLETE_POSTING",assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).syncUnfulfilled()).getMessage());
+
+        var repository=new OzonPostingRepository();assertNotNull(repository.find(1,"P-GOOD"));
+        assertEquals(2,repository.find(1,"P-GOOD").items().getFirst().quantity());
+        assertTrue(repository.find(1,"P-BAD").requirements().blocksPreparation());assertEquals(2,server.getRequestCount());
+    }
     @Test void refreshRejectsAForeignPostingWithoutWritingIt()throws Exception{
         server.enqueue(json("{\"result\":{\"posting_number\":\"OTHER\",\"status\":\"awaiting_deliver\",\"products\":[]}}"));
         assertEquals("FBS_FOREIGN_POSTING",assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).refresh("EXPECTED",false)).getMessage());assertEquals(0,count("SELECT count(*) FROM ozon_postings"));
@@ -401,6 +416,49 @@ class OzonSyncServiceTest {
         server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){@Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request){String number=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("posting_number").getAsString();return json("{\"result\":{\"posting_number\":\""+number+"\",\"status\":\"cancelled\",\"products\":[]}}");}});
         assertEquals(1001,new OzonPostingSyncService(1,api).refreshActiveDetails());
         assertEquals(0,count("SELECT count(*) FROM ozon_postings WHERE status='awaiting_packaging'"));
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings={"missing", "incomplete"})
+    void oneUnavailablePostingCannotStarveLaterActiveDetailPages(String failure) throws Exception {
+        var rows=new java.util.ArrayList<OzonPostingDto>();
+        for(int i=0;i<101;i++) rows.add(OzonJson.parsePostingDetail(
+                com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1",String.format("POST-%04d",i))).getAsJsonObject()));
+        new OzonPostingRepository().upsertPage(1,rows);
+        server.setDispatcher(new okhttp3.mockwebserver.Dispatcher(){
+            @Override public MockResponse dispatch(okhttp3.mockwebserver.RecordedRequest request){
+                String number=com.google.gson.JsonParser.parseString(request.getBody().readUtf8()).getAsJsonObject().get("posting_number").getAsString();
+                if(number.equals("POST-0000"))return failure.equals("missing")
+                        ?json("{}").setResponseCode(404)
+                        :json("{\"result\":{\"posting_number\":\"POST-0000\",\"status\":\"awaiting_deliver\",\"products\":[{\"sku\":\"101\"}]}}");
+                return json("{\"result\":"+posting().replace("POST-TEXT-1",number).replace("awaiting_packaging","awaiting_deliver")+"}");
+            }
+        });
+
+        IOException error=assertThrows(IOException.class,()->new OzonPostingSyncService(1,api).refreshActiveDetails());
+
+        assertEquals("awaiting_deliver",new OzonPostingRepository().find(1,"POST-0100").status(),
+                "An unavailable posting must not prevent later active pages from being refreshed");
+        assertEquals(100,count("SELECT count(*) FROM ozon_postings WHERE status='awaiting_deliver'"));
+        assertEquals(101,server.getRequestCount());
+        var preserved=new OzonPostingRepository().find(1,"POST-0000");
+        assertEquals("awaiting_packaging",preserved.status());assertEquals(2,preserved.items().getFirst().quantity());
+        if(failure.equals("missing"))assertEquals(404,((OzonApiException)error).statusCode());
+        else assertEquals("FBS_INCOMPLETE_POSTING",error.getMessage());
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(ints={401,429})
+    void activeDetailRefreshStopsImmediatelyForAuthenticationOrRateLimitFailure(int status) throws Exception {
+        new OzonPostingRepository().upsertPage(1,java.util.List.of(
+                OzonJson.parsePostingDetail(com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","POST-0000")).getAsJsonObject()),
+                OzonJson.parsePostingDetail(com.google.gson.JsonParser.parseString(posting().replace("POST-TEXT-1","POST-0001")).getAsJsonObject())));
+        server.enqueue(json("{}").setResponseCode(status));
+
+        var error=assertThrows(OzonApiException.class,()->new OzonPostingSyncService(1,api).refreshActiveDetails());
+
+        assertEquals(status,error.statusCode());assertEquals(1,server.getRequestCount());
+        assertEquals(2,count("SELECT count(*) FROM ozon_postings WHERE status='awaiting_packaging'"));
     }
 
     private String scalar(String sql) throws Exception {

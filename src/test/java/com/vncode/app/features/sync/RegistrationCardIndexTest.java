@@ -32,6 +32,11 @@ class RegistrationCardIndexTest {
     @AfterEach void clean(){System.clearProperty("vncode.appdata.dir");}
     RegisteredGtin card(String gtin,boolean published){return new RegisteredGtin(gtin,"A","Blue","M",true,published,RegisteredGtinProof.source(shop),Instant.now());}
     RegistrationCardIndex index(RegisteredGtin... cards){new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(cards));return new RegistrationCardIndex(shop);}
+    @Test void anOldGtinCannotHideTheUniqueCardForTheCurrentWbVariant(){
+        var old=new RegisteredGtin("00000000000024","A","Brown","M",true,true,RegisteredGtinProof.source(shop),Instant.now());
+        var current=card(GtinWriteTestFixture.GTIN,true);var observed=index(old,current).view(Status.PUBLISHED,old.gtin(),List.of(old.gtin()),"A","Blue","M",true);
+        assertTrue(observed.published());assertEquals(current.gtin(),observed.gtin());assertFalse(observed.blocked());
+    }
     @Test void historicalCatalogStatusCanBeDisplayedAfterRestartWithoutAuthorizingANewWrite()throws Exception{
         var old=new RegisteredGtin(GtinWriteTestFixture.GTIN,"A","Blue","M",true,true,RegisteredGtinProof.source(shop),Instant.now().minusSeconds(7*86400));
         new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(old));

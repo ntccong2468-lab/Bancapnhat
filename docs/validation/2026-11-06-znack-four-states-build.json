@@ -1,0 +1,12 @@
+{
+  "runtimeSourceCommit": "5710392b9caaade838a94f33b6e4bdfe8d64cc3a",
+  "command": "/workspace/toolchains/mvn-vncode -q -DskipTests package",
+  "result": "PASS",
+  "artifact": "target/VNcode-1.6.4.jar",
+  "sha256": "0dc4010b4150ab6ca24532859cb2697c1f8b4a9659d7be7c6490220ed8e5eaa7",
+  "size": 7428278,
+  "changedRuntimeClassesMatchTestedClasses": 9,
+  "licenseFixtureOrProbeBundled": false,
+  "released": false,
+  "windowsInstallerTested": false
+}

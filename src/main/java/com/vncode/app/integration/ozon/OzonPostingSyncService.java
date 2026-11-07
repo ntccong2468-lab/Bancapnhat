@@ -143,9 +143,9 @@ public final class OzonPostingSyncService {
                     var object=detail.has("result")&&detail.get("result").isJsonObject()?detail.getAsJsonObject("result"):detail;
                     if(!full.status().equals("unknown")&&OzonJson.hasCompletePostingDetails(object,full))usable.add(full);
                     else {api.requireSyncOwner(shopId);postings.recordIncomplete(shopId,posting,started);complete=false;}
-                }catch(OzonApiException unavailable){
+                }catch(IOException unavailable){
+                    if(!postingDetailFailure(unavailable))throw unavailable;
                     api.requireSyncOwner(shopId);postings.recordIncomplete(shopId,posting,started);
-                    if(unavailable.statusCode()!=404)throw unavailable;
                     complete=false;
                 }
             }
@@ -180,13 +180,34 @@ public final class OzonPostingSyncService {
     public int refreshActiveDetails() throws IOException {
         LicenseRuntime.require(SELLER_API);
         int refreshed = 0;String cursor="";
+        IOException postingFailure = null;
         for(int page=0;page<MAX_PAGES;page++){
             List<String> active=postings.findActiveNumbersAfter(shopId,cursor,PAGE_SIZE);
-            if(active.isEmpty())return refreshed;
-            for(String number:active){if(Thread.currentThread().isInterrupted())throw new IOException("Ozon detail refresh interrupted");LicenseRuntime.require(SELLER_API);refresh(number,false);refreshed++;}
+            if(active.isEmpty()){
+                if(postingFailure!=null)throw postingFailure;
+                return refreshed;
+            }
+            for(String number:active){
+                if(Thread.currentThread().isInterrupted())throw new IOException("Ozon detail refresh interrupted");
+                LicenseRuntime.require(SELLER_API);
+                try{refresh(number,false);refreshed++;}
+                catch(IOException failure){
+                    // A missing/incomplete posting must not starve every later page.
+                    // Keep its previous data and report the failed pass after other rows;
+                    // credentials, rate limits, network and identity errors still stop now.
+                    if(!postingDetailFailure(failure))throw failure;
+                    if(postingFailure==null)postingFailure=failure;
+                    else if(postingFailure.getSuppressed().length<10)postingFailure.addSuppressed(failure);
+                }
+            }
             cursor=active.getLast();
         }
         throw new IOException("Ozon active detail pagination limit exceeded");
+    }
+
+    private static boolean postingDetailFailure(IOException failure){
+        if(failure instanceof OzonApiException upstream)return upstream.statusCode()==404;
+        return "FBS_INCOMPLETE_POSTING".equals(failure.getMessage());
     }
 
     private static Instant startFor(OzonSyncState state, Instant end) {

@@ -94,7 +94,7 @@ public final class OzonRegistrationPane extends VBox {
         pauseBatchAction.setId("ozonZnackPauseBatch");resumeBatchAction.setId("ozonZnackResumeBatch");cancelPendingBatchAction.setId("ozonZnackCancelPendingBatch");
         pauseBatchAction.setOnAction(e->controlBatch("PAUSE"));resumeBatchAction.setOnAction(e->controlBatch("RESUME"));cancelPendingBatchAction.setOnAction(e->{if(cancelPendingConfirmation.getAsBoolean())controlBatch("CANCEL");});options.getItems().addAll(new SeparatorMenuItem(),pauseBatchAction,resumeBatchAction,cancelPendingBatchAction);
         title.setTooltip(new Tooltip(owner.getName()));
-        statusFilter.getItems().setAll("ALL","NOT_CREATED","IN_PROGRESS","GTIN_REVIEW_REQUIRED","FEED_REVIEW_REQUIRED","COMPLETED","ERROR","MATCH_REVIEW");statusFilter.setValue("ALL");statusFilter.setId("ozonRegistrationStatusFilter");statusFilter.setPrefWidth(220);
+        statusFilter.getItems().setAll("ALL","NOT_CREATED","IN_PROGRESS","COMPLETED","ERROR");statusFilter.setValue("ALL");statusFilter.setId("ozonRegistrationStatusFilter");statusFilter.setPrefWidth(220);
         statusFilter.setConverter(new javafx.util.StringConverter<>(){public String toString(String value){return tr("znack.registration.filter."+(value==null?"all":value.toLowerCase(java.util.Locale.ROOT)));}public String fromString(String value){throw new UnsupportedOperationException();}});
         statusFilter.valueProperty().addListener((observable,previous,current)->{if(!resettingFilters)reload();});
         var clearFilters=new Button(tr("znack.registration.clear"));clearFilters.setOnAction(e->{
@@ -197,7 +197,7 @@ public final class OzonRegistrationPane extends VBox {
         column("ozonRussianSize",tr("znack.registration.column_size_ru"),row->RegistrationTableText.russianSize(row.russianSize()));
         column("ozonRawBarcodes",tr("znack.registration.barcode_ozon"),row->String.join(", ",row.barcodes())+(view(row).gtin().isBlank()?"":"\nGTIN: "+view(row).gtin()));
         column("ozonVerifiedGtin",tr("znack.registration.verified_gtin"),this::verifiedGtinText);
-        column("ozonRegistrationStatus",tr("znack.registration.column_registration"),row->{var observed=view(row);String text=tr("znack.registration."+observed.status());return observed.status().equals("source.unverified")?text+" · "+RegistrationDiagnostics.reason(observed.detail()):text;});
+        column("ozonRegistrationStatus",tr("znack.registration.column_registration"),row->{var observed=view(row);return RegistrationDiagnostics.cardStatus(observed,cardIndex==null?java.util.Optional.empty():cardIndex.observation(observed));});
         column("ozonModerationStatus",tr("znack.registration.column_moderation"),row->RegistrationTableText.moderation(
                 cardIndex==null?Optional.empty():cardIndex.observation(view(row)),latestReadUnknown));
         column("ozonMarketplaceSyncStatus",java.text.MessageFormat.format(tr("znack.registration.column_marketplace_sync"),"Ozon"),
@@ -342,7 +342,7 @@ public final class OzonRegistrationPane extends VBox {
             case "FEED_REVIEW_REQUIRED" -> row!=null&&!row.gtin().isBlank()&&row.feedId().isBlank()&&Set.of(Status.FEED_SUBMITTING,Status.FEED_REVIEW_REQUIRED,Status.GTIN_GENERATED,Status.CHECKING,Status.ERROR).contains(state);
             case "ERROR" -> RegistrationCardIndex.catalogRejected(state,row==null?"":row.error(),observed);
             case "NOT_CREATED" -> !RegistrationCardIndex.needsMatchReview(observed)&&RegistrationCardIndex.awaitingCatalogCard(state,row==null?null:row.goodId(),row==null?"":row.error(),observed);
-            case "IN_PROGRESS" -> RegistrationCardIndex.catalogCardInProgress(state,row==null?null:row.goodId(),row==null?"":row.error(),observed);
+            case "IN_PROGRESS" -> RegistrationCardIndex.needsMatchReview(observed)||RegistrationCardIndex.catalogCardInProgress(state,row==null?null:row.goodId(),row==null?"":row.error(),observed);
             case "COMPLETED" -> observed.published();
             default -> true;
         };

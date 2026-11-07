@@ -56,6 +56,19 @@ class ProductBulkEditServiceTest {
         assertEquals(CopyState.SENDING,repo.items(p.id()).getFirst().state());
         repo.recoverIncomplete();assertEquals(CopyState.RECONCILE_REQUIRED,repo.items(p.id()).getFirst().state());
     }
+    @Test void configuredDeclarationReusesTheCurrentCardDocumentWithoutDuplicates()throws Exception{
+        var issued=java.time.LocalDate.now().minusDays(2);var expiry=issued.plusYears(1);
+        var current=new ProductDocument("own-doc","2","fixture-declaration",issued,expiry,"Owner","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null,Map.of());
+        var base=snapshot;snapshot=new ProductSnapshot(key,base.revision(),base.title(),base.description(),base.brand(),base.vendorArticle(),base.categoryId(),base.media(),base.attributes(),base.variants(),base.dimensions(),List.of(current),base.checkedAt());
+        var configured=new ProductDocument("","declaration",current.number(),issued,expiry,"","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null,Map.of("isEndless","false"));
+        var preview=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(configured),Map.of()));
+        var merged=preview.items().getFirst().documents();assertEquals(1,merged.size());assertEquals("own-doc",merged.getFirst().id());assertEquals("declaration",merged.getFirst().type());assertEquals(0,adapter.writes.get());
+    }
+    @Test void aDocumentIdFromAnotherCardIsNotSentAsTheNewCardsOwnAttachment()throws Exception{
+        var issued=java.time.LocalDate.now().minusDays(2);var document=new ProductDocument("foreign-attachment","declaration","fixture-new-declaration",issued,issued.plusYears(1),"","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null,Map.of());
+        var preview=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(document),Map.of()));
+        assertEquals("",preview.items().getFirst().documents().getFirst().id());assertEquals(0,adapter.writes.get());
+    }
     @Test void documentUploadDoesNotImplyValid()throws Exception {
         var p=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(),Map.of()));
         var r=service.apply(shop,p.id(),true);assertFalse(r.documentsVerified());adapter.ready=true;assertFalse(service.reconcile(shop,p.id()).documentsVerified());
