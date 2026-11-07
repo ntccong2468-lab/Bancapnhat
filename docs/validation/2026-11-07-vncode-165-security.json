@@ -1,0 +1,73 @@
+{
+  "version": "1.6.5",
+  "applicationSourceCommit": "4ffea8a2732ad04d1a3fc481d472867ba2683a8a",
+  "securityRunId": 42383419649,
+  "status": "failure",
+  "lintAndAudit": "success",
+  "javascriptCodeql": "success",
+  "javaCodeql": "failure-at-SARIF-gate",
+  "javaFindings": [
+    {
+      "rule": "java/unreleased-lock",
+      "securitySeverity": "5.0",
+      "file": "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java",
+      "line": 20,
+      "sourceUnchangedFromPublished164": true
+    },
+    {
+      "rule": "java/unreleased-lock",
+      "securitySeverity": "5.0",
+      "file": "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java",
+      "line": 21,
+      "sourceUnchangedFromPublished164": true
+    },
+    {
+      "rule": "java/local-temp-file-or-directory-information-disclosure",
+      "securitySeverity": "6.5",
+      "file": "src/main/java/com/vncode/app/features/listingcopy/ListingMediaReader.java",
+      "line": 18,
+      "sourceUnchangedFromPublished164": true
+    },
+    {
+      "rule": "java/local-temp-file-or-directory-information-disclosure",
+      "securitySeverity": "6.5",
+      "file": "src/main/java/com/vncode/app/shared/AppPaths.java",
+      "line": 93,
+      "sourceUnchangedFromPublished164": true
+    },
+    {
+      "rule": "java/local-temp-file-or-directory-information-disclosure",
+      "securitySeverity": "6.5",
+      "file": "src/main/java/com/vncode/app/shared/AppPaths.java",
+      "line": 197,
+      "sourceUnchangedFromPublished164": true
+    },
+    {
+      "rule": "java/potentially-weak-cryptographic-algorithm",
+      "securitySeverity": "7.5",
+      "file": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+      "line": 71,
+      "sourceUnchangedFromPublished164": true
+    },
+    {
+      "rule": "java/relative-path-command",
+      "securitySeverity": "5.4",
+      "file": "src/main/java/com/vncode/app/integration/update/UpdateInstallerService.java",
+      "line": 127,
+      "sourceUnchangedFromPublished164": true
+    },
+    {
+      "rule": "java/relative-path-command",
+      "securitySeverity": "5.4",
+      "file": "src/main/java/com/vncode/app/shared/WindowsSecretProtector.java",
+      "line": 64,
+      "sourceUnchangedFromPublished164": true
+    }
+  ],
+  "sarifSha256": "cff3bf7247ec7f338c5da57555d425005813a80fe4a1591e2a1f73013f8573de",
+  "highFindingDisposition": "Existing Windows/CryptoPro SHA-1 certificate-store thumbprint identifier; not CMS signing, password hashing or update integrity. Matches previously documented review. Gate remains failed; no rule or threshold changed.",
+  "priorReview": "docs/validation/2026-11-03-release-security-review.md",
+  "openqodex": "skipped on manual dispatch; earlier scoped scanner evidence remains separately dated",
+  "dependencyReview": "skipped on manual dispatch; no dependency changes",
+  "scope": "Static scans and existing finding triage, not an independent AI review or new seller API acceptance"
+}

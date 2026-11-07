@@ -465,3 +465,10 @@ Nguồn chi tiết: [luồng đăng ký](fixes/2026-10-22-znack-workflow-parity.
 - Tệp văn bản trong JAR Windows có CRLF khác Git LF. So nội dung CSS/FXML sau chuẩn hóa xuống dòng, còn ảnh/font và tài sản phát hành đối chiếu byte/hash nguyên gốc.
 - Bộ cập nhật Windows ưu tiên MSI; liên kết EXE vẫn dùng cho tải/cài thủ công. Đã dùng đúng JAR phát hành để phân tích phản hồi Latest công khai và kiểm tra version/URL/digest/size.
 - Kiểm thử toàn bộ Java trên Windows ở lượt này mất khoảng 52 phút. Không khẳng định thành công trước khi có kết quả; các lượt sửa quy trình công bố/tài liệu giữ nguyên mã ứng dụng và không yêu cầu dựng lại app.
+
+
+## 07.11.2026 — Gom 1.6.5 và bắt đầu phát hành theo chỉ đạo mới
+
+- Người dùng đã cho phát hành Latest; mốc cũ chỉ gom bản mới được giữ làm lịch sử. App nguồn `4ffea8a2732ad04d1a3fc481d472867ba2683a8a`, Windows run `42382780334`, kế thừa mọi sửa qua `cae86ef` và biên nhận GTIN thật `1da051e`. [Bàn giao](validation/2026-11-07-vncode-165-release-handoff.md).
+- Không gõ SHA thủ công khi dispatch: lần sai input đã hủy, chỉ dùng run đúng nguồn. Giữ tách commit công cụ phát hành/tài liệu khỏi SHA app đã kiểm. Chưa đổi Latest ở checkpoint này.
+- Công cụ Node 155/155 đạt. CodeQL Java vẫn báo high ở thumbprint CryptoPro và bảy medium không đổi từ 1.6.4; giữ finding/gate nguyên vẹn và báo scope, không suy từ thành công phân tích thành bảo mật đã đạt. Lint/audit và CodeQL JS đạt, manual OpenQodex skip.

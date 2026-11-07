@@ -6,6 +6,8 @@ Cập nhật: **07.11.2026, 17:22 MSK (UTC+03:00)**. Đối chiếu Git/PR/Lates
 
 - Người dùng hiện yêu cầu **gom tất cả sửa và đẩy Latest để app nhận cập nhật**. Chỉ đạo này thay thế các mốc phía dưới chỉ gom/chưa phát hành; không yêu cầu xác nhận lại quyền publish.
 - Chuẩn bị build Windows trên SHA cố định, giữ toàn bộ source runtime đến `cae86ef` và biên nhận API `1da051e`, kiểm full Java, bộ cài và nâng cấp từ Latest 1.6.4. Chưa đổi Latest ở mốc ghi này; chỉ công bố sau khi xác minh đúng artifact/source/checksum. Không ghi đè hoặc xóa các bản cũ.
+- Nguồn app đã push **`4ffea8a2732ad04d1a3fc481d472867ba2683a8a`**; [Windows run **42382780334**](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42382780334) qua preflight và đang full Java. Dispatch sai SHA 42382737001 đã hủy, không tái dùng. [Bàn giao phát hành](../validation/2026-11-07-vncode-165-release-handoff.md), [đối chiếu nguồn](../validation/2026-11-07-vncode-165-source-inclusion.json).
+- Công cụ phát hành 155/155 đạt. [Security receipt](../validation/2026-11-07-vncode-165-security.json): lint/audit và CodeQL JS đạt; Java gate fail với tám finding có sẵn, một high tại SHA-1 định danh chứng thư. Không đổi gate hoặc báo toàn bộ xanh. OpenQodex skip manual; giữ phạm vi scanner cũ riêng.
 
 ## API GTIN Ozon thật và Catalog từ khóa mới — 07.11.2026
 
