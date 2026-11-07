@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| API GTIN thật, đối chiếu 533 bài Ozon / 2.023 thẻ từ Catalog key mới; chưa Latest | [Bàn giao](../validation/2026-11-07-ozon-live-gtin-acceptance.md), [biên nhận đã loại dữ liệu seller](../validation/ozon-live-gtin-20261107/live-api.json) |
 | Ozon 1.6.5: liên kết Catalog khác tên/article dùng chung mua KIZ và GTIN; đối chiếu WBCode Latest 1.3.20 | [Bàn giao](../validation/2026-11-07-ozon-reviewed-variant-handoff.md), [so sánh/sơ đồ](../research/2026-11-07-wbcode-1320-ozon-variant-link.md), [kiểm chứng](../validation/ozon-reviewed-20261107/verification.json), [ảnh sáng/tối tổng hợp](../validation/assets/ozon-reviewed-20261107/README.md) |
 | Ozon 1.6.5: PDF kết hợp, tự thay KIZ cùng danh mục, 9 đơn gilet thật; chưa Latest | [Bàn giao](../validation/2026-11-07-ozon-165-gilet-pdf-handoff.md), [API thật](../validation/ozon-165-20261107/live-api.json), [209 ca/build](../validation/ozon-165-20261107/verification.json), [đề xuất mapping khác tên/SKU](../research/2026-11-07-ozon-catalog-variant-link-proposal.md) |
 | Bản gộp 1.6.5, chưa phát hành lên Latest | [Phạm vi](../releases/VN-code-1.6.5.md), [đối chiếu nguồn](../validation/2026-11-07-vncode-165-source-inclusion.json), [bàn giao](../validation/2026-11-07-vncode-165-candidate-handoff.md), [kiểm chứng](../validation/2026-11-07-vncode-165-candidate-build.json) |

@@ -43,6 +43,8 @@ Không thêm dependency hoặc schema version. Tái sử dụng bảng liên k�
 
 ## Kiểm chứng và giới hạn
 
+Cập nhật tiếp theo: đã có [một lượt append GTIN/readback API thật và đối chiếu đủ 533 bài Ozon / 2.023 thẻ Catalog](2026-11-07-ozon-live-gtin-acceptance.md) bằng khóa người dùng mới cung cấp. Đó là kiểm client/parser/transport và readback/conflict adapter; chưa phải certificate-scoped approve/submit hoặc UI Windows. Giữ phân biệt này khi đọc các giới hạn tại checkpoint triển khai bên dưới.
+
 Lệnh Maven, số ca từng lớp, source/JAR hash, scanner và startup được ghi trong [verification.json](ozon-reviewed-20261107/verification.json). **476/476 ca / 28 lớp đạt**, 0 fail/error/skip, package SUCCESS. Test gồm khác article/TN VED, legacy/cache-only không cấp approval, restart/expiry, đổi vật lý, foreign holder, revoked permit, batch rollback, giữ barcode, HTTP 200 chưa readback và UI tối/sáng. Nhóm WB GTIN (51), Ozon acceptance (42) và PDF bundle (62) được chạy lại trên cùng nguồn. Failure display trước sửa và lần sửa chưa đủ (vẫn fallback bằng article) được giữ trong biên nhận, không bỏ test.
 
 JAR **7.495.904 byte**, SHA-256 `f1f8fa1334e64587608735176247b09d3c8f628107787cdfb46f551cd41de84b`; 1.949 class khớp output, không fixture/probe. Startup production/profile trống mở **6.528 ms**, 1280×700, 0 shop/UNVERIFIED; đóng và nhả data lock đạt.

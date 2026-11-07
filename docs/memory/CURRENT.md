@@ -1,6 +1,14 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **07.11.2026, 16:37 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **07.11.2026, 17:22 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+
+## API GTIN Ozon thật và Catalog từ khóa mới — 07.11.2026
+
+- Người dùng yêu cầu nghiệm thu thật rồi lưu bản mới, sau đó **bỏ mua KIZ**, chỉ ghép/cập nhật GTIN, chọn một mẫu và cung cấp Catalog key mới để đối chiếu tất cả. [Bàn giao API thật](../validation/2026-11-07-ozon-live-gtin-acceptance.md), [biên nhận](../validation/ozon-live-gtin-20261107/live-api.json). Runtime vẫn `cae86ef`/JAR `f1f8fa13…`; không đổi code để vượt license/chứng thư và không phát hành Latest.
+- Đọc đủ **2.023 thẻ Catalog / 3 trang + 81 batch / 0 issue**: 1.926 published, 95 errors, 2 draft. Tập 1.380 từ key môi trường cũ có **0 GTIN trùng**, không tái dùng cache/proof cũ. Đây là khác tập dữ liệu, chưa xác minh doanh nghiệp bằng chứng thư; không kết luận app seller cài sai key. Key mới chỉ trong file riêng ngoài Git, không nhúng vào bản cập nhật; Secrets môi trường cũ chưa được xác nhận đã đổi.
+- **1 GTIN ghi thật**: đúng native product/offer/SKU, màu nâu, L/RU48; tên/article khác. POST `v1/barcode/add` trả `errors=[]`; đọc lại info và attributes đều có mã mới, barcode cũ giữ 1→2, danh tính không đổi. Lượt API **10.433 ms** lúc 17:06 MSK; JVM mới đối soát 0 POST/revision khớp. Raw status/header POST không được giữ; không dùng số 200 suy từ SDK thay readback nghiệp vụ.
+- Đã đọc **500 bài hiện hành + 33 lưu trữ = 533 native ID**. Trong 500: 1 GTIN cũ khớp + 1 vừa gửi; 4 size còn lại có cặp của mẫu seller chọn nhưng chưa gửi; 36 thiếu màu/size, 458 cần chọn mẫu. 33 lưu trữ không giữ mã vừa ghi, không bị sửa. `OzonGtinAdapter.read/conflicts` thật đạt ở cả ALL/ARCHIVED. XLSX/CSV riêng có đủ 500 + 33 + 2.023 dòng, ngoài Git, đã kiểm không có credential.
+- **Giới hạn phải giữ:** lần POST là harness gọi `ListingHttpClient` production; chưa `approveBatch` theo chứng thư, `OzonGtinAdapter.submit`/licensed queue hoặc UI Windows. Không giả lập HTTP, không fake certificate/license, không kích hoạt/mua/ghi Catalog/WB. Thử đọc source có guard trong profile trống bị `LicenseDeniedException` trước HTTP, không tắt gate để qua. Phải phân biệt nghiệm thu API với full app PKI/UI; không gán tất cả 458 bài theo tên gần giống hoặc cùng size.
 
 ## Ozon 1.6.5 — triển khai liên kết Catalog khác tên/article, đối chiếu WBCode Latest
 

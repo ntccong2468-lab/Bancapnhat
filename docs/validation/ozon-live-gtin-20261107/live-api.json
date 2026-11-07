@@ -1,0 +1,292 @@
+{
+  "version": "1.6.5",
+  "runtimeSourceCommit": "cae86ef71149a9be505b060360a7a9db8e07c5b4",
+  "evidenceBaseCommit": "e3db488daeb7446cecff9174e21107fd754a26ed",
+  "runtimeJarSha256": "f1f8fa1334e64587608735176247b09d3c8f628107787cdfb46f551cd41de84b",
+  "recordedAtUtc": "2026-11-07T14:21:12.027935+00:00",
+  "requestedScope": "Seller cancelled paid KIZ test; verify Catalog/Ozon pairing and a real Ozon GTIN append, then compare all data using the newly supplied Catalog key.",
+  "catalog": {
+    "state": "FULL_READ_COMPLETE",
+    "catalogListRows": 2023,
+    "catalogCards": 2023,
+    "detailIssues": 0,
+    "listRequests": 3,
+    "detailRequests": 81,
+    "maxGtinsPerDetailRequest": 25,
+    "states": {
+      "DRAFT": 2,
+      "ERRORS": 95,
+      "PUBLISHED": 1926
+    },
+    "elapsedMs": 86364,
+    "remoteMutations": 0,
+    "sourceVerifiedByCertificate": false,
+    "syntheticLicenseOrCertificateUsed": false
+  },
+  "catalogSourceChange": {
+    "earlierFullSourceRows": 1380,
+    "currentFullSourceRows": 2023,
+    "overlap": 0
+  },
+  "activeOzonReadback": {
+    "atUtc": "2026-11-07T14:11:42.478642+00:00",
+    "calls": [
+      {
+        "operation": "ozon-product-info",
+        "http": 200,
+        "elapsedMs": 2362,
+        "apiCode": null
+      },
+      {
+        "operation": "ozon-product-attributes",
+        "http": 200,
+        "elapsedMs": 2397,
+        "apiCode": null
+      }
+    ],
+    "nativeRows": 500,
+    "infoAttributeNativeIdsEqual": true,
+    "remoteMutations": 0
+  },
+  "archivedOzon": {
+    "atUtc": "2026-11-07T14:16:43.763267+00:00",
+    "activeRows": 500,
+    "archivedRows": 33,
+    "allDistinctNativeRows": 533,
+    "archivedDetailsRows": 33,
+    "archivedAttributeRows": 33,
+    "archivedProductsWithCurrentCatalogBarcode": 0,
+    "archivedHoldersOfWrittenGtin": 0,
+    "calls": [
+      {
+        "operation": "ozon-archived-info",
+        "http": 200,
+        "elapsedMs": 2060,
+        "apiCode": null
+      },
+      {
+        "operation": "ozon-archived-attributes",
+        "http": 200,
+        "elapsedMs": 2064,
+        "apiCode": null
+      }
+    ],
+    "remoteMutations": 0
+  },
+  "activeComparison": {
+    "ozonProducts": 500,
+    "catalogCards": 2023,
+    "states": {
+      "BARCODE_CATALOG_VARIANT_MATCH": 1,
+      "LIVE_APPEND_READBACK_CONFIRMED": 1,
+      "MISSING_NATIVE_COLOR_OR_SIZE": 36,
+      "NATIVE_MODEL_PAIR_SELECTION_REQUIRED": 458,
+      "USER_SELECTED_MODEL_SIZE_PAIR_CANDIDATE": 4
+    },
+    "catalogGtinsObservedInNativeBarcodes": 2,
+    "readbackOverrides": 1,
+    "comparisonRows": 500,
+    "unmatchedMeansNoCardExists": false,
+    "certificateScopedAppApprovalAsserted": false
+  },
+  "write": {
+    "startedAtUtc": "2026-11-07T14:06:32.149130369Z",
+    "mode": "LIVE_PRODUCTION_LISTING_TRANSPORT",
+    "requestedPhase": "apply",
+    "licenseActivationRequested": false,
+    "syntheticLicenseOrCertificateUsed": false,
+    "httpMockUsed": false,
+    "paidPurchaseRequested": false,
+    "catalogWriteRequested": false,
+    "fullAppUiOrCertificateLinkApprovalTested": false,
+    "exactNativeIdAndSkuVerified": true,
+    "publishedTradeUnitVerified": true,
+    "explicitColorAndSizeVerified": true,
+    "manufacturerSize": "L",
+    "russianSize": "48",
+    "catalogSize": "48",
+    "articleAliasDifferent": true,
+    "titleDifferent": true,
+    "beforeGtinPresent": false,
+    "beforeBarcodeCount": 1,
+    "foreignHolderCheckProducts": 500,
+    "foreignHolderFound": false,
+    "responseErrors": 0,
+    "state": "APPLIED_READBACK_CONFIRMED",
+    "afterGtinPresentInInfo": true,
+    "afterGtinPresentInAttributes": true,
+    "oldBarcodesPreserved": true,
+    "physicalIdentityUnchanged": true,
+    "afterBarcodeCount": 2,
+    "readbackAttempts": 1,
+    "completedAtUtc": "2026-11-07T14:06:42.582835810Z",
+    "elapsedMs": 10433,
+    "mutationRequests": 1,
+    "catalogReadRequests": 2,
+    "httpSuccess": true,
+    "rawHttpStatusCaptured": false,
+    "httpStatusNote": "ListingHttpClient returned a valid errors=[] response after successful HTTP; raw POST status/headers were not retained. Do not infer success from HTTP alone."
+  },
+  "newProcessReadback": {
+    "startedAtUtc": "2026-11-07T14:10:26.373433139Z",
+    "mode": "LIVE_PRODUCTION_LISTING_TRANSPORT",
+    "requestedPhase": "verify",
+    "licenseActivationRequested": false,
+    "syntheticLicenseOrCertificateUsed": false,
+    "httpMockUsed": false,
+    "paidPurchaseRequested": false,
+    "catalogWriteRequested": false,
+    "fullAppUiOrCertificateLinkApprovalTested": false,
+    "savedPhysicalRevisionMatchesAfterProcessRestart": true,
+    "exactNativeIdAndSkuVerified": true,
+    "publishedTradeUnitVerified": true,
+    "explicitColorAndSizeVerified": true,
+    "manufacturerSize": "L",
+    "russianSize": "48",
+    "catalogSize": "48",
+    "articleAliasDifferent": true,
+    "titleDifferent": true,
+    "beforeGtinPresent": true,
+    "beforeBarcodeCount": 2,
+    "state": "APPLIED_READBACK_CONFIRMED",
+    "afterGtinPresentInInfo": true,
+    "afterGtinPresentInAttributes": true,
+    "oldBarcodesPreserved": true,
+    "physicalIdentityUnchanged": true,
+    "afterBarcodeCount": 2,
+    "readbackAttempts": 1,
+    "completedAtUtc": "2026-11-07T14:10:35.222020215Z",
+    "elapsedMs": 8848,
+    "mutationRequests": 0,
+    "catalogReadRequests": 1
+  },
+  "productionAdapterReadback": {
+    "productionAdapter": "OzonGtinAdapter",
+    "activeProducts": 500,
+    "archivedProducts": 33,
+    "atUtc": "2026-11-07T14:19:00.034677507Z",
+    "remoteMutations": 0,
+    "visibilityPartitions": [
+      "ALL",
+      "ARCHIVED"
+    ],
+    "barcodeReadbackConfirmed": true,
+    "otherOwnedProductConflict": false,
+    "scope": "Readback/conflict methods only; no certificate-scoped approve/submit or app UI"
+  },
+  "methods": {
+    "catalogList": "GET /v4/product-list",
+    "catalogCards": "GET /v3/feed-product",
+    "ozonList": "POST /v3/product/list; ALL and ARCHIVED",
+    "ozonInfo": "POST /v3/product/info/list",
+    "ozonAttributes": "POST /v4/product/info/attributes",
+    "actualMutation": "POST /v1/barcode/add",
+    "mutationCaller": "Explicit live harness using production ListingHttpClient; not OzonGtinAdapter.submit or the app UI.",
+    "actualRuntimeComponents": [
+      "ZnackApiClient",
+      "CatalogProductDataParser",
+      "OzonProductSnapshotReader",
+      "GtinVariantIdentity",
+      "OzonSkuGtinMatcher.sameColor",
+      "OzonReviewedVariantProof.revision/productIdentity",
+      "ListingHttpClient",
+      "OzonGtinAdapter.read/conflicts"
+    ]
+  },
+  "boundaries": {
+    "httpMockUsed": false,
+    "syntheticCertificateUsed": false,
+    "syntheticLicenseUsed": false,
+    "licenseActivated": false,
+    "paidKizBought": false,
+    "catalogWritten": false,
+    "wbWritten": false,
+    "appCertificateScopedLinkApprovalTested": false,
+    "appGtinCoordinatorSubmitTested": false,
+    "windowsInstalledAppUiTested": false,
+    "remainingVariantsPosted": false,
+    "runtimeSourceChangedThisTurn": false,
+    "latestPublished165": false
+  },
+  "artifacts": {
+    "privateSellerWorkbookRows": {
+      "active": 500,
+      "archived": 33,
+      "catalog": 2023
+    },
+    "privateSellerWorkbookSha256": "8c197d3db53e39117dce68e3aadb35b8f330c485b5e310bbae87776473e4ff3c",
+    "sellerDataAndCredentialsCommitted": false,
+    "workbookRowValidation": {
+      "Đối chiếu Ozon": 501,
+      "Tổng hợp": 19,
+      "Ozon đã lưu trữ": 34,
+      "Thẻ Catalog": 2024
+    },
+    "spreadsheetFormulaCells": 0
+  },
+  "privateEvidenceDigests": [
+    {
+      "kind": "apply-report.json",
+      "sha256": "a8ac919e52598d496b4a4564f232ac75d33f54159aecf82f0481b90825996e72"
+    },
+    {
+      "kind": "reopen-report.json",
+      "sha256": "2bd0563945a7a423af290438eff90f309f95fd630ec82179c1a4181114faa29c"
+    },
+    {
+      "kind": "request-body.json",
+      "sha256": "c5738b8eab1d33cdf6bdcd874a09f9fc7ad40b5ab06705d376ea2ca87cc950e9"
+    },
+    {
+      "kind": "response.json",
+      "sha256": "debf84af8d66827e1cbc6791aa686504e3116d8cb20f4697fef23108333061f8"
+    },
+    {
+      "kind": "before-info.json",
+      "sha256": "00e1de8b4811d21aab595d64953aced7e03865360bc3b6968894e0cb2600165b"
+    },
+    {
+      "kind": "after-info.json",
+      "sha256": "07083fdef2290346268744f220972b5391e17b312e74a6e1e0f190879e269c94"
+    },
+    {
+      "kind": "current-catalog-summary.json",
+      "sha256": "58d69b80acb994cd6b6f6691dfcf0702a7b65832c4892d78966287c66a0471a6"
+    },
+    {
+      "kind": "full-comparison.json",
+      "sha256": "47d7f367f5a5ebf006b728f1a9149e2dcddc21a655971727b6c9067483acbeae"
+    },
+    {
+      "kind": "adapter-readback-summary.json",
+      "sha256": "fc4aa97c44bbc98c749f3e7a90c901018e5e7ec9c42d4cdcd0c675d2f264be43"
+    }
+  ],
+  "verificationScope": "Production API transport/parser/pair-facts and readback/conflict methods are live-verified. Certificate-scoped approval and licensed app queue submit remain untested; do not present this as full app/UI acceptance.",
+  "scanner": {
+    "tool": "OpenQodex 0.16.0",
+    "actualScanners": [
+      {
+        "scanner": "gitleaks",
+        "status": "ran",
+        "version": "8.21.2",
+        "rawCount": 0,
+        "keptCount": 0,
+        "durationMs": 109,
+        "resolveMs": 2,
+        "files": 7,
+        "reason": null,
+        "stages": {
+          "changedLines": 0,
+          "fixtures": 0,
+          "rules": 0,
+          "merged": 0
+        }
+      }
+    ],
+    "disabledScanners": 21,
+    "candidateCount": 0,
+    "independentAiReview": false,
+    "scope": "Handoff documentation changes since e3db488; Gitleaks only, not a security audit or live API test"
+  }
+}

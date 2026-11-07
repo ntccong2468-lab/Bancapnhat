@@ -50,6 +50,12 @@ Nguồn bổ sung `cae86ef71149a9be505b060360a7a9db8e07c5b4`, kế thừa PDF/nh
 - Không tự mua KIZ hoặc ghi barcode khi chỉ lưu liên kết. Legacy link không tự thành proof mua mới. WB giữ nguyên quy tắc.
 - [So sánh WBCode 1.3.20, nguồn và sơ đồ](../research/2026-11-07-wbcode-1320-ozon-variant-link.md), [bàn giao và giới hạn kiểm chứng](../validation/2026-11-07-ozon-reviewed-variant-handoff.md).
 
+## Nghiệm thu API GTIN thật và đối chiếu nguồn Catalog mới
+
+- Đã thêm thật một GTIN đúng biến thể Ozon bằng lớp transport production và xác nhận ở cả API info/attributes; giữ barcode cũ. JVM mới đọc lại không gửi lặp; adapter production kiểm xung đột/readback ở cả hiện hành và lưu trữ.
+- Đọc đủ 533 bài Ozon (500 hiện hành, 33 lưu trữ) và 2.023 thẻ Catalog từ khóa người dùng cung cấp mới; bảng riêng đầy đủ dữ liệu nằm ngoài Git. Không nhúng credential hoặc mapping của seller vào bản phát hành.
+- Đây là nghiệm thu API/client/parser, chưa phải approve/submit theo chứng thư hoặc UI Windows. Mua KIZ được người dùng bỏ khỏi lượt kiểm; runtime không thay đổi sau nguồn `cae86ef`. [Bằng chứng và giới hạn](../validation/2026-11-07-ozon-live-gtin-acceptance.md).
+
 ## Các sửa được kế thừa
 
 Giữ toàn bộ giao diện tối/sáng đã duyệt, khung danh sách lớn, năm tab Znack/Kho KIZ, WB Đơn nợ, Ozon Đơn mới/Đang giao hàng; nhận đơn và tải nhãn theo lô; vận đơn Ozon nguyên bản và KIZ đúng đơn; số vận đơn/thứ tự phiếu nhặt hàng; cache/receipt/checkpoint, license kiểm tra nền và cập nhật an toàn. Các sửa audit PDF/KIZ, updater, log, dependency và công cụ cũng được giữ.
