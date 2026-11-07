@@ -69,5 +69,17 @@
   "priorReview": "docs/validation/2026-11-03-release-security-review.md",
   "openqodex": "skipped on manual dispatch; earlier scoped scanner evidence remains separately dated",
   "dependencyReview": "skipped on manual dispatch; no dependency changes",
-  "scope": "Static scans and existing finding triage, not an independent AI review or new seller API acceptance"
+  "scope": "Static scans and existing finding triage, not an independent AI review or new seller API acceptance",
+  "publisherChecks": {
+    "sourceCommit": "571d44b6ca7cce13eb48987399adb32fe302a274",
+    "runId": 42384190788,
+    "lintAndAudit": "success",
+    "javascriptCodeql": "success",
+    "javaCodeqlGate": "failure",
+    "totalJavaFindings": 8,
+    "highCriticalOrUnclassified": 1,
+    "applicationAndJavaTestsUnchangedFromPinnedBuild": true,
+    "newPublisherHasPositiveReleaseIdGuard": true,
+    "openqodexManualWorkflow": "skipped; local scoped scanner recorded separately"
+  }
 }
