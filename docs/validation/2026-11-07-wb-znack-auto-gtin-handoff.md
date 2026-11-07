@@ -2,6 +2,8 @@
 
 Ngày 07.11.2026. Nhánh `fix/wb-znack-auto-gtin`, kế thừa Ozon `86b1dcc` và nền đã công bố `61f5ae5`. Nguồn WB ban đầu `a95201d`; nguồn cuối, lệnh, số ca và hash JAR nằm trong [biên nhận](wb-znack-auto-20261107/verification.json). **Chưa phát hành hotfix xuống app; Latest vẫn là 1.6.5 immutable.** JAR cục bộ có version POM 1.6.5 để kiểm build, không phải thay thế binary đã phát hành.
 
+Đã commit/push, [draft PR #22](https://github.com/ntccong2468-lab/Bancapnhat/pull/22) vào `release/vn-code-1.6.5`; chưa merge. Commit tài liệu sau SHA app không đổi runtime.
+
 ## Chẩn đoán và nguyên nhân đã tái hiện
 
 - Hai regression cho thấy GTIN 046 có thật trong barcode WB vẫn bị giữ ở Đang xử lý/Cần kiểm tra vì giao diện ưu tiên việc ghép Catalog. Đây là trạng thái WB; không dùng quy tắc tiền tố để chứng minh chủ sở hữu Catalog hoặc quyền mua KIZ.
