@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| Ozon 1.6.5: PDF kết hợp, tự thay KIZ cùng danh mục, 9 đơn gilet thật; chưa Latest | [Bàn giao](../validation/2026-11-07-ozon-165-gilet-pdf-handoff.md), [API thật](../validation/ozon-165-20261107/live-api.json), [209 ca/build](../validation/ozon-165-20261107/verification.json), [đề xuất mapping khác tên/SKU](../research/2026-11-07-ozon-catalog-variant-link-proposal.md) |
 | Bản gộp 1.6.5, chưa phát hành lên Latest | [Phạm vi](../releases/VN-code-1.6.5.md), [đối chiếu nguồn](../validation/2026-11-07-vncode-165-source-inclusion.json), [bàn giao](../validation/2026-11-07-vncode-165-candidate-handoff.md), [kiểm chứng](../validation/2026-11-07-vncode-165-candidate-build.json) |
 | Tổng hợp chỉnh sửa, Code Doctor/soi code, phần thiếu và chưa phát hành ngày 07.11 | [Danh mục đối chiếu](../validation/2026-11-07-change-inventory.md) |
 | Toàn bộ lịch sử sửa, quyết định, kinh nghiệm | [PROJECT_MEMORY.md](../PROJECT_MEMORY.md) |

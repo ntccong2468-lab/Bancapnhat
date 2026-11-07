@@ -1,0 +1,249 @@
+{
+  "version": "1.6.5",
+  "sourceCommit": "3c865b6d6c15d616d083c65502a02778d77de6f2",
+  "pdfFixCommit": "8845573c6fd2031840236ceb998ffd2dc0dad972",
+  "branch": "release/vn-code-1.6.5",
+  "latestPublished": "v1.6.4",
+  "published165": false,
+  "finalJava": {
+    "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dtest=OzonAcceptanceKizTest,OzonDashboardControllerTest,OzonAcceptanceRetryTest,OzonShipmentSourcesUiTest,OzonPerUnitShipServiceTest,OzonShipServiceTest,OzonAcceptanceSourceSnapshotTest,OzonPrintBundleServiceTest,OzonPrintBundleRollbackTest,OzonPrintBatchReadTest,OzonPrintReadinessServiceTest,Kn3OzonPrintProjectionTest,OzonExemplarStateMachineTest,DatabaseMigrationCompatibilityTest,LocalDataSnapshotServiceTest package",
+    "tests": 209,
+    "passed": 209,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": [
+      {
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.config.DatabaseMigrationCompatibilityTest"
+      },
+      {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest"
+      },
+      {
+        "tests": 42,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonAcceptanceKizTest"
+      },
+      {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonAcceptanceSourceSnapshotTest"
+      },
+      {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonExemplarStateMachineTest"
+      },
+      {
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPerUnitShipServiceTest"
+      },
+      {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPrintBatchReadTest"
+      },
+      {
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest"
+      },
+      {
+        "tests": 62,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest"
+      },
+      {
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest"
+      },
+      {
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonShipServiceTest"
+      },
+      {
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.shared.LocalDataSnapshotServiceTest"
+      },
+      {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.ui.ozon.OzonAcceptanceRetryTest"
+      },
+      {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.ui.ozon.OzonDashboardControllerTest"
+      },
+      {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest"
+      }
+    ],
+    "build": "SUCCESS",
+    "logSha256": "528ccf78c0ab8790a37b98c1341d8bc61e1d75634c0e4d227b349a5e0239b3f0"
+  },
+  "reproductions": {
+    "pendingPdfBeforeFix": {
+      "tests": 5,
+      "failures": 4,
+      "errors": 0,
+      "passed": 1
+    },
+    "acceptanceBeforeFix": {
+      "tests": 2,
+      "failures": 0,
+      "errors": 2,
+      "code": "OZON_ACCEPT_KIZ_REJECTED"
+    },
+    "previouslyPrintedBeforeFix": {
+      "tests": 1,
+      "failures": 0,
+      "errors": 1,
+      "code": "ACCEPTED_TO_VALIDATED_TRANSITION"
+    }
+  },
+  "otherRuns": {
+    "pdfFixSource8845573": {
+      "relatedTests": 250,
+      "classes": 15,
+      "passed": 250,
+      "scope": "Earlier PDF-fix runtime; not an extra 250 tests of the final replacement commit"
+    },
+    "acceptanceDurabilityBeforePrintedException": {
+      "tests": 88,
+      "passed": 88,
+      "classes": 6,
+      "scope": "Includes Kn3Protocol/Replacement/BatchReplacement and migration/snapshot; do not sum overlapping cases"
+    },
+    "nodeTools": {
+      "command": "node --test tools/*.test.mjs",
+      "passed": 150,
+      "scope": "Prior PDF-stage run; no Node sources changed in the acceptance work"
+    }
+  },
+  "jar": {
+    "jarBytes": 7448469,
+    "jarSha256": "7421b352766cf38bfe73d1b9256706afc661f5976a421875f059f1814396887b",
+    "productionClasses": 1937,
+    "classMismatches": 0,
+    "testOrPrivateDriverEntries": []
+  },
+  "scanner": {
+    "tool": "OpenQodex 0.16.0",
+    "command": "NODE_USE_ENV_PROXY=1 NODE_USE_SYSTEM_CA=1 OPENQODEX_HOME=/tmp/products-five-openqodex-state OPENQODEX_AUTO_UPDATE=off node /tmp/products-five-openqodex/package/dist/bin.js scan --cwd /workspace/vncode-znack-reconcile --base 15a7441 --config /tmp/products-five-gitleaks-only.yaml --format sarif --report-dir /tmp/vncode-165-checks/gilet-handoff-openqodex",
+    "actualScanner": {
+      "scanner": "gitleaks",
+      "status": "ran",
+      "version": "8.21.2",
+      "rawCount": 0,
+      "keptCount": 0,
+      "durationMs": 130,
+      "resolveMs": 1,
+      "files": 17,
+      "reason": null,
+      "stages": {
+        "changedLines": 0,
+        "fixtures": 0,
+        "rules": 0,
+        "merged": 0
+      }
+    },
+    "candidateCount": 0,
+    "disabledScanners": 21,
+    "independentAiReview": false,
+    "selection": [
+      {
+        "scanner": "gitleaks",
+        "wanted": true,
+        "paths": [
+          "docs/PROJECT_MEMORY.md",
+          "docs/memory/CURRENT.md",
+          "docs/memory/README.md",
+          "docs/releases/VN-code-1.6.5.md",
+          "docs/research/2026-11-07-ozon-catalog-variant-link-proposal.md",
+          "docs/validation/2026-11-07-ozon-165-gilet-pdf-handoff.md",
+          "docs/validation/assets/ozon-165-20261107/README.md",
+          "docs/validation/assets/ozon-165-20261107/combined-pending-rejected-203dpi.png",
+          "docs/validation/assets/ozon-165-20261107/paired-pending-rejected-fixture.pdf",
+          "docs/validation/ozon-165-20261107/live-api.json",
+          "docs/validation/ozon-165-20261107/verification.json",
+          "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizReplacement.java",
+          "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizService.java",
+          "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java",
+          "src/main/java/com/vncode/app/integration/ozon/OzonSchemaSupport.java",
+          "src/test/java/com/vncode/app/integration/ozon/OzonAcceptanceKizTest.java",
+          "src/test/java/com/vncode/app/integration/ozon/OzonPrintBundleServiceTest.java"
+        ],
+        "projects": [],
+        "skip": null
+      }
+    ]
+  },
+  "remaining": {
+    "fullJavaSuite": "NOT RUN; phase-one combined 737 had one UI failure, isolated reruns passed",
+    "windowsInstallerAndInstalledApp": "NOT RUN",
+    "paidKizPurchase": "NOT RUN",
+    "liveCodeReplacementOnRejection": "NOT TRIGGERED; all nine live marks accepted",
+    "mappingProposalImplementation": "NOT IMPLEMENTED",
+    "latestPublication": "NOT AUTHORIZED; keep 1.6.4"
+  },
+  "startup": {
+    "version": "1.6.5",
+    "entryPoint": "com.vncode.app.Launcher",
+    "result": "passed",
+    "platform": "Linux",
+    "workspaceOpenedMillis": 6281,
+    "viewportPixels": [
+      1280,
+      700
+    ],
+    "freshProfile": true,
+    "shops": 0,
+    "licenseStatus": "UNVERIFIED",
+    "sellerApiAllowed": false,
+    "licenseActivationRequested": false,
+    "normalShutdown": true,
+    "dataLockReleased": true,
+    "scope": "Production JavaFX startup and shutdown on Linux/Xvfb, disposable empty profile; no seller mutation or Windows installer test"
+  }
+}

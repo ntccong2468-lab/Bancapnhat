@@ -1,0 +1,69 @@
+{
+  "recordedUtc": "2026-11-07T12:20:59.409762+00:00",
+  "kind": "REAL_OZON_API_NOT_MOCK",
+  "uploadedPdf": {
+    "marks": 200,
+    "duplicates": 0,
+    "fullDataMatrix": 200,
+    "issues": 0
+  },
+  "orders": {
+    "at": "2026-11-07T12:13:45.828772227Z",
+    "realHttp": true,
+    "ordersAttempted": 9,
+    "durableReceiptsReconciled": 9,
+    "finalRemoteStates": {
+      "awaiting_deliver": 9
+    },
+    "exactAcceptedKizOrders": 9,
+    "uniqueKizSubmitted": 9,
+    "readbackMutationCalls": 0,
+    "scope": "all discovered gilet orders, actual Ozon category, seller-uploaded PDF codes; no WB, purchase, GTIN write or remote license activation; local test authority outside production JAR"
+  },
+  "followup": {
+    "at": "2026-11-07T12:13:37.414462+00:00",
+    "recentWindowDays": 2,
+    "readCalls": 3,
+    "postingsRead": 209,
+    "remainingGiletsByNativeCategory": 0,
+    "pendingOtherCategories": 7,
+    "scope": "Recent follow-up after complete 89-day scan, not a claim about future arrivals"
+  },
+  "acceptanceHttpCalls": {
+    "200 POST /v3/posting/fbs/get": 36,
+    "200 POST /v6/fbs/posting/product/exemplar/create-or-get": 9,
+    "200 POST /v5/fbs/posting/product/exemplar/validate": 9,
+    "200 POST /v6/fbs/posting/product/exemplar/set": 9,
+    "200 POST /v5/fbs/posting/product/exemplar/status": 18,
+    "200 POST /v4/posting/fbs/ship": 9
+  },
+  "marksConfirmedBeforeShip": 9,
+  "confirmedCodeRejectionsInThisLiveRun": 0,
+  "automaticReplacementTriggeredLive": false,
+  "replacementEvidence": "Regression responses; no actual rejected code occurred in this live file run",
+  "realPdfVerification": {
+    "newOrderAcceptedInPdfTest": false,
+    "decodedExactBinding203dpi": true,
+    "newApiCallsForVerification": 0,
+    "originalCarrierContentUnchanged": true,
+    "decodedExactBinding300dpi": true,
+    "result": "passed",
+    "labelPages": 2
+  },
+  "scope": {
+    "marketplace": "OZON_ONLY",
+    "wbMutations": 0,
+    "paidKizPurchases": 0,
+    "gtinProductWrites": 0,
+    "remoteLicenseActivation": false,
+    "localTestAuthorityOutsideProductionJar": true,
+    "profile": "isolated SQLite, not seller Windows profile",
+    "installedWindowsAppClickTest": false
+  },
+  "runtimeEvidence": {
+    "firstOrder": "8845573 PDF-fix source before acceptance replacement additions",
+    "remainingEight": "runtime packaged as SHA256 35e65f65cd0f0bd712badcca70e329436a002aeaea1263d47fac14381770bb7a; target production classes were byte-compared with that JAR",
+    "additionalPrintedJobFix": "Added after these nine orders; regression-tested separately, not a claimed live rejection trigger"
+  },
+  "privacy": "No keys, owner IDs, order IDs, KIZ, product names, raw traffic or real PDFs included"
+}

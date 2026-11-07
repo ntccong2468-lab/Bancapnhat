@@ -1,12 +1,22 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **07.11.2026, 14:06 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
+Cập nhật: **07.11.2026, 15:22 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục và cách dùng bộ nhớ](README.md).
 
-## Bản gộp 1.6.5 — chưa phát hành
+## Ozon 1.6.5 — PDF kết hợp, thay KIZ và 9 đơn gilet thật
+
+- Nguồn **`3c865b6d6c15d616d083c65502a02778d77de6f2`**, kế thừa PDF **`8845573`** trên `release/vn-code-1.6.5`. Theo chỉ đạo cuối: quy tắc nhận/thay KIZ mới **chỉ cho Ozon, giữ nguyên WB**; vẫn **chưa phát hành Latest**. [Bàn giao](../validation/2026-11-07-ozon-165-gilet-pdf-handoff.md), [biên nhận thật](../validation/ozon-165-20261107/live-api.json).
+- PDF: pending job có binding phải đi qua đối soát trước carrier-only. PDF thật một đơn đã nhận từ trước có 2 trang; vận đơn content stream giữ nguyên, KIZ decode 203/300 dpi đúng binding. Công cụ hậu kiểm reflection lỗi kiểu int/float sau xuất; đã kiểm chỉ đọc file/DB, không replay tạo nhãn.
+- File PDF mới: 200 mã DataMatrix đầy đủ, 0 trùng/lỗi. Nhận thật **9/9 đơn gilet** kể cả đơn mới xuất hiện trong lúc thử; Ozon xác nhận 9 mã riêng biệt và 9 đơn `awaiting_deliver`; service read-only đối soát 9 receipt. Lượt đọc theo sau lúc **15:13 MSK** còn **0 gilet chờ nhận**; không phải hứa bao gồm đơn phát sinh sau thời điểm này. Không nhận các danh mục khác.
+- Tự thay **mã seller nhập bị từ chối đúng product/slot/code** bằng mã cùng danh mục, không cần cùng GTIN; không lấy pool bất kỳ hoặc kho mua khi chọn seller-only. Thêm journal bổ sung `ozon_accept_kiz_replacements`, giữ schema 6. PREPARED tiếp tục an toàn; SENDING/AWAITING chỉ đối soát; giữ GTD/RNPT/mark khác. Lỗi chứng từ/foreign/pending không loại mã. Xử lý cả mã đã in bị Ozon từ chối, không nới terminal policy chung. Nếu hết mã mà Ozon mới xác nhận cho nhận không KIZ bắt buộc thì tiếp tục nhận, báo đủ từng đơn.
+- Trong 9 mã thật **không có mã bị từ chối**; nhánh thay mã và nhánh đã in được nghiệm thu hồi quy, chưa kích hoạt trên API thật. API sử dụng domain production/profile riêng/local test authority ngoài JAR, không kích hoạt license từ xa, không WB/Gmail/mua/GTIN write hoặc bấm app Windows đang cài. Cặp Ozon mới hoạt động; Secrets cũ trước đó 403 chưa được xác nhận đã đổi. Không lưu pair trong Git.
+- **209/209 ca / 15 lớp đạt**, package SUCCESS, gồm 42 ca nhận đơn. JAR 1.937 class khớp, không fixture/probe; Linux/Xvfb mở **6.281 ms**, 1280×700, 0 shop/UNVERIFIED, đóng/nhả lock đạt. [Kiểm chứng/build](../validation/ozon-165-20261107/verification.json). OpenQodex chỉ Gitleaks, 0 finding; 21 scanner tắt, không AI review độc lập. Chưa full Java/Windows installer; giữ failure UI của lượt gộp đầu trong lịch sử.
+- [Đề xuất mapping khác tên/SKU cùng biến thể](../research/2026-11-07-ozon-catalog-variant-link-proposal.md): tái dùng liên kết native ID đã duyệt một lần cho mua/sync/GTIN, không ghép chỉ theo tên gần giống/size. Chưa triển khai đề xuất hoặc đẩy GTIN thật. Gate TN VED còn trong cross matcher/direct review đã được chỉ rõ, không coi sửa mapping mua trước đó là đã gỡ toàn bộ gate.
+
+## Bản gộp ban đầu 1.6.5 — chưa phát hành
 
 - Chỉ đạo cuối thay yêu cầu công bố trước đó: **chỉ gộp bản mới, chưa đưa lên Latest**. Đã chuẩn bị nhánh **`release/vn-code-1.6.5`**, nguồn `286549c5c74c2e67c931940adfcc43a19cc481be`, kế thừa toàn bộ PR #21 đến `bba8391` và Latest 1.6.4. Hai khai báo phiên bản POM cùng 1.6.5; chưa tạo tag/release hoặc gọi publisher. [Phạm vi bản gộp](../releases/VN-code-1.6.5.md), [đối chiếu nguồn](../validation/2026-11-07-vncode-165-source-inclusion.json).
 - Đã push nhánh nguồn; Node 150/150 đạt. Nhóm Java 737 ca có 1 lỗi UI xác nhận nguồn; chạy riêng ca đó 1/1 và cả lớp controller 38/38 đạt, package thành công; nguyên nhân lượt lỗi chưa xác định, không gọi full suite đạt. JAR 1.933 class khớp output, không fixture/probe; chạy JAR Linux/Xvfb/profile trống mở sau 6.168 ms, đóng/nhả lock đạt. Gói nội bộ có JAR/source/checksum, **chưa có Windows installer**. [Bàn giao và giới hạn](../validation/2026-11-07-vncode-165-candidate-handoff.md), [build](../validation/2026-11-07-vncode-165-candidate-build.json). Latest phải giữ 1.6.4 cho tới khi có chỉ đạo công bố mới.
-- Công việc tiếp theo người dùng vừa yêu cầu, **sau khi hoàn tất gộp đang dở**: Code Doctor/soi code sửa PDF Ozon thiếu KIZ kết hợp; kiểm quy tắc mapping và đề xuất liên kết cùng sản phẩm/cùng size khi tên và SKU Catalog/Ozon khác cách ghi, phục vụ mua KIZ, đồng bộ và đẩy GTIN. Chưa có chỉ đạo tự xác nhận mọi cặp chỉ dựa tên gần giống hoặc size; giữ đúng biến thể và quyết định cho phép khác TN VED mới nhất.
+- Công việc được yêu cầu tiếp sau phần gộp, **hiện đã xử lý và ghi ở mục Ozon phía trên**: Code Doctor/soi code sửa PDF Ozon thiếu KIZ kết hợp; kiểm quy tắc mapping và đề xuất liên kết cùng sản phẩm/cùng size khi tên và SKU Catalog/Ozon khác cách ghi, phục vụ mua KIZ, đồng bộ và đẩy GTIN. Chưa có chỉ đạo tự xác nhận mọi cặp chỉ dựa tên gần giống hoặc size; giữ đúng biến thể và quyết định cho phép khác TN VED mới nhất.
 
 ## Báo cáo tổng hợp theo yêu cầu chủ dự án
 
