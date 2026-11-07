@@ -1,0 +1,242 @@
+{
+  "version": "1.6.6",
+  "sourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "branch": "release/vn-code-1.6.6",
+  "previousLatest": {
+    "version": "1.6.5",
+    "sourceCommit": "4ffea8a2732ad04d1a3fc481d472867ba2683a8a",
+    "releaseId": 437689422
+  },
+  "fullWindowsBuildRunId": 42407000935,
+  "ownerRequestedLatestPublication": true,
+  "includedChanges": [
+    {
+      "change": "Latest 1.6.4",
+      "commit": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Code Doctor",
+      "commit": "c2e9dcfc56b4287f7ece05bc058e310fa5bd9942",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Znack states and WB GTIN",
+      "commit": "5710392b9caaade838a94f33b6e4bdfe8d64cc3a",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Product declaration",
+      "commit": "af3bf5c7330bfc1b1ebf3693d4f97190e06e8a54",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Declaration translations",
+      "commit": "fd20aa84304baed67277263e4814f2ba2569612e",
+      "includedByAncestry": true
+    },
+    {
+      "change": "WB/Ozon KIZ mapping TN VED",
+      "commit": "5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Ozon PDF combined KIZ",
+      "commit": "8845573c6fd2031840236ceb998ffd2dc0dad972",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Ozon acceptance KIZ replacement",
+      "commit": "3c865b6d6c15d616d083c65502a02778d77de6f2",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Shared reviewed Ozon Catalog variant",
+      "commit": "cae86ef71149a9be505b060360a7a9db8e07c5b4",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Live API audit handoff",
+      "commit": "1da051ef815046998dcd7afb41b503dd0cf1ae06",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Latest 1.6.5",
+      "commit": "4ffea8a2732ad04d1a3fc481d472867ba2683a8a",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Ozon automatic KIZ replacement and fair retry",
+      "commit": "86b1dcc1c7bf45d7a0d37ef50f9dd350e436a9c4",
+      "includedByAncestry": true
+    },
+    {
+      "change": "WB automatic GTIN and storage coordination",
+      "commit": "a95201dc1148cd11ce21eff42daef79af8e8c1f9",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Accepted Catalog feed enters Processing",
+      "commit": "a43b7e13590025dee2410d461f2b60ef601d5d97",
+      "includedByAncestry": true
+    },
+    {
+      "change": "GTIN report and Ozon print product metadata",
+      "commit": "2e5b50a7735ac564b45e2aec12d2e9e19c0d58d9",
+      "includedByAncestry": true
+    },
+    {
+      "change": "Version 1.6.6 and flat updater progress",
+      "commit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+      "includedByAncestry": true
+    }
+  ],
+  "runtimeInputsChangedSince165": [
+    {
+      "path": "pom.xml",
+      "sha256": "e1aa9f037112b63278810b01256f05705c3250b6f8e3f7da4b9741df78c54728"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/WbRegisteredBarcode.java",
+      "sha256": "18528e79dc9feb928f616d1a6bab60236c5f203d13664e4fd52914c34b20e426"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/GtinRunStatusSnapshot.java",
+      "sha256": "cb76cdeb120d5f8b00409eb93f5c9329d30e80e7941fa688462fcda7d6a13faf"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/RegistrationCardIndex.java",
+      "sha256": "e013cbff8a8646b4c7d8b8063e9ccb3335c9d8c98e4961f7c0d7a4cc91d17e98"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/RegistrationSources.java",
+      "sha256": "04fba3d58a24f44deec8ebb1ada8bb492524816e7d6c27e2e271b930ff1cc22e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/SyncRunRepository.java",
+      "sha256": "25e319201ffc83eb256a67a79567d74f97d7512815105f5ca010655f634886f0"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/SyncRuntime.java",
+      "sha256": "971b6479744cf195da6913eb6ccccd2d38bd15941ab11746a9d70dfdde668863"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/WbAutomaticGtinUpdate.java",
+      "sha256": "715f122e0a59aacd9e671d0121a457302a074efde232011ae13829e132966011"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+      "sha256": "0415d2f8fe8fe7fe2317f5749f486da7e5aae1f326777a1eaf3d488db22a9457"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizService.java",
+      "sha256": "17b84f8ea71d979cad242457bd78b0a06820032372f92b153d1b1fd2f5027059"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonApiClient.java",
+      "sha256": "64270b6364fa888acdae998b943c745fce29a32fbe4f7f86c80a3f20ab1647bc"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJobRepository.java",
+      "sha256": "afd95a3e7276750e843d8a2b7691957143617ed8b21f14682621500d7d5da698"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonExemplarService.java",
+      "sha256": "965ea95446b170c650b6b082c227cc75224c0d29faf45c41784956297223f854"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonKizProgress.java",
+      "sha256": "a6caf19fa2e8be494022eddbce94ee3d85b1116b818bc48c5b9025b3f3f80839"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonKizReplacementDeferredException.java",
+      "sha256": "1ceb8a1dc5d17b93c1c196b032701d1ac3cd4a1477c70395dfb75a0d9b7e438b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java",
+      "sha256": "58de5e335b55dcfc5e13152355e792f89e3f09884e03c7d7913a3df646dffd54"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPrintProductSnapshot.java",
+      "sha256": "0c1527353feebdd3283fb805effa2479b25c3001aa05b01ad20bdba6a53c5483"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbProductRepository.java",
+      "sha256": "56a5a6dd5b96beb88ebc1f5b908abab051514a3be71d66caa51a4ce49133cd50"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/CatalogFeedback.java",
+      "sha256": "9e59c2a46defa21e3e9dbce863d01aa9d5ec6e33afff21668acf0072e1181b37"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSourceConsent.java",
+      "sha256": "9781c4f89b6acb4fc7b514ac34d78c597624a23dc1cba9f88821f784017b5c39"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java",
+      "sha256": "b82a44b1f80e80452b41156912cb12c394a4643082275b4ecd36a203853f8539"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java",
+      "sha256": "b5d2a962e647568b7daf8776d8b3fce435f0d3e6a78775e9efb86af51e83cb87"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchStore.java",
+      "sha256": "caf10ce11a0ec4d5c775dbe45b6d7a74cc32f16d7fdaa67b56182850e11619aa"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationCommandJournal.java",
+      "sha256": "7c80a06a05ffb9b148d90e610595975ccfe33c9d2a6451feb73caa0bdbdb6487"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+      "sha256": "d64fbc07db465f6a120b7f818fd2384fd9fb72f2b5cf2f2e37fe4369ad7ba426"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/GtinBackgroundStatus.java",
+      "sha256": "d665749f7f53e4fcddb9e68ca07b29d4815a9da96a4e8ef9c64d5f77d78d49fa"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialog.java",
+      "sha256": "21322fa97f076c469a043d0b7d55bb0be8fa7f29f35415e01432b23379d3d053"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+      "sha256": "105bc0aeb23e47b23bcdd26c91531ce129a4e3fe52812dd710c0ec28bfcedf27"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepository.java",
+      "sha256": "973da60fd48cf887cac24e097ddd5e71366139c209934dbf50979fc0a65506bb"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "sha256": "b3b105443d7e55c5f8a4b8d7878c93e1f0280fa2a362d33977db7d754e795fca"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "cf2dc5f6a0d695221b82ec6d4ab70f0d2caeef288aaddea784a4a7c5ee0a2ff5"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "878e929779307de35cf0e9b109470c86b3979da7d66f11954fd92c07fd5f9546"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "d8982e19b38deb5496801b0aea588fef71d5ec7618172a969da879b2bcc55cb8"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/styles/theme.css",
+      "sha256": "a80243c51938ad55112e972d9aca5a1bbb3b423541ff23695b6ccdebee6fd4f8"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+      "sha256": "9e328b0ae85113d1b15ebb178391d8d7a22eec73538df7cc886c84748b249e91"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml",
+      "sha256": "564614c5642d51ca1a2f1eaf47802a225bae42344e46f3b26f5e7363f13994a4"
+    }
+  ],
+  "sellerCredentialsOrDatasetIncluded": false,
+  "laterPublisherAndHandoffCommitsAreNotAppBuildSource": true
+}

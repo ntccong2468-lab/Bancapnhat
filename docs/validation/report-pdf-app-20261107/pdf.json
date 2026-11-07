@@ -1,0 +1,80 @@
+{
+  "scope": "Synthetic, independently isolated seller-imported KIZ fixtures; not seller files or API mutations; never use these codes for commerce",
+  "functionalSourceCommit": "2e5b50a7735ac564b45e2aec12d2e9e19c0d58d9",
+  "shops": [
+    1,
+    17,
+    301
+  ],
+  "ordersPerShop": 3,
+  "unitsPerOrder": 2,
+  "carrierPagesPerLabelPdf": 3,
+  "combinedKizPagesPerLabelPdf": 6,
+  "testsDecodeAllDataMatrixAndOzonBarcodesAtDpi": 203,
+  "metadataRequestsPerShop": 1,
+  "carrierBatchTasksPerShop": 1,
+  "persistentCatalogCursorModified": false,
+  "gtinMappingFabricated": false,
+  "files": [
+    {
+      "name": "synthetic-shop-1-3-orders-6-kiz.pdf",
+      "shopId": 1,
+      "pages": 9,
+      "sha256": "80dcb0c44087d77a2cc31b17a4c1f38a844cab6b091f19900058167bdd25b5a1",
+      "bytes": 111051
+    },
+    {
+      "name": "synthetic-shop-1-picking.pdf",
+      "shopId": 1,
+      "pages": 1,
+      "sha256": "52b629453f76aee5eee01fe1d18c86bfae26bc6bfc9775408a81078b841a8b02",
+      "bytes": 34952
+    },
+    {
+      "name": "synthetic-shop-17-3-orders-6-kiz.pdf",
+      "shopId": 17,
+      "pages": 9,
+      "sha256": "4cb23f9b0f14297140a03576bac9acbb0534ce99d3625a71f995811af5a19c15",
+      "bytes": 111051
+    },
+    {
+      "name": "synthetic-shop-17-picking.pdf",
+      "shopId": 17,
+      "pages": 1,
+      "sha256": "d403f0cfa960c7b94d7521b9adcdaec308dff0937c54e7aa8b143ca9bdd187fe",
+      "bytes": 34952
+    },
+    {
+      "name": "synthetic-shop-301-3-orders-6-kiz.pdf",
+      "shopId": 301,
+      "pages": 9,
+      "sha256": "f235382a3014022bbb221ef2140ef2997174ad580620f197bbedaac4777114bf",
+      "bytes": 111051
+    },
+    {
+      "name": "synthetic-shop-301-picking.pdf",
+      "shopId": 301,
+      "pages": 1,
+      "sha256": "1b37fbfe1cdb14c389d774b81b7935bfc8039b2c92e6b1ee28293b02bd2e1312",
+      "bytes": 34952
+    }
+  ],
+  "benchmarkFixtures": {
+    "100Orders200PagesTwoExports": {
+      "milliseconds": 3975,
+      "batchDownloads": 2,
+      "individualDownloads": 0
+    },
+    "1000CarrierOrders": {
+      "milliseconds": 242,
+      "tasks": 10,
+      "individualDownloads": 0,
+      "combinedKizBenchmark": false
+    },
+    "1001MissingProductMetadata": {
+      "milliseconds": 81,
+      "requests": 2
+    }
+  },
+  "realApiTimingProven": false
+}

@@ -1,0 +1,17 @@
+{
+  "version": "1.6.6",
+  "sourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "artifact": "target/VNcode-1.6.6.jar",
+  "sha256": "4fd3897b96f8364fc78950cccd17a5fa2891b7d862c773648df0423c779318b6",
+  "classes": 1956,
+  "allPackagedClassesMatchCompiledOutput": true,
+  "requiredFixClassesPresent": [
+    "com/vncode/app/features/sync/WbAutomaticGtinUpdate.class",
+    "com/vncode/app/integration/ozon/OzonPrintProductSnapshot.class",
+    "com/vncode/app/integration/ozon/OzonKizReplacementDeferredException.class",
+    "com/vncode/app/features/gtinsync/OzonReviewedVariantProof.class"
+  ],
+  "fixtureClassesAbsent": true,
+  "defaultUpdateSource": "https://github.com/ntccong2468-lab/Bancapnhat",
+  "scope": "Local Linux Maven package after passing targeted UI/version tests; full Windows installer proof is separate; no live seller API acceptance"
+}

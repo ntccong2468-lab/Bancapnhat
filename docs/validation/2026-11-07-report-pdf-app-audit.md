@@ -2,6 +2,8 @@
 
 Người dùng yêu cầu kiểm báo cáo, đủ nhãn KIZ kết hợp ở các cửa hàng Ozon, Code Doctor/soi mã toàn ứng dụng, TASTE + IMPECCABLE cho giao diện, sau đó gộp và phát hành Latest. Nguồn chức năng **`2e5b50a`** kế thừa đầy đủ hotfix Ozon `86b1dcc`, WB `a95201d`, nhận feed `a43b7e1` và bản đã phát hành 1.6.5. Nhánh phát hành `release/vn-code-1.6.6`; SHA đóng gói cuối phải lấy từ biên nhận Windows, không suy từ HEAD tài liệu.
 
+Nguồn app chốt **`bd3175d61cb1bb133999e8a6e5b011902d50c7cb`**; [Windows build `42407000935`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42407000935) đang giữ full suite, kể cả ba ca 10.000. [Nguồn và 16 mốc kế thừa](2026-11-07-vncode-166-source-inclusion.json), [kết quả Linux từng lớp](report-pdf-app-20261107/verification.json), [PDF ba shop](report-pdf-app-20261107/pdf.json), [scan đã triage](report-pdf-app-20261107/source-scan.json), [JAR local](report-pdf-app-20261107/local-package.json), [ảnh native](assets/report-pdf-app-20261107/README.md). Tài liệu/tooling commit sau SHA nguồn không thay binary đang build.
+
 ## Lỗi có bằng chứng và sửa đổi
 
 | Mức | Chẩn đoán trước sửa | Thay đổi và kiểm chứng |

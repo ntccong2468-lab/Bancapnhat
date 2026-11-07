@@ -1,0 +1,36 @@
+{
+  "renderer": "Native JavaFX, Linux/Xvfb",
+  "releaseSourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "afterCaptureCount": 84,
+  "syntheticData": true,
+  "fxmlPages": 16,
+  "javaPages": 10,
+  "locales": 4,
+  "themes": 2,
+  "contentWidths": 2,
+  "fixedActionBoundsChecked": 1880,
+  "fixedActionOverflowFound": 0,
+  "files": [
+    {
+      "name": "gtin-status-summary-600.png",
+      "bytes": 16124,
+      "sha256": "7953e030a17355b3370bf50aad34b0c5aa937f55903071389c1dc797c39e3da2"
+    },
+    {
+      "name": "gtin-status-summary-940.png",
+      "bytes": 16709,
+      "sha256": "204001bb57e007ab0543169fb2f322ce3efd2e3582e4f861c02e85f6221e7a2c"
+    },
+    {
+      "name": "approved-ozon-1366-light.png",
+      "bytes": 137089,
+      "sha256": "a2ab40a7ea541ed7572117f53e8ef635ce8e7679ad2632819f402ed0386b5e8b"
+    },
+    {
+      "name": "approved-registration-dark.png",
+      "bytes": 130891,
+      "sha256": "3ee3ce78fe71a1e57801dc74bc54b4bf6e513cc10225ed39210bd88491b67265"
+    }
+  ],
+  "sellerWindowsDpiOrNarratorCertified": false
+}
