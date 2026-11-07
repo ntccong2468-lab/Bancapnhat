@@ -514,6 +514,142 @@ class OzonPrintBundleServiceTest {
         assertEquals("CONSUMED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
         assertEquals("ACCEPTED",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
     }
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.EnumSource(value=OzonExemplarJobStage.class,
+            names={"RESERVED","SET_PENDING","VERIFYING","RECONCILE_REQUIRED"})
+    void stalePreflightRechecksHeldKizBeforeFallingBackToCarrierOnly(OzonExemplarJobStage stage)throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE ozon_exemplar_jobs SET stage=? WHERE id=51")){
+            p.setString(1,stage.name());p.executeUpdate();
+        }
+        var jobs=new OzonExemplarJobRepository();var posting=new OzonPostingRepository().find(1,"POST-1");
+        var plan=OzonRequirementGuard.plan(posting,Map.of(posting.items().getFirst().sku(),"04645588781154"));
+        var prepared=new java.util.concurrent.atomic.AtomicInteger();
+        var operation=new OzonPrintBundleService.Preparation(){
+            public boolean refreshEveryNewPrint(){return true;}
+            public OzonPreparationResult prepare(Shop owner,String number){
+                prepared.incrementAndGet();
+                var reservation=jobs.stageLocalForPrint(owner.getId(),plan,()->{});
+                return new OzonPreparationResult(number,reservation.job().stage().name(),1,true,false,"");
+            }
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),jobs,operation,
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        var result=exporter.exportRequested(shop,List.of("POST-1"),temporaryDirectory.resolve("held-"+stage+".pdf").toFile(),
+                temporaryDirectory.resolve("held-picking-"+stage+".pdf").toFile(),null,Map.of("POST-1","KIZ_NOT_INCLUDED"));
+        assertEquals(1,prepared.get(),"An existing held code must reach the normal print revalidation");
+        assertEquals(1,result.kizPages());assertTrue(result.carrierOnly().isEmpty());assertTrue(result.failures().isEmpty());
+        try(var pdf=Loader.loadPDF(result.labelFile())){
+            assertEquals(2,pdf.getNumberOfPages());
+            assertEquals(KizService.scannerSafeCode(RAW_KIZ),KizService.scannerSafeCode(decodeRenderedDataMatrixResult(pdf,1,203).getText()));
+        }
+        assertEquals("1",scalar("SELECT count(*) FROM kiz_codes"));
+        assertEquals("CONSUMED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+    }
+    @Test void singleConfirmedWholeTaskKeepsCombinedKizWithoutAPrintedPostingNumber()throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        try(var server=new okhttp3.mockwebserver.MockWebServer()){
+            server.start();
+            var labelService=new OzonLabelService(new OzonLabelRepository(),(id,credentials)->new OzonApiClient(id,credentials,
+                    server.url("/"),new okhttp3.OkHttpClient.Builder().callTimeout(java.time.Duration.ofSeconds(5)).build(),
+                    new OzonApiRateLimiter(java.time.Duration.ZERO),new OzonRetryPolicy(1,java.time.Duration.ofMillis(1),java.time.Duration.ofMillis(1))));
+            server.enqueue(new okhttp3.mockwebserver.MockResponse().setHeader("Content-Type","application/json").setBody("{\"result\":{\"task_id\":7001}}"));
+            server.enqueue(new okhttp3.mockwebserver.MockResponse().setHeader("Content-Type","application/json").setBody(
+                    "{\"result\":{\"status\":{\"code\":\"completed\",\"postings_count\":1,\"printed_postings_count\":1},\"file_url\":\""+server.url("/cdn/one.pdf")+"\"}}"));
+            server.enqueue(new okhttp3.mockwebserver.MockResponse().setBody(new okio.Buffer().write(Files.readAllBytes(officialPdf))));
+            var downloader=new OzonPrintBundleService.OfficialLabelDownloader(){
+                public File download(Shop owner,String number,File target){throw new AssertionError("Use the single shared task once");}
+                public OzonPrintBundleService.OfficialLabelDownloader forBatch(Shop owner,List<String> numbers){return new OzonBatchLabelDownloader(labelService,owner,numbers);}
+            };
+            var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                    (owner,number)->{throw new AssertionError("Reuse the validated binding");},downloader);
+            var result=exporter.exportRequested(shop,List.of("POST-1"),temporaryDirectory.resolve("one-task.pdf").toFile(),
+                    temporaryDirectory.resolve("one-task-picking.pdf").toFile(),null,Map.of());
+            assertEquals(List.of("POST-1"),result.successful());assertEquals(1,result.kizPages());assertEquals(2,result.totalPages());
+            assertTrue(result.carrierOnly().isEmpty());assertTrue(result.failures().isEmpty());
+            assertEquals(3,server.getRequestCount(),"One create, one status read and one shared PDF; no per-order fallback");
+            try(var original=Loader.loadPDF(officialPdf.toFile());var pdf=Loader.loadPDF(result.labelFile())){
+                assertArrayEquals(original.getPage(0).getContents().readAllBytes(),pdf.getPage(0).getContents().readAllBytes());
+                assertEquals(KizService.scannerSafeCode(RAW_KIZ),KizService.scannerSafeCode(decodeRenderedDataMatrixResult(pdf,1,203).getText()));
+                assertEquals(PRODUCT_BARCODE,decodeProductBarcode(pdf,1,203));
+            }
+            assertEquals("CONSUMED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        }
+    }
+    @Test void pendingJobWithoutAnyHeldKizKeepsTheCarrierOnlyDecision()throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("DELETE FROM ozon_exemplars WHERE job_id=51");
+            s.execute("UPDATE ozon_exemplar_jobs SET stage='RESERVED' WHERE id=51");
+        }
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),new OzonExemplarJobRepository(),
+                (owner,number)->{throw new AssertionError("An empty pending job must not trigger a new allocation");},
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        var reason=Map.of("POST-1","KIZ_STOCK_SHORTAGE");
+        var result=exporter.exportRequested(shop,List.of("POST-1"),temporaryDirectory.resolve("unbound.pdf").toFile(),
+                temporaryDirectory.resolve("unbound-picking.pdf").toFile(),null,reason);
+        assertEquals(0,result.kizPages());assertEquals(reason,result.carrierOnly());assertEquals(List.of("POST-1"),result.successful());
+        assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("0",scalar("SELECT count(*) FROM ozon_exemplars"));
+    }
+    @Test void recheckingPendingHeldKizNeverPrintsABindingForAnotherProduct()throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("UPDATE ozon_exemplar_jobs SET stage='VERIFYING' WHERE id=51");
+            s.execute("UPDATE ozon_exemplars SET product_id='another-product' WHERE job_id=51");
+        }
+        var jobs=new OzonExemplarJobRepository();var posting=new OzonPostingRepository().find(1,"POST-1");
+        var plan=OzonRequirementGuard.plan(posting,Map.of(posting.items().getFirst().sku(),"04645588781154"));
+        var attempts=new java.util.concurrent.atomic.AtomicInteger();
+        var operation=new OzonPrintBundleService.Preparation(){
+            public boolean refreshEveryNewPrint(){return true;}
+            public OzonPreparationResult prepare(Shop owner,String number)throws IOException{
+                attempts.incrementAndGet();
+                try{var held=jobs.stageLocalForPrint(owner.getId(),plan,()->{});
+                    return new OzonPreparationResult(number,held.job().stage().name(),1,true,false,"");}
+                catch(IllegalStateException mismatch){throw new IOException("OZON_KIZ_BINDING_CHANGED",mismatch);}
+            }
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),jobs,operation,
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        var result=exporter.exportRequested(shop,List.of("POST-1"),temporaryDirectory.resolve("wrong-binding.pdf").toFile(),
+                temporaryDirectory.resolve("wrong-binding-picking.pdf").toFile(),null,Map.of("POST-1","KIZ_NOT_INCLUDED"));
+        assertEquals(1,attempts.get());assertEquals(0,result.kizPages());assertTrue(result.carrierOnly().containsKey("POST-1"));
+        assertEquals(List.of("POST-1"),result.successful());assertEquals("RESERVED",scalar("SELECT status FROM kiz_codes WHERE id=100"));
+        assertEquals("VERIFYING",scalar("SELECT stage FROM ozon_exemplar_jobs WHERE id=51"));
+        assertEquals("another-product",scalar("SELECT product_id FROM ozon_exemplars WHERE job_id=51"));
+    }
+    @Test void stalePreflightRechecksTheExactRejectedKizHeldByAVerifyingJob()throws Exception {
+        seedPosting(1);seedValidatedExemplar(RAW_KIZ);
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            s.execute("UPDATE ozon_exemplar_jobs SET stage='VERIFYING' WHERE id=51");
+        }
+        var jobs=new OzonExemplarJobRepository();
+        jobs.logAction(1,"accept_kiz","POST-1","rejected","OZON_ACCEPT_KIZ_REJECTED",null);
+        new com.vncode.app.features.kiz.status.Kn3Repository().observe(shop,"POST-1",List.of(
+                new com.vncode.app.features.kiz.status.Kn3Mark("POST-1","1001","7001",RAW_KIZ,
+                        com.vncode.app.features.kiz.status.Kn3Mark.State.REJECTED,"MANDATORY_MARK_IN_INCORRECT_STATUS")));
+        var posting=new OzonPostingRepository().find(1,"POST-1");
+        var plan=OzonRequirementGuard.plan(posting,Map.of(posting.items().getFirst().sku(),"04645588781154"));
+        var operation=new OzonPrintBundleService.Preparation(){
+            public boolean refreshEveryNewPrint(){return true;}
+            public OzonPreparationResult prepare(Shop owner,String number){
+                var reservation=jobs.stageLocalForPrint(owner.getId(),plan,()->{});
+                return new OzonPreparationResult(number,reservation.job().stage().name(),1,true,false,"");
+            }
+        };
+        var exporter=new OzonPrintBundleService(new OzonPostingRepository(),jobs,operation,
+                (owner,number,target)->{Files.copy(officialPdf,target.toPath(),StandardCopyOption.REPLACE_EXISTING);return target;});
+        var result=exporter.exportRequested(shop,List.of("POST-1"),temporaryDirectory.resolve("pending-rejected.pdf").toFile(),
+                temporaryDirectory.resolve("pending-rejected-picking.pdf").toFile(),null,Map.of("POST-1","KIZ_NOT_INCLUDED"));
+        assertEquals(1,result.kizPages());assertTrue(result.carrierOnly().isEmpty());
+        assertEquals(Map.of("POST-1","OZON_ACCEPT_KIZ_REJECTED"),result.remoteKizWarnings());
+        assertEquals("REJECTED",scalar("SELECT legal_status FROM kiz_codes WHERE id=100"));
+        assertEquals("rejected",jobs.latestActionStatus(1,"accept_kiz","POST-1"));
+        try(var pdf=Loader.loadPDF(result.labelFile())){
+            assertEquals(KizService.scannerSafeCode(RAW_KIZ),KizService.scannerSafeCode(decodeRenderedDataMatrixResult(pdf,1,203).getText()));
+        }
+    }
     @Test void rateLimitedPreparationDoesNotFallBackToMoreLabelRequests()throws Exception {
         for(int i=1;i<=2;i++)seedUnmarkedPosting("POST-"+i,"SKU-"+i,"offer-"+i);
         var operation=new OzonPrintBundleService.Preparation(){

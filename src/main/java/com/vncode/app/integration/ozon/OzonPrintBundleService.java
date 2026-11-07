@@ -404,7 +404,15 @@ public final class OzonPrintBundleService {
         var selectedJobs=jobs.findMany(frozen.getId(),selected);
         // Readiness is an earlier stock estimate, not a request to omit an existing label.
         // Revalidate held/printed bindings below instead of silently forcing carrier-only output.
-        if(allowCarrierFallback)carrierOnly.keySet().removeIf(number->printable(selectedJobs.get(number)));
+        if(allowCarrierFallback&&!carrierOnly.isEmpty()){
+            var pendingJobs=carrierOnly.keySet().stream().map(selectedJobs::get)
+                    .filter(OzonPrintBundleService::awaitingPrintRevalidation).map(OzonExemplarJob::id).toList();
+            var held=jobs.bindingCounts(frozen.getId(),pendingJobs);
+            carrierOnly.keySet().removeIf(number->{
+                var job=selectedJobs.get(number);
+                return printable(job)||awaitingPrintRevalidation(job)&&held.getOrDefault(job.id(),0)>0;
+            });
+        }
         boolean containsNewPrint=selected.stream().anyMatch(number->!accepted(selectedJobs.get(number)));
         if(containsNewPrint)LicenseRuntime.require(Permission.PRINT_NEW);
         var context=new PrintContext(selectedPostings,selectedJobs,policies.findExemptSkus(frozen.getId()),
@@ -866,6 +874,14 @@ public final class OzonPrintBundleService {
 
     private static boolean printable(OzonExemplarJob job) {
         return job != null && (job.stage() == OzonExemplarJobStage.VALIDATED || accepted(job));
+    }
+
+    /** A held code still needs the normal fresh-posting and exact-binding checks before printing. */
+    private static boolean awaitingPrintRevalidation(OzonExemplarJob job) {
+        return job!=null&&switch(job.stage()){
+            case RESERVED,SET_PENDING,VERIFYING,RECONCILE_REQUIRED->true;
+            default->false;
+        };
     }
 
     private static void requirePdfTarget(File target, String label) {
