@@ -1,0 +1,411 @@
+{
+  "version": "1.6.5",
+  "sourceCommit": "cae86ef71149a9be505b060360a7a9db8e07c5b4",
+  "branch": "release/vn-code-1.6.5",
+  "baselineCommit": "684f1188138bd9151e26fdc3536d24266d0614a6",
+  "createdAtUtc": "2026-11-07T13:38:50.410582+00:00",
+  "state": "UNPUBLISHED_CANDIDATE",
+  "latestMustRemain": "v1.6.4",
+  "java": {
+    "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dvncode.review.capture=/tmp/vncode-165-checks/ozon-link-ui '-Dtest=OzonReviewedVariantProofTest,OzonExistingCardLinkServiceTest,OzonGtinAdapterTest,OzonCatalogMappingServiceTest,OzonCatalogVariantLinkDialogTest,GtinTnvedIdentityTest,GtinCatalogIndexTest,ZnackAutoSyncServiceTest,RegistrationCardIndexTest,OzonRegistrationPaneTest,WbGtinAdapterTest,KizPurchaseMappingProofTest,KizCrossMarketplaceProofTest,DatabaseMigrationCompatibilityTest,LocalDataSnapshotServiceTest,OzonAcceptanceKizTest,OzonDashboardControllerTest,OzonAcceptanceRetryTest,OzonShipmentSourcesUiTest,OzonPerUnitShipServiceTest,OzonShipServiceTest,OzonAcceptanceSourceSnapshotTest,OzonPrintBundleServiceTest,OzonPrintBundleRollbackTest,OzonPrintBatchReadTest,OzonPrintReadinessServiceTest,Kn3OzonPrintProjectionTest,OzonExemplarStateMachineTest' package",
+    "build": "SUCCESS",
+    "tests": 476,
+    "passed": 476,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "classes": [
+      {
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.config.DatabaseMigrationCompatibilityTest"
+      },
+      {
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.gtinsync.GtinCatalogIndexTest"
+      },
+      {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest"
+      },
+      {
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.kiz.KizCrossMarketplaceProofTest"
+      },
+      {
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.kiz.KizPurchaseMappingProofTest"
+      },
+      {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest"
+      },
+      {
+        "tests": 26,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest"
+      },
+      {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.sync.RegistrationCardIndexTest"
+      },
+      {
+        "tests": 29,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest"
+      },
+      {
+        "tests": 42,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonAcceptanceKizTest"
+      },
+      {
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonAcceptanceSourceSnapshotTest"
+      },
+      {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonExemplarStateMachineTest"
+      },
+      {
+        "tests": 38,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonGtinAdapterTest"
+      },
+      {
+        "tests": 22,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPerUnitShipServiceTest"
+      },
+      {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPrintBatchReadTest"
+      },
+      {
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest"
+      },
+      {
+        "tests": 62,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest"
+      },
+      {
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest"
+      },
+      {
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.ozon.OzonShipServiceTest"
+      },
+      {
+        "tests": 51,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.wb.WbGtinAdapterTest"
+      },
+      {
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.znack.registration.OzonExistingCardLinkServiceTest"
+      },
+      {
+        "tests": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.integration.znack.registration.OzonReviewedVariantProofTest"
+      },
+      {
+        "tests": 15,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.shared.LocalDataSnapshotServiceTest"
+      },
+      {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.ui.ozon.OzonAcceptanceRetryTest"
+      },
+      {
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.ui.ozon.OzonDashboardControllerTest"
+      },
+      {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest"
+      },
+      {
+        "tests": 40,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest"
+      },
+      {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "name": "com.vncode.app.ui.znackregistration.OzonCatalogVariantLinkDialogTest"
+      }
+    ],
+    "logSha256": "30d08da69dbff023ce9dc6e0e6fad2a3711a4beaf8aa6721fd991f965a676d63",
+    "kind": "JUnit, synthetic HTTP/SQLite and native JavaFX on Linux/Xvfb; not seller API acceptance"
+  },
+  "reproduction": {
+    "test": "OzonReviewedVariantProofTest#registrationDisplayUsesTheCurrentReviewedCardInsteadOfAnOldNativeCheckpoint",
+    "beforeFix": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "finding": "Display selected old GTIN despite a valid current reviewed native index",
+      "logSha256": "7178a4e25538deeb031e257e58222ee36a2ca686b334f1ead1397b7482341f07"
+    },
+    "incompleteFix": {
+      "tests": 476,
+      "failures": 1,
+      "errors": 0,
+      "finding": "Discarding old barcode/checkpoint was insufficient; article fallback still selected the old card",
+      "logSha256": "c1934471c64b253169d433ecf5cef71f84c7632ad3da2fcc6045fbed6ec6b357"
+    },
+    "focusedAfterFix": {
+      "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B '-Dtest=OzonReviewedVariantProofTest,RegistrationCardIndexTest' test",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "assertionsDisabledOrWeakened": false
+  },
+  "jar": {
+    "bytes": 7495904,
+    "sha256": "f1f8fa1334e64587608735176247b09d3c8f628107787cdfb46f551cd41de84b",
+    "productionClasses": 1949,
+    "mismatches": [],
+    "testOrProbeEntries": []
+  },
+  "startup": {
+    "version": "1.6.5",
+    "entryPoint": "com.vncode.app.Launcher",
+    "result": "passed",
+    "platform": "Linux",
+    "workspaceOpenedMillis": 6528,
+    "viewportPixels": [
+      1280,
+      700
+    ],
+    "freshProfile": true,
+    "shops": 0,
+    "licenseStatus": "UNVERIFIED",
+    "sellerApiAllowed": false,
+    "licenseActivationRequested": false,
+    "normalShutdown": true,
+    "dataLockReleased": true,
+    "scope": "Production JavaFX startup and shutdown on Linux/Xvfb, disposable empty profile; no seller mutation or Windows installer test"
+  },
+  "productionInputs": [
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/GtinCatalogIndex.java",
+      "sha256": "71a9771eaa3b6a015ad8d22d782e4f399c369964742899ab116095eca2038693"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/GtinTnvedIdentity.java",
+      "sha256": "ab446b8748e1c89c5e967823bca30d4a53b7f070c977799628e7dc4378344545"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/OzonReviewedVariantProof.java",
+      "sha256": "90415a3b34f4abff4bba853d2efb9c42414e980cc11c8b275c769808ac39ea36"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizCrossMarketplaceProof.java",
+      "sha256": "7617de30acdede789a7e705a3f4c848d7025425ec047c0d5b6351b1cccbca080"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizRegistrationIdentityRepository.java",
+      "sha256": "10316d2891bfacb33192a2f273557ad0a3d565afe88dd7024911b8c5444b2eeb"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java",
+      "sha256": "43fdf838d8d4e94c4008482e145d07df444062a6f0811eef7d0ba2e1b656e15f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/RegistrationCardIndex.java",
+      "sha256": "275aab9598135a3ca3f43bcea7e59ece18d0e9320bcca07bca1bfc7c54447080"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+      "sha256": "f7091472c6f27ed728017eaaee898b080d1124c3bd208189f4fd968692752733"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/ZnackGtinReviewService.java",
+      "sha256": "d2c928c16290e4719ce7c05889d7a31c0702207a7b5a567b5a19120c125a0ae7"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java",
+      "sha256": "0ff8d53a2dac982a3a38dc4f23d91bd1e65c3ae2bb21ded82bbb7abacdb1d364"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonExistingCardLinkService.java",
+      "sha256": "aacff8dcddf7cf6010b3622be2683b45ecdc03956ba2a9f8cf356892bd6c812c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonReviewedGtinLinks.java",
+      "sha256": "0af9e96be85762548aaf035e46c0885b290a57b5d9c4d85e95ae56a67b3e7a61"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+      "sha256": "e70703ca607c51c227ca131280fd522c2b51238dcd6bbdb48014be5b02865454"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/OzonCatalogVariantLinkDialog.java",
+      "sha256": "c8d4d6bd4cf05a4bf6920817f3b24f900b5daeedb47956f3d05d9624a019dde0"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+      "sha256": "230314c1b3e83fc89bf12d473e0a1a6333e19cd424ca869f0e42fddb3ff04104"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "sha256": "077abde7d66690049f6d82a69b1941caeaa2e8f267d7881d521f8cc884df7321"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "b6a192ea6962b42d56306c190c9dbcf3f1f1626a7f1b74bd755d45cddfd2e1cf"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "ba5bb61a107ea19c81a9ffff68f3cfffd9f458f68791a6563c139804fd2873c4"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "c670d16eb44f79f0f2334bba635af220dc42d714aa0033006fa8e87220a39f81"
+    }
+  ],
+  "scanner": {
+    "tool": "OpenQodex 0.16.0",
+    "command": "NODE_USE_ENV_PROXY=1 NODE_USE_SYSTEM_CA=1 OPENQODEX_HOME=/tmp/products-five-openqodex-state OPENQODEX_AUTO_UPDATE=off node /tmp/products-five-openqodex/package/dist/bin.js scan --cwd /workspace/vncode-znack-reconcile --base 684f118 --config /tmp/products-five-gitleaks-only.yaml --format sarif --report-dir /tmp/vncode-165-checks/ozon-reviewed-final-openqodex",
+    "actualScanners": [
+      {
+        "scanner": "gitleaks",
+        "status": "ran",
+        "version": "8.21.2",
+        "rawCount": 0,
+        "keptCount": 0,
+        "durationMs": 398,
+        "resolveMs": 2,
+        "files": 37,
+        "reason": null,
+        "stages": {
+          "changedLines": 0,
+          "fixtures": 0,
+          "rules": 0,
+          "merged": 0
+        }
+      }
+    ],
+    "candidateCount": 0,
+    "disabledScanners": 21,
+    "independentAiReview": false,
+    "scope": "Changes since 684f118, including runtime/tests and handoff documentation present at final scan; not a full-app security audit"
+  },
+  "ancestry": {
+    "latest164": {
+      "commit": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad",
+      "included": true
+    },
+    "pdfFix": {
+      "commit": "8845573c6fd2031840236ceb998ffd2dc0dad972",
+      "included": true
+    },
+    "giletAcceptance": {
+      "commit": "3c865b6d6c15d616d083c65502a02778d77de6f2",
+      "included": true
+    }
+  },
+  "remoteSellerMutationsThisFeature": {
+    "sellerPairApproved": false,
+    "paidKizPurchase": false,
+    "gtinBarcodePosted": false,
+    "catalogFeedOrSignaturePosted": false,
+    "wbChanged": false,
+    "licenseActivated": false
+  },
+  "limits": {
+    "fullJavaSuite": "NOT RUN; previous phase-one 737-case UI failure remains historical, not replaced by this targeted run",
+    "windowsInstallerAndInstalledApp": "NOT RUN",
+    "largeCatalogLivePerformance": "NOT RUN",
+    "newFeatureLiveApiAcceptance": "NOT RUN; earlier nine gilet receipts belong to the separate acceptance feature",
+    "nodeTools": "NOT RERUN; no Node/portal source changed since baseline",
+    "wbcodeReference": "STATIC_ONLY; see wbcode-reference.json",
+    "latestPublication": "NOT AUTHORIZED; no tag/release/publisher invoked"
+  },
+  "latestReadback": {
+    "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.4",
+    "id": 435647198,
+    "published_at": "2026-11-05T21:13:28Z",
+    "tag": "v1.6.4"
+  }
+}

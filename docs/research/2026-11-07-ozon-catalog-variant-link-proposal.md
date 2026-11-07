@@ -2,7 +2,7 @@
 
 Ngày **07.11.2026, MSK (UTC+03:00)**. Theo yêu cầu chủ dự án: sau khi hoàn tất bản gộp 1.6.5 chưa phát hành, kiểm quy tắc KIZ mapping Ozon và đề xuất cho cùng sản phẩm/cùng size được ghi tên, article/SKU khác nhau. Mục đích dùng chung liên kết để mua KIZ, đồng bộ sản phẩm và đẩy GTIN.
 
-**Đây là đề xuất sau đọc source, chưa thay quy tắc ghép tự động, ghi liên kết seller hoặc gửi GTIN thật.** Bản sửa PDF được ghi riêng. Không đưa 1.6.5 lên Latest.
+**Bản đề xuất gốc tại checkpoint `684f118`.** Người dùng sau đó yêu cầu dùng skill triển khai và đối chiếu WBCode mới nhất. Đã hiện thực đường liên kết native được duyệt trong candidate 1.6.5; [bàn giao triển khai](../validation/2026-11-07-ozon-reviewed-variant-handoff.md), [so sánh WBCode 1.3.20](2026-11-07-wbcode-1320-ozon-variant-link.md). Các phần mô tả “hiện có/chưa triển khai” bên dưới ghi tình trạng trước sửa. Chưa ghi cặp seller/mua KIZ/GTIN thật bằng tính năng mới. Không đưa 1.6.5 lên Latest.
 
 ## 1. Đang nhận diện bằng gì
 

@@ -1,0 +1,83 @@
+{
+  "checkedAtUtc": "2026-11-07T13:21:28.468910+00:00",
+  "reference": {
+    "repository": "rupphi/relatest-wcode",
+    "tag": "v1.3.20",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.20",
+    "publishedAtUtc": "2026-11-06T10:46:35Z",
+    "asset": "WCode.exe",
+    "assetBytes": 149613568,
+    "assetSha256": "4c07dd9742ec7464c3dd1db17551db9014d1c16e474618a243b702e43451371a",
+    "releaseDigestMatched": true,
+    "appJarSha256": "e2ed6a7b1e9844ce95746afe3f9c6a15a11ce8a9bdb39339e6ea8b83e0aa51ab",
+    "appJarClasses": 1370
+  },
+  "method": {
+    "kind": "STATIC_ONLY",
+    "reaMcpAvailable": false,
+    "fallback": [
+      "7-Zip 25.01 MSI/CAB extraction",
+      "CFR 0.152 selected classes"
+    ],
+    "wbcodeExecuted": false,
+    "licenseActivated": false,
+    "wbcodeLiveApiTested": false,
+    "proprietarySourceCopiedIntoVnCode": false
+  },
+  "selectedClasses": [
+    {
+      "class": "features/kizmapping/OzonGtinMappingSyncService",
+      "present1320": true,
+      "unchangedFrom1318": true,
+      "sha256": "f6a5faa36a5a68b57cb2c62c95149dc0524816fc63c4cb032dfbc16cf8da8ded"
+    },
+    {
+      "class": "integration/ozon/OzonProductGtinMappingRepository",
+      "present1320": true,
+      "unchangedFrom1318": true,
+      "sha256": "5d366639550a48d543d6936cb501f02c8b638730e5e297e40adb47a2099bdc76"
+    },
+    {
+      "class": "integration/ozon/OzonZnackMappingService",
+      "present1320": true,
+      "unchangedFrom1318": true,
+      "sha256": "fa134d7e2d7afdd65306eedf3997424ea1c26714111ecc65758a0355c759e7ce"
+    },
+    {
+      "class": "integration/znack/registration/OzonMarketplaceGtinAdoption",
+      "present1320": true,
+      "unchangedFrom1318": true,
+      "sha256": "0c9dc5d4ab15699e42a30fae769f85e1b0b3f252cd7bf23769c8436c8a40f1ef"
+    },
+    {
+      "class": "integration/znack/registration/OzonZnackRegistrationService",
+      "present1320": true,
+      "unchangedFrom1318": true,
+      "sha256": "909f9335bbc37fdc3be87e0705525062e5aa6a5abfaa36c116f5cfffd76e3362"
+    },
+    {
+      "class": "ui/kizmapping/OzonGtinMappingEditor",
+      "present1320": true,
+      "unchangedFrom1318": true,
+      "sha256": "be90c6cf073565fac86318f7dadcfec22bba0562e6f0aa7a76fe44a23f45f7c5"
+    }
+  ],
+  "observations": {
+    "matchPriority": [
+      "selected replacement GTIN by native product",
+      "active Catalog GTIN already in Ozon barcodes",
+      "base article and Russian/technical size identity"
+    ],
+    "fuzzyTitleOnlyLinkObserved": false,
+    "catalogAdoptionReadGroup": 25,
+    "barcodePublishGroup": 100,
+    "publishMethodChecksResponseErrors": true,
+    "readbackInPublishMethodObserved": false,
+    "readbackElsewhereConclusion": "NOT DETERMINED"
+  },
+  "limits": [
+    "Only six selected class families compared, not all application code",
+    "Static behavior is not runtime or official API limit verification",
+    "No paid purchase, seller link or marketplace GTIN written by this study"
+  ]
+}

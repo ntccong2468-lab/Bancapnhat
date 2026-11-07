@@ -40,6 +40,16 @@ Kế thừa đầy đủ nguồn 1.6.4 và các sửa trên PR #21 đến `bba83
 - Lỗi chứng từ, xác thực hoặc phản hồi sai danh tính không bị biến thành KIZ hỏng. Nếu hết mã và Ozon cho phép nhận không cần KIZ bắt buộc, vẫn nhận theo xác nhận mới từ Ozon; trường hợp khác giữ rõ đơn chưa xử lý.
 - Giữ báo cáo đủ từng đơn và đối soát sau lô; một đơn lỗi không làm mất các đơn phía sau. Không đổi quy tắc nhận đơn/gán KIZ/in nhãn của WB.
 
+## Ghép Catalog–Ozon khác tên/article — bổ sung theo đối chiếu WBCode 1.3.20
+
+Nguồn bổ sung `cae86ef71149a9be505b060360a7a9db8e07c5b4`, kế thừa PDF/nhận/thay KIZ Ozon `3c865b6`. Hồi quy cuối 476/476 ca / 28 lớp và package đạt; chưa nghiệm thu mua/ghi GTIN thật bằng liên kết mới.
+
+- Thêm **Ghép thẻ Catalog** cho những biến thể Ozon đã chọn: tìm mẫu, đề xuất màu/size rõ ràng, đọc mới hai nguồn, seller duyệt rồi lưu cả nhóm. Tên/article hai bên được khác; không gộp chỉ theo tên gần giống hoặc cùng size.
+- Dùng một liên kết native đã duyệt cho nhận diện thẻ, mua KIZ và GTIN. Cho phép khác TN VED ở đường này; mua lấy mã/giấy tờ Catalog. Registration hoặc barcode cũ không được thay quyết định mới.
+- Lưu qua restart; đổi cách trình bày tên không mất liên kết sau đọc lại, đổi danh tính vật lý/scope cần xem lại. Báo riêng đã ghép và GTIN đã đọc thấy trên Ozon; giữ barcode cũ và chỉ xác nhận ghi sau readback.
+- Không tự mua KIZ hoặc ghi barcode khi chỉ lưu liên kết. Legacy link không tự thành proof mua mới. WB giữ nguyên quy tắc.
+- [So sánh WBCode 1.3.20, nguồn và sơ đồ](../research/2026-11-07-wbcode-1320-ozon-variant-link.md), [bàn giao và giới hạn kiểm chứng](../validation/2026-11-07-ozon-reviewed-variant-handoff.md).
+
 ## Các sửa được kế thừa
 
 Giữ toàn bộ giao diện tối/sáng đã duyệt, khung danh sách lớn, năm tab Znack/Kho KIZ, WB Đơn nợ, Ozon Đơn mới/Đang giao hàng; nhận đơn và tải nhãn theo lô; vận đơn Ozon nguyên bản và KIZ đúng đơn; số vận đơn/thứ tự phiếu nhặt hàng; cache/receipt/checkpoint, license kiểm tra nền và cập nhật an toàn. Các sửa audit PDF/KIZ, updater, log, dependency và công cụ cũng được giữ.
