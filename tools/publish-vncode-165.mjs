@@ -11,7 +11,7 @@ import {validateBuild, validateNativeSmoke, validateSideBySideSmoke, validateUpg
 
 // One owner-requested release. These constants deliberately cannot be replaced by dispatch inputs.
 export const candidate=Object.freeze({version:'1.6.5',source:'4ffea8a2732ad04d1a3fc481d472867ba2683a8a',
-  build:42382780334,workflow:392732536,baseline:'1.6.4',repo:'ntccong2468-lab/Bancapnhat',releaseId:0});
+  build:42382780334,workflow:392732536,baseline:'1.6.4',repo:'ntccong2468-lab/Bancapnhat',releaseId:437689422});
 export const assets=Object.freeze([...requiredAssets(candidate.version),'asset-manifest.json','SHA256SUMS',
   'gs1-smoke.json','side-by-side-smoke.json','previous-baseline.json']);
 const json=bytes=>JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));

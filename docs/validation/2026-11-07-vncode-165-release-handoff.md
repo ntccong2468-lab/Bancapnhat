@@ -22,3 +22,11 @@ Chờ đúng run Windows hoàn thành; kiểm artifact cuối, source ZIP, JAR, 
 ## Giới hạn nghiệp vụ
 
 Các biên nhận API thật trước đó giữ nguyên ngày/phạm vi: chín đơn gilet Ozon và một GTIN được ghi/đọc lại. Chúng không chứng minh mọi đơn phát sinh trong tương lai, nhánh thay mã bị từ chối đã chạy thật, mua KIZ có phí hoặc toàn bộ hàng đợi PKI/UI đã được nghiệm thu. Lượt Windows đóng gói dùng dữ liệu kiểm thử riêng; không giả cờ live API thành true.
+
+## Bộ cài cuối đã kiểm trước công bố
+
+- Windows build `42382780334` hoàn tất thành công lúc 16:17 UTC ngày 07.11.2026; đúng nguồn app `4ffea8a`. **3.935 ca / 524 lớp, 0 thất bại, 0 lỗi, 2 bỏ qua theo hệ thống; 3.933 đạt**. Native launcher, migration 3→6/snapshot, DPAPI, cài/gỡ độc lập với WCode và nâng cấp thụ động từ 1.6.4 giữ dữ liệu đều đạt.
+- Đã tải artifact `13581316597`: đủ 16 tệp, checksum/manifest/Git bundle đạt; chính EXE và MSI khớp fingerprint của smoke nâng cấp. [Build/gates và toàn bộ hash](2026-11-07-vncode-165-build.json).
+- [Đối chiếu payload](2026-11-07-vncode-165-package.json): 2.875 tệp source ZIP trùng Git (2.559 tệp chỉ chuẩn hóa CRLF); JAR 1.949 class/Java 25 đúng phiên bản, có class sửa mới, không fixture/probe, launcher production và đúng feed cập nhật. Bộ cài chưa ký Authenticode.
+- Tag nhẹ `v1.6.5` đã trỏ đúng `4ffea8a`. Draft mới **437689422**, pin từ phản hồi POST tạo thành công; chưa công bố ở checkpoint này. Trường GitHub `created_at` theo ngày commit nguồn, không dùng nó để suy draft đã tồn tại từ trước hoặc tạo thêm draft.
+- Quyền API/GitHub/Git có gián đoạn 401 khoảng 18:30 MSK, được kiểm lại đạt 18:42 MSK; agent không đổi credential/cấu hình và không chạy lại build. Chưa xác định nguyên nhân refresh phía nền tảng.

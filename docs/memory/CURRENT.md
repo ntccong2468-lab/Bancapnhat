@@ -4,6 +4,10 @@ Cập nhật: **07.11.2026, 18:13 MSK (UTC+03:00)**. Đối chiếu Git/PR/Lates
 
 ## Đang phát hành 1.6.5 theo chỉ đạo mới
 
+- **Windows hoàn tất:** run 42382780334 đúng SHA 4ffea8a, 3.935 ca/524 lớp, 0 lỗi/thất bại, 2 bỏ qua; native/migration/DPAPI/cài-gỡ/nâng cấp từ 1.6.4 đều đạt. Đã tải đủ 16 asset, kiểm toàn bộ checksum, source ZIP 2.875 tệp và JAR 1.949 class. [Build](../validation/2026-11-07-vncode-165-build.json), [payload](../validation/2026-11-07-vncode-165-package.json). Tag v1.6.5 đúng source; draft **437689422** vừa tạo và publisher pin ID này. Chưa chuyển Latest ở checkpoint này; chạy mode owner-requested-165 tiếp theo.
+
+- **Gián đoạn quyền GitHub đã được xác nhận hoạt động lại:** khoảng 18:30 MSK API trả 401 và Git thiếu username; đến **18:42 MSK** GET API mới xác nhận đúng SHA/build, Git push dry-run lại đạt. Agent không đổi credential/config, không gửi token trong chat hoặc dispatch lại build; chưa xác định nguyên nhân refresh phía nền tảng. Đã thông báo câu hỏi kết nối lại trước đó được giải quyết. Monitor công khai vẫn theo đúng run 42382780334; chưa tạo tag/draft/publish ở checkpoint này.
+
 - Người dùng hiện yêu cầu **gom tất cả sửa và đẩy Latest để app nhận cập nhật**. Chỉ đạo này thay thế các mốc phía dưới chỉ gom/chưa phát hành; không yêu cầu xác nhận lại quyền publish.
 - Chuẩn bị build Windows trên SHA cố định, giữ toàn bộ source runtime đến `cae86ef` và biên nhận API `1da051e`, kiểm full Java, bộ cài và nâng cấp từ Latest 1.6.4. Chưa đổi Latest ở mốc ghi này; chỉ công bố sau khi xác minh đúng artifact/source/checksum. Không ghi đè hoặc xóa các bản cũ.
 - Nguồn app đã push **`4ffea8a2732ad04d1a3fc481d472867ba2683a8a`**; [Windows run **42382780334**](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42382780334) qua preflight và đang full Java. Dispatch sai SHA 42382737001 đã hủy, không tái dùng. [Bàn giao phát hành](../validation/2026-11-07-vncode-165-release-handoff.md), [đối chiếu nguồn](../validation/2026-11-07-vncode-165-source-inclusion.json).

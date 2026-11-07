@@ -80,6 +80,19 @@
     "highCriticalOrUnclassified": 1,
     "applicationAndJavaTestsUnchangedFromPinnedBuild": true,
     "newPublisherHasPositiveReleaseIdGuard": true,
-    "openqodexManualWorkflow": "skipped; local scoped scanner recorded separately"
+    "openqodexManualWorkflow": "skipped; local scoped scanner recorded separately",
+    "nodeToolTests": {
+      "tests": 155,
+      "passed": 155,
+      "failed": 0,
+      "skipped": 0
+    },
+    "portalTests": {
+      "tests": 67,
+      "passed": 67,
+      "failed": 0,
+      "skipped": 0
+    },
+    "npmAudit": "0 reported vulnerabilities in the portal dependency audit; not a Java dependency assessment"
   }
 }

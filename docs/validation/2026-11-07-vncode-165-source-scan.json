@@ -116,5 +116,15 @@
     "Ten reported candidates remain visible; no suppression to force zero",
     "Other scanner coverage is separate CodeQL/lint/audit evidence",
     "Initial no-Git invocation exited 2 before scanning; final invocation uses a disposable empty Git baseline"
-  ]
+  ],
+  "newHistoryRangeCheck": {
+    "tool": "Gitleaks 8.21.2 direct git-diff scanner",
+    "range": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad..4ffea8a2732ad04d1a3fc481d472867ba2683a8a",
+    "newCommits": 22,
+    "exitCode": 0,
+    "findings": 0,
+    "redacted": true,
+    "reportSha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570",
+    "scope": "New application-source history since published 1.6.4; older history and other refs not rescanned; separate from the whole current-source snapshot scan"
+  }
 }
