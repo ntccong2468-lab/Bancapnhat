@@ -4245,9 +4245,9 @@
   "minutes_seconds": "14:47",
   "version_at_run": "1.6.5",
   "functionalSourceCommit": "2e5b50a7735ac564b45e2aec12d2e9e19c0d58d9",
-  "releaseSourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "releaseSourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
   "releaseVersion": "1.6.6",
-  "fullWindowsBuildRun": 42407000935,
+  "fullWindowsBuildRun": 42408546769,
   "fullWindowsPending": true,
   "localLogSha256": "cf087de7f9a75522613186765320837630b4b2b5e3919dd05df6816598aa5f01",
   "afterVersionAndPaint": {
@@ -4269,5 +4269,19 @@
     "deployed": false
   },
   "liveSellerWrites": false,
-  "scope": "Synthetic JavaFX/SQLite/MockWebServer regression on Linux. Three named TenThousand stress methods remain enabled and are included in the separate full Windows build."
+  "scope": "Synthetic JavaFX/SQLite/MockWebServer regression on Linux. Three named TenThousand stress methods remain enabled and are included in the separate full Windows build.",
+  "finalGuardRegression": {
+    "sourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+    "tests": 150,
+    "classes": 5,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "nullContextBaseline": {
+      "cases": 2,
+      "nullPointerErrors": 2
+    },
+    "scope": "Carrier-only print, combined labels, product metadata, batched carrier labels, picking and exemplar workflow. Mock HTTP and isolated SQLite; no seller API writes.",
+    "logSha256": "6590b3126f6669d16aa95287aaba44c094cbd0ebd0dd20fe2bd3268419e582ca"
+  }
 }

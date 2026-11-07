@@ -1,8 +1,8 @@
 {
-  "scannedFunctionalSourceCommit": "2e5b50a7735ac564b45e2aec12d2e9e19c0d58d9",
-  "releaseSourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "scannedFunctionalSourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+  "releaseSourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
   "openqodexVersion": "0.16.0",
-  "scope": "Whole tracked working snapshot before release docs/version: 2903 files; no seller profile, no Git history, scanner-only, no AI review. POM version and one progress paint changed after scan; no authentication inputs changed.",
+  "scope": "Full tracked Git tree of exact release application source, isolated empty-baseline snapshot; no seller profile or source Git history; scanner-only, no AI review. One local scanner configuration specifies all fixtures and only Gitleaks.",
   "scanners": [
     {
       "scanner": "gitleaks",
@@ -10,9 +10,9 @@
       "version": "8.21.2",
       "rawCount": 10,
       "keptCount": 10,
-      "durationMs": 4685,
-      "resolveMs": 0,
-      "files": 2903,
+      "durationMs": 3302,
+      "resolveMs": 1,
+      "files": 2917,
       "reason": null,
       "stages": {
         "changedLines": 0,
@@ -22,7 +22,7 @@
       }
     }
   ],
-  "rawScanReceiptSha256": "9f87818fe71de95d90c911da3da89cad8fcf91d01fe37dd3b276dd4e259d19c4",
+  "rawScanReceiptSha256": "4fe71e8f40ab9c6083dbd16ca461debdbd69b571764d4919aeab5b358119d926",
   "confirmedAuthenticationSecretFindings": 0,
   "dispositions": [
     {

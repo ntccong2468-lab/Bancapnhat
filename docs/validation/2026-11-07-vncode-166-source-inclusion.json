@@ -1,13 +1,13 @@
 {
   "version": "1.6.6",
-  "sourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "sourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
   "branch": "release/vn-code-1.6.6",
   "previousLatest": {
     "version": "1.6.5",
     "sourceCommit": "4ffea8a2732ad04d1a3fc481d472867ba2683a8a",
     "releaseId": 437689422
   },
-  "fullWindowsBuildRunId": 42407000935,
+  "fullWindowsBuildRunId": 42408546769,
   "ownerRequestedLatestPublication": true,
   "includedChanges": [
     {
@@ -89,6 +89,11 @@
       "change": "Version 1.6.6 and flat updater progress",
       "commit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
       "includedByAncestry": true
+    },
+    {
+      "change": "Single carrier-only printing context guard",
+      "commit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+      "includedByAncestry": true
     }
   ],
   "runtimeInputsChangedSince165": [
@@ -154,7 +159,7 @@
     },
     {
       "path": "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java",
-      "sha256": "58de5e335b55dcfc5e13152355e792f89e3f09884e03c7d7913a3df646dffd54"
+      "sha256": "a15db01e5dd05fc7f094535e38ceb19129e528cbf321d6f63862b45e03faf556"
     },
     {
       "path": "src/main/java/com/vncode/app/integration/ozon/OzonPrintProductSnapshot.java",
@@ -238,5 +243,12 @@
     }
   ],
   "sellerCredentialsOrDatasetIncluded": false,
-  "laterPublisherAndHandoffCommitsAreNotAppBuildSource": true
+  "laterPublisherAndHandoffCommitsAreNotAppBuildSource": true,
+  "cancelledBuilds": [
+    {
+      "runId": 42407000935,
+      "source": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+      "reason": "Final source review found and reproduced missing context guard in single carrier-only printing. Cancelled before packaging."
+    }
+  ]
 }

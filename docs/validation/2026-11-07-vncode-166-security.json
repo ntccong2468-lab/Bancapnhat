@@ -1,7 +1,7 @@
 {
   "version": "1.6.6",
-  "applicationSourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
-  "securityRunId": 42407363087,
+  "applicationSourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+  "securityRunId": 42408547869,
   "status": "failure",
   "lintAndAudit": "success",
   "javascriptCodeql": "success",
@@ -65,8 +65,8 @@
     }
   ],
   "sarifSha256": {
-    "codeql-java-kotlin/java.sarif": "d8189e27ad7028c3b711b42d906753ab04d6d500fa7b4adc9e29e42a22ede943",
-    "codeql-javascript-typescript/javascript.sarif": "96a552ad57ded330659a8174b27f1950bfeee2fa99f37da2c8b1d2c03a2decca"
+    "codeql-java-kotlin/java.sarif": "81da6ee2158af7d31857af3053c22f9e934c449862ed6c84f1467f297866c5cd",
+    "codeql-javascript-typescript/javascript.sarif": "7f14eb7d143710b74fd6b2bd3434dd8e54f289605d5e045e2a1ab69450bb1572"
   },
   "highFindingDisposition": "Existing Windows/CryptoPro SHA-1 certificate-store thumbprint identifier; not CMS signing, password hashing or update integrity. Matches previously documented review. Gate remains failed; no rule or threshold changed.",
   "priorReview": "docs/validation/2026-11-03-release-security-review.md",
@@ -74,5 +74,10 @@
   "allFindingFilesByteIdenticalTo165": true,
   "openqodex": "Skipped on workflow_dispatch; separate local whole-source Gitleaks snapshot recorded in report-pdf-app-20261107/source-scan.json",
   "dependencyReview": "Skipped on workflow_dispatch; no dependency coordinates or lockfiles changed in this release",
-  "scope": "Fresh CI checks on exact 1.6.6 source; no security query, threshold or workflow changed to achieve a pass. No independent AI review. Functional installer release checks remain separate."
+  "scope": "Fresh CI checks on exact 1.6.6 source; no security query, threshold or workflow changed to achieve a pass. No independent AI review. Functional installer release checks remain separate.",
+  "supersededPreGuardRun": {
+    "sourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+    "runId": 42407363087,
+    "sameFindings": true
+  }
 }

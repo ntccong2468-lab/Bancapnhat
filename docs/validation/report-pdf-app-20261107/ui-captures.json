@@ -1,6 +1,6 @@
 {
   "renderer": "Native JavaFX, Linux/Xvfb",
-  "releaseSourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "releaseSourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
   "afterCaptureCount": 84,
   "syntheticData": true,
   "fxmlPages": 16,
@@ -32,5 +32,7 @@
       "sha256": "3ee3ce78fe71a1e57801dc74bc54b4bf6e513cc10225ed39210bd88491b67265"
     }
   ],
-  "sellerWindowsDpiOrNarratorCertified": false
+  "sellerWindowsDpiOrNarratorCertified": false,
+  "captureSourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "uiInputsByteIdenticalAfterCapture": true
 }

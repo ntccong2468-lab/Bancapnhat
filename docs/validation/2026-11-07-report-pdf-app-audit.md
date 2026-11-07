@@ -4,6 +4,8 @@ Người dùng yêu cầu kiểm báo cáo, đủ nhãn KIZ kết hợp ở các
 
 Mốc app ban đầu **`bd3175d61cb1bb133999e8a6e5b011902d50c7cb`** đã được bổ sung sửa nhánh in đơn lẻ trong lượt soi cuối. [Windows build `42407000935`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42407000935) đã hủy trước đóng gói; không dùng làm bằng chứng bản cuối. Lượt Windows nguồn mới phải giữ full suite, kể cả ba ca 10.000. [Nguồn và các mốc kế thừa](2026-11-07-vncode-166-source-inclusion.json), [kết quả Linux từng lớp](report-pdf-app-20261107/verification.json), [PDF ba shop](report-pdf-app-20261107/pdf.json), [scan đã triage](report-pdf-app-20261107/source-scan.json), [JAR local](report-pdf-app-20261107/local-package.json), [ảnh native](assets/report-pdf-app-20261107/README.md). Biên nhận mỗi lượt giữ đúng SHA; tài liệu/tooling sau SHA đóng gói không thay binary đang build.
 
+Nguồn cuối **`ac8ba1c939e22d0318877a3a2ba7242359cce78e`**, [Windows `42408546769`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42408546769) và [security `42408547869`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42408547869), khởi chạy 19:55 UTC. Các tệp giao diện giống byte lúc capture; chỉ thêm guard service, hai test và ghi chú sau mốc đầu.
+
 ## Lỗi có bằng chứng và sửa đổi
 
 | Mức | Chẩn đoán trước sửa | Thay đổi và kiểm chứng |
@@ -52,8 +54,8 @@ Giữ Native Dispatch Workbench đã duyệt trong `DESIGN.md`; không rút ki�
 
 ## Soi nguồn và công bố
 
-OpenQodex 0.16.0/Gitleaks 8.21.2 quét snapshot **2.903 tệp**, không profile seller/Git history; chỉ chọn scanner Gitleaks, không AI reviewer. Có 10 candidate secret đã đối chiếu với các file không đổi và triage của 1.6.5: public URL/key, dữ liệu giả và marker kiểm tra; không xác nhận auth secret thật. Công cụ còn nêu 19 advisory suppression import của skill Python không đổi; đó không phải Ruff đã chạy. Không gọi exit 0 là toàn bộ scanner/CodeQL đạt.
+OpenQodex 0.16.0/Gitleaks 8.21.2 quét lại đúng Git tree nguồn cuối **2.917 tệp**, không profile seller/Git history; chỉ chọn scanner Gitleaks, không AI reviewer. Có 10 candidate secret đã đối chiếu với các file không đổi và triage của 1.6.5: public URL/key, dữ liệu giả và marker kiểm tra; không xác nhận auth secret thật. Công cụ còn nêu 19 advisory suppression import của skill Python không đổi; đó không phải Ruff đã chạy. Không gọi exit 0 là toàn bộ scanner/CodeQL đạt.
 
-Rà soát CI lại trên đúng nguồn 1.6.6, [run `42407363087`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42407363087): lint/audit và CodeQL JavaScript đạt; Java xuất SARIF nhưng gate giữ thất bại vì tám finding cũ, gồm một high tại SHA-1 thumbprint định danh chứng thư CryptoPro. Đối chiếu đủ tám rule/file/line và byte nguồn với binary-source 1.6.5, không có finding mới. Không thay query/ngưỡng/gate hoặc đổi SHA-1 store ID thành thuật toán khác để né scanner. [Chi tiết và hash SARIF](2026-11-07-vncode-166-security.json); các medium/giới hạn vẫn giữ trong đánh giá trước.
+Rà soát CI lại trên đúng nguồn cuối 1.6.6, [run `42408547869`](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42408547869): lint/audit và CodeQL JavaScript đạt; Java xuất SARIF nhưng gate giữ thất bại vì tám finding cũ, gồm một high tại SHA-1 thumbprint định danh chứng thư CryptoPro. Đối chiếu đủ tám rule/file/line và byte nguồn với binary-source 1.6.5, không có finding mới. Không thay query/ngưỡng/gate hoặc đổi SHA-1 store ID thành thuật toán khác để né scanner. [Chi tiết và hash SARIF](2026-11-07-vncode-166-security.json); các medium/giới hạn vẫn giữ trong đánh giá trước. Lượt trước guard `42407363087` có cùng kết quả, không dùng thay lượt nguồn cuối.
 
 Người dùng đã yêu cầu phát hành 1.6.6 lên Latest sau khi hoàn tất. **Đang chuẩn bị build Windows đầy đủ/nâng cấp từ 1.6.5**; chưa đổi Latest tại mốc ghi này. Không ghi đè release 1.6.5 immutable, không prune bản cũ. Chưa có lượt ghi API seller mới, mua KIZ, ký/công bố Catalog, kích hoạt license hoặc Gmail trong lượt này.

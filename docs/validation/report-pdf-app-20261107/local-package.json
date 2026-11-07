@@ -1,8 +1,8 @@
 {
   "version": "1.6.6",
-  "sourceCommit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+  "sourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
   "artifact": "target/VNcode-1.6.6.jar",
-  "sha256": "4fd3897b96f8364fc78950cccd17a5fa2891b7d862c773648df0423c779318b6",
+  "sha256": "ff58fd9590f5e2d0b795afcb72e4d11f58b019c5f9da7727ecdf954191759962",
   "classes": 1956,
   "allPackagedClassesMatchCompiledOutput": true,
   "requiredFixClassesPresent": [
@@ -13,5 +13,6 @@
   ],
   "fixtureClassesAbsent": true,
   "defaultUpdateSource": "https://github.com/ntccong2468-lab/Bancapnhat",
-  "scope": "Local Linux Maven package after passing targeted UI/version tests; full Windows installer proof is separate; no live seller API acceptance"
+  "scope": "Local Linux Maven package after passing targeted UI/version tests; full Windows installer proof is separate; no live seller API acceptance",
+  "singleCarrierOnlyGuardIncluded": true
 }
