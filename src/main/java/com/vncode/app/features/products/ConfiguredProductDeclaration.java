@@ -17,7 +17,7 @@ public final class ConfiguredProductDeclaration {
         if(shop.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON){
             var matches=new LinkedHashMap<String,ProductDocument>();
             for(var existing:new ProductRepository().shopDocuments(shop))
-                if(isDeclaration(existing.type())&&document.number().equals(existing.number())
+                if(isDeclaration(existing.type())&&document.number().equals(com.vncode.app.shared.PermitDocumentNumber.normalize(existing.number()))
                         &&Objects.equals(document.validFrom(),existing.validFrom())
                         &&(document.validUntil()==null||Objects.equals(document.validUntil(),existing.validUntil()))
                         &&Objects.toString(existing.id(),"").matches("[1-9][0-9]{0,18}")

@@ -28,8 +28,11 @@ class RegistrationDynamicPreflightTest {
     }
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
     ProductSnapshot snapshot(String id){
+        return snapshot(id,"SYNTHETIC-DOC");
+    }
+    ProductSnapshot snapshot(String id,String documentNumber){
         var key=new ProductKey(shop.getId(),Marketplace.OZON,id,"offer-"+id);
-        var document=new ProductDocument("D","DECLARATION","SYNTHETIC-DOC",LocalDate.parse("2025-01-01"),LocalDate.now().plusYears(1),"Fixture","",null,Marketplace.OZON,DocumentState.VALID,"https://example.invalid",Instant.now());
+        var document=new ProductDocument("D","DECLARATION",documentNumber,LocalDate.parse("2025-01-01"),LocalDate.now().plusYears(1),"Fixture","",null,Marketplace.OZON,DocumentState.VALID,"https://example.invalid",Instant.now());
         return new ProductSnapshot(key,"read","Fixture","","Brand","offer-"+id,"1",List.of(),List.of(new ProductAttribute("tnved","ТН ВЭД",List.of("6204"),"")),List.of(new ProductVariant(key.variantId(),key.variantId(),"Brown","52","",false,"52")),null,List.of(document),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop),"source.category.name","Fixture"));
     }
     @Test void allSelectedCardsExposeExactMissingAttributeAndReuseSchemaPaperAndTnvedReads()throws Exception{
@@ -121,6 +124,26 @@ class RegistrationDynamicPreflightTest {
         assertEquals(2,review.blocked().size());assertTrue(review.blocked().stream().allMatch(b->b.field().equals("documents")));
         assertTrue(review.documents().isEmpty());assertTrue(review.plans().isEmpty());assertEquals(0,api.writes);
     }
+    @Test void rejectedRegistryNumberBlocksEachAffectedCardAndKeepsReviewingOtherDocuments(){
+        String canonical="ЕАЭС N RU Д-RU.РА08.В.00001/25",validNumber="ЕАЭС N RU Д-CN.РА08.В.00002/25";
+        api.rejectedPermitNumber=canonical;
+        var bad=java.util.stream.IntStream.rangeClosed(1,3).mapToObj(n->snapshot(Integer.toString(n),"ЕАЭС N RU Д-RU.PА08.B.00001/25")).toList();
+        var valid=snapshot("4",validNumber);var selected=new ArrayList<>(bad);selected.add(valid);
+        var review=assertDoesNotThrow(()->service.read(shop,selected,Map.of(valid.key(),Map.of(999L,new RegistrationReviewedValues.Value("A","")))));
+        assertEquals(3,review.blocked().size());
+        assertEquals(bad.stream().map(ProductSnapshot::key).collect(java.util.stream.Collectors.toSet()),review.blocked().stream().map(RegistrationDynamicPreflight.Blocked::key).collect(java.util.stream.Collectors.toSet()));
+        for(var blocked:review.blocked()){
+            assertEquals("documents",blocked.field());assertTrue(blocked.detail().contains("ZNACK_DOCUMENT_REGISTRY_REJECTED"));
+            assertTrue(blocked.detail().contains(canonical));assertTrue(blocked.detail().contains("SYNTHETIC_DECLARATION_NOT_FOUND"));
+            assertFalse(blocked.detail().contains("ZNACK_PREFLIGHT_READ_FAILED"));
+        }
+        assertEquals(List.of(valid.key()),review.plans().stream().map(plan->plan.snapshot().key()).toList());
+        assertTrue(review.missing().isEmpty());assertTrue(review.documents().isEmpty());
+        assertEquals(2,api.permits,"One rejected shared paper and the separate valid paper must both be reviewed");
+        assertEquals(List.of(canonical,validNumber),api.permitRequests.stream().map(request->request.get("number").getAsString()).toList());
+        for(var request:api.permitRequests){assertEquals(23557,request.get("attr_id").getAsInt());assertEquals("2025-01-01",request.get("from_date").getAsString());}
+        assertThrows(RegistrationValidationException.class,()->RegistrationDynamicPreflight.approvals(review));assertEquals(0,api.writes);
+    }
     @Test void conditionalFieldsAndAmbiguousTypeAreVisibleRatherThanGuessed(){
         var child=new Attribute(1000,"Conditional numeric value","number",false,false,true,false,List.of());
         var parent=new Attribute(999,"Choice","text",true,false,true,false,List.of("A","B"),List.of(),Map.of("A",List.of(child)));
@@ -132,14 +155,22 @@ class RegistrationDynamicPreflightTest {
     }
     final class FixtureApi extends ZnackApiClient{
         int categories,attributes,permits,quota,writes,countries,fullModels;int permitStatus=1;boolean ambiguous,requiredRegulation,announcedCountry;String scope="6204";
-        boolean exhausted;
+        boolean exhausted;String rejectedPermitNumber="";final List<JsonObject> permitRequests=new ArrayList<>();
         public JsonElement generatedGtins(String base,String token){quota++;return json(exhausted?"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":0,\"usage\":0}}}":"{\"result\":{\"drafts\":[],\"monthly-limit\":{\"limit\":10000,\"usage\":0}}}");}
         public JsonElement nationalCatalogCategories(String base,String token,String tnved){categories++;return json(ambiguous?"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Other A\"},{\"cat_id\":2,\"cat_name\":\"Other B\"}]}":"{\"result\":[{\"cat_id\":1,\"cat_name\":\"Fixture\"}]}");}
         public JsonElement nationalCatalogAttributes(String base,String token,long category){attributes++;return attributeResponse();}
         public JsonElement nationalCatalogAllAttributes(String base,String token,long category){fullModels++;var response=attributeResponse();if(announcedCountry){var field=new JsonObject();field.addProperty("attr_id",2630);field.addProperty("attr_name","Страна производства");field.addProperty("attr_field_type","text");field.addProperty("attr_preset_only",true);response.getAsJsonArray("result").add(field);}return response;}
         public JsonElement nationalCatalogCountries(String base,String token){countries++;return json("{\"apiversion\":3,\"result\":{\"_etag\":\"countries-fixture\",\"_list\":[{\"country_iso\":\"RU\",\"country_name\":\"Россия\"},{\"country_iso\":\"CN\",\"country_name\":\"Китай\"}]}}");}
         private JsonObject attributeResponse(){var response=json("{\"result\":[{\"attr_id\":999,\"attr_name\":\"Catalog mandatory detail\",\"attr_field_type\":\"text\",\"attr_preset_only\":true,\"attr_preset\":[\"A\",\"B\"]}]}").getAsJsonObject();if(requiredRegulation){var field=new JsonObject();field.addProperty("attr_id",13836);field.addProperty("attr_name","Технический регламент");field.addProperty("attr_field_type","text");field.addProperty("attr_preset_only",true);var presets=new JsonArray();presets.add(REGULATION);field.add("attr_preset",presets);response.getAsJsonArray("result").add(field);}return response;}
-        public JsonElement registrationPermitInfo(String base,String token,JsonArray requested){permits++;var docs=requested.deepCopy();for(var value:docs){value.getAsJsonObject().addProperty("status_group",permitStatus);value.getAsJsonObject().addProperty("product_tnved",scope);if(requiredRegulation)value.getAsJsonObject().addProperty("product_tech_regulations","ТР ТС 017/2011 О безопасности продукции легкой промышленности");}var result=new JsonObject();result.add("documents",docs);var response=new JsonObject();response.add("result",result);return response;}
+        public JsonElement registrationPermitInfo(String base,String token,JsonArray requested)throws java.io.IOException{
+            permits++;for(var value:requested)permitRequests.add(value.getAsJsonObject().deepCopy());
+            if(!rejectedPermitNumber.isBlank()&&requested.get(0).getAsJsonObject().get("number").getAsString().equals(rejectedPermitNumber)){
+                var error=requested.get(0).getAsJsonObject().deepCopy();error.addProperty("code",14);error.addProperty("message","SYNTHETIC_DECLARATION_NOT_FOUND");
+                var errors=new JsonArray();errors.add(error);var result=new JsonObject();result.add("documents",new JsonArray());result.add("errors",errors);var response=new JsonObject();response.add("result",result);
+                throw new ZnackApiClient.ZnackApiException("Registry rejected the requested declaration",400,response.toString(),"POST","https://example.invalid/v4/rd-info");
+            }
+            var docs=requested.deepCopy();for(var value:docs){value.getAsJsonObject().addProperty("status_group",permitStatus);value.getAsJsonObject().addProperty("product_tnved",scope);if(requiredRegulation)value.getAsJsonObject().addProperty("product_tech_regulations","ТР ТС 017/2011 О безопасности продукции легкой промышленности");}var result=new JsonObject();result.add("documents",docs);var response=new JsonObject();response.add("result",result);return response;
+        }
         public JsonElement generateGtins(String base,String token,int quantity){writes++;throw new AssertionError("Preflight allocated a GTIN");}
         public JsonElement submitNationalCatalogFeed(String base,String token,JsonElement body){writes++;throw new AssertionError("Preflight sent a card");}
         JsonElement json(String value){return JsonParser.parseString(value);}

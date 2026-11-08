@@ -35,7 +35,7 @@ public final class ZnackRegistrationDocuments {
             if(document.number()==null || document.number().isBlank() || document.validFrom()==null
                     || document.validFrom().isAfter(today)
                     || (document.validUntil()!=null && document.validUntil().isBefore(today)))continue;
-            var goods=new GoodsDocument(type,document.number().strip(),document.validFrom().toString());
+            var goods=new GoodsDocument(type,com.vncode.app.shared.PermitDocumentNumber.normalize(document.number()),document.validFrom().toString());
             boolean verified=document.state()==DocumentState.VALID && document.validUntil()!=null
                     && document.checkedAt()!=null && document.source()!=null && document.source().startsWith("https://");
             candidates.merge(goods,verified,Boolean::logicalOr);

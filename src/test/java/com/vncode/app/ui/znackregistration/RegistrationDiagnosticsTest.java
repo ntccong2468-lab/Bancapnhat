@@ -4,6 +4,16 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RegistrationDiagnosticsTest {
+    @Test void registryRejectionHasAnActionableTranslationAndKeepsSanitizedServerDetail(){
+        String code="ZNACK_DOCUMENT_REGISTRY_REJECTED";
+        for(var language:com.vncode.app.shared.AppLanguage.values()){
+            var bundle=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",language.toLocale());
+            assertFalse(bundle.getString("znack.registration.reason."+code).isBlank());
+        }
+        var message=RegistrationDiagnostics.reason(code+": SYNTHETIC_DECLARATION_NOT_FOUND; token=fixture-secret");
+        assertTrue(message.contains("SYNTHETIC_DECLARATION_NOT_FOUND"));assertFalse(message.contains(code));
+        assertFalse(message.contains("fixture-secret"));assertFalse(message.contains("ZNACK_PREFLIGHT_READ_FAILED"));
+    }
     @Test void publishedCatalogStatusIsIndependentOfMarketplaceMatchingAndOldErrors(){
         var card=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin("00000000000017","A","Blue","M",true,true,"National Catalog",java.time.Instant.now());
         var candidate=new com.vncode.app.features.sync.RegistrationCardIndex.View("source.ambiguous",card.gtin(),"GTIN_VARIANT_CONFLICT",true,false,true);

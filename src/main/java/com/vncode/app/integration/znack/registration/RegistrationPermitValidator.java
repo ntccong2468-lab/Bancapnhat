@@ -12,7 +12,8 @@ public final class RegistrationPermitValidator {
     private RegistrationPermitValidator(){}
     /** Registry tariff metadata is advisory, not an undocumented feed rejection rule. */
     public static boolean advisory(String problem){
-        return problem!=null&&(problem.contains("ZNACK_DOCUMENT_TNVED_MISMATCH")||problem.contains("ZNACK_DOCUMENT_TNVED_SCOPE_UNKNOWN"));
+        return problem!=null&&!problem.contains("ZNACK_DOCUMENT_REGISTRY_REJECTED")
+                &&(problem.contains("ZNACK_DOCUMENT_TNVED_MISMATCH")||problem.contains("ZNACK_DOCUMENT_TNVED_SCOPE_UNKNOWN"));
     }
     public static long attribute(GoodsDocument document){return switch(document.type()){
         case "CONFORMITY_DECLARATION"->23557;case "CONFORMITY_CERTIFICATE"->23561;
@@ -21,8 +22,33 @@ public final class RegistrationPermitValidator {
         var item=new JsonObject();item.addProperty("attr_id",attribute(document));
         item.addProperty("number",document.number());item.addProperty("from_date",document.date());return item;
     }
+    /** Only a recognized rejection for this exact permit is a per-document business result. */
+    static JsonElement rejectedReadback(ZnackApiClient.ZnackApiException failure,GoodsDocument selected){
+        if(failure.statusCode()!=400)return null;
+        try{
+            var response=JsonParser.parseString(failure.responseBody());
+            return registryRejection(response,selected).isBlank()?null:response;
+        }catch(JsonParseException invalid){return null;}
+    }
+    static String registryRejection(JsonElement response,GoodsDocument selected){
+        if(response==null||!response.isJsonObject())return "";
+        var root=response.getAsJsonObject();
+        if(!root.has("result")||!root.get("result").isJsonObject())return "";
+        var result=root.getAsJsonObject("result");
+        if(!result.has("errors")||!result.get("errors").isJsonArray())return "";
+        for(var entry:result.getAsJsonArray("errors"))if(entry.isJsonObject()){
+            var error=entry.getAsJsonObject();
+            if(!text(error,"code").equals("14")||!text(error,"number").equals(selected.number())
+                    ||!text(error,"from_date").equals(selected.date())
+                    ||error.has("attr_id")&&!text(error,"attr_id").equals(Long.toString(attribute(selected))))continue;
+            String detail=ZnackSanitizer.message(text(error,"message"));
+            return "ZNACK_DOCUMENT_REGISTRY_REJECTED"+(detail.isBlank()?"":": "+detail);
+        }
+        return "";
+    }
     /** Empty means verified; unresolved registry results remain unresolved, never valid. */
     public static String problem(JsonElement response,GoodsDocument selected,String tnved,LocalDate today){
+        String rejection=registryRejection(response,selected);if(!rejection.isBlank())return rejection;
         if(ZnackPermitDocumentParser.registryLookupPending(response))return "ZNACK_DOCUMENT_REGISTRY_PENDING";
         var result=response!=null&&response.isJsonObject()?response.getAsJsonObject():new JsonObject();
         if(result.has("result")&&result.get("result").isJsonObject())result=result.getAsJsonObject("result");

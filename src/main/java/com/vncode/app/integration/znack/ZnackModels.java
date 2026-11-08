@@ -61,6 +61,7 @@ public final class ZnackModels {
 
         public Settings {
             documentType = blank(documentType) ? DEFAULT_DOCUMENT_TYPE : documentType.trim();
+            documentNumber = com.vncode.app.shared.PermitDocumentNumber.normalize(documentNumber);
         }
 
         public Settings(String trueApiBaseUrl, String suzBaseUrl, String omsId, String omsConnection,
@@ -131,6 +132,7 @@ public final class ZnackModels {
         }
 
         public Settings withDefaultGoodsDocument(String type, String number, String date) {
+            number = com.vncode.app.shared.PermitDocumentNumber.normalize(number);
             return new Settings(trueApiBaseUrl, suzBaseUrl, omsId, omsConnection, participantInn, producerInn,
                     ownerInn, signerExecutable, signerCertificate, signerArgumentsJson, number, date, pdfFolder,
                     autoIntroduction, certificateListExecutable, certificateListArgumentsJson,

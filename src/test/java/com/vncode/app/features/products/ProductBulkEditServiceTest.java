@@ -64,6 +64,32 @@ class ProductBulkEditServiceTest {
         var preview=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(configured),Map.of()));
         var merged=preview.items().getFirst().documents();assertEquals(1,merged.size());assertEquals("own-doc",merged.getFirst().id());assertEquals("declaration",merged.getFirst().type());assertEquals(0,adapter.writes.get());
     }
+    @Test void canonicalRegistryEditRetainsTheExistingWbAttachmentAndItsMetadata()throws Exception{
+        var issued=java.time.LocalDate.now().minusDays(2);var expiry=issued.plusYears(1);
+        String canonical="ЕАЭС N RU Д-RU.РА08.В.54321/25";
+        var current=new ProductDocument("own-doc","2","ЕАЭС N RU Д-RU.PА08.B.54321/25",issued,expiry,"Owner","Own scope",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null,Map.of("tradeName","Keep trade name","isEndless","true"));
+        var duplicate=new ProductDocument("duplicate-doc","2",canonical,issued,expiry,"Owner","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null);
+        var certificate=new ProductDocument("own-certificate","1",canonical,issued,expiry,"Owner","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null);
+        var unrelated=new ProductDocument("unrelated","2","SYNTHETIC-PB",issued,expiry,"Owner","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null);
+        var base=snapshot;snapshot=new ProductSnapshot(key,base.revision(),base.title(),base.description(),base.brand(),base.vendorArticle(),base.categoryId(),base.media(),base.attributes(),base.variants(),base.dimensions(),List.of(current,duplicate,certificate,unrelated),base.checkedAt());
+        var configured=new ProductDocument("","declaration",canonical,issued,expiry,"","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null,Map.of("isEndless","false"));
+        var preview=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(configured),Map.of()));
+        var merged=preview.items().getFirst().documents();assertEquals(3,merged.size());
+        var edited=merged.stream().filter(document->document.id().equals("own-doc")).findFirst().orElseThrow();
+        assertEquals(canonical,edited.number());assertEquals("declaration",edited.type());assertEquals("Owner",edited.owner());assertEquals("Own scope",edited.scope());
+        assertEquals(Map.of("tradeName","Keep trade name","isEndless","false"),edited.metadata());
+        assertTrue(merged.contains(certificate));assertTrue(merged.contains(unrelated));
+        assertEquals("ЕАЭС N RU Д-RU.PА08.B.54321/25",current.number());assertEquals(0,adapter.writes.get());
+    }
+    @Test void arbitraryWbDocumentNumbersAreNotMergedByVisualLetterSimilarity()throws Exception{
+        var issued=java.time.LocalDate.now().minusDays(2);var expiry=issued.plusYears(1);
+        var current=new ProductDocument("own-doc","2","SYNTHETIC-PB",issued,expiry,"Owner","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null);
+        var base=snapshot;snapshot=new ProductSnapshot(key,base.revision(),base.title(),base.description(),base.brand(),base.vendorArticle(),base.categoryId(),base.media(),base.attributes(),base.variants(),base.dimensions(),List.of(current),base.checkedAt());
+        var changed=new ProductDocument("","declaration","SYNTHETIC-РВ",issued,expiry,"","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null);
+        var merged=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(changed),Map.of())).items().getFirst().documents();
+        assertEquals(2,merged.size());assertTrue(merged.contains(current));
+        assertEquals("",merged.stream().filter(document->document.number().equals(changed.number())).findFirst().orElseThrow().id());assertEquals(0,adapter.writes.get());
+    }
     @Test void aDocumentIdFromAnotherCardIsNotSentAsTheNewCardsOwnAttachment()throws Exception{
         var issued=java.time.LocalDate.now().minusDays(2);var document=new ProductDocument("foreign-attachment","declaration","fixture-new-declaration",issued,issued.plusYears(1),"","",null,Marketplace.WILDBERRIES,DocumentState.UNVERIFIED,"",null,Map.of());
         var preview=service.preview(shop,List.of(key),new ProductBulkEdit("documents",List.of(),List.of(document),Map.of()));

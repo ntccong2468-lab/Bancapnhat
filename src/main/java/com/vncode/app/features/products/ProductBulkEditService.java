@@ -135,8 +135,9 @@ public final class ProductBulkEditService {
     private static List<ProductDocument> mergeWbDocuments(ProductSnapshot fresh,List<ProductDocument> changes){
         var merged=new ArrayList<>(fresh.documents());
         for(var d:changes){
-            var old=merged.stream().filter(item->Objects.equals(item.number(),d.number())&&documentType(item.type()).equals(documentType(d.type()))).findFirst().orElse(null);
-            merged.removeIf(item->Objects.equals(item.number(),d.number())&&documentType(item.type()).equals(documentType(d.type())));
+            String number=com.vncode.app.shared.PermitDocumentNumber.normalize(d.number());
+            var old=merged.stream().filter(item->com.vncode.app.shared.PermitDocumentNumber.normalize(item.number()).equals(number)&&documentType(item.type()).equals(documentType(d.type()))).findFirst().orElse(null);
+            merged.removeIf(item->com.vncode.app.shared.PermitDocumentNumber.normalize(item.number()).equals(number)&&documentType(item.type()).equals(documentType(d.type())));
             String id=old!=null?old.id():fresh.documents().stream().anyMatch(item->!Objects.toString(d.id(),"").isBlank()&&Objects.equals(item.id(),d.id()))?d.id():"";
             var metadata=new HashMap<String,String>(old==null?Map.of():old.metadata());metadata.putAll(d.metadata());
             merged.add(new ProductDocument(id,d.type(),d.number(),d.validFrom(),d.validUntil(),

@@ -663,9 +663,14 @@ public final class ZnackNationalCatalogService {
             if(response==null){
                 LicenseRuntime.require(Permission.SELLER_API);
                 var request=new JsonArray();request.add(RegistrationPermitValidator.request(document));
-                response=api.registrationPermitInfo(settings.resolvedTrueApiBaseUrl(),token,request);
+                try{response=api.registrationPermitInfo(settings.resolvedTrueApiBaseUrl(),token,request);}
+                catch(ZnackApiClient.ZnackApiException failure){
+                    response=RegistrationPermitValidator.rejectedReadback(failure,document);
+                    if(response==null)throw failure;
+                }
                 // Pending results must be checked again on the next attempt.
-                if(response!=null&&!com.vncode.app.integration.znack.ZnackPermitDocumentParser.registryLookupPending(response))cachePermitReadback(document,response);
+                if(response!=null&&!com.vncode.app.integration.znack.ZnackPermitDocumentParser.registryLookupPending(response)
+                        &&RegistrationPermitValidator.registryRejection(response,document).isBlank())cachePermitReadback(document,response);
             }
             String problem=RegistrationPermitValidator.problem(response,document,tnved,java.time.LocalDate.now(permitClock));
             if(problem.isBlank()||RegistrationPermitValidator.advisory(problem))valid.add(document);

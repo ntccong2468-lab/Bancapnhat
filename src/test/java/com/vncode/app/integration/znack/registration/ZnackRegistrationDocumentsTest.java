@@ -9,6 +9,26 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ZnackRegistrationDocumentsTest {
     private static final LocalDate TODAY=LocalDate.of(2026,10,14);
+    @Test void loadedAndEditedRegistrationPermitUsesCanonicalRegistryLettersWithoutChangingExpiry(){
+        String typed="ЕАЭС N RU Д-CN.PA08.B.54321/25",canonical="ЕАЭС N RU Д-CN.РА08.В.54321/25";
+        var json=new com.google.gson.JsonObject();json.addProperty("documentType","CONFORMITY_DECLARATION");
+        json.addProperty("documentNumber",typed);json.addProperty("documentDate","12.09.2025");json.addProperty("documentExpiryDate","12.09.2030");
+        var gson=new com.google.gson.GsonBuilder().registerTypeAdapter(Instant.class,(com.google.gson.JsonDeserializer<Instant>)(value,type,context)->Instant.parse(value.getAsString())).create();
+        var legacy=gson.fromJson(json,com.vncode.app.integration.znack.ZnackModels.Settings.class);
+        assertEquals(canonical,legacy.documentNumber());
+        var edited=legacy.withDefaultGoodsDocument("CONFORMITY_DECLARATION",typed,"12.09.2025");
+        assertEquals(canonical,edited.documentNumber());assertEquals("12.09.2030",edited.documentExpiryDate());
+        var selected=ZnackRegistrationDocuments.select(snapshot(),legacy,TODAY);
+        assertEquals(canonical,selected.automatic().number());assertEquals("2025-09-12",selected.automatic().date());
+        assertEquals(canonical,RegistrationPermitValidator.request(selected.automatic()).get("number").getAsString());
+    }
+    @Test void productPermitIsCanonicalizedForRegistrationWithoutChangingItsSourceSnapshot(){
+        var source=new ProductDocument("fixture","CONFORMITY_DECLARATION","ЕАЭС N RU Д-CN.PA08.B.54321/25",TODAY.minusYears(1),TODAY.plusYears(1),"","",null,
+                Marketplace.OZON,DocumentState.VALID,"https://example.test/registry",Instant.now());
+        var result=ZnackRegistrationDocuments.select(snapshot(source),null,TODAY);
+        assertEquals("ЕАЭС N RU Д-CN.РА08.В.54321/25",result.automatic().number());
+        assertEquals("ЕАЭС N RU Д-CN.PA08.B.54321/25",source.number());
+    }
     private ProductDocument document(String id,DocumentState state,LocalDate end) {
         return new ProductDocument(id,"CONFORMITY_DECLARATION","permit-"+id,TODAY.minusYears(1),end,"","",null,
                 Marketplace.OZON,state,"https://api-seller.ozon.ru/documents",TODAY.atStartOfDay().toInstant(ZoneOffset.UTC));
