@@ -1,6 +1,19 @@
 # Bộ nhớ dự án VNCode
 
-## Apple / Liquid Glass — 08.11.2026 — preview chờ duyệt, chưa áp dụng UI
+## Apple / Liquid Glass native — 08.11.2026, 20:19 MSK (UTC+03:00) — đã triển khai, chưa phát hành
+
+- Người dùng duyệt preview rồi chỉ rõ **Thêm cửa hàng tích hợp trong Quản lý, cạnh selector cửa hàng**. Nhánh `feat/native-liquid-glass-20261108`, nguồn UI **`5f816b1df7772a8fb40771c6851b146c4356f76d`**, nền `7b1dcd2`, kế thừa WB màu/giấy tờ `ae2d48a`; [receipt](validation/2026-11-08-native-liquid-glass.json), [bàn giao](validation/2026-11-08-native-liquid-glass-handoff.md).
+- Áp dụng native Java 25/JavaFX: pearl/charcoal, kính giới hạn bằng paints/highlight cho chrome/overlay, bảng đục; Cài đặt sáng/tối/hệ thống/material/reduced, Ctrl+K và motion theo quan hệ, có hủy. Add/Edit giữ callback gốc trong Quản lý; bỏ Add sidebar, onboarding/palette mở cùng menu. Giữ workflow nền, scope/dữ liệu/confirmation/API/schema/license; DESIGN.md/sidecar gộp theo nguồn thực, không đưa HTML vào runtime hoặc hứa OS backdrop blur/shared-image route.
+- Production package cuối **PASS: 562 ca/96 lớp, 0 failure/error/skip**, Linux/Xvfb Java 25; không gọi nhóm này là full suite hơn 4.000 ca. **139 PNG native** (136 `NativeEvidence` + ba palette), 25 route, hai nền/năm cỡ 1280×720–2560×1440, FXML/controls thật và dữ liệu tổng hợp; không phải seller/Windows hay ma trận đủ mọi tổ hợp. Review vòng đầu toàn bộ ảnh yêu cầu hai sửa; vòng kiểm lại **ship riêng hai finding và hồi quy do sửa**, không chứng nhận toàn bộ surface. Native recapture 1 ca với xfwm4 trên cùng source/JAR đạt; ca này giao với 562, không cộng dồn.
+- Candidate local vẫn 1.6.6, chưa thay Latest v1.6.6 hoặc tag/publisher/asset. Không seller API write/mua/activation/Gmail; chưa Windows/DPI/multi-monitor/Narrator/FPS/bộ cài/API acceptance. Phê duyệt hình ảnh không thay nghiệm thu hành vi nghiệp vụ hoặc mở quyền phát hành.
+- Kinh nghiệm: ghi ranh giới preview đã duyệt và native đã kiểm riêng; khi thay shell, kiểm computed paints/disabled states và footer trên controls thật. Lối Add phụ phải đi về cùng menu đã duyệt; native screenshot với fixture không chứng minh giao dịch hoàn tất. Giữ lịch sử preview chờ duyệt ở thời điểm ghi, cập nhật trạng thái mới ở đầu để tránh lặp yêu cầu xác nhận đã có.
+
+- Bài học thêm: bảng cache lớn → nhỏ có thể dồn phần co vào cột thao tác, phải kiểm skin text thật sau resize; PopupControl CSS bridge có thể giữ màu owner cũ dù root đã đổi nền, cần đồng bộ public popup và kiểm reuse. Phân biệt paint bug với môi trường thiếu compositor bằng conditional feature/selection owner và so sánh cùng JAR; không đoán hoặc sửa source để che giới hạn chụp.
+- Đúng JAR SHA `48ec9f1e…18dae`, production-only classpath, mở/đóng bình thường ở hai hồ sơ trống Linux, 0 shop/nhả khóa; không test fixture hoặc bypass license. ZIP ảnh SHA `fb6fdbb3…f214769`, receipt giữ đủ hash/nguồn/phạm vi. Nguồn UI và docs bàn giao ở nhánh feature, không publisher/Latest.
+
+## Apple / Liquid Glass — 08.11.2026 — preview chờ duyệt, chưa áp dụng UI (lịch sử lúc ghi)
+
+> Trạng thái preview bên dưới là lịch sử trước khi người dùng duyệt; xem mục triển khai native mới phía trên.
 
 - Hoàn tất việc WB/KIZ trước rồi dùng TASTE + IMPECCABLE với hai prompt người dùng: dựng bản mẫu **ngoài repo** tại `/workspace/vncode-apple-preview-20261108/proposal`. Runtime app vẫn Java 25/JavaFX. Người dùng yêu cầu xem ảnh **trước khi sửa source giao diện**; **chưa có phê duyệt, không được tự áp dụng/phát hành**.
 - [Bàn giao](validation/2026-11-08-liquid-glass-preview-handoff.md), [receipt](validation/2026-11-08-liquid-glass-preview.json). Có **164 ảnh sau/6 ảnh native trước/7 ảnh tổng hợp**, gallery mở ảnh lớn, video HTML/Chromium **22,72 giây**, ZIP **42,22 MiB** SHA `f8d7e01ea6ce2799266098fa8916027661ed4d79de4ab95b1c1ee4dc66b4152f`.
