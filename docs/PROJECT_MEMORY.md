@@ -1,5 +1,10 @@
 # Bộ nhớ dự án VNCode
 
+## 08.11.2026 — Gom 1.6.7 theo yêu cầu phát hành mới
+
+Đã pin nguồn app `026f1a86ae5928769a9b36720c2da98cf8dd7efd` trên release/vn-code-1.6.7, kế thừa ac8ba1c và đủ bốn sửa ae2d48a/5f816b1/6905fe0/0a00fbd. [Manifest109 runtime+POM](validation/2026-11-08-vncode-167-source-inclusion.json). Windows42515409829 và Security42515488357 đang chạy; draft438471378 chưa công bố. Lượt dispatch42515375348 sai inputSHA đã hủy. Tooling riêng nhánh publication để giữ SHA app; publisher167 pin đúng build/source/draft và giữ mọi gate16asset/hash/native/upgrade. Node160 nguồn/165 tooling, actionlint đạt. Không prune/thay oldrelease hoặc tự dùng test Linux cũ làm bằng chứng Windows mới. Cần đọc CURRENT và run status trước tiếp tục, chưa coi hoàn tất phát hành.
+
+
 ## 08.11.2026 — Znack preflight: số giấy tờ lẫn bảng chữ, đã sửa/chưa phát hành
 
 Nguồn `0a00fbd837d5e92eeb0018e480fb1891436107e9`, giữ toàn bộ sửa audit/UI trước. HTTP400/code14 `/v4/rd-info` do Latin P/B ở phần registry; đọc API thật gốc400 → canonical200/1 active → JAR cuối/ZnackApiClient xác nhận. Chuẩn hóa hữu hạn ở Settings/selection; lỗi giấy tờ đúng danh tính thành issue riêng, không proof/cache hay advisory giả; auth/server/unknown vẫn lỗi. Giữ reference Ozon thô và ID/meta WB khi số tương đương. 360/28 ca đạt, package PASS Linux; JAR `47928b63…bc3bb90`, 1.978 class khớp. Chưa Windows/installer/feed/ký/ghi sàn/kích hoạt/license/publish. Không lưu giấy tờ seller trong memory. [Bàn giao](validation/2026-11-08-registration-permit-script-fix.md), [biên nhận](validation/registration-permit-script-20261108/verification.json). Kinh nghiệm: xem code point, không phiên âm mã quốc gia/số/ngày; sửa model chung phải kiểm reference và merge từng sàn.

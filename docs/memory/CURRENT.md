@@ -1,6 +1,15 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **08.11.2026, 22:16 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **08.11.2026, 22:36 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## VN Code 1.6.7 — đã gom nguồn, đang kiểm Windows để phát hành
+
+- Người dùng yêu cầu: **gom tất cả chỉnh sửa mới chưa phát hành, tạo bản mới và phát hành xuống app**. Chọn 1.6.7 vì Latest đọc thật vẫn 1.6.6/437862752; không ghi đè release cũ. Nguồn app **`026f1a86ae5928769a9b36720c2da98cf8dd7efd`**, nhánh app `release/vn-code-1.6.7` giữ nguyên SHA. Hai giá trị POM 1.6.7 và release notes mới; giữ schema/dependency.
+- [Inclusion manifest](../validation/2026-11-08-vncode-167-source-inclusion.json): 109/109 runtime file (84 Java/25 resources) + POM; đủ ae2d48a/5f816b1/6905fe0/0a00fbd và các mốc source của 1.6.6. Bao gồm WB màu/giấy tờ, UI native đã duyệt, KIZ/Znack/GTIN/cache và lỗi Latin/Cyrillic. Giữ FBS/PDF/auto-KIZ/các chức năng cũ. Không gộp prototype credential ngoài runtime.
+- Windows **42515409829** từ đúng source đang chạy full clean verify, sau đó EXE/MSI/native/migration/install/uninstall/passive upgrade từ 1.6.6. Lượt khởi chạy 42515375348 có input SHA sai đã hủy, không dùng làm bằng chứng. Security **42515488357** cùng source; kết quả phải ghi riêng, không coi mọi security gate xanh.
+- Draft mới đã pin **438471378**, tag dự kiến v1.6.7, source026f1a86, chưa asset/chưa Publish. Công cụ167 ở nhánh **`release/vn-code-1.6.7-publication`**, không đổi app source sau build. Publisher chỉ dùng source/build/draft trên, giữ đủ16 asset và hash/native/upgrade/Latest1.6.6 guard; không chạy trước full Windows đạt.
+- Node nguồn app160/160, tooling publication165/165; actionlint1.7.12 toàn workflow đạt (không ShellCheck/Pyflakes). Đã tải/kiểm hash portable1.6.6 để kiểm updater sau Publish. Snapshot16 release/258 asset cũ đã giữ ngoài Git; phải đối chiếu không đổi sau công bố.
+- Chưa phát hành 1.6.7 tại thời điểm ghi. Tiếp tục chờ build, kiểm artifact/XML/sourceZIP/binary/hash, Publish đúng draft rồi tải/kiểm công khai và updater binary1.6.6 →1.6.7. Không mua/nhận/gửi seller API hay kích hoạt license trong lượt phát hành. Các mục chưa phát hành bên dưới là lịch sử; chỉ chuyển trạng thái sau receipt thực.
 
 ## Znack preflight giấy tờ Latin/Cyrillic — đã sửa, chưa phát hành
 
