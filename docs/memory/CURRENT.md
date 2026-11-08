@@ -1,6 +1,16 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **08.11.2026, 00:52 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **08.11.2026, 17:49 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## WB mua KIZ: màu và giấy tờ — sửa xong, chưa phát hành
+
+- Người dùng xác nhận lỗi ở **WB**. Nhánh `fix/kiz-mapping-color-documents-20261108`, nguồn chức năng **`ae2d48a2e397428869d553b7e008402f469a3566`**, nền `9599a57` sau Latest 1.6.6. [Bàn giao](../validation/2026-11-08-wb-kiz-color-documents-handoff.md), [lệnh/source/build](../validation/wb-kiz-color-documents-20261108/verification.json), [API thật](../validation/wb-kiz-color-documents-20261108/live-read.json).
+- Sửa WB projection chỉ lấy màu đầu trong khi proof mua trả rỗng với nhiều màu; mọi bước giữ đủ bộ màu, chuẩn hóa hữu hạn cách viết/thứ tự, không bỏ sắc độ hoặc màu thứ hai. Đường Catalog đọc lại/lưu cũng giữ đủ màu. Guard cuối chặn giá trị chỉ gồm dấu phân cách. Khác TN VED vẫn được mapping; owner/size/publication/trùng và quy tắc kho nhập/mua giữ nguyên.
+- Tách giấy tờ thiếu/hết hạn/đình chỉ/chưa xác minh; parse strict ISO/dd.MM.yyyy; giữ giấy tờ khi registry 18/19 nhưng không cấp proof; dùng `to_date` của đúng giấy tờ registry. Giao diện báo kèm màu WB/Catalog, đủ bốn locale.
+- Tái hiện tám lỗi trước sửa; **4.010 ca/530 lớp Linux đạt, 2 OS skip**, tách ba stress 10.000. Sau đó thêm một guard màu rỗng và test; **217/217 ca/18 lớp trên nguồn cuối đạt, 0 skip**, package đạt/1.960 class khớp byte output, không fixture. Manifest ghi rõ hai tệp khác lượt biên dịch rộng; không cộng các lượt trùng hoặc dùng Windows cũ chứng nhận mã mới.
+- API thật chỉ đọc: **388 bài/1.982 biến thể WB, 1.380 thẻ liệt kê Catalog, chỉ một GTIN giao nhau**, một detail/registry, 8/8 HTTP 200. Raw response production parser cho 1.982 projection màu thống nhất/21 bài nhiều màu. Không suy chủ doanh nghiệp/app seller từ dataset key môi trường; **0 seller write/mua/activation/Gmail**, chưa OMS/chứng thư để kiểm mua/lưu thông thật. OpenQodex chỉ Gitleaks theo diff, không AI reviewer.
+- **Latest immutable v1.6.6 / 437862752/source app ac8ba1c giữ nguyên.** Candidate local POM vẫn 1.6.6, chưa bộ cài/phát hành mới; không thay asset cũ. Yêu cầu publish trước đã hoàn tất, không dùng để tự phát hành sửa mới.
+- Người dùng yêu cầu tiếp theo: hoàn tất WB trước, rồi đọc hai prompt Apple/Liquid Glass và navigation motion, áp dụng TASTE/IMPECCABLE để dựng/chụp bản xem trước toàn bộ thay đổi. **Chưa được áp dụng giao diện mới vào source app trước khi user duyệt bản xem trước.**
 
 ## Latest 1.6.6 — đã hoàn tất phát hành
 

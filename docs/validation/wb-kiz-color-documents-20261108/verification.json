@@ -1,0 +1,446 @@
+{
+  "dateMsk": "2026-11-08T17:48:57.741497+03:00",
+  "scope": "WB_KIZ_COLOR_AND_PERMIT_MAPPING_FIX",
+  "branch": "fix/kiz-mapping-color-documents-20261108",
+  "sourceCommit": "ae2d48a2e397428869d553b7e008402f469a3566",
+  "baseCommit": "9599a5784e7125211a11de2c9ed51d3a551316ab",
+  "runs": [
+    {
+      "label": "Existing baseline",
+      "command": "/workspace/toolchains/mvn-vncode -B '-Dtest=WbCatalogMappingServiceTest,OzonCatalogMappingServiceTest,GtinMatchingServiceTest,CatalogProductDataParserTest,ZnackPermitDocumentParserTest' test",
+      "status": "PASS",
+      "logSha256": "369182f6b22d72e392036d84553d78f39c274612c69a785b587e254fc4c0a26d",
+      "cases": 62,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classes": 5
+    },
+    {
+      "label": "Eight defect regressions before fix",
+      "command": "/workspace/toolchains/mvn-vncode -B '-Dtest=GtinMatchingServiceTest,ProductRepositoryTest,FboVerifiedGtinRepositoryTest,WbCatalogMappingServiceTest,CatalogProductDataParserTest' test",
+      "status": "EXPECTED_RED",
+      "logSha256": "5179bfeba39fbaa372be86612535a3770efe1c1a6d26902eeabd81ce3930f192",
+      "cases": 65,
+      "failures": 8,
+      "errors": 0,
+      "skipped": 0,
+      "classes": 5,
+      "confirmedDefectFailures": 8
+    },
+    {
+      "label": "Focused after color/permit fixes",
+      "command": "/workspace/toolchains/mvn-vncode -B '-Dtest=GtinColorIdentityTest,CatalogPermitEvidenceTest,GtinMatchingServiceTest,ProductRepositoryTest,FboVerifiedGtinRepositoryTest,WbCatalogMappingServiceTest,OzonCatalogMappingServiceTest,CatalogProductDataParserTest,ZnackPermitDocumentParserTest,WbGtinProductReaderTest' test",
+      "status": "PASS",
+      "logSha256": "ed3b3471a02288e865d43684a52d41de147412301e878f17cfebd06f51b5f9f8",
+      "cases": 126,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classes": 10
+    },
+    {
+      "label": "Native JavaFX diagnostics four languages",
+      "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B '-Dtest=KizMappingIssuesDialogTest' test",
+      "status": "PASS",
+      "logSha256": "59e71cf8b3e9b32538ab3df1e764b2334f9242d842ca7d03dd331902cc02b556",
+      "cases": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classes": 1
+    },
+    {
+      "label": "Broad Linux regression before final empty-color guard",
+      "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B '-Dtest=*,!GtinBulkPipelineTest#*TenThousand*' test",
+      "status": "PASS",
+      "logSha256": "f924f1bdfccf072a2bfde4a2aa3e451195aa3e8977b47d8b9c7f6a32efe9a0a8",
+      "cases": 4010,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "classes": 530
+    },
+    {
+      "label": "Final source including empty-color guard",
+      "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B '-Dtest=GtinColorIdentityTest,CatalogPermitEvidenceTest,GtinMatchingServiceTest,ProductRepositoryTest,FboVerifiedGtinRepositoryTest,WbCatalogMappingServiceTest,OzonCatalogMappingServiceTest,CatalogProductDataParserTest,ZnackPermitDocumentParserTest,WbGtinProductReaderTest,KizMappingIssuesDialogTest,GtinCatalogIndexTest,OzonSkuGtinMatcherTest,RegistrationCardIndexTest,KizPurchaseMappingProofTest,KizPendingIdentityTest,KizStockReplenisherTest,RegisteredGtinSourceTest' test",
+      "status": "PASS",
+      "logSha256": "89e689dc0f843ad19a050888ad8c0f8e5db6110aab239e628ebcb37098398bb8",
+      "cases": 217,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "classes": 18
+    },
+    {
+      "label": "Final local candidate package",
+      "command": "/workspace/toolchains/mvn-vncode -B -DskipTests package",
+      "status": "PASS",
+      "logSha256": "85a87193ac16ac4ece6e57fa69632350b2bdf90ffba97a2d5cd92fe41e105a22",
+      "classes": 0
+    }
+  ],
+  "sourceManifest": [
+    {
+      "path": "src/main/java/com/vncode/app/features/catalogsync/CatalogPermitEvidence.java",
+      "sha256": "9aa9c75788dcbe369e038cb7a0ca3b3db65ad41a19d53ac748b5ba13bce0e84f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/catalogsync/CatalogProductData.java",
+      "sha256": "f4312e8d94f23d718dd6bb20a4b9809100d547d60c438a2ca4fb5c770148f020"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/fbo/FboVerifiedGtinRepository.java",
+      "sha256": "4e48b476d1eb3b9ec72ce1c28ce57b5fd3a35fe0fdc6308f593ea7b71c4b68db"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/GtinColorIdentity.java",
+      "sha256": "e12987e930239f4609603b2cba27950e470001db3a78dc754a43d5f30cd31442"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/GtinMatchingService.java",
+      "sha256": "bad3f72287df8c665f8664e28bb7ba366bc28bbd7e636997e4291976af65705e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/OzonReviewedVariantProof.java",
+      "sha256": "85550d9849d938c0b9c2dd940c2d591cac5434c498af7b3579828ee0b921332c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizRegistrationIdentityRepository.java",
+      "sha256": "55958716a29b36591144a9232fbd42331840d083b25ec8c1b8302891fb9fb402"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java",
+      "sha256": "2f4e0ef03096387e57c934b849628c5246f741d7f326ba9307e41ef8062feca9"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/WbCatalogMappingService.java",
+      "sha256": "8813032aa9fb1984b87285907fb4d735b9c932b51dfaa38a98a24cc0ef372973"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/products/ProductRepository.java",
+      "sha256": "83a1659591782d557f2f9ad8ec8e70a5df055a5d3b8c4ed7fdd9aa93763a83b8"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbGtinProductReader.java",
+      "sha256": "92731af003aa556942eca2cc48fd3c6cf20bc29f813bc5413cd5fae91c90ab7e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java",
+      "sha256": "138f56dc3aa839ee62df8968e56223be6b4dbb4098681ecb70a27ba80ed7a8ec"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPermitDocumentParser.java",
+      "sha256": "e98ace6872053dfc46d43f741dedfdb5c281275195752aad3224ce9b5dde5e30"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/CatalogProductDataParser.java",
+      "sha256": "7006a1e7acef63a6dca9a38c4c0132d3dfdceb40b082a4de238254e94cf5c027"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+      "sha256": "420a1588891e6a3a47737d47c76eb7fa5b59646cf722d2a1fd52c5dd082b3536"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepository.java",
+      "sha256": "a5cc1edbaf5b721d9cbd6f88d169d2310942840cdea602382f49c32bcc6bf0a0"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonExistingCardLinkService.java",
+      "sha256": "a696b62f58f5c1d5e861bf3fb2eb8dbd715d7174cde4f888a9863363a91cf909"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationExistingCards.java",
+      "sha256": "392fc9bef99a25cbb6274d6e1431a68452e5436638989330a3eb920ee8aeac98"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/PermitDocumentDate.java",
+      "sha256": "877bb84312ab1ae9c400ee162d9f4ed81cf63e6c46cef6db68792a2906724f0b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+      "sha256": "40506c990e0e008509816b623f9e44fd73b43de1451defedd700686593b57b1a"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "sha256": "3be345b1e6b099debb1b473a8cb7460401fa6e07da2902048ca705429e574fc0"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "6d87c5d545f2c81c2090227bb6f43a7f8a2ff8dee4198fd9645070a1ad6d27b0"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "68200963e69d14de0ba101eadcd8cff9cdb767ac23759fde8c531e33f1b19886"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "7f52d760f7a71299b2c19d2e422cdab3ce58370c3a9cf0e6a4ecc3dacc85aadc"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/catalogsync/CatalogPermitEvidenceTest.java",
+      "sha256": "fc3916c02a40ef183d8fabeca1a02f49282482dfacb1483ea256cac7719e43b6"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/catalogsync/CatalogProductDataParserTest.java",
+      "sha256": "4e2e5a76f737627d06a2208387c8409989bf82c7df481ad483ddfe86bab966a9"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/fbo/FboVerifiedGtinRepositoryTest.java",
+      "sha256": "0067626c7fc4ab5023e4bc4539c9f2325c5515dec87baaccfb0ffedf170d48c2"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/gtinsync/GtinColorIdentityTest.java",
+      "sha256": "ceb85ee733e981769315284b3d1c0e3c67e19521663fb03507b9539f25996258"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/gtinsync/GtinMatchingServiceTest.java",
+      "sha256": "619044d18da0c137050af4cc9b554832bc12f3d7b0451e7b57901049dfc0ac28"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kizmapping/OzonCatalogMappingServiceTest.java",
+      "sha256": "d02e18528f7255c0fd5321009a5048b8faa29d6c211b8504311fb9894f64e487"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kizmapping/WbCatalogMappingServiceTest.java",
+      "sha256": "d037d0d093909d89b538d0eeacc36871a2413642c99d35335fca6ad6d2614e93"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/products/ProductRepositoryTest.java",
+      "sha256": "822ebfa9a00ab815de7ec37ae0fd833ac72b9d06b6476bced46dda9317afa958"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbGtinProductReaderTest.java",
+      "sha256": "3523c2162baeaaae9257181c8fd85eb3e121da3db59c154bd1217d2379b46c3c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/kizmapping/KizMappingIssuesDialogTest.java",
+      "sha256": "d4389d411f5369be7e3c14207a94405c0eb878bc5bc8099266396f235b18910c"
+    }
+  ],
+  "broadCompiledSourceManifest": [
+    {
+      "path": "src/main/java/com/vncode/app/features/catalogsync/CatalogPermitEvidence.java",
+      "sha256": "9aa9c75788dcbe369e038cb7a0ca3b3db65ad41a19d53ac748b5ba13bce0e84f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/catalogsync/CatalogProductData.java",
+      "sha256": "f4312e8d94f23d718dd6bb20a4b9809100d547d60c438a2ca4fb5c770148f020"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/fbo/FboVerifiedGtinRepository.java",
+      "sha256": "4e48b476d1eb3b9ec72ce1c28ce57b5fd3a35fe0fdc6308f593ea7b71c4b68db"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/GtinColorIdentity.java",
+      "sha256": "e12987e930239f4609603b2cba27950e470001db3a78dc754a43d5f30cd31442"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/GtinMatchingService.java",
+      "sha256": "ba43301d43bc5cd7a2230d4996e0783eac217c67ee68c3f06803923981c36dde"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/gtinsync/OzonReviewedVariantProof.java",
+      "sha256": "85550d9849d938c0b9c2dd940c2d591cac5434c498af7b3579828ee0b921332c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizRegistrationIdentityRepository.java",
+      "sha256": "55958716a29b36591144a9232fbd42331840d083b25ec8c1b8302891fb9fb402"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java",
+      "sha256": "2f4e0ef03096387e57c934b849628c5246f741d7f326ba9307e41ef8062feca9"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/WbCatalogMappingService.java",
+      "sha256": "8813032aa9fb1984b87285907fb4d735b9c932b51dfaa38a98a24cc0ef372973"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/products/ProductRepository.java",
+      "sha256": "83a1659591782d557f2f9ad8ec8e70a5df055a5d3b8c4ed7fdd9aa93763a83b8"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbGtinProductReader.java",
+      "sha256": "92731af003aa556942eca2cc48fd3c6cf20bc29f813bc5413cd5fae91c90ab7e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java",
+      "sha256": "138f56dc3aa839ee62df8968e56223be6b4dbb4098681ecb70a27ba80ed7a8ec"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPermitDocumentParser.java",
+      "sha256": "e98ace6872053dfc46d43f741dedfdb5c281275195752aad3224ce9b5dde5e30"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/CatalogProductDataParser.java",
+      "sha256": "7006a1e7acef63a6dca9a38c4c0132d3dfdceb40b082a4de238254e94cf5c027"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+      "sha256": "420a1588891e6a3a47737d47c76eb7fa5b59646cf722d2a1fd52c5dd082b3536"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepository.java",
+      "sha256": "a5cc1edbaf5b721d9cbd6f88d169d2310942840cdea602382f49c32bcc6bf0a0"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonExistingCardLinkService.java",
+      "sha256": "a696b62f58f5c1d5e861bf3fb2eb8dbd715d7174cde4f888a9863363a91cf909"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationExistingCards.java",
+      "sha256": "392fc9bef99a25cbb6274d6e1431a68452e5436638989330a3eb920ee8aeac98"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/PermitDocumentDate.java",
+      "sha256": "877bb84312ab1ae9c400ee162d9f4ed81cf63e6c46cef6db68792a2906724f0b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+      "sha256": "40506c990e0e008509816b623f9e44fd73b43de1451defedd700686593b57b1a"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "sha256": "3be345b1e6b099debb1b473a8cb7460401fa6e07da2902048ca705429e574fc0"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "6d87c5d545f2c81c2090227bb6f43a7f8a2ff8dee4198fd9645070a1ad6d27b0"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "68200963e69d14de0ba101eadcd8cff9cdb767ac23759fde8c531e33f1b19886"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "7f52d760f7a71299b2c19d2e422cdab3ce58370c3a9cf0e6a4ecc3dacc85aadc"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/catalogsync/CatalogPermitEvidenceTest.java",
+      "sha256": "fc3916c02a40ef183d8fabeca1a02f49282482dfacb1483ea256cac7719e43b6"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/catalogsync/CatalogProductDataParserTest.java",
+      "sha256": "4e2e5a76f737627d06a2208387c8409989bf82c7df481ad483ddfe86bab966a9"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/fbo/FboVerifiedGtinRepositoryTest.java",
+      "sha256": "0067626c7fc4ab5023e4bc4539c9f2325c5515dec87baaccfb0ffedf170d48c2"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/gtinsync/GtinColorIdentityTest.java",
+      "sha256": "ceb85ee733e981769315284b3d1c0e3c67e19521663fb03507b9539f25996258"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/gtinsync/GtinMatchingServiceTest.java",
+      "sha256": "af32f2d460a19292c65d270095ee6fe3a2b74bb4e15f4bec272269966cada723"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kizmapping/OzonCatalogMappingServiceTest.java",
+      "sha256": "d02e18528f7255c0fd5321009a5048b8faa29d6c211b8504311fb9894f64e487"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kizmapping/WbCatalogMappingServiceTest.java",
+      "sha256": "d037d0d093909d89b538d0eeacc36871a2413642c99d35335fca6ad6d2614e93"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/products/ProductRepositoryTest.java",
+      "sha256": "822ebfa9a00ab815de7ec37ae0fd833ac72b9d06b6476bced46dda9317afa958"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbGtinProductReaderTest.java",
+      "sha256": "3523c2162baeaaae9257181c8fd85eb3e121da3db59c154bd1217d2379b46c3c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/kizmapping/KizMappingIssuesDialogTest.java",
+      "sha256": "d4389d411f5369be7e3c14207a94405c0eb878bc5bc8099266396f235b18910c"
+    }
+  ],
+  "sourceDeltaAfterBroadCompilation": [
+    "src/main/java/com/vncode/app/features/gtinsync/GtinMatchingService.java",
+    "src/test/java/com/vncode/app/features/gtinsync/GtinMatchingServiceTest.java"
+  ],
+  "deltaExplanation": "Only GtinMatchingService empty normalized color precondition and its regression test changed after broad compilation; all 18 final focused classes were rerun on the final source before packaging. Do not treat the earlier broad binary as full coverage of this final guard.",
+  "osSkippedTests": [
+    {
+      "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "cases": [
+        {
+          "name": "refusesNtfsJunctionDirectoryAndAncestors",
+          "reason": "Disabled on operating system: Linux"
+        }
+      ]
+    },
+    {
+      "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "cases": [
+        {
+          "name": "separatesLicenseAndExistingMailEntropyOnWindows",
+          "reason": "Disabled on operating system: Linux"
+        }
+      ]
+    }
+  ],
+  "notRun": [
+    "Three GtinBulkPipelineTest TenThousand methods excluded from this Linux pass; no annotation disabled.",
+    "New-source Windows installer, migration/DPAPI native smoke and installed seller app not run.",
+    "OMS paid purchase, signing and circulation not exercised without the actual configured profile."
+  ],
+  "jar": {
+    "path": "target/VNcode-1.6.6.jar",
+    "sha256": "d424f5c0247b771168343b8312857740cde8abcf4ac7976d794c3eb85e33b1fd",
+    "bytes": 7525316,
+    "classCount": 1960,
+    "allClassesMatchTarget": true,
+    "testFixturesOrPrivateProbes": false,
+    "version": "1.6.6",
+    "classMajorVersion": 69,
+    "officialReleasedArtifact": false
+  },
+  "latestUnchanged": {
+    "tag": "v1.6.6",
+    "id": 437862752,
+    "immutable": true,
+    "appSource": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+    "publishedAtUtc": "2026-11-07T21:46:11Z"
+  },
+  "emptyColorRed": {
+    "expectedExact": false,
+    "actualBeforeGuard": true,
+    "exitCode": 1,
+    "logSha256": "51f5dcdad1b0d4aca4cbae7f598902837b10927088ddfeb526395a3f52ca6e32"
+  },
+  "scanner": {
+    "tool": "OpenQodex",
+    "version": "0.16.0",
+    "command": "OPENQODEX_HOME=/tmp/vncode-165-openqodex/cache node /tmp/vncode-165-openqodex/package/dist/bin.js scan --base 9599a5784e7125211a11de2c9ed51d3a551316ab --only gitleaks --no-install --offline --format sarif --report-dir /tmp/vncode-wb-kiz-20261108-scan-final",
+    "status": "PASS_SELECTED_SCANNER",
+    "scanners": [
+      {
+        "scanner": "gitleaks",
+        "status": "ran",
+        "version": "8.21.2",
+        "rawCount": 0,
+        "keptCount": 0,
+        "durationMs": 161,
+        "resolveMs": 1,
+        "files": 40,
+        "reason": null,
+        "stages": {
+          "changedLines": 0,
+          "fixtures": 0,
+          "rules": 0,
+          "merged": 0
+        }
+      }
+    ],
+    "candidates": 0,
+    "scanReceiptSha256": "4a8024ac583e5a0de715b88655a559e933815ba0b8b5759607256483247d6ac5",
+    "aiReviewer": false,
+    "scope": "Changed source, tests, locales and sanitized handoff/memory; other scanners not selected."
+  },
+  "sellerWrites": 0,
+  "paidPurchases": 0,
+  "licenseActivation": false,
+  "gmailSent": false
+}

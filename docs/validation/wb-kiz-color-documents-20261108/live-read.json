@@ -1,0 +1,45 @@
+{
+  "scope": "LIVE_READ_ONLY_WB_AND_CATALOG",
+  "startedAtUtc": "2026-11-08T14:06:33.932651+00:00",
+  "finishedAtUtc": "2026-11-08T14:06:46.417246+00:00",
+  "sellerWrites": 0,
+  "paidPurchases": 0,
+  "licenseActivation": false,
+  "gmailSent": false,
+  "wbCards": 388,
+  "wbVariants": 1982,
+  "catalogListed": 1380,
+  "overlappingGtinCount": 1,
+  "detailCardsRead": 1,
+  "permitRequests": 1,
+  "httpRequests": 8,
+  "http200": 8,
+  "wbColorCardinality": {
+    "1": 367,
+    "2": 19,
+    "3": 2
+  },
+  "productionParserReadback": {
+    "kind": "PRODUCTION_PARSERS_ON_CAPTURED_LIVE_READS",
+    "wbCards": 388,
+    "wbVariants": 1982,
+    "consistentColorProjections": 1982,
+    "multiColorCards": 21,
+    "catalogDetails": 1,
+    "registryPermits": 1,
+    "permitsWithObservedExpiry": 1,
+    "isoIssueDates": 1,
+    "permitClassifications": {
+      "USABLE_PERMIT": 1
+    },
+    "sellerWrites": 0,
+    "paidPurchases": 0,
+    "licenseOrCertificateFixture": false
+  },
+  "limits": [
+    "Only one GTIN overlaps in the environment credential datasets. No inference about the installed seller profile or Catalog certificate owner.",
+    "Actual requests read WB Content API, Catalog product list/card and permit registry; raw responses remain private outside Git.",
+    "Production parsers replayed those actual responses without mocks, certificate/license fixtures, saving mapping proof, enqueue or paid requests.",
+    "Full paid purchase/circulation and the installed Windows application were not exercised; OMS and signing profile are not available."
+  ]
+}
