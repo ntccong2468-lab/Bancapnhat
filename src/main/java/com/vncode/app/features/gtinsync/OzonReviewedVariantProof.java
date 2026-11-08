@@ -143,9 +143,7 @@ public final class OzonReviewedVariantProof {
     }
     private static boolean activePermit(GtinSyncModels.RegisteredGtin card){return card.details().values("tnved").stream().anyMatch(v->v.matches("[0-9]{10}"))&&card.details().documents().stream().anyMatch(OzonReviewedVariantProof::activeDocument);}
     private static boolean activeDocument(com.vncode.app.features.catalogsync.CatalogProductData.Document d){
-        try{var now=LocalDate.now();String status=d.metadata().getOrDefault("registryStatus","");return !d.number().isBlank()&&Set.of("DECLARATION","CONFORMITY_DECLARATION","CERTIFICATE","CERTIFICATE_OF_CONFORMITY","CONFORMITY_CERTIFICATE","CERTIFICATE_OF_REGISTRATION").contains(d.type())
-                &&!d.from().isBlank()&&!LocalDate.parse(d.from()).isAfter(now)&&(d.endless()||!d.until().isBlank()&&!LocalDate.parse(d.until()).isBefore(now)||d.until().isBlank()&&Set.of("active","valid").contains(status.toLowerCase(Locale.ROOT)))
-                &&(status.isBlank()||Set.of("active","valid").contains(status.toLowerCase(Locale.ROOT)));}catch(RuntimeException invalid){return false;}
+        return com.vncode.app.features.catalogsync.CatalogPermitEvidence.active(d);
     }
     private static void requirePair(Shop shop,ProductSnapshot p,GtinSyncModels.RegisteredGtin card){
         if(shop==null||shop.getMarketplace()!=Marketplace.OZON||p==null||p.key().shopId()!=shop.getId()||p.key().marketplace()!=Marketplace.OZON||!p.revision().startsWith("live:")||!ListingIdentity.fingerprint(shop).equals(p.metadata().get("owner"))||!fresh(p.checkedAt()))throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");

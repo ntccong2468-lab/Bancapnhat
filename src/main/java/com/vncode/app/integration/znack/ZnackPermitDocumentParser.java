@@ -137,7 +137,7 @@ public final class ZnackPermitDocumentParser {
 
     private static void addComplete(Set<GoodsDocument> target, String type, String number, String date) {
         GoodsDocument document = new GoodsDocument(type, number == null ? "" : number.trim(),
-                date == null ? "" : date.trim());
+                com.vncode.app.shared.PermitDocumentDate.normalize(date));
         if (document.complete()) target.add(document);
     }
 

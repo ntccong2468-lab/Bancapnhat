@@ -52,7 +52,7 @@ public final class WbGtinProductReader {
             if(c.getValue() instanceof List<?> values){for(var value:values){if(!(value instanceof String text))throw new IllegalArgumentException("invalid_wb_characteristic");if(!text.isBlank())colors.add(text.strip());}}
             else if(c.getValue() instanceof String value&&!value.isBlank())colors.add(value.strip());
         }
-        String color=colors.size()==1?colors.iterator().next():"";
+        String color=com.vncode.app.features.gtinsync.GtinColorIdentity.value(colors);
         return ProductFingerprints.snapshot(key,card.getVendorCode(),color,size.getTechSize(),size.getSkus());
     }
 }

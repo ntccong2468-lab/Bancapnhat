@@ -82,7 +82,7 @@ public final class CatalogProductDataParser {
     public static CatalogProductData withRegistry(CatalogProductData data,JsonElement response){
         var fields=new LinkedHashMap<>(data.fields());
         if(com.vncode.app.integration.znack.ZnackPermitDocumentParser.registryLookupPending(response)){
-            fields.put("@documents_status",List.of("REGISTRY_DOCUMENTS_PENDING"));return new CatalogProductData(fields,data.attributes(),List.of());
+            fields.put("@documents_status",List.of("REGISTRY_DOCUMENTS_PENDING"));return new CatalogProductData(fields,data.attributes(),data.documents());
         }
         JsonArray raw=null;
         if(response!=null&&response.isJsonArray())raw=response.getAsJsonArray();
@@ -93,11 +93,19 @@ public final class CatalogProductDataParser {
         }
         if(raw==null)return registryUnavailable(data);
         var active=com.vncode.app.integration.znack.ZnackPermitDocumentParser.activeFromRegistry(response);
+        fields.put("@registry_document_count",List.of(Integer.toString(raw.size())));
         var documents=new ArrayList<CatalogProductData.Document>();
         for(var d:active){
             String type=switch(d.type()){case "CONFORMITY_DECLARATION"->"DECLARATION";case "CONFORMITY_CERTIFICATE"->"CERTIFICATE_OF_CONFORMITY";default->"CERTIFICATE_OF_REGISTRATION";};
             var same=data.documents().stream().filter(old->old.number().equals(d.number())&&old.type().equals(type)).findFirst();
             String end=same.map(CatalogProductData.Document::until).orElse("");boolean endless=same.map(CatalogProductData.Document::endless).orElse(false);String applicant=same.map(CatalogProductData.Document::applicant).orElse("");
+            for(var value:raw)if(value.isJsonObject()){
+                var entry=value.getAsJsonObject();String id=text(entry,"attr_id","attrId");
+                String expected=switch(type){case "DECLARATION"->"23557";case "CERTIFICATE_OF_CONFORMITY"->"23561";default->"23765";};
+                if(!expected.equals(id)||!d.number().equals(text(entry,"number","certificate_number").strip()))continue;
+                String observedEnd=text(entry,"to_date","dateTo","date_to");
+                if(!observedEnd.isBlank()){end=observedEnd;endless=false;}
+            }
             documents.add(new CatalogProductData.Document(type,d.number(),d.date(),end,endless,applicant,Map.of("registryStatus","active")));
         }
         fields.put("@documents_status",List.of("REGISTRY_CHECKED"));return new CatalogProductData(fields,data.attributes(),documents);

@@ -112,6 +112,16 @@ class FboVerifiedGtinRepositoryTest {
         new GtinSyncRepository().saveCatalog(shop.getId(),market,List.of(new GtinSyncModels.RegisteredGtin(GtinWriteTestFixture.GTIN,"Fixture","Black","M",true,true,RegisteredGtinProof.source(shop),Instant.now(),details)));
         return shop;
     }
+    @Test void wbPurchaseProofAcceptsTheSameCompleteColorSetButNeverDropsASecondColor()throws Exception{
+        Shop shop=fixture(Marketplace.WILDBERRIES);var reference=reference(Marketplace.WILDBERRIES);
+        sql("UPDATE wb_product_characteristics SET value_json='[\"Black\",\"White\"]'");
+        var data=JsonParser.parseString(catalogJson(shop)).getAsJsonObject();data.addProperty("color","белый / чёрный");saveJson(shop,data);
+        assertDoesNotThrow(()->purchaseProof(shop,reference));
+        data.addProperty("color","Black");saveJson(shop,data);
+        assertThrows(KizAssignmentException.class,()->purchaseProof(shop,reference));
+        data.addProperty("color","Black / Grey");saveJson(shop,data);
+        assertThrows(KizAssignmentException.class,()->purchaseProof(shop,reference));assertEquals(0,pipelineCount());
+    }
     private static FboProductSku reference(Marketplace market){return new FboProductSku(101,"untrusted","","","","White","XXL","","S-M","",true,"S-M","","",market==Marketplace.OZON?"9001":"101");}
     private static void purchaseProof(Shop shop,FboProductSku reference){KizPurchaseMappingProof.require(shop,List.of(new KizPurchaseMappingProof.Product(reference.productId(),reference.catalogSku(),GtinWriteTestFixture.GTIN)),Set.of(GtinWriteTestFixture.GTIN));}
     private static String catalogJson(Shop shop)throws Exception{try(var c=Database.getConnection();var p=c.prepareStatement("SELECT data_json FROM gtin_sync_catalog WHERE shop_id=?")){p.setInt(1,shop.getId());try(var r=p.executeQuery()){return r.getString(1);}}}

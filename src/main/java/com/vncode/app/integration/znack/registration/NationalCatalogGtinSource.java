@@ -214,7 +214,7 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
                 try{details=CatalogProductDataParser.withRegistry(details,documents.read(gtin));}
                 catch(Exception unavailable){if(unavailable instanceof InterruptedException interrupted){Thread.currentThread().interrupt();throw interrupted;}details=CatalogProductDataParser.registryUnavailable(details);}
             }
-            String article=details.single("article"),color=details.single("color"),size=details.single("size");
+            String article=details.single("article"),color=com.vncode.app.features.gtinsync.GtinColorIdentity.value(details.values("color")),size=details.single("size");
             boolean published="published".equalsIgnoreCase(text(selected,"good_status","goodStatus","cardStatus"))&&!"false".equals(details.single("@catalog_signed"));
             return new RegisteredGtin(gtin,article,color,size,unit,published,source,observedAt,details);
     }

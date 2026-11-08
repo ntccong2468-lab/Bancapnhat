@@ -52,7 +52,7 @@ public final class OzonCatalogMappingService {
             if(target.exempt()||reviewed.containsKey(target.row().key()))continue;
             for(String code:codes(target.row())){
                 var card=catalog.get(code);
-                if(card==null||!scope.equals(card.source())||card.details().documents().stream().noneMatch(OzonCatalogMappingService::activeDocument))needed.add(code);
+                if(card==null||!scope.equals(card.source())||!com.vncode.app.features.catalogsync.CatalogPermitEvidence.problem(card.details()).isBlank())needed.add(code);
             }
         }
         var failures=new HashMap<String,String>();var enriched=new ArrayList<RegisteredGtin>();int done=0;
@@ -156,19 +156,7 @@ public final class OzonCatalogMappingService {
         if(!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";
         // Marketplace TN VED differences do not block a verified KIZ mapping.
         // Keep the Catalog card's own TN VED and permit data for the purchase.
-        if(card.details().documents().stream().noneMatch(OzonCatalogMappingService::activeDocument))return "GTIN_DOCUMENT_MISSING";
-        return "";
-    }
-    private static boolean activeDocument(CatalogProductData.Document document){
-        if(document.number().isBlank()||!Set.of("DECLARATION","CERTIFICATE","CERTIFICATE_OF_CONFORMITY","CERTIFICATE_OF_REGISTRATION","CONFORMITY_DECLARATION","CONFORMITY_CERTIFICATE").contains(document.type()))return false;
-        String status=document.metadata().getOrDefault("registryStatus","");
-        if(!status.isBlank()&&!Set.of("active","valid").contains(status.toLowerCase(Locale.ROOT)))return false;
-        try{
-            var today=LocalDate.now();if(document.from().isBlank()||LocalDate.parse(document.from()).isAfter(today))return false;
-            if(!document.until().isBlank()&&LocalDate.parse(document.until()).isBefore(today))return false;
-            // The registry explicitly confirms active status even when it omits an expiry date.
-            return document.endless()||!document.until().isBlank()||status.equalsIgnoreCase("active")||status.equalsIgnoreCase("valid");
-        }catch(java.time.DateTimeException invalid){return false;}
+        return com.vncode.app.features.catalogsync.CatalogPermitEvidence.problem(card.details());
     }
 
     static final class LocalOperations implements Operations {

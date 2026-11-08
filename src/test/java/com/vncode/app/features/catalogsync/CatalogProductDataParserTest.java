@@ -89,5 +89,22 @@ class CatalogProductDataParserTest {
         assertEquals("true",CatalogProductDataParser.parse(JsonParser.parseString("{\"good_signed\":true}").getAsJsonObject()).single("@catalog_signed"));
         for(String raw:List.of("\"false\"","0","{}","[]")){var failure=assertThrows(IllegalArgumentException.class,()->CatalogProductDataParser.parse(JsonParser.parseString("{\"good_signed\":"+raw+"}").getAsJsonObject()));assertEquals("CATALOG_SIGNATURE_STATUS_UNVERIFIED",failure.getMessage());}
     }
+    @Test void registryExpiryIsAuthoritativeAndDatesAreCanonicalWithoutGuessingEndlessness(){
+        var data=CatalogProductDataParser.withRegistry(CatalogProductData.EMPTY,JsonParser.parseString("""
+          {"result":{"documents":[{"attr_id":23557,"number":"FIXTURE","from_date":"03.02.2020","to_date":"04.05.2021","status_group":1}]}}
+          """));
+        assertEquals("2020-02-03",data.documents().getFirst().from());assertEquals("2021-05-04",data.documents().getFirst().until());assertFalse(data.documents().getFirst().endless());
+    }
+    @Test void pendingRegistryRetainsTheObservedPaperWithoutAuthorizingIt(){
+        var original=CatalogProductDataParser.parse(JsonParser.parseString("{\"good_attrs\":[{\"attr_id\":23557,\"attr_value\":\"FIXTURE:::2020-02-03\"}]}").getAsJsonObject());
+        var pending=CatalogProductDataParser.withRegistry(original,JsonParser.parseString("{\"result\":{\"documents\":[],\"errors\":[{\"error_code\":\"18\"}]}}"));
+        assertEquals(original.documents(),pending.documents());assertEquals("REGISTRY_DOCUMENTS_PENDING",pending.single("@documents_status"));
+    }
+    @Test void currentRegistryExpiryOverridesAnOldInfiniteFlagOnTheSamePaper(){
+        var original=new CatalogProductData(java.util.Map.of(),List.of(),List.of(new CatalogProductData.Document("DECLARATION","FIXTURE","2020-01-01","2999-01-01",true,"",java.util.Map.of())));
+        var observed=CatalogProductDataParser.withRegistry(original,JsonParser.parseString("{\"documents\":[{\"attr_id\":23557,\"number\":\"FIXTURE\",\"from_date\":\"2020-01-01\",\"to_date\":\"2021-01-01\",\"status_group\":1}]}"));
+        assertEquals("2021-01-01",observed.documents().getFirst().until());assertFalse(observed.documents().getFirst().endless());
+        assertEquals("GTIN_DOCUMENT_EXPIRED",CatalogPermitEvidence.problem(observed));
+    }
 
 }

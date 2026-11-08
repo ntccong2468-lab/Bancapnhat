@@ -56,7 +56,9 @@ public class KizMappingController {
     private boolean syncing;
     private long shopGeneration;
     private final javafx.animation.PauseTransition syncRetry=new javafx.animation.PauseTransition();
-    private record MappingIssue(String article,String size,String sku,String gtin,String reason){}
+    private record MappingIssue(String article,String size,String sku,String gtin,String reason,String marketplaceColor,String catalogColor){
+        MappingIssue(String article,String size,String sku,String gtin,String reason){this(article,size,sku,gtin,reason,"","");}
+    }
     private record MappingReport(int mapped,int exempt,List<MappingIssue> issues,int linked){MappingReport{issues=List.copyOf(issues);}MappingReport(int mapped,int exempt,List<MappingIssue> issues){this(mapped,exempt,issues,0);}}
     private record Synced(List<ZnackGtinInventorySummary> summaries,MappingReport mapping){}
 
@@ -184,7 +186,7 @@ public class KizMappingController {
                     MappingReport mapped;
                     if(owner.getMarketplace()==Marketplace.WILDBERRIES){
                         var result=new com.vncode.app.features.kizmapping.WbCatalogMappingService().synchronize(owner,progress);
-                        mapped=new MappingReport(result.mapped(),0,result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),"",issue.gtin(),issue.reason())).toList());
+                        mapped=new MappingReport(result.mapped(),0,result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),"",issue.gtin(),issue.reason(),issue.marketplaceColor(),issue.catalogColor())).toList());
                     }else{
                         var result=new com.vncode.app.features.kizmapping.OzonCatalogMappingService().synchronize(owner,progress);
                         mapped=new MappingReport(result.mapped(),result.exempt(),result.issues().stream().map(issue->new MappingIssue(issue.article(),issue.size(),issue.sku(),issue.gtin(),issue.reason())).toList(),result.linked());
@@ -234,13 +236,20 @@ public class KizMappingController {
         var table=new TableView<MappingIssue>();table.setId("mappingIssueTable");table.getItems().setAll(result.issues());table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         for(String field:shop!=null&&shop.getMarketplace()==Marketplace.OZON?List.of("article","size","sku","gtin","reason"):List.of("article","size","gtin","reason")){
             var col=new TableColumn<MappingIssue,String>(tr("mapping.column."+field));
-            col.setCellValueFactory(cell->new SimpleStringProperty(switch(field){case "article"->cell.getValue().article();case "size"->cell.getValue().size();case "sku"->cell.getValue().sku();case "gtin"->cell.getValue().gtin();default->mappingReason(cell.getValue().reason());}));
+            col.setCellValueFactory(cell->new SimpleStringProperty(switch(field){case "article"->cell.getValue().article();case "size"->cell.getValue().size();case "sku"->cell.getValue().sku();case "gtin"->cell.getValue().gtin();default->mappingReason(cell.getValue());}));
             col.setCellFactory(c->new TableCell<>(){protected void updateItem(String text,boolean empty){super.updateItem(text,empty);setText(empty?null:text);setWrapText(true);}});table.getColumns().add(col);
         }
         dialog.getDialogPane().setId("mappingIssuesDialog");dialog.getDialogPane().setContent(table);dialog.getDialogPane().setPrefSize(980,500);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);com.vncode.app.shared.DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
     }
 
     private String mappingReason(String code){return I18nService.getInstance().tr("mapping.reason."+code,FriendlyErrorService.format(new IllegalArgumentException(code)));}
+    private String mappingReason(MappingIssue issue){
+        String reason=mappingReason(issue.reason());
+        if((issue.reason().equals("GTIN_COLOR_MISMATCH")||issue.reason().equals("GTIN_COLOR_MISSING"))
+                &&(!issue.marketplaceColor().isBlank()||!issue.catalogColor().isBlank()))
+            reason+="\n"+java.text.MessageFormat.format(tr("mapping.color_observation"),issue.marketplaceColor().isBlank()?"—":issue.marketplaceColor(),issue.catalogColor().isBlank()?"—":issue.catalogColor());
+        return reason;
+    }
 
     public void refresh() {
         if (loading) return;

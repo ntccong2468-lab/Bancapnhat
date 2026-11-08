@@ -22,12 +22,13 @@ class WbGtinProductReaderTest {
         var key=new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(shop.getId(),Marketplace.WILDBERRIES,"101","11");
         assertEquals("ambiguous_wb_variant",assertThrows(IllegalArgumentException.class,()->WbGtinProductReader.fromCard(key,card)).getMessage());
     }
-    @Test void knownNativeColorAliasesAreReadAndConflictingAttributesRemainUnverified(){
+    @Test void knownNativeColorAliasesRetainEveryObservedColor(){
         var json=card(101,11);json.add("characteristics",JsonParser.parseString("[{\"name\":\"Цвет товара\",\"value\":[\"Черный\"]}]"));
         var key=new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(shop.getId(),Marketplace.WILDBERRIES,"101","11");
         assertEquals("Черный",WbGtinProductReader.fromCard(key,new Gson().fromJson(json,WbProductCard.class)).color());
         json.getAsJsonArray("characteristics").add(JsonParser.parseString("{\"name\":\"Color\",\"value\":[\"Brown\"]}"));
-        assertEquals("",WbGtinProductReader.fromCard(key,new Gson().fromJson(json,WbProductCard.class)).color());
+        assertEquals("Черный / Brown",WbGtinProductReader.fromCard(key,new Gson().fromJson(json,WbProductCard.class)).color());
+        assertFalse(com.vncode.app.features.gtinsync.OzonSkuGtinMatcher.sameColor("Black",WbGtinProductReader.fromCard(key,new Gson().fromJson(json,WbProductCard.class)).color()));
     }
     @Test void ownerChangeDuringAReadDiscardsTheWholeResult()throws Exception{
         var api=new WbApiClient(){@Override public WbProductCardsResponse getProductCards(String token,String locale,String cursor,Long nm,int limit)throws IOException{

@@ -40,6 +40,13 @@ class ProductRepositoryTest {
         }
         assertEquals("ЗЕЛЁНЫЙ",new ProductRepository().loadPage(query("","")).rows().getFirst().color());
     }
+    @Test void wbProjectionRetainsEveryColorInsteadOfAuthorizingOnlyTheFirst()throws Exception{
+        card(1,1,"Fixture","barcode");
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO wb_product_characteristics(shop_id,nm_id,characteristic_id,name,value_json) VALUES(1,1,14177449,'Цвет',?)")){
+            p.setString(1,"[\"Black\",\"White\"]");p.executeUpdate();
+        }
+        assertEquals("Black / White",new ProductRepository().loadPage(query("",null)).rows().getFirst().color());
+    }
     @Test void searchAndPagingAreShopScoped() throws Exception {
         for(int i=1;i<=251;i++)card(1,i,"Product "+String.format("%04d",i),null);
         card(3,999,"Foreign product",null);

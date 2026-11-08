@@ -47,4 +47,20 @@ class GtinMatchingServiceTest {
         var p=product("PANTS-1","Đen","XL");
         assertThrows(UnsupportedOperationException.class,()->p.barcodes().add("bad"));
     }
+    @Test void colorSpellingTranslationAndSetOrderDoNotCreateFalseDifferentVariants(){
+        for(var pair:List.of(List.of("серый","grey"),List.of("GRAY","xám"),
+                List.of("зеленый","green"),List.of("тёмно–серый","темно-серый"),
+                List.of("чёрный / белый","white; black"),List.of("BLACK / чёрный","black")))
+            assertTrue(OzonSkuGtinMatcher.sameColor(pair.getFirst(),pair.getLast()),pair.toString());
+        for(var pair:List.of(List.of("серый","светло-серый"),List.of("blue","light blue"),
+                List.of("black / white","black"),List.of("black / white","black / grey"),List.of("","black")))
+            assertFalse(OzonSkuGtinMatcher.sameColor(pair.getFirst(),pair.getLast()),pair.toString());
+    }
+    @Test void separatorOnlyValuesAreMissingColorAndCannotSelectACatalogCard(){
+        var matcher=new GtinMatchingService();
+        for(String color:List.of("/","; / + | ,")){
+            var card=new RegisteredGtin("00000000000017","PANTS-1",color,"XL",true,true,"fixture",Instant.now());
+            assertFalse(matcher.match(product("PANTS-1",color,"XL"),List.of(card)).exact());
+        }
+    }
 }

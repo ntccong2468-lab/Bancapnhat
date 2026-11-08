@@ -97,8 +97,8 @@ public final class KizRegistrationIdentityRepository {
                     var body=JsonParser.parseString(payload).getAsJsonObject();
                     if(!RegisteredGtinProof.sameCode(gtin,text(body,"gtin")))continue;
                     var facts=CatalogProductDataParser.parse(body);
-                    var variant=new RegisteredGtin(gtin,facts.single("article"),facts.single("color"),facts.single("size"),true,false,proof.source(),Instant.now(),facts);
-                    String color=shop.getMarketplace()==Marketplace.WILDBERRIES?singleColor(r.getString("color")):safe(r.getString("color"));
+                    var variant=new RegisteredGtin(gtin,facts.single("article"),com.vncode.app.features.gtinsync.GtinColorIdentity.value(facts.values("color")),facts.single("size"),true,false,proof.source(),Instant.now(),facts);
+                    String color=shop.getMarketplace()==Marketplace.WILDBERRIES?com.vncode.app.features.gtinsync.GtinColorIdentity.fromWbCharacteristics(r.getString("color")):safe(r.getString("color"));
                     if(!ListingIdentity.compatibleVariant(variant,r.getString("article"),color,r.getString("size"),r.getString("russian_size")))continue;
                     if(isPublished){
                         var observed=published.getOrDefault(GtinNormalizer.normalize(gtin),List.of());
@@ -147,16 +147,6 @@ public final class KizRegistrationIdentityRepository {
         if(matches.isEmpty())return Optional.empty();
         if(matches.stream().map(i->i.productId()+"|"+i.variantId()).distinct().count()!=1)return Optional.empty();
         return Optional.of(matches.getFirst().metadata());
-    }
-    private static String singleColor(String json){
-        var colors=new LinkedHashSet<String>();
-        for(var raw:JsonParser.parseString(json).getAsJsonArray()){
-            var attribute=raw.getAsJsonObject();if(!ProductFieldNames.matches("color",text(attribute,"name")))continue;
-            var value=JsonParser.parseString(text(attribute,"value"));
-            if(value.isJsonArray()){for(var color:value.getAsJsonArray()){if(!color.isJsonPrimitive()||!color.getAsJsonPrimitive().isString())return "";if(!color.getAsString().isBlank())colors.add(color.getAsString().strip());}}
-            else if(value.isJsonPrimitive()&&value.getAsJsonPrimitive().isString())colors.add(value.getAsString().strip());else return "";
-        }
-        return colors.size()==1?colors.iterator().next():"";
     }
     private static String text(JsonObject object,String key){return object.has(key)&&!object.get(key).isJsonNull()?object.get(key).getAsString():"";}
     private static Map<String,List<RegisteredGtin>> publishedCatalog(Shop shop,String owner){

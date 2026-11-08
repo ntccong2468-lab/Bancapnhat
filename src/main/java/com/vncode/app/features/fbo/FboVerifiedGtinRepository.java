@@ -5,6 +5,7 @@ import com.vncode.app.features.gtinsync.RegisteredGtinValidator;
 import com.vncode.app.features.gtinsync.RegisteredGtinProof;
 import com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin;
 import com.vncode.app.features.gtinsync.OzonSkuGtinMatcher;
+import com.vncode.app.features.gtinsync.GtinColorIdentity;
 import com.vncode.app.features.products.ProductRepository;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.listing.ListingIdentity;
@@ -92,26 +93,10 @@ public final class FboVerifiedGtinRepository {
             if(!data.has("owner")||!owner.equals(data.get("owner").getAsString()))return false;
             var row=ProductJson.GSON.fromJson(data,RegisteredGtin.class);
             if(!source.equals(row.source())||!RegisteredGtinProof.sameCode(gtin,row.gtin())||!RegisteredGtinProof.currentObservation(row,now))return false;
-            String actualColor=market==Marketplace.WILDBERRIES?singleColor(color):safe(color);
+            String actualColor=market==Marketplace.WILDBERRIES?GtinColorIdentity.fromWbCharacteristics(color):safe(color);
             if(ListingIdentity.compatibleVariant(row,safe(article),actualColor,safe(size),safe(russianSize)))return true;
             return market==Marketplace.OZON&&new OzonSkuGtinMatcher(List.of(row)).candidates(safe(variant),safe(article),actualColor,safe(size),safe(russianSize),safe(title),safe(category),safe(brand)).size()==1;
         }catch(RuntimeException malformed){return false;}
-    }
-    private static String singleColor(String value){
-        if(value==null||value.isBlank())return "";
-        var colors=new LinkedHashSet<String>();var attributes=JsonParser.parseString(value);
-        if(!attributes.isJsonArray())return "";
-        for(var raw:attributes.getAsJsonArray()){
-            if(!raw.isJsonObject())return "";var attribute=raw.getAsJsonObject();
-            if(!attribute.has("name")||attribute.get("name").isJsonNull()||!com.vncode.app.features.products.ProductFieldNames.matches("color",attribute.get("name").getAsString()))continue;
-            if(!attribute.has("value")||attribute.get("value").isJsonNull()||!colors(JsonParser.parseString(attribute.get("value").getAsString()),colors))return "";
-        }
-        return colors.size()==1?colors.iterator().next():"";
-    }
-    private static boolean colors(com.google.gson.JsonElement value,Set<String> colors){
-        if(value.isJsonArray()){for(var color:value.getAsJsonArray())if(!colors(color,colors))return false;return true;}
-        if(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString())return false;
-        if(!value.getAsString().isBlank())colors.add(value.getAsString().strip());return true;
     }
     private static String safe(String value){return Objects.toString(value,"");}
 }

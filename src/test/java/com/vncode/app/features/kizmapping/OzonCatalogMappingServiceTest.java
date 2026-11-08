@@ -119,7 +119,7 @@ class OzonCatalogMappingServiceTest {
         var base=card(gtin(1));op.cards.add(new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,SOURCE,Instant.now(),base.details()));
         base=card(gtin(2));op.cards.add(new RegisteredGtin(base.gtin(),base.article(),base.color(),base.size(),true,false,SOURCE,Instant.now(),new CatalogProductData(Map.of("@catalog_detailed_status",List.of("errors")),List.of(),base.details().documents())));
         var expired=new CatalogProductData.Document("DECLARATION","fixture","2020-01-01","2020-02-01",false,"",Map.of());op.cards.add(card(gtin(3),List.of(expired)));
-        assertEquals(List.of("GTIN_CARD_UNSIGNED","GTIN_CARD_REJECTED","GTIN_DOCUMENT_MISSING"),reasons(run(op)));assertTrue(op.verified.isEmpty());
+        assertEquals(List.of("GTIN_CARD_UNSIGNED","GTIN_CARD_REJECTED","GTIN_DOCUMENT_EXPIRED"),reasons(run(op)));assertTrue(op.verified.isEmpty());
     }
     @Test void accessDeniedIsAnIndividualIssueAndOtherProductsStillMap()throws Exception{
         var op=new Fake();String a=gtin(1),b=gtin(2);op.targets.add(target(1,List.of(a),false,""));op.targets.add(target(2,List.of(b),false,""));op.cards.add(card(b));

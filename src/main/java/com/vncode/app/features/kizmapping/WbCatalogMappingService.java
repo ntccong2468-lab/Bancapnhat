@@ -2,7 +2,7 @@ package com.vncode.app.features.kizmapping;
 
 import com.vncode.app.features.gtinsync.*;
 import com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin;
-import com.vncode.app.features.catalogsync.CatalogProductData;
+import com.vncode.app.features.catalogsync.CatalogPermitEvidence;
 import com.vncode.app.features.products.*;
 import com.vncode.app.features.sync.*;
 import com.vncode.app.integration.listing.ListingIdentity;
@@ -16,7 +16,9 @@ import java.util.function.Consumer;
 
 /** Read WB and Catalog, then record only exact, usable barcode/size readbacks. No seller API writes. */
 public final class WbCatalogMappingService {
-    public record Issue(String article,String size,String gtin,String reason){}
+    public record Issue(String article,String size,String gtin,String reason,String marketplaceColor,String catalogColor){
+        public Issue(String article,String size,String gtin,String reason){this(article,size,gtin,reason,"","");}
+    }
     public record Result(int mapped,List<Issue> issues){public Result{issues=List.copyOf(issues);}}
     public Result synchronize(Shop shop,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception {
         if(shop.getMarketplace()!=Marketplace.WILDBERRIES)throw new IllegalArgumentException("shop_mismatch");
@@ -29,7 +31,7 @@ public final class WbCatalogMappingService {
         var repo=new GtinSyncRepository();var catalog=new HashMap<String,RegisteredGtin>();
         for(var card:repo.catalog(shop.getId(),shop.getMarketplace()))catalog.put(GtinNormalizer.normalize(card.gtin()),card);
         var needed=new LinkedHashSet<String>();
-        for(var row:rows)for(String code:codes(row)){var card=catalog.get(code);if(card==null||!scope.equals(card.source())||card.details().documents().stream().noneMatch(WbCatalogMappingService::activeDocument))needed.add(code);}
+        for(var row:rows)for(String code:codes(row)){var card=catalog.get(code);if(card==null||!scope.equals(card.source())||!CatalogPermitEvidence.problem(card.details()).isBlank())needed.add(code);}
         var readIssues=new HashMap<String,String>();var enriched=new ArrayList<RegisteredGtin>();int done=0;
         // A foreign/absent GTIN must not hide results for the remaining sizes.
         for(String code:needed){
@@ -70,7 +72,7 @@ public final class WbCatalogMappingService {
             else if(duplicate.contains(code))reason="GTIN_MULTIPLE_SIZES";
             else if(failures.containsKey(code))reason=Set.of("ZNACK_AUTH_REQUIRED","ZNACK_HTTP_403").contains(failures.get(code))?"GTIN_ACCESS_DENIED":failures.get(code);
             else {reason=problem(row,card,scope);if(reason.isBlank())reason="GTIN_AMBIGUOUS";}
-            issues.add(new Issue(row.vendorArticle(),row.size(),code,reason));
+            issues.add(new Issue(row.vendorArticle(),row.size(),code,reason,row.color(),card==null?"":card.color()));
         }
         return new Result(mapped,issues);
     }
@@ -86,21 +88,13 @@ public final class WbCatalogMappingService {
         if(!card.published())return "GTIN_CARD_UNSIGNED";
         if(!card.tradeUnit())return "GTIN_NOT_TRADE_UNIT";
         if(!GtinVariantIdentity.sizeMatches(card,GtinVariantIdentity.primarySize(row),row.russianSize()))return "GTIN_SIZE_MISMATCH";
+        if(row.color().isBlank()||card.color().isBlank())return "GTIN_COLOR_MISSING";
         if(!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";
         // KIZ mapping follows the observed Catalog identity, regardless of the
         // marketplace's TN VED. Order metadata still comes from the Catalog card.
-        return card.details().documents().stream().anyMatch(WbCatalogMappingService::activeDocument)?"":"GTIN_DOCUMENT_MISSING";
+        return CatalogPermitEvidence.problem(card.details());
     }
     private static void requireScope(Shop shop,String scope){ListingIdentity.require(shop);if(!scope.equals(RegisteredGtinProof.current(shop).source()))throw new SecurityException("CATALOG_OWNER_CHANGED");}
-    private static boolean activeDocument(CatalogProductData.Document document){
-        if(document.number().isBlank()||!Set.of("DECLARATION","CERTIFICATE","CERTIFICATE_OF_CONFORMITY","CERTIFICATE_OF_REGISTRATION","CONFORMITY_DECLARATION","CONFORMITY_CERTIFICATE").contains(document.type()))return false;
-        String status=document.metadata().getOrDefault("registryStatus","");
-        if(!status.isBlank()&&!Set.of("active","valid").contains(status.toLowerCase(Locale.ROOT)))return false;
-        try{var today=LocalDate.now();if(document.from().isBlank()||LocalDate.parse(document.from()).isAfter(today))return false;
-            if(!document.until().isBlank()&&LocalDate.parse(document.until()).isBefore(today))return false;
-            return document.endless()||!document.until().isBlank()||status.equalsIgnoreCase("active")||status.equalsIgnoreCase("valid");
-        }catch(java.time.DateTimeException invalid){return false;}
-    }
     private static Set<String> codes(ProductRow row){var out=new LinkedHashSet<String>();for(String value:row.barcodes())if(RegisteredGtinValidator.isValid(value)&&!GtinNormalizer.isTechnicalRange(value))out.add(GtinNormalizer.normalize(value));return out;}
     private static Set<String> duplicates(List<ProductRow> rows){var first=new HashMap<String,ProductRow>();var out=new HashSet<String>();for(var row:rows)for(String code:codes(row)){var previous=first.putIfAbsent(code,row);if(previous!=null&&!GtinVariantIdentity.samePhysicalVariant(previous,row))out.add(code);}return out;}
 }

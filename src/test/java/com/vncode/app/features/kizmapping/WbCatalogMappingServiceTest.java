@@ -11,6 +11,16 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class WbCatalogMappingServiceTest {
+    @Test void completeColorSetsMapInEitherOrderButPartialSetsShowBothObservedValues(){
+        var original=card(SOURCE,Instant.now(),documents());
+        var multicolor=new RegisteredGtin(original.gtin(),original.article(),"белый / черный",original.size(),original.tradeUnit(),original.published(),original.source(),original.syncedAt(),original.details());
+        assertEquals(1,review(List.of(product(1,"Article","Black / White","52")),multicolor).mapped());
+        var result=review(List.of(product(1,"Article","Black","52")),multicolor);
+        assertEquals(0,result.mapped());assertEquals(List.of("GTIN_COLOR_MISMATCH"),reasons(result));
+        assertEquals("Black",result.issues().getFirst().marketplaceColor());assertEquals("белый / черный",result.issues().getFirst().catalogColor());
+        var missing=review(List.of(product(1,"Article","","52")),multicolor);
+        assertEquals(List.of("GTIN_COLOR_MISSING"),reasons(missing));assertEquals(0,missing.mapped());
+    }
     private static final String SOURCE = "National Catalog@fixture";
     private static final String GTIN = "00000000000017";
 
@@ -72,10 +82,11 @@ class WbCatalogMappingServiceTest {
     @Test void expiredAndRevokedDocumentsDoNotAuthorizeMapping() {
         var expired = new CatalogProductData.Document("DECLARATION", "fixture", "2020-01-01", "2020-02-01", false, "", Map.of());
         var revoked = new CatalogProductData.Document("DECLARATION", "fixture", "2020-01-01", "", true, "", Map.of("registryStatus", "revoked"));
-        for (var document : List.of(expired, revoked)) {
+        var expected = Map.of(expired, "GTIN_DOCUMENT_EXPIRED", revoked, "GTIN_DOCUMENT_INACTIVE");
+        for (var document : expected.keySet()) {
             var result = review(List.of(product(1, "Article", "Brown", "52")), card(SOURCE, Instant.now(), List.of(document)));
             assertEquals(0, result.mapped());
-            assertEquals(List.of("GTIN_DOCUMENT_MISSING"), reasons(result));
+            assertEquals(List.of(expected.get(document)), reasons(result));
         }
     }
 
@@ -118,6 +129,22 @@ class WbCatalogMappingServiceTest {
 
     private static WbCatalogMappingService.Result review(List<ProductRow> rows, RegisteredGtin card) {
         return WbCatalogMappingService.review(rows, Map.of(GTIN, card), Map.of(), SOURCE);
+    }
+    @Test void anExistingValidDottedDateDeclarationDoesNotBecomeMissingPaper(){
+        var document=new CatalogProductData.Document("DECLARATION","fixture","01.01.2020","01.01.2099",false,"",Map.of());
+        var result=review(List.of(product(1,"Article","Brown","52")),card(SOURCE,Instant.now(),List.of(document)));
+        assertEquals(1,result.mapped());assertTrue(result.issues().isEmpty());
+    }
+    @Test void pendingRegistryIsNotMisreportedAsMissingPaper(){
+        var details=new CatalogProductData(Map.of("@documents_status",List.of("REGISTRY_DOCUMENTS_PENDING")),List.of(),List.of());
+        var card=new RegisteredGtin(GTIN,"Article","Brown","52",true,true,SOURCE,Instant.now(),details);
+        assertEquals(List.of("REGISTRY_DOCUMENTS_PENDING"),reasons(review(List.of(product(1,"Article","Brown","52")),card)));
+    }
+    @Test void unavailableRegistryCannotAuthorizeMappingOrInventMissingPaper(){
+        var details=new CatalogProductData(Map.of("@documents_status",List.of("REGISTRY_DOCUMENTS_UNAVAILABLE")),List.of(),documents());
+        var card=new RegisteredGtin(GTIN,"Article","Brown","52",true,true,SOURCE,Instant.now(),details);
+        var result=review(List.of(product(1,"Article","Brown","52")),card);
+        assertEquals(0,result.mapped());assertEquals(List.of("REGISTRY_DOCUMENTS_UNAVAILABLE"),reasons(result));
     }
     private static List<String> reasons(WbCatalogMappingService.Result result) {
         return result.issues().stream().map(WbCatalogMappingService.Issue::reason).toList();

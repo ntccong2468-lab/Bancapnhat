@@ -77,7 +77,7 @@ public final class RegistrationExistingCards {
                 Long expected=expectedId(candidate);checkScope(shop,variant,session);var observed=observer.read(session,candidate.gtin(),expected);checkScope(shop,variant,session);
                 if(observed==null)throw invalid("CATALOG_EXISTING_CARD_READBACK_REQUIRED");
                 if(observed.goodId()<=0||expected!=null&&expected!=observed.goodId()||!RegisteredGtinProof.sameCode(candidate.gtin(),observed.gtin())||observed.progress()==null||observed.progress().goodId()==null||observed.progress().goodId()!=observed.goodId()||observed.rawStatus()==null||observed.rawStatus().isBlank()||observed.checkedAt()==null||observed.checkedAt().isAfter(Instant.now().plusSeconds(300)))throw invalid("CATALOG_EXISTING_CARD_LOOKUP_INVALID");
-                var fresh=new RegisteredGtin(observed.gtin(),observed.details().single("article"),observed.details().single("color"),observed.details().single("size"),candidate.tradeUnit(),observed.progress().signed(),candidate.source(),observed.checkedAt(),observed.details());
+                var fresh=new RegisteredGtin(observed.gtin(),observed.details().single("article"),com.vncode.app.features.gtinsync.GtinColorIdentity.value(observed.details().values("color")),observed.details().single("size"),candidate.tradeUnit(),observed.progress().signed(),candidate.source(),observed.checkedAt(),observed.details());
                 if(!compatible(variant,fresh))throw invalid("CATALOG_EXISTING_CARD_VARIANT_CONFLICT");
                 requireTnved(variant.tnved(),fresh.details().values("tnved"));return Optional.of(observed);
             }catch(Exception unknown){

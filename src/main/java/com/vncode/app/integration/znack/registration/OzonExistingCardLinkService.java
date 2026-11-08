@@ -34,7 +34,7 @@ public final class OzonExistingCardLinkService {
         long id;try{id=Long.parseLong(card.details().single("@catalog_id"));if(id<=0)throw new NumberFormatException();}catch(RuntimeException invalid){throw new IllegalStateException("CATALOG_IDENTITY_CHANGED",invalid);}
         var observed=session.catalog().observedCardStatus(session.token(),gtin,id);
         if(observed==null||observed.goodId()!=id||!observed.tradeUnit()||observed.progress()==null||!observed.progress().signed()||!"published".equalsIgnoreCase(observed.rawStatus())||!RegisteredGtinProof.sameCode(observed.gtin(),gtin))throw new IllegalStateException("CATALOG_PUBLICATION_PENDING");
-        if(!card.article().equals(observed.details().single("article"))||!card.color().equals(observed.details().single("color"))
+        if(!card.article().equals(observed.details().single("article"))||!card.color().equals(com.vncode.app.features.gtinsync.GtinColorIdentity.value(observed.details().values("color")))
                 ||!card.size().equals(observed.details().single("size"))||!card.details().values("tnved").equals(observed.details().values("tnved")))throw new IllegalStateException("CATALOG_IDENTITY_CHANGED");
         Runnable guard=()->{session.scope().assertCurrent(shop);ListingIdentity.require(shop);};
         if(!session.catalog().verifiedPublishedCardOwner(session.token(),gtin,id,scope.inn(),guard))throw new IllegalStateException("CATALOG_OWNER_UNCONFIRMED");

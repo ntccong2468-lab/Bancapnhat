@@ -20,7 +20,7 @@ public record CatalogProductData(Map<String,List<String>> fields,List<Attribute>
         public Attribute {id=safe(id);name=safe(name);values=List.copyOf(values);if(values.size()>100||values.stream().anyMatch(v->v==null||v.length()>5000))throw new IllegalArgumentException("CATALOG_DATA_LIMIT");}
     }
     public record Document(String type,String number,String from,String until,boolean endless,String applicant,Map<String,String> metadata) {
-        public Document {type=safe(type);number=safe(number);from=safe(from);until=safe(until);applicant=safe(applicant);metadata=metadata==null?Map.of():Map.copyOf(metadata);}
+        public Document {type=safe(type);number=safe(number);from=com.vncode.app.shared.PermitDocumentDate.normalize(from);until=com.vncode.app.shared.PermitDocumentDate.normalize(until);applicant=safe(applicant);metadata=metadata==null?Map.of():Map.copyOf(metadata);}
     }
     private static String safe(String value){return value==null?"":value.strip();}
 }
