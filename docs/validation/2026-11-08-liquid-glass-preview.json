@@ -1,0 +1,89 @@
+{
+  "kind": "APPROVAL_PREVIEW_ONLY",
+  "createdAtUtc": "2026-11-08T16:05:51.864411+00:00",
+  "productionSourceAtCapture": "d93ae2e9d340fefc4406f66e9daf9bf846ed6cc9",
+  "appFunctionalSource": "ae2d48a2e397428869d553b7e008402f469a3566",
+  "productionUiModified": false,
+  "published": false,
+  "latestReadOnlyObserved": {
+    "tag": "v1.6.6",
+    "releaseId": 437862752,
+    "publishedAt": "2026-11-07T21:46:11Z"
+  },
+  "artifact": "HTML/Chromium preview; real app remains Java25/JavaFX Windows",
+  "screenshots": 164,
+  "capturesByCategory": {
+    "responsive": 24,
+    "screen": 46,
+    "tab": 32,
+    "dialog": 44,
+    "interaction": 14,
+    "state": 3,
+    "accessibility": 1
+  },
+  "nativeBeforeCaptures": 6,
+  "contactSheets": 7,
+  "automatedChecks": {
+    "checks": 372,
+    "passed": 372,
+    "failed": 0,
+    "javascriptErrors": [],
+    "externalRequests": [],
+    "blocked": [
+      {
+        "check": "standalone file mode",
+        "reason": "Managed Chromium blocks file:// by administrator policy. HTTP localhost verified. No policy bypass."
+      }
+    ]
+  },
+  "reviewer": {
+    "name": "apple_preview_finish_review",
+    "freshContext": true,
+    "firstDisposition": "fix",
+    "materialFixes": 6,
+    "resolvedFixes": 6,
+    "finalDisposition": "ship",
+    "scope": "Verdict on six listed prototype fixes only; not whole surface, native app, or production approval"
+  },
+  "rasterOriginScan": {
+    "rasters": 181,
+    "missing": 0
+  },
+  "video": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1440,
+        "height": 900,
+        "r_frame_rate": "25/1"
+      }
+    ],
+    "format": {
+      "duration": "22.720000",
+      "size": "2812224"
+    }
+  },
+  "videoValidation": "MP4 decode and seek6s/14s/20s; 3frames visually inspected; reviewer did not review video playback",
+  "nativeWindowsValidated": false,
+  "realApiWrites": 0,
+  "fpsBenchmark": null,
+  "approval": "PENDING USER REVIEW BEFORE APP UI SOURCE CHANGES",
+  "archive": {
+    "file": "/workspace/vncode-apple-preview-20261108/VN-Code-Liquid-Glass-preview.zip",
+    "bytes": 44270656,
+    "sha256": "f8d7e01ea6ce2799266098fa8916027661ed4d79de4ab95b1c1ee4dc66b4152f",
+    "entries": 198,
+    "screenshots": 164,
+    "compressedMiB": 42.22
+  },
+  "artifactWorkspace": "/workspace/vncode-apple-preview-20261108",
+  "deliveredFiles": {
+    "gallery": "/workspace/vncode-apple-preview-20261108/proposal/gallery.html",
+    "video": "/workspace/vncode-apple-preview-20261108/proposal/motion-demo.mp4",
+    "review": "/workspace/vncode-apple-preview-20261108/proposal/docs/REVIEW.md",
+    "manifest": "/workspace/vncode-apple-preview-20261108/proposal/capture-manifest.json"
+  },
+  "previewFilesCommittedToAppRepository": false
+}

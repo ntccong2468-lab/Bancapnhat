@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## Apple / Liquid Glass — 08.11.2026 — preview chờ duyệt, chưa áp dụng UI
+
+- Hoàn tất việc WB/KIZ trước rồi dùng TASTE + IMPECCABLE với hai prompt người dùng: dựng bản mẫu **ngoài repo** tại `/workspace/vncode-apple-preview-20261108/proposal`. Runtime app vẫn Java 25/JavaFX. Người dùng yêu cầu xem ảnh **trước khi sửa source giao diện**; **chưa có phê duyệt, không được tự áp dụng/phát hành**.
+- [Bàn giao](validation/2026-11-08-liquid-glass-preview-handoff.md), [receipt](validation/2026-11-08-liquid-glass-preview.json). Có **164 ảnh sau/6 ảnh native trước/7 ảnh tổng hợp**, gallery mở ảnh lớn, video HTML/Chromium **22,72 giây**, ZIP **42,22 MiB** SHA `f8d7e01ea6ce2799266098fa8916027661ed4d79de4ab95b1c1ee4dc66b4152f`.
+- Preview **372/372 kiểm tra đạt**, 0 JS error/external request; hình học 23 màn hình × hai nền × năm desktop size. TASTE inspect 0/0 cả hai nền. Review độc lập yêu cầu sáu sửa (select đóng thiếu, shop draft/cache, system theme, label-for, menu focus, nguồn tin trên tiêu đề); verdict **ship chỉ cho sáu điểm đã sửa**, không chứng nhận toàn app/native/API.
+- Hướng mới giữ bảng lớn/nền đục, kính chỉ chrome/overlay, năm nút sản phẩm, bốn trạng thái Znack, WB/Ozon FBS và toàn bộ route hiện có; có motion theo ngữ cảnh/reduced. Bản mẫu không gọi API hoặc mua/nhận/ký/activation. DESIGN.md và sidecar production còn nguyên. HTML không được mang thẳng vào runtime JavaFX.
+- Sáu ảnh trước là JavaFX/Linux/profile trống; ảnh sau là **thiết kế HTML dữ liệu tổng hợp**, chưa phải app seller. File-mode bị Cloud browser policy chặn; localhost đã kiểm. Windows/DPI/taskbar/hiệu năng/handler thật cần nghiệm thu **sau khi duyệt**. Detector còn 2 warning/31 advisory đã ghi rõ, không claim mọi scanner xanh.
+- Mã app tại lúc chụp `d93ae2e` (nguồn chức năng WB `ae2d48a`), tree sạch; commit sau phần này chỉ thêm docs/receipt. Latest đọc lại vẫn **v1.6.6 / 437862752**, không publisher/tag/asset write. Preview ZIP không commit vào repo; nếu workspace mất phải khôi phục artifact, không coi thiết kế đã được duyệt.
+
 ## Nghiệm thu GTIN qua API thật, đổi nguồn Catalog và đối chiếu tất cả — 07.11.2026, 17:22 MSK (UTC+03:00)
 
 - Theo chỉ đạo mới: nghiệm thu thật/lưu bản mới; người dùng bỏ phần mua KIZ, chọn mẫu sản phẩm và cấp Catalog key mới. [Bàn giao](validation/2026-11-07-ozon-live-gtin-acceptance.md), [JSON](validation/ozon-live-gtin-20261107/live-api.json). Runtime `cae86ef`, JAR `f1f8fa1334e64587608735176247b09d3c8f628107787cdfb46f551cd41de84b` giữ nguyên, source tương ứng 476 ca đã ghi riêng; không chạy lại hoặc gọi đó là 476 giao dịch thật.

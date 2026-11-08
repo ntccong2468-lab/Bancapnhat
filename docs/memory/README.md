@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| **Apple/Liquid Glass: 164 ảnh và video chờ duyệt, chưa sửa source UI** | [Bàn giao](../validation/2026-11-08-liquid-glass-preview-handoff.md), [372 kiểm tra/receipt/gói ảnh](../validation/2026-11-08-liquid-glass-preview.json) |
 | **WB mua KIZ: giữ đủ màu, giấy tờ/registry rõ trạng thái; chưa phát hành** | [Bàn giao](../validation/2026-11-08-wb-kiz-color-documents-handoff.md), [217 ca nguồn cuối + 4.010 ca lượt rộng/build](../validation/wb-kiz-color-documents-20261108/verification.json), [API thật chỉ đọc](../validation/wb-kiz-color-documents-20261108/live-read.json) |
 | **Latest 1.6.6 đã công bố**: 3.979 ca Windows, 16 asset, updater 1.6.5 → 1.6.6, toàn bộ hotfix/audit | [Bàn giao](../validation/2026-11-07-vncode-166-release-handoff.md), [tải/kiểm thực](../validation/2026-11-07-vncode-166-published-latest.json), [updater](../validation/2026-11-07-vncode-166-updater.json), [audit/UI](../validation/2026-11-07-report-pdf-app-audit.md), [ghi chú](../releases/VN-code-1.6.6.md) |
 | Znack WB/GTIN: nhận feed sang Đang xử lý ngay, 046 hoàn tất, cập nhật nền/shared writer; gồm Ozon trước đó — đã vào 1.6.6 | [Bàn giao/sơ đồ](../validation/2026-11-07-wb-znack-auto-gtin-handoff.md), [445 ca/build](../validation/wb-znack-auto-20261107/verification.json), [đọc API thật](../validation/wb-znack-auto-20261107/live-read.json), [ảnh](../validation/assets/wb-znack-auto-20261107/README.md) |
