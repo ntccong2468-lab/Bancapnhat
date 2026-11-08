@@ -1,0 +1,75 @@
+{
+  "scope": "FINAL_PRODUCTION_JAR_PURE_REPLAY_OF_EXISTING_FRESH_LIVE_CAPTURES",
+  "replayedAtUtc": "2026-11-08T18:43:57.938450+00:00",
+  "productionJarSha256": "e6db5f330f5bd345bda3d3beee4f0ba1323babc9197cfb3ee8558525107f1fab",
+  "productionClassSha256": {
+    "com/vncode/app/features/gtinsync/GtinSyncModels$RegisteredGtin.class": "1e4d9c4db2468e33097577e35ca4b6c7cf07287e2393405f6d5d43fc3c8f981a",
+    "com/vncode/app/features/gtinsync/GtinCatalogIndex.class": "0ee817ea9b21d514ae6dd5d9ae2fb05f89995c41b325ddb24c05fbe80da647bd",
+    "com/vncode/app/features/gtinsync/GtinVariantIdentity.class": "f725aa99371e8b0368c1f1cdc7df314d5623bea2304ee907d9304ae4104a4f1c",
+    "com/vncode/app/features/gtinsync/GtinMatchingService.class": "1d5a9a3449afd05d4e9430adb2216de540d39a00a20e955f1ed07991c8462573",
+    "com/vncode/app/features/gtinsync/GtinColorIdentity.class": "c56a30c758c7c9b5c3f4e8d8704e364f35d09259808b935cfb62bc4732f610e3",
+    "com/vncode/app/features/gtinsync/WbRegisteredBarcode.class": "e123b769c03340ffcb6d9385f33fc0500b6fceebe318bdf41a4bafddde4016cb",
+    "com/vncode/app/integration/wb/WbGtinProductReader.class": "36e489f7d5f1e924f679ae5f0b273040ce1042455cfc994389d88f39959af945",
+    "com/vncode/app/integration/znack/registration/CatalogProductDataParser.class": "06779c880838af64fcd2ae93002175952b235d1cf2c0588ee02f26e184801c24"
+  },
+  "productionSourceSha256": {
+    "src/main/java/com/vncode/app/integration/wb/WbGtinProductReader.java": "92731af003aa556942eca2cc48fd3c6cf20bc29f813bc5413cd5fae91c90ab7e",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogProductDataParser.java": "7006a1e7acef63a6dca9a38c4c0132d3dfdceb40b082a4de238254e94cf5c027",
+    "src/main/java/com/vncode/app/features/gtinsync/GtinCatalogIndex.java": "71a9771eaa3b6a015ad8d22d782e4f399c369964742899ab116095eca2038693",
+    "src/main/java/com/vncode/app/features/gtinsync/GtinVariantIdentity.java": "645972b61002520e28e00aa7c4665850078c1e7510928349591a2c768723ba43",
+    "src/main/java/com/vncode/app/features/gtinsync/GtinMatchingService.java": "bad3f72287df8c665f8664e28bb7ba366bc28bbd7e636997e4291976af65705e",
+    "src/main/java/com/vncode/app/features/gtinsync/GtinColorIdentity.java": "e12987e930239f4609603b2cba27950e470001db3a78dc754a43d5f30cd31442",
+    "src/main/java/com/vncode/app/features/gtinsync/RegisteredGtinValidator.java": "8caf9549c98fcf799e050268b62903c046b43e7d53a2615f93e07a1811cfb125",
+    "src/main/java/com/vncode/app/integration/znack/GtinNormalizer.java": "cb0b9ebc82c359b2bd807687f963de788800860a41f160e2862ddcaa417e7a30",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogCardState.java": "806124800c0e30690f386ebf345569c077d6fafaa7fc2ee904dace3337ddab9d",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogArticleValue.java": "a8c403e750300b8209c108e87bcff5cdcbde8210dd29c388a7fbb6d5a0846bdf",
+    "src/main/java/com/vncode/app/features/gtinsync/WbRegisteredBarcode.java": "18528e79dc9feb928f616d1a6bab60236c5f203d13664e4fd52914c34b20e426",
+    "src/main/java/com/vncode/app/integration/wb/WbProductCard.java": "832a5a38a215d125ae4b5143618da7b2b5f3403e3a3b3e769a1656e6347b00e1",
+    "src/main/java/com/vncode/app/features/gtinsync/OzonSkuGtinMatcher.java": "c3be8877238d3c0b33ebf4716baeb902dcac2901356c6c4a4e17755a7ac96718",
+    "src/main/java/com/vncode/app/integration/znack/ZnackProductCardAttributes.java": "3268db9624fb0da8579349a8450ebbe841a6a7c948d046ba2ceae4810ca15aa8",
+    "src/main/java/com/vncode/app/features/catalogsync/CatalogProductData.java": "f4312e8d94f23d718dd6bb20a4b9809100d547d60c438a2ca4fb5c770148f020",
+    "src/main/java/com/vncode/app/features/gtinsync/GtinSyncModels.java": "217a0620e2afe964ba0d059efa53800c429f0f61b800953f511af6e6f6eedb75",
+    "src/main/java/com/vncode/app/features/gtinsync/ProductFingerprints.java": "92c845ccbae9bf25709290aca8d32300e4f74d058f44d20803e9fe215bbd36c9"
+  },
+  "sourceGitHead": "6905fe0a73b5300b6f5390ed0c71dbeca62ea81a",
+  "sourceWorktreeHasChanges": true,
+  "probeSourceSha256": {
+    "FreshLiveParserProbe.java": "199a6d01b4dbf5226e579d12d4ffae7085392ea03575a648b739302810e9964b",
+    "PendingNoExactBreakdown.java": "55cea517c84a1233027c7ef480a10ddcb156f2e915dd7ea8fd61b42006111415"
+  },
+  "capturedRequestManifestSha256": "4768645eb697abf9d98d3683828f43357277b57d3edf6b5199f8bfc834afffb5",
+  "productionParserAggregateEqualsPrior": true,
+  "noExactBreakdownAggregateEqualsPrior": true,
+  "validatedFacts": {
+    "wbVariants": 1982,
+    "native046Present": 1854,
+    "native046Absent": 128,
+    "pendingPublishedExactCandidates": 3,
+    "pendingUnsignedExactCandidates": 11,
+    "pendingWithoutExactCandidate": 114,
+    "noObservedArticleMatch": 113,
+    "distinctArticlesWithoutObservedMatch": 26,
+    "fullColorMismatch": 0,
+    "explicitSizeMismatch": 1,
+    "multiValueArticleRescue": 0
+  },
+  "runs": [
+    {
+      "probe": "FreshLiveParserProbe",
+      "exitCode": 0
+    },
+    {
+      "probe": "PendingNoExactBreakdown",
+      "exitCode": 0
+    }
+  ],
+  "networkRequests": 0,
+  "databaseAccess": false,
+  "licenseOrCertificateFixture": false,
+  "csvRegenerated": false,
+  "sellerWrites": 0,
+  "limits": [
+    "The underlying live captures remain the same 62 successful read-only responses.",
+    "Installed seller/certificate ownership remains unverified; replay does not authorize mapping or seller writes."
+  ]
+}

@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## KIZ / Znack / WB GTIN — 08.11.2026, 21:46 MSK — đã sửa, chưa phát hành
+
+- Nguồn `6905fe0a73b5300b6f5390ed0c71dbeca62ea81a`, [bàn giao](validation/2026-11-08-kiz-znack-wb-gtin-audit.md), [receipt](validation/2026-11-08-kiz-znack-wb-gtin-audit.json). Sửa mapping WB ba lỗi, permit chỉ cho mua mới, feed_id đúng request, source WB mới trước ghép/046 CAS, và read epoch cho API Catalog; không nới danh tính hoặc mua/ghi thật. Giữ UI đã duyệt và mọi sửa trước.
+- Nguồn cuối 707 ca/44 lớp PASS, package/1.977 class/source hash đạt; 907/79 trước một guard, 2.424/260 trước epoch, không cộng dồn. Replay đúng JAR cuối trên 62 phản hồi API thật: cùng kết quả 114 = 113 dòng/26 article không bằng article Catalog + một size khác. Trong 128 WB thiếu 046 còn ba published và 11 unsigned ứng viên; không suy có quyền ghi.
+- Tập môi trường 1.380 Catalog chưa gắn hồ sơ/chứng thư trên máy seller; không kết luận 5/18/105 sai hay đã sửa hết từng dòng. CSV/private raw ngoài Git. Không real mutation/purchase/signing/activation/Gmail, chưa Windows/Latest.
+- Kinh nghiệm: ranh giới **chủ vật lý** phải tách **phiên bản lần đọc**. Không thêm key/epoch vào physical owner hash, hoặc pending feed/job và approval cũ sẽ bị loại. Dữ liệu local readRevision phải tách khỏi Catalog details và fingerprint nội dung; hỗ trợ JSON cũ.
+- Bảo vệ mọi đường commit quan sát: main cache, selected merge, full-save rỗng, flattened permit projection, SQL publication/link Ozon; lấy revision trước HTTP, không đóng dấu revision hiện tại cho dữ liệu cũ lúc lưu. Không giữ monitor/transaction qua HTTP. API A→B→A cần nonce để old client/cursor không sống lại. Paired marker/readiness phải phục hồi được crash; giữ lịch sử khi chưa xác minh mới.
+- Với dữ liệu legacy không có epoch, không suy lịch sử key: rollout Sync Znack một lần. Khi sửa paper guard phải chỉ áp mua mới, không phá kho nhập/stock hoặc accepted prepublication. So sánh API thật bằng full detail và đúng native/RU size; không dùng list-only, tên gần giống, hoặc mã giống số ca để giải thích một nhóm lỗi trong ảnh.
+
 ## Apple / Liquid Glass native — 08.11.2026, 20:19 MSK (UTC+03:00) — đã triển khai, chưa phát hành
 
 - Người dùng duyệt preview rồi chỉ rõ **Thêm cửa hàng tích hợp trong Quản lý, cạnh selector cửa hàng**. Nhánh `feat/native-liquid-glass-20261108`, nguồn UI **`5f816b1df7772a8fb40771c6851b146c4356f76d`**, nền `7b1dcd2`, kế thừa WB màu/giấy tờ `ae2d48a`; [receipt](validation/2026-11-08-native-liquid-glass.json), [bàn giao](validation/2026-11-08-native-liquid-glass-handoff.md).

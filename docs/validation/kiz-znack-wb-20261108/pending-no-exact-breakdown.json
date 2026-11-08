@@ -1,0 +1,37 @@
+{
+  "scope": "READ_ONLY_DIAGNOSTIC_ON_EXISTING_FULL_API_CAPTURES",
+  "pendingWithout046": 128,
+  "withoutExactCandidate": 114,
+  "mutuallyExclusiveCounts": {
+    "A_NO_OBSERVED_ARTICLE_MATCH": 113,
+    "B_ARTICLE_MATCH_FULL_COLOR_MISMATCH_OR_MISSING": 0,
+    "C_ARTICLE_COLOR_MATCH_NATIVE_OR_RUSSIAN_SIZE_MISMATCH_OR_MISSING": 1,
+    "D_MULTI_VALUE_CATALOG_ARTICLE_SINGLE_VALUE_ERASED_POTENTIAL_EXACT_MATCH": 0
+  },
+  "detailCounts": {
+    "A_WB_ARTICLE_PRESENT_BUT_NOT_IN_OBSERVED_CATALOG_ARTICLES": 113,
+    "C_EXPLICIT_SIZE_MISMATCH": 1
+  },
+  "distinctWbArticlesWithoutObservedCatalogArticleMatch": 26,
+  "multiValueArticleDiagnostic": {
+    "catalogCardsWithMultipleArticleValuesAndBlankSingle": 4,
+    "noExactWbVariantsMatchingAnObservedMultiValueArticle": 0,
+    "thoseAlsoMatchingExplicitSize": 0,
+    "catalogCardsWithMultipleObservedArticleValues": 4,
+    "thoseAlsoMatchingFullColor": 0
+  },
+  "method": [
+    "Read the same captured 388 WB cards and all 1380 Catalog detail cards; no new API requests.",
+    "Select the 128 variants without WbRegisteredBarcode.first; isolate 114 with zero GtinCatalogIndex.attributes candidates across all Catalog states.",
+    "Diagnostic article equality uses GtinMatchingService.normalizeArticle against every observed article value, retaining values erased by CatalogProductData.single.",
+    "A has no observed normalized article value anywhere; B has article equality but no complete normalized color-set equality; C has article plus full-color equality but no GtinVariantIdentity.sizeMatches using native/Russian size; D has diagnostic full equality only through a multi-valued article that single() suppresses.",
+    "The buckets are mutually exclusive in that order; no fuzzy/model-prefix match, color dropping, size conversion or automatic assignment."
+  ],
+  "limits": [
+    "An unmatched article can reflect different naming between WB and Catalog, a missing card, or another credential/account dataset. These reads cannot distinguish those explanations.",
+    "No exact match does not mean a product is unregistered.",
+    "Installed seller and certificate ownership remain unverified; diagnostic multi-value candidates do not authorize mapping or writes."
+  ],
+  "networkRequests": 0,
+  "sellerWrites": 0
+}

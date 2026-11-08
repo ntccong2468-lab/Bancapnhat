@@ -1,0 +1,28 @@
+{
+  "reviewedAtUtc": "2026-11-08T17:44:05.604928+00:00",
+  "baseline": "4cea038f5abd2c437460ba661125a99b7f59214b",
+  "branch": "fix/kiz-znack-wb-gtin-audit-20261108",
+  "files": {
+    "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java": "4be54b086eda4e49171a4729899a6434259969304b727d616d9ade671dd6d1e5",
+    "src/main/java/com/vncode/app/features/kizmapping/WbCatalogMappingService.java": "8fa47dbc7e3cc21c0c6fb1cae8e9ab5d12097af0f0647f06c5d2277744f65b43",
+    "src/main/java/com/vncode/app/features/sync/SyncRunRepository.java": "88d4b58c705cde5b47f4d6fb5ba1005e8c3e023a5e0fbd136c052e01ef88a124",
+    "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java": "28fb8bbe54ce839091b2ced6c946b216b155d0d65125bd3855a9e6dffa7aa131",
+    "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java": "89fd2cd576171d72aa8ce531f10eaedfc1888e3d0dea29f99ef185ee1fcc1cde",
+    "src/main/java/com/vncode/app/features/sync/ZnackGtinReviewService.java": "d22cf5221e6016bd35bd38cea134a62ad8d2970d0b957b5719ee9a1f5c4d7b64",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "ecb2c6cb4ba5aa7fa49f2dcce6237f0ed0a1d8478894754a93de2fbc6e10596d",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java": "c25ed22e08471e73dffb6bcf83a7fe814f8451251d6b64487cea76a947031de3",
+    "src/main/java/com/vncode/app/shared/FriendlyErrorService.java": "16078dde1303a5d724ed5a7eab019cf2f296d4ff533c11e6fb62f1dabae35817",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java": "5d844c4b0a2c4f87f8cd0c09769e5e37764877950d7378c9f8aa42ea72a0966c",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "fd3d867f8e928f1af0a6bffee314908570ba590af36a635545240debd99e6ea7",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "eb7103434dbe6148071178080cf659c0cbea707792987891bfc4e70be406035f",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "6f7b984018033ed2e5540c49822fd9508fda65d1cb779f0e4bc6f413a32f1969",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "475e2c710862fc4593296fac2683e62e663aaced135625761f63c408ef5e6bef",
+    "src/test/java/com/vncode/app/features/kiz/KizPendingIdentityTest.java": "400102ba2e46057c57e596a5e1df5dc564ee1bbbc9ed3cc5cf36354657e7fab2",
+    "src/test/java/com/vncode/app/features/kiz/KizPurchasePermitEvidenceTest.java": "556ab175d3134cc64d3a04a069f1d93ca8271125c60adc7c128261abf3613268",
+    "src/test/java/com/vncode/app/features/kizmapping/WbCatalogMappingServiceTest.java": "bb46435bfdb88c97e28ed1f195729496637a6021b3bce511bf8d063ea5da58c6",
+    "src/test/java/com/vncode/app/features/sync/WbBarcodeCompletionTest.java": "ca8f662f88326af14a3c75b830ee0e91e1920f2f998c1a4685e7d4299c4c3bee",
+    "src/test/java/com/vncode/app/features/sync/ZnackAutoSyncServiceTest.java": "94bdeae23097d6246694813c2cf4949b4d1bb2620af4b7fe4629af693bc34406",
+    "src/test/java/com/vncode/app/integration/znack/registration/ZnackCatalogSubmissionReadbackTest.java": "10ea50b199cf865b738c528bb168d188598ba9bec0158c7e9713b8802949feae",
+    "src/test/java/com/vncode/app/ui/znackregistration/FlowAuditDiagnosticsTest.java": "825237655b5ff26c3e8e2e9f6ad0ce73576d53dffb57e3439f494aaf2f4892ce"
+  }
+}

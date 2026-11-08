@@ -1,6 +1,16 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **08.11.2026, 20:19 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **08.11.2026, 21:46 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## KIZ mapping / Znack / GTIN WB — đã sửa và kiểm, chưa phát hành
+
+- Người dùng yêu cầu kiểm ba luồng và hỏi vì sao còn 114 dòng chưa khớp. Nguồn **`6905fe0a73b5300b6f5390ed0c71dbeca62ea81a`**, nhánh `fix/kiz-znack-wb-gtin-audit-20261108`, nền `4cea038`; giữ UI native `5f816b1` và WB màu/giấy tờ `ae2d48a`. [Bàn giao](../validation/2026-11-08-kiz-znack-wb-gtin-audit.md), [receipt](../validation/2026-11-08-kiz-znack-wb-gtin-audit.json).
+- Sửa WB mapping sai article/bỏ sót barcode/mơ hồ giả; paid-only permit proof + projection còn hiệu lực; feed-status sai feed_id; WB đọc mới trước ghép và CAS hoàn tất 046 chưa gửi, không đụng child journal. Lý do được dịch đúng, bỏ lời khuyên Ozon chung cho WB. Kho nhập/quy tắc gán hiện có, khác TN VED cho WB, owner/size/màu/journal/giá/readback giữ nguyên.
+- Sửa cache khi đổi API Catalog bằng **read epoch riêng**, không đổi source/hash chủ. Chặn ABA, cache/in-flight/cursor/merge/save rỗng/late projection và publication Ozon từ lượt cũ; paired completion phục hồi sau crash. Giữ feed/GTIN jobs, stock identity và JSON cũ; không đưa epoch vào fingerprint nội dung. Dữ liệu legacy epoch rỗng: chạy Sync Znack đầy đủ một lần sau nâng cấp, không suy hồi tố khóa từng tạo cache.
+- **Nguồn cuối 707/707 ca, 44 lớp, 0 skip, package PASS**. Trước guard readiness một dòng: 907/79 đạt; trước read-epoch: 2.424/260 và 481/27 đạt. Receipt có hash từng lượt/diff nguồn, không cộng ca giao nhau hoặc claim full app/ba stress 10.000. Review độc lập 41 tệp không còn finding vật chất xác nhận trong phạm vi.
+- API thật **62/62 HTTP 200**, 388 bài/1.982 biến thể WB: 1.854 có 046, 128 chưa có. Đọc đủ chi tiết 1.380 Catalog: 1.260 published/117 not-signed/2 draft/1 error. 128 = **3 published khớp + 11 unsigned khớp + 114 không khớp**; 114 = **113 dòng/26 article không có article bằng nhau + 1 khác size**, 0 chỉ sai màu/0 multi-value rescue; không do TN VED. Không suy 114 chưa đăng ký. Chỉ một GTIN giao giữa tập key; chưa ràng buộc hồ sơ/chứng thư seller, không tái hiện được đúng 5/18/105 trong ảnh.
+- Replay lại raw capture bằng **đúng JAR cuối**, không mạng/DB/license fixture, aggregate y hệt; CSV 128 dòng riêng ngoài Git, hash `d7338b4c…fa6759c`. 0 seller write/mua KIZ/ký/gửi feed/activation/Gmail. Chưa Windows/bộ cài hoặc ghi API thật trong lượt này.
+- Candidate JAR local 1.6.6 SHA **`e6db5f330f5bd345bda3d3beee4f0ba1323babc9197cfb3ee8558525107f1fab`**, 1.977 class khớp byte. Thay đường dẫn target cũ của candidate UI; receipt UI cũ chỉ là lịch sử theo SHA riêng. **Latest vẫn v1.6.6/437862752 immutable**, chỉ đọc lại, không tag/publisher/asset. Chưa phát hành sửa mới; phải chọn phiên bản mới/kiểm Windows trước lượt publish riêng.
 
 ## Apple / Liquid Glass native — đã duyệt và triển khai, chưa phát hành
 

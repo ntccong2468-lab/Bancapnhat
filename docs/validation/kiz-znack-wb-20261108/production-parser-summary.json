@@ -1,0 +1,107 @@
+{
+  "scope": "PRODUCTION_PARSERS_AND_INDEX_ON_FRESH_LIVE_RESPONSES",
+  "sellerWrites": 0,
+  "licenseOrCertificateFixture": false,
+  "databaseAccess": false,
+  "networkAccess": false,
+  "wb": {
+    "nativeDisplay046Absent": 128,
+    "nativeDisplay046Present": 1854,
+    "variantsByDistinctValid046Count": {
+      "0": 128,
+      "1": 1849,
+      "2": 5
+    },
+    "valid046BarcodeOccurrences": 1859,
+    "invalidBarcodeOccurrences": 0,
+    "multiColorCards": 21,
+    "barcodeLengthOccurrences": {
+      "13": 2038,
+      "14": 1804
+    },
+    "variants": 1982
+  },
+  "wbOwnershipConflicts": {
+    "validCodesOwnedByMultipleVariantKeys": 0,
+    "sharedCodesAcrossNmIds": 0,
+    "sharedCodesWithDifferentArticleColorSize": 0,
+    "variantsAffectedBySharedCodes": 0,
+    "shared046Codes": 0,
+    "variantsAffectedByShared046Codes": 0,
+    "ownerCardinalityCounts": {}
+  },
+  "catalog": {
+    "missingFields": {
+      "article": 2,
+      "color": 2,
+      "size": 2
+    },
+    "listedGtinsWithoutDetail": 0,
+    "tradeUnits": 1380,
+    "fieldValueCardinalityCounts": {
+      "article:0": 2,
+      "article:1": 1374,
+      "article:2": 4,
+      "color:0": 2,
+      "color:1": 1378,
+      "size:0": 2,
+      "size:1": 1378
+    },
+    "parsedCards": 1380,
+    "parseIssues": {},
+    "states": {
+      "DRAFT": 2,
+      "ERRORS": 1,
+      "NOT_SIGNED": 117,
+      "PUBLISHED": 1260
+    },
+    "invalidGtins": 0,
+    "blankSingleArticle": 6,
+    "technicalRangeGtins": 0
+  },
+  "matching": {
+    "variantsByBarcodeOrExactAttributeCandidateCount": {
+      "0": 1729,
+      "1": 253
+    },
+    "variantsByExactAttributeCandidateCount": {
+      "0": 1729,
+      "1": 253
+    },
+    "variantsByEligibleExactAttributeCandidateCount": {
+      "0": 1763,
+      "1": 219
+    },
+    "variantsWithout046ByCandidateCount": {
+      "0": 114,
+      "1": 14
+    },
+    "variantsWithout046ByExactAttributeCandidateCount": {
+      "0": 114,
+      "1": 14
+    },
+    "variantsWithout046ByEligibleExactAttributeCandidateCount": {
+      "0": 125,
+      "1": 3
+    },
+    "barcodeJoinPairs": 1,
+    "barcodeJoinPairsWithExactArticleColorSize": 1,
+    "barcodeJoinPairsWithAttributeConflict": 0,
+    "variantsWithAmbiguousUnion": 0,
+    "authorizesWrites": false,
+    "variantsWithout046CandidateStateCounts": {
+      "NOT_SIGNED": 11,
+      "PUBLISHED": 3
+    },
+    "variantsWithout046DistinctExactCandidateGtins": 14,
+    "variantsWithout046CandidateGtinsClaimedByMultiplePendingVariants": 0,
+    "exactCandidateGtinsClaimedByMultipleWbVariants": 0,
+    "variantsWithout046CandidatesAlreadyOwnedByAnotherWbVariant": 0,
+    "variantsWithout046CandidateOtherOwnerPairs": 0
+  },
+  "limits": [
+    "Credential datasets have not been bound to the installed seller or certificate owner.",
+    "Candidate counts describe these freshly read API datasets and cannot establish local registration or mapping-proof state.",
+    "Shared code counts are observed remote ownership evidence and do not establish which local screenshot rows carry a particular issue code."
+  ]
+}

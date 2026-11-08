@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| **KIZ/Znack/GTIN WB: 707 ca nguồn cuối, read epoch/046/mapping/permit/feed-id; 114 = 113 article + 1 size; chưa phát hành** | [Bàn giao](../validation/2026-11-08-kiz-znack-wb-gtin-audit.md), [receipt và API thật](../validation/2026-11-08-kiz-znack-wb-gtin-audit.json) |
 | **Apple/Liquid Glass native đã duyệt/triển khai: 562 ca, 139 PNG, hai finding review đã sửa; chưa phát hành** | [Bàn giao native](../validation/2026-11-08-native-liquid-glass-handoff.md), [biên nhận tổng hợp](../validation/2026-11-08-native-liquid-glass.json) |
 | Apple/Liquid Glass preview: 164 ảnh/video, trạng thái chờ duyệt tại lúc ghi (lịch sử) | [Bàn giao](../validation/2026-11-08-liquid-glass-preview-handoff.md), [372 kiểm tra/receipt/gói ảnh](../validation/2026-11-08-liquid-glass-preview.json) |
 | **WB mua KIZ: giữ đủ màu, giấy tờ/registry rõ trạng thái; chưa phát hành** | [Bàn giao](../validation/2026-11-08-wb-kiz-color-documents-handoff.md), [217 ca nguồn cuối + 4.010 ca lượt rộng/build](../validation/wb-kiz-color-documents-20261108/verification.json), [API thật chỉ đọc](../validation/wb-kiz-color-documents-20261108/live-read.json) |

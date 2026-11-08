@@ -1,0 +1,333 @@
+{
+  "kind": "FINAL_SOURCE_ACCEPTANCE",
+  "totals": {
+    "tests": 707,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "classes": 44,
+  "suites": [
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogPermitEvidenceTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.catalogsync.CatalogSyncServiceTest",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.fbo.FboVerifiedGtinRepositoryTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinProofTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizPendingIdentityTest",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizPurchaseMappingProofTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.CatalogKeyPendingIdentityTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.GtinRunStatusSnapshotTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.RegistrationSourcesTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.SyncRunRepositoryMetricsTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackAutoSyncServiceTest",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackCatalogSyncServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.WbBarcodeCompletionTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.features.sync.CatalogKeyRotationTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.listing.CatalogIdentityEvidenceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.CatalogApiAuthorizationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.CatalogCredentialRepositoryTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.CatalogDeviceConnectionTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackGtinWorkflowTest",
+      "tests": 53,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogTerminalFeedProofTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogUncreatedFeedProofTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogListWindowTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.NationalCatalogVersionSourceTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationRepositoryTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+      "tests": 92,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest",
+      "tests": 85,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackCatalogSubmissionReadbackTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.CatalogReadCursorRevisionTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ObservedCatalogReadRevisionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "class": "com.vncode.app.ui.znackregistration.FlowAuditDiagnosticsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "jar": {
+    "file": "/workspace/vncode-znack-reconcile/target/VNcode-1.6.6.jar",
+    "sha256": "e6db5f330f5bd345bda3d3beee4f0ba1323babc9197cfb3ee8558525107f1fab",
+    "bytes": 7588220,
+    "vncodeClasses": 1977,
+    "byteMatchesTargetClasses": true,
+    "resourcesMatchSource": true,
+    "containsTestFixtures": false
+  },
+  "sourceStillMatchesPass": true,
+  "independentReviewedFilesUnchanged": true,
+  "buildSuccess": true,
+  "logSha256": "1d7d00177af74329de15d6bcc3d541a79688ae592b1b8431765e5327fca7dcde"
+}
