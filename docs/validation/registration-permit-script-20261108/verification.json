@@ -1,0 +1,317 @@
+{
+  "source_commit": "0a00fbd837d5e92eeb0018e480fb1891436107e9",
+  "baseline_commit": "d66d2caae1fa4da195cac031c0c65eba901a8b7f",
+  "branch": "fix/kiz-znack-wb-gtin-audit-20261108",
+  "created_at": "2026-11-08T19:14:55.038133+00:00",
+  "diagnosis": {
+    "endpoint": "POST /v4/rd-info",
+    "root_cause": "Latin P at position 16 and B at position 21 in Cyrillic registry blocks",
+    "canonicalization": "Only bounded visual-letter substitutions; country codes, serial and issue date unchanged",
+    "preflight_stage": "permit registry read before allocation/submission"
+  },
+  "live_reads": {
+    "requests": 3,
+    "mutations": 0,
+    "cases": [
+      {
+        "case": "original",
+        "status": 400,
+        "business_code": "14",
+        "documents": 0,
+        "raw_sha256": "7f2bb94f906759e556f7aabcfe1ccb9e59261e406cd71f3e3d150a0b66ed75e3"
+      },
+      {
+        "case": "canonical",
+        "status": 200,
+        "business_errors": 0,
+        "documents": 1,
+        "status_group": 1,
+        "raw_sha256": "85f6f2263691982408f47bbdd0c595adbf8cc95da3dc3e79244fe2734c6028cb"
+      },
+      {
+        "case": "final_jar_production_client",
+        "transport": "production ZnackApiClient",
+        "method": "POST /v4/rd-info (read-only)",
+        "normalization_changed_characters": 2,
+        "date_unchanged": true,
+        "exact_active_document": true,
+        "hard_block": false,
+        "seconds": 2.558,
+        "raw_sha256": "94119116af6398450526241eb9d977e707c698806815ce9c562f783a7153e7a5"
+      }
+    ],
+    "raw_capture_location": "/workspace/vncode-permit-audit-20261108",
+    "personal_data_in_git": false
+  },
+  "regression": {
+    "red_fixed_fixture": {
+      "tests": 27,
+      "failures": 4,
+      "errors": 1,
+      "skipped": 0
+    },
+    "advisory_bypass_red": {
+      "tests": 4,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "final": {
+      "classes": 28,
+      "tests": 360,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "package_success": true,
+      "finished": "2026-11-08T19:13:00Z",
+      "selected_classes": [
+        {
+          "class": "com.vncode.app.features.catalogsync.CatalogPermitEvidenceTest",
+          "tests": 17,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest",
+          "tests": 21,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.features.products.ProductBulkDocumentBudgetTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.features.products.ProductBulkEditServiceTest",
+          "tests": 25,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.features.products.ProductBulkEditWbIntegrationTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.features.products.ProductEditAdapterTest",
+          "tests": 16,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.features.products.ProductEditBatchIntegrationTest",
+          "tests": 39,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.features.products.ConfiguredProductDeclarationTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.ZnackPermitDocumentParserTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceCountryTest",
+          "tests": 15,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest",
+          "tests": 19,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest",
+          "tests": 44,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest",
+          "tests": 11,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.ZnackReviewedDraftSubmissionTest",
+          "tests": 8,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.ZnackVerifiedRegistrationAttributesTest",
+          "tests": 10,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.integration.znack.registration.RegistrationPermitReadFailureTest",
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.shared.PermitDocumentNumberTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.products.ProductBulkDialogTest",
+          "tests": 30,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.products.ProductBulkEditPaneTest",
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.products.ProductEditInteractionTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest",
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        {
+          "class": "com.vncode.app.ui.znackregistration.RegistrationDraftCompletionDialogTest",
+          "tests": 7,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      ]
+    },
+    "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a -s '-screen 0 3200x1800x24' /workspace/toolchains/mvn-vncode -Dtest=CatalogPermitEvidenceTest,KizPurchasePermitEvidenceTest,ProductBulkDocumentBudgetTest,ProductBulkEditServiceTest,ProductBulkEditWbIntegrationTest,ProductEditAdapterTest,ProductEditBatchIntegrationTest,ConfiguredProductDeclarationTest,ZnackCertificateSettingsRepositoryTest,ZnackPermitDocumentParserTest,RegistrationDynamicPreflightTest,RegistrationFieldProvenanceCountryTest,RegistrationFieldProvenanceTest,RegistrationPermitValidatorTest,RegistrationReviewedValuesTest,ZnackNationalCatalogServiceTest,ZnackRegistrationBatchHttpIntegrationTest,ZnackRegistrationDocumentsTest,ZnackReviewedDraftSubmissionTest,ZnackVerifiedRegistrationAttributesTest,RegistrationPermitReadFailureTest,PermitDocumentNumberTest,ProductBulkDialogTest,ProductBulkEditPaneTest,ProductEditInteractionTest,RegistrationBatchPreflightTest,RegistrationDiagnosticsTest,RegistrationDraftCompletionDialogTest package",
+    "log_sha256": "5bf57d2cc3a0d51bed6faccd54b37a7a199fea10b45ef2a79d3a8403438246d2",
+    "note": "Mock HTTP/SQLite/JavaFX tests; separate from the three real registry lookup requests."
+  },
+  "review": {
+    "independent_review": "No remaining material findings in reviewed diff after two findings fixed",
+    "fixed_findings": [
+      "Rejection detail cannot become tariff advisory",
+      "Keep owned Ozon reference and WB attachment IDs for equivalent script spelling"
+    ]
+  },
+  "candidate": {
+    "version": "1.6.6",
+    "jar": "target/VNcode-1.6.6.jar",
+    "sha256": "47928b63f780a53e67b7e61624d2e1e8d55c304917b22580420805c74bc3bb90",
+    "matching_classes": 1978,
+    "source_manifest": {
+      "src/main/java/com/vncode/app/features/products/ConfiguredProductDeclaration.java": "d3034fd8a13c4acf66e8dbe5d67bd83658c1d5a3d0e4f67750a241a6b8fa7b73",
+      "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java": "a308a39b17390572032bd3b2437cf67edd32afdc435d5ce722c7286d918a2e93",
+      "src/main/java/com/vncode/app/integration/znack/ZnackModels.java": "83b4dd8c03ccc464e1dbc767e75618336bd024c4aa9d505422a07238c1873fe3",
+      "src/main/java/com/vncode/app/integration/znack/registration/RegistrationPermitValidator.java": "2bb2aeaa10101812499947b2605ee80aff6672edd86bc61df14de4198cf79e2c",
+      "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java": "de4ab01bfddac7ea8f4730696b17956570e4f75969b6602d7354b5e240b7f997",
+      "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java": "f1b2c0d4d01453bd40f7602dd8168c089589511f77e54301f01c05e86817fba0",
+      "src/main/java/com/vncode/app/shared/PermitDocumentNumber.java": "0a7d902a951d85ee316dda261cdcdad09e2a7a75e5c5a3ec3de2112f3f4893fc",
+      "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java": "d9c1bc53738551050ba956db18f14773262bdc5e7c6973b571d07ed6bdfb8693",
+      "src/main/resources/com/vncode/app/i18n/messages_en.properties": "3e1aa972cb5486db09eb3a6b1f662115ed442299693b3742bbc4a4297b1e90a1",
+      "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "537fd96f498926d12c265d5b7b9e5013b2585e43ab3018f1331e80c7e75a73ee",
+      "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "9c7f7e965eb4622aca65790d474a20a65cd2b1cb5019a30e6074b29cf1e12bb1",
+      "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "7b5f34bfcb462cb870d84d1ed295188434badbc08cc9535c6cab4ef4e84416cc",
+      "src/test/java/com/vncode/app/features/products/ConfiguredProductDeclarationTest.java": "ce5adce7c45fb89daf3d9f9c115a251c60c6c6fc4ca9bd186584e8a916772815",
+      "src/test/java/com/vncode/app/features/products/ProductBulkEditServiceTest.java": "a623c2298a02135ac3ac459dd9f3efbe53228bfbdd773010a49d1d2771c42402",
+      "src/test/java/com/vncode/app/integration/znack/registration/RegistrationDynamicPreflightTest.java": "eb3f2d30c1a6521a3ea1d6b4c4a019138b831e697e19df88808ff234bdf989b5",
+      "src/test/java/com/vncode/app/integration/znack/registration/RegistrationPermitReadFailureTest.java": "53a523a195b67056012b81c9df684ae71ff0b296f11eead67d0eb632207fe0ca",
+      "src/test/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocumentsTest.java": "7817d0f554bb1395ca2e00b83f5be6f5ecaafbf7d3af24dfd17cdfb2f78ca25f",
+      "src/test/java/com/vncode/app/shared/PermitDocumentNumberTest.java": "4a5d9504993d1c50d3e85c903691ec35723c27d7285b9a107203e93dd519d0c4",
+      "src/test/java/com/vncode/app/ui/znackregistration/RegistrationDiagnosticsTest.java": "6d81c416bbc437324db892394c8330e8ac7bd9d8b9b94c094d0ab3619bb42f45"
+    },
+    "source_i18n_resources_match": true
+  },
+  "limitations": [
+    "No Windows installer or Windows runtime test",
+    "No Catalog feed/GTIN allocation/signing/product mutation/license activation",
+    "Registry lookup is not acceptance of a product card",
+    "Initial standalone probe supplied ISO at the UI configuration boundary; corrected to dotted date matching user screenshot before the successful real client read; production source unchanged"
+  ],
+  "release": {
+    "published": false,
+    "pom_changed": false,
+    "latest_modified": false,
+    "note": "Retains prior unreleased KIZ/Znack/WB fixes and native UI. Candidate jar overwrites prior target candidate path; historical receipts remain identified by their own hashes."
+  }
+}

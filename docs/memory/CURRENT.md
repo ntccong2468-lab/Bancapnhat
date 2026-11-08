@@ -1,6 +1,13 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **08.11.2026, 21:46 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **08.11.2026, 22:16 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## Znack preflight giấy tờ Latin/Cyrillic — đã sửa, chưa phát hành
+
+- Log production `ZNACK_PREFLIGHT_READ_FAILED` thực chất là HTTP 400/code 14 ở `POST /v4/rd-info`, do Latin P/B trong phần registry cần Cyrillic Р/В. Nguồn **`0a00fbd837d5e92eeb0018e480fb1891436107e9`**, nền `d66d2ca`, cùng nhánh audit; giữ toàn bộ sửa/UI trước đó. [Bàn giao](../validation/2026-11-08-registration-permit-script-fix.md), [receipt/lệnh/test](../validation/registration-permit-script-20261108/verification.json).
+- Chuẩn hóa hữu hạn khi đọc/lưu Settings và chọn giấy tờ đăng ký; không đổi quốc gia/số/ngày hoặc payload/journal đã duyệt. HTTP400 code14 đúng số/ngày/loại thành issue riêng, không cache proof; 200 có lỗi vẫn chặn, auth/5xx/unknown giữ nguyên. Lỗi server không thể biến từ chối thành advisory. Giữ reference Ozon thô và ID/meta WB khi gặp cùng số khác bảng chữ; không sửa dữ liệu sàn trong lượt này.
+- **360 ca/28 lớp đạt, 0 skip; package PASS**, Linux/Xvfb/JDK25. 3 tra cứu API thật: gốc400 → canonical200/một giấy tờ active → đúng JAR/ZnackApiClient xác nhận lại đúng giấy tờ. Không suy ra đã tạo/công bố thẻ; 0 cấp GTIN/feed/ký/mua/ghi sàn/license activation. Chưa Windows/bộ cài.
+- Candidate JAR local 1.6.6 SHA **`47928b63f780a53e67b7e61624d2e1e8d55c304917b22580420805c74bc3bb90`**, 1.978 class khớp. Thay target candidate của audit trước; các receipt cũ giữ ý nghĩa theo SHA riêng. **Chưa phát hành, không đổi Latest/POM/tag/asset.** Không lưu số giấy tờ thật hoặc raw doanh nghiệp trong Git. Rà code dùng chung phải kiểm reference/merge WB/Ozon; không phiên âm toàn bộ chuỗi giấy tờ.
 
 ## KIZ mapping / Znack / GTIN WB — đã sửa và kiểm, chưa phát hành
 
