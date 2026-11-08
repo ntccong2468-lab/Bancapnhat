@@ -1,5 +1,10 @@
 # Bộ nhớ dự án VNCode
 
+## 08–09.11.2026 — 1.6.7 chạy lại Windows sau hai fixture UI
+
+App968d639, Windows42523983786 thay026/run42515409829 đãFAIL4122ca (4118pass/2bad/2OSskip,3stress10kpass). Chỉ sửa readiness một Robotclick vàassert bản dịchlýdolô; bổ sung43ca preflight, không thayproduction/POM/buildcode hoặc hạgates/reusefailedsuite. Local60/60pass; nhóm121 có1source-review timeout khi ghépChrome, không che. Draft438471378 repin968/tagv167/assets0, modulepublisher/sourceinclusion/helperđãrepin. [Lỗi cũ](validation/2026-11-08-vncode-167-first-windows-failure.json), [nguồn](validation/2026-11-08-vncode-167-source-inclusion.json), [securitycùngruntime](validation/2026-11-08-vncode-167-security-provenance.json). Chưapháthành, chờfreshfullWindows.
+
+
 ## 08.11.2026 — Gom 1.6.7 theo yêu cầu phát hành mới
 
 Đã pin nguồn app `026f1a86ae5928769a9b36720c2da98cf8dd7efd` trên release/vn-code-1.6.7, kế thừa ac8ba1c và đủ bốn sửa ae2d48a/5f816b1/6905fe0/0a00fbd. [Manifest109 runtime+POM](validation/2026-11-08-vncode-167-source-inclusion.json). Windows42515409829 và Security42515488357 đang chạy; draft438471378 chưa công bố. Lượt dispatch42515375348 sai inputSHA đã hủy. Tooling riêng nhánh publication để giữ SHA app; publisher167 pin đúng build/source/draft và giữ mọi gate16asset/hash/native/upgrade. Node160 nguồn/165 tooling, actionlint đạt. Không prune/thay oldrelease hoặc tự dùng test Linux cũ làm bằng chứng Windows mới. Cần đọc CURRENT và run status trước tiếp tục, chưa coi hoàn tất phát hành.

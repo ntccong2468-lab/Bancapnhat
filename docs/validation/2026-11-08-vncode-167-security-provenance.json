@@ -1,0 +1,75 @@
+{
+  "version": "1.6.7",
+  "freshApplicationSourceCommit": "968d639f6e8233d572b4992f1ac3a4bd09a91903",
+  "freshWindowsBuildRunId": 42523983786,
+  "securityAnalysisSourceCommit": "026f1a86ae5928769a9b36720c2da98cf8dd7efd",
+  "securityAnalysisRunId": 42515488357,
+  "freshCodeqlRunOn968Claimed": false,
+  "sameRuntimeAndSecurityConfigurationAsAnalyzed026": true,
+  "changedFilesBetween026And968": [
+    ".github/workflows/publish-vncode-baseline.yml",
+    "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+    "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java"
+  ],
+  "verifiedObjectComparisons": [
+    {
+      "path": "src/main",
+      "gitObject026": "6391b819a197b1008dcb18079cb4d67e273bda01",
+      "gitObject968": "6391b819a197b1008dcb18079cb4d67e273bda01",
+      "byteIdentical": true
+    },
+    {
+      "path": "pom.xml",
+      "gitObject026": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+      "gitObject968": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+      "byteIdentical": true
+    },
+    {
+      "path": "build.bat",
+      "gitObject026": "49ec97fc18599388110ab430ede46da6badd007d",
+      "gitObject968": "49ec97fc18599388110ab430ede46da6badd007d",
+      "byteIdentical": true
+    },
+    {
+      "path": "build.sh",
+      "gitObject026": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+      "gitObject968": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+      "byteIdentical": true
+    },
+    {
+      "path": "proguard.conf",
+      "gitObject026": "80a62085ea43b32b1fdaab7d285684c0d4e18d41",
+      "gitObject968": "80a62085ea43b32b1fdaab7d285684c0d4e18d41",
+      "byteIdentical": true
+    },
+    {
+      "path": ".github/workflows/security-ci.yml",
+      "gitObject026": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+      "gitObject968": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+      "byteIdentical": true
+    },
+    {
+      "path": "tools/codeql-sarif-gate.mjs",
+      "gitObject026": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+      "gitObject968": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+      "byteIdentical": true
+    },
+    {
+      "path": "website/license-portal/package.json",
+      "gitObject026": "d8b7f98aa6a77407a503162744e8e0037849152e",
+      "gitObject968": "d8b7f98aa6a77407a503162744e8e0037849152e",
+      "byteIdentical": true
+    },
+    {
+      "path": "website/license-portal/package-lock.json",
+      "gitObject026": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
+      "gitObject968": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
+      "byteIdentical": true
+    }
+  ],
+  "securityDisposition": "Security run 42515488357 actually analyzed source 026f1a86. Java analysis produced the same eight findings as published 1.6.6, including the existing severity 7.5 certificate-store thumbprint identifier; its gate failed. JavaScript CodeQL and lint/audit passed. OpenQodex and Dependency Review were skipped by dispatch design. No fresh CodeQL execution on 968d639 is claimed.",
+  "functionalValidationScope": "Windows run 42523983786 must perform fresh full clean verify, packaging, native checks and upgrade on 968d639. Prior failed Windows run 42515409829 and its three successful 10,000-item stress tests remain historical evidence and do not substitute for the new full run. The isolated 60-test pass and broader 121-test run with a source-review wait failure have separate scopes.",
+  "priorSecurityEvidence": "security-review/security-review.json",
+  "gateChanges": false,
+  "createdAt": "2026-11-08T21:13:59.648511+00:00"
+}

@@ -1,6 +1,15 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **08.11.2026, 22:36 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **09.11.2026, 00:17 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## VN Code 1.6.7 — Windows chạy lại sau sửa hai fixture UI
+
+- Nguồn app mới **`968d639f6e8233d572b4992f1ac3a4bd09a91903`**, appbranch `release/vn-code-1.6.7`; Windows mới **42523983786**, job128863353863. Chỉ sửa hai test UI và thêm chúng vào preflight; **src/main/POM/build scripts giữ nguyên byte** từ026f1a86. Không hồi phục/reuse để bỏ qua lỗi; chạy lại full Windows clean verify và mọi native/upgrade gate.
+- Lượt42515409829 source026 kết thúc FAIL: **4122 ca/544 lớp, 4118 đạt, 1failure/1error, 2OSskip**; cả3 stress10k đạt. [XML hash và lỗi giữ lại](../validation/2026-11-08-vncode-167-first-windows-failure.json). Fashion test chưa chờ nativefocus/hover, nay vẫn một Robotclick/thời hạn4s/đủassertions và thêmdeliverydiagnostics; controller test còn đòi enum thô dù app đã dịch lý do, nay kiểm bản dịch/tooltip/giữ report mới.
+- Linux RED4ca có1fail ởassertenum cũ; nhóm121 saufix có1failure thời hạn source-review khác khi ghép WorkspaceChrome (giữ log, không tínhPASS); nhóm liên quan cô lập **60/60 đạt**. Agent standalonecopy3/3 đạt; chưa suy Windows đã đạt. Node app160/160, publication165/165 và actionlint đạt.
+- Publisher167 đã repin source968/build42523983786; cùng draft **438471378**, tagv1.6.7/target968/assets0 đã GET xác nhận. Cập nhật draft phải gửi rõtag_name cùngtarget; PATCHtarget-only đã trả taguntagged tạm thời và được sửa ngay trước Publish. Nhánh publication đã merge fixturecommit; không đổi codechươngtrình.
+- [Manifest cập nhật](../validation/2026-11-08-vncode-167-source-inclusion.json) vẫn109runtime+POM/2984sourcefiles. [Security provenance](../validation/2026-11-08-vncode-167-security-provenance.json): CodeQL thực chạy026, production/securityinputs giữa026/968 giống nhau, giữ8finding cũ/Java gateFAIL; không claim scan mới968. Helper verify_package.py ngoàiGit đã repin; bảnhelper/inclusion lần đầu giữ riêng.
+- Chưa phát hành. Tiếp tục từrun42523983786; không dùng runFAIL42515409829 hoặc source026 để publish. Saufull/native/upgrade/packagePASS mới gọi publisher owner-requested-167 từpublicationbranch, kiểm16asset/hash, old16releases258assets, updaterbinary166→167, cập nhật memory rồi push. Không sellerwrite/mua/ký/licenseactivation. Phần026 ngay dưới là lịch sử lầnđầu, không còn pin hiện tại.
 
 ## VN Code 1.6.7 — đã gom nguồn, đang kiểm Windows để phát hành
 
