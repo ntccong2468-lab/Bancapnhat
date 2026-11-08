@@ -395,12 +395,33 @@ class ZnackCardRegistrationControllerTest {
                 var key=new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));
                 assertNotNull(approval);assertEquals(com.vncode.app.integration.znack.registration.RegistrationSourceConsent.Action.REPLACE,approval.action(key));
                 dispatched.countDown();return "reviewed-replacement";});controller.refreshLocal();return null;});awaitTasks();
-        com.vncode.app.testsupport.FxDialogDriver.choose(()->{
-            table().getSelectionModel().select(table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow());
-            button("newCardsSelectedButton").fire();
-        },pane->pane.getButtonTypes().contains(ButtonType.OK)&&pane.lookup("#registrationSourceReviewTable")==null,
-                pane->ButtonType.OK);
-        approveSourceReview();assertTrue(dispatched.await(15,TimeUnit.SECONDS));awaitTasks();
+        var unrelated=new java.util.concurrent.atomic.AtomicReference<Alert>();var unrelatedAccepted=new java.util.concurrent.atomic.AtomicBoolean();
+        var previousWindows=fx(()->{
+            var alert=new Alert(Alert.AlertType.INFORMATION,"Unrelated fixture notification",ButtonType.OK);alert.initModality(javafx.stage.Modality.NONE);
+            ((Button)alert.getDialogPane().lookupButton(ButtonType.OK)).addEventFilter(javafx.event.ActionEvent.ACTION,event->unrelatedAccepted.set(true));
+            alert.show();unrelated.set(alert);return java.util.Set.copyOf(Window.getWindows());
+        });
+        String expectedHeader=I18nService.getInstance().tr("znack.registration.register_selected");
+        String expectedContent=java.text.MessageFormat.format(I18nService.getInstance().tr("znack.registration.batch_confirm"),1,1);
+        java.util.function.Predicate<DialogPane> confirmation=pane->pane.getScene()!=null&&!previousWindows.contains(pane.getScene().getWindow())
+                &&expectedHeader.equals(pane.getHeaderText())&&expectedContent.equals(pane.getContentText())&&pane.getButtonTypes().contains(ButtonType.OK);
+        try{
+            com.vncode.app.testsupport.FxDialogDriver.choose(()->{
+                table().getSelectionModel().select(table().getItems().stream().filter(row->row.chrtId()==3).findFirst().orElseThrow());
+                button("newCardsSelectedButton").fire();
+            },confirmation,pane->ButtonType.OK);
+            fx(()->{assertTrue(unrelated.get().isShowing(),"The unrelated notification must remain open");assertFalse(unrelatedAccepted.get(),"Only this operation's new confirmation may be accepted");return null;});
+            approveSourceReview();assertTrue(dispatched.await(15,TimeUnit.SECONDS));awaitTasks();
+            fx(()->{assertTrue(unrelated.get().isShowing());assertFalse(unrelatedAccepted.get());return null;});
+        }finally{
+            fx(()->{
+                for(var window:java.util.List.copyOf(Window.getWindows()))if(!previousWindows.contains(window)&&window.getScene()!=null){
+                    var root=window.getScene().getRoot();var node=root instanceof DialogPane?root:root.lookup(".dialog-pane");
+                    if(node instanceof DialogPane pane&&(confirmation.test(pane)||"registrationSourceReviewDialog".equals(pane.getId())))window.hide();
+                }
+                unrelated.get().close();return null;
+            });
+        }
     }
     @Test void changedTnvedRowNewCardButtonRequiresExplicitConfirmationAndUsesReplacementFlow()throws Exception{
         try(var c=Database.getConnection();var s=c.createStatement()){
