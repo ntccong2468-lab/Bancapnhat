@@ -72,6 +72,51 @@ class WbCatalogMappingServiceTest {
                 reasons(review(List.of(product(1, "Article", "Brown", "54")), card())));
     }
 
+    @Test void copiedBarcodeDoesNotAuthorizeADifferentArticleWithTheSameColorAndSize() {
+        for (String article : List.of("Other model", "")) {
+            var result = review(List.of(product(1, article, "Brown", "52")), card());
+            assertEquals(0, result.mapped());
+            assertEquals(List.of("GTIN_ARTICLE_MISMATCH"), reasons(result));
+        }
+        assertEquals(1, review(List.of(product(1, " article ", "Brown", "52")), card()).mapped());
+    }
+
+    @Test void everyUnmappedVariantHasAnIssueEvenWhenItsBarcodesContainNoUsableGtin() {
+        var original = product(1, "Article", "Brown", "52");
+        for (var codes : List.of(List.<String>of(), List.of("seller-alias", "123"))) {
+            var row = new ProductRow(original.key(), original.title(), original.vendorArticle(),
+                    original.marketArticle(), original.category(), original.brand(), original.color(),
+                    original.size(), codes, "", "", original.material(), original.tnved(), original.documentState());
+            var result = review(List.of(row), card());
+            assertEquals(0, result.mapped());
+            assertEquals(List.of("GTIN_BARCODE_MISSING"), reasons(result));
+        }
+    }
+
+    @Test void severalObservedCardsWithExpiredDocumentsAreNotSeveralEligibleMatches() {
+        String secondGtin = "00000000000024";
+        var original = product(1, "Article", "Brown", "52");
+        var row = new ProductRow(original.key(), original.title(), original.vendorArticle(),
+                original.marketArticle(), original.category(), original.brand(), original.color(),
+                original.size(), List.of(GTIN, secondGtin), "", "", original.material(), original.tnved(), original.documentState());
+        var expired = new CatalogProductData.Document("DECLARATION", "fixture", "2020-01-01", "2020-02-01", false, "", Map.of());
+        var first = card(SOURCE, Instant.now(), List.of(expired));
+        var second = new RegisteredGtin(secondGtin, first.article(), first.color(), first.size(),
+                true, true, SOURCE, Instant.now(), first.details());
+        var result = WbCatalogMappingService.review(List.of(row), Map.of(GTIN, first, secondGtin, second), Map.of(), SOURCE);
+        assertEquals(0, result.mapped());
+        assertEquals(List.of("GTIN_DOCUMENT_EXPIRED"), reasons(result));
+        var valid = card();
+        var anotherValid = new RegisteredGtin(secondGtin, valid.article(), valid.color(), valid.size(),
+                true, true, SOURCE, Instant.now(), valid.details());
+        var ambiguous = WbCatalogMappingService.review(List.of(row), Map.of(GTIN, valid, secondGtin, anotherValid), Map.of(), SOURCE);
+        assertEquals(0, ambiguous.mapped());
+        assertEquals(List.of("GTIN_AMBIGUOUS"), reasons(ambiguous));
+        var unique = WbCatalogMappingService.review(List.of(row), Map.of(GTIN, valid, secondGtin, second), Map.of(), SOURCE);
+        assertEquals(1, unique.mapped());
+        assertTrue(unique.issues().isEmpty());
+    }
+
     @Test void aDifferentMarketplaceTnvedDoesNotBlockTheObservedCatalogCard() {
         var row = product(1, "Article", "Brown", "52", "6201000000");
         var result = review(List.of(row), card());

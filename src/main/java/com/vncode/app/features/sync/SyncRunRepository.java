@@ -115,6 +115,35 @@ public final class SyncRunRepository {
             });}catch(SQLException error){throw storage(error);}
         }
     }
+    public record WbBarcodeCompletion(Item before,String gtin,String evidence) {}
+    /** WB barcode presence completes display only. A concurrently linked child,
+     * changed report, owner or native barcode must keep its existing authority. */
+    public Set<String> completeUnsubmittedWbBarcodes(Shop shop,String run,List<WbBarcodeCompletion> rows){
+        if(shop.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES)throw new SecurityException("SYNC_OWNER_CHANGED");
+        if(rows.size()>1000)throw new IllegalArgumentException("SYNC_REPORT_LIMIT");
+        for(var row:rows)if(!run.equals(row.before().runId())||!com.vncode.app.features.gtinsync.WbRegisteredBarcode.first(List.of(row.gtin())).orElse("").equals(row.gtin()))throw new IllegalArgumentException("GTIN_COMPLETION_INVALID");
+        try{return SqliteWriteTransaction.run(c->{
+            require(c,shop,run);var applied=new HashSet<String>();String now=Instant.now().toString();
+            try(var scope=c.prepareStatement("SELECT 1 FROM sync_runs WHERE id=? AND marketplace='WILDBERRIES' AND kind='znack_marketplace'")){
+                scope.setString(1,run);try(var result=scope.executeQuery()){if(!result.next())throw new SecurityException("SYNC_OWNER_CHANGED");}
+            }
+            try(var p=c.prepareStatement("""
+                UPDATE sync_run_items SET gtin=?,state='SUCCEEDED',step='VERIFIED',error_code='',evidence_json=?,updated_at=?
+                WHERE id=? AND run_id=? AND product_id=? AND variant_id=? AND gtin=? AND state=? AND updated_at=?
+                  AND child_job='' AND state NOT IN ('SUCCEEDED','UNCHANGED','CANCELLED')
+                  AND EXISTS(SELECT 1 FROM wb_product_sizes v JOIN wb_product_cards c ON c.shop_id=v.shop_id AND c.nm_id=v.nm_id
+                    JOIN wb_product_size_skus b ON b.shop_id=v.shop_id AND b.chrt_id=v.chrt_id
+                    WHERE v.shop_id=? AND CAST(v.nm_id AS TEXT)=sync_run_items.product_id AND CAST(v.chrt_id AS TEXT)=sync_run_items.variant_id
+                      AND TRIM(b.sku) IN (?,?))
+                """)){
+                for(var row:rows){var before=row.before();
+                    String[] values={row.gtin(),row.evidence(),now,before.id(),run,before.productId(),before.variantId(),before.gtin(),before.state(),before.updatedAt()};
+                    for(int index=0;index<values.length;index++)p.setString(index+1,values[index]);p.setInt(11,shop.getId());p.setString(12,row.gtin());p.setString(13,row.gtin().substring(1));
+                    if(p.executeUpdate()==1){applied.add(before.id());event(c,run,before.id(),"VERIFIED","SUCCEEDED","");}
+                }
+            }return Set.copyOf(applied);
+        });}catch(SQLException failure){throw storage(failure);}
+    }
     /** Bounded progress write for a large FBS batch, with one owner check and transaction. */
     public void updateBatch(Shop shop,String run,List<Item> items){
         if(items.size()>10000||items.stream().anyMatch(i->!run.equals(i.runId())))throw new IllegalArgumentException("SYNC_REPORT_LIMIT");

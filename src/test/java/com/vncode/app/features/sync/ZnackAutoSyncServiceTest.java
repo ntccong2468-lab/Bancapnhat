@@ -74,6 +74,55 @@ class ZnackAutoSyncServiceTest {
         assertEquals("SUCCEEDED",row.state());assertEquals("04631993764370",row.gtin());assertEquals("",row.childJob());assertEquals(0,writes);
         assertTrue(new GtinSyncRepository().verifiedMappings(shop).isEmpty(),"WB barcode presence is not Catalog ownership proof");
     }
+    @Test void explicitGtinReviewRefreshesWbBeforeExcludingAnOldNoMatchWhileKeepingTheReadyCatalog()throws Exception {
+        init(Marketplace.WILDBERRIES);
+        var cached=new GtinSyncModels.RegisteredGtin(observation.gtin(),"different-model","Green","XL",true,true,observation.source(),observation.syncedAt(),observation.details());
+        var repository=new GtinSyncRepository();repository.saveCatalog(shop.getId(),shop.getMarketplace(),List.of(cached));
+        String receipt=new RegistrationSources().require(shop).run();var reads=new java.util.concurrent.atomic.AtomicInteger();
+        var review=new ZnackGtinReviewService(new RegistrationSources(),s->{
+            reads.incrementAndGet();
+            try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,201,'4631993764370')");}
+        });
+        String run=review.prepare(shop);var row=new SyncRunRepository().items(run,0,10).getFirst();
+        assertEquals("SUCCEEDED",row.state());assertEquals("04631993764370",row.gtin());assertEquals("",row.childJob());assertEquals(1,reads.get());
+        assertEquals(receipt,new RegistrationSources().require(shop).run());assertEquals(List.of(cached),repository.catalog(shop.getId(),shop.getMarketplace()));
+        assertEquals(0,writes);assertTrue(repository.verifiedMappings(shop).isEmpty());
+    }
+    @Test void aRefreshedCached046CompletesAnOldBlockedReportWithoutReadingOrWritingTheMarketplace()throws Exception {
+        init(Marketplace.WILDBERRIES);String run=service.review(shop);var reports=new SyncRunRepository();var old=reports.items(run,0,10).getFirst();
+        reports.update(shop,old,"NEEDS_ACTION","MATCHING","GTIN_ON_ANOTHER_PRODUCT",null);reports.stage(shop,run,"WAITING_REMOTE","READBACK","");
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,201,'04631993764370')");}
+        int before=sourceReads;service.step(shop,run);var current=reports.items(run,0,10).getFirst();
+        assertEquals("SUCCEEDED",current.state());assertEquals("04631993764370",current.gtin());assertEquals("",current.error());assertEquals("",current.childJob());
+        assertEquals(before,sourceReads);assertEquals(0,writes);assertTrue(new GtinSyncRepository().verifiedMappings(shop).isEmpty());
+        var evidence=com.google.gson.JsonParser.parseString(current.evidence()).getAsJsonObject();assertEquals("MARKETPLACE_BARCODE_PRESENT",evidence.get("checkResult").getAsString());assertEquals("ALREADY_UPDATED",evidence.get("syncResult").getAsString());
+        assertEquals("",evidence.get("goodId").getAsString());assertEquals("",evidence.get("source").getAsString());assertFalse(evidence.get("published").getAsBoolean());
+    }
+    @Test void aNoMatchReportWithoutAnAssignedGtinCompletesFromTheExactCachedWb046()throws Exception {
+        init(Marketplace.WILDBERRIES);var reports=new SyncRunRepository();String run=reports.begin(shop,"znack_marketplace","READBACK");
+        reports.add(shop,run,"101","201","","Fixture","Blue","M","","NEEDS_ACTION","ZNACK_MAPPING_UNVERIFIED","{\"checkResult\":\"NO_MATCH\"}");
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,201,'04631993764370')");}
+        service.step(shop,run);var current=reports.items(run,0,10).getFirst();assertEquals("SUCCEEDED",current.state());assertEquals("04631993764370",current.gtin());
+        assertEquals(0,sourceReads);assertEquals(0,writes);assertTrue(new GtinSyncRepository().verifiedMappings(shop).isEmpty());
+    }
+    @Test void cached046NeverCompletesAnotherNativeProductOrAnExistingChildJournal()throws Exception {
+        init(Marketplace.WILDBERRIES);var reports=new SyncRunRepository();String run=reports.begin(shop,"znack_marketplace","READBACK");
+        var child=reports.add(shop,run,"101","201","","Fixture","Blue","M",observation.gtin(),"NEEDS_ACTION","READBACK_PENDING","{}");
+        reports.update(shop,child,"NEEDS_ACTION","READBACK","READBACK_PENDING","existing-child");child=reports.items(run,0,10).getFirst();
+        var foreign=reports.add(shop,run,"102","201","","Fixture","Blue","M","","NEEDS_ACTION","ZNACK_MAPPING_UNVERIFIED","{}");
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,201,'04631993764370')");}
+        int before=sourceReads;service.step(shop,run);var rows=reports.items(run,0,10);
+        assertEquals(child,rows.getFirst());assertEquals(foreign,rows.get(1));assertEquals(before,sourceReads);assertEquals(0,writes);
+        assertTrue(new GtinSyncRepository().verifiedMappings(shop).isEmpty());
+    }
+    @Test void anExpiredPairUsesItsExistingRefreshWithoutADuplicateWbOnlyRead()throws Exception {
+        init(Marketplace.WILDBERRIES);new GtinSyncRepository().saveCatalog(shop.getId(),shop.getMarketplace(),List.of(observation));
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE sync_runs SET finished_at='2000-01-01T00:00:00Z' WHERE kind='registration_sources'");}
+        var market=new java.util.concurrent.atomic.AtomicInteger();var catalogReads=new java.util.concurrent.atomic.AtomicInteger();
+        var sources=new RegistrationSources((s,sink)->{market.incrementAndGet();sink.accept(List.of(new RegistrationSources.Member("101","201","","Fixture","Blue","M")));},s->{catalogReads.incrementAndGet();return new ZnackCatalogSyncService.Result(List.of(observation),List.of(),"synthetic");});
+        var review=new ZnackGtinReviewService(sources,s->{throw new AssertionError("Paired refresh already read WB");});
+        assertFalse(review.prepare(shop).isBlank());assertEquals(1,market.get());assertEquals(1,catalogReads.get());assertEquals(0,writes);
+    }
     @Test void reportingFailureCannotReplaceTheOriginalCatalogReadFailure()throws Exception{
         init(Marketplace.WILDBERRIES);var original=new java.io.IOException("CATALOG_READ_FAILED");
         service=new ZnackAutoSyncService((s,issues)->{

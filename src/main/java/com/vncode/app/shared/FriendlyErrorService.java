@@ -19,7 +19,14 @@ public final class FriendlyErrorService {
     private static final java.util.Set<String> REGISTRATION_MODEL_ERRORS = java.util.Set.of(
             "CATALOG_REGISTRATION_SCHEMA_UNAVAILABLE", "CATALOG_COUNTRY_DICTIONARY_UNAVAILABLE",
             "CATALOG_COUNTRY_DICTIONARY_INVALID", "GTIN_VARIANT_IDENTITY_UNVERIFIED",
-            "unverified_catalog_gtin", "UNVERIFIED_CATALOG_GTIN", "MARKETPLACE_REQUEST_REJECTED");
+            "unverified_catalog_gtin", "UNVERIFIED_CATALOG_GTIN", "MARKETPLACE_REQUEST_REJECTED",
+            "SOURCE_SYNC_REQUIRED", "SOURCE_CONFIGURATION_CHANGED");
+
+    private static final java.util.Set<String> CATALOG_PERMIT_ERRORS = java.util.Set.of(
+            "REGISTRY_DOCUMENTS_PENDING", "REGISTRY_DOCUMENTS_UNAVAILABLE",
+            "GTIN_DOCUMENT_MISSING", "GTIN_DOCUMENT_UNVERIFIED", "GTIN_DOCUMENT_INACTIVE",
+            "GTIN_DOCUMENT_EXPIRED", "GTIN_DOCUMENT_NOT_YET_VALID", "GTIN_DOCUMENT_DATE_INVALID",
+            "GTIN_DOCUMENT_INCOMPLETE", "GTIN_DOCUMENT_TYPE_UNSUPPORTED", "GTIN_DOCUMENT_VALIDITY_UNKNOWN");
 
     private static final java.util.Set<String> OZON_FLOW_ERRORS=java.util.Set.of("OZON_ACCEPT_KIZ_STOCK_REQUIRED","OZON_ACCEPT_KIZ_EXISTING_MARKS","OZON_ACCEPT_KIZ_REJECTED","OZON_ACCEPT_KIZ_PENDING","OZON_LABEL_BATCH_IDENTITY_UNVERIFIED","OZON_LABEL_TASK_UNKNOWN","OZON_LABEL_BATCH_TASK_CHANGED","OZON_LABEL_BATCH_PENDING","OZON_LABEL_BATCH_FAILED","OZON_LABEL_BATCH_INVALID_PDF","OZON_LABEL_UNPRINTED","OZON_LABEL_BATCH_INVALID_STATUS","OZON_PDF_PUBLISHED_RECONCILIATION_REQUIRED","OZON_PRINT_KIZ_PROOF_CHANGED","OZON_PRINT_LIMIT_10000");
 
@@ -50,6 +57,7 @@ public final class FriendlyErrorService {
             if(OZON_FLOW_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
             if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage())){code="PRODUCT_PROPOSAL_CHANGED";break;}
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
+            if(CATALOG_PERMIT_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
             String bufferIssue = ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage());
             if (!bufferIssue.isBlank()) { code = bufferIssue; break; }
             if(cause instanceof com.vncode.app.features.gtinsync.RegisteredGtinProof.UnverifiedOwnerException owner){code="CATALOG_OWNER_"+owner.reason().name();break;}
@@ -80,6 +88,8 @@ public final class FriendlyErrorService {
             if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage()))return I18nService.getInstance().tr("bulk.proposal.changed");
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))
                 return I18nService.getInstance().tr("znack.registration.reason."+cause.getMessage());
+            if(CATALOG_PERMIT_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))
+                return I18nService.getInstance().tr("mapping.reason."+cause.getMessage());
             if (!ZnackErrorMessages.kizOrderBufferIssueCode(cause.getMessage()).isBlank())
                 return ZnackErrorMessages.display(cause.getMessage());
             if(cause instanceof com.vncode.app.features.kiz.KizStockShortageException shortage)

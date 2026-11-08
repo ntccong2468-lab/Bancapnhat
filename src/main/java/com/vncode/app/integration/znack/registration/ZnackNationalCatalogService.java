@@ -931,6 +931,14 @@ public final class ZnackNationalCatalogService {
             var card=readCard(token,gtin,null);
             return card==null?new FeedProgress("CardNotFound",null,List.of()):observedCard(card);
         }
+        // Older responses can omit feed_id. An explicit identity must still belong
+        // to this saved request before its status can advance or reject the card.
+        if(result.has("feed_id")){
+            var identity=result.get("feed_id");
+            if(!identity.isJsonPrimitive()||identity.getAsJsonPrimitive().isBoolean()
+                    ||!java.util.Objects.equals(feedId,identity.getAsString()))
+                throw new IllegalStateException("CATALOG_FEED_IDENTITY_NOT_CONFIRMED");
+        }
         String status = string(result, "status");
         List<String> errors = new ArrayList<>();
         Long goodId = null;
@@ -1074,8 +1082,10 @@ public final class ZnackNationalCatalogService {
     /** Absence is confirmed only by a successful, identity-checked Catalog response. */
     public boolean cardExists(String token,String gtin,Long expectedId)throws Exception{return readCard(token,gtin,expectedId)!=null;}
     public record ObservedCard(long goodId,String gtin,String rawStatus,FeedProgress progress,
-            com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt,boolean tradeUnit){
-        public ObservedCard(long goodId,String gtin,String rawStatus,FeedProgress progress,com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt){this(goodId,gtin,rawStatus,progress,details,checkedAt,false);}
+            com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt,boolean tradeUnit,String readRevision){
+        public ObservedCard {readRevision=java.util.Objects.requireNonNullElse(readRevision,"");}
+        public ObservedCard(long goodId,String gtin,String rawStatus,FeedProgress progress,com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt){this(goodId,gtin,rawStatus,progress,details,checkedAt,false,"");}
+        public ObservedCard(long goodId,String gtin,String rawStatus,FeedProgress progress,com.vncode.app.features.catalogsync.CatalogProductData details,java.time.Instant checkedAt,boolean tradeUnit){this(goodId,gtin,rawStatus,progress,details,checkedAt,tradeUnit,"");}
         /** Only a real, ordinary Draft may enter the seller-reviewed update flow. */
         public boolean draftForReview(){return goodId>0&&tradeUnit&&"draft".equalsIgnoreCase(rawStatus)
                 &&progress!=null&&!progress.failed()&&"CardDraft".equalsIgnoreCase(progress.status())
@@ -1085,13 +1095,14 @@ public final class ZnackNationalCatalogService {
     /** Fresh exact-identity evidence. Authentication, parse and incomplete reads are never absence. */
     public ObservedCard observedCardStatus(String token,String gtin,Long expectedId)throws Exception {
         assertRegistrationReadScope();
+        String readRevision=api.catalogReadRevision();
         if(!com.vncode.app.features.gtinsync.RegisteredGtinValidator.isValid(gtin))throw new RegistrationValidationException("CATALOG_REPAIR_INVALID");
-        var card=readCard(token,gtin,expectedId);if(card==null)return null;
+        var card=readCard(token,gtin,expectedId);assertRegistrationReadScope();if(card==null)return null;
         validateObservedOwner(card);
         String raw=first(string(card,"good_status"),string(card,"goodStatus"),string(card,"cardStatus"));
         if(!Set.of("draft","published").contains(raw.toLowerCase(Locale.ROOT)))throw new IllegalStateException("CATALOG_PUBLICATION_RESPONSE_INVALID");
         var status=observedCard(card);
-        return new ObservedCard(status.goodId(),com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin),raw,status,CatalogProductDataParser.parse(card),permitClock.instant(),observedTradeUnit(card,gtin));
+        return new ObservedCard(status.goodId(),com.vncode.app.integration.znack.GtinNormalizer.normalize(gtin),raw,status,CatalogProductDataParser.parse(card),permitClock.instant(),observedTradeUnit(card,gtin),readRevision);
     }
     private static boolean observedTradeUnit(JsonObject card,String gtin){boolean found=false;var raw=card.get("identified_by");if(raw==null||!raw.isJsonArray())return false;for(var value:raw.getAsJsonArray()){if(!value.isJsonObject())return false;var identity=value.getAsJsonObject();if("gtin".equalsIgnoreCase(string(identity,"type"))&&com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,first(string(identity,"value"),string(identity,"gtin")))){if(!"trade-unit".equalsIgnoreCase(string(identity,"level")))return false;found=true;}}return found;}
     /** Reassert the original client's credential/profile/license guard when a caller reuses read evidence. */

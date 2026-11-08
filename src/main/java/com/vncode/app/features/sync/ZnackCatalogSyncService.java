@@ -15,9 +15,9 @@ import static com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin;
 
 /** One owner-scoped source for the Znack UI and automatic marketplace GTIN pipeline. */
 public final class ZnackCatalogSyncService {
-    @FunctionalInterface interface Source {List<RegisteredGtin> read(Shop shop,Consumer<NationalCatalogGtinSource.CardIssue> issues,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception;}
-    public record Result(List<RegisteredGtin> cards,List<NationalCatalogGtinSource.CardIssue> issues,String runId){public Result{cards=List.copyOf(cards);issues=List.copyOf(issues);}}
-    private record Key(String directory,int shop,String source){}
+    @FunctionalInterface interface Source {List<RegisteredGtin> read(Shop shop,Consumer<NationalCatalogGtinSource.CardIssue> issues,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception;default void prepare(Shop shop)throws Exception{}}
+    public record Result(List<RegisteredGtin> cards,List<NationalCatalogGtinSource.CardIssue> issues,String runId){public Result{cards=CatalogReadRevision.copyObservation(cards);issues=List.copyOf(issues);}}
+    private record Key(String directory,int shop,String source,String revision){}
     private record Cached(Result result,Instant at){}
     private static final class Flight {
         final CompletableFuture<Result> result=new CompletableFuture<>();
@@ -28,19 +28,25 @@ public final class ZnackCatalogSyncService {
     private static final ConcurrentMap<Key,Flight> IN_FLIGHT=new ConcurrentHashMap<>();
     private static final Map<Key,Cached> CACHE=Collections.synchronizedMap(new LinkedHashMap<>());
     private final Source source;
-    public ZnackCatalogSyncService(){this((shop,issues,progress)->NationalCatalogGtinSource.forShopPartial(shop,issues,progress).read(shop.getId()));}
+    public ZnackCatalogSyncService(){this(new Source(){
+        public void prepare(Shop shop)throws Exception{prepareConnection(shop);}
+        public List<RegisteredGtin> read(Shop shop,Consumer<NationalCatalogGtinSource.CardIssue> issues,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception{return NationalCatalogGtinSource.forShopPartial(shop,issues,progress).read(shop.getId());}
+    });}
+    static void prepareConnection(Shop shop)throws Exception{var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();CatalogConnectionService.apiForRead(shop,settings);}
     ZnackCatalogSyncService(Source source){this.source=Objects.requireNonNull(source);}
     public Result refresh(Shop shop,boolean force,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception {
         LicenseRuntime.require(Permission.SELLER_API);ListingIdentity.require(shop);
+        source.prepare(shop);
         var scope=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(scope);
-        var key=new Key(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize().toString(),shop.getId(),scope.source());
+        String revision=CatalogReadRevision.current(shop.getId());
+        var key=new Key(com.vncode.app.shared.AppPaths.appDataDir().toAbsolutePath().normalize().toString(),shop.getId(),scope.source(),revision);
         var flight=new Flight();flight.listeners.add(progress);
         var existing=IN_FLIGHT.putIfAbsent(key,flight);
-        if(existing!=null)return join(shop,scope,existing,progress);
+        if(existing!=null)return join(shop,scope,revision,existing,progress);
         var reports=new SyncRunRepository();String run="";
         try {
             var cached=CACHE.get(key);
-            if(!force&&cached!=null&&cached.result().issues().isEmpty()&&cached.at().isAfter(Instant.now().minusSeconds(120))){flight.progress(new NationalCatalogGtinSource.Progress("SOURCE_COMPLETE",cached.result().cards().size(),cached.result().cards().size()));flight.result.complete(cached.result());return cached.result();}
+            if(!force&&cached!=null&&cached.result().issues().isEmpty()&&cached.at().isAfter(Instant.now().minusSeconds(120))){CatalogReadRevision.requireUnchanged(shop.getId(),revision);flight.progress(new NationalCatalogGtinSource.Progress("SOURCE_COMPLETE",cached.result().cards().size(),cached.result().cards().size()));CatalogReadRevision.requireUnchanged(shop.getId(),revision);flight.result.complete(cached.result());return cached.result();}
             run=reports.begin(shop,"znack_catalog_read","AUTHENTICATING");final String id=run;
             String[] phase={""};int[] last={-25};
             Consumer<NationalCatalogGtinSource.Progress> observer=p->{
@@ -49,10 +55,13 @@ public final class ZnackCatalogSyncService {
             };
             var issues=new ArrayList<NationalCatalogGtinSource.CardIssue>();
             List<RegisteredGtin> rows;
-            try(var deferral=com.vncode.app.shared.RateLimitDeferral.enter()){rows=source.read(shop,issues::add,observer);}
+            try(var deferral=com.vncode.app.shared.RateLimitDeferral.enter()){rows=CatalogReadRevision.observed(source.read(shop,issues::add,observer),revision);}
             if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");
             ListingIdentity.require(shop);if(!scope.source().equals(RegisteredGtinProof.current(shop).source()))throw new IllegalStateException("CATALOG_OWNER_CHANGED");
             if(rows.stream().anyMatch(row->!scope.source().equals(row.source())))throw new SecurityException("CATALOG_OWNER_CHANGED");
+            var result=new Result(rows,issues,id);
+            CatalogReadRevision.withCurrent(shop.getId(),revision,()->{
+            ListingIdentity.require(shop);if(!scope.source().equals(RegisteredGtinProof.current(shop).source()))throw new IllegalStateException("CATALOG_OWNER_CHANGED");
             var gtins=new GtinSyncRepository();
             if(issues.isEmpty())gtins.saveCatalog(shop.getId(),shop.getMarketplace(),rows);else gtins.mergeCatalog(shop.getId(),shop.getMarketplace(),rows);
             project(shop,rows);
@@ -67,8 +76,9 @@ public final class ZnackCatalogSyncService {
             for(var issue:issues)reportItems.add(new SyncRunRepository.Item(UUID.randomUUID().toString(),id,"catalog:"+issue.gtin(),"catalog","","","","",issue.gtin(),"NEEDS_ACTION","SOURCE_READ",issue.code(),"","{}"));
             reports.addBatch(shop,id,reportItems);
             reports.stage(shop,id,issues.isEmpty()?"SUCCEEDED":"PARTIAL","SOURCE_COMPLETE",issues.isEmpty()?"":"CATALOG_PARTIAL");
-            var result=new Result(rows,issues,id);synchronized(CACHE){CACHE.put(key,new Cached(result,Instant.now()));while(CACHE.size()>30)CACHE.remove(CACHE.keySet().iterator().next());}
-            ZnackGtinAutoSync.markAutoSynced(shop.getId());flight.result.complete(result);return result;
+            synchronized(CACHE){CACHE.put(key,new Cached(result,Instant.now()));while(CACHE.size()>30)CACHE.remove(CACHE.keySet().iterator().next());}
+            ZnackGtinAutoSync.markAutoSynced(shop.getId());flight.result.complete(result);
+            });return result;
         }catch(Exception failed){
             ZnackGtinAutoSync.retryAfterFailure(shop.getId());
             if(!run.isBlank())try{reports.stage(shop,run,com.vncode.app.integration.znack.registration.CatalogFeedback.rateLimited(failed)?"WAITING_REMOTE":"FAILED",reports.step(run),SyncFailure.of(failed,0).code());}
@@ -79,13 +89,13 @@ public final class ZnackCatalogSyncService {
         finally{IN_FLIGHT.remove(key,flight);flight.listeners.clear();}
     }
     /** A UI subscriber waits off FX and receives the same persisted result, never a second HTTP refresh. */
-    private static Result join(Shop shop,RegisteredGtinProof.Scope scope,Flight flight,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception{
+    private static Result join(Shop shop,RegisteredGtinProof.Scope scope,String revision,Flight flight,Consumer<NationalCatalogGtinSource.Progress> progress)throws Exception{
         flight.listeners.add(progress);
         try{
             progress.accept(new NationalCatalogGtinSource.Progress("WAITING_SOURCE",0,0));
             var last=flight.last;if(last!=null)progress.accept(last);
             var result=flight.result.get(180,TimeUnit.SECONDS);
-            ListingIdentity.require(shop);if(!scope.source().equals(RegisteredGtinProof.current(shop).source()))throw new IllegalStateException("CATALOG_OWNER_CHANGED");
+            ListingIdentity.require(shop);if(!scope.source().equals(RegisteredGtinProof.current(shop).source()))throw new IllegalStateException("CATALOG_OWNER_CHANGED");CatalogReadRevision.requireUnchanged(shop.getId(),revision);
             return result;
         }catch(InterruptedException interrupted){Thread.currentThread().interrupt();throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");}
         catch(TimeoutException expired){throw new java.net.SocketTimeoutException("ZNACK_SYNC_TIMEOUT");}
@@ -93,10 +103,20 @@ public final class ZnackCatalogSyncService {
         finally{flight.listeners.remove(progress);}
     }
     public static void project(Shop shop,List<RegisteredGtin> rows){
+        ListingIdentity.require(shop);if(rows.isEmpty())return;
+        String revision=rows.getFirst().readRevision();
+        CatalogReadRevision.withCurrent(shop.getId(),revision,()->{
+            if(rows.stream().anyMatch(row->!CatalogReadRevision.observedAt(row,revision)))throw new IllegalStateException("SOURCE_CONFIGURATION_CHANGED");
+            projectCurrent(shop,rows);
+        });
+    }
+    private static void projectCurrent(Shop shop,List<RegisteredGtin> rows){
         ListingIdentity.require(shop);var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));
         var settings=repository.getSettings();var products=new ArrayList<ZnackModels.Product>();var documentsByGtin=new HashMap<String,List<ZnackModels.GoodsDocument>>();
         for(var row:rows){if(!row.published()||!row.tradeUnit()||GtinNormalizer.isTechnicalRange(row.gtin()))continue;
-            var documents=row.details().documents().stream().filter(d->!d.number().isBlank()&&!d.from().isBlank()).map(d->new ZnackModels.GoodsDocument(switch(d.type()){case "DECLARATION"->"CONFORMITY_DECLARATION";case "CERTIFICATE_OF_REGISTRATION"->"STATE_REGISTRATION_CERTIFICATE";case "CERTIFICATE_OF_CONFORMITY"->"CONFORMITY_CERTIFICATE";default->d.type();},d.number(),d.from())).toList();
+            var documents=com.vncode.app.features.catalogsync.CatalogPermitEvidence.problem(row.details()).isBlank()
+                    ?row.details().documents().stream().filter(com.vncode.app.features.catalogsync.CatalogPermitEvidence::active).map(d->new ZnackModels.GoodsDocument(switch(d.type()){case "DECLARATION"->"CONFORMITY_DECLARATION";case "CERTIFICATE_OF_REGISTRATION"->"STATE_REGISTRATION_CERTIFICATE";case "CERTIFICATE_OF_CONFORMITY"->"CONFORMITY_CERTIFICATE";default->d.type();},d.number(),d.from())).toList()
+                    :List.<ZnackModels.GoodsDocument>of();
             documentsByGtin.put(row.gtin(),documents);
             products.add(new ZnackModels.Product(row.gtin(),row.details().single("title"),row.details().single("tnved"),null,null,null,null,null,null,"published","","",null,null,documents));
         }
@@ -105,7 +125,8 @@ public final class ZnackCatalogSyncService {
         repository.restoreProducts(products.stream().map(ZnackModels.Product::gtin).toList());
         var metadata=new ArrayList<ZnackRepository.CatalogMetadata>(100);
         for(var row:rows)if(row.published()&&row.tradeUnit()&&!GtinNormalizer.isTechnicalRange(row.gtin())){
-            metadata.add(new ZnackRepository.CatalogMetadata(row.gtin(),!row.details().documents().isEmpty(),documentsByGtin.get(row.gtin()),row.details().single("gender"),row.size()));
+            boolean observedPermits=!row.details().documents().isEmpty()||!row.details().values("@documents_status").isEmpty()||!row.details().values("@registry_document_count").isEmpty();
+            metadata.add(new ZnackRepository.CatalogMetadata(row.gtin(),observedPermits,documentsByGtin.get(row.gtin()),row.details().single("gender"),row.size()));
             if(metadata.size()==100){ListingIdentity.require(shop);repository.updateCatalogMetadata(metadata,settings);metadata.clear();}
         }
         if(!metadata.isEmpty()){ListingIdentity.require(shop);repository.updateCatalogMetadata(metadata,settings);}

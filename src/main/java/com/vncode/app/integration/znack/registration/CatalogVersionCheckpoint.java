@@ -12,7 +12,7 @@ final class CatalogVersionCheckpoint {
     record State(int offset,Integer total,boolean listed){}
     record Entry(String id,String etag,JsonObject card,Instant observedAt){}
     private final int shop;private final String source;
-    CatalogVersionCheckpoint(int shop,String source){this.shop=shop;this.source=source;}
+    CatalogVersionCheckpoint(int shop,String source){this.shop=shop;this.source=com.vncode.app.integration.znack.CatalogReadRevision.source(source,com.vncode.app.integration.znack.CatalogReadRevision.current(shop));}
     State load(boolean resume){return write(c->{
         try(var s=c.createStatement()){
             s.execute("CREATE TABLE IF NOT EXISTS znack_catalog_version_scans(shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,source TEXT NOT NULL,offset INTEGER NOT NULL DEFAULT 0,total INTEGER,listed INTEGER NOT NULL DEFAULT 0,updated_at TEXT NOT NULL,PRIMARY KEY(shop_id,source))");

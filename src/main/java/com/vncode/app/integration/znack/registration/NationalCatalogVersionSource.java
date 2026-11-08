@@ -30,7 +30,7 @@ final class NationalCatalogVersionSource implements RegisteredGtinSource {
         if(requested!=shop)throw new IllegalArgumentException("shop_mismatch");
         guard.run();
         // A fresh no-match lookup must not clear or borrow an ongoing background scan.
-        var checkpoint=new CatalogVersionCheckpoint(shop,resume?scope:scope+"#lookup:"+UUID.randomUUID());var state=checkpoint.load(resume);
+        var checkpoint=new CatalogVersionCheckpoint(shop,resume?scope:scope+"#lookup:"+UUID.randomUUID());guard.run();var state=checkpoint.load(resume);
         long deadline=System.nanoTime()+Duration.ofMinutes(3).toNanos();
         try{
             while(!state.listed()){

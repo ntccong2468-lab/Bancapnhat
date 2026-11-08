@@ -22,11 +22,17 @@ public final class ZnackGtinReviewService {
     private final ProductSnapshotReader products;
     private boolean refreshSelectedProof;
     private final SyncRunRepository reports=new SyncRunRepository();
-    public ZnackGtinReviewService(){this(new MarketplaceRefresh(){
+    public ZnackGtinReviewService(){this(new RegistrationSources(),shop->new WbProductSyncService().syncFromStart(shop,cards->{}));}
+    ZnackGtinReviewService(RegistrationSources sources,MarketplaceRefresh freshWb){this(new MarketplaceRefresh(){
         public void refresh(Shop shop)throws Exception{refresh(shop,step->{});}
         public void refresh(Shop shop,java.util.function.Consumer<String> progress)throws Exception{
-            var sources=new RegistrationSources();var ready=sources.check(shop);
+            var ready=sources.check(shop);
             if(!ready.ready())ready=sources.refresh(shop,progress);
+            else if(shop.getMarketplace()==Marketplace.WILDBERRIES){
+                // A paired receipt keeps Catalog ownership/membership current, but WB
+                // barcodes may have changed since it was captured. Read before matching.
+                progress.accept("READING_MARKETPLACE");freshWb.refresh(shop,progress);
+            }
             if(!ready.ready())throw new IllegalStateException(ready.reason());
             if(shop.getMarketplace()==Marketplace.OZON)new com.vncode.app.integration.znack.registration.OzonExistingCardLinkService().refreshApproved(shop,Set.of(),()->Thread.currentThread().isInterrupted());
         }

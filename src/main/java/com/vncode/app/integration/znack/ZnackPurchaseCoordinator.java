@@ -519,6 +519,8 @@ public class ZnackPurchaseCoordinator {
         if (product == null) {
             throw new IllegalArgumentException("GTIN is not registered for the selected shop.");
         }
+        com.vncode.app.features.kiz.KizPurchaseMappingProof.requireKnownPermit(
+                new com.vncode.app.features.shop.ShopRepository().findById(repository.shop().shopId()), List.of(normalized));
         if (settings.autoIntroduction() && !hasCompletePermit(product)) {
             throw new IllegalStateException("GTIN has no active National Catalog declaration or certificate. "
                     + "Synchronize the GTIN after publishing its goods document before buying KIZ.");

@@ -26,10 +26,13 @@ public final class GtinSyncModels {
     }
     public record RegisteredGtin(String gtin, String article, String color, String size,
                                  boolean tradeUnit, boolean published, String source, Instant syncedAt,
-                                 com.vncode.app.features.catalogsync.CatalogProductData details) {
+                                 com.vncode.app.features.catalogsync.CatalogProductData details,String readRevision) {
+        /** Local read freshness is separate from the physical card content and owner source. */
+        public RegisteredGtin(String gtin,String article,String color,String size,boolean tradeUnit,boolean published,String source,Instant syncedAt,com.vncode.app.features.catalogsync.CatalogProductData details){this(gtin,article,color,size,tradeUnit,published,source,syncedAt,details,"");}
         public RegisteredGtin(String gtin,String article,String color,String size,boolean tradeUnit,boolean published,String source,Instant syncedAt){this(gtin,article,color,size,tradeUnit,published,source,syncedAt,com.vncode.app.features.catalogsync.CatalogProductData.EMPTY);}
         public RegisteredGtin {
             details=details==null?com.vncode.app.features.catalogsync.CatalogProductData.EMPTY:details;
+            readRevision=safe(readRevision);
             gtin = required(gtin); article = safe(article); color = safe(color); size = safe(size);
             source = required(source); Objects.requireNonNull(syncedAt);
         }

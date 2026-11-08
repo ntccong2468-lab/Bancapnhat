@@ -61,14 +61,16 @@ public final class WbCatalogMappingService {
     static Result review(List<ProductRow> rows,Map<String,RegisteredGtin> catalog,Map<String,String> failures,String scope){
         var duplicate=duplicates(rows);var issues=new ArrayList<Issue>();int mapped=0;
         for(var row:rows){
-            var codes=codes(row);if(codes.isEmpty())continue;
-            if(eligible(row,catalog,duplicate,failures,scope)!=null){mapped++;continue;}
+            var codes=codes(row);
+            if(codes.isEmpty()){issues.add(new Issue(row.vendorArticle(),row.size(),"","GTIN_BARCODE_MISSING",row.color(),""));continue;}
+            var usable=usable(row,catalog,duplicate,failures,scope);
+            if(usable.size()==1){mapped++;continue;}
             // Marketplace barcodes are not necessarily Catalog cards. Only actual
             // Catalog candidates can make this choice ambiguous.
             var observed=codes.stream().filter(catalog::containsKey).toList();
             String code=observed.isEmpty()?codes.iterator().next():observed.getFirst(),reason;
             var card=catalog.get(code);
-            if(observed.size()>1)reason="GTIN_AMBIGUOUS";
+            if(usable.size()>1)reason="GTIN_AMBIGUOUS";
             else if(duplicate.contains(code))reason="GTIN_MULTIPLE_SIZES";
             else if(failures.containsKey(code))reason=Set.of("ZNACK_AUTH_REQUIRED","ZNACK_HTTP_403").contains(failures.get(code))?"GTIN_ACCESS_DENIED":failures.get(code);
             else {reason=problem(row,card,scope);if(reason.isBlank())reason="GTIN_AMBIGUOUS";}
@@ -77,9 +79,12 @@ public final class WbCatalogMappingService {
         return new Result(mapped,issues);
     }
     private static RegisteredGtin eligible(ProductRow row,Map<String,RegisteredGtin> catalog,Set<String> duplicates,Map<String,String> failures,String scope){
-        var usable=codes(row).stream().filter(code->!duplicates.contains(code)&&!failures.containsKey(code))
-                .map(catalog::get).filter(Objects::nonNull).filter(card->problem(row,card,scope).isBlank()).toList();
+        var usable=usable(row,catalog,duplicates,failures,scope);
         return usable.size()==1?usable.getFirst():null;
+    }
+    private static List<RegisteredGtin> usable(ProductRow row,Map<String,RegisteredGtin> catalog,Set<String> duplicates,Map<String,String> failures,String scope){
+        return codes(row).stream().filter(code->!duplicates.contains(code)&&!failures.containsKey(code))
+                .map(catalog::get).filter(Objects::nonNull).filter(card->problem(row,card,scope).isBlank()).toList();
     }
     private static String problem(ProductRow row,RegisteredGtin card,String scope){
         if(card==null)return "GTIN_CARD_NOT_FOUND";
@@ -87,6 +92,8 @@ public final class WbCatalogMappingService {
         if(card.syncedAt().isBefore(Instant.now().minus(Duration.ofHours(24)))||card.syncedAt().isAfter(Instant.now().plusSeconds(300)))return "GTIN_CATALOG_STALE";
         if(!card.published())return "GTIN_CARD_UNSIGNED";
         if(!card.tradeUnit())return "GTIN_NOT_TRADE_UNIT";
+        String article=GtinMatchingService.normalizeArticle(row.vendorArticle());
+        if(article.isBlank()||!article.equals(GtinMatchingService.normalizeArticle(card.article())))return "GTIN_ARTICLE_MISMATCH";
         if(!GtinVariantIdentity.sizeMatches(card,GtinVariantIdentity.primarySize(row),row.russianSize()))return "GTIN_SIZE_MISMATCH";
         if(row.color().isBlank()||card.color().isBlank())return "GTIN_COLOR_MISSING";
         if(!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";

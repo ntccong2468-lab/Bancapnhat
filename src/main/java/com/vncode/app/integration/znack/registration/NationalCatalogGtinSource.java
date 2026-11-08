@@ -76,9 +76,11 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             var owner=RegisteredGtinProof.scope(shop,settings,Instant.now());
             progress.accept(new Progress("AUTHENTICATING",0,0));
             var api=com.vncode.app.integration.znack.CatalogConnectionService.apiForRead(shop,settings);
+            String revision=api.catalogReadRevision();
+            Runnable readGuard=()->{requireOwner(shop,owner.source());CatalogReadRevision.requireUnchanged(id,revision);api.assertCatalogReadScope();};
             var provider=new com.vncode.app.integration.znack.signature.CryptoProSignatureProvider(settings.cryptcpPath(),owner.fingerprint(),java.time.Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
             com.vncode.app.integration.znack.signature.ZnackSignatureProvider signer=(payload,context)->{
-                requireOwner(shop,owner.source());
+                readGuard.run();
                 var signed=provider.sign(payload,context);
                 var certificate=com.vncode.app.integration.znack.signature.CryptoProSignedCertificateReader.read(signed,owner.fingerprint());
                 if(!owner.inn().equals(certificate.inn())||certificate.validFrom().isAfter(Instant.now())||!certificate.validTo().isAfter(Instant.now()))
@@ -90,23 +92,24 @@ public final class NationalCatalogGtinSource implements RegisteredGtinSource {
             if(auth.authenticatedParticipantInn()!=null&&!owner.inn().equals(auth.authenticatedParticipantInn()))throw new IllegalStateException("unverified_catalog_owner");
             var registeredScope=ZnackRegistrationScope.fromSettings(settings);
             int listLimit=api.hasCatalogKey()?1000:10_000;
-            var result=new NationalCatalogGtinSource(id,p->{requireOwner(shop,owner.source());return selectedGtins==null?api.products(settings.resolvedTrueApiBaseUrl(),token,p,listLimit):com.google.gson.JsonParser.parseString("{\"results\":[],\"total\":0}");},new BatchedCards(g->{requireOwner(shop,owner.source());var response=api.productCards(settings.resolvedTrueApiBaseUrl(),token,g);requireOwner(shop,owner.source());return response;}),owner.source(),()->{
-                requireOwner(shop,owner.source());return selectedGtins==null?ownedKnownGtins(shop,registeredScope):List.copyOf(selectedGtins);
-            },includeDocuments?g->{requireOwner(shop,owner.source());return api.permitDocuments(settings.resolvedTrueApiBaseUrl(),token,g,owner.inn());}:null).tolerate(issues).progress(progress);
+            var result=new NationalCatalogGtinSource(id,p->{readGuard.run();return selectedGtins==null?api.products(settings.resolvedTrueApiBaseUrl(),token,p,listLimit):com.google.gson.JsonParser.parseString("{\"results\":[],\"total\":0}");},new BatchedCards(g->{readGuard.run();var response=api.productCards(settings.resolvedTrueApiBaseUrl(),token,g);readGuard.run();return response;}),owner.source(),()->{
+                readGuard.run();return selectedGtins==null?ownedKnownGtins(shop,registeredScope):List.copyOf(selectedGtins);
+            },includeDocuments?g->{readGuard.run();return api.permitDocuments(settings.resolvedTrueApiBaseUrl(),token,g,owner.inn());}:null).tolerate(issues).progress(progress);
             if(api.hasCatalogKey())result.catalogListWindow();
             if(!resumeScan&&selectedGtins==null)result.requireCompleteTotal();
             if(selectedGtins==null&&resumeScan)result.resumable();
+            readGuard.run();
             List<RegisteredGtin> rows;
             try{rows=result.read(id);}
             catch(IOException outsideWindow){
                 if(!api.hasCatalogKey()||selectedGtins!=null||!"CATALOG_LIST_RANGE_UNSUPPORTED".equals(outsideWindow.getMessage()))throw outsideWindow;
                 rows=new NationalCatalogVersionSource(id,owner.source(),
-                        offset->{requireOwner(shop,owner.source());return api.catalogVersions(settings.resolvedTrueApiBaseUrl(),token,owner.inn(),offset);},
-                        ids->{requireOwner(shop,owner.source());return api.productCardsByIds(settings.resolvedTrueApiBaseUrl(),token,ids);},
-                        result.cards,result.additional,result.documents,issues,progress,()->requireOwner(shop,owner.source()),resumeScan).read(id);
+                        offset->{readGuard.run();return api.catalogVersions(settings.resolvedTrueApiBaseUrl(),token,owner.inn(),offset);},
+                        ids->{readGuard.run();return api.productCardsByIds(settings.resolvedTrueApiBaseUrl(),token,ids);},
+                        result.cards,result.additional,result.documents,issues,progress,readGuard,resumeScan).read(id);
             }
-            requireOwner(shop,owner.source());
-            return rows;
+            readGuard.run();
+            return CatalogReadRevision.observed(rows,revision);
         };
     }
     @Override public List<RegisteredGtin> read(int requestedShop) throws Exception {

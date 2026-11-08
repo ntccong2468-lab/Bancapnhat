@@ -3,6 +3,7 @@ package com.vncode.app.features.sync;
 import com.vncode.app.config.Database;
 import com.vncode.app.features.gtinsync.RegisteredGtinProof;
 import com.vncode.app.integration.znack.registration.NationalCatalogGtinSource;
+import com.vncode.app.integration.znack.CatalogReadRevision;
 import com.vncode.app.features.shop.ShopOperationCoordinator;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.integration.marketplace.Marketplace;
@@ -22,18 +23,21 @@ public final class RegistrationSources {
     }
     public record Member(String product,String variant,String sku,String article,String color,String size) {}
     @FunctionalInterface interface MarketReader {void read(Shop shop,Consumer<List<Member>> page)throws Exception;}
-    @FunctionalInterface interface CatalogReader {ZnackCatalogSyncService.Result read(Shop shop)throws Exception;}
+    @FunctionalInterface interface CatalogReader {ZnackCatalogSyncService.Result read(Shop shop)throws Exception;default void prepare(Shop shop)throws Exception{}}
     private static final Set<String> ACTIVE=java.util.concurrent.ConcurrentHashMap.newKeySet();
     private final MarketReader market;
     private final CatalogReader catalog;
     private final SyncRunRepository reports=new SyncRunRepository();
-    public RegistrationSources(){this(RegistrationSources::readMarketplace,shop->new ZnackCatalogSyncService().refresh(shop,true,p->{}));}
-    public RegistrationSources(Consumer<NationalCatalogGtinSource.Progress> progress){this(RegistrationSources::readMarketplace,shop->new ZnackCatalogSyncService().refresh(shop,true,progress));}
+    public RegistrationSources(){this(p->{});}
+    public RegistrationSources(Consumer<NationalCatalogGtinSource.Progress> progress){this(RegistrationSources::readMarketplace,new CatalogReader(){
+        public void prepare(Shop shop)throws Exception{ZnackCatalogSyncService.prepareConnection(shop);}
+        public ZnackCatalogSyncService.Result read(Shop shop)throws Exception{return new ZnackCatalogSyncService().refresh(shop,true,progress);}
+    });}
     RegistrationSources(MarketReader market,CatalogReader catalog){this.market=market;this.catalog=catalog;}
 
     public Readiness check(Shop shop) {
         try {
-            ListingIdentity.require(shop);var verified=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(verified);String scope=verified.source();
+            ListingIdentity.require(shop);var verified=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(verified);String revision=CatalogReadRevision.current(shop.getId()),scope=CatalogReadRevision.source(verified.source(),revision);
             try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id,state,step,error_code,source_revision,finished_at FROM sync_runs WHERE shop_id=? AND owner=? AND kind=? ORDER BY created_at DESC,rowid DESC LIMIT 1")) {
                 p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,KIND);
                 try(var row=p.executeQuery()) {
@@ -43,7 +47,7 @@ public final class RegistrationSources {
                     if(!"SUCCEEDED".equals(row.getString(2)))return blocked(run,step,row.getString(4).isBlank()?"SOURCE_SYNC_"+row.getString(2):row.getString(4));
                     Instant finished=Instant.parse(row.getString(6)),now=Instant.now();
                     if(finished.isBefore(now.minus(Duration.ofHours(24)))||finished.isAfter(now.plusSeconds(300)))return blocked(run,step,"SOURCE_SYNC_EXPIRED");
-                    return new Readiness(true,run,step,"",finished.toString());
+                    CatalogReadRevision.requireComplete(shop.getId());CatalogReadRevision.requireUnchanged(shop.getId(),revision);return new Readiness(true,run,step,"",finished.toString());
                 }
             }
         }catch(SQLException e){throw new IllegalStateException("SYNC_STORAGE",e);}
@@ -56,8 +60,8 @@ public final class RegistrationSources {
         var current=check(shop);if(current.ready())return current;
         try{
             ListingIdentity.require(shop);var scope=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(scope);
-            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id,step,finished_at FROM sync_runs WHERE shop_id=? AND owner=? AND kind=? AND state='SUCCEEDED' AND source_revision=? ORDER BY created_at DESC,rowid DESC LIMIT 1")){
-                p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,KIND);p.setString(4,scope.source());
+            try(var c=Database.getConnection();var p=c.prepareStatement("SELECT id,step,finished_at FROM sync_runs WHERE shop_id=? AND owner=? AND kind=? AND state='SUCCEEDED' AND (source_revision=? OR source_revision LIKE ?) ORDER BY created_at DESC,rowid DESC LIMIT 1")){
+                p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,KIND);p.setString(4,scope.source());p.setString(5,scope.source()+"#read:%");
                 try(var row=p.executeQuery()){
                     if(row.next()){
                         Instant completed=Instant.parse(row.getString(3));
@@ -90,10 +94,14 @@ public final class RegistrationSources {
         String active=System.getProperty("vncode.appdata.dir","")+"/"+shop.getId();
         if(!ACTIVE.add(active))throw new IllegalStateException("SOURCE_SYNC_RUNNING");
         try{var readiness=ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
-            var verified=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(verified);String scope=verified.source();
-            String run=reports.begin(shop,KIND,"READING_MARKETPLACE");
+            var verified=RegisteredGtinProof.current(shop);RegisteredGtinProof.requireProduction(verified);
+            String run=reports.begin(shop,KIND,"AUTHENTICATING");
             try {
-                try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET source_revision=? WHERE id=?")){p.setString(1,scope);p.setString(2,run);p.executeUpdate();}
+                setSource(run,CatalogReadRevision.source(verified.source(),CatalogReadRevision.current(shop.getId())));
+                catalog.prepare(shop);
+                if(!verified.source().equals(RegisteredGtinProof.current(shop).source()))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
+                String revision=CatalogReadRevision.current(shop.getId()),scope=CatalogReadRevision.source(verified.source(),revision);
+                setSource(run,scope);reports.stage(shop,run,"RUNNING","READING_MARKETPLACE","");
                 progress.accept("READING_MARKETPLACE");
                 var seen=new HashSet<String>();
                 market.read(shop,page->{
@@ -113,8 +121,12 @@ public final class RegistrationSources {
                 }
                 // A completed paired receipt no longer needs unfinished read progress.
                 // Clear before committing SUCCEEDED so a crash can only cause a safe re-read.
-                if(shop.getMarketplace()==Marketplace.OZON)OzonCatalogSyncService.completeRegistration(shop,scope);
-                reports.stage(shop,run,"SUCCEEDED","SOURCES_COMPLETE","");
+                CatalogReadRevision.withCurrent(shop.getId(),revision,()->{
+                    assertScope(shop,scope);
+                    if(shop.getMarketplace()==Marketplace.OZON)OzonCatalogSyncService.completeRegistration(shop,verified.source());
+                    reports.stage(shop,run,"SUCCEEDED","SOURCES_COMPLETE","");
+                    CatalogReadRevision.completed(shop.getId(),revision);
+                });
                 progress.accept("SOURCES_COMPLETE");return check(shop);
             }catch(Exception error){
                 try{reports.stage(shop,run,"FAILED",reports.step(run),SyncFailure.of(error,0).code());}catch(RuntimeException changed){error.addSuppressed(changed);}
@@ -122,7 +134,8 @@ public final class RegistrationSources {
             }
         });WbAutomaticGtinUpdate.enableForCurrentSources(shop);return readiness;}finally{ACTIVE.remove(active);}
     }
-    private static void assertScope(Shop shop,String scope){if(Thread.currentThread().isInterrupted())throw new IllegalStateException("SOURCE_SYNC_CANCELLED");if(!scope.equals(RegisteredGtinProof.current(shop).source()))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");}
+    private static void setSource(String run,String scope)throws SQLException{try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET source_revision=? WHERE id=?")){p.setString(1,scope);p.setString(2,run);p.executeUpdate();}}
+    private static void assertScope(Shop shop,String scope){if(Thread.currentThread().isInterrupted())throw new IllegalStateException("SOURCE_SYNC_CANCELLED");String physical=RegisteredGtinProof.current(shop).source();if(!scope.equals(CatalogReadRevision.source(physical,CatalogReadRevision.current(shop.getId()))))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");}
     private static void readMarketplace(Shop shop,Consumer<List<Member>> sink)throws Exception {
         if(shop.getMarketplace()==Marketplace.WILDBERRIES) {
             new WbProductSyncService().syncFromStart(shop,cards->{

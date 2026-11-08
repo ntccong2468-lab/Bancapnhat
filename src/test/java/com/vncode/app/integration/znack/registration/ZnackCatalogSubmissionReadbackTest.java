@@ -96,6 +96,49 @@ class ZnackCatalogSubmissionReadbackTest {
         assertEquals(0, api.cardReads);
     }
 
+    @Test void aResponseForAnotherFeedCannotAdvanceOrRejectThePersistedRequest() {
+        for (String status : new String[] {"Received", "Processing", "Moderated", "Processed", "Signed", "Rejected", "Failed", "Error"}) {
+            for (boolean submissionRead : new boolean[] {true, false}) {
+                var api = new FixtureApi() {
+                    @Override public JsonElement nationalCatalogFeedStatus(String base, String token, String feed) {
+                        assertEquals("persisted-feed", feed);
+                        return json("{\"result\":{\"feed_id\":\"different-feed\",\"status\":\"" + status
+                                + "\",\"item\":[{\"gtin\":\"" + GTIN + "\",\"good_id\":91}]}}");
+                    }
+                };
+                api.visible = true;
+                var catalog = catalog(api);
+                var error = assertThrows(IllegalStateException.class, () -> {
+                    if (submissionRead) catalog.submissionStatus("fixture", "persisted-feed", GTIN);
+                    else catalog.progress("fixture", "persisted-feed", GTIN);
+                }, status + "/" + submissionRead);
+                assertEquals("CATALOG_FEED_IDENTITY_NOT_CONFIRMED", error.getMessage());
+                assertEquals(0, api.cardReads, "A foreign receipt cannot borrow the current card");
+            }
+        }
+    }
+
+    @Test void matchingFeedIdentityAndLegacyResponsesWithoutIdentityRemainReadable() throws Exception {
+        for (boolean includeFeed : new boolean[] {true, false}) {
+            for (boolean submissionRead : new boolean[] {true, false}) {
+                var api = new FixtureApi() {
+                    @Override public JsonElement nationalCatalogFeedStatus(String base, String token, String feed) {
+                        return json("{\"result\":{" + (includeFeed ? "\"feed_id\":\"persisted-feed\"," : "")
+                                + "\"status\":\"Processing\",\"item\":[{\"gtin\":\"" + GTIN + "\",\"good_id\":91}]}}");
+                    }
+                };
+                api.visible = true;
+                var catalog = catalog(api);
+                var progress = submissionRead ? catalog.submissionStatus("fixture", "persisted-feed", GTIN)
+                        : catalog.progress("fixture", "persisted-feed", GTIN);
+                assertEquals("CardModeration", progress.status());
+                assertTrue(progress.cardVerified());
+                assertFalse(progress.failed());
+                assertFalse(progress.signed());
+            }
+        }
+    }
+
     @Test void anOlderPublishedVersionCannotCompleteOrAuthorizeSigningOfAnActiveRevision() throws Exception {
         for(String feedStatus:new String[]{"Received","Processing","Moderated"}){
             for(String revision:new String[]{"draft","moderation","errors"}){

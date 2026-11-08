@@ -23,7 +23,7 @@ final class CatalogScanCheckpoint {
         try{SqliteWriteTransaction.run(work);}catch(java.sql.SQLException error){throw new IllegalStateException("CATALOG_CURSOR_STORAGE",error);}
     }
     private final int shop;private final String source;
-    CatalogScanCheckpoint(int shop,String source){this.shop=shop;this.source=source;}
+    CatalogScanCheckpoint(int shop,String source){this.shop=shop;this.source=com.vncode.app.integration.znack.CatalogReadRevision.source(source,com.vncode.app.integration.znack.CatalogReadRevision.current(shop));}
     private void ensure(){write(c->{try(var p=c.createStatement()){p.execute("CREATE TABLE IF NOT EXISTS znack_catalog_scan_cursor(shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,source TEXT NOT NULL,state_json TEXT NOT NULL,updated_at TEXT NOT NULL,PRIMARY KEY(shop_id,source))");}return null;});}
     State load(){
         ensure();

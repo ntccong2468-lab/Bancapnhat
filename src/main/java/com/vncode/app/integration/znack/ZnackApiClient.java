@@ -29,6 +29,7 @@ public class ZnackApiClient {
     private final Gson gson = new Gson();
     private String catalogKey = "";
     private Runnable catalogReadScopeGuard=()->{};
+    private String catalogReadRevision="";
     private final String catalogReadScopeId=java.util.UUID.randomUUID().toString();
     private record ReadContext(String operation,String environment,String authentication){}
     // /v4/product-list silently returns an empty list without its date interval.
@@ -74,6 +75,14 @@ public class ZnackApiClient {
     public void assertCatalogReadScope(){catalogReadScopeGuard.run();}
     /** Opaque per-client cache scope; contains no credential or reusable authentication material. */
     public String catalogReadScopeId(){return catalogReadScopeId;}
+    /** Read epoch frozen when this client acquired its verified credential. */
+    public String catalogReadRevision(){return catalogReadRevision;}
+    ZnackApiClient bindCatalogReadRevision(String revision){return bindCatalogReadRevision(revision,()->{});}
+    ZnackApiClient bindCatalogReadRevision(String revision,Runnable guard){
+        var previous=catalogReadScopeGuard;var additional=java.util.Objects.requireNonNull(guard);
+        catalogReadScopeGuard=()->{previous.run();additional.run();};
+        catalogReadRevision=java.util.Objects.requireNonNull(revision);return this;
+    }
     private String safeDiagnostic(String text) {
         return ZnackSanitizer.diagnostic(catalogKey.isEmpty() || text == null ? text : text.replace(catalogKey, "[REDACTED]"));
     }

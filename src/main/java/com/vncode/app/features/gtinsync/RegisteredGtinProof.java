@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.integration.znack.ZnackModels;
 import com.vncode.app.integration.znack.ZnackRepository;
+import com.vncode.app.integration.znack.CatalogReadRevision;
 import com.vncode.app.models.Shop;
 import java.time.Duration;
 import java.time.Instant;
@@ -71,21 +72,24 @@ public final class RegisteredGtinProof {
     }
 
     public static void requireCurrent(Shop shop, String gtin) {
+        String revision=CatalogReadRevision.current(shop.getId());CatalogReadRevision.requireComplete(shop.getId());
         var now = Instant.now();
         var scope=current(shop);requireProduction(scope);
         var source = scope.source();
         com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin row;
         try{row=new GtinSyncRepository().catalogItem(shop.getId(),shop.getMarketplace(),gtin);}
         catch(IllegalArgumentException missing){throw new IllegalArgumentException("unverified_catalog_gtin");}
-        boolean found=row.source().equals(source)&&sameCode(gtin,row.gtin())&&currentObservation(row,now);
+        boolean found=row.source().equals(source)&&sameCode(gtin,row.gtin())&&currentObservation(row,now)&&CatalogReadRevision.observedAt(row,revision);
         if (!RegisteredGtinValidator.isValid(gtin) || !found) throw new IllegalArgumentException("unverified_catalog_gtin");
+        CatalogReadRevision.requireUnchanged(shop.getId(),revision);
     }
     public static Map<String,GtinSyncModels.RegisteredGtin> requireCurrent(Shop shop,Collection<String> gtins) {
+        String revision=CatalogReadRevision.current(shop.getId());CatalogReadRevision.requireComplete(shop.getId());
         var now=Instant.now();var scope=current(shop);requireProduction(scope);
         var rows=new GtinSyncRepository().catalogItems(shop.getId(),shop.getMarketplace(),gtins);
         for(var gtin:gtins){var row=rows.get(gtin);
-            if(!RegisteredGtinValidator.isValid(gtin)||row==null||!row.source().equals(scope.source())||!sameCode(gtin,row.gtin())||!currentObservation(row,now))throw new IllegalArgumentException("unverified_catalog_gtin");
-        }return rows;
+            if(!RegisteredGtinValidator.isValid(gtin)||row==null||!row.source().equals(scope.source())||!sameCode(gtin,row.gtin())||!currentObservation(row,now)||!CatalogReadRevision.observedAt(row,revision))throw new IllegalArgumentException("unverified_catalog_gtin");
+        }CatalogReadRevision.requireUnchanged(shop.getId(),revision);return rows;
     }
     /** A historical flag is not remote identity/publication evidence for a seller write. */
     public static boolean currentObservation(GtinSyncModels.RegisteredGtin row,Instant now){

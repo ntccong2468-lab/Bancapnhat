@@ -89,7 +89,10 @@ class KizPendingIdentityTest {
         PendingKizFixture.sql("UPDATE "+(market==Marketplace.WILDBERRIES?"znack_card_registrations":"ozon_card_registrations")+" SET status='PUBLISHED'");
         var parsed=com.vncode.app.integration.znack.registration.CatalogProductDataParser.parse(PendingKizFixture.payload());
         var fields=new HashMap<>(parsed.fields());fields.put("@catalog_id",List.of("91"));fields.put("@catalog_status",List.of("published"));
-        var details=new com.vncode.app.features.catalogsync.CatalogProductData(fields,parsed.attributes(),parsed.documents());
+        var documents=parsed.documents().stream().map(document->new com.vncode.app.features.catalogsync.CatalogProductData.Document(
+                document.type(),document.number(),document.from(),java.time.LocalDate.now().plusYears(1).toString(),false,
+                document.applicant(),Map.of("registryStatus","active"))).toList();
+        var details=new com.vncode.app.features.catalogsync.CatalogProductData(fields,parsed.attributes(),documents);
         var registered=new com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin(PendingKizFixture.GTIN,"Fixture","Black","M",true,true,com.vncode.app.features.gtinsync.RegisteredGtinProof.source(shop),java.time.Instant.now(),details);
         new com.vncode.app.features.gtinsync.GtinSyncRepository().saveCatalog(shop.getId(),market,List.of(registered));
         PendingKizFixture.sql("UPDATE znack_settings SET oms_connection='fixture-connection',auto_introduction=1");

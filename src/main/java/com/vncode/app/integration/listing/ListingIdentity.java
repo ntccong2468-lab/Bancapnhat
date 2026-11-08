@@ -93,7 +93,7 @@ public final class ListingIdentity {
                 var row=ProductJson.GSON.fromJson(data,com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin.class);
                 if(!compatibleVariant(row,article,color,size,russianSize))return Optional.empty();
                 String status=row.details().single("@catalog_status");
-                var content=data.deepCopy();content.remove("syncedAt");
+                var content=data.deepCopy();content.remove("syncedAt");content.remove("readRevision");
                 var verification=com.vncode.app.features.gtinsync.RegisteredGtinProof.currentObservation(row,now)?ProductVariant.Verification.VERIFIED:ProductVariant.Verification.HISTORICAL;
                 var evidence=new ProductVariant.GtinEvidence(verification,source,checked,hash(canonical(content)),row.details().single("@catalog_id"),status);
                 require(shop,key);return Optional.of(new VerifiedGtin(gtin,evidence));

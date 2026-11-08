@@ -25,14 +25,19 @@ public final class CatalogConnectionService {
     CatalogConnectionService(CatalogCredentialRepository store,RemoteCheck remote,KeyDiscovery discovery){this.store=store;this.remote=remote;this.discovery=discovery;}
     public static ZnackApiClient apiForShop(Shop shop, ZnackModels.Settings settings) throws Exception {
         var store = new CatalogCredentialRepository();
-        if (!store.hasSaved(shop.getId())) return new ZnackApiClient();
+        if (!store.hasSaved(shop.getId())) {
+            String revision=CatalogReadRevision.current(shop.getId());
+            return new ZnackApiClient().bindCatalogReadRevision(revision,()->{LicenseRuntime.require(Permission.SELLER_API);ListingIdentity.require(shop);CatalogReadRevision.requireUnchanged(shop.getId(),revision);});
+        }
         var scope = RegisteredGtinProof.scope(shop, settings, Instant.now());
         var key = store.read(shop, scope).orElseThrow();
         var digest = ListingIdentity.hash(key);
+        String revision=CatalogReadRevision.current(shop.getId());
         return ZnackApiClient.forCatalogKey(key, () -> {
             LicenseRuntime.require(Permission.SELLER_API);
+            CatalogReadRevision.requireUnchanged(shop.getId(),revision);
             store.requireUnchanged(shop, scope, digest);
-        });
+        }).bindCatalogReadRevision(revision);
     }
     /** Fresh installations and foreign-Windows backups obtain their own key through configured CryptoPro. */
     public static ZnackApiClient apiForRead(Shop shop,ZnackModels.Settings settings)throws Exception{return new CatalogConnectionService().connectForRead(shop,settings);}
@@ -51,9 +56,13 @@ public final class CatalogConnectionService {
                 if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("ZNACK_SYNC_CANCELLED");
             }
         }
-        if(key==null){key=discovery.discover(shop,settings,scope,guard);guard.run();store.saveVerified(shop,scope,key,guard);}
-        var digest=ListingIdentity.hash(key);guard.run();
-        return ZnackApiClient.forCatalogKey(key,()->{guard.run();store.requireUnchanged(shop,scope,digest);});
+        if(key==null){
+            String revision=CatalogReadRevision.current(shop.getId());
+            Runnable discoveryGuard=()->{guard.run();CatalogReadRevision.requireUnchanged(shop.getId(),revision);};
+            key=discovery.discover(shop,settings,scope,discoveryGuard);discoveryGuard.run();store.saveVerified(shop,scope,key,discoveryGuard);
+        }
+        var digest=ListingIdentity.hash(key);guard.run();String revision=CatalogReadRevision.current(shop.getId());
+        return ZnackApiClient.forCatalogKey(key,()->{guard.run();CatalogReadRevision.requireUnchanged(shop.getId(),revision);store.requireUnchanged(shop,scope,digest);}).bindCatalogReadRevision(revision);
     }
     private static String discover(Shop shop,ZnackModels.Settings settings,RegisteredGtinProof.Scope scope,Runnable guard)throws Exception{
         var registration=ZnackRegistrationScope.fromSettings(settings);

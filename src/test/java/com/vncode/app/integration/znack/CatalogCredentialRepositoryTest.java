@@ -49,9 +49,11 @@ class CatalogCredentialRepositoryTest {
     }
     @Test void failedRemoteCheckKeepsPreviousKeyAndDoesNotSaveTheRejectedKey() throws Exception {
         var scope=RegisteredGtinProof.current(a);store.saveVerified(a,scope,"fixture-original");
+        String revision=CatalogReadRevision.current(a.getId());
         var service=new CatalogConnectionService(store,(shop,settings,owner,key,guard)->{throw new IOException("CATALOG_KEY_OWNER_MISMATCH");});
         assertThrows(IOException.class,()->service.checkAndSave(a,"fixture-foreign",()->true));
         assertEquals("fixture-original",store.read(a,scope).orElseThrow());
+        assertEquals(revision,CatalogReadRevision.current(a.getId()));
     }
     @Test void storeOnlyFollowsSuccessfulCheckAndShopSwitchDropsTheResult() throws Exception {
         var active=new AtomicBoolean(true);
@@ -72,5 +74,28 @@ class CatalogCredentialRepositoryTest {
         });
         assertThrows(IOException.class,()->broken.saveVerified(a,RegisteredGtinProof.current(a),"fixture-key"));
         assertFalse(store.hasSaved(a.getId()));
+    }
+    @Test void firstAutomaticDiscoveryAdvancesTheReadEpochAndReturnsAUsableGuardedClient()throws Exception{
+        assertEquals("",CatalogReadRevision.current(a.getId()));
+        var service=new CatalogConnectionService(store,(shop,settings,scope,key,guard)->guard.run(),(shop,settings,scope,guard)->{guard.run();return "fixture-discovered";});
+        var settings=new ZnackRepository(new ZnackModels.ShopContext(a.getId(),a.getName())).getSettings();
+        assertTrue(service.connectForRead(a,settings).hasCatalogKey());
+        String revision=CatalogReadRevision.current(a.getId());assertFalse(revision.isEmpty());assertFalse(CatalogReadRevision.complete(a.getId()));
+        assertTrue(service.connectForRead(a,settings).hasCatalogKey());assertEquals(revision,CatalogReadRevision.current(a.getId()));
+    }
+    @Test void failureSavingTheReadEpochRollsBackTheCredentialChange()throws Exception{
+        var scope=RegisteredGtinProof.current(a);store.saveVerified(a,scope,"fixture-original");String revision=CatalogReadRevision.current(a.getId());
+        try(var c=Database.getConnection();var sql=c.createStatement()){sql.execute("CREATE TRIGGER reject_read_epoch BEFORE UPDATE ON app_config WHEN OLD.key LIKE 'catalog.read.revision.%' BEGIN SELECT RAISE(ABORT,'synthetic epoch failure'); END");}
+        assertThrows(IOException.class,()->store.saveVerified(a,scope,"fixture-next"));assertEquals("fixture-original",store.read(a,scope).orElseThrow());assertEquals(revision,CatalogReadRevision.current(a.getId()));
+    }
+    @Test void abaRotationCannotReviveAnOldClientAndRepeatedRemovalKeepsTheEpochStable()throws Exception{
+        var scope=RegisteredGtinProof.current(a);store.saveVerified(a,scope,"fixture-A");
+        var service=new CatalogConnectionService(store,(shop,settings,owner,key,guard)->guard.run());
+        var settings=new ZnackRepository(new ZnackModels.ShopContext(a.getId(),a.getName())).getSettings();
+        var old=service.connectForRead(a,settings);old.assertCatalogReadScope();String original=old.catalogReadRevision();
+        store.saveVerified(a,scope,"fixture-B");store.saveVerified(a,scope,"fixture-A");
+        assertNotEquals(original,CatalogReadRevision.current(a.getId()));assertThrows(IllegalStateException.class,old::assertCatalogReadScope);
+        assertDoesNotThrow(()->service.connectForRead(a,settings).assertCatalogReadScope());
+        store.remove(a);String removed=CatalogReadRevision.current(a.getId());store.remove(a);assertEquals(removed,CatalogReadRevision.current(a.getId()));
     }
 }

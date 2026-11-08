@@ -33,6 +33,7 @@ public final class GtinSyncRepository {
     public void saveCatalog(int shopId, Marketplace marketplace, List<RegisteredGtin> rows) {
         write(c -> {
             requireShop(c,shopId,marketplace);
+            com.vncode.app.integration.znack.CatalogReadRevision.requireObservation(c,shopId,rows);
             try(var d=c.prepareStatement("DELETE FROM gtin_sync_catalog WHERE shop_id=? AND marketplace=?")) {
                 d.setInt(1,shopId);d.setString(2,marketplace.name());d.executeUpdate();
             }
@@ -62,7 +63,7 @@ public final class GtinSyncRepository {
     }
     /** Merge a fully completed selected-card observation; untouched GTINs retain their cache. */
     public void mergeCatalog(int shopId,Marketplace marketplace,List<RegisteredGtin> rows){
-        write(c->{requireShop(c,shopId,marketplace);String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,marketplace);
+        write(c->{requireShop(c,shopId,marketplace);if(rows.isEmpty())return null;com.vncode.app.integration.znack.CatalogReadRevision.requireObservation(c,shopId,rows);String owner=com.vncode.app.integration.listing.ListingIdentity.fingerprint(c,shopId,marketplace);
             try(var p=c.prepareStatement("INSERT INTO gtin_sync_catalog VALUES(?,?,?,?) ON CONFLICT(shop_id,marketplace,gtin) DO UPDATE SET data_json=excluded.data_json")){
                 var seen=new HashSet<String>();for(var row:rows){if(!RegisteredGtinValidator.isValid(row.gtin())||!seen.add(row.gtin()))throw new IllegalArgumentException("invalid_gtin");var data=GtinJson.GSON.toJsonTree(row).getAsJsonObject();data.addProperty("owner",owner);p.setInt(1,shopId);p.setString(2,marketplace.name());p.setString(3,row.gtin());p.setString(4,GtinJson.GSON.toJson(data));p.addBatch();}p.executeBatch();
             }return null;

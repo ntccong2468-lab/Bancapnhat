@@ -1,6 +1,7 @@
 package com.vncode.app.integration.znack;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.config.SqliteWriteTransaction;
 import com.vncode.app.features.gtinsync.RegisteredGtinProof;
 import com.vncode.app.integration.listing.ListingIdentity;
 import com.vncode.app.models.Shop;
@@ -52,9 +53,17 @@ public final class CatalogCredentialRepository {
         String normalized = normalize(key), encrypted = protection.protect(normalized);
         activeGuard.run();
         requireScope(shop, scope);
-        try (var c = open(); var q = c.prepareStatement("INSERT INTO znack_catalog_credentials VALUES(?,?,?,?,?) ON CONFLICT(shop_id) DO UPDATE SET source=excluded.source,protected_key=excluded.protected_key,key_digest=excluded.key_digest,checked_at=excluded.checked_at")) {
-            q.setInt(1, shop.getId()); q.setString(2, scope.source()); q.setString(3, encrypted);
-            q.setString(4, ListingIdentity.hash(normalized)); q.setString(5, Instant.now().toString()); activeGuard.run(); q.executeUpdate();
+        try (var ignored = open()) { synchronized(CatalogReadRevision.writeLock(shop.getId())) { SqliteWriteTransaction.run(c->{
+            String digest=ListingIdentity.hash(normalized);boolean changed=true;
+            try(var previous=c.prepareStatement("SELECT source,key_digest FROM znack_catalog_credentials WHERE shop_id=?")){
+                previous.setInt(1,shop.getId());try(var row=previous.executeQuery()){if(row.next())changed=!scope.source().equals(row.getString(1))||!digest.equals(row.getString(2));}
+            }
+            requireScope(shop,scope);activeGuard.run();
+            try(var q=c.prepareStatement("INSERT INTO znack_catalog_credentials VALUES(?,?,?,?,?) ON CONFLICT(shop_id) DO UPDATE SET source=excluded.source,protected_key=excluded.protected_key,key_digest=excluded.key_digest,checked_at=excluded.checked_at")){
+                q.setInt(1,shop.getId());q.setString(2,scope.source());q.setString(3,encrypted);q.setString(4,digest);q.setString(5,Instant.now().toString());q.executeUpdate();
+            }
+            if(changed)CatalogReadRevision.advance(c,shop.getId());return null;
+        }); }
         } catch (SQLException failure) { throw new IOException("CATALOG_KEY_STORAGE_FAILED"); }
     }
     public Optional<String> read(Shop shop, RegisteredGtinProof.Scope scope) throws IOException {
@@ -83,8 +92,12 @@ public final class CatalogCredentialRepository {
     }
     public void remove(Shop shop) {
         ListingIdentity.require(shop);
-        try (var c = open(); var q = c.prepareStatement("DELETE FROM znack_catalog_credentials WHERE shop_id=?")) {
-            q.setInt(1, shop.getId()); q.executeUpdate();
+        try (var ignored = open()) { synchronized(CatalogReadRevision.writeLock(shop.getId())) { SqliteWriteTransaction.run(c->{
+            ListingIdentity.require(shop);
+            try(var q=c.prepareStatement("DELETE FROM znack_catalog_credentials WHERE shop_id=?")){
+                q.setInt(1,shop.getId());if(q.executeUpdate()!=0)CatalogReadRevision.advance(c,shop.getId());
+            }return null;
+        }); }
         } catch (SQLException failure) { throw new IllegalStateException("CATALOG_KEY_STORAGE_FAILED"); }
     }
 }
