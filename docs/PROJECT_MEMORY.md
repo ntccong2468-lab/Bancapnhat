@@ -1,5 +1,10 @@
 # Bộ nhớ dự án VNCode
 
+## 09.11.2026 MSK — 1.6.7 chốt c9c7b36, Windows chạy lại đầy đủ
+
+Nguồn app c9c7b36, run42525209391 thay968/run42523983786 đã lỗi164ca. Đã chứng minh driver chọn nhầm OK thông báo cũ; chỉ sửa fixture nhận đúng cửa sổ mới/header/body và giữ toàn bộ consent/REPLACE/assertions. Nhóm184/184 đạt, production/POM giống026, không hạ gate hoặc reuse. Draft438471378 targetc9/tagv167/assets0 đã xác nhận; module/helper/inclusion repin, Node165/actionlint đạt. Chưa công bố, tiếp tục fresh full Windows và toàn bộ kiểm bộ cài. CURRENT có pin và trạng thái đầy đủ.
+
+
 ## 08–09.11.2026 — 1.6.7 chạy lại Windows sau hai fixture UI
 
 App968d639, Windows42523983786 thay026/run42515409829 đãFAIL4122ca (4118pass/2bad/2OSskip,3stress10kpass). Chỉ sửa readiness một Robotclick vàassert bản dịchlýdolô; bổ sung43ca preflight, không thayproduction/POM/buildcode hoặc hạgates/reusefailedsuite. Local60/60pass; nhóm121 có1source-review timeout khi ghépChrome, không che. Draft438471378 repin968/tagv167/assets0, modulepublisher/sourceinclusion/helperđãrepin. [Lỗi cũ](validation/2026-11-08-vncode-167-first-windows-failure.json), [nguồn](validation/2026-11-08-vncode-167-source-inclusion.json), [securitycùngruntime](validation/2026-11-08-vncode-167-security-provenance.json). Chưapháthành, chờfreshfullWindows.

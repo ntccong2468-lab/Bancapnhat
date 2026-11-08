@@ -1,6 +1,15 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **09.11.2026, 00:17 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **09.11.2026, 00:30 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## VN Code 1.6.7 — nguồn chốt c9c7b36, chờ Windows 42525209391
+
+- Nguồn app hiện tại **`c9c7b36cd9e68cd3cec159e7be904c4ffe04913f`**, nhánh `release/vn-code-1.6.7`; Windows **42525209391**, job **128867209603**. Publisher ở nhánh `release/vn-code-1.6.7-publication` pin đúng nguồn/run này, draft **438471378**, baseline 1.6.6. Không dùng các run đã lỗi để công bố.
+- Lượt đầu 42515409829: 4.122 ca, 4.118 đạt/2 lỗi/2 OS skip, cả ba stress 10.000 đạt. Lượt hai 42523983786: 164 ca preflight, 163 đạt/1 lỗi, chưa chạy full. Cả hai báo cáo được giữ. Hai ca ban đầu đã đạt Windows ở lượt hai; lỗi còn lại là test driver chọn nhầm thông báo OK cũ.
+- Đã tái hiện xác định lỗi chọn nhầm dialog hai lần: notification bị nhận OK, confirmation đăng ký thật vẫn mở, sau đó timeout. Sửa duy nhất fixture để chọn cửa sổ mới có đúng header/nội dung batch/OK, giữ source review và approval REPLACE; thêm assertion thông báo khác không bị chạm. Nhóm kết hợp **184/184 đạt**, gồm toàn bộ 164 preflight và các lớp từng làm lỗi xuất hiện lại. Không sửa production hoặc hạ gate/timeout, không recovery/reuse.
+- Production/POM/build scripts giữ nguyên byte từ026f1a86; hai test UI và selector preflight là thay đổi duy nhất về sau. [Manifest](../validation/2026-11-08-vncode-167-source-inclusion.json) vẫn đủ 109 runtime + POM/2.984 source files. [Lỗi lần đầu](../validation/2026-11-08-vncode-167-first-windows-failure.json), [lần hai](../validation/2026-11-08-vncode-167-second-windows-failure.json), [security provenance](../validation/2026-11-08-vncode-167-security-provenance.json).
+- Node publication 165/165 và actionlint đạt. Security thực chạy026: cùng8 finding cũ, Java gate vẫn FAIL; production/security inputs giống c9 nên chỉ ghi quan hệ nguồn, không giả scan mới. Không seller write/mua/ký/license activation trong lượt phát hành.
+- Chưa Publish. Đợi **fresh full Windows + native/migration/DPAPI/install/upgrade + 16 asset** đạt; kiểm helper/package rồi dispatch stable workflow `owner-requested-167`. Sau Publish tải/kiểm đủ16 tệp, đối chiếu old16 release/258 asset (bỏ qua download counters), chạy updater binary166 nhận167/MSI/hash, cập nhật bàn giao và push. Helper/state ở `/workspace/vncode-167-release`; monitor session44078. Các mục bên dưới giữ lịch sử các pin cũ, không còn là pin hiện hành.
 
 ## VN Code 1.6.7 — Windows chạy lại sau sửa hai fixture UI
 

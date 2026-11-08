@@ -1,0 +1,19 @@
+{
+  "run": 42523983786,
+  "source": "968d639f6e8233d572b4992f1ac3a4bd09a91903",
+  "phase": "earlyWindowsPreflight",
+  "conclusion": "failure",
+  "tests": 164,
+  "failures": 1,
+  "errors": 0,
+  "skipped": 0,
+  "failedCases": [
+    {
+      "class": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "name": "selectedReplacementUsesReviewedDurableBatch"
+    }
+  ],
+  "nativeCopyAndTranslatedReasonPassed": true,
+  "fullSuiteDidNotRun": true,
+  "nextAction": "Fix unrelated-dialog fixture matching, retain allgates, then newfullWindowsrun"
+}

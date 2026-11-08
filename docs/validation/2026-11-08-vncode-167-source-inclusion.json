@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "kind": "RELEASE_SOURCE_INCLUSION",
   "version": "1.6.7",
-  "recordedAtUtc": "2026-11-08T21:15:04.438714+00:00",
-  "sourceCommit": "968d639f6e8233d572b4992f1ac3a4bd09a91903",
-  "sourceTree": "3a9f73658546784647cd7540d9d431aa15d9085d",
+  "recordedAtUtc": "2026-11-08T21:29:14.346973+00:00",
+  "sourceCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
+  "sourceTree": "95e87c03659b0dba9be807a710f409d73bd8e2c7",
   "releaseBranch": "release/vn-code-1.6.7",
-  "observedHead": "2fb9a94fd84f6bb173aede0c1980473cddb27cc1",
+  "observedHead": "7ae2abab81a6be90040cc0f3b73f40b89800fdbc",
   "observedBranch": "release/vn-code-1.6.7-publication",
   "observedHeadMatchesPinnedSource": false,
-  "fullWindowsBuildRunId": "42523983786",
+  "fullWindowsBuildRunId": "42525209391",
   "buildStatusNotAssessedByThisReceipt": true,
   "previousRelease": {
     "version": "1.6.6",
@@ -139,7 +139,7 @@
   ],
   "runtimeDiff": {
     "baseline": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
-    "head": "968d639f6e8233d572b4992f1ac3a4bd09a91903",
+    "head": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
     "uniqueChangedFiles": 109,
     "javaFiles": 84,
     "resourceFiles": 25,
@@ -1151,7 +1151,10 @@
       "Compare every schema/migration-named runtime input and Database.java to previous release",
       "Compare all runtime/dependency/packaging input Git objects to the failed first attempt",
       "Recheck exact three-path fixture/preflight-only correction delta",
-      "Preserve first-attempt XML failure provenance; require a fresh full Windows run"
+      "Preserve first-attempt XML failure provenance; require a fresh full Windows run",
+      "Preserve the second Windows preflight failure and deterministic wrong-dialog red/green evidence",
+      "Bind the final grouped 184-case regression to the unchanged production and frozen final fixture",
+      "Keep the fresh final Windows build requirement; no recovered or merged test results"
     ],
     "writes": "This outside-repository evidence file only",
     "mavenOrTestsRun": false,
@@ -1275,6 +1278,215 @@
     "freshFullWindowsBuildRunId": 42523983786,
     "earlierTestResultsReused": false,
     "originalFailuresPreserved": true,
+    "recoveryOrSkipGateAdded": false,
+    "freshFullWindowsBuildOutcome": "failed-during-early-preflight; retained in secondAttemptProvenance"
+  },
+  "secondAttemptProvenance": {
+    "sourceCommit": "968d639f6e8233d572b4992f1ac3a4bd09a91903",
+    "fullWindowsBuildRunId": 42523983786,
+    "result": "early-preflight-failed; full suite not started",
+    "originalJava": {
+      "tests": 164,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "originalSuites": 6,
+    "originalPassedCases": 163,
+    "failureCases": [
+      {
+        "suite": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+        "case": "selectedReplacementUsesReviewedDurableBatch",
+        "kind": "failure",
+        "xmlSha256": "0344aac0854177a772d438aab747417847e7fd84dffd21e1b144ebf28170d474"
+      }
+    ],
+    "failedXmlDirectory": "failed-preflight-revised/target/surefire-reports",
+    "failedXmlInventorySha256": "fab774683d0f9f06858b352c01edfcb9024406b1af1a1929e96305bc14cefb82",
+    "failedXmlFiles": 6,
+    "originalSourceInclusionReceipt": {
+      "path": "source-inclusion-second-attempt.json",
+      "sha256": "31fe4addc82645c0918e514fac6bf00e721cd0fc97cfa9f807c07240d56780ed"
+    },
+    "originalPackageVerifier": {
+      "path": "verify_package-second-attempt.py",
+      "sha256": "99daa7937121374c39b1b360df1335d9285bf2f70a0a7bb89c847fceaaaf7843"
+    },
+    "testOnlyCorrectionCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
+    "changedPaths": [
+      {
+        "path": "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+        "previousSha256": "9c0fafcdc035b96f76caf7b2646661ad91f197b8117dddac43a44196562ead52",
+        "sha256": "769c3170d60891c5944242d78707dcd8fa447a98b232c889417580852f5c5f49"
+      }
+    ],
+    "cause": "The broad test dialog predicate accepted an unrelated existing OK alert while the actual asynchronous registration confirmation remained pending.",
+    "correction": "Accept only a newly created window with the exact translated registration header, exact 1/1 batch content and OK; assert unrelated nonmodal notification remains open/unaccepted; retain real source-review and REPLACE dispatch assertions.",
+    "productionAndPackagingInputsUnchanged": [
+      {
+        "path": "src/main",
+        "firstAttemptGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "previousGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "gitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "unchanged": true
+      },
+      {
+        "path": "pom.xml",
+        "firstAttemptGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "previousGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "gitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "unchanged": true
+      },
+      {
+        "path": "build.bat",
+        "firstAttemptGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "previousGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "gitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "unchanged": true
+      },
+      {
+        "path": "build.sh",
+        "firstAttemptGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "previousGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "gitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "unchanged": true
+      },
+      {
+        "path": ".mvn",
+        "firstAttemptGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "previousGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "gitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw",
+        "firstAttemptGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "previousGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "gitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw.cmd",
+        "firstAttemptGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "previousGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "gitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "unchanged": true
+      }
+    ],
+    "deterministicStandaloneReproductions": [
+      {
+        "path": "dialog-provenance/wrong-dialog-red-first.log",
+        "sha256": "d147f13b5b63c70dbd7d3156cbb9ba3407ef975a45a5ba27a77c33e7b2728911",
+        "result": "failed-as-expected",
+        "observedMarker": "UNRELATED_ACCEPTS=1, SHOWING=false",
+        "fixtureOnly": true,
+        "sellerApiCalls": false
+      },
+      {
+        "path": "dialog-provenance/wrong-dialog-red-nonmodal.log",
+        "sha256": "110927783a2a6486d46fefccfd0c126b8ddaee0f7d4185784aae137e9a21ea93",
+        "result": "failed-as-expected",
+        "observedMarker": "UNRELATED_ACCEPTS=1, SHOWING=false",
+        "fixtureOnly": true,
+        "sellerApiCalls": false
+      },
+      {
+        "path": "dialog-provenance/wrong-dialog-fixed-nonmodal.log",
+        "sha256": "f24655742680cdbc4d9450e1d35db013f9ea2788879d2c2edb44925a53fa4f8b",
+        "result": "passed",
+        "observedMarker": "EXTERNAL_UNRELATED_ACCEPTS=0, SHOWING=true",
+        "fixtureOnly": true,
+        "sellerApiCalls": false
+      }
+    ],
+    "groupedRegression": {
+      "platform": "Linux/Xvfb",
+      "log": "ui-grouped-regression.log",
+      "logSha256": "56a5ee1c354278de8b04600502b5c129cbca4df2117308d4c84f2ab3a1c39eca",
+      "classes": {
+        "com.vncode.app.integration.ozon.OzonLabelServiceTest": {
+          "tests": 52,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest": {
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.shared.MavenWrapperIntegrityTest": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.FxmlSmokeTest": {
+          "tests": 58,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.tnved.FashionTnvedBrowserTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.workspace.WorkspaceChromeUiTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.znackregistration.FlowAuditDiagnosticsTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest": {
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest": {
+          "tests": 40,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "totals": {
+        "tests": 184,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "exactWindows164ClassGroupIncluded": true,
+      "extraClasses": [
+        "WorkspaceChromeUiTest",
+        "FlowAuditDiagnosticsTest",
+        "RegistrationDiagnosticsTest"
+      ],
+      "finalControllerFixtureSha256": "769c3170d60891c5944242d78707dcd8fa447a98b232c889417580852f5c5f49",
+      "windowsVerificationClaimed": false,
+      "doNotSumWithOtherTestRuns": true
+    },
+    "freshFullWindowsSuiteRerunRequired": true,
+    "freshFullWindowsBuildRunId": 42525209391,
+    "earlierTestResultsReused": false,
+    "originalFailuresPreserved": true,
     "recoveryOrSkipGateAdded": false
+  },
+  "finalFreshWindowsBuild": {
+    "sourceCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
+    "runId": 42525209391,
+    "startedAtUtc": "2026-11-08T21:26:26Z",
+    "required": "Fresh clean verify, native, install/uninstall and baseline upgrade; successful complete artifact required before publication.",
+    "status": "not-assessed-by-this-source-receipt",
+    "reusedOrReconciledTestResults": false
   }
 }
