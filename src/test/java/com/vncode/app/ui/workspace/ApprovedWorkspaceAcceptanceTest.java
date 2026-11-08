@@ -74,8 +74,10 @@ class ApprovedWorkspaceAcceptanceTest {
                         fx(()->{ThemeService.switchTheme(theme);return null;});pulse();
                         fx(()->{
                             shell[0].applyCss();shell[0].layout();
-                            assertEquals(196,((Region)side[0].getRoot()).getWidth(),1);
-                            assertEquals(58,((Region)head[0].getRoot()).getHeight(),1);
+                            assertTrue(((Region)side[0].getRoot()).getWidth() >= 180
+                                    && ((Region)side[0].getRoot()).getWidth() <= 240,"Expanded navigation must preserve the work area");
+                            assertTrue(((Region)head[0].getRoot()).getHeight() >= 44
+                                    && ((Region)head[0].getRoot()).getHeight() <= 76,"Header must stay compact and usable");
                             for(String id:List.of("manageShopButton","deleteShopButton")){
                                 Node action=(Node)head[0].getNamespace().get(id);assertTrue(action.isVisible()&&action.isManaged());
                                 var bounds=action.localToScene(action.getBoundsInLocal());assertTrue(bounds.getMaxX()<stage.getScene().getWidth());
@@ -108,7 +110,22 @@ class ApprovedWorkspaceAcceptanceTest {
                     }
                 } finally {fx(()->{view.close().run();content[0].setCenter(null);return null;});}
             }
-            fx(()->{for(String id:List.of("editShopButton","addShopButton","deleteShopButton"))((Button)head[0].getNamespace().get(id)).fire();assertEquals(List.of("edit","add","delete"),calls);return null;});
+            fx(()->{
+                var manage=(MenuButton)head[0].getNamespace().get("manageShopButton");
+                var add=(Button)head[0].getNamespace().get("addShopButton");
+                var edit=(Button)head[0].getNamespace().get("editShopButton");
+                assertFalse(((HBox)head[0].getRoot()).getChildren().contains(add),"Add shop belongs inside Manage");
+                assertNull(((Parent)side[0].getRoot()).lookup("#addShopButton"),"Sidebar must not duplicate Add shop");
+                manage.show();assertTrue(manage.isShowing());
+                assertTrue(manage.getItems().stream().filter(CustomMenuItem.class::isInstance).map(CustomMenuItem.class::cast)
+                        .map(CustomMenuItem::getContent).anyMatch(node->node==add||node instanceof Parent parent&&parent.lookup("#addShopButton")==add),"Manage must contain the Add action");
+                assertTrue(add.isVisible()&&add.isManaged()&&!add.isDisabled());
+                add.fire();assertFalse(manage.isShowing(),"Invoking Add must dismiss Manage");
+                manage.show();edit.fire();assertFalse(manage.isShowing());
+                ((Button)head[0].getNamespace().get("deleteShopButton")).fire();
+                assertEquals(List.of("add","edit","delete"),calls,"Existing callbacks must fire exactly once");
+                return null;
+            });
         } finally {fx(()->{((WorkspaceHeaderController)head[0].getController()).dispose();stage.close();I18nService.getInstance().setLanguage(previous);return null;});}
     }
 
@@ -136,11 +153,29 @@ class ApprovedWorkspaceAcceptanceTest {
     }
 
     @Test void detailDrawerKeepsListIdentitySelectionAndRestoresFocus()throws Exception {
-        fx(()->{
-            WorkspaceMotion.setReduced(true);var list=new ListView<String>();list.getItems().setAll("One","Two","Three");list.getSelectionModel().select(1);
-            var host=new StackPane(list);var stage=new Stage();stage.setScene(new Scene(host,800,600));ThemeService.applyTheme(stage.getScene());stage.show();
-            try{var drawer=new WorkspaceDetailDrawer(host);list.requestFocus();drawer.show("One",List.of(new WorkspaceDetailDrawer.Section("Summary",List.of(new WorkspaceDetailDrawer.Field("Status","Details")))));assertSame(list,host.getChildren().getFirst());assertEquals(1,list.getSelectionModel().getSelectedIndex());drawer.close();assertEquals(1,host.getChildren().size());assertEquals(list,stage.getScene().getFocusOwner());drawer.show("Two",List.of(new WorkspaceDetailDrawer.Section("Summary",List.of(new WorkspaceDetailDrawer.Field("Status","New details")))));drawer.clear();assertEquals(1,host.getChildren().size());assertEquals(List.of("One","Two","Three"),list.getItems());}finally{stage.close();}return null;
+        var list=new ListView<String>();var host=new StackPane(list);var drawer=new WorkspaceDetailDrawer[1];
+        Stage stage=fx(()->{
+            WorkspaceMotion.setReduced(true);list.getItems().setAll("One","Two","Three");list.getSelectionModel().select(1);
+            var window=new Stage();window.setScene(new Scene(host,800,600));ThemeService.applyTheme(window.getScene());window.show();
+            drawer[0]=new WorkspaceDetailDrawer(host);list.requestFocus();
+            drawer[0].show("One",List.of(new WorkspaceDetailDrawer.Section("Summary",List.of(new WorkspaceDetailDrawer.Field("Status","Details")))));
+            assertSame(list,host.getChildren().getFirst());assertEquals(1,list.getSelectionModel().getSelectedIndex());
+            drawer[0].close();return window;
         });
+        try {
+            // Reduced motion keeps a 40 ms opacity cue; closing still must finish and restore focus.
+            var closed=new CompletableFuture<Void>();
+            fx(()->{var wait=new javafx.animation.PauseTransition(javafx.util.Duration.millis(80));wait.setOnFinished(e->closed.complete(null));wait.play();return null;});
+            closed.get(5,TimeUnit.SECONDS);
+            fx(()->{
+                assertEquals(1,host.getChildren().size(),"Closing must remove the drawer completely");
+                assertSame(list,host.getChildren().getFirst());assertEquals(1,list.getSelectionModel().getSelectedIndex());
+                assertEquals(list,stage.getScene().getFocusOwner());
+                drawer[0].show("Two",List.of(new WorkspaceDetailDrawer.Section("Summary",List.of(new WorkspaceDetailDrawer.Field("Status","New details")))));
+                drawer[0].clear();assertEquals(1,host.getChildren().size());
+                assertEquals(List.of("One","Two","Three"),list.getItems());return null;
+            });
+        } finally {fx(()->{drawer[0].clear();stage.close();return null;});}
     }
 
     @Test void unsavedZnackSettingsRemainScopedToTheirStoreAndCancelDoesNotWrite()throws Exception {

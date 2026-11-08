@@ -15,8 +15,17 @@ public final class UiEvidence {
     public static void capture(Scene scene, String name) throws Exception {
         String directory = System.getProperty("vncode.workbench.capture.dir");
         if (directory == null) return;
+        write(scene.snapshot(null),directory,name);
+    }
+    /** A real desktop capture includes the popup beside its owning native shop controls. */
+    public static void captureWindow(javafx.stage.Window window,String name) throws Exception {
+        String directory=System.getProperty("vncode.workbench.capture.dir");
+        if(directory==null)return;
+        var snapshot=new javafx.scene.robot.Robot().getScreenCapture(null,window.getX(),window.getY(),window.getWidth(),window.getHeight());
+        write(snapshot,directory,name);
+    }
+    private static void write(javafx.scene.image.Image snapshot,String directory,String name)throws Exception {
         var root = Path.of(directory); Files.createDirectories(root);
-        var snapshot = scene.snapshot(null);
         int w = (int) snapshot.getWidth(), h = (int) snapshot.getHeight();
         var png = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         snapshot.getPixelReader().getPixels(0, 0, w, h, PixelFormat.getIntArgbInstance(),

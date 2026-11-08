@@ -53,8 +53,8 @@ public final class ListingCopyPane extends BorderPane {
 
     public ListingCopyPane(){this(new ListingCopyService(),ShopReadCoordinator.shared());}
     public ListingCopyPane(ListingCopyService service,ShopReadCoordinator reads){
-        this.service=service;this.reads=reads;setId("listingCopyPane");getStyleClass().addAll("products-workspace","listing-copy-workspace");setPadding(new Insets(18));
-        var heading=label("title");heading.setId("copyTitle");heading.getStyleClass().add("h2");var steps=label("steps");steps.setWrapText(true);setTop(new VBox(8,heading,steps,status));
+        this.service=service;this.reads=reads;setId("listingCopyPane");getStyleClass().addAll("products-workspace","listing-copy-workspace","workspace-page","workspace-sheet");setPadding(new Insets(16));
+        var heading=label("title");heading.setId("copyTitle");heading.getStyleClass().add("page-title");var steps=label("steps");steps.setWrapText(true);var header=new VBox(6,heading,steps,status);header.getStyleClass().add("workspace-toolbar");setTop(header);
         sourceCard.setId("copySource");sourceCard.setMaxWidth(Double.MAX_VALUE);sourceCard.setConverter(new StringConverter<>(){public String toString(ProductKey k){return k==null?"":k.cardId();}public ProductKey fromString(String s){return null;}});
         editorShop.setId("copyDestinationEditor");editorShop.setConverter(shopConverter());editorShop.setMaxWidth(Double.MAX_VALUE);
         description.setPrefRowCount(3);description.setWrapText(true);category.setId("copyCategory");category.setMaxWidth(Double.MAX_VALUE);currency.getItems().addAll("RUB","BYN","KZT","EUR","USD","CNY");currency.setValue("RUB");
@@ -70,9 +70,9 @@ public final class ListingCopyPane extends BorderPane {
         inheritedSummary.setId("copyInheritedSummary");inheritedSummary.setWrapText(true);batchErrors.setId("copyBatchErrors");
         sourceCard.setPrefWidth(240);editorShop.setPrefWidth(280);
         var body=new VBox(10,new FlowPane(10,8,label("source"),sourceCard,choose),inheritedSummary,new VBox(6,label("destinations"),destinationBox),new FlowPane(10,8,label("destination_config"),editorShop),details,batchErrors,previewBox,label("jobs"),jobs);
-        jobs.setId("copyJobs");jobs.setPrefHeight(180);jobs.setFixedCellSize(54);jobs.setCellFactory(v->new ListCell<>(){protected void updateItem(CopyJob j,boolean empty){super.updateItem(j,empty);setText(empty||j==null?null:shopName(j.destinationShopId())+" · "+j.source().title()+"\n"+tr("state."+j.state()));}});
+        jobs.setId("copyJobs");jobs.getStyleClass().add("dense-data-list");jobs.setPrefHeight(210);jobs.setFixedCellSize(70);jobs.setCellFactory(v->new ListCell<>(){protected void updateItem(CopyJob j,boolean empty){super.updateItem(j,empty);setText(empty||j==null?null:shopName(j.destinationShopId())+" · "+j.source().title()+"\n"+tr("state."+j.state()));}});
         var scroll=new ScrollPane(body);scroll.setFitToWidth(true);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);body.setPadding(new Insets(12,0,12,0));setCenter(scroll);
-        confirm.setId("copyConfirm");confirm.setWrapText(true);publish.setId("copyPublish");publish.getStyleClass().add("btn-primary");var actions=new FlowPane(10,8,editJob,reconcile,publish);postingProgress.setId("copyPostingProgress");postingProgress.setMaxWidth(Double.MAX_VALUE);setBottom(new VBox(8,postingProgress,actions));
+        confirm.setId("copyConfirm");confirm.setWrapText(true);publish.setId("copyPublish");publish.getStyleClass().add("btn-primary");var actions=new FlowPane(10,8,editJob,reconcile,publish);postingProgress.setId("copyPostingProgress");postingProgress.setMaxWidth(Double.MAX_VALUE);var footer=new VBox(8,postingProgress,actions);footer.getStyleClass().add("workspace-batch-footer");setBottom(footer);
         prepare.setId("copyPrepare");
         sourceCard.valueProperty().addListener((o,a,b)->{if(!loading&&b!=null)loadSource(b);});editorShop.valueProperty().addListener((o,a,b)->{if(!loading&&b!=null){saveEditor();loadEditor(b);}});
         category.valueProperty().addListener((o,a,b)->{if(!loading&&b!=null){invalidatePreview();loadAttributes(b.id());}});

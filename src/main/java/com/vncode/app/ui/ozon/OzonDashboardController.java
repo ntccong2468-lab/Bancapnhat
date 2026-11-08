@@ -279,7 +279,7 @@ public final class OzonDashboardController {
             @Override protected void updateItem(ZnackGtinInventorySummary row,boolean empty){super.updateItem(row,empty);setText(null);setGraphic(empty||row==null?null:createGtinCard(row));}
         });
         orderStatusTabs.getSelectionModel().select(newOrdersTab);
-        orderStatusTabs.getSelectionModel().selectedItemProperty().addListener((ignored, oldTab, selectedTab) -> {updatePaging();loadLocal();});
+        orderStatusTabs.getSelectionModel().selectedItemProperty().addListener((ignored, oldTab, selectedTab) -> {updatePaging();updateSelectionState();loadLocal();});
         postingDebounce.setOnFinished(e->{offsets.clear();loadLocal();});
         postingSearch.textProperty().addListener((o,a,b)->{postingDebounce.playFromStart();});
         gtinInventoryPanel.expandedProperty().addListener((o,a,b)->{if(b)refreshGtinInventory();});
@@ -1242,8 +1242,9 @@ public final class OzonDashboardController {
         selectedCountLabel.setText(MessageFormat.format(
                 I18nService.getInstance().tr("ozon.dashboard.selected_count"), selectedPostingNumbers.size()));
         boolean hasSelection = !selectedPostingNumbers.isEmpty();
-        selectionActionBar.setVisible(hasSelection);
-        selectionActionBar.setManaged(hasSelection);
+        boolean showSelection=hasSelection&&orderStatusTabs.getSelectionModel().getSelectedItem()==newOrdersTab;
+        selectionActionBar.setVisible(showSelection);
+        selectionActionBar.setManaged(showSelection);
         moveToPackingButton.setDisable(busy || shop == null || !hasSelection);
         selectFilteredButton.setDisable(busy||shop==null);clearBatchSelectionButton.setDisable(busy||shop==null||!hasSelection);
     }

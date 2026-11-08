@@ -16,14 +16,14 @@
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox spacing="12.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.packing.PackingController" styleClass="app-page">
+<VBox spacing="12.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.packing.PackingController" styleClass="app-page,workspace-page,workspace-sheet">
     <padding>
         <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
     </padding>
     <children>
-        <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="workspace-toolbar">
             <children>
-                <Label fx:id="titleLabel" styleClass="h2" text="Упаковка WB" />
+                <Label fx:id="titleLabel" styleClass="h2,page-title" text="Упаковка WB" />
                 <ProgressIndicator fx:id="refreshLoading" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
                 <Button fx:id="refreshButton" mnemonicParsing="false" onAction="#onRefresh" prefHeight="28.0" text="Обновить заказы">
                     <graphic>
@@ -32,13 +32,13 @@
                 </Button>
             </children>
         </HBox>
-        <TabPane fx:id="packingTabPane" styleClass="packing-tabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+        <TabPane fx:id="packingTabPane" styleClass="packing-tabs,workspace-tab-strip" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
             <tabs>
                 <Tab fx:id="newOrdersTab" text="Новые">
                     <content>
                         <VBox spacing="8.0">
                             <children>
-                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="surface filter-bar">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="filter-bar,workspace-toolbar">
                                     <children>
                                         <TextField fx:id="newOrderSearchField" prefHeight="28.0" prefWidth="320.0" promptText="Поиск по заказу, товару, артикулу..." />
                                         <MenuButton fx:id="categoryFilterMenuButton" prefHeight="28.0" prefWidth="200.0" text="Все категории" />
@@ -52,9 +52,22 @@
                                         </Button>
                                     </children>
                                 </HBox>
-                                <FlowPane fx:id="selectionActionBar" alignment="CENTER_LEFT" managed="false" hgap="10.0" vgap="8.0" styleClass="surface selection-action-bar" visible="false">
+                                <Label fx:id="emptyNewOrdersLabel" styleClass="text-muted" text="Нет новых заказов." visible="false" managed="false" />
+                                <TableView fx:id="newOrdersTable" VBox.vgrow="ALWAYS" styleClass="dense-data-list">
+                                    <columnResizePolicy>
+                                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                    </columnResizePolicy>
+                                    <columns>
+                                        <TableColumn fx:id="selectedTC" maxWidth="46.0" minWidth="46.0" prefWidth="46.0" resizable="false" text="" />
+                                        <TableColumn fx:id="orderDateTC" minWidth="160.0" prefWidth="180.0" text="Дата" />
+                                        <TableColumn fx:id="imageTC" minWidth="70.0" prefWidth="78.0" text="Фото" />
+                                        <TableColumn fx:id="productTC" minWidth="300.0" prefWidth="550.0" text="Товар" />
+                                        <TableColumn fx:id="priceTC" minWidth="100.0" prefWidth="110.0" text="Цена" />
+                                    </columns>
+                                </TableView>
+                                <FlowPane fx:id="selectionActionBar" alignment="CENTER_LEFT" managed="false" hgap="10.0" vgap="8.0" styleClass="selection-action-bar,workspace-batch-footer" visible="false">
                                     <children>
-                                        <Label fx:id="selectedCountLabel" styleClass="text-secondary text-bold" text="0 selected" />
+                                        <Label fx:id="selectedCountLabel" styleClass="text-secondary,text-bold" text="0 selected" />
                                         <Button fx:id="newShipmentButton" mnemonicParsing="false" onAction="#onNewShipment" prefHeight="28.0" text="New shipment">
                                             <styleClass>
                                                 <String fx:value="button" />
@@ -69,19 +82,6 @@
                                         </Button>
                                     </children>
                                 </FlowPane>
-                                <Label fx:id="emptyNewOrdersLabel" styleClass="text-muted" text="Нет новых заказов." visible="false" managed="false" />
-                                <TableView fx:id="newOrdersTable" VBox.vgrow="ALWAYS">
-                                    <columnResizePolicy>
-                                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                                    </columnResizePolicy>
-                                    <columns>
-                                        <TableColumn fx:id="selectedTC" maxWidth="46.0" minWidth="46.0" prefWidth="46.0" resizable="false" text="" />
-                                        <TableColumn fx:id="orderDateTC" minWidth="160.0" prefWidth="180.0" text="Дата" />
-                                        <TableColumn fx:id="imageTC" minWidth="70.0" prefWidth="78.0" text="Фото" />
-                                        <TableColumn fx:id="productTC" minWidth="300.0" prefWidth="550.0" text="Товар" />
-                                        <TableColumn fx:id="priceTC" minWidth="100.0" prefWidth="110.0" text="Цена" />
-                                    </columns>
-                                </TableView>
                             </children>
                         </VBox>
                     </content>
@@ -90,7 +90,7 @@
                     <content>
                         <VBox spacing="10.0">
                             <children>
-                                <TableView fx:id="preparationTable" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="preparationTable" VBox.vgrow="ALWAYS" styleClass="dense-data-table">
                                     <columnResizePolicy>
                                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                     </columnResizePolicy>
@@ -107,7 +107,7 @@
                 </Tab>
                 <Tab fx:id="dispatchTab" text="Доставка">
                     <content>
-                        <VBox spacing="8"><TableView fx:id="dispatchTable" VBox.vgrow="ALWAYS">
+                        <VBox spacing="8"><TableView fx:id="dispatchTable" VBox.vgrow="ALWAYS" styleClass="dense-data-table">
                             <columnResizePolicy>
                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                             </columnResizePolicy>
@@ -132,7 +132,7 @@
                                     <Button fx:id="debtRefreshButton" text="Cập nhật" onAction="#onRefreshDebt" />
                                 </HBox>
                                 <Label fx:id="debtWarning" wrapText="true" styleClass="text-muted" visible="false" managed="false" />
-                                <TableView fx:id="debtShipmentsTable" VBox.vgrow="ALWAYS">
+                                <TableView fx:id="debtShipmentsTable" VBox.vgrow="ALWAYS" styleClass="dense-data-table">
                                     <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                                     <columns>
                                         <TableColumn fx:id="debtShipmentNameTC" minWidth="220.0" prefWidth="350.0" text="Shipment" />
@@ -141,7 +141,7 @@
                                         <TableColumn fx:id="debtShipmentDateTC" minWidth="150.0" prefWidth="180.0" text="Ngày" />
                                     </columns>
                                 </TableView>
-                                <TableView fx:id="debtOrdersTable" VBox.vgrow="ALWAYS" visible="false" managed="false">
+                                <TableView fx:id="debtOrdersTable" VBox.vgrow="ALWAYS" visible="false" managed="false" styleClass="dense-data-list">
                                     <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
                                     <columns>
                                         <TableColumn fx:id="debtOrderDateTC" minWidth="150.0" prefWidth="180.0" text="Order ID" />

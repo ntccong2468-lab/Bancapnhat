@@ -33,7 +33,10 @@ public class WorkspaceHeaderController {
         }
         moreButton.setVisible(true);moreButton.setManaged(true);shopComboBox.setPrefWidth(compact?180:220);
         manageShopButton.setText(compact?"":I18nService.getInstance().tr("header.manage_shops"));
-        themeButton.setVisible(!compact);themeButton.setManaged(!compact);
+        themeButton.setVisible(true);themeButton.setManaged(true);
+        searchActionsButton.setText(compact?"":I18nService.getInstance().tr("header.find_action"));
+        searchActionsButton.setAccessibleText(I18nService.getInstance().tr("header.find_action"));
+        searchActionsButton.setTooltip(new javafx.scene.control.Tooltip(I18nService.getInstance().tr("header.find_action")+" · Ctrl+K"));
         syncButton.setText("");jobsButton.setText(jobsCaption);
         syncButton.setTooltip(new javafx.scene.control.Tooltip(syncCaption));syncButton.setAccessibleText(syncCaption);
         jobsButton.setTooltip(new javafx.scene.control.Tooltip(jobsCaption));jobsButton.setAccessibleText(jobsCaption);
@@ -42,9 +45,21 @@ public class WorkspaceHeaderController {
     }
 
     @FXML private javafx.scene.control.MenuButton manageShopButton;
-    @FXML private Button addShopButton,themeButton;
+    @FXML private Button addShopButton,themeButton,searchActionsButton;
+    private Runnable onSearchActions;
+    public void setOnSearchActions(Runnable action){onSearchActions=action;}
+    @FXML private void onSearchActions(){if(onSearchActions!=null)onSearchActions.run();}
+    private final Runnable appearanceChanged=this::renderThemeIcon;
+    private void renderThemeIcon(){
+        if(themeButton==null)return;
+        boolean dark=com.vncode.app.shared.ThemeService.getCurrentTheme()==com.vncode.app.shared.ThemeService.Theme.DARK;
+        if(themeButton.getGraphic() instanceof org.kordamp.ikonli.javafx.FontIcon icon)icon.setIconLiteral(dark?"fth-sun":"fth-moon");
+        String text=I18nService.getInstance().tr(dark?"settings.theme.light":"settings.theme.dark");
+        themeButton.setAccessibleText(text);themeButton.setTooltip(new javafx.scene.control.Tooltip(text));
+    }
     private Runnable onAddShop;
     public void setOnAddShop(Runnable callback){onAddShop=callback;}
+    public void showShopManagement(){manageShopButton.show();}
     @FXML private void onAddShop(){manageShopButton.hide();if(onAddShop!=null)onAddShop.run();}
     @FXML private void onToggleTheme(){
         var current=com.vncode.app.shared.ThemeService.getCurrentTheme();
@@ -123,6 +138,7 @@ public class WorkspaceHeaderController {
 
     @FXML
     public void initialize() {
+        com.vncode.app.shared.ThemeService.addAppearanceListener(appearanceChanged);renderThemeIcon();
         secondaryMenu.setHideOnClick(false);headerRoot.widthProperty().addListener((o,a,b)->responsiveHeader());
         balanceAccount.setConverter(new javafx.util.StringConverter<>(){public String toString(com.vncode.app.integration.znack.BalanceSnapshot value){return value==null?I18nService.getInstance().tr("header.balance_choose"):value.scope().productGroup()+" · "+value.scope().accountId();}public com.vncode.app.integration.znack.BalanceSnapshot fromString(String text){return null;}});
         balanceAccount.valueProperty().addListener((o,a,b)->renderBalance());
@@ -231,7 +247,7 @@ public class WorkspaceHeaderController {
         balanceLabel.setTooltip(new javafx.scene.control.Tooltip(value.scope().productGroup()+" · "+value.scope().accountId()+" · "+value.checkedAt()));
         if(fresh&&value.amount().compareTo(java.math.BigDecimal.valueOf(balanceWarningRub))<0)balanceLabel.getStyleClass().add("text-danger");
     }
-    public void dispose(){disposed=true;++balanceEpoch;statusMonitor.stop();}
+    public void dispose(){disposed=true;++balanceEpoch;statusMonitor.stop();com.vncode.app.shared.ThemeService.removeAppearanceListener(appearanceChanged);}
 
     public void setBusy(boolean busy) {
         // Header loading removed. Keep local loading indicators near the active content instead.

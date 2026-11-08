@@ -28,7 +28,7 @@ final class Gs1JoinDialog {
     private final TextArea review=new TextArea();
     Gs1JoinDialog(Gs1Pane owner,String inn,JsonObject original,Map<String,List<NationalCatalogGs1Client.Choice>> dictionaries,AddressSearch addresses,BiConsumer<JsonObject,Boolean> save){
         this.owner=owner;this.inn=inn;this.form=original.deepCopy();this.dictionaries=dictionaries;this.addresses=addresses;this.save=save;
-        AlertService.applyTheme(dialog);if(owner.getScene()!=null)dialog.initOwner(owner.getScene().getWindow());Gs1Dialogs.centerOnOwner(dialog);dialog.setTitle(tr("gs1.join"));dialog.getDialogPane().setPrefSize(850,640);
+        AlertService.applyTheme(dialog);if(owner.getScene()!=null)dialog.initOwner(owner.getScene().getWindow());Gs1Dialogs.centerOnOwner(dialog);dialog.setTitle(tr("gs1.join"));dialog.getDialogPane().setPrefSize(850,640);steps.getStyleClass().add("workspace-tab-strip");
         JsonObject applicant=section(form,"applicant");applicant.addProperty("inn",inn);
         VBox enterprise=new VBox(10);enterprise.getChildren().add(new Label(tr("gs1.form_notice")));
         for(String field:List.of("companyName","companyNameShort","countryId","firstName","lastName","email","phone","ogrn","kpp","okved2","companyNameEN"))enterprise.getChildren().add(text(applicant,field,!Set.of("companyNameEN","kpp").contains(field)));
@@ -106,7 +106,7 @@ final class Gs1JoinDialog {
             if(field.getValue().isJsonPrimitive())target.append(field.getValue().getAsString()).append('\n');else{target.append('\n');describe(field.getValue(),target,indent+1);}
         }else if(value.isJsonArray())value.getAsJsonArray().forEach(item->describe(item,target,indent));
     }
-    private void tab(String key,VBox content){content.setPadding(new Insets(14));ScrollPane scroll=new ScrollPane(content);scroll.setFitToWidth(true);Tab tab=new Tab(tr(key),scroll);tab.setClosable(false);steps.getTabs().add(tab);}
+    private void tab(String key,VBox content){content.getStyleClass().add("workspace-form");content.setPadding(new Insets(14));ScrollPane scroll=new ScrollPane(content);scroll.setFitToWidth(true);Tab tab=new Tab(tr(key),scroll);tab.setClosable(false);steps.getTabs().add(tab);}
     private Node labeled(String key,Node node){VBox row=new VBox(5,new Label(tr(key)),node);VBox.setVgrow(node,Priority.NEVER);return row;}
     private static JsonObject section(JsonObject parent,String key){if(!parent.has(key)||!parent.get(key).isJsonObject())parent.add(key,new JsonObject());return parent.getAsJsonObject(key);}
     private static String text(JsonObject data,String key){return NationalCatalogGs1Client.text(data,key);}

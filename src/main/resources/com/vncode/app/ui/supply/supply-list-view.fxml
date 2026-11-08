@@ -10,11 +10,11 @@
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox spacing="8.0" styleClass="card,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.supply.SupplyListController">
+<VBox spacing="8.0" styleClass="card,app-page,workspace-page,workspace-sheet" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.supply.SupplyListController">
     <children>
-        <HBox alignment="CENTER_LEFT" spacing="8.0">
+        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="workspace-toolbar">
             <children>
-                <Label fx:id="titleLabel" text="%supply_list.title" styleClass="h3" />
+                <Label fx:id="titleLabel" text="%supply_list.title" styleClass="h3,page-title" />
                 <ProgressIndicator fx:id="supplyLoading" maxHeight="20.0" maxWidth="20.0" prefHeight="20.0" prefWidth="20.0" visible="false" />
                 <Button fx:id="refetchButton" mnemonicParsing="false" onAction="#onRefetch" text="%supply_list.refetch" />
             </children>

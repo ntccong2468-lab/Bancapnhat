@@ -7,6 +7,7 @@ import javafx.stage.Window;
 final class Gs1Dialogs {
     private Gs1Dialogs() {}
     static void centerOnOwner(Dialog<?> dialog) {
+        dialog.getDialogPane().getStyleClass().add("workspace-overlay");
         dialog.setOnShown(event -> {
             Window owner = dialog.getOwner();
             Window window = dialog.getDialogPane().getScene().getWindow();

@@ -25,13 +25,59 @@ public class ShopSidebarController {
     private org.kordamp.ikonli.javafx.FontIcon compactStatusIcon;
     @FXML private Button sidebarToggleButton;
     private MenuItem automaticLayoutItem;
-    @FXML private void onToggleSidebar(){compactOverride=!compact;setViewportWidth(viewportWidth);}
+    private javafx.animation.TranslateTransition sidebarAnimation;
+    @FXML private void onToggleSidebar(){
+        var main=sidebarRoot.getScene()==null?null:sidebarRoot.getScene().lookup("#contentPane");
+        double before=main==null?0:main.localToScene(0,0).getX();
+        if(sidebarAnimation!=null)sidebarAnimation.stop();if(main!=null)main.setTranslateX(0);
+        compactOverride=!compact;setViewportWidth(viewportWidth);
+        if(main!=null&&!com.vncode.app.shared.WorkspaceMotion.isReduced()){
+            sidebarRoot.getScene().getRoot().layout();
+            main.setTranslateX(before-main.localToScene(0,0).getX());
+            sidebarAnimation=new javafx.animation.TranslateTransition(javafx.util.Duration.millis(220),main);
+            sidebarAnimation.setToX(0);sidebarAnimation.setInterpolator(javafx.animation.Interpolator.SPLINE(.16,1,.3,1));sidebarAnimation.play();
+        }
+    }
+    public void dispose(){if(indicatorAnimation!=null)indicatorAnimation.stop();if(sidebarAnimation!=null){sidebarAnimation.stop();var main=sidebarRoot.getScene()==null?null:sidebarRoot.getScene().lookup("#contentPane");if(main!=null)main.setTranslateX(0);}}
     public void resetSidebarLayout(){compactOverride=null;setViewportWidth(viewportWidth);}
 
     private final java.util.Map<javafx.scene.control.ButtonBase,String> fullLabels=new java.util.HashMap<>();
-    public void setViewportWidth(double width){viewportWidth=width;compact=compactOverride!=null?compactOverride:width>0&&width<1240;applyCompact();}
-    private void applyCompact(){if(sidebarRoot==null)return;double width=compact?64:196;sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");for(var label:java.util.List.of(navSectionOperate,navSectionProducts,navSectionTools)){label.setVisible(!compact);label.setManaged(!compact);}sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);if(toolsPane!=null){toolsPane.setMinWidth(0);toolsPane.setText(compact?"":I18nService.getInstance().tr("sidebar.tools"));toolsPane.setAccessibleText(I18nService.getInstance().tr("sidebar.tools"));toolsPane.setGraphic(compact?new org.kordamp.ikonli.javafx.FontIcon("fth-more-horizontal"):null);}compactButtons(sidebarRoot);renderEditionStatusPresentation();
+    public void setViewportWidth(double width){viewportWidth=width;compact=compactOverride!=null?compactOverride:width>0&&width<1100;applyCompact();}
+    @FXML private javafx.scene.image.ImageView sidebarLogo;
+    @FXML private javafx.scene.layout.StackPane navigationStack;
+    @FXML private javafx.scene.layout.Pane navigationIndicator;
+    private String selectedNavigationId="";
+    private javafx.animation.TranslateTransition indicatorAnimation;
+    private Runnable onAppearance;
+    public void setOnAppearance(Runnable action){onAppearance=action;}
+    @FXML private void onAppearance(){if(onAppearance!=null)onAppearance.run();}
+    private void applyCompact(){
+        if(sidebarRoot==null)return;
+        double width=compact?68:viewportWidth>0&&viewportWidth<1350?194:202;
+        sidebarRoot.setMinWidth(width);sidebarRoot.setMaxWidth(width);sidebarRoot.setPrefWidth(width);
+        if(compact&&!sidebarRoot.getStyleClass().contains("sidebar-compact"))sidebarRoot.getStyleClass().add("sidebar-compact");
+        else if(!compact)sidebarRoot.getStyleClass().remove("sidebar-compact");
+        for(var label:java.util.List.of(navSectionOperate,navSectionProducts,navSectionTools)){label.setVisible(!compact);label.setManaged(!compact);}
+        sidebarTitle.setVisible(!compact);sidebarTitle.setManaged(!compact);
+        sidebarLogo.setVisible(!compact);sidebarLogo.setManaged(!compact);
+        compactButtons(sidebarRoot);renderEditionStatusPresentation();
         if(sidebarToggleButton!=null){String text=I18nService.getInstance().tr(compact?"sidebar.expand":"sidebar.collapse");sidebarToggleButton.setTooltip(new javafx.scene.control.Tooltip(text));sidebarToggleButton.setAccessibleText(text);((org.kordamp.ikonli.javafx.FontIcon)sidebarToggleButton.getGraphic()).setIconLiteral(compact?"fth-chevrons-right":"fth-chevrons-left");}
+        javafx.application.Platform.runLater(()->positionIndicator(false));
+    }
+    private void positionIndicator(boolean animate){
+        if(navigationStack==null||navigationStack.getScene()==null)return;
+        if(selectedNavigationId==null||selectedNavigationId.isBlank()){navigationIndicator.setVisible(false);return;}
+        var selected=navigationStack.lookup("#"+selectedNavigationId);
+        if(selected==null||selected.getBoundsInParent().getHeight()<=0){navigationIndicator.setVisible(false);return;}
+        var point=navigationStack.sceneToLocal(selected.localToScene(0,0));
+        double target=point.getY();boolean hadPosition=navigationIndicator.isVisible();
+        if(indicatorAnimation!=null)indicatorAnimation.stop();
+        navigationIndicator.resizeRelocate(0,0,navigationStack.getWidth(),selected.getBoundsInParent().getHeight());
+        navigationIndicator.setVisible(true);
+        if(animate&&hadPosition&&!com.vncode.app.shared.WorkspaceMotion.isReduced()){
+            indicatorAnimation=new javafx.animation.TranslateTransition(javafx.util.Duration.millis(220),navigationIndicator);
+            indicatorAnimation.setToY(target);indicatorAnimation.setInterpolator(javafx.animation.Interpolator.SPLINE(.16,1,.3,1));indicatorAnimation.play();
+        }else navigationIndicator.setTranslateY(target);
     }
     private void compactButtons(javafx.scene.Parent parent){for(var n:parent.getChildrenUnmodifiable()){
         if(n instanceof javafx.scene.control.ButtonBase button&&button!=sidebarToggleButton){if(!button.getText().isBlank())fullLabels.put(button,button.getText());button.setTooltip(new javafx.scene.control.Tooltip(fullLabels.getOrDefault(button,"")));button.setAccessibleText(fullLabels.getOrDefault(button,""));button.setMinWidth(0);button.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);button.setContentDisplay(compact?javafx.scene.control.ContentDisplay.GRAPHIC_ONLY:javafx.scene.control.ContentDisplay.LEFT);button.setText(compact?"":fullLabels.getOrDefault(button,button.getText()));}
@@ -57,11 +103,17 @@ public class ShopSidebarController {
     public void setOnGuides(Runnable action){onGuides=action;}
     @FXML private void onGuides(){if(onGuides!=null)onGuides.run();}
     @FXML private Button financeButton;
-    @FXML private javafx.scene.control.TitledPane toolsPane;
+
     private Runnable onFinance;
     public void setOnFinance(Runnable action){onFinance=action;}
     @FXML private void onFinance(){if(onFinance!=null)onFinance.run();}
-    public void selectNavigation(String id){for(Button button:java.util.List.of(listingCopyButton,productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gs1Button,fboOrdersButton,financeButton,guidesButton,tnvedButton)){button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");}}
+    public void selectNavigation(String id){
+        selectedNavigationId=id;
+        for(javafx.scene.control.ButtonBase button:java.util.List.of(settingsMenuButton,listingCopyButton,productsButton,dashboardButton,packingButton,fboPackingButton,templateButton,kizMappingButton,znackRegistrationButton,znackAutomationButton,btnPrintHistory,gs1Button,fboOrdersButton,financeButton,guidesButton,tnvedButton)){
+            button.getStyleClass().remove("nav-selected");if(id.equals(button.getId()))button.getStyleClass().add("nav-selected");
+        }
+        javafx.application.Platform.runLater(()->positionIndicator(true));
+    }
     @FXML private Button tnvedButton;
     private Runnable onTnved;
     public void setOnTnved(Runnable action){onTnved=action;}
@@ -78,8 +130,7 @@ public class ShopSidebarController {
     private Button dashboardButton;
     @FXML
     private Button btnPrintHistory;
-    @FXML
-    private Button addShopButton;
+
     @FXML
     private Button packingButton;
     @FXML
@@ -130,7 +181,7 @@ public class ShopSidebarController {
     private Runnable onZnackAutomation;
     private Runnable onZnackRegistration;
     private Runnable onPrintHistory;
-    private Runnable onAddShop;
+
     private Runnable onOpenSettings;
     private Runnable onCheckVersion;
     private Runnable onPersonalEdition;
@@ -213,6 +264,7 @@ public class ShopSidebarController {
         themeDarkMenuItem.setToggleGroup(themeGroup);
         themeLightMenuItem.setToggleGroup(themeGroup);
 
+        navigationStack.widthProperty().addListener((o,a,b)->positionIndicator(false));
         applyTranslations();
         selectNavigation("dashboardButton");
     }
@@ -249,9 +301,7 @@ public class ShopSidebarController {
         this.onZnackRegistration = onZnackRegistration;
     }
 
-    public void setOnAddShop(Runnable onAddShop) {
-        this.onAddShop = onAddShop;
-    }
+
 
     public void setOnOpenSettings(Runnable onOpenSettings) {
         this.onOpenSettings = onOpenSettings;
@@ -324,7 +374,7 @@ public class ShopSidebarController {
         if(automaticLayoutItem!=null)automaticLayoutItem.setText(I18nService.getInstance().tr("sidebar.automatic"));
         I18nService i18n = I18nService.getInstance();
         templateButton.setText(" " + i18n.tr("sidebar.template"));
-        addShopButton.setText(" " + i18n.tr("sidebar.add_shop"));
+
         dashboardButton.setText(" " + i18n.tr("dashboard.title"));
         packingButton.setText(" " + i18n.tr("sidebar.packing"));
         btnPrintHistory.setText(" " + i18n.tr("sidebar.print_history"));
@@ -343,7 +393,7 @@ public class ShopSidebarController {
         personalEditionMenuItem.setText(i18n.tr("license.account.title"));
         aboutMenuItem.setText(i18n.tr("settings.about"));
         applyMarketplaceTexts();
-        financeButton.setText(i18n.tr("sidebar.finance"));toolsPane.setText(i18n.tr("sidebar.tools"));setGs1Unread(gs1Unread);
+        financeButton.setText(i18n.tr("sidebar.finance"));setGs1Unread(gs1Unread);
         translationMenuItem.setText(i18n.tr("news.translation_settings"));
         productsButton.setText(" "+i18n.tr("products.title"));
         listingCopyButton.setText(i18n.tr("copy.title"));
@@ -417,12 +467,7 @@ public class ShopSidebarController {
         }
     }
 
-    @FXML
-    private void onAddShop() {
-        if (onAddShop != null) {
-            onAddShop.run();
-        }
-    }
+
 
     @FXML
     private void onSettings() {

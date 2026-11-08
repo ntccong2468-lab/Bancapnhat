@@ -20,13 +20,13 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="760.0" prefWidth="1180.0" styleClass="app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.print.PrintTemplateDesignerController">
+<BorderPane prefHeight="760.0" prefWidth="1180.0" styleClass="app-page,workspace-page,workspace-sheet" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.print.PrintTemplateDesignerController">
     <top>
         <VBox spacing="10.0" BorderPane.alignment="CENTER">
             <padding>
                 <Insets bottom="12.0" left="16.0" right="16.0" top="16.0" />
             </padding>
-            <HBox alignment="CENTER_LEFT" spacing="10.0">
+            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="workspace-toolbar">
                 <Label styleClass="h3" text="%template.title" userData="i18n:template.title"/>
                 <Label fx:id="templateMetaLabel" styleClass="text-muted" text="58x40 mm" />
             </HBox>
@@ -55,7 +55,7 @@
                     </padding>
                     <Label styleClass="text-bold" text="%template.elements" userData="i18n:template.elements"/>
                     <ComboBox fx:id="addElementComboBox" prefWidth="220.0" minWidth="0.0" maxWidth="1.7976931348623157E308" promptText="%template.add_element_prompt" userData="i18n:template.add_element_prompt"/>
-                    <ListView fx:id="elementListView" prefHeight="560.0" minWidth="0.0" minHeight="0.0" VBox.vgrow="ALWAYS" />
+                    <ListView fx:id="elementListView" prefHeight="560.0" minWidth="0.0" minHeight="0.0" VBox.vgrow="ALWAYS"  styleClass="dense-data-table"/>
                 </VBox>
                 <ScrollPane pannable="true" minWidth="0.0">
                     <content>

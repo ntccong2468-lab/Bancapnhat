@@ -104,6 +104,8 @@ public final class LicensePane extends ScrollPane {
     LicensePane(Actions actions) {
         this.actions = Objects.requireNonNull(actions);
         setId("licensePane");
+        getStyleClass().add("workspace-page");
+        title.getStyleClass().setAll("label", "page-title");
         setFitToWidth(true);
         setHbarPolicy(ScrollBarPolicy.NEVER);
         gmail.setId("licenseGmail");
@@ -128,6 +130,8 @@ public final class LicensePane extends ScrollPane {
         visible(networkControls, actions.supportsNetworkDiagnostics());
         visible(networkReport, false);
         VBox body = new VBox(12, title, description, registration, account, activation, progress, feedback, networkControls);
+        body.getStyleClass().add("workspace-form");
+        body.setMaxWidth(1000);
         body.setPadding(new Insets(16));
         body.setMinWidth(0);
         setContent(body);
@@ -348,9 +352,9 @@ public final class LicensePane extends ScrollPane {
     private static void visible(javafx.scene.Node node, boolean value) { node.setVisible(value); node.setManaged(value); }
     private static VBox card(javafx.scene.Node... nodes) {
         VBox box = new VBox(12, nodes);
-        box.setPadding(new Insets(20));
+        box.setPadding(new Insets(16));
         box.setMinWidth(0);
-        box.getStyleClass().add("card");
+        box.getStyleClass().addAll("card", "workspace-sheet");
         return box;
     }
     private static Label label(String id, String style) {

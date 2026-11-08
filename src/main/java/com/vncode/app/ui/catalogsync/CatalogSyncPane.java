@@ -31,8 +31,8 @@ public final class CatalogSyncPane extends BorderPane {
     public void setOnMutationResult(MutationObserver callback){onMutationResult=Objects.requireNonNull(callback);}
     public CatalogSyncPane(){this(CatalogSyncService::new);}
     CatalogSyncPane(Supplier<CatalogSyncService> factory){
-        this.factory=factory;products.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);differences.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);products.setFixedCellSize(38);differences.setFixedCellSize(38);products.setPlaceholder(new Label(tr("catalogsync.empty")));differences.setPlaceholder(new Label(tr("catalogsync.empty")));history.setPromptText(tr("catalogsync.history"));preview.getStyleClass().add("btn-primary");apply.getStyleClass().add("btn-primary");setId("catalogSyncPane");setPadding(new Insets(12));
-        var title=new Label(tr("catalogsync.title"));title.getStyleClass().add("h2");
+        this.factory=factory;getStyleClass().addAll("workspace-page","workspace-sheet");products.getStyleClass().add("dense-data-table");differences.getStyleClass().add("dense-data-table");products.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);differences.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);products.setFixedCellSize(42);differences.setFixedCellSize(42);products.setPlaceholder(new Label(tr("catalogsync.empty")));differences.setPlaceholder(new Label(tr("catalogsync.empty")));history.setPromptText(tr("catalogsync.history"));preview.getStyleClass().add("btn-primary");apply.getStyleClass().add("btn-primary");setId("catalogSyncPane");setPadding(new Insets(16));
+        var title=new Label(tr("catalogsync.title"));title.getStyleClass().add("page-title");
         var choices=new FlowPane(10,8);for(Field field:Field.values()){
             var box=new CheckBox(tr("catalogsync.field."+field));box.setId("catalogSync"+field);fields.put(field,box);box.setSelected(Set.of(Field.GTIN,Field.TNVED,Field.MATERIAL,Field.DOCUMENTS).contains(field));box.selectedProperty().addListener((o,a,b)->invalidate());choices.getChildren().add(box);
         }
@@ -40,13 +40,13 @@ public final class CatalogSyncPane extends BorderPane {
         preview.setText(tr("catalogsync.preview"));apply.setText(tr("catalogsync.apply"));advance.setText(tr("catalogsync.advance"));pause.setText(tr("catalogsync.pause"));editValue.setText(tr("catalogsync.edit_value"));editDocument.setText(tr("catalogsync.document_edit"));options.setText(tr("catalogsync.document_options"));confirmed.setText(tr("catalogsync.confirm"));
         preview.setId("catalogSyncPreview");apply.setId("catalogSyncApply");advance.setId("catalogSyncAdvance");pause.setId("catalogSyncPause");confirmed.setId("catalogSyncConfirm");history.setId("catalogSyncHistory");
         reviewOzonLink.setText(tr("catalogsync.ozon_link"));reviewOzonLink.setId("catalogSyncOzonLink");
-        setTop(new VBox(10,title,scope,notice,choices,new FlowPane(8,8,preview,editValue,editDocument,options,reviewOzonLink,history),status));
+        var heading=new HBox(12,title,scope);heading.setAlignment(javafx.geometry.Pos.CENTER_LEFT);title.setMinWidth(0);title.setWrapText(true);scope.setMinWidth(0);scope.getStyleClass().add("text-muted");HBox.setHgrow(title,Priority.ALWAYS);var actions=new FlowPane(8,8,preview,editValue,editDocument,options,reviewOzonLink,history);actions.getStyleClass().add("workspace-toolbar");setTop(new VBox(6,heading,notice,choices,actions,status));
         column(products,"catalogsync.product",r->r.key().productId()+" / "+r.key().variantId());column(products,"catalogsync.gtin",r->r.catalog().gtin());column(products,"catalogsync.state",r->tr("catalogsync.state."+r.state()));column(products,"catalogsync.issue",r->issue(r.issue()));
         column(differences,"catalogsync.field",d->fieldName(d.field()));column(differences,"catalogsync.before",d->String.join(" | ",d.before()));column(differences,"catalogsync.after",d->String.join(" | ",d.after()));column(differences,"catalogsync.issue",d->issue(d.code()));
         products.setId("catalogSyncProducts");differences.setId("catalogSyncDifferences");
         var split=new SplitPane(products,differences);split.setOrientation(javafx.geometry.Orientation.VERTICAL);split.setDividerPositions(.45);BorderPane.setMargin(split,new Insets(10,0,10,0));setCenter(split);
         wbPriceImpact.setId("catalogSyncWbPriceImpact");wbPriceImpact.setText(tr("gtinsync.wb_price_consent_body"));wbPriceImpact.setWrapText(true);
-        setBottom(new VBox(6,wbPriceImpact,new FlowPane(10,8,confirmed,apply,advance,pause)));
+        var footer=new VBox(6,wbPriceImpact,new FlowPane(10,8,confirmed,apply,advance,pause));footer.getStyleClass().add("workspace-batch-footer");setBottom(footer);
         products.getSelectionModel().selectedItemProperty().addListener((o,a,b)->{differences.getItems().setAll(b==null?List.of():b.differences());buttons();});confirmed.selectedProperty().addListener((o,a,b)->buttons());
         preview.setOnAction(e->preview());apply.setOnAction(e->run(true));advance.setOnAction(e->run(false));pause.setOnAction(e->{if(job==null)return;var owner=shop;String id=job.id();boolean paused=!job.paused();mutate(()->{service().pause(owner,id,paused);return service().read(owner,id);});});
         editValue.setOnAction(e->editValue());

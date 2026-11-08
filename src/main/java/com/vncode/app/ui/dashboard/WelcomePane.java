@@ -10,7 +10,7 @@ import java.util.List;
 public final class WelcomePane extends ScrollPane {
     private final Label title=new Label(),description=new Label(),features=new Label();
     private final VBox introduction=new VBox(12),body=new VBox(16);
-    private final HBox wide=new HBox(24);
+    private final HBox wide=new HBox(16);
     private final GridPane cards=new GridPane();
     private final VBox news;
     private javafx.scene.Node dashboard;
@@ -27,8 +27,8 @@ public final class WelcomePane extends ScrollPane {
     private int arrangedColumns=-1;
     public WelcomePane(VBox news,List<Runnable> actions) {
         if(actions.size()!=6)throw new IllegalArgumentException("Six existing feature actions required");
-        this.news=news;setFitToWidth(true);setHbarPolicy(ScrollBarPolicy.NEVER);getStyleClass().add("welcome-scroll");
-        body.getStyleClass().add("welcome-body");title.getStyleClass().add("welcome-title");description.getStyleClass().add("welcome-description");
+        this.news=news;setFitToWidth(true);setHbarPolicy(ScrollBarPolicy.NEVER);getStyleClass().addAll("welcome-scroll","workspace-page");
+        body.getStyleClass().add("welcome-body");title.getStyleClass().addAll("welcome-title","page-title");description.getStyleClass().add("welcome-description");cards.getStyleClass().add("workspace-shortcut-list");
         description.setWrapText(true);features.getStyleClass().add("h3");cards.setHgap(0);cards.setVgap(0);
         onboardingTitle.setWrapText(true);onboardingTitle.getStyleClass().add("h3");onboarding.getChildren().setAll(onboardingTitle,onboardingActions);onboarding.setVisible(false);onboarding.setManaged(false);
         introduction.setMinWidth(0);introduction.getChildren().setAll(title,description,features,cards,onboarding);
@@ -39,7 +39,7 @@ public final class WelcomePane extends ScrollPane {
             var copy=new VBox(4,name,summary);copy.setMinWidth(0);HBox.setHgrow(copy,Priority.ALWAYS);
             var content=new HBox(16,icon,copy,new FontIcon("fth-chevron-right"));content.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             var button=new Button();button.setGraphic(content);content.prefWidthProperty().bind(button.widthProperty().subtract(20));button.setWrapText(true);button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);button.setMaxWidth(Double.MAX_VALUE);button.setMinWidth(0);
-            button.getStyleClass().add("feature-card");Runnable action=actions.get(i);button.setOnAction(e->action.run());
+            button.getStyleClass().addAll("feature-card","workspace-shortcut-row");button.setMinHeight(70);Runnable action=actions.get(i);button.setOnAction(e->action.run());
             buttons.add(button);names.add(name);summaries.add(summary);
         }
         news.setMinWidth(0);news.getStyleClass().add("welcome-news");setContent(body);widthProperty().addListener((o,a,b)->arrange(b.doubleValue()));arrange(1100);applyTranslations();

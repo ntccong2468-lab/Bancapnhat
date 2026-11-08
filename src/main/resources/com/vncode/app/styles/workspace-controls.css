@@ -1,100 +1,144 @@
-/* VN Code workbench. One control system for both themes; theme.css owns domain layout.
-   No per-row effects or animations. See docs/design/vncode-workspace-system.md. */
+/* VN Code — approved Apple / Liquid Glass, 08 November 2026.
+ * JavaFX paints provide bounded material; no scene opacity or table blur.
+ * The shared shell floats above the ground. Working sheets stay opaque.
+ * ThemeService may replace glass paints; the semantic token API is stable. */
 .root, .workspace-theme, .root.theme-dark, .workspace-theme.theme-dark {
-    -bg-primary: #141414;
-    -nav-surface: #171717;
-    -bg-secondary: #1b1b1b;
-    -bg-tertiary: #25272b;
-    -bg-odd-row: #1b1b1b;
-    -border-color: #383b40;
-    -border-color-hover: #7c879a;
-    -text-primary: #edf2f7;
-    -text-secondary: #c4cdd8;
-    -text-muted: #a8b5c6;
-    -accent: #285fc7;
-    -accent-hover: #2153b0;
-    -accent-active: #19448f;
-    -accent-text: #bedaff;
-    -accent-transparent: #233c5b;
-    -focus: #bedaff;
-    -focus-primary: #eef5ff;
-    -danger: #ff8598;
-    -success: #70d5b0;
-    -warning: #f2c46d;
-    -danger-fill: #a52840;
-    -success-fill: #14694f;
-    -warning-fill: #f2c46d;
-    -success-surface: #163b30;
-    -danger-surface: #432530;
-    -warning-surface: #3c321e;
-    -ui-panel: #1b1b1b;
-    -ui-control: #25272b;
-    -ui-control-hover: #383b40;
-    -ui-field: #1b1b1b;
-    -ui-input-border: #7c879a;
-    -ui-row-hover: #222b36;
-    -ui-selected: #233c5b;
-    -ui-table-header: #171717;
+    -bg-primary: #17181b;
+    -nav-surface: #292a2e;
+    -bg-secondary: #232428;
+    -bg-tertiary: #303136;
+    -bg-odd-row: #232428;
+    -border-color: #3a3b41;
+    -border-color-hover: #898b95;
+    -row-rule: #33343a;
+    -text-primary: #f1f1f4;
+    -text-secondary: #c1c2cb;
+    -text-muted: #adafb9;
+    -accent: #9ac6ff;
+    -accent-hover: #b3d5ff;
+    -accent-active: #83b7fb;
+    -accent-text: #9ac6ff;
+    -accent-transparent: #343e4c;
+    -on-accent: #142c4a;
+    -on-semantic: #ffffff;
+    -on-warning: #30230c;
+    -focus: #9ac6ff;
+    -focus-primary: #142c4a;
+    -danger: #ff9aa9;
+    -danger-hover: #bc3c55;
+    -danger-active: #9d2941;
+    -danger-fill: #a92d46;
+    -success: #87d7b8;
+    -success-hover: #237757;
+    -success-active: #175b42;
+    -success-fill: #176747;
+    -warning: #f3c570;
+    -warning-hover: #e7b556;
+    -warning-fill: #f3c570;
+    -success-surface: #243e33;
+    -danger-surface: #482b34;
+    -warning-surface: #443920;
+    -glass-surface: rgba(46,47,52,.86);
+    -glass-elevated: rgba(48,49,54,.94);
+    -glass-button: rgba(61,62,68,.78);
+    -glass-highlight: rgba(255,255,255,.10);
+    -glass-control-highlight: rgba(255,255,255,.08);
+    -glass-control-shadow: rgba(0,0,0,.08);
+    -glass-selected: #353e49;
+    -ui-panel: -bg-secondary;
+    -ui-control: #2c2d32;
+    -ui-control-hover: #3b3d44;
+    -ui-control-pressed: #454750;
+    -ui-field: #232428;
+    -ui-input-border: #858792;
+    -ui-row-hover: #2c2e34;
+    -ui-selected: #323d4b;
+    -ui-table-header: #232428;
+    -nav-selected: #353e49;
     -btn-bg: -ui-control;
     -btn-bg-hover: -ui-control-hover;
-    -btn-bg-pressed: -bg-primary;
+    -btn-bg-pressed: -ui-control-pressed;
     -btn-text-color: -text-primary;
     -fx-base: -bg-secondary;
     -fx-background: -bg-primary;
     -fx-control-inner-background: -ui-field;
+    -fx-control-inner-background-alt: -ui-field;
     -fx-accent: -accent;
     -fx-focus-color: -focus;
     -fx-faint-focus-color: transparent;
+    -fx-selection-bar: -ui-selected;
+    -fx-selection-bar-non-focused: -ui-selected;
+    -fx-selection-bar-text: -text-primary;
+    -fx-text-background-color: -text-primary;
     -fx-background-color: -bg-primary;
     -fx-background-radius: 0;
     -fx-font-family: "Inter";
     -fx-font-size: 14px;
 }
 .root.theme-light, .workspace-theme.theme-light {
-    -bg-primary: #f4f6f9;
-    -nav-surface: #f9fafc;
+    -bg-primary: #e9ebf0;
+    -nav-surface: #f7f8fa;
     -bg-secondary: #ffffff;
-    -bg-tertiary: #eef2f6;
+    -bg-tertiary: #f0f1f5;
     -bg-odd-row: #ffffff;
-    -border-color: #dce2ea;
-    -border-color-hover: #748197;
-    -text-primary: #172537;
-    -text-secondary: #3b4d63;
-    -text-muted: #5d6a7b;
-    -accent: #175bc5;
-    -accent-hover: #114eae;
-    -accent-active: #0c4093;
-    -accent-text: #174b9a;
-    -accent-transparent: #e8f0ff;
-    -focus: #175bc5;
+    -border-color: #e0e2e9;
+    -border-color-hover: #818493;
+    -row-rule: #eceef3;
+    -text-primary: #24252a;
+    -text-secondary: #555966;
+    -text-muted: #606472;
+    -accent: #0762cf;
+    -accent-hover: #0656b8;
+    -accent-active: #06499a;
+    -accent-text: #0762cf;
+    -accent-transparent: #e8eef7;
+    -on-accent: #ffffff;
+    -focus: #0762cf;
     -focus-primary: #ffffff;
-    -danger: #b3243e;
-    -success: #136749;
-    -warning: #825200;
-    -danger-fill: #b3243e;
-    -success-fill: #14694f;
-    -warning-fill: #f2c46d;
-    -success-surface: #e1f4eb;
-    -danger-surface: #fce8ed;
-    -warning-surface: #fbf0d8;
-    -glass-surface: rgba(235,239,245,.552);
-    -glass-button: rgba(252,253,255,.572);
-    -ui-panel: -glass-surface;
-    -ui-control: -glass-button;
-    -ui-control-hover: #e7edf5;
+    -danger: #b62440;
+    -danger-hover: #9f1d36;
+    -danger-active: #86172c;
+    -danger-fill: #b62440;
+    -success: #116b4c;
+    -success-hover: #0d5d40;
+    -success-active: #094c34;
+    -success-fill: #116b4c;
+    -warning: #865000;
+    -warning-hover: #e5b34f;
+    -warning-fill: #f3c570;
+    -success-surface: #e3f3eb;
+    -danger-surface: #fce9ed;
+    -warning-surface: #fff2d8;
+    -glass-surface: rgba(255,255,255,.65);
+    -glass-elevated: rgba(255,255,255,.94);
+    -glass-button: rgba(255,255,255,.78);
+    -glass-highlight: rgba(255,255,255,.80);
+    -glass-control-highlight: rgba(255,255,255,.60);
+    -glass-control-shadow: rgba(36,37,42,.04);
+    -glass-selected: #e7edf7;
+    -ui-panel: -bg-secondary;
+    -ui-control: #ffffff;
+    -ui-control-hover: #f0f3f9;
+    -ui-control-pressed: #e5eaf2;
     -ui-field: #ffffff;
-    -ui-input-border: #7e899a;
-    -ui-row-hover: #f0f4fa;
-    -ui-selected: #e8f0ff;
-    -ui-table-header: #f9fafc;
+    -ui-input-border: #85899a;
+    -ui-row-hover: #f4f6fa;
+    -ui-selected: #e8eef7;
+    -ui-table-header: #ffffff;
+    -nav-selected: #e7edf7;
 }
+
+/* Inter hierarchy, shared by pages, dialogs, popups and utility windows. */
 .workspace-theme .label { -fx-text-fill: -text-primary; }
-.workspace-theme .text-muted { -fx-text-fill: -text-muted; }
+.workspace-theme .text-muted, .workspace-theme .muted-label { -fx-text-fill: -text-muted; }
 .workspace-theme .text-secondary { -fx-text-fill: -text-secondary; }
-.workspace-theme .h1 { -fx-font-size: 25; -fx-font-weight: bold; }
-.workspace-theme .h2 { -fx-font-size: 25; -fx-font-weight: bold; }
-.workspace-theme .h3 { -fx-font-size: 15; -fx-font-weight: bold; }
-.workspace-theme .text-danger, .workspace-theme .error-label, .workspace-theme .document-rejected { -fx-text-fill: -danger; }
+.workspace-theme .h1, .workspace-theme .page-title, .workspace-theme .welcome-title,
+.workspace-theme #productsPane .h2, .workspace-theme#productsPane .h2 { -fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: -text-primary; }
+.workspace-theme .h2 { -fx-font-size: 20; -fx-font-weight: bold; }
+.workspace-theme .h3, .workspace-theme .section-title { -fx-font-size: 16; -fx-font-weight: bold; }
+.workspace-theme .text-bold, .workspace-theme .text-strong { -fx-font-weight: bold; }
+.workspace-theme .text-danger, .workspace-theme .error-label, .workspace-theme .document-rejected,
+.workspace-theme .activation-inactive { -fx-text-fill: -danger; }
 .workspace-theme .text-success, .workspace-theme .document-valid, .workspace-theme .activation-active { -fx-text-fill: -success; }
 .workspace-theme .text-warning, .workspace-theme .document-pending { -fx-text-fill: -warning; }
 .workspace-theme .ikonli-font-icon { -fx-icon-color: -text-secondary; }
@@ -102,124 +146,318 @@
 .workspace-theme .ikonli-font-icon.document-pending { -fx-icon-color: -warning; }
 .workspace-theme .ikonli-font-icon.document-rejected { -fx-icon-color: -danger; }
 
-/* Shared surfaces and application chrome. */
-.workspace-theme .app-page, .workspace-theme .scroll-pane, .workspace-theme .scroll-pane > .viewport,
-.workspace-theme .tab-pane, .workspace-theme .tab-content-area { -fx-background-color: transparent; }
-.workspace-theme .sidebar { -fx-background-color: -nav-surface; -fx-border-color: -border-color; -fx-border-width: 0 1 0 0; -fx-padding: 16 12 10 12; }
-.workspace-theme .header { -fx-background-color: -bg-primary; -fx-border-color: -border-color; -fx-border-width: 0 0 1 0; -fx-padding: 10 22; -fx-min-height: 58; -fx-pref-height: 58; }
-.workspace-theme .card, .workspace-theme .surface, .workspace-theme .copy-card,
-.workspace-theme .news-card, .workspace-theme .guide-section, .workspace-theme .feature-card,
-.workspace-theme .products-bulk, .workspace-theme .supply-detail, .workspace-theme .gtin-inventory-card {
-    -fx-background-color: -ui-panel; -fx-background-radius: 8; -fx-border-radius: 8;
-    -fx-border-color: -border-color; -fx-border-width: 1; -fx-effect: null;
+/* Chrome material has an inset highlight and a small downward shadow.
+ * These are background paints only: children retain full opacity. */
+.workspace-theme .sidebar, .workspace-theme .glass-sidebar,
+.workspace-theme .workspace-glass-sidebar {
+    -fx-background-color: -glass-highlight, -glass-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 18, 17;
+    -fx-border-width: 0;
+    -fx-padding: 18 10 10 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,.05), 8, 0, 0, 2);
 }
-.workspace-theme .card, .workspace-theme .surface { -fx-padding: 12; }
-.workspace-theme .filter-bar { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 4 0; }
-.workspace-theme .selection-action-bar, .workspace-theme .products-bulk { -fx-padding: 10 12; -fx-background-color: -ui-selected; }
-.workspace-theme .welcome-body { -fx-background-color: transparent; -fx-padding: 16; }
-.workspace-theme .welcome-title { -fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: -text-primary; }
-.workspace-theme .welcome-description { -fx-font-size: 14; -fx-text-fill: -text-muted; }
-.workspace-theme .feature-title { -fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: -text-primary; }
-.workspace-theme .button.feature-card { -fx-alignment: CENTER_LEFT; -fx-padding: 16 4; -fx-background-color: transparent; -fx-background-radius: 0; -fx-border-radius: 0; -fx-border-width: 0 0 1 0; -fx-min-height: 78; }
-.workspace-theme .button.feature-card:hover { -fx-background-color: -ui-row-hover; }
-.workspace-theme .button.feature-card:focused { -fx-border-width: 1; -fx-border-color: -focus; }
-.workspace-theme .feature-icon { -fx-icon-color: -accent-text; }
+.workspace-theme .header, .workspace-theme .glass-toolbar,
+.workspace-theme .workspace-glass-header {
+    -fx-background-color: -glass-highlight, -glass-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 18, 17;
+    -fx-border-width: 0;
+    -fx-padding: 7 12;
+    -fx-min-height: 52;
+    -fx-pref-height: 52;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,.06), 8, 0, 0, 2);
+}
+.workspace-theme .glass-surface {
+    -fx-background-color: -glass-highlight, -glass-surface;
+    -fx-background-insets: 0, 1;
+    -fx-background-radius: 18, 17;
+    -fx-border-width: 0;
+}
+.workspace-theme .app-page, .workspace-theme .scroll-pane,
+.workspace-theme .scroll-pane > .viewport, .workspace-theme .tab-pane,
+.workspace-theme .tab-content-area { -fx-background-color: transparent; }
+.workspace-theme .app-page { -fx-font-size: 14; -fx-min-width: 0; -fx-min-height: 0; }
+.workspace-theme .workspace-sheet, .workspace-theme.workspace-sheet {
+    -fx-background-color: -bg-secondary;
+    -fx-background-radius: 18;
+    -fx-border-color: -border-color;
+    -fx-border-width: 1;
+    -fx-border-radius: 18;
+    -fx-padding: 20;
+    -fx-effect: null;
+}
+.workspace-theme .card, .workspace-theme .surface, .workspace-theme .copy-card,
+.workspace-theme .news-card, .workspace-theme .guide-section,
+.workspace-theme .gtin-inventory-card, .workspace-theme .supply-detail {
+    -fx-background-color: -bg-secondary;
+    -fx-background-radius: 18;
+    -fx-border-color: -border-color;
+    -fx-border-width: 1;
+    -fx-border-radius: 18;
+    -fx-padding: 16;
+    -fx-effect: null;
+}
+.workspace-theme .workspace-sheet .workspace-sheet { -fx-padding: 0; -fx-border-width: 0; }
+.workspace-theme .workspace-toolbar, .workspace-theme .filter-bar {
+    -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 4 0;
+}
+.workspace-theme .workspace-toolbar { -fx-min-height: 36; }
+.workspace-theme .workspace-batch-footer, .workspace-theme .selection-action-bar,
+.workspace-theme .products-bulk, .workspace-theme #productsPane .products-bulk,
+.workspace-theme#productsPane .products-bulk {
+    -fx-background-color: -bg-secondary; -fx-background-radius: 0;
+    -fx-border-color: -border-color transparent transparent transparent;
+    -fx-border-width: 1 0 0 0; -fx-border-radius: 0;
+    -fx-padding: 9 0 0 0; -fx-min-height: 52; -fx-effect: null;
+}
+.workspace-theme .workspace-list-footer { -fx-padding: 6 0 0 0; }
+.workspace-theme .selection-count { -fx-text-fill: -accent-text; -fx-font-weight: bold; }
 
-/* Stable bounds across focus/hover; all normal controls share the same rhythm. */
+/* Stable dimensions across hover, pressed and keyboard focus. */
 .workspace-theme .button, .workspace-theme .menu-button, .workspace-theme .toggle-button {
-    -fx-background-color: -ui-control; -fx-background-radius: 6; -fx-border-radius: 6;
-    -fx-border-color: -border-color; -fx-border-width: 1;
-    -fx-padding: 7 11; -fx-min-height: 36; -fx-font-size: 13; -fx-font-weight: normal;
-    -fx-text-fill: -text-primary; -fx-effect: null; -fx-cursor: hand;
+    -fx-background-color: -ui-control; -fx-background-insets: 0;
+    -fx-background-radius: 10; -fx-border-radius: 10;
+    -fx-border-color: -ui-input-border; -fx-border-width: 1;
+    -fx-padding: 6 11; -fx-min-height: 34;
+    -fx-font-size: 13; -fx-font-weight: normal; -fx-text-fill: -text-primary;
+    -fx-effect: null; -fx-cursor: hand;
 }
 .workspace-theme .menu-button > .label { -fx-padding: 0; -fx-text-fill: -text-primary; }
-.workspace-theme .button:hover, .workspace-theme .menu-button:hover, .workspace-theme .toggle-button:hover { -fx-background-color: -ui-control-hover; }
-.workspace-theme .button:pressed, .workspace-theme .menu-button:pressed { -fx-background-color: -bg-tertiary; }
-.workspace-theme .button:disabled, .workspace-theme .menu-button:disabled { -fx-opacity: .52; }
-.workspace-theme .button.btn-primary, .workspace-theme .button.accent, .workspace-theme .sidebar .button.add-shop {
-    -fx-background-color: -accent; -fx-border-color: transparent; -fx-text-fill: white; -fx-font-weight: bold;
+.workspace-theme .button:hover, .workspace-theme .menu-button:hover,
+.workspace-theme .toggle-button:hover { -fx-background-color: -ui-control-hover; }
+.workspace-theme .button:pressed, .workspace-theme .menu-button:pressed,
+.workspace-theme .toggle-button:pressed { -fx-background-color: -ui-control-pressed; }
+.workspace-theme .toggle-button:selected { -fx-background-color: -ui-selected; -fx-text-fill: -accent-text; }
+.workspace-theme .button:disabled, .workspace-theme .menu-button:disabled,
+.workspace-theme .toggle-button:disabled { -fx-opacity: 1; -fx-background-color: -bg-tertiary; -fx-border-color: -border-color; -fx-text-fill: -text-muted; -fx-cursor: default; }
+.workspace-theme .button:disabled .ikonli-font-icon { -fx-icon-color: -text-muted; }
+.workspace-theme .button.btn-primary, .workspace-theme .button.accent,
+.workspace-theme .sidebar .button.add-shop {
+    -fx-background-color: -accent; -fx-border-color: transparent;
+    -fx-text-fill: -on-accent; -fx-font-weight: bold;
 }
-.workspace-theme .button.btn-primary:hover, .workspace-theme .button.accent:hover, .workspace-theme .sidebar .button.add-shop:hover { -fx-background-color: -accent-hover; }
-.workspace-theme .button.btn-primary:pressed { -fx-background-color: -accent-active; }
-.workspace-theme .button.btn-success { -fx-background-color: -success-fill; -fx-text-fill: white; -fx-border-color: transparent; }
-.workspace-theme .button.btn-danger { -fx-background-color: -danger-fill; -fx-text-fill: white; -fx-border-color: transparent; }
-.workspace-theme .button.btn-warning { -fx-background-color: -warning-fill; -fx-text-fill: #18202b; -fx-border-color: transparent; }
-.workspace-theme .button.btn-primary .ikonli-font-icon, .workspace-theme .button.btn-danger .ikonli-font-icon,
-.workspace-theme .button.btn-success .ikonli-font-icon, .workspace-theme .sidebar .add-shop .ikonli-font-icon { -fx-icon-color: white; }
-.workspace-theme .btn-icon { -fx-min-width: 38; -fx-min-height: 38; -fx-padding: 6; -fx-background-radius: 10; -fx-border-radius: 10; }
-.workspace-theme .button:focused, .workspace-theme .menu-button:focused, .workspace-theme .toggle-button:focused { -fx-border-color: -focus; }
-.workspace-theme .button.btn-primary:focused, .workspace-theme .button.btn-success:focused, .workspace-theme .button.btn-danger:focused { -fx-border-color: -focus-primary; }
-.workspace-theme .hyperlink { -fx-text-fill: -accent-text; -fx-border-width: 2; -fx-border-color: transparent; }
+.workspace-theme .button.btn-primary:hover, .workspace-theme .button.accent:hover,
+.workspace-theme .sidebar .button.add-shop:hover { -fx-background-color: -accent-hover; }
+.workspace-theme .button.btn-primary:pressed, .workspace-theme .button.accent:pressed { -fx-background-color: -accent-active; }
+.workspace-theme .button.btn-success { -fx-background-color: -success-fill; -fx-text-fill: -on-semantic; -fx-border-color: transparent; }
+.workspace-theme .button.btn-success:hover { -fx-background-color: -success-hover; }
+.workspace-theme .button.btn-danger { -fx-background-color: -danger-fill; -fx-text-fill: -on-semantic; -fx-border-color: transparent; }
+.workspace-theme .button.btn-danger:hover { -fx-background-color: -danger-hover; }
+.workspace-theme .button.btn-warning { -fx-background-color: -warning-fill; -fx-text-fill: -on-warning; -fx-border-color: transparent; }
+.workspace-theme .button.btn-warning:hover { -fx-background-color: -warning-hover; }
+.workspace-theme .button .ikonli-font-icon { -fx-icon-color: -text-primary; }
+.workspace-theme .button.btn-primary .ikonli-font-icon, .workspace-theme .button.accent .ikonli-font-icon,
+.workspace-theme .sidebar .add-shop .ikonli-font-icon { -fx-icon-color: -on-accent; }
+.workspace-theme .button.btn-danger .ikonli-font-icon, .workspace-theme .button.btn-success .ikonli-font-icon { -fx-icon-color: -on-semantic; }
+.workspace-theme .button.btn-warning .ikonli-font-icon { -fx-icon-color: -on-warning; }
+.workspace-theme .btn-icon { -fx-min-width: 34; -fx-min-height: 34; -fx-padding: 6; }
+.workspace-theme .button:focused, .workspace-theme .menu-button:focused,
+.workspace-theme .toggle-button:focused { -fx-border-color: -focus; }
+.workspace-theme .button.btn-primary:focused { -fx-border-color: -focus-primary; }
+.workspace-theme .button.btn-success:focused, .workspace-theme .button.btn-danger:focused { -fx-border-color: white; }
+.workspace-theme .button.btn-sync:disabled { -fx-opacity: 1; -fx-background-color: -ui-selected; -fx-text-fill: -text-primary; }
+.workspace-theme .button.btn-sync:disabled .ikonli-font-icon { -fx-icon-color: -accent-text; }
+.workspace-theme .hyperlink { -fx-text-fill: -accent-text; -fx-border-width: 1; -fx-border-color: transparent; }
 .workspace-theme .hyperlink:focused { -fx-border-color: -focus; }
 
-/* Navigation remains quieter than the seller's active work. */
+/* Shared shell: the store selector stays readable on every material setting. */
+.workspace-theme .header .button, .workspace-theme .header .menu-button {
+    -fx-background-color: transparent; -fx-border-color: transparent;
+}
+.workspace-theme .header .button:hover, .workspace-theme .header .menu-button:hover { -fx-background-color: -ui-control-hover; }
+.workspace-theme .header .button:focused, .workspace-theme .header .menu-button:focused { -fx-border-color: -focus; }
+.workspace-theme .header .button.btn-primary { -fx-background-color: -accent; -fx-text-fill: -on-accent; }
+.workspace-theme .header #deleteShopButton .ikonli-font-icon { -fx-icon-color: -danger; }
+.workspace-theme .header .btn-icon { -fx-min-width: 34; -fx-min-height: 34; -fx-padding: 6; }
+.workspace-theme .sidebar .sidebar-brand { -fx-padding: 2 7 12 7; }
+.workspace-theme .sidebar .sidebar-brand .label { -fx-font-size: 20; -fx-font-weight: bold; }
+.workspace-theme .sidebar .nav-section { -fx-font-size: 12; -fx-font-weight: normal; -fx-text-fill: -text-muted; -fx-padding: 14 9 5 9; }
 .workspace-theme .sidebar .button.nav-item, .workspace-theme .sidebar .menu-button {
-    -fx-background-color: transparent; -fx-border-color: transparent; -fx-font-size: 13;
-    -fx-font-weight: normal; -fx-text-fill: -text-secondary; -fx-padding: 6 10;
+    -fx-background-color: transparent; -fx-border-color: transparent;
+    -fx-font-size: 13; -fx-font-weight: normal; -fx-text-fill: -text-secondary;
+    -fx-padding: 6 10; -fx-min-height: 36; -fx-pref-height: 36;
+    -fx-alignment: CENTER_LEFT;
 }
 .workspace-theme .sidebar .button.nav-item:hover, .workspace-theme .sidebar .menu-button:hover { -fx-background-color: -ui-row-hover; }
-.workspace-theme .sidebar .button.nav-selected { -fx-background-color: -ui-selected; -fx-border-color: transparent; -fx-text-fill: -accent-text; -fx-font-weight: bold; }
+.workspace-theme .sidebar .button.nav-selected {
+    -fx-background-color: -nav-selected; -fx-border-color: transparent;
+    -fx-text-fill: -text-primary; -fx-font-weight: bold;
+}
 .workspace-theme .sidebar .button.nav-selected .ikonli-font-icon { -fx-icon-color: -accent-text; }
 .workspace-theme .sidebar .button:focused, .workspace-theme .sidebar .menu-button:focused { -fx-border-color: -focus; }
 .workspace-theme .sidebar.sidebar-compact .button, .workspace-theme .sidebar.sidebar-compact .menu-button { -fx-alignment: CENTER; -fx-padding: 6; }
+.workspace-theme .sidebar .sidebar-footer { -fx-border-color: -border-color transparent transparent transparent; -fx-border-width: 1 0 0 0; -fx-padding: 10 0 0 0; }
+.workspace-theme .sidebar #editionStatusLabel { -fx-font-size: 11; -fx-text-fill: -text-muted; }
 .workspace-theme .sidebar-tools > .title { -fx-padding: 6 10; -fx-background-color: transparent; }
 .workspace-theme .sidebar-tools > .title > .text { -fx-fill: -text-muted; }
 .workspace-theme .sidebar-tools > .content { -fx-background-color: transparent; -fx-border-width: 0; }
 
-/* Fields, dates and spinners use the same readable popup/control family. */
-.workspace-theme .text-input, .workspace-theme .combo-box-base, .workspace-theme .choice-box, .workspace-theme .spinner {
-    -fx-background-color: -ui-field; -fx-background-radius: 6; -fx-border-radius: 6;
-    -fx-border-color: -ui-input-border; -fx-border-width: 1; -fx-padding: 6 10;
-    -fx-min-height: 34; -fx-font-size: 13; -fx-text-fill: -text-primary; -fx-prompt-text-fill: -text-muted;
-    -fx-highlight-fill: -accent; -fx-highlight-text-fill: white;
+/* Inputs and all native form widgets. Text selection uses the action's ink. */
+.workspace-theme .text-input, .workspace-theme .combo-box-base,
+.workspace-theme .choice-box, .workspace-theme .spinner {
+    -fx-background-color: -ui-field; -fx-background-insets: 0;
+    -fx-background-radius: 10; -fx-border-radius: 10;
+    -fx-border-color: -ui-input-border; -fx-border-width: 1;
+    -fx-padding: 6 10; -fx-min-height: 36; -fx-font-size: 14;
+    -fx-text-fill: -text-primary; -fx-prompt-text-fill: -text-muted;
+    -fx-highlight-fill: -accent; -fx-highlight-text-fill: -on-accent;
 }
-.workspace-theme .text-input:focused, .workspace-theme .combo-box-base:focused, .workspace-theme .choice-box:focused,
-.workspace-theme .date-picker:focused, .workspace-theme .spinner:focused { -fx-border-color: -focus; -fx-effect: innershadow(gaussian,-focus,1,1,0,0); }
-.workspace-theme .text-input:error { -fx-border-color: -danger; }
+.workspace-theme .text-input:focused, .workspace-theme .combo-box-base:focused,
+.workspace-theme .choice-box:focused, .workspace-theme .date-picker:focused,
+.workspace-theme .spinner:focused { -fx-border-color: -focus; -fx-effect: innershadow(gaussian,-focus,1,1,0,0); }
+.workspace-theme .text-input:error, .workspace-theme .text-input.error,
+.workspace-theme .combo-box-base:error { -fx-border-color: -danger; }
+.workspace-theme .text-input:disabled, .workspace-theme .combo-box-base:disabled,
+.workspace-theme .choice-box:disabled, .workspace-theme .spinner:disabled,
+.workspace-theme .check-box:disabled, .workspace-theme .radio-button:disabled { -fx-opacity: 1; -fx-text-fill: -text-muted; }
 .workspace-theme .settings-readonly { -fx-text-fill: -text-secondary; }
-.workspace-theme .combo-box > .list-cell { -fx-padding: 0; -fx-text-fill: -text-primary; }
+.workspace-theme .combo-box > .list-cell { -fx-padding: 0; -fx-text-fill: -text-primary; -fx-background-color: transparent; -fx-border-width: 0; }
 .workspace-theme .combo-box > .list-cell:selected, .workspace-theme .combo-box > .list-cell:hover { -fx-background-color: transparent; }
 .workspace-theme .date-picker, .workspace-theme .spinner { -fx-padding: 0; }
-.workspace-theme .date-picker > .text-field, .workspace-theme .spinner > .text-field { -fx-border-color: transparent; }
-.workspace-theme .arrow-button, .workspace-theme .increment-arrow-button, .workspace-theme .decrement-arrow-button { -fx-background-color: transparent; }
-.workspace-theme .arrow, .workspace-theme .increment-arrow, .workspace-theme .decrement-arrow { -fx-background-color: -text-secondary; }
-.workspace-theme .text-area .content, .workspace-theme .text-area .viewport { -fx-background-color: -ui-field; }
-.workspace-theme .context-menu, .workspace-theme .combo-box-popup .list-view, .workspace-theme .date-picker-popup {
-    -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-background-radius: 8; -fx-border-radius: 8;
+.workspace-theme .date-picker > .text-field, .workspace-theme .spinner > .text-field { -fx-border-color: transparent; -fx-background-radius: 10; }
+.workspace-theme .arrow-button, .workspace-theme .increment-arrow-button,
+.workspace-theme .decrement-arrow-button { -fx-background-color: transparent; }
+.workspace-theme .arrow, .workspace-theme .increment-arrow,
+.workspace-theme .decrement-arrow { -fx-background-color: -text-secondary; }
+.workspace-theme .text-area .content, .workspace-theme .text-area .viewport { -fx-background-color: -ui-field; -fx-background-radius: 10; }
+.workspace-theme .check-box, .workspace-theme .radio-button { -fx-text-fill: -text-primary; -fx-font-size: 14; }
+.workspace-theme .check-box > .box, .workspace-theme .radio-button > .radio {
+    -fx-background-color: -ui-field; -fx-border-color: -ui-input-border; -fx-border-width: 1;
+    -fx-padding: 3; -fx-min-width: 18; -fx-min-height: 18;
 }
-.workspace-theme .context-menu .menu-item:focused, .workspace-theme .combo-box-popup .list-cell:selected { -fx-background-color: -ui-selected; }
-.workspace-theme .context-menu .label, .workspace-theme .combo-box-popup .list-cell { -fx-text-fill: -text-primary; }
-.workspace-theme .check-box, .workspace-theme .radio-button { -fx-text-fill: -text-primary; -fx-font-size: 13; }
-.workspace-theme .check-box > .box, .workspace-theme .radio-button > .radio { -fx-background-color: -ui-field; -fx-border-color: -ui-input-border; -fx-border-width: 1; -fx-padding: 3; -fx-min-width: 19; -fx-min-height: 19; }
-.workspace-theme .check-box > .box { -fx-background-radius: 4; -fx-border-radius: 4; }
+.workspace-theme .check-box > .box { -fx-background-radius: 5; -fx-border-radius: 5; }
 .workspace-theme .radio-button > .radio { -fx-background-radius: 999; -fx-border-radius: 999; }
 .workspace-theme .check-box:selected > .box, .workspace-theme .check-box:indeterminate > .box { -fx-background-color: -accent; -fx-border-color: -accent; }
-.workspace-theme .check-box:selected .mark, .workspace-theme .check-box:indeterminate .mark { -fx-background-color: white; }
+.workspace-theme .check-box:selected .mark, .workspace-theme .check-box:indeterminate .mark { -fx-background-color: -on-accent; }
 .workspace-theme .radio-button:selected .dot { -fx-background-color: -accent; }
-.workspace-theme .check-box:focused > .box, .workspace-theme .radio-button:focused > .radio { -fx-border-color: -focus; -fx-effect: dropshadow(gaussian,-focus,2,1,0,0); }
+.workspace-theme .check-box:focused > .box, .workspace-theme .radio-button:focused > .radio { -fx-border-color: -focus; }
+.workspace-theme .slider .track { -fx-background-color: -border-color-hover; -fx-background-radius: 3; -fx-pref-height: 4; }
+.workspace-theme .slider .thumb { -fx-background-color: -accent; -fx-background-radius: 999; -fx-padding: 8; }
+.workspace-theme .slider:focused .thumb { -fx-border-color: -focus; -fx-border-radius: 999; }
+.workspace-theme .progress-bar > .track { -fx-background-color: -bg-tertiary; -fx-background-radius: 6; }
+.workspace-theme .progress-bar > .bar { -fx-background-color: -accent; -fx-background-radius: 6; -fx-background-insets: 0; }
+.workspace-theme .progress-indicator { -fx-progress-color: -accent; }
 
-/* Virtualized data, meaningful states and restrained tabs. */
-.workspace-theme .table-view, .workspace-theme .list-view, .workspace-theme .tree-table-view {
-    -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-border-width: 1;
-    -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 1;
+/* Popup surfaces use the same palette even when JavaFX creates a new scene. */
+.context-menu, .workspace-theme.context-menu,
+.combo-box-popup .list-view, .workspace-theme.combo-box-popup .list-view,
+.date-picker-popup, .workspace-theme.date-picker-popup {
+    -fx-background-color: -glass-highlight, -glass-elevated;
+    -fx-background-insets: 0, 1; -fx-background-radius: 14, 13;
+    -fx-border-width: 0; -fx-padding: 5;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,.14), 18, 0, 0, 5);
 }
-.workspace-theme .table-view .column-header-background { -fx-background-color: -ui-table-header; -fx-background-radius: 8 8 0 0; }
-.workspace-theme .table-view .column-header { -fx-background-color: transparent; -fx-size: 42; }
-.workspace-theme .table-view .column-header .label { -fx-font-size: 12; -fx-text-fill: -text-secondary; -fx-font-weight: bold; -fx-padding: 8; }
-.workspace-theme .table-row-cell, .workspace-theme .table-row-cell:odd, .workspace-theme .list-cell { -fx-background-color: transparent; -fx-text-fill: -text-primary; }
-.workspace-theme .table-row-cell:filled:hover, .workspace-theme .list-cell:filled:hover { -fx-background-color: -ui-row-hover; }
-.workspace-theme .table-row-cell:filled:selected, .workspace-theme .list-cell:filled:selected { -fx-background-color: -ui-selected; }
-.workspace-theme .table-cell { -fx-padding: 6 10; -fx-font-size: 13; -fx-text-fill: -text-primary; -fx-border-color: transparent transparent -border-color transparent; -fx-border-width: 0 0 1 0; -fx-alignment: CENTER_LEFT; }
-.workspace-theme .table-view:focused, .workspace-theme .list-view:focused { -fx-border-color: -focus; }
-.workspace-theme .table-row-cell:focused { -fx-border-color: -focus; -fx-border-insets: 0; }
-.workspace-theme .tab-pane > .tab-header-area { -fx-padding: 0 0 6 0; }
-.workspace-theme .tab-pane > .tab-header-area > .tab-header-background { -fx-background-color: transparent; }
-.workspace-theme .tab-pane > .tab-header-area > .headers-region > .tab { -fx-background-color: transparent; -fx-background-radius: 0; -fx-padding: 8 12; -fx-border-color: transparent; -fx-border-width: 0 0 2 0; }
+.context-menu .menu-item { -fx-background-color: transparent; -fx-background-radius: 8; -fx-padding: 7 11; }
+.context-menu .menu-item:focused, .context-menu .menu-item:hover,
+.combo-box-popup .list-cell:filled:selected, .combo-box-popup .list-cell:filled:hover { -fx-background-color: -ui-selected; }
+.context-menu .label, .combo-box-popup .list-cell { -fx-text-fill: -text-primary; -fx-font-size: 13; }
+.combo-box-popup .list-cell { -fx-background-color: transparent; -fx-padding: 8 11; -fx-background-radius: 8; -fx-border-width: 0; }
+.combo-box-popup .list-cell.certificate-valid { -fx-text-fill: -success; }
+.combo-box-popup .list-cell.certificate-expired { -fx-text-fill: -danger; }
+.context-menu .separator .line { -fx-border-color: -border-color; -fx-border-width: 1 0 0 0; }
+.date-picker-popup > .month-year-pane { -fx-background-color: transparent; }
+.date-picker-popup .day-cell { -fx-background-color: -bg-secondary; -fx-text-fill: -text-primary; -fx-border-color: transparent; }
+.date-picker-popup .day-cell:hover, .date-picker-popup .selected { -fx-background-color: -ui-selected; -fx-text-fill: -text-primary; }
+.date-picker-popup .today { -fx-border-color: -accent; -fx-border-radius: 5; }
+.tooltip, .workspace-theme.tooltip {
+    -fx-background-color: -bg-tertiary; -fx-text-fill: -text-primary;
+    -fx-background-radius: 8; -fx-font-family: "Inter"; -fx-font-size: 12;
+    -fx-padding: 7 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,.12), 10, 0, 0, 3);
+}
+
+/* Every virtualized working surface is opaque and has no per-row effects. */
+.workspace-theme .table-view, .workspace-theme .list-view,
+.workspace-theme .tree-view, .workspace-theme .tree-table-view {
+    -fx-background-color: -bg-secondary; -fx-control-inner-background: -bg-secondary;
+    -fx-border-color: -border-color; -fx-border-width: 1;
+    -fx-background-radius: 18; -fx-border-radius: 18; -fx-padding: 1;
+    -fx-effect: null;
+}
+.workspace-theme .workspace-sheet .table-view, .workspace-theme .workspace-sheet .list-view,
+.workspace-theme .workspace-sheet .tree-table-view, .workspace-theme .workspace-sheet .tree-view {
+    -fx-border-width: 0; -fx-padding: 0; -fx-background-radius: 0; -fx-border-radius: 0;
+}
+.workspace-theme .table-view .column-header-background,
+.workspace-theme .tree-table-view .column-header-background {
+    -fx-background-color: -ui-table-header; -fx-background-radius: 0;
+    -fx-border-color: -border-color transparent -border-color transparent; -fx-border-width: 1 0 1 0;
+}
+.workspace-theme .table-view .column-header, .workspace-theme .tree-table-view .column-header,
+.workspace-theme .table-view .filler, .workspace-theme .tree-table-view .filler { -fx-background-color: transparent; -fx-size: 36; -fx-border-width: 0; }
+.workspace-theme .table-view .column-header .label, .workspace-theme .tree-table-view .column-header .label {
+    -fx-font-size: 13; -fx-text-fill: -text-secondary; -fx-font-weight: normal;
+    -fx-padding: 7 10; -fx-alignment: CENTER_LEFT;
+}
+.workspace-theme .table-row-cell, .workspace-theme .table-row-cell:odd,
+.workspace-theme .tree-table-row-cell, .workspace-theme .list-cell, .workspace-theme .tree-cell {
+    -fx-background-color: -bg-secondary; -fx-text-fill: -text-primary;
+    -fx-border-width: 0; -fx-effect: null;
+}
+.workspace-theme .table-row-cell:filled:hover, .workspace-theme .list-cell:filled:hover,
+.workspace-theme .tree-cell:filled:hover, .workspace-theme .tree-table-row-cell:filled:hover { -fx-background-color: -ui-row-hover; }
+.workspace-theme .table-row-cell:filled:selected, .workspace-theme .list-cell:filled:selected,
+.workspace-theme .tree-cell:filled:selected, .workspace-theme .tree-table-row-cell:filled:selected { -fx-background-color: -ui-selected; -fx-border-width: 0; }
+.workspace-theme .table-cell, .workspace-theme .tree-table-cell {
+    -fx-padding: 7 10; -fx-font-size: 14; -fx-text-fill: -text-primary;
+    -fx-border-color: transparent transparent -row-rule transparent; -fx-border-width: 0 0 1 0;
+    -fx-alignment: CENTER_LEFT;
+}
+.workspace-theme .table-view:focused, .workspace-theme .list-view:focused,
+.workspace-theme .tree-view:focused, .workspace-theme .tree-table-view:focused { -fx-border-color: -focus; }
+.workspace-theme .table-view:focused .table-row-cell:focused, .workspace-theme .tree-table-view:focused .tree-table-row-cell:focused { -fx-border-color: -focus; -fx-border-width: 1; -fx-border-insets: 0; }
+.workspace-theme .table-row-cell:empty, .workspace-theme .table-row-cell:empty .table-cell,
+.workspace-theme .list-cell:empty { -fx-border-width: 0; }
+.workspace-theme .dense-data-table .table-row-cell { -fx-cell-size: 44; }
+.workspace-theme .dense-data-list .list-cell { -fx-cell-size: -1; -fx-min-height: 70; }
+.workspace-theme #productRows .list-cell {
+    -fx-padding: 4 10; -fx-cell-size: -1; -fx-min-height: 70;
+    -fx-border-color: transparent transparent -row-rule transparent; -fx-border-width: 0 0 1 0;
+}
+.workspace-theme #productRows .list-cell:empty { -fx-border-width: 0; }
+.workspace-theme #productRows { -fx-background-radius: 18; -fx-border-radius: 18; -fx-padding: 0; }
+.workspace-theme .ozon-fbs-workspace .ozon-posting-table .table-row-cell,
+.workspace-theme .supply-detail #orderTable .table-row-cell,
+.workspace-theme #newOrdersTable .table-row-cell, .workspace-theme #packingOrdersTable .table-row-cell,
+.workspace-theme #printedOrdersTable .table-row-cell, .workspace-theme #deliveringOrdersTable .table-row-cell,
+.workspace-theme #productTable .table-row-cell, .workspace-theme #orderTable .table-row-cell {
+    -fx-cell-size: -1; -fx-min-height: 70;
+}
+.workspace-theme .app-page.ozon-fbs-workspace .ozon-posting-table .column-header,
+.workspace-theme.app-page.ozon-fbs-workspace .ozon-posting-table .column-header,
+.workspace-theme .supply-detail #orderTable .column-header { -fx-pref-height: 36; }
+.workspace-theme .app-page.ozon-fbs-workspace .ozon-posting-table,
+.workspace-theme.app-page.ozon-fbs-workspace .ozon-posting-table,
+.workspace-theme .supply-detail #orderTable { -fx-background-radius: 18; -fx-border-radius: 18; }
+.workspace-theme .ozon-posting-table .table-cell .label { -fx-font-size: 13; }
+.workspace-theme .ozon-posting-table .table-cell .text-bold { -fx-font-size: 14; }
+.workspace-theme .registration-reference .table-row-cell,
+.workspace-theme.registration-reference .table-row-cell { -fx-cell-size: -1; -fx-min-height: 70; }
+.workspace-theme .registration-reference .table-cell,
+.workspace-theme.registration-reference .table-cell { -fx-font-size: 14; }
+.workspace-theme .registration-reference .table-cell .label,
+.workspace-theme.registration-reference .table-cell .label { -fx-font-size: 13; }
+.workspace-theme .registration-reference .table-cell .button,
+.workspace-theme.registration-reference .table-cell .button { -fx-font-size: 13; -fx-min-height: 32; -fx-padding: 5 8; }
+.workspace-theme .finance-money-column { -fx-alignment: CENTER_RIGHT; }
+
+/* Tabs stay on a single quiet rule. The selected underline carries the action hue. */
+.workspace-theme .tab-pane > .tab-header-area { -fx-padding: 0 0 10 0; }
+.workspace-theme .tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: transparent; -fx-border-color: transparent transparent -border-color transparent; -fx-border-width: 0 0 1 0;
+}
+.workspace-theme .tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent; -fx-background-radius: 0;
+    -fx-padding: 8 12; -fx-border-color: transparent; -fx-border-width: 0 0 2 0;
+}
 .workspace-theme .tab-pane > .tab-header-area > .headers-region > .tab:selected { -fx-border-color: -accent-text; -fx-background-color: transparent; }
-.workspace-theme .tab .tab-label { -fx-font-size: 13; -fx-text-fill: -text-secondary; }
-.workspace-theme .tab:selected .tab-label { -fx-font-weight: bold; -fx-text-fill: -text-primary; }
-.workspace-theme .packing-tabs > .tab-header-area > .headers-region > .tab:selected .tab-label { -fx-text-fill: -text-primary; }
+.workspace-theme .tab .tab-label { -fx-font-size: 13; -fx-font-weight: normal; -fx-text-fill: -text-secondary; }
+.workspace-theme .tab:selected .tab-label,
+.workspace-theme .packing-tabs > .tab-header-area > .headers-region > .tab:selected .tab-label { -fx-font-weight: bold; -fx-text-fill: -text-primary; }
 .workspace-theme .tab-pane:focused .tab:selected .focus-indicator { -fx-border-color: -focus; -fx-border-width: 1; }
+.workspace-theme .workspace-tab-strip { -fx-border-color: transparent transparent -border-color transparent; -fx-border-width: 0 0 1 0; -fx-padding: 0; }
+.workspace-theme .packing-tabs { -fx-border-width: 0; -fx-padding: 0; -fx-background-color: transparent; }
+.workspace-theme .packing-tabs > .tab-content-area { -fx-padding: 0; }
 .workspace-theme .scroll-bar { -fx-background-color: transparent; }
 .workspace-theme .scroll-bar:vertical { -fx-pref-width: 12; }
 .workspace-theme .scroll-bar:horizontal { -fx-pref-height: 12; }
@@ -227,82 +465,199 @@
 .workspace-theme .scroll-bar .thumb:hover { -fx-background-color: -text-muted; }
 .workspace-theme .scroll-bar .increment-button, .workspace-theme .scroll-bar .decrement-button { -fx-padding: 0; }
 .workspace-theme .scroll-bar .increment-arrow, .workspace-theme .scroll-bar .decrement-arrow { -fx-shape: ""; -fx-padding: 0; }
-.workspace-theme .titled-pane > .title { -fx-background-color: -ui-table-header; -fx-background-radius: 7; -fx-padding: 8 10; }
+.workspace-theme .titled-pane > .title { -fx-background-color: -bg-tertiary; -fx-background-radius: 10; -fx-padding: 9 12; }
 .workspace-theme .titled-pane > .title > .text { -fx-fill: -text-primary; }
 .workspace-theme .titled-pane > .content { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; }
-.workspace-theme .dialog-pane { -fx-background-color: -bg-primary; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 16; }
-.workspace-theme .dialog-pane > .header-panel { -fx-background-color: -bg-secondary; -fx-padding: 12; }
-.workspace-theme .dialog-pane > .button-bar { -fx-padding: 12 0 0 0; }
-.workspace-theme .task-status-pill { -fx-background-color: -ui-table-header; -fx-border-color: -border-color; -fx-border-width: 1; -fx-background-radius: 8; -fx-border-radius: 8; -fx-padding: 8 12; -fx-effect: null; }
+
+/* Dialog content is solid; overlay material is confined to the surrounding chrome. */
+.workspace-theme.dialog-pane, .workspace-theme .dialog-pane {
+    -fx-background-color: -bg-secondary; -fx-background-radius: 18;
+    -fx-border-color: -border-color; -fx-border-width: 1; -fx-border-radius: 18; -fx-padding: 18;
+}
+.workspace-theme .app-dialog-pane > .content, .workspace-theme .dialog-content { -fx-background-color: -bg-secondary; }
+.workspace-theme.dialog-pane > .header-panel, .workspace-theme .dialog-pane > .header-panel {
+    -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0 0 14 0;
+}
+.workspace-theme.dialog-pane > .header-panel .label, .workspace-theme .dialog-pane > .header-panel .label { -fx-font-size: 20; -fx-font-weight: bold; }
+.workspace-theme.dialog-pane > .button-bar, .workspace-theme .dialog-pane > .button-bar { -fx-padding: 14 0 0 0; }
+.workspace-theme.dialog-pane > .button-bar > .container,
+.workspace-theme .dialog-pane > .button-bar > .container { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
+.workspace-theme .glass-overlay { -fx-background-color: -glass-elevated; -fx-background-radius: 18; -fx-padding: 18; }
+.workspace-theme .detail-drawer {
+    -fx-background-color: -bg-secondary; -fx-background-radius: 18;
+    -fx-border-color: -border-color; -fx-border-width: 1; -fx-border-radius: 18; -fx-padding: 18;
+}
+.workspace-theme .detail-drawer .text-area { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
+.workspace-theme .detail-drawer .text-area .content { -fx-background-color: -bg-secondary; }
+.workspace-theme .detail-group { -fx-padding: 0 2 14 0; -fx-border-color: -border-color; -fx-border-width: 0 0 1 0; }
+.workspace-theme .detail-drawer .label:focused { -fx-underline: true; }
+
+/* Status retains written meaning and contrast; marketplace colours never repaint a page. */
+.workspace-theme .badge, .workspace-theme .membership-badge { -fx-background-radius: 6; -fx-padding: 3 6; -fx-font-size: 12; -fx-font-weight: normal; }
 .workspace-theme .badge-green, .workspace-theme .membership-badge { -fx-background-color: -success-surface; -fx-text-fill: -success; }
 .workspace-theme .badge-red, .workspace-theme .membership-badge.error { -fx-background-color: -danger-surface; -fx-text-fill: -danger; }
 .workspace-theme .badge-warning, .workspace-theme .membership-badge.warning { -fx-background-color: -warning-surface; -fx-text-fill: -warning; }
 .workspace-theme .badge-gray, .workspace-theme .membership-badge.unknown { -fx-background-color: -bg-tertiary; -fx-text-fill: -text-secondary; }
+.workspace-theme .task-status-pill { -fx-background-color: -bg-tertiary; -fx-border-width: 0; -fx-background-radius: 10; -fx-padding: 8 12; -fx-effect: null; }
+.workspace-theme .info-banner { -fx-background-color: -ui-selected; -fx-border-color: -border-color; -fx-background-radius: 10; -fx-border-radius: 10; }
+.workspace-theme .product-issue-chip, .workspace-theme #productsPane .product-issue-chip,
+.workspace-theme#productsPane .product-issue-chip {
+    -fx-background-color: -warning-surface; -fx-text-fill: -warning;
+    -fx-border-color: transparent; -fx-background-radius: 8; -fx-border-radius: 8;
+    -fx-font-size: 13; -fx-min-height: 28; -fx-padding: 4 9;
+}
+.workspace-theme .product-issue-chip:selected, .workspace-theme #productsPane .product-issue-chip:selected,
+.workspace-theme#productsPane .product-issue-chip:selected { -fx-background-color: -warning-surface; -fx-border-color: -warning; -fx-text-fill: -warning; }
 .workspace-theme .gs1-readiness-dot { -fx-background-radius: 999; -fx-min-width: 10; -fx-pref-width: 10; -fx-max-width: 10; -fx-min-height: 10; -fx-pref-height: 10; -fx-max-height: 10; }
 .workspace-theme .gs1-readiness-dot.ready { -fx-background-color: -success; }
 .workspace-theme .gs1-readiness-dot.error { -fx-background-color: -danger; }
 .workspace-theme .gs1-readiness-dot.unknown { -fx-background-color: -text-muted; }
+.workspace-theme .kiz-category-icon-primary .ikonli-font-icon { -fx-icon-color: -accent-text; }
+.workspace-theme .kiz-category-icon-warning .ikonli-font-icon { -fx-icon-color: -warning; }
+.workspace-theme .kiz-category-icon-danger .ikonli-font-icon { -fx-icon-color: -danger; }
 
-/* Domain-specific typography; no separate per-page palette. */
-.workspace-theme #productsPane .product-name, .workspace-theme#productsPane .product-name { -fx-font-size: 14; }
-.workspace-theme #productsPane .products-bulk .button.btn-primary, .workspace-theme#productsPane .products-bulk .button.btn-primary { -fx-background-color: -ui-control; -fx-border-color: -border-color-hover; -fx-text-fill: -text-primary; }
-.workspace-theme #productsPane .products-bulk .button.btn-primary:focused, .workspace-theme#productsPane .products-bulk .button.btn-primary:focused { -fx-border-color: -focus; }
-.workspace-theme #productsPane .products-bulk .button.btn-primary .ikonli-font-icon, .workspace-theme#productsPane .products-bulk .button.btn-primary .ikonli-font-icon { -fx-icon-color: -text-primary; }
-.workspace-theme #productsPane .product-issue-chip, .workspace-theme#productsPane .product-issue-chip { -fx-background-color: -warning-surface; -fx-text-fill: -warning; -fx-border-color: transparent; -fx-background-radius: 6; -fx-border-radius: 6; }
-.workspace-theme #productsPane .product-issue-chip:selected, .workspace-theme#productsPane .product-issue-chip:selected { -fx-border-color: -warning; }
-.workspace-theme .registration-reference .table-row-cell, .workspace-theme.registration-reference .table-row-cell { -fx-cell-size: 71; }
-.workspace-theme .registration-reference .table-cell .button, .workspace-theme.registration-reference .table-cell .button { -fx-font-size: 13; -fx-min-height: 34; -fx-padding: 5 8; }
+/* Native domain refinements keep one typography and surface system. */
+.workspace-theme .product-row .label { -fx-font-size: 13; -fx-font-weight: normal; }
+.workspace-theme #productsPane .product-name, .workspace-theme#productsPane .product-name,
+.workspace-theme .product-row .product-name { -fx-font-size: 14; -fx-font-weight: bold; }
+.workspace-theme #productsPane .products-bulk .button.btn-primary,
+.workspace-theme#productsPane .products-bulk .button.btn-primary { -fx-background-color: -ui-control; -fx-border-color: -ui-input-border; -fx-text-fill: -text-primary; }
+.workspace-theme #productsPane .products-bulk .button.btn-primary:hover,
+.workspace-theme#productsPane .products-bulk .button.btn-primary:hover { -fx-background-color: -ui-control-hover; }
+.workspace-theme #productsPane .products-bulk .button.btn-primary .ikonli-font-icon,
+.workspace-theme#productsPane .products-bulk .button.btn-primary .ikonli-font-icon { -fx-icon-color: -text-primary; }
+.workspace-theme #productsPane .check-box:selected > .box,
+.workspace-theme#productsPane .check-box:selected > .box { -fx-background-color: -accent; -fx-border-color: -accent; }
+.workspace-theme #productsPane .check-box:selected > .box > .mark,
+.workspace-theme#productsPane .check-box:selected > .box > .mark { -fx-background-color: -on-accent; }
+.workspace-theme .welcome-body { -fx-background-color: transparent; -fx-padding: 20; }
+.workspace-theme .welcome-description { -fx-font-size: 14; -fx-text-fill: -text-muted; }
+.workspace-theme .feature-title { -fx-font-size: 14; -fx-font-weight: bold; }
+.workspace-theme .button.feature-card { -fx-alignment: CENTER_LEFT; -fx-padding: 16 4; -fx-background-color: transparent; -fx-background-radius: 0; -fx-border-radius: 0; -fx-border-width: 0 0 1 0; -fx-border-color: -border-color; -fx-min-height: 78; }
+.workspace-theme .button.feature-card:hover { -fx-background-color: -ui-row-hover; }
+.workspace-theme .button.feature-card:focused { -fx-border-width: 1; -fx-border-color: -focus; }
+.workspace-theme .feature-icon { -fx-icon-color: -accent-text; }
+.workspace-theme .feature-card .text-secondary { -fx-font-size: 13; -fx-text-fill: -text-muted; }
+.workspace-theme .welcome-news { -fx-border-color: transparent transparent transparent -border-color; -fx-border-width: 0 0 0 1; -fx-padding: 0 0 0 20; }
+.workspace-theme .welcome-news .news-card { -fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-radius: 0; -fx-background-radius: 0; }
+.workspace-theme .welcome-news .h2 { -fx-font-size: 16; }
 .workspace-theme .gs1-workspace .h2, .workspace-theme.gs1-workspace .h2 { -fx-font-size: 20; }
 .workspace-theme .gs1-workspace .feature-card .h2, .workspace-theme.gs1-workspace .feature-card .h2 { -fx-font-size: 16; }
+.workspace-theme .gs1-workspace .feature-card { -fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-background-radius: 0; -fx-border-radius: 0; }
 .workspace-theme #gs1WorkspaceSplit { -fx-background-color: transparent; -fx-padding: 0; }
 .workspace-theme #gs1WorkspaceSplit > .split-pane-divider { -fx-background-color: transparent; -fx-padding: 0 6; }
 .workspace-theme #basicSettingsCard .surface { -fx-padding: 0; -fx-border-width: 0; -fx-background-color: transparent; }
-.workspace-theme .app-page.ozon-fbs-workspace .ozon-posting-table .column-header,
-.workspace-theme.app-page.ozon-fbs-workspace .ozon-posting-table .column-header { -fx-pref-height: 44; }
-.workspace-theme .app-page.ozon-fbs-workspace .ozon-posting-table,
-.workspace-theme.app-page.ozon-fbs-workspace .ozon-posting-table,
-.workspace-theme .supply-detail #orderTable { -fx-background-radius: 8; -fx-border-radius: 8; }
 .workspace-theme .finance-filter-label { -fx-font-size: 12; }
+.workspace-theme .finance-kpi-card { -fx-border-width: 1; -fx-border-color: -border-color; -fx-padding: 16 18; }
+.workspace-theme .finance-kpi-card-cost, .workspace-theme .finance-kpi-card-danger { -fx-border-width: 1; }
 .workspace-theme .finance-kpi-value { -fx-font-size: 24; }
 .workspace-theme .finance-kpi-value-revenue { -fx-text-fill: -accent-text; }
 .workspace-theme #tnvedSuggestionChips .button { -fx-background-color: -ui-selected; -fx-border-color: -accent-text; }
 
-/* Approved 1.6.3 operating workspace. Shared by every native page. */
-.workspace-theme .sidebar .sidebar-brand { -fx-padding: 0 0 14 0; }
-.workspace-theme .sidebar .sidebar-brand .label { -fx-font-size: 20; -fx-font-weight: bold; }
-.workspace-theme .sidebar .nav-section { -fx-font-size: 10; -fx-font-weight: bold; -fx-text-fill: -text-muted; -fx-padding: 20 10 5 10; }
-.workspace-theme .sidebar .button.nav-item { -fx-min-height: 38; -fx-pref-height: 38; }
-.workspace-theme .sidebar .sidebar-footer { -fx-border-color: -border-color transparent transparent transparent; -fx-border-width: 1 0 0 0; -fx-padding: 12 0 0 0; }
-.workspace-theme .sidebar #editionStatusLabel { -fx-font-size: 11; -fx-text-fill: -text-muted; }
-.workspace-theme .header .button, .workspace-theme .header .menu-button { -fx-background-color: transparent; -fx-border-color: transparent; }
-.workspace-theme .header .button:hover, .workspace-theme .header .menu-button:hover { -fx-background-color: -ui-control-hover; }
-.workspace-theme .header .button:focused, .workspace-theme .header .menu-button:focused { -fx-border-color: -focus; }
-.workspace-theme .header .button.btn-primary { -fx-background-color: -accent; }
-.workspace-theme .header #deleteShopButton .ikonli-font-icon { -fx-icon-color: -danger; }
-.workspace-theme .header .btn-icon { -fx-min-width: 32; -fx-min-height: 34; -fx-padding: 6; -fx-background-radius: 6; }
-.workspace-theme .feature-card .text-secondary { -fx-font-size: 12; -fx-text-fill: -text-muted; }
-.workspace-theme .welcome-news { -fx-border-color: transparent transparent transparent -border-color; -fx-border-width: 0 0 0 1; -fx-padding: 0 0 0 22; }
-.workspace-theme .welcome-news .news-card { -fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-radius: 0; -fx-background-radius: 0; }
-.workspace-theme .detail-drawer { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; -fx-border-width: 0 0 0 1; -fx-padding: 18; }
-.workspace-theme .detail-drawer .text-area { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
-.workspace-theme .detail-drawer .text-area .content { -fx-background-color: -bg-secondary; }
-.workspace-theme #productsPane .product-name, .workspace-theme#productsPane .product-name { -fx-font-size: 13; }
-.workspace-theme .product-row .label { -fx-font-size: 12; }
-.workspace-theme .registration-reference .table-cell, .workspace-theme.registration-reference .table-cell { -fx-font-size: 12; }
-.workspace-theme .registration-reference .table-cell .label, .workspace-theme.registration-reference .table-cell .label { -fx-font-size: 12; }
-.workspace-theme .selection-action-bar, .workspace-theme .products-bulk { -fx-background-color: transparent; -fx-border-width: 1 0 0 0; -fx-background-radius: 0; -fx-border-radius: 0; -fx-padding: 10 0 0 0; }
-.workspace-theme .selection-count { -fx-text-fill: -accent-text; -fx-font-weight: bold; }
-.workspace-theme .ozon-posting-table .table-cell .label { -fx-font-size: 12; }
-.workspace-theme .ozon-posting-table .table-cell .text-bold { -fx-font-size: 13; }
-.workspace-theme .gs1-workspace .feature-card { -fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-background-radius: 0; -fx-border-radius: 0; }
+/* Native status filters share the same semantics as their authoritative selector. */
+.workspace-theme .workspace-filter-tab {
+    -fx-background-color: transparent; -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0; -fx-background-radius: 0; -fx-border-radius: 0;
+    -fx-text-fill: -text-secondary; -fx-padding: 7 12; -fx-min-height: 36;
+}
+.workspace-theme .workspace-filter-tab:hover { -fx-background-color: -ui-row-hover; }
+.workspace-theme .workspace-filter-tab:selected {
+    -fx-background-color: transparent; -fx-border-color: transparent transparent -accent-text transparent;
+    -fx-text-fill: -text-primary; -fx-font-weight: bold;
+}
+.workspace-theme .workspace-filter-tab:focused { -fx-border-color: -focus; }
+.workspace-theme .navigation-indicator { -fx-background-color: -nav-selected; -fx-background-radius: 10; }
+.workspace-theme .navigation-stack .button.nav-selected { -fx-background-color: transparent; -fx-text-fill: -text-primary; -fx-font-weight: bold; }
 
-.workspace-theme .packing-tabs { -fx-border-width: 0; -fx-padding: 0; -fx-background-color: transparent; }
-.workspace-theme .packing-tabs > .tab-content-area { -fx-padding: 0; }
-.workspace-theme #productsPane .h2, .workspace-theme#productsPane .h2 { -fx-font-size: 25; }
-.workspace-theme #productsPane .products-bulk, .workspace-theme#productsPane .products-bulk { -fx-border-radius: 0; -fx-background-radius: 0; -fx-border-width: 1 0 0 0; -fx-padding: 10 0 0 0; }
-.workspace-theme #productsPane .check-box:selected > .box, .workspace-theme#productsPane .check-box:selected > .box { -fx-background-color: -accent; -fx-border-color: -accent; }
-.workspace-theme .workspace-list-footer { -fx-padding: 6 0 0 0; }
-.workspace-theme .welcome-news .h2 { -fx-font-size: 16; }
+/* Settings and long-form content use the same opaque work sheet. */
+.workspace-theme .appearance-pane, .workspace-theme.appearance-pane { -fx-background-color: -bg-secondary; -fx-background-radius: 18; -fx-padding: 20; }
+.workspace-theme .appearance-header { -fx-padding: 0 0 20 0; -fx-spacing: 8; }
+.workspace-theme .appearance-scroll, .workspace-theme .appearance-scroll > .viewport { -fx-background-color: transparent; }
+.workspace-theme .appearance-content { -fx-spacing: 0; -fx-padding: 0 12 12 0; }
+.workspace-theme .appearance-section { -fx-spacing: 16; -fx-padding: 20 0 24 0; -fx-border-color: -border-color transparent transparent transparent; -fx-border-width: 1 0 0 0; }
+.workspace-theme .appearance-row { -fx-spacing: 24; -fx-alignment: CENTER_LEFT; -fx-padding: 3 0; }
+.workspace-theme .appearance-row-copy { -fx-spacing: 6; }
+.workspace-theme .appearance-row-title { -fx-font-size: 14; -fx-font-weight: bold; }
+.workspace-theme .appearance-description { -fx-font-size: 13; -fx-text-fill: -text-secondary; }
+.workspace-theme .appearance-actions, .workspace-theme .appearance-theme-options { -fx-hgap: 8; -fx-vgap: 8; }
+.workspace-theme .appearance-theme-options .toggle-button:selected { -fx-background-color: -ui-selected; -fx-border-color: -accent-text; -fx-text-fill: -text-primary; }
+.workspace-theme .workspace-form { -fx-spacing: 16; -fx-padding: 16; }
+.workspace-theme .workspace-overlay { -fx-background-color: -bg-secondary; -fx-background-radius: 18; -fx-padding: 18; }
+.workspace-theme .workspace-article { -fx-background-color: -bg-secondary; -fx-background-radius: 18; -fx-padding: 20; }
+.workspace-theme .workspace-feed { -fx-spacing: 12; }
+.workspace-theme .workspace-feed .news-card { -fx-min-height: 0; -fx-padding: 16; }
+.workspace-theme .workspace-sheet.feature-card,
+.workspace-theme .gs1-workspace .workspace-sheet.feature-card { -fx-background-color: -bg-secondary; -fx-background-radius: 18; -fx-border-radius: 18; -fx-border-width: 1; }
+.workspace-theme .gs1-workspace .page-title, .workspace-theme.gs1-workspace .page-title { -fx-font-size: 24; }
 
-.workspace-theme .detail-group { -fx-padding: 0 2 14 0; -fx-border-color: -border-color; -fx-border-width: 0 0 1 0; }
-.workspace-theme .detail-drawer .label:focused { -fx-underline: true; }
+/* Turning off material keeps the same geometry and fully solid text/working surfaces. */
+.workspace-theme.glass-disabled .sidebar, .workspace-theme.glass-disabled .glass-sidebar,
+.workspace-theme.glass-disabled .workspace-glass-sidebar,
+.workspace-theme.glass-disabled .header, .workspace-theme.glass-disabled .glass-toolbar,
+.workspace-theme.glass-disabled .workspace-glass-header,
+.workspace-theme.glass-disabled .glass-surface {
+    -fx-background-color: -nav-surface; -fx-background-insets: 0;
+    -fx-background-radius: 18; -fx-effect: null;
+}
+.workspace-theme.glass-disabled .glass-overlay,
+.workspace-theme.glass-disabled .context-menu,
+.workspace-theme.glass-disabled .combo-box-popup .list-view,
+.workspace-theme.glass-disabled .date-picker-popup { -fx-background-color: -bg-secondary; }
+
+.workspace-theme .workspace-shortcut-list { -fx-spacing: 0; }
+.workspace-theme .workspace-shortcut-row { -fx-min-height: 70; -fx-padding: 12 8; }
+
+/* Disabled actions remain readable but yield their action and semantic paints.
+ * Keep this after variant, hover, header and product-footer rules: those selectors
+ * also match disabled controls. Do not dim a parent or its text with opacity. */
+.workspace-theme .button:disabled,
+.workspace-theme .button.btn-primary:disabled,
+.workspace-theme .button.accent:disabled,
+.workspace-theme .button.btn-success:disabled,
+.workspace-theme .button.btn-danger:disabled,
+.workspace-theme .button.btn-warning:disabled,
+.workspace-theme .header .button:disabled,
+.workspace-theme .sidebar .button.add-shop:disabled,
+.workspace-theme .header .menu-button:disabled,
+.workspace-theme .sidebar .menu-button:disabled,
+.workspace-theme .menu-button:disabled,
+.workspace-theme .toggle-button:disabled,
+.workspace-theme .appearance-theme-options .toggle-button:disabled,
+.workspace-theme #productBulkActions .button:disabled,
+.workspace-theme #productBulkActions.products-bulk .button.btn-primary:disabled {
+    -fx-background-color: -bg-tertiary;
+    -fx-border-color: -border-color;
+    -fx-text-fill: -text-muted;
+    -fx-font-weight: normal;
+    -fx-opacity: 1;
+    -fx-effect: null;
+    -fx-cursor: default;
+}
+.workspace-theme .button:disabled .ikonli-font-icon,
+.workspace-theme .button.btn-primary:disabled .ikonli-font-icon,
+.workspace-theme .button.accent:disabled .ikonli-font-icon,
+.workspace-theme .button.btn-success:disabled .ikonli-font-icon,
+.workspace-theme .button.btn-danger:disabled .ikonli-font-icon,
+.workspace-theme .button.btn-warning:disabled .ikonli-font-icon,
+.workspace-theme .sidebar .button.add-shop:disabled .ikonli-font-icon,
+.workspace-theme .header #deleteShopButton:disabled .ikonli-font-icon,
+.workspace-theme #productsPane .button:disabled .ikonli-font-icon,
+.workspace-theme#productsPane .button:disabled .ikonli-font-icon,
+.workspace-theme #productBulkActions .button:disabled .ikonli-font-icon,
+.workspace-theme #productBulkActions.products-bulk .button.btn-primary:disabled .ikonli-font-icon {
+    -fx-icon-color: -text-muted;
+}
+.workspace-theme .menu-button:disabled > .label { -fx-text-fill: -text-muted; }
+
+/* A disabled sync button communicates work in progress; retain its busy paint. */
+.workspace-theme .button.btn-sync:disabled,
+.workspace-theme .header .button.btn-sync:disabled {
+    -fx-background-color: -ui-selected;
+    -fx-border-color: -border-color;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 1;
+}
+.workspace-theme .button.btn-sync:disabled .ikonli-font-icon,
+.workspace-theme .header .button.btn-sync:disabled .ikonli-font-icon,
+.workspace-theme #productsPane .button.btn-sync:disabled .ikonli-font-icon,
+.workspace-theme#productsPane .button.btn-sync:disabled .ikonli-font-icon { -fx-icon-color: -accent-text; }

@@ -13,11 +13,11 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="12.0" styleClass="finance-dashboard,app-page" fx:controller="com.vncode.app.ui.finance.FinanceDashboardController">
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" spacing="12.0" styleClass="finance-dashboard,app-page,workspace-page,workspace-sheet" fx:controller="com.vncode.app.ui.finance.FinanceDashboardController">
     <padding><Insets bottom="16.0" left="16.0" right="16.0" top="16.0"/></padding>
     <children>
-        <HBox alignment="CENTER_LEFT" spacing="10.0">
-            <Label fx:id="titleLabel" styleClass="h2" text="Finance"/>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="workspace-toolbar">
+            <Label fx:id="titleLabel" styleClass="h2,page-title" text="Finance"/>
             <HBox fx:id="summaryActions" alignment="CENTER_LEFT" spacing="10.0" HBox.hgrow="ALWAYS">
             <ProgressIndicator fx:id="loadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false"/>
             <Label fx:id="statusLabel" styleClass="text-muted" text=""/>
@@ -31,11 +31,11 @@
             </HBox>
         </HBox>
 
-        <TabPane fx:id="reportTabs" minHeight="0.0" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE">
+        <TabPane fx:id="reportTabs" minHeight="0.0" VBox.vgrow="ALWAYS" tabClosingPolicy="UNAVAILABLE" styleClass="workspace-tab-strip">
             <tabs>
                 <Tab fx:id="summaryTab" text="Tổng hợp" closable="false">
                     <content><VBox spacing="12.0" minHeight="0.0"><children>
-        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="surface finance-filter-bar">
+        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="surface,finance-filter-bar">
             <Button fx:id="sevenDaysButton" onAction="#onSevenDays" text="7 days"/>
             <Button fx:id="thirtyDaysButton" onAction="#onThirtyDays" text="30 days"/>
             <Button fx:id="ninetyDaysButton" onAction="#onNinetyDays" text="90 days"/>
@@ -55,59 +55,59 @@
                 <ColumnConstraints percentWidth="20.0"/>
             </columnConstraints>
             <children>
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-revenue" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-revenue" GridPane.columnIndex="0" GridPane.rowIndex="0">
                     <Label fx:id="grossTitleLabel" styleClass="finance-kpi-title" text="Sales"/>
-                    <Label fx:id="grossValueLabel" styleClass="finance-kpi-value finance-kpi-value-revenue" text="0"/>
+                    <Label fx:id="grossValueLabel" styleClass="finance-kpi-value,finance-kpi-value-revenue" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-income" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-income" GridPane.columnIndex="1" GridPane.rowIndex="0">
                     <Label fx:id="payoutTitleLabel" styleClass="finance-kpi-title" text="Payout"/>
-                    <Label fx:id="payoutValueLabel" styleClass="finance-kpi-value finance-kpi-value-income" text="0"/>
+                    <Label fx:id="payoutValueLabel" styleClass="finance-kpi-value,finance-kpi-value-income" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-cost" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-cost" GridPane.columnIndex="2" GridPane.rowIndex="0">
                     <Label fx:id="commissionTitleLabel" styleClass="finance-kpi-title" text="Commission"/>
-                    <Label fx:id="commissionValueLabel" styleClass="finance-kpi-value finance-kpi-value-cost" text="0"/>
+                    <Label fx:id="commissionValueLabel" styleClass="finance-kpi-value,finance-kpi-value-cost" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-danger" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-danger" GridPane.columnIndex="3" GridPane.rowIndex="0">
                     <Label fx:id="returnsTitleLabel" styleClass="finance-kpi-title" text="Returns"/>
-                    <Label fx:id="returnsValueLabel" styleClass="finance-kpi-value finance-kpi-value-danger" text="0"/>
+                    <Label fx:id="returnsValueLabel" styleClass="finance-kpi-value,finance-kpi-value-danger" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-cost" GridPane.columnIndex="4" GridPane.rowIndex="0">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-cost" GridPane.columnIndex="4" GridPane.rowIndex="0">
                     <Label fx:id="logisticsTitleLabel" styleClass="finance-kpi-title" text="Logistics"/>
-                    <Label fx:id="logisticsValueLabel" styleClass="finance-kpi-value finance-kpi-value-cost" text="0"/>
+                    <Label fx:id="logisticsValueLabel" styleClass="finance-kpi-value,finance-kpi-value-cost" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-cost" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-cost" GridPane.columnIndex="0" GridPane.rowIndex="1">
                     <Label fx:id="advertisingTitleLabel" styleClass="finance-kpi-title" text="Advertising"/>
-                    <Label fx:id="advertisingValueLabel" styleClass="finance-kpi-value finance-kpi-value-cost" text="0"/>
+                    <Label fx:id="advertisingValueLabel" styleClass="finance-kpi-value,finance-kpi-value-cost" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-cost" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-cost" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <Label fx:id="storageTitleLabel" styleClass="finance-kpi-title" text="Storage"/>
-                    <Label fx:id="storageValueLabel" styleClass="finance-kpi-value finance-kpi-value-cost" text="0"/>
+                    <Label fx:id="storageValueLabel" styleClass="finance-kpi-value,finance-kpi-value-cost" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-danger" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-danger" GridPane.columnIndex="2" GridPane.rowIndex="1">
                     <Label fx:id="penaltyTitleLabel" styleClass="finance-kpi-title" text="Penalties"/>
-                    <Label fx:id="penaltyValueLabel" styleClass="finance-kpi-value finance-kpi-value-danger" text="0"/>
+                    <Label fx:id="penaltyValueLabel" styleClass="finance-kpi-value,finance-kpi-value-danger" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-cost" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-cost" GridPane.columnIndex="3" GridPane.rowIndex="1">
                     <Label fx:id="otherCostTitleLabel" styleClass="finance-kpi-title" text="Other costs"/>
-                    <Label fx:id="otherCostValueLabel" styleClass="finance-kpi-value finance-kpi-value-cost" text="0"/>
+                    <Label fx:id="otherCostValueLabel" styleClass="finance-kpi-value,finance-kpi-value-cost" text="0"/>
                 </VBox>
 
-                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface finance-kpi-card finance-kpi-card-net" GridPane.columnIndex="4" GridPane.rowIndex="1">
+                <VBox maxWidth="1.7976931348623157E308" spacing="5.0" styleClass="surface,finance-kpi-card,finance-kpi-card-net" GridPane.columnIndex="4" GridPane.rowIndex="1">
                     <Label fx:id="netTitleLabel" styleClass="finance-kpi-title" text="Net"/>
-                    <Label fx:id="netValueLabel" styleClass="finance-kpi-value finance-kpi-value-positive" text="0"/>
+                    <Label fx:id="netValueLabel" styleClass="finance-kpi-value,finance-kpi-value-positive" text="0"/>
                 </VBox>
             </children>
         </GridPane>
 
-        <TableView fx:id="dailyTable" VBox.vgrow="ALWAYS">
+        <TableView fx:id="dailyTable" VBox.vgrow="ALWAYS" styleClass="dense-data-table">
             <placeholder><Label fx:id="emptyLabel" managed="true" styleClass="text-muted" text="No finance data" visible="true" wrapText="true" maxWidth="480.0"/>
         </placeholder><columns>
                 <TableColumn fx:id="dateColumn" prefWidth="100.0" text="Date"/>

@@ -77,12 +77,12 @@ public final class ProductBulkEditPane extends BorderPane {
     public ProductBulkEditPane(ProductBulkEditService service,ShopReadCoordinator reads){this(service,reads,new ProductSuggestionService());}
     public ProductBulkEditPane(ProductBulkEditService service,ShopReadCoordinator reads,ProductSuggestionService suggestionsService){
         this.service=service;this.reads=reads;this.suggestionsService=suggestionsService;
-        setId("productBulkEditPane");setPadding(new Insets(18));setMinSize(0,0);
+        setId("productBulkEditPane");getStyleClass().addAll("workspace-page","workspace-sheet");setPadding(new Insets(16));setMinSize(0,0);
         DocumentDateInput.configure(from);DocumentDateInput.configure(until);
         number.setId("editDocumentNumber");from.setId("editDocumentFrom");until.setId("editDocumentUntil");
         name.setId("editDocumentName");country.setId("editDocumentCountry");accordance.setId("editDocumentAccordance");productType.setId("editDocumentProductType");registry.setId("editDocumentRegistry");
-        title.getStyleClass().add("h2");notice.setWrapText(true);status.setWrapText(true);suggestionStatus.setWrapText(true);
-        var header=new FlowPane(12,8,back,title);setTop(new VBox(10,header,notice));
+        title.getStyleClass().add("page-title");notice.setWrapText(true);status.setWrapText(true);suggestionStatus.setWrapText(true);
+        var header=new FlowPane(12,8,back,title);header.getStyleClass().add("workspace-toolbar");setTop(new VBox(8,header,notice));
         preview.setId("editPreview");apply.setId("editApply");reconcile.setId("editReconcile");confirm.setId("editConfirm");lookup.setId("editLookup");
         value.setId("editValue");history.setId("editHistory");detail.setId("editDetail");status.setId("editStatus");
         suggestions.setId("editSuggestions");useSuggestion.setId("editUseSuggestion");suggestionStatus.setId("editSuggestionStatus");results.setId("editResults");
@@ -91,7 +91,7 @@ public final class ProductBulkEditPane extends BorderPane {
         var input=new HBox(8,value,lookup);HBox.setHgrow(value,Priority.ALWAYS);
         values.getChildren().addAll(input,suggestionStatus,suggestions,useSuggestion);
         documents.getChildren().addAll(line("copy.doc.number",number),line("copy.doc.type",type),line("copy.doc.name",name),new FlowPane(8,8,from,until,endless),line("copy.doc.certificate_country",country),line("copy.doc.accordance_type",accordance),line("copy.doc.product_type",productType),line("copy.doc.link_to_registry",registry),chooseFile);
-        results.setPrefHeight(220);results.setMinHeight(120);results.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        results.getStyleClass().add("dense-data-table");proposalRows.getStyleClass().add("dense-data-table");results.setPrefHeight(220);results.setMinHeight(120);results.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         column("products.article",i->i.key().cardId()+" / "+i.key().variantId(),140);
         column("edit.before",i->String.join("; ",i.before()),170);
         column("edit.after",this::after,170);
@@ -105,7 +105,7 @@ public final class ProductBulkEditPane extends BorderPane {
         var body=new VBox(10,values,documents,history,results,detail,advanced);body.setFillWidth(true);body.setPadding(new Insets(12,0,0,0));
         var scroll=new ScrollPane(body);scroll.setFitToWidth(true);setCenter(scroll);
         var actions=new FlowPane(10,8,preview,apply,reconcile);apply.getStyleClass().add("btn-primary");
-        var footer=new VBox(8,status,confirm,actions);footer.setPadding(new Insets(12,0,0,0));setBottom(footer);
+        var footer=new VBox(8,status,confirm,actions);footer.getStyleClass().add("workspace-batch-footer");footer.setPadding(new Insets(12,0,0,0));setBottom(footer);
         label(back,"edit.back");label(preview,"edit.preview");label(apply,"edit.apply");label(reconcile,"edit.reconcile");label(lookup,"edit.lookup");label(chooseFile,"edit.file");label(confirm,"edit.confirm");label(endless,"copy.doc.isEndless");label(useSuggestion,"edit.use_suggestion");label(advanced,"edit.technical");
         back.setOnAction(e->{if(onBack!=null)onBack.run();});confirm.selectedProperty().addListener((o,a,b)->buttons());
         preview.setOnAction(e->prepare());apply.setOnAction(e->submit());reconcile.setOnAction(e->reconcile(false));lookup.setOnAction(e->lookup());
@@ -284,7 +284,7 @@ public final class ProductBulkEditPane extends BorderPane {
     }
     private void showCompact(javafx.stage.Window window,Runnable saved){
         var dialog=new Dialog<Void>();if(window!=null)dialog.initOwner(window);dialog.setTitle(title.getText());
-        dialog.getDialogPane().setId("productBulkEditDialog");dialog.getDialogPane().setContent(this);
+        dialog.getDialogPane().setId("productBulkEditDialog");dialog.getDialogPane().getStyleClass().add("workspace-overlay");dialog.getDialogPane().setContent(this);
         dialog.getDialogPane().setPrefSize(field.equals("material")?620:field.equals("gender")?440:720,field.equals("brand")?540:field.equals("gender")?380:field.equals("tnved")?290:460);
         var applyType=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);
         var cancelType=new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -292,7 +292,7 @@ public final class ProductBulkEditPane extends BorderPane {
         var applyButton=(Button)dialog.getDialogPane().lookupButton(applyType);applyButton.setId("editApply");applyButton.getStyleClass().add("btn-primary");applyButton.disableProperty().bind(apply.disableProperty());
         applyButton.addEventFilter(javafx.event.ActionEvent.ACTION,e->{e.consume();apply.fire();if(busy&&backgroundHost!=null){detach();dialog.hide();}});
         var indicator=new ProgressIndicator();indicator.setMaxSize(20,20);indicator.visibleProperty().bind(backgroundRunning);indicator.managedProperty().bind(indicator.visibleProperty());
-        var footer=new HBox(10,indicator,status);HBox.setHgrow(status,Priority.ALWAYS);footer.setPadding(new Insets(10,0,0,0));setBottom(footer);
+        var footer=new HBox(10,indicator,status);footer.getStyleClass().add("workspace-batch-footer");HBox.setHgrow(status,Priority.ALWAYS);footer.setPadding(new Insets(10,0,0,0));setBottom(footer);
         setOnSaved(()->{if(backgroundHost==null)dialog.close();if(saved!=null)Platform.runLater(saved);});
         dialog.setOnHidden(e->{if(!detached)dispose();});DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);dialog.show();
     }
@@ -336,7 +336,7 @@ public final class ProductBulkEditPane extends BorderPane {
         var scroll=new ScrollPane(form);scroll.setFitToWidth(true);scroll.setMinSize(0,0);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);setCenter(scroll);BorderPane.setMargin(scroll,new Insets(10,0,6,0));
         apply.setText(tr("common.apply"));apply.setOnAction(e->applyOnce());var progress=new ProgressIndicator();progress.setMaxSize(20,20);
         progress.visibleProperty().bind(backgroundRunning);progress.managedProperty().bind(progress.visibleProperty());
-        setBottom(new VBox(8,status,new HBox(10,progress,apply)));buttons();
+        var footer=new VBox(8,status,new HBox(10,progress,apply));footer.getStyleClass().add("workspace-batch-footer");setBottom(footer);buttons();
         if(Set.of("brand","gender","material").contains(field))loadDefaultProposal(defaultValue);
     }
     private void loadConfiguredDocument(){

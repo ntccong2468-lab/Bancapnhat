@@ -141,6 +141,7 @@ public final class ZnackCardRegistrationController {
     @FXML private TextField searchField;
     @FXML private MenuButton categoryMenuButton;
     @FXML private ComboBox<StatusFilter> statusFilter;
+    private com.vncode.app.ui.controls.WorkspaceFilterTabs<StatusFilter> statusTabs;
     @FXML private Button clearFiltersButton;
     @FXML private Button refreshButton;
     @FXML private Button configButton;
@@ -197,6 +198,9 @@ public final class ZnackCardRegistrationController {
                 });
         statusFilter.getItems().setAll(StatusFilter.values());
         statusFilter.getSelectionModel().select(StatusFilter.ALL);
+        statusTabs = new com.vncode.app.ui.controls.WorkspaceFilterTabs<>(statusFilter, StatusFilter::toString);
+        statusTabs.setId("znackRegistrationStatusTabs");
+        wbRegistrationContent.getChildren().add(1, statusTabs);
         statusFilter.valueProperty().addListener((obs, old, value) -> {if(!resettingFilters)reload();});
         searchField.textProperty().addListener((obs, old, value) -> {
             if(resettingFilters)return;
@@ -262,7 +266,7 @@ public final class ZnackCardRegistrationController {
         genderColumn.setText(i18n.tr("znack.registration.gender"));
         clearFiltersButton.setText(i18n.tr("znack.registration.clear"));
         selectAllButton.setText(i18n.tr("znack.registration.select_all"));
-        allFilteredCheckBox.setText(i18n.tr("znack.registration.select_all_filtered"));
+        allFilteredCheckBox.setText(i18n.tr("products.select_all"));allFilteredCheckBox.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("znack.registration.select_all_filtered")));allFilteredCheckBox.setAccessibleText(i18n.tr("znack.registration.select_all_filtered"));
         reportLink.setText(i18n.tr("znack.registration.report"));
         registerSelectedButton.setText(i18n.tr("znack.registration.register_short"));newCardsSelectedButton.setText(i18n.tr("znack.registration.batch_new_cards"));
         loadingLabel.setText(i18n.tr("znack.registration.loading"));
@@ -270,6 +274,7 @@ public final class ZnackCardRegistrationController {
         productTable.setPlaceholder(new Label(i18n.tr("znack.registration.empty")));
         statusFilter.setButtonCell(statusFilterCell());
         statusFilter.setCellFactory(ignored->statusFilterCell());
+        if(statusTabs!=null)statusTabs.refresh();
         imageColumn.setText(i18n.tr("fbo.column.image"));
         nameColumn.setText(i18n.tr("fbo.column.name"));
         articleColumn.setText(tr("products.seller_article"));
@@ -1004,7 +1009,7 @@ public final class ZnackCardRegistrationController {
 
     private void configureColumns() {
         operationLabel.textProperty().addListener((o,a,b)->{boolean shown=b!=null&&!b.isBlank();operationLabel.setVisible(shown);operationLabel.setManaged(shown);});
-        productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         selectionColumn.setCellValueFactory(cell->new ReadOnlyObjectWrapper<>(cell.getValue()));
         selectionColumn.setCellFactory(column->new TableCell<>(){
             private final CheckBox check=new CheckBox();
@@ -1097,7 +1102,7 @@ public final class ZnackCardRegistrationController {
             private final Label waiting = new Label();
             private final MenuButton publishedActions=new MenuButton();
             private final MenuItem newCard=new MenuItem(),switchCard=new MenuItem(),retryOriginal=new MenuItem();
-            { button.setWrapText(true);button.setMinWidth(0);button.prefWidthProperty().bind(actionColumn.widthProperty().subtract(24));button.getStyleClass().add("btn-primary");button.setOnAction(event->createCard(getItem()));
+            { button.setId("znackRegistrationRowAction");publishedActions.setId("znackRegistrationRowActionMenu");button.setWrapText(true);button.setMinWidth(0);button.prefWidthProperty().bind(actionColumn.widthProperty().subtract(24));button.getStyleClass().add("btn-primary");button.setOnAction(event->createCard(getItem()));
               var buttonTooltip=new Tooltip();buttonTooltip.textProperty().bind(button.textProperty());button.setTooltip(buttonTooltip);
               var menuTooltip=new Tooltip();menuTooltip.textProperty().bind(publishedActions.textProperty());publishedActions.setTooltip(menuTooltip);
               publishedActions.getStyleClass().add("btn-secondary");publishedActions.getItems().setAll(newCard,switchCard,retryOriginal);retryOriginal.setOnAction(event->createCard(getItem()));

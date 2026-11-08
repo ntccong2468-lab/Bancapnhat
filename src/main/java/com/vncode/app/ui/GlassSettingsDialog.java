@@ -21,7 +21,8 @@ public final class GlassSettingsDialog {
         sample.getStyleClass().addAll("card","glass-settings-preview");
         for(var n:sample.getChildren())if(n instanceof Label text){text.setWrapText(true);text.setMinWidth(0);}
         var note=new Label(i18n.tr("settings.glass.hint"));note.setWrapText(true);
-        var content=new VBox(14,row,slider,sample,note);content.setPadding(new Insets(8));content.setMinWidth(0);content.setPrefWidth(450);
+        var content=new VBox(14,row,slider,sample,note);content.getStyleClass().add("workspace-form");content.setPadding(new Insets(8));content.setMinWidth(0);content.setPrefWidth(450);
+        dialog.getDialogPane().getStyleClass().add("workspace-overlay");
         dialog.getDialogPane().setContent(content);dialog.setResizable(true);AlertService.applyTheme(dialog);
         slider.valueProperty().addListener((observable,before,value)->{percent.setText(Math.round(value.doubleValue())+"%");ThemeService.previewGlassTransparency(value.doubleValue());});
         try {

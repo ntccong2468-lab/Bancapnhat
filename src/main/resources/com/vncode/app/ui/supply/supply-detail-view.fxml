@@ -19,11 +19,11 @@
 <?import javafx.scene.text.Font?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox minWidth="0" spacing="8.0" styleClass="card,supply-detail,app-page" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.supply.SupplyDetailController">
+<VBox minWidth="0" spacing="8.0" styleClass="card,supply-detail,app-page,workspace-page,workspace-sheet" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.supply.SupplyDetailController">
     <children>
-        <FlowPane minWidth="0" alignment="CENTER_LEFT" hgap="8.0" vgap="6.0">
+        <FlowPane minWidth="0" alignment="CENTER_LEFT" hgap="8.0" vgap="6.0" styleClass="workspace-toolbar">
             <children>
-                <Button fx:id="backButton" alignment="CENTER" mnemonicParsing="false" onAction="#onBack" prefHeight="46.0" prefWidth="32.0">
+                <Button fx:id="backButton" alignment="CENTER" mnemonicParsing="false" onAction="#onBack" prefHeight="34.0" prefWidth="32.0">
                     <styleClass>
                         <String fx:value="btn-icon" />
                     </styleClass>
@@ -31,11 +31,11 @@
                         <FontIcon iconLiteral="fth-arrow-left" iconSize="17" />
                     </graphic>
                 </Button>
-                <Label minWidth="0" fx:id="supplyTitleLabel" text="%supply.not_selected" styleClass="h3" />
+                <Label minWidth="0" fx:id="supplyTitleLabel" text="%supply.not_selected" styleClass="h3,page-title" />
                 <Pane HBox.hgrow="ALWAYS" />
-                <Button minWidth="0" fx:id="inventoryToggleButton" onAction="#onToggleInventory" text="%supply.inventory_toggle" prefHeight="46"/>
+                <Button minWidth="0" fx:id="inventoryToggleButton" onAction="#onToggleInventory" text="%supply.inventory_toggle" prefHeight="34"/>
                 <Button fx:id="addAgainKizButton" visible="false" managed="false" onAction="#onAddAgainKiz" text="%kn3.batch.title" styleClass="btn-primary"/>
-                <Button minWidth="0" fx:id="printButton" disable="true" mnemonicParsing="false" onAction="#onPrint" prefHeight="46.0" text="%supply.print">
+                <Button minWidth="0" fx:id="printButton" disable="true" mnemonicParsing="false" onAction="#onPrint" prefHeight="34.0" text="%supply.print">
                     <styleClass>
                         <String fx:value="button" />
                         <String fx:value="btn-success" />
@@ -44,7 +44,7 @@
                         <FontIcon iconLiteral="fth-download" iconSize="16" />
                     </graphic>
                 </Button>
-                <Button minWidth="0" fx:id="deliverButton" disable="true" mnemonicParsing="false" onAction="#onDeliver" prefHeight="46.0" text="%supply.deliver">
+                <Button minWidth="0" fx:id="deliverButton" disable="true" mnemonicParsing="false" onAction="#onDeliver" prefHeight="34.0" text="%supply.deliver">
                     <styleClass>
                         <String fx:value="button" />
                         <String fx:value="btn-primary" />
@@ -69,7 +69,7 @@
             <children>
                 <StackPane fx:id="kn3StatusHost" minWidth="0.0" prefHeight="520.0" HBox.hgrow="ALWAYS">
                     <children>
-                        <TableView minWidth="0" fx:id="orderTable" styleClass="supply-orders" managed="false" prefHeight="520.0" prefWidth="900.0" visible="false">
+                        <TableView minWidth="0" fx:id="orderTable" styleClass="supply-orders,dense-data-list" managed="false" prefHeight="520.0" prefWidth="900.0" visible="false">
                             <columnResizePolicy>
                                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                             </columnResizePolicy>
@@ -98,7 +98,7 @@
         </HBox>
                     </children>
                 </StackPane>
-                <VBox fx:id="gtinInventoryPane" visible="false" managed="false" maxWidth="520.0" minWidth="360.0" prefWidth="420.0" spacing="10.0" styleClass="surface, gtin-inventory-pane">
+                <VBox fx:id="gtinInventoryPane" visible="false" managed="false" maxWidth="520.0" minWidth="360.0" prefWidth="420.0" spacing="10.0" styleClass="surface,gtin-inventory-pane">
                     <children>
                         <VBox fx:id="shipmentKizHost" />
                         <VBox fx:id="paidInventoryPane" spacing="8.0" VBox.vgrow="ALWAYS">
@@ -118,7 +118,7 @@
                         <TextField fx:id="gtinSearchField" promptText="%kiz_mapping.search_gtin" />
                         <StackPane VBox.vgrow="ALWAYS">
                             <children>
-                                <ListView fx:id="gtinInventoryList" />
+                                <ListView fx:id="gtinInventoryList"  styleClass="dense-data-list"/>
                                 <Label fx:id="gtinInventoryEmptyLabel" managed="false" maxWidth="240.0" styleClass="text-muted" text="%supply.gtin_inventory.empty" textAlignment="CENTER" visible="false" wrapText="true" />
                             </children>
                         </StackPane>

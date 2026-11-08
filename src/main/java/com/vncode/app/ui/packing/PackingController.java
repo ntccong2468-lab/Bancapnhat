@@ -1059,8 +1059,8 @@ public class PackingController {
         private final Label dateLabel = new Label();
 
         OrderIdDateCell() {
-            idLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: -text-primary;");
-            dateLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: -text-muted;");
+            idLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: -text-primary;");
+            dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: -text-muted;");
             vbox.getChildren().addAll(idLabel, dateLabel);
             vbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             vbox.setPadding(new javafx.geometry.Insets(4, 0, 4, 0));
@@ -1090,8 +1090,8 @@ public class PackingController {
         private final Label metaLabel = new Label();
 
         ProductDetailsCell() {
-            titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 13px; -fx-text-fill: -text-primary;");
-            metaLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: -text-muted;");
+            titleLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: -text-primary;");
+            metaLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: -text-muted;");
             vbox.getChildren().addAll(titleLabel, metaLabel);
             vbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             vbox.setPadding(new javafx.geometry.Insets(4, 0, 4, 0));

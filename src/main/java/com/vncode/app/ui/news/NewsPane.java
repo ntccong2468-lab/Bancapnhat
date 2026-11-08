@@ -35,8 +35,8 @@ public final class NewsPane extends VBox {
  private double listScroll;
  public NewsPane(NewsService service,Runnable returnToDashboard,IntConsumer unread) {
   this.service=service;this.returnToDashboard=returnToDashboard;this.unread=unread;
-  setSpacing(12);setStyle("-fx-padding: 16;");title.getStyleClass().add("h2");
-  HBox header=new HBox(12,back,title);getChildren().addAll(header,status,scroll,more);
+  getStyleClass().add("workspace-page");setSpacing(8);setPadding(new javafx.geometry.Insets(16));title.getStyleClass().add("page-title");
+  HBox header=new HBox(12,back,title);header.getStyleClass().add("workspace-toolbar");header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);scroll.getStyleClass().add("workspace-sheet");list.getStyleClass().add("workspace-feed");detail.getStyleClass().add("workspace-article");detail.setMaxWidth(920);getChildren().addAll(header,status,scroll,more);
   scroll.setFitToWidth(true);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);list.setMinWidth(0);detail.setMinWidth(0);preview.setMinWidth(0);setMinWidth(0);VBox.setVgrow(scroll,Priority.ALWAYS);
   scroll.vvalueProperty().addListener((o,a,b)->{if(b.doubleValue()>=0.95&&!detailShown)loadMore();});
   more.setOnAction(e->loadMore());back.setOnAction(e->{if(detailShown)back();else returnToDashboard.run();});
@@ -102,7 +102,7 @@ public final class NewsPane extends VBox {
   String plain=shown.body().replaceAll("\\[[^]]+]\\([^)]+\\)"," ").replaceAll("[#*_`>]","").replaceAll("\\s+"," ").strip();
   var summary=new Label(plain.length()>180?plain.substring(0,177)+"…":plain);summary.setWrapText(true);summary.setMinWidth(0);summary.setMaxWidth(Double.MAX_VALUE);summary.getStyleClass().add("text-secondary");
   var date=new Label(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").withZone(java.time.ZoneId.of("Europe/Moscow")).format(item.publishedAt()));date.getStyleClass().add("text-muted");
-  var source=new Label(tr(service.sellerNews(item.id()).isPresent()?"news.source.wb":"news.source.vn")+(service.sellerNews(item.id()).isPresent()?" · "+tr(translation(item)!=null&&translation(item).state()==NewsTranslationService.State.TRANSLATED?"news.translated":"news.translation_missing"):""));source.getStyleClass().add("text-muted");var content=new VBox(12,top,summary,date,source);content.setMinWidth(0);var button=new Button();button.setGraphic(content);button.setWrapText(true);button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);button.setMaxWidth(Double.MAX_VALUE);button.setMinWidth(0);button.getStyleClass().add("news-card");button.setAccessibleText(shown.title());content.prefWidthProperty().bind(javafx.beans.binding.Bindings.max(0,button.widthProperty().subtract(36)));content.maxWidthProperty().bind(content.prefWidthProperty());button.setMinHeight(Region.USE_PREF_SIZE);
+  var source=new Label(tr(service.sellerNews(item.id()).isPresent()?"news.source.wb":"news.source.vn")+(service.sellerNews(item.id()).isPresent()?" · "+tr(translation(item)!=null&&translation(item).state()==NewsTranslationService.State.TRANSLATED?"news.translated":"news.translation_missing"):""));source.getStyleClass().add("text-muted");var provenance=new HBox(12,date,source);provenance.setMinWidth(0);source.setWrapText(true);HBox.setHgrow(source,Priority.ALWAYS);var content=new VBox(8,top,summary,provenance);content.setMinWidth(0);var button=new Button();button.setGraphic(content);button.setWrapText(true);button.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);button.setMaxWidth(Double.MAX_VALUE);button.setMinWidth(0);button.getStyleClass().add("news-card");button.setAccessibleText(shown.title());content.prefWidthProperty().bind(javafx.beans.binding.Bindings.max(0,button.widthProperty().subtract(36)));content.maxWidthProperty().bind(content.prefWidthProperty());button.setMinHeight(Region.USE_PREF_SIZE);
   button.setOnAction(e->{open(item);if(dashboard&&onOpenPage!=null)onOpenPage.run();});return button;
  }
  private Node row(NewsItem item){return newsCard(item,false);}
@@ -121,7 +121,7 @@ public final class NewsPane extends VBox {
  }
  private Runnable onOpenPage;
  public void setOnOpenPage(Runnable callback){onOpenPage=callback;}
- private void renderDetail(NewsItem item){detail.getChildren().clear();var shown=showOriginal?item:display(item);Label heading=new Label(shown.title());heading.setWrapText(true);heading.getStyleClass().add("h2");detail.getChildren().add(heading);
+ private void renderDetail(NewsItem item){detail.getChildren().clear();var shown=showOriginal?item:display(item);Label heading=new Label(shown.title());heading.setWrapText(true);heading.getStyleClass().add("page-title");detail.getChildren().add(heading);
   var metadata=service.sellerNews(item.id());detail.getChildren().add(new Label(tr(metadata.isPresent()?"news.source.wb":"news.source.vn")));
   metadata.ifPresent(value->{var link=new Hyperlink(tr("news.original_source"));link.setOnAction(e->AppTaskExecutor.execute(new Task<Void>(){protected Void call(){try{if(java.awt.Desktop.isDesktopSupported())java.awt.Desktop.getDesktop().browse(value.sourceURL());}catch(Exception ignored){}return null;}},rejection->status.setText(tr("runtime.queue_full"))));detail.getChildren().add(link);});
   if(metadata.isPresent()){var state=translation(item);detail.getChildren().add(new Label(tr(state!=null&&state.state()==NewsTranslationService.State.TRANSLATED?"news.translated":"news.translation_missing")));var toggle=new Button(tr(showOriginal?"news.view_translation":"news.view_original"));toggle.setOnAction(e->{showOriginal=!showOriginal;renderDetail(item);});toggle.setDisable(state==null||state.state()!=NewsTranslationService.State.TRANSLATED);detail.getChildren().add(toggle);}

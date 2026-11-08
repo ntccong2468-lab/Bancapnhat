@@ -15,7 +15,7 @@ import static com.vncode.app.integration.listing.ListingJson.*;
 final class ListingCopyPreviewPane extends VBox {
     private record Row(String source,String article,String barcode,String price){}
     ListingCopyPreviewPane(CopyJob job){
-        super(8);setId("copyPreparedData");
+        super(8);setId("copyPreparedData");getStyleClass().add("workspace-form");setMinWidth(0);
         if(job.preview()==null)return;
         var preview=job.preview();var source=job.source();var options=preview.options();
         var selected=source.variants().stream().filter(v->options.variantIds().contains(v.id())).toList();
@@ -49,7 +49,7 @@ final class ListingCopyPreviewPane extends VBox {
         if(job.marketplace()==Marketplace.WILDBERRIES){getChildren().add(wrapped(tr("field.brand")+": "+text(listing,"brand")));getChildren().add(wrapped(tr("field.description")+": "+text(listing,"description")));}
         getChildren().add(wrapped(tr("category")+": "+preview.diff().getOrDefault("category_name",options.targetCategoryId())+" · "+tr("field.images")+": "+JsonParser.parseString(preview.mediaJson()).getAsJsonArray().size()+" · "+tr("documents")+": "+options.documents().size()));
         if(!rows.isEmpty()){
-            var table=new TableView<Row>();table.setId("copyPreviewVariants");table.getItems().setAll(rows);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);table.setFixedCellSize(34);table.setPrefHeight(Math.min(230,rows.size()*34+38));
+            var table=new TableView<Row>();table.setId("copyPreviewVariants");table.getStyleClass().add("dense-data-table");table.getItems().setAll(rows);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);table.setFixedCellSize(42);table.setPrefHeight(Math.min(250,rows.size()*42+38));
             column(table,"source_variant",Row::source);column(table,"new_article",Row::article);column(table,"field.gtin",Row::barcode);column(table,"variant_price",Row::price);
             getChildren().add(table);
         }
@@ -66,6 +66,6 @@ final class ListingCopyPreviewPane extends VBox {
         var text=new ArrayList<String>();if(value!=null&&value.isJsonArray())for(var entry:value.getAsJsonArray())text.add(entry.isJsonObject()?text(entry.getAsJsonObject(),"value"):entry.getAsString());else if(value!=null&&!value.isJsonNull())text.add(value.getAsString());
         into.getChildren().add(wrapped(name+": "+String.join(" | ",text)));
     }
-    private static Label wrapped(String text){var label=new Label(text);label.setWrapText(true);return label;}
+    private static Label wrapped(String text){var label=new Label(text);label.setWrapText(true);label.setMinWidth(0);label.setMaxWidth(Double.MAX_VALUE);return label;}
     private static String tr(String key){return I18nService.getInstance().tr("copy."+key);}
 }

@@ -76,7 +76,7 @@ public final class Gs1PrefixDocumentDialog {
         Pane signatureBox = new Pane(signatureCanvas); signatureBox.setStyle("-fx-border-color: #777; -fx-background-color: white;");
         VBox editor = new VBox(10, notice, new HBox(8, loadPdf, loadPhoto), fields, placementNotice, signatureNotice,
                 signatureBox, clearInk, generate, verified, status); editor.setPadding(new Insets(10)); editor.setPrefWidth(460);
-        ScrollPane editorScroll = new ScrollPane(editor); editorScroll.setFitToWidth(true); editorScroll.setPrefViewportHeight(620);
+        editor.getStyleClass().add("workspace-form");ScrollPane editorScroll = new ScrollPane(editor); editorScroll.setFitToWidth(true); editorScroll.setPrefViewportHeight(620);
         ScrollPane previewScroll = new ScrollPane(pageCanvas); previewScroll.setPrefViewportWidth(450); previewScroll.setPrefViewportHeight(620);
         HBox body = new HBox(10, editorScroll, previewScroll); HBox.setHgrow(editorScroll, Priority.ALWAYS); HBox.setHgrow(previewScroll, Priority.ALWAYS);
         dialog.getDialogPane().setContent(body); dialog.getDialogPane().getButtonTypes().addAll(attachType, ButtonType.CANCEL);

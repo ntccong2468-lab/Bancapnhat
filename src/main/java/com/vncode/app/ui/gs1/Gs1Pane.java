@@ -124,7 +124,7 @@ public final class Gs1Pane extends BorderPane {
     private record Context(Shop shop,ZnackModels.Settings settings,String inn,String fingerprint,CryptoProCertificateInfo certificate){}
     private record Application(NationalCatalogGs1Client.Session session,NationalCatalogGs1Client.AccountSnapshot snapshot,Map<String,List<NationalCatalogGs1Client.Choice>> dictionaries,CryptoProCertificateInfo certificate,Gs1ActionPolicy.Decision decision){}
     public Gs1Pane(){
-        setPadding(new Insets(30,30,20,38));getStyleClass().add("gs1-workspace");
+        setPadding(new Insets(16));getStyleClass().addAll("gs1-workspace","workspace-page");requests.getStyleClass().add("dense-data-list");requests.setFixedCellSize(70);
         requests.setCellFactory(list->new ListCell<>(){@Override protected void updateItem(Gs1Repository.Request item,boolean empty){super.updateItem(item,empty);setText(empty||item==null?null:item.subject()+"\n"+tr("gs1.state."+item.state().name())+" · "+displayTime(item.createdAt()));}});
         requests.getSelectionModel().selectedItemProperty().addListener((o,a,b)->showThread(b));
         i18n.addListener(languageListener);render();
@@ -208,7 +208,7 @@ public final class Gs1Pane extends BorderPane {
         var snapshot=readiness();
         var checked=new Label(catalogCheckedAt==null?"":tr("gs1.checked_at")+" "+displayTime(catalogCheckedAt));checked.getStyleClass().add("text-muted");
         var verify=button("gs1.reference.check",this::checkAll);var headingAction=new HBox(14,checked,verify);headingAction.setAlignment(Pos.CENTER_RIGHT);
-        var card=new VBox(18,cardHeading("gs1.readiness.title",headingAction));card.setId("gs1ReadinessCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(16));
+        var card=new VBox(12,cardHeading("gs1.readiness.title",headingAction));card.setId("gs1ReadinessCard");card.getStyleClass().addAll("feature-card","workspace-sheet");card.setPadding(new Insets(16));
         var checks=new GridPane();checks.setId("gs1ReadinessGrid");checks.setHgap(18);checks.setVgap(14);var cells=new ArrayList<VBox>();
         for(var check:snapshot.checks()){
             var name=new Label(tr("gs1.readiness.kind."+check.kind().name()));name.setWrapText(true);name.getStyleClass().add("text-bold");
@@ -247,7 +247,7 @@ public final class Gs1Pane extends BorderPane {
         account.setConverter(new javafx.util.StringConverter<>(){public String toString(BalanceSnapshot value){return value==null?tr("gs1.choose_account"):tr("gs1.balance_group")+" "+value.scope().productGroup()+" · "+tr("gs1.balance_account")+" "+value.scope().accountId();}public BalanceSnapshot fromString(String value){return null;}});
         account.setValue(selectedBalance);account.valueProperty().addListener((o,a,b)->{selectedBalance=b;render();});return account;
     }
-    private HBox cardHeading(String key,Node action){var title=new Label(tr(key));title.setWrapText(true);title.getStyleClass().add("h2");title.setMinWidth(0);title.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(title,Priority.ALWAYS);var row=new HBox(12,title,action);row.setAlignment(Pos.CENTER_LEFT);return row;}
+    private HBox cardHeading(String key,Node action){var title=new Label(tr(key));title.setWrapText(true);title.getStyleClass().add("h3");title.setMinWidth(0);title.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(title,Priority.ALWAYS);var row=new HBox(12,title,action);row.setAlignment(Pos.CENTER_LEFT);return row;}
     private void readinessAction(Gs1ReadinessService.Action action){switch(action){
         case CONFIGURE_SIGNATURE,TEST_SIGNATURE->configureSignature.run();
         case LOGIN,REFRESH_BALANCE,REFRESH_MEMBERSHIP->checkAll();
@@ -259,16 +259,16 @@ public final class Gs1Pane extends BorderPane {
         case NONE->{}
     }}
     private void render(){
-        Label title=new Label(tr("gs1.reference.title"));title.getStyleClass().add("h2");title.setWrapText(true);title.setMinWidth(0);title.setMaxWidth(Double.MAX_VALUE);
+        Label title=new Label(tr("gs1.reference.title"));title.getStyleClass().add("page-title");title.setWrapText(true);title.setMinWidth(0);title.setMaxWidth(Double.MAX_VALUE);
         var subtitle=new Label(inn.isBlank()?"":membershipName()+" · ИНН "+inn);subtitle.setId("gs1ShopIdentity");subtitle.getStyleClass().add("text-muted");subtitle.setWrapText(true);subtitle.setMinWidth(0);subtitle.setMaxWidth(Double.MAX_VALUE);
         var sync=button("gs1.reference.recheck",this::checkAll);sync.setId("gs1CheckAllButton");sync.setMinWidth(Region.USE_PREF_SIZE);sync.setDisable(busy||syncing||shop==null);sync.getStyleClass().add("btn-primary");sync.setGraphic(new org.kordamp.ikonli.javafx.FontIcon("fth-refresh-cw"));
         var configure=new Button(tr("gs1.sync.configure"));configure.setId("gs1ConfigureZnack");configure.setOnAction(e->configureSignature.run());
         var report=new Button(tr("gs1.sync.report"));report.setId("gs1SyncReport");report.setDisable(shop==null);report.setOnAction(e->Gs1SyncReportDialog.show(getScene()==null?null:getScene().getWindow(),shop));
         var extras=new HBox(configure,report);extras.setVisible(false);extras.setManaged(false);
         var menu=new ContextMenu();var settingsItem=new MenuItem(configure.getText());settingsItem.setOnAction(e->configure.fire());var reportItem=new MenuItem(report.getText());reportItem.setOnAction(e->report.fire());menu.getItems().addAll(settingsItem,reportItem);title.setContextMenu(menu);
-        var pageTitle=new VBox(3,title,subtitle);pageTitle.setMinWidth(0);pageTitle.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(pageTitle,Priority.ALWAYS);var heading=new HBox(16,pageTitle,sync,extras);heading.setAlignment(Pos.CENTER_LEFT);heading.setPadding(new Insets(0,0,18,0));setTop(heading);
+        var pageTitle=new VBox(3,title,subtitle);pageTitle.setMinWidth(0);pageTitle.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(pageTitle,Priority.ALWAYS);var heading=new HBox(12,pageTitle,sync,extras);heading.getStyleClass().add("workspace-toolbar");heading.setAlignment(Pos.CENTER_LEFT);heading.setPadding(new Insets(0,0,12,0));setTop(heading);
         summary.setWrapText(true);summary.getStyleClass().setAll("label","text-bold");detail.setWrapText(true);detail.getStyleClass().setAll("label","text-muted");status.setWrapText(true);
-        var left=new VBox(18,membershipCard(),readinessCard(),prefixCard());left.setId("gs1AccountPanel");left.setPadding(new Insets(0,8,8,0));left.setMinWidth(0);
+        var left=new VBox(12,membershipCard(),readinessCard(),prefixCard());left.setId("gs1AccountPanel");left.setPadding(new Insets(0,8,8,0));left.setMinWidth(0);
         headerScroll.setId("gs1AccountScroll");headerScroll.setFitToWidth(true);headerScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);headerScroll.setMinWidth(0);headerScroll.setMinHeight(0);headerScroll.setMaxHeight(Double.MAX_VALUE);headerScroll.setContent(left);
         var inboxActions=new FlowPane(8,8,button("gs1.mail_settings",this::mailSettings),button("gs1.inbox_refresh",this::refreshInbox));inboxActions.setDisable(busy||inn.isBlank());
         boolean hasRequests=!requests.getItems().isEmpty();inboxActions.setManaged(hasRequests);inboxActions.setVisible(hasRequests);
@@ -279,7 +279,7 @@ public final class Gs1Pane extends BorderPane {
         var inboxTitle=new Label(tr("gs1.reference.inbox_title"));inboxTitle.getStyleClass().add("text-bold");inboxTitle.setWrapText(true);
         var inboxMenu=new ContextMenu();var mail=new MenuItem(tr("gs1.mail_settings"));mail.setOnAction(e->mailSettings());var refreshMail=new MenuItem(tr("gs1.inbox_refresh"));refreshMail.setOnAction(e->refreshInbox());inboxMenu.getItems().setAll(mail,refreshMail);inboxTitle.setContextMenu(inboxMenu);
         var requestTitle=new Label(tr("gs1.requests"));requestTitle.setManaged(hasRequests);requestTitle.setVisible(hasRequests);
-        var inbox=new VBox(12,inboxTitle,inboxActions,requestTitle,requests,conversationScroll);inbox.setId("gs1InboxPanel");inbox.setPadding(new Insets(20));inbox.setMinWidth(0);inbox.setMinHeight(0);inbox.getStyleClass().add("feature-card");VBox.setVgrow(conversationScroll,Priority.ALWAYS);
+        var inbox=new VBox(10,inboxTitle,inboxActions,requestTitle,requests,conversationScroll);inbox.setId("gs1InboxPanel");inbox.setPadding(new Insets(16));inbox.setMinWidth(0);inbox.setMinHeight(0);inbox.getStyleClass().addAll("feature-card","workspace-sheet");VBox.setVgrow(conversationScroll,Priority.ALWAYS);
         SplitPane split=new SplitPane(headerScroll,inbox);split.setId("gs1WorkspaceSplit");split.setDividerPositions(.69);split.widthProperty().addListener((o,a,b)->adaptWorkspace(split,b.doubleValue()));setCenter(split);adaptWorkspace(split,getWidth()-getPadding().getLeft()-getPadding().getRight());
         status.managedProperty().unbind();status.visibleProperty().unbind();status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());setBottom(status);BorderPane.setMargin(status,new Insets(8,0,0,0));
         requests.refresh();if(requests.getSelectionModel().getSelectedItem()!=null)showThread(requests.getSelectionModel().getSelectedItem());
@@ -305,10 +305,10 @@ public final class Gs1Pane extends BorderPane {
         var issue=button("gs1.catalog_issue",()->draft(Gs1LettersService.Kind.CATALOG_ISSUE));issue.setDisable(busy||inn.isBlank());issue.getStyleClass().add("btn-primary");
         var actions=new FlowPane(10,8,more,issue,join,renewal);boolean showJoin=policy.joinAction()!=Gs1ActionPolicy.JoinAction.ALREADY_MEMBER;join.setVisible(showJoin);join.setManaged(showJoin);renewal.setVisible(policy.renewal());renewal.setManaged(policy.renewal());
         if(policy.joiningInvoice()){var invoice=button("gs1.joining_invoice",()->draft(Gs1LettersService.Kind.JOINING_INVOICE));invoice.setDisable(busy||inn.isBlank());actions.getChildren().add(invoice);}
-        var card=new VBox(10,line,explanation,detail,actions);card.setId("gs1MembershipCard");card.getStyleClass().add("feature-card");card.setPadding(new Insets(20));return card;
+        var card=new VBox(10,line,explanation,detail,actions);card.setId("gs1MembershipCard");card.getStyleClass().addAll("feature-card","workspace-sheet");card.setPadding(new Insets(16));return card;
     }
     private VBox prefixCard(){
-        var table=new TableView<Gs1Membership.Prefix>();table.setId("gs1PrefixTable");table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);table.setPlaceholder(new Label(tr("gs1.prefixes_unknown")));table.setMinHeight(110);table.setFixedCellSize(54);
+        var table=new TableView<Gs1Membership.Prefix>();table.setId("gs1PrefixTable");table.getStyleClass().add("dense-data-table");table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);table.setPlaceholder(new Label(tr("gs1.prefixes_unknown")));table.setMinHeight(110);table.setFixedCellSize(54);
         var gcp=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.reference.gcp"));gcp.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(cell.getValue().gcp()));gcp.setMinWidth(85);gcp.setPrefWidth(235);
         var gln=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.prefix.gln"));gln.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(cell.getValue().glns().isEmpty()?"—":String.join("\n",cell.getValue().glns())));gln.setMinWidth(110);gln.setPrefWidth(245);
         var paid=new TableColumn<Gs1Membership.Prefix,String>(tr("gs1.reference.paid_until"));paid.setCellValueFactory(cell->new javafx.beans.property.SimpleStringProperty(prefixValidUntil(cell.getValue(),membership)==null?"—":prefixValidUntil(cell.getValue(),membership).format(java.time.format.DateTimeFormatter.ofPattern("dd.MM.yyyy"))));paid.setMinWidth(105);paid.setPrefWidth(220);

@@ -27,6 +27,7 @@ public final class WorkspaceDetailDrawer {
     private final Button close=new Button("",new FontIcon("fth-x"));
     private Node returnFocus;
     private long generation;
+    private boolean closing;
 
     public WorkspaceDetailDrawer(StackPane host) {
         this.host=host;panel.setId("workspaceDetailDrawer");panel.getStyleClass().add("detail-drawer");
@@ -44,6 +45,9 @@ public final class WorkspaceDetailDrawer {
     }
     public void show(String title,List<Section> sections) {
         ++generation;
+        boolean entering=!host.getChildren().contains(panel)||closing;
+        closing=false;
+        WorkspaceMotion.stop(panel);
         if(!host.getChildren().contains(panel)){
             returnFocus=host.getScene()==null?null:host.getScene().getFocusOwner();host.getChildren().add(panel);
         }
@@ -68,16 +72,22 @@ public final class WorkspaceDetailDrawer {
             details.getChildren().add(group);
         }
         scroll.setVvalue(0);panel.toFront();
-        WorkspaceMotion.drawer(panel,true,()->{});close.requestFocus();
+        if(entering)WorkspaceMotion.drawer(panel,true,()->{});
+        else WorkspaceMotion.navigation(details,com.vncode.app.shared.NavigationContext.TAB);
+        close.requestFocus();
     }
     public void close() {
+        if(!host.getChildren().contains(panel)||closing)return;
+        closing=true;
         long epoch=++generation;
+        WorkspaceMotion.stop(details);
         WorkspaceMotion.drawer(panel,false,()->{
             if(epoch!=generation)return;
             host.getChildren().remove(panel);
+            details.getChildren().clear();closing=false;
             if(returnFocus!=null&&returnFocus.getScene()==host.getScene())returnFocus.requestFocus();
             returnFocus=null;
         });
     }
-    public void clear(){++generation;WorkspaceMotion.stop(panel);host.getChildren().remove(panel);details.getChildren().clear();returnFocus=null;}
+    public void clear(){++generation;closing=false;WorkspaceMotion.stop(panel);WorkspaceMotion.stop(details);host.getChildren().remove(panel);details.getChildren().clear();returnFocus=null;}
 }

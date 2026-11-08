@@ -9,113 +9,131 @@
 .ozon-fbs-workspace .titled-pane > .title { -fx-background-color: -bg-secondary; -fx-background-radius: 10; }
 .ozon-fbs-workspace .titled-pane > .title > .text { -fx-fill: -text-primary; }
 .ozon-fbs-workspace .titled-pane > .content { -fx-background-color: -bg-primary; -fx-border-color: -border-color; }
-/* CSS Variables & Theme Definitions */
-.root {
-    /* DEFAULT (DARK) THEME VARIABLES */
-    -bg-primary: #111419;        /* Deep slate navy */
-    -bg-secondary: #191D24;      /* Medium slate card background */
-    -bg-tertiary: #191D24;       /* Lighter slate panel background */
-    -bg-odd-row: #191D24;        /* Contrasted odd row background */
-    -border-color: #2C323C;      /* Slate border */
-    -border-color-hover: #454E5D;
-
-    -text-primary: #F1F3F6;      /* Slate 50 text */
-    -text-secondary: #C0C6D1;    /* Slate 300 text */
-    -text-muted: #969DAB;        /* Slate 500 text */
-
-    -accent: #9660EE;            /* Soft Violet/Purple accent for dark mode readability */
-    -accent-hover: #C071FA;
-    -accent-active: #9F45E3;
-    -accent-transparent: rgba(167, 139, 250, 0.15);
-
-    -danger: #EF4444;
-    -danger-hover: #DC2626;
-    -danger-active: #B91C1C;
-
-    -success: #10B981;
-    -success-hover: #059669;
-    -success-active: #047857;
-
-    -warning: #F59E0B;
-    -warning-hover: #D97706;
-
-    /* Button specific dark variables */
-    -btn-bg: #191D24;
-    -btn-bg-hover: #2C323C;
-    -btn-bg-pressed: #111419;
-    -btn-text-color: #F1F3F6;
-    
-    -fx-font-family: "Inter", "Segoe UI", sans-serif;
-    -fx-font-size: 13px;
+/* Shared semantic fallback tokens; workspace-controls.css owns the active system. */
+.root, .workspace-theme, .root.theme-dark, .workspace-theme.theme-dark {
+    -bg-primary: #17181b;
+    -nav-surface: #292a2e;
+    -bg-secondary: #232428;
+    -bg-tertiary: #303136;
+    -bg-odd-row: #232428;
+    -border-color: #3a3b41;
+    -border-color-hover: #898b95;
+    -row-rule: #33343a;
+    -text-primary: #f1f1f4;
+    -text-secondary: #c1c2cb;
+    -text-muted: #adafb9;
+    -accent: #9ac6ff;
+    -accent-hover: #b3d5ff;
+    -accent-active: #83b7fb;
+    -accent-text: #9ac6ff;
+    -accent-transparent: #343e4c;
+    -on-accent: #142c4a;
+    -on-semantic: #ffffff;
+    -on-warning: #30230c;
+    -focus: #9ac6ff;
+    -focus-primary: #142c4a;
+    -danger: #ff9aa9;
+    -danger-hover: #bc3c55;
+    -danger-active: #9d2941;
+    -danger-fill: #a92d46;
+    -success: #87d7b8;
+    -success-hover: #237757;
+    -success-active: #175b42;
+    -success-fill: #176747;
+    -warning: #f3c570;
+    -warning-hover: #e7b556;
+    -warning-fill: #f3c570;
+    -success-surface: #243e33;
+    -danger-surface: #482b34;
+    -warning-surface: #443920;
+    -glass-surface: rgba(46,47,52,.86);
+    -glass-elevated: rgba(48,49,54,.94);
+    -glass-button: rgba(61,62,68,.78);
+    -glass-highlight: rgba(255,255,255,.10);
+    -glass-control-highlight: rgba(255,255,255,.08);
+    -glass-control-shadow: rgba(0,0,0,.08);
+    -glass-selected: #353e49;
+    -ui-panel: -bg-secondary;
+    -ui-control: #2c2d32;
+    -ui-control-hover: #3b3d44;
+    -ui-control-pressed: #454750;
+    -ui-field: #232428;
+    -ui-input-border: #858792;
+    -ui-row-hover: #2c2e34;
+    -ui-selected: #323d4b;
+    -ui-table-header: #232428;
+    -nav-selected: #353e49;
+    -btn-bg: -ui-control;
+    -btn-bg-hover: -ui-control-hover;
+    -btn-bg-pressed: -ui-control-pressed;
+    -btn-text-color: -text-primary;
+    -fx-base: -bg-secondary;
+    -fx-background: -bg-primary;
+    -fx-control-inner-background: -ui-field;
+    -fx-control-inner-background-alt: -ui-field;
+    -fx-accent: -accent;
+    -fx-focus-color: -focus;
+    -fx-faint-focus-color: transparent;
+    -fx-selection-bar: -ui-selected;
+    -fx-selection-bar-non-focused: -ui-selected;
+    -fx-selection-bar-text: -text-primary;
+    -fx-text-background-color: -text-primary;
+    -fx-background-color: -bg-primary;
+    -fx-background-radius: 0;
+    -fx-font-family: "Inter";
+    -fx-font-size: 14px;
 }
-
-.root.theme-dark {
-    -bg-primary: #111419;
-    -bg-secondary: #191D24;
-    -bg-tertiary: #191D24;
-    -bg-odd-row: #191D24;
-    -border-color: #2C323C;
-    -border-color-hover: #454E5D;
-
-    -text-primary: #F1F3F6;
-    -text-secondary: #C0C6D1;
-    -text-muted: #969DAB;
-
-    -accent: #9660EE;
-    -accent-hover: #C071FA;
-    -accent-active: #9F45E3;
-    -accent-transparent: rgba(167, 139, 250, 0.15);
-
-    -danger: #EF4444;
-    -danger-hover: #DC2626;
-    -danger-active: #B91C1C;
-
-    -success: #10B981;
-    -success-hover: #059669;
-    -success-active: #047857;
-
-    -warning: #F59E0B;
-    -warning-hover: #D97706;
-
-    -btn-bg: #191D24;
-    -btn-bg-hover: #2C323C;
-    -btn-bg-pressed: #111419;
-    -btn-text-color: #F1F3F6;
-}
-
-.root.theme-light {
-    -bg-primary: #F3F6F9;
-    -bg-secondary: #FFFFFF;
-    -bg-tertiary: #EDF1F5;
-    -bg-odd-row: #FFFFFF;
-    -border-color: #D8E0E8;
-    -border-color-hover: #AEBBC8;
-
-    -text-primary: #1B2632;
-    -text-secondary: #344453;
-    -text-muted: #566778;
-
-    -accent: #6943B8;
-    -accent-hover: #7953C6;
-    -accent-active: #5934A6;
-    -accent-transparent: rgba(139, 92, 246, 0.12);
-
-    -danger: #EF4444;
-    -danger-hover: #DC2626;
-    -danger-active: #B91C1C;
-
-    -success: #10B981;
-    -success-hover: #059669;
-    -success-active: #047857;
-
-    -warning: #F59E0B;
-    -warning-hover: #D97706;
-
-    /* Button specific light variables */
-    -btn-bg: #FFFFFF;
-    -btn-bg-hover: #F3F4F6;
-    -btn-bg-pressed: #E5E7EB;
-    -btn-text-color: #374151;
+.root.theme-light, .workspace-theme.theme-light {
+    -bg-primary: #e9ebf0;
+    -nav-surface: #f7f8fa;
+    -bg-secondary: #ffffff;
+    -bg-tertiary: #f0f1f5;
+    -bg-odd-row: #ffffff;
+    -border-color: #e0e2e9;
+    -border-color-hover: #818493;
+    -row-rule: #eceef3;
+    -text-primary: #24252a;
+    -text-secondary: #555966;
+    -text-muted: #606472;
+    -accent: #0762cf;
+    -accent-hover: #0656b8;
+    -accent-active: #06499a;
+    -accent-text: #0762cf;
+    -accent-transparent: #e8eef7;
+    -on-accent: #ffffff;
+    -focus: #0762cf;
+    -focus-primary: #ffffff;
+    -danger: #b62440;
+    -danger-hover: #9f1d36;
+    -danger-active: #86172c;
+    -danger-fill: #b62440;
+    -success: #116b4c;
+    -success-hover: #0d5d40;
+    -success-active: #094c34;
+    -success-fill: #116b4c;
+    -warning: #865000;
+    -warning-hover: #e5b34f;
+    -warning-fill: #f3c570;
+    -success-surface: #e3f3eb;
+    -danger-surface: #fce9ed;
+    -warning-surface: #fff2d8;
+    -glass-surface: rgba(255,255,255,.65);
+    -glass-elevated: rgba(255,255,255,.94);
+    -glass-button: rgba(255,255,255,.78);
+    -glass-highlight: rgba(255,255,255,.80);
+    -glass-control-highlight: rgba(255,255,255,.60);
+    -glass-control-shadow: rgba(36,37,42,.04);
+    -glass-selected: #e7edf7;
+    -ui-panel: -bg-secondary;
+    -ui-control: #ffffff;
+    -ui-control-hover: #f0f3f9;
+    -ui-control-pressed: #e5eaf2;
+    -ui-field: #ffffff;
+    -ui-input-border: #85899a;
+    -ui-row-hover: #f4f6fa;
+    -ui-selected: #e8eef7;
+    -ui-table-header: #ffffff;
+    -nav-selected: #e7edf7;
 }
 
 /* Base styles - Applies to the root scene */
@@ -1164,7 +1182,7 @@
 .product-row .product-name { -fx-font-weight: bold; }
 
 .copy-card { -fx-background-color: -bg-secondary; -fx-background-radius: 12; -fx-padding: 14; }
-#listingCopyPane .text-danger { -fx-text-fill: #fb7185; }
+#listingCopyPane .text-danger { -fx-text-fill: -danger; }
 #listingCopyPane #copyJobs { -fx-background-radius: 12; }
 
 .text-input:error { -fx-border-color: #dc5d69; -fx-border-radius: 8; }
@@ -1258,7 +1276,7 @@
 #productsPane .products-bulk .button.btn-primary { -fx-background-color: -accent; -fx-border-color: transparent; -fx-text-fill: white; }
 #productsPane .products-bulk .button.btn-primary:hover { -fx-background-color: -accent-hover; }
 #productsPane .products-bulk .button.btn-primary .ikonli-font-icon { -fx-icon-color: white; -fx-icon-size: 16; }
-#productsPane .button .ikonli-font-icon { -fx-icon-color: -text-primary; -fx-icon-size: 16; }
+#productsPane .button .ikonli-font-icon { -fx-icon-size: 16; }
 #productsPane #productClearSelection { -fx-padding: 6; -fx-min-width: 32; -fx-max-width: 32; }
 #productsPane #productClearSelection .ikonli-font-icon { -fx-icon-size: 18; }
 #productsPane .task-status-pill { -fx-padding: 8 12; }
@@ -1293,9 +1311,9 @@
 #productBulkEditPane .spinner .decrement-arrow { -fx-background-color: -text-primary; }
 
 /* Permit state stays readable on every glass opacity. */
-.document-pending { -fx-text-fill: #b86800; -fx-icon-color: #b86800; }
-.document-rejected { -fx-text-fill: #cf263e; -fx-icon-color: #cf263e; }
-.document-valid { -fx-icon-color: #13b88a; }
+.document-pending { -fx-text-fill: -warning; -fx-icon-color: -warning; }
+.document-rejected { -fx-text-fill: -danger; -fx-icon-color: -danger; }
+.document-valid { -fx-icon-color: -success; }
 
 /* Ozon FBS uses the same column/row presentation as WB shipment details. */
 .app-page.ozon-fbs-workspace .ozon-posting-table .table-cell { -fx-padding: 7 10; -fx-font-size: 13px; }

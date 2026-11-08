@@ -82,14 +82,14 @@ public final class ProductsPane extends BorderPane {
     public ProductsPane(Function<ProductQuery,ProductPage> reader,ShopReadCoordinator reads,ProductRefreshService refreshService) {
         this.reader=reader==null?repository::loadProductPage:reader;this.reads=Objects.requireNonNull(reads);
         this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
-        setId("productsPane");getStyleClass().add("products-workspace");setPadding(new Insets(16));
-        rows.setId("productRows");rows.setFixedCellSize(76);rows.setCellFactory(list->new ProductCell());
+        setId("productsPane");getStyleClass().addAll("products-workspace","workspace-page","workspace-sheet");setPadding(new Insets(16));
+        rows.setId("productRows");rows.getStyleClass().add("dense-data-list");rows.setFixedCellSize(76);rows.setCellFactory(list->new ProductCell());
         rows.setAccessibleHelp(tr("ui.detail.open"));
         rows.setOnKeyPressed(e->{if(e.getCode()==javafx.scene.input.KeyCode.ENTER&&e.getTarget()==rows){var row=rows.getSelectionModel().getSelectedItem();if(row!=null){details(row);e.consume();}}});
         rows.skinProperty().addListener((o,a,b)->Platform.runLater(this::installScrollPaging));
         var headingSpacer=new Region();HBox.setHgrow(headingSpacer,Priority.ALWAYS);
-        var heading=new HBox(10,title,count,headingSpacer,reload);heading.setAlignment(Pos.CENTER_LEFT);heading.setMinHeight(36);
-        title.getStyleClass().add("h2");count.getStyleClass().add("text-muted");reload.setGraphic(new FontIcon("fth-refresh-cw"));
+        var heading=new HBox(10,title,count,headingSpacer,copy,reload);heading.getStyleClass().add("workspace-toolbar");heading.setAlignment(Pos.CENTER_LEFT);heading.setMinHeight(36);
+        title.getStyleClass().addAll("h2","page-title");count.getStyleClass().add("text-muted");reload.getStyleClass().add("btn-primary");reload.setGraphic(new FontIcon("fth-refresh-cw"));copy.setGraphic(new FontIcon("fth-copy"));
         search.setId("productSearch");search.setMinWidth(180);search.setPrefWidth(375);
         category.setPrefWidth(134);document.setPrefWidth(263);
         category.setId("productCategoryFilter");document.setId("productDocumentFilter");
@@ -103,13 +103,13 @@ public final class ProductsPane extends BorderPane {
         // Filters are also shown beside the app's sidebar.  At narrower window
         // widths an HBox kept the document filter beyond the right edge, so let
         // the controls wrap without shrinking their labels below usable widths.
-        var filters=new FlowPane(10,8,pageSelection,search,category,document);filters.setId("productFilters");filters.setAlignment(Pos.CENTER_LEFT);filters.setMinWidth(0);
+        var filters=new FlowPane(10,8,pageSelection,search,category,document);filters.setId("productFilters");filters.getStyleClass().add("workspace-toolbar");filters.setAlignment(Pos.CENTER_LEFT);filters.setMinWidth(0);
         needsFix.getStyleClass().add("text-muted");issueBar.getChildren().add(needsFix);issueBar.setAlignment(Pos.CENTER_LEFT);
         for(var kind:List.of(ProductIssueFilter.INVALID_TNVED,ProductIssueFilter.MISSING_BRAND,ProductIssueFilter.MISSING_MATERIAL)){
             var chip=new ToggleButton();chip.setId("productIssue_"+kind.name());chip.getStyleClass().add("product-issue-chip");chip.setOnAction(e->issue.setValue(issue.getValue()==kind?ProductIssueFilter.ALL:kind));issueChips.put(kind,chip);issueBar.getChildren().add(chip);
         }
         status.setWrapText(true);status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());
-        var top=new VBox(8,heading,filters,issueBar,status);top.setPadding(new Insets(0,0,8,0));setTop(top);setCenter(listing);
+        var top=new VBox(6,heading,filters,issueBar,status);top.setPadding(new Insets(0,0,6,0));setTop(top);setCenter(listing);
         bulk.setId("productBulkActions");bulk.getStyleClass().add("products-bulk");
         selected.getStyleClass().add("text-bold");selected.setMinWidth(Region.USE_PREF_SIZE);bulkActions.setMinWidth(0);bulkActions.setAlignment(Pos.CENTER_LEFT);
         for(String field:List.of("brand","material","gender","tnved","documents")) {
@@ -118,8 +118,7 @@ public final class ProductsPane extends BorderPane {
             button.setOnAction(event->{if(onEdit!=null&&!selection.isEmpty()&&!loading&&!syncing&&!selecting&&!searchDirty)onEdit.accept(field,selection.freeze());});bulkActions.getChildren().add(button);
         }
         clear.setId("productClearSelection");clear.setText("");clear.setGraphic(new FontIcon("fth-x"));clear.setMinSize(30,34);
-        bulk.setVisible(false);bulk.setManaged(false);
-        var bottom=new VBox(bulk);bottom.setPadding(new Insets(10,0,0,0));bottom.managedProperty().bind(bulk.managedProperty());bottom.visibleProperty().bind(bottom.managedProperty());setBottom(bottom);
+        var bottom=new HBox(10,bulk,more);bottom.setAlignment(Pos.CENTER_LEFT);HBox.setHgrow(bulk,Priority.ALWAYS);bottom.managedProperty().bind(bulk.managedProperty());bottom.visibleProperty().bind(bottom.managedProperty());setBottom(bottom);
         reload.setOnAction(e->synchronize());more.setOnAction(e->load(true));
         debounce.setOnFinished(e->filterChanged());search.textProperty().addListener((o,a,b)->{if(!updating){searchDirty=true;selection.clear();updateSelection();debounce.playFromStart();}});
         category.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});document.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});issue.valueProperty().addListener((o,a,b)->{refreshIssueCells();if(!updating)filterChanged();});missing.setOnAction(e->filterChanged());
@@ -200,7 +199,7 @@ public final class ProductsPane extends BorderPane {
             if(disposed||epoch!=generation)return;selecting=false;updateButtons();if(error!=null){status.setText(tr("products.read_failed"));return;}selection.selectPage(keys);updateSelection();
         }));
     }
-    private void updateSelection(){int n=selection.size();WorkspaceMotion.selection(selected);selected.setText(java.text.MessageFormat.format(tr("products.selected_count"),n));bulk.setVisible(n>0&&!pickerMode);bulk.setManaged(n>0&&!pickerMode);boolean allSelected=n>0&&n==displayedTotal;pageSelection.setSelected(allSelected);pageSelection.setIndeterminate(n>0&&!allSelected);updateButtons();}
+    private void updateSelection(){int n=selection.size();WorkspaceMotion.selection(selected);selected.setText(java.text.MessageFormat.format(tr("products.selected_count"),n));bulk.setVisible(!pickerMode);bulk.setManaged(!pickerMode);boolean allSelected=n>0&&n==displayedTotal;pageSelection.setSelected(allSelected);pageSelection.setIndeterminate(n>0&&!allSelected);updateButtons();}
     private void updateButtons(){boolean blocked=shop==null||loading||syncing||selecting||searchDirty||currentEdit!=null&&currentEdit.backgroundRunning().get();boolean empty=selection.isEmpty();copy.setDisable(blocked||empty||onCopy==null);pageSelection.setDisable(blocked);clear.setDisable(blocked);all.setDisable(blocked||displayedQuery==null);for(var n:bulkActions.getChildren())if(n instanceof Button b&&b.getUserData()!=null)b.setDisable(blocked||empty||onEdit==null);updateVisibleChecks();}
     /** Updating selection must not recreate virtual cells or clear their already loaded images. */
     private void updateVisibleChecks(){for(var node:rows.lookupAll(".list-cell"))if(node instanceof ProductsPane.ProductCell cell)cell.updateCheck();}

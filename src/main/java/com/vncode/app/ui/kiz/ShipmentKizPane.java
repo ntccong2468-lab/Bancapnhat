@@ -26,11 +26,13 @@ public class ShipmentKizPane extends VBox {
     private Consumer<Boolean> readyChanged=value->{};
 
     public ShipmentKizPane() {
-        setSpacing(8);title.getStyleClass().add("h3");hint.setWrapText(true);hint.getStyleClass().add("text-muted");status.setWrapText(true);
+        getStyleClass().add("workspace-section");setSpacing(8);title.getStyleClass().add("h3");hint.setWrapText(true);hint.getStyleClass().add("text-muted");status.setWrapText(true);
         imported.setId("shipment-kiz-imported");purchased.setId("shipment-kiz-purchased");refresh.setId("shipment-kiz-refresh");
         progress.setMaxSize(18,18);var spacer=new Region();HBox.setHgrow(spacer,Priority.ALWAYS);
-        getChildren().addAll(new HBox(8,title,spacer,progress,refresh),new FlowPane(8,6,imported,purchased),hint,table,status);
-        table.setId("shipment-kiz-categories");table.setFixedCellSize(52);table.setPrefHeight(235);table.setMinHeight(120);
+        var heading=new HBox(8,title,spacer,progress,refresh);heading.getStyleClass().add("workspace-toolbar");
+        var sources=new FlowPane(8,6,imported,purchased);sources.getStyleClass().add("workspace-toolbar");
+        getChildren().addAll(heading,sources,hint,table,status);
+        table.setId("shipment-kiz-categories");table.getStyleClass().add("dense-data-table");table.setFixedCellSize(52);table.setPrefHeight(235);table.setMinHeight(120);
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         column("category",ShipmentKizRepository.CategoryStock::name,145);
         column("ready",r->r.ready(),65);

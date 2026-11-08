@@ -23,10 +23,10 @@ public final class GuidesPane extends BorderPane {
     private final GuideMediaRepository media=new GuideMediaRepository();
     private boolean disposed;
     public GuidesPane() {
-        body.getStyleClass().add("welcome-body");title.getStyleClass().add("welcome-title");setId("guidesPane");search.setId("guideSearch");search.setPrefWidth(350);
-        var scroll=new ScrollPane(body);scroll.setFitToWidth(true);setCenter(scroll);
-        var heading=new VBox(12,title,intro,search);heading.setPadding(new javafx.geometry.Insets(18));setTop(heading);
-        body.setPadding(new javafx.geometry.Insets(18));title.getStyleClass().add("h2");intro.setWrapText(true);
+        getStyleClass().add("workspace-page");body.getStyleClass().addAll("welcome-body","workspace-article");title.getStyleClass().addAll("welcome-title","h2","page-title");setId("guidesPane");search.setId("guideSearch");search.setPrefWidth(350);
+        var scroll=new ScrollPane(body);scroll.getStyleClass().add("workspace-sheet");scroll.setFitToWidth(true);scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);setCenter(scroll);
+        var heading=new VBox(8,title,intro,search);heading.getStyleClass().add("workspace-toolbar");heading.setPadding(new javafx.geometry.Insets(16));setTop(heading);
+        body.setPadding(new javafx.geometry.Insets(16));body.setMaxWidth(1000);intro.setWrapText(true);
         search.textProperty().addListener((o,a,b)->render());sceneProperty().addListener((o,a,b)->{if(b==null)stopMedia();});applyTranslations();
     }
     public static String searchKey(String value){return Normalizer.normalize(value==null?"":value,Normalizer.Form.NFD).replaceAll("\\p{M}","").toLowerCase(Locale.ROOT).replace('đ','d');}

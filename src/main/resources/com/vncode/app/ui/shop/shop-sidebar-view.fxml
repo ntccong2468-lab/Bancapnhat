@@ -5,6 +5,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.SplitMenuButton?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.image.Image?>
@@ -19,24 +21,24 @@
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.CheckMenuItem?>
-<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="196" spacing="6" styleClass="sidebar" fx:controller="com.vncode.app.ui.shop.ShopSidebarController" fx:id="sidebarRoot" minHeight="0" minWidth="196" maxWidth="196">
+<VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" alignment="TOP_CENTER" prefHeight="600.0" prefWidth="202" spacing="6" styleClass="sidebar,workspace-glass-sidebar" fx:controller="com.vncode.app.ui.shop.ShopSidebarController" fx:id="sidebarRoot" minHeight="0" minWidth="202" maxWidth="202">
     <children><FlowPane alignment="CENTER_LEFT" hgap="4" vgap="4" styleClass="sidebar-brand"><HBox alignment="CENTER_LEFT" spacing="6.0">
             <children>
-                <ImageView fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
+                <ImageView fx:id="sidebarLogo" fitHeight="24.0" fitWidth="24.0" pickOnBounds="true" preserveRatio="true">
                     <image>
                         <Image url="@/com/vncode/app/assets/images/logo.png"/>
                     </image>
                 </ImageView>
-                <Label fx:id="sidebarTitle" alignment="CENTER_LEFT" text="VN code" textAlignment="LEFT" styleClass="h2">
+                <Label fx:id="sidebarTitle" alignment="CENTER_LEFT" text="VN Code" textAlignment="LEFT" styleClass="h2">
                     <font>
-                        <Font name="System Bold" size="22.0"/>
+                        <Font name="System Bold" size="20.0"/>
                     </font>
                 </Label>
             </children>
         </HBox>
         <Button fx:id="sidebarToggleButton" onAction="#onToggleSidebar" maxWidth="28" styleClass="btn-icon" prefWidth="28" minWidth="24"><graphic><FontIcon iconLiteral="fth-chevrons-left" iconSize="16"/></graphic></Button>
         </FlowPane>
-        <ScrollPane minHeight="0" fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll" VBox.vgrow="ALWAYS"><content><VBox spacing="3" minWidth="0"><Label text="%sidebar.group.operate" styleClass="nav-section" maxWidth="1.7976931348623157E308" fx:id="navSectionOperate"/><Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="38" prefWidth="190.0" text=" Dashboard" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
+        <ScrollPane minHeight="0" fitToWidth="true" hbarPolicy="NEVER" styleClass="sidebar-scroll" VBox.vgrow="ALWAYS"><content><StackPane fx:id="navigationStack" alignment="TOP_LEFT" styleClass="navigation-stack"><Pane fx:id="navigationIndicator" managed="false" mouseTransparent="true" visible="false" styleClass="navigation-indicator"/><VBox fx:id="navigationItems" spacing="3" minWidth="0"><Label text="%sidebar.group.operate" styleClass="nav-section" maxWidth="1.7976931348623157E308" fx:id="navSectionOperate"/><Button fx:id="dashboardButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onDashboard" prefHeight="38" prefWidth="190.0" text=" Dashboard" maxWidth="1.7976931348623157E308" minHeight="38" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-grid" iconSize="16"/>
             </graphic>
@@ -74,20 +76,16 @@
                 <FontIcon iconLiteral="fth-edit" iconSize="16"/>
             </graphic>
         </Button>
-        </VBox></content></ScrollPane><VBox spacing="4" styleClass="sidebar-footer"><TitledPane text="%sidebar.tools" expanded="false" animated="false" styleClass="sidebar-tools" fx:id="toolsPane"><content><VBox spacing="4"><Button fx:id="tnvedButton" onAction="#onTnved" text="%tnved.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-hash" iconSize="16"/></graphic></Button>
+        <Button fx:id="tnvedButton" onAction="#onTnved" text="%tnved.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-hash" iconSize="16"/></graphic></Button>
         <Button fx:id="fboOrdersButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onFboOrders" prefHeight="30.0" prefWidth="220" text=" Đơn hàng FBO" maxWidth="1.7976931348623157E308" styleClass="button,nav-item">
             <graphic>
                 <FontIcon iconLiteral="fth-list" iconSize="16"/>
             </graphic>
         </Button>
         <Button fx:id="listingCopyButton" onAction="#onListingCopy" text="%copy.title" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-copy" iconSize="16"/></graphic></Button>
-        <Button fx:id="addShopButton" alignment="CENTER_LEFT" mnemonicParsing="false" onAction="#onAddShop" prefHeight="40" prefWidth="190.0" text=" Добавить магазин" maxWidth="1.7976931348623157E308" styleClass="button,add-shop">
-            <graphic>
-                <FontIcon iconLiteral="fth-plus" iconSize="16"/>
-            </graphic>
-        </Button>
-        </VBox></content></TitledPane><Button fx:id="guidesButton" onAction="#onGuides" text="%guides.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-book-open" iconSize="16"/></graphic></Button>
-        <MenuButton fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="46" prefWidth="236" text=" Settings" maxWidth="1.7976931348623157E308">
+
+        </VBox></StackPane></content></ScrollPane><VBox spacing="4" styleClass="sidebar-footer"><Button fx:id="guidesButton" onAction="#onGuides" text="%guides.title" alignment="CENTER_LEFT" prefHeight="40" minHeight="40" maxWidth="1.7976931348623157E308" styleClass="button,nav-item"><graphic><FontIcon iconLiteral="fth-book-open" iconSize="16"/></graphic></Button>
+        <SplitMenuButton onAction="#onAppearance" fx:id="settingsMenuButton" alignment="CENTER_LEFT" mnemonicParsing="false" prefHeight="46" prefWidth="236" text=" Settings" maxWidth="1.7976931348623157E308">
             <styleClass>
                 <String fx:value="button"/>
                 <String fx:value="btn-secondary"/>
@@ -116,7 +114,7 @@
                 <MenuItem fx:id="personalEditionMenuItem" onAction="#onPersonalEdition" text="%license.account.title"/>
                 <MenuItem fx:id="aboutMenuItem" onAction="#onAbout" text="About"/>
             </items>
-        </MenuButton>
+        </SplitMenuButton>
         </VBox><Label fx:id="editionStatusLabel" wrapText="true" maxWidth="1.7976931348623157E308" text="•"/>
     </children><padding>
         <Insets bottom="8.0" left="8.0" right="8.0" top="8.0"/>

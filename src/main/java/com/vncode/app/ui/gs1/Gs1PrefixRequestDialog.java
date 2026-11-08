@@ -85,7 +85,7 @@ public final class Gs1PrefixRequestDialog {
         reviewed.setWrapText(true);reviewed.setId("gs1PrefixReviewConfirmation");status.setWrapText(true);
         var editor=new VBox(12,recipient,source,inputs,radios,allowance,templateNotice,wordButtons,templateStatus,signatureSection,attach,
                 labeled("gs1.comment",comment),mailSection,reviewed,status);editor.setPadding(new Insets(12));editor.setMinWidth(0);editor.setPrefWidth(470);
-        var editorScroll=new ScrollPane(editor);editorScroll.setFitToWidth(true);editorScroll.setPrefViewportHeight(650);
+        editor.getStyleClass().add("workspace-form");var editorScroll=new ScrollPane(editor);editorScroll.setFitToWidth(true);editorScroll.setPrefViewportHeight(650);
         preview.setId("gs1PrefixActualPdf");preview.setFitWidth(440);preview.setPreserveRatio(true);
         Label previewNotice=new Label(tr("gs1.prefix.preview_notice"));previewNotice.setWrapText(true);
         var previewBox=new VBox(8,previewNotice,preview);previewBox.setPadding(new Insets(10));

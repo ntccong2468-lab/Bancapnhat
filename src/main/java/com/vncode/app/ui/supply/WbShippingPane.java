@@ -23,7 +23,7 @@ public final class WbShippingPane extends VBox {
     public record Selection(WbShippingContract.Parameters parameters,WbShippingPreferenceService.Location location) { }
     public WbShippingPane(){this(new WbShippingHistoryService());}
     public WbShippingPane(WbShippingHistoryService history) {
-        super(6);this.history=history;point.setId("shippingHistoryPoint");point.setPromptText("Điểm giao từ lịch sử");
+        super(6);getStyleClass().add("workspace-section");this.history=history;point.setId("shippingHistoryPoint");point.setPromptText("Điểm giao từ lịch sử");
         point.setMaxWidth(Double.MAX_VALUE);point.setMinWidth(0);status.setWrapText(true);
         getChildren().setAll(point,status);setContext(null,null);
     }

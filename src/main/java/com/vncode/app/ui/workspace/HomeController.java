@@ -194,7 +194,7 @@ public class HomeController implements Initializable {
     private Node znackAutomationView;
     private Node znackRegistrationView;
     private Node gtinSyncView;
-    private final WorkspaceNavigator workspaceNavigator = new WorkspaceNavigator(this::displayDynamicContent);
+    private final WorkspaceNavigator workspaceNavigator = new WorkspaceNavigator((view,context)->displayDynamicContent(view,context));
     private com.vncode.app.ui.gtinsync.GtinSyncController gtinSyncController;
     private SupplyManagementController supplyManagementController;
     private FinanceDashboardController financeDashboardController;
@@ -289,7 +289,33 @@ public class HomeController implements Initializable {
 
     private javafx.scene.Scene sidebarScene;
     private final javafx.beans.value.ChangeListener<Number> sidebarWidthListener=(o,a,b)->{if(shopSidebarController!=null)shopSidebarController.setViewportWidth(b.doubleValue());};
-    private void watchSidebarWidth(){dynamicContentContainer.sceneProperty().addListener((o,a,b)->{if(a!=null)a.widthProperty().removeListener(sidebarWidthListener);sidebarScene=b;if(b!=null){b.widthProperty().addListener(sidebarWidthListener);if(shopSidebarController!=null)shopSidebarController.setViewportWidth(b.getWidth());}});}
+    private void watchCommandScene(javafx.scene.Scene scene){
+        if(commandScene!=null)commandScene.getAccelerators().remove(commandKey,commandAction);
+        commandScene=scene;if(scene!=null)scene.getAccelerators().put(commandKey,commandAction);
+    }
+    private void showAppearance(){clearKizDraft();workspaceNavigator.show("settings");}
+    private void showCommandPalette(){
+        if(disposed||contentPane.isDisabled()||sidebarContainer.isDisabled())return;
+        java.util.List<WorkspaceCommandPalette.Action> actions=java.util.List.of(
+            new WorkspaceCommandPalette.Action(i18nService.tr("dashboard.title"),this::showDashboard),
+            new WorkspaceCommandPalette.Action(i18nService.tr("products.title"),this::showProducts),
+            new WorkspaceCommandPalette.Action(i18nService.tr("sidebar.packing"),this::showPacking),
+            new WorkspaceCommandPalette.Action(i18nService.tr("sidebar.fbo_packing"),this::showFboPacking),
+            new WorkspaceCommandPalette.Action(i18nService.tr("sidebar.znack_registration"),this::showZnackRegistration),
+            new WorkspaceCommandPalette.Action(i18nService.tr("sidebar.kiz_mapping"),this::showKizMapping),
+            new WorkspaceCommandPalette.Action(i18nService.tr("sidebar.znack_automation"),this::showZnackAutomation),
+            new WorkspaceCommandPalette.Action(i18nService.tr("gs1.title"),this::showGs1),
+            new WorkspaceCommandPalette.Action(i18nService.tr("sidebar.finance"),this::showFinance),
+            new WorkspaceCommandPalette.Action(i18nService.tr("sidebar.print_history"),this::showPrintHistory),
+            new WorkspaceCommandPalette.Action(i18nService.tr("sidebar.template"),()->onSettings(new ActionEvent())),
+            new WorkspaceCommandPalette.Action(i18nService.tr("tnved.title"),this::showTnved),
+            new WorkspaceCommandPalette.Action(i18nService.tr("copy.title"),this::showListingCopy),
+            new WorkspaceCommandPalette.Action(i18nService.tr("guides.title"),this::showGuides),
+            new WorkspaceCommandPalette.Action(i18nService.tr("settings.appearance.title"),this::showAppearance),
+            new WorkspaceCommandPalette.Action(i18nService.tr("header.manage_shops"),()->workspaceHeaderController.showShopManagement()));
+        commandPalette.show(dynamicContentContainer.getScene()==null?null:dynamicContentContainer.getScene().getWindow(),actions);
+    }
+    private void watchSidebarWidth(){dynamicContentContainer.sceneProperty().addListener((o,a,b)->{if(a!=null)a.widthProperty().removeListener(sidebarWidthListener);sidebarScene=b;watchCommandScene(b);if(b!=null){b.widthProperty().addListener(sidebarWidthListener);if(shopSidebarController!=null)shopSidebarController.setViewportWidth(b.getWidth());}});}
 
     private void loadDynamicViews() {
         watchSidebarWidth();
@@ -306,7 +332,7 @@ public class HomeController implements Initializable {
             welcomePane.setDashboard(FxmlViewLoader.load(dashboardLoader));
             overviewDashboardController=dashboardLoader.getController();
             welcomePane.setOnboardingActions(java.util.List.of(
-                ()->workspaceNavigator.show("license"),()->onAddShop(new ActionEvent()),this::showZnackAutomation,this::showProducts));
+                ()->workspaceNavigator.show("license"),()->workspaceHeaderController.showShopManagement(),this::showZnackAutomation,this::showProducts));
             welcomePane.sceneProperty().addListener((observable,oldScene,newScene) -> {
                 if(newScene==null)return;
                 if(newScene.getWindow()!=null&&newScene.getWindow().isShowing())javafx.application.Platform.runLater(newsPane::refreshAsync);
@@ -323,6 +349,14 @@ public class HomeController implements Initializable {
         supplyManagementView = FxmlViewLoader.load(supplyLoader);
         supplyManagementController = supplyLoader.getController();
 
+        workspaceNavigator.register("settings", () -> {
+            appearancePane=new WorkspaceAppearancePane();
+            appearancePane.setOnTranslationSettings(this::showTranslationSettings);
+            appearancePane.setOnCheckUpdate(this::checkVersionManually);
+            appearancePane.setOnAccount(this::showPersonalEdition);
+            appearancePane.setOnAbout(this::showAboutDialog);
+            return appearancePane;
+        });
         workspaceNavigator.register("welcome", () -> welcomePane);
         workspaceNavigator.register("license", () -> {
             if (licensePane == null) licensePane = new com.vncode.app.ui.license.LicensePane(
@@ -452,14 +486,15 @@ public class HomeController implements Initializable {
         ozonDashboardController.setShop(state.getSelectedShop(), syncRemote);
     }
 
-    private void showPacking() {
+    private void showPacking() {showPacking(com.vncode.app.shared.NavigationContext.SIBLING);}
+    private void showPacking(com.vncode.app.shared.NavigationContext context) {
         if (isOzonSelected()) {
             showOzonDashboard(false);
             ozonDashboardController.showPackingQueue();
             return;
         }
         clearKizDraft();
-        workspaceNavigator.show("packing");
+        workspaceNavigator.show("packing",context);
         refreshPackingView();
     }
 
@@ -582,26 +617,33 @@ public class HomeController implements Initializable {
 
     private void openSupplyForPrint(WbSupplySummary supply) {
         setSupplyListVisible(false);
-        workspaceNavigator.show("supplies");
+        workspaceNavigator.show("supplies",com.vncode.app.shared.NavigationContext.FORWARD);
         refreshSupplyList(supply.getSupplyId());
     }
 
+    private final com.vncode.app.shared.MotionBoundary navigationMotion=new com.vncode.app.shared.MotionBoundary();
+    private WorkspaceAppearancePane appearancePane;
+    private final WorkspaceCommandPalette commandPalette=new WorkspaceCommandPalette();
+    private javafx.scene.Scene commandScene;
+    private final javafx.scene.input.KeyCombination commandKey=new javafx.scene.input.KeyCodeCombination(javafx.scene.input.KeyCode.K,javafx.scene.input.KeyCombination.SHORTCUT_DOWN);
+    private final Runnable commandAction=this::showCommandPalette;
     private Node displayedPage;
     private final java.util.Map<Node, WorkspaceViewport> pageViewports = new java.util.IdentityHashMap<>();
 
     private boolean isDisplayed(Node view) { return view != null && displayedPage == view; }
 
-    private void displayDynamicContent(Node view) {
+    private void displayDynamicContent(Node view,com.vncode.app.shared.NavigationContext context) {
         clearFboQuantitiesIfLeaving(view);
         stopPackingDelayIfLeaving(view);
         if(shopSidebarController!=null) {
-            String selected=view==designerView?"templateButton":view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":view==tnvedReferencePane?"tnvedButton":"";
+            String selected=view==appearancePane?"settingsMenuButton":view==designerView?"templateButton":view==listingCopyPane?"listingCopyButton":view==productsPane?"productsButton":view==welcomePane?"dashboardButton":view==guidesPane?"guidesButton":view==financeDashboardView?"financeButton":view==packingView||view==ozonDashboardView||view==supplyManagementView?"packingButton":view==fboPackingView?"fboPackingButton":view==fboSupplyOrdersView?"fboOrdersButton":view==kizMappingView?"kizMappingButton":view==znackAutomationView?"znackAutomationButton":view==znackRegistrationView?"znackRegistrationButton":view==printHistoryView?"btnPrintHistory":view==gtinSyncView?"gtinSyncButton":view==gs1Pane?"gs1Button":view==tnvedReferencePane?"tnvedButton":"";
             shopSidebarController.selectNavigation(selected);
         }
         if(guidesPane!=null&&view!=guidesPane)guidesPane.stopMedia();
         dynamicContentContainer.getChildren().setAll(pageViewports.computeIfAbsent(view, WorkspaceViewport::new));
         displayedPage = view;
         view.setOpacity(1.0);
+        navigationMotion.show(view,context);
     }
 
     private void clearFboQuantitiesIfLeaving(Node nextView) {
@@ -1736,7 +1778,7 @@ public class HomeController implements Initializable {
         FXMLLoader loader = FxmlViewLoader.loader(ShopSidebarController.class, "shop-sidebar-view.fxml");
         VBox root = FxmlViewLoader.load(loader);
         shopSidebarController = loader.getController();
-        shopSidebarController.setOnAddShop(() -> onAddShop(new ActionEvent()));
+        shopSidebarController.setOnAppearance(this::showAppearance);
         shopSidebarController.setOnOpenSettings(() -> onSettings(new ActionEvent()));
         shopSidebarController.setOnDashboard(this::showDashboard);
         shopSidebarController.setOnProducts(this::showProducts);
@@ -1817,6 +1859,7 @@ public class HomeController implements Initializable {
         javafx.scene.layout.Region root = FxmlViewLoader.load(loader);
         workspaceHeaderController = loader.getController();
         workspaceHeaderController.setOnSupport(this::showGuides);
+        workspaceHeaderController.setOnSearchActions(this::showCommandPalette);
         workspaceHeaderController.setOnUpdate(()->{if(availableUpdate!=null)showUpdateDialog(availableUpdate);else checkVersionManually();});
         workspaceHeaderController.setOnJobOpen(this::openJob);
         workspaceHeaderController.setOnSync(() -> onSyncWildberries(new ActionEvent()));
@@ -1866,7 +1909,7 @@ public class HomeController implements Initializable {
             applySortAndDisplayOrders();
         });
         supplyDetailController.setOnPrint(() -> onExport(new ActionEvent()));
-        supplyDetailController.setOnBack(this::showPacking);
+        supplyDetailController.setOnBack(()->showPacking(com.vncode.app.shared.NavigationContext.BACK));
         supplyDetailController.setOnDeliver(this::deliverLoadedSupply);
         supplyDetailController.applyTranslations();
         supplyDetailController.setShop(state.getSelectedShop());
@@ -2412,6 +2455,9 @@ public class HomeController implements Initializable {
         }
         disposed = true;
         resumeUpdateWork();
+        navigationMotion.close();commandPalette.close();
+        if(commandScene!=null)commandScene.getAccelerators().remove(commandKey,commandAction);
+        if(appearancePane!=null)appearancePane.dispose();
         updatePolling.stop();
         syncUiDebounce.stop();if(syncRuntime!=null)syncRuntime.close();
         if(updateCheckTask!=null)updateCheckTask.cancel(true);
@@ -2422,6 +2468,7 @@ public class HomeController implements Initializable {
         if (financeDashboardController != null) financeDashboardController.dispose();
         if(guidesPane!=null)guidesPane.dispose();
         if(workspaceHeaderController!=null)workspaceHeaderController.dispose();
+        if(shopSidebarController!=null)shopSidebarController.dispose();
         if(wbShippingPane!=null)wbShippingPane.dispose();
         if(sidebarScene!=null)sidebarScene.widthProperty().removeListener(sidebarWidthListener);
         if (licenseSubscription != null) {

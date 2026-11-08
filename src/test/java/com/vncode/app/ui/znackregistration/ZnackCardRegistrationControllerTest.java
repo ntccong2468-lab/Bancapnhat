@@ -511,8 +511,11 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{
             var notice=(Label)loader.getNamespace().get("wbPriceImpactLabel");assertTrue(notice.isVisible());assertEquals(I18nService.getInstance().tr("gtinsync.wb_price_consent_body"),notice.getText());
             var header=(javafx.scene.layout.HBox)loader.getNamespace().get("registrationHeader");
-            assertEquals(java.util.List.of("configButton","signApprovedButton","updateWbButton","syncZnackButton"),header.getChildren().stream().filter(n->n instanceof Button).map(javafx.scene.Node::getId).toList());
-            var footer=button("registerSelectedButton").getParent();assertSame(footer,loader.getNamespace().get("allFilteredCheckBox") instanceof javafx.scene.Node n?n.getParent():null);
+            assertEquals(java.util.List.of("configButton","signApprovedButton","syncZnackButton"),header.getChildren().stream().filter(n->n instanceof Button).map(javafx.scene.Node::getId).toList());
+            var footer=button("registerSelectedButton").getParent();
+            assertSame(footer,button("updateWbButton").getParent(),"Existing GTIN action belongs in the approved batch footer");
+            assertTrue(button("updateWbButton").isVisible()&&button("updateWbButton").isManaged());assertNotNull(button("updateWbButton").getOnAction());
+            assertSame(footer,loader.getNamespace().get("allFilteredCheckBox") instanceof javafx.scene.Node n?n.getParent():null);
             assertSame(footer,((Label)loader.getNamespace().get("paginationLabel")).getParent());
             assertEquals("selectionColumn",table().getColumns().getFirst().getId());
             assertFalse(((TableColumn<?,?>)loader.getNamespace().get("detailColumn")).isVisible());

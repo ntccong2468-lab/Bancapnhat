@@ -74,8 +74,11 @@ class OzonRegistrationPaneTest {
     }
     private void awaitIdle()throws Exception{com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();}
     @Test void openingNativeOzonRegistrationPagesLocallyWithoutAllocatingOrSigningAnything()throws Exception {
-        fx(()->{var header=(javafx.scene.layout.HBox)pane.getChildren().getFirst();var label=(javafx.scene.control.Label)header.getChildren().getFirst();
-            assertEquals(java.util.List.of(button("documents"),button("sign"),button("gtin"),button("sync")),header.getChildren().stream().filter(n->n instanceof Button).toList());assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.title"),label.getText());assertTrue(table().getColumns().getLast().getMinWidth()>=130);for(var row:table().getItems()){assertEquals(1,row.key().shopId());assertEquals(Marketplace.OZON,row.key().marketplace());assertEquals("offer-"+row.key().cardId(),row.key().variantId());}RegistrationScreenshot.capture(pane,"ozon-registration");return null;});
+        fx(()->{var header=(javafx.scene.layout.HBox)pane.lookup("#ozonRegistrationHeader");var label=(javafx.scene.control.Label)header.lookup(".page-title");
+            assertEquals(java.util.List.of(button("documents"),button("sign"),button("sync")),header.getChildren().stream().filter(n->n instanceof Button).toList());
+            assertSame(button("register").getParent(),button("gtin").getParent(),"Existing GTIN action belongs in the approved batch footer");
+            assertTrue(button("gtin").isVisible()&&button("gtin").isManaged());assertNotNull(button("gtin").getOnAction());
+            assertEquals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.title"),label.getText());assertTrue(table().getColumns().getLast().getMinWidth()>=130);for(var row:table().getItems()){assertEquals(1,row.key().shopId());assertEquals(Marketplace.OZON,row.key().marketplace());assertEquals("offer-"+row.key().cardId(),row.key().variantId());}RegistrationScreenshot.capture(pane,"ozon-registration");return null;});
         try(var c=Database.getConnection();var s=c.createStatement()) {
             try(var r=s.executeQuery("SELECT COUNT(*) FROM ozon_card_registrations")){assertEquals(0,r.getInt(1));}
             try(var r=s.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertEquals(0,r.getInt(1));}
@@ -87,10 +90,13 @@ class OzonRegistrationPaneTest {
             stopBatchPolling();
             @SuppressWarnings("unchecked") var filter=(javafx.scene.control.ComboBox<String>)pane.lookup("#ozonRegistrationStatusFilter");
             filter.setValue("NOT_CREATED");
-            var search=OzonRegistrationPane.class.getDeclaredField("search");search.setAccessible(true);((javafx.scene.control.TextField)search.get(pane)).setText("fixture");
+            var search=OzonRegistrationPane.class.getDeclaredField("search");search.setAccessible(true);var searchControl=(javafx.scene.control.TextField)search.get(pane);searchControl.setText("fixture");
             var generation=OzonRegistrationPane.class.getDeclaredField("generation");generation.setAccessible(true);long before=generation.getLong(pane);
-            var filters=(javafx.scene.layout.FlowPane)pane.getChildren().get(2);
-            ((Button)filters.getChildren().get(3)).fire();
+            var filters=(javafx.scene.layout.Pane)searchControl.getParent();
+            var clearFilters=filters.getChildren().stream().filter(Button.class::isInstance).map(Button.class::cast)
+                    .filter(action->action.getText().equals(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.clear")))
+                    .findFirst().orElseThrow();
+            clearFilters.fire();
             assertEquals(before+1,generation.getLong(pane),"Clearing controls should perform one final query");
             afterClear.set(generation.getLong(pane));
             assertEquals("ALL",filter.getValue());assertEquals("",((javafx.scene.control.TextField)search.get(pane)).getText());return null;

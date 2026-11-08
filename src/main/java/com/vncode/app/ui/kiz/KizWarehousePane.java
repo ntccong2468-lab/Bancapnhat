@@ -26,12 +26,12 @@ public final class KizWarehousePane extends BorderPane {
     private final KizWarehouseRepository repository=new KizWarehouseRepository();
     private final List<TableColumn<KizWarehouseRepository.Summary,?>> columns=new ArrayList<>();
     public KizWarehousePane(){
-        add.getStyleClass().add("btn-primary");setPadding(new Insets(12));automatic.setWrapText(true);hint.setWrapText(true);status.setWrapText(true);hint.getStyleClass().add("text-muted");
+        getStyleClass().add("workspace-section");add.getStyleClass().add("btn-primary");setPadding(new Insets(12));automatic.setWrapText(true);hint.setWrapText(true);status.setWrapText(true);hint.getStyleClass().add("text-muted");
         indicator.setMaxSize(24,24);details.setWrapText(true);setBottom(details);
-        var actions=new FlowPane(8,8,add,refresh,archive,restore,indicator);category.setPrefWidth(260);category.setId("kiz-stock-category");
-        var grouping=new FlowPane(8,8,category,newCategory,classify,linkProducts);
+        var actions=new FlowPane(8,6,add,refresh,archive,restore,indicator);actions.getStyleClass().add("workspace-toolbar");category.setPrefWidth(260);category.setId("kiz-stock-category");
+        var grouping=new FlowPane(8,6,category,newCategory,classify,linkProducts);grouping.getStyleClass().add("workspace-toolbar");
         var top=new VBox(10,hint,grouping,automatic,actions,status);setTop(top);BorderPane.setMargin(top,new Insets(0,0,10,0));
-        table.setFixedCellSize(36);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);table.setPlaceholder(new Label(tr("empty")));setCenter(table);
+        table.getStyleClass().add("dense-data-table");table.setFixedCellSize(44);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);table.setPlaceholder(new Label(tr("empty")));setCenter(table);
         column("category",KizWarehouseRepository.Summary::category);column("gtin",KizWarehouseRepository.Summary::gtin);column("total",r->r.total());column("ready",r->r.ready());column("held",r->r.held());column("unassigned",r->r.unverified());
         add.setId("kiz-warehouse-import");automatic.setId("kiz-warehouse-auto-purchase");table.setId("kiz-warehouse-table");
         archive.setOnAction(e->archive(false));restore.setOnAction(e->archive(true));table.getSelectionModel().selectedItemProperty().addListener((o,a,b)->buttons());

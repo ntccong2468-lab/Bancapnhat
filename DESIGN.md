@@ -1,83 +1,108 @@
 ---
-name: VN Code — Native Dispatch Workbench
-description: Compact JavaFX workbench with white and graphite surfaces, readable work lists and visible store ownership.
+name: VN Code — Native Liquid Glass Workbench
+description: Native JavaFX workbench with bounded navigation material, opaque work sheets and clear store ownership.
 colors:
-  bg-primary: '#141414'
-  nav-surface: '#171717'
-  bg-secondary: '#1b1b1b'
-  bg-tertiary: '#25272b'
-  border-color: '#383b40'
-  border-color-hover: '#7c879a'
-  text-primary: '#edf2f7'
-  text-secondary: '#c4cdd8'
-  text-muted: '#a8b5c6'
-  accent: '#285fc7'
-  accent-hover: '#2153b0'
-  accent-active: '#19448f'
-  accent-text: '#bedaff'
-  focus: '#bedaff'
-  focus-primary: '#eef5ff'
-  ui-panel: '#1b1b1b'
-  ui-control: '#25272b'
-  ui-control-hover: '#383b40'
-  ui-field: '#1b1b1b'
-  ui-input-border: '#7c879a'
-  ui-row-hover: '#222b36'
-  ui-selected: '#233c5b'
-  ui-table-header: '#171717'
-  danger: '#ff8598'
-  success: '#70d5b0'
-  warning: '#f2c46d'
-  danger-fill: '#a52840'
-  success-surface: '#163b30'
-  danger-surface: '#432530'
-  warning-surface: '#3c321e'
-  light-bg-primary: '#f4f6f9'
-  light-nav-surface: '#f9fafc'
+  bg-primary: '#17181b'
+  nav-surface: '#292a2e'
+  bg-secondary: '#232428'
+  bg-tertiary: '#303136'
+  border-color: '#3a3b41'
+  border-color-hover: '#898b95'
+  row-rule: '#33343a'
+  text-primary: '#f1f1f4'
+  text-secondary: '#c1c2cb'
+  text-muted: '#adafb9'
+  accent: '#9ac6ff'
+  accent-hover: '#b3d5ff'
+  accent-active: '#83b7fb'
+  accent-text: '#9ac6ff'
+  on-accent: '#142c4a'
+  on-semantic: '#ffffff'
+  on-warning: '#30230c'
+  focus: '#9ac6ff'
+  focus-primary: '#142c4a'
+  ui-panel: '#232428'
+  ui-control: '#2c2d32'
+  ui-control-hover: '#3b3d44'
+  ui-control-pressed: '#454750'
+  ui-field: '#232428'
+  ui-input-border: '#858792'
+  ui-row-hover: '#2c2e34'
+  ui-selected: '#323d4b'
+  ui-table-header: '#232428'
+  nav-selected: '#353e49'
+  danger: '#ff9aa9'
+  danger-hover: '#bc3c55'
+  danger-fill: '#a92d46'
+  success: '#87d7b8'
+  success-hover: '#237757'
+  success-fill: '#176747'
+  warning: '#f3c570'
+  warning-hover: '#e7b556'
+  warning-fill: '#f3c570'
+  success-surface: '#243e33'
+  danger-surface: '#482b34'
+  warning-surface: '#443920'
+  light-bg-primary: '#e9ebf0'
+  light-nav-surface: '#f7f8fa'
   light-bg-secondary: '#ffffff'
-  light-bg-tertiary: '#eef2f6'
-  light-border-color: '#dce2ea'
-  light-border-color-hover: '#748197'
-  light-text-primary: rgb(23,37,55)
-  light-text-secondary: '#3b4d63'
-  light-text-muted: '#5d6a7b'
-  light-accent: '#175bc5'
-  light-accent-hover: '#114eae'
-  light-accent-active: '#0c4093'
-  light-accent-text: '#174b9a'
-  light-focus: '#175bc5'
+  light-bg-tertiary: '#f0f1f5'
+  light-border-color: '#e0e2e9'
+  light-border-color-hover: '#818493'
+  light-row-rule: '#eceef3'
+  light-text-primary: '#24252a'
+  light-text-secondary: '#555966'
+  light-text-muted: '#606472'
+  light-accent: '#0762cf'
+  light-accent-hover: '#0656b8'
+  light-accent-active: '#06499a'
+  light-accent-text: '#0762cf'
+  light-on-accent: '#ffffff'
+  light-focus: '#0762cf'
   light-focus-primary: '#ffffff'
-  light-ui-panel: rgba(255,255,255,0.552)
-  light-ui-control: rgba(255,255,255,0.572)
-  light-ui-control-hover: '#e7edf5'
+  light-ui-panel: '#ffffff'
+  light-ui-control: '#ffffff'
+  light-ui-control-hover: '#f0f3f9'
+  light-ui-control-pressed: '#e5eaf2'
   light-ui-field: '#ffffff'
-  light-ui-input-border: '#7e899a'
-  light-ui-row-hover: '#f0f4fa'
-  light-ui-selected: '#e8f0ff'
-  light-ui-table-header: '#f9fafc'
-  light-danger: '#b3243e'
-  light-success: '#136749'
-  light-warning: '#825200'
-  light-danger-fill: '#b3243e'
-  light-success-surface: '#e1f4eb'
-  light-danger-surface: '#fce8ed'
-  light-warning-surface: '#fbf0d8'
-  on-accent: '#ffffff'
-  success-fill: '#14694f'
-  warning-fill: '#f2c46d'
-  on-warning: '#18202b'
+  light-ui-input-border: '#85899a'
+  light-ui-row-hover: '#f4f6fa'
+  light-ui-selected: '#e8eef7'
+  light-ui-table-header: '#ffffff'
+  light-nav-selected: '#e7edf7'
+  light-danger: '#b62440'
+  light-danger-hover: '#9f1d36'
+  light-danger-fill: '#b62440'
+  light-success: '#116b4c'
+  light-success-hover: '#0d5d40'
+  light-success-fill: '#116b4c'
+  light-warning: '#865000'
+  light-warning-hover: '#e5b34f'
+  light-success-surface: '#e3f3eb'
+  light-danger-surface: '#fce9ed'
+  light-warning-surface: '#fff2d8'
+  glass-surface: rgba(38,38,42,0.552)
+  glass-elevated: rgba(48,48,53,0.577)
+  glass-highlight: rgba(255,255,255,0.092)
+  light-glass-surface: rgba(255,255,255,0.552)
+  light-glass-elevated: rgba(255,255,255,0.577)
+  light-glass-highlight: rgba(255,255,255,0.213)
 typography:
   headline:
     fontFamily: Inter
-    fontSize: 25px
+    fontSize: 24px
     fontWeight: 700
   welcome-title:
     fontFamily: Inter
     fontSize: 24px
     fontWeight: 700
+  section-title:
+    fontFamily: Inter
+    fontSize: 20px
+    fontWeight: 700
   title:
     fontFamily: Inter
-    fontSize: 15px
+    fontSize: 16px
     fontWeight: 700
   body:
     fontFamily: Inter
@@ -89,25 +114,32 @@ typography:
     fontWeight: 400
   record-title:
     fontFamily: Inter
-    fontSize: 13px
+    fontSize: 14px
     fontWeight: 700
   metadata:
     fontFamily: Inter
-    fontSize: 12px
+    fontSize: 13px
     fontWeight: 400
   column-label:
     fontFamily: Inter
-    fontSize: 12px
-    fontWeight: 700
+    fontSize: 13px
+    fontWeight: 400
   badge:
     fontFamily: Inter
-    fontSize: 11px
+    fontSize: 12px
+    fontWeight: 400
+  control-strong:
+    fontFamily: Inter
+    fontSize: 13px
     fontWeight: 700
 rounded:
-  detail: 4px
-  control: 6px
-  surface: 8px
+  detail: 6px
+  control: 10px
+  surface: 18px
   icon: 10px
+  popup: 14px
+  compact: 8px
+  selection: 5px
 spacing:
   tight: 4px
   compact: 6px
@@ -116,51 +148,52 @@ spacing:
   panel: 12px
   page: 16px
   detail: 18px
-  header-inline: 22px
+  sheet: 20px
+  header-inline: 12px
 components:
   button-secondary:
     backgroundColor: '{colors.ui-control}'
     textColor: '{colors.text-primary}'
     typography: '{typography.control}'
     rounded: '{rounded.control}'
-    padding: 7px 11px
+    padding: 6px 11px
   button-secondary-hover:
     backgroundColor: '{colors.ui-control-hover}'
   button-primary:
     backgroundColor: '{colors.accent}'
     textColor: '{colors.on-accent}'
-    typography: '{typography.record-title}'
+    typography: '{typography.control-strong}'
     rounded: '{rounded.control}'
-    padding: 7px 11px
+    padding: 6px 11px
   button-primary-hover:
     backgroundColor: '{colors.accent-hover}'
   button-primary-active:
     backgroundColor: '{colors.accent-active}'
   button-danger:
     backgroundColor: '{colors.danger-fill}'
-    textColor: '{colors.on-accent}'
+    textColor: '{colors.on-semantic}'
     rounded: '{rounded.control}'
-    padding: 7px 11px
+    padding: 6px 11px
   button-success:
     backgroundColor: '{colors.success-fill}'
-    textColor: '{colors.on-accent}'
+    textColor: '{colors.on-semantic}'
     rounded: '{rounded.control}'
-    padding: 7px 11px
+    padding: 6px 11px
   button-warning:
     backgroundColor: '{colors.warning-fill}'
     textColor: '{colors.on-warning}'
     rounded: '{rounded.control}'
-    padding: 7px 11px
+    padding: 6px 11px
   header-action:
     backgroundColor: transparent
     textColor: '{colors.text-primary}'
     typography: '{typography.control}'
     rounded: '{rounded.control}'
-    padding: 7px 11px
+    padding: 6px 11px
   input:
     backgroundColor: '{colors.ui-field}'
     textColor: '{colors.text-primary}'
-    typography: '{typography.control}'
+    typography: '{typography.body}'
     rounded: '{rounded.control}'
     padding: 6px 10px
   navigation-item:
@@ -169,16 +202,16 @@ components:
     typography: '{typography.control}'
     rounded: '{rounded.control}'
     padding: 6px 10px
-    height: 38px
+    height: 36px
   navigation-item-selected:
-    backgroundColor: '{colors.ui-selected}'
-    textColor: '{colors.accent-text}'
-    typography: '{typography.record-title}'
+    backgroundColor: '{colors.nav-selected}'
+    textColor: '{colors.text-primary}'
+    typography: '{typography.control-strong}'
   panel:
     backgroundColor: '{colors.ui-panel}'
     textColor: '{colors.text-primary}'
     rounded: '{rounded.surface}'
-    padding: 12px
+    padding: 16px
   data-sheet:
     backgroundColor: '{colors.bg-secondary}'
     textColor: '{colors.text-primary}'
@@ -188,14 +221,14 @@ components:
     backgroundColor: '{colors.warning-surface}'
     textColor: '{colors.warning}'
     typography: '{typography.control}'
-    rounded: '{rounded.control}'
-    padding: 4px 10px
+    rounded: '{rounded.compact}'
+    padding: 4px 9px
   status-badge:
     backgroundColor: '{colors.bg-tertiary}'
     textColor: '{colors.text-secondary}'
     typography: '{typography.badge}'
     rounded: '{rounded.detail}'
-    padding: 2px 6px
+    padding: 3px 6px
   workspace-tab:
     backgroundColor: transparent
     textColor: '{colors.text-secondary}'
@@ -204,185 +237,219 @@ components:
     padding: 8px 12px
   workspace-tab-selected:
     textColor: '{colors.text-primary}'
-    typography: '{typography.record-title}'
+    typography: '{typography.control-strong}'
   detail-drawer:
     backgroundColor: '{colors.bg-secondary}'
     textColor: '{colors.text-primary}'
     padding: 18px
     width: 420px
+    rounded: '{rounded.surface}'
   selection-bar:
-    backgroundColor: transparent
+    backgroundColor: '{colors.bg-secondary}'
     textColor: '{colors.text-primary}'
-    padding: 10px 0 0 0
+    padding: 9px 0 0 0
+  button-secondary-active:
+    backgroundColor: '{colors.ui-control-pressed}'
+  workspace-sheet:
+    backgroundColor: '{colors.bg-secondary}'
+    textColor: '{colors.text-primary}'
+    rounded: '{rounded.surface}'
+    padding: 20px
+  glass-sidebar:
+    backgroundColor: '{colors.glass-surface}'
+    textColor: '{colors.text-primary}'
+    rounded: '{rounded.surface}'
+    padding: 18px 10px 10px 10px
+    width: 202px
+  glass-header:
+    backgroundColor: '{colors.glass-surface}'
+    textColor: '{colors.text-primary}'
+    rounded: '{rounded.surface}'
+    padding: 7px 12px
+    height: 52px
 ---
 
-# Design System: VN Code — Native Dispatch Workbench
+# Design System: VN Code — Native Liquid Glass Workbench
 
 ## Overview
 
-**Creative North Star: "Dispatch Workbench"**
+**Creative North Star: "Liquid Glass Workbench"**
 
-Dispatch Workbench is VN Code’s implemented native workspace: neutral white and graphite surfaces, bundled Inter, a restrained blue action family and fine dividing rules. Its precise, restrained controls serve Vietnamese-speaking sellers and warehouse staff working through large lists with a mouse and keyboard. The VN black logo remains the identity anchor.
+Liquid Glass Workbench is VN Code’s user-approved Apple-inspired direction adapted to its Java 25 / JavaFX Windows application. Pearl and charcoal grounds support floating navigation and a compact toolbar; opaque work sheets keep order, product and registration data as the visual center. Bundled Inter, one blue action family, fine rules and the supplied black VN logo retain the product’s identity without proprietary Apple assets.
 
-The visual center is an inset work list. Store identity and management sit above it, navigation remains quiet beside it, and contextual details retain the underlying list. Both themes share the same geometry. Light-theme material opacity remains a user preference applied to background paints; it never fades the text or the whole window. Short, interruptible motion connects local actions with their visible result.
+Material is bounded JavaFX background paint with inset highlights and small chrome shadows. It does not sample or blur the operating-system backdrop. Light and dark themes share geometry; the saved material amount changes chrome and eligible overlays without fading text, table rows or the window. Contextual, interruptible native motion connects an action to its result while preserving the underlying working context.
 
-This is the root design record for the JavaFX application. [PRODUCT.md](PRODUCT.md) supplies durable product constraints; the [native direction contract](docs/design/2026-11-04-native-implementation.md) records the user-approved application of the preview. The historical [preview design record](docs/design/previews/2026-11-04/DESIGN.md) is preserved at its original scope. Its `seed:4d76fcce170bad27` carries into this implementation; the local registry cannot corroborate the original roll. The user’s approval supplies authority, and no replacement seed or inferred provenance is recorded.
+This root record merges the approved 2026-11-08 visual direction with the incumbent product and ownership constraints. [PRODUCT.md](PRODUCT.md) remains the product authority: existing handlers, licensing, confirmations, shop scope, label output and remote-readback requirements remain binding. The earlier [native direction record](docs/design/2026-11-04-native-implementation.md), [preview design](docs/design/previews/2026-11-04/DESIGN.md) and [native capture archive](docs/design/native/2026-11-04/README.md) remain historical evidence for the preceding implementation.
 
-Tokens follow the effective native source: [workspace-controls.css](src/main/resources/com/vncode/app/styles/workspace-controls.css), loaded after [theme.css](src/main/resources/com/vncode/app/styles/theme.css) by [ThemeService](src/main/java/com/vncode/app/shared/ThemeService.java), plus the header/sidebar FXML and sampled list/drawer controllers. The [30 native captures and manifest](docs/design/native/2026-11-04/README.md) use an isolated synthetic profile. They show the application on Linux in both themes; they are not live marketplace evidence or Windows installer validation. Older base declarations overridden by the final workspace stylesheet are not promoted to tokens.
+The approved external proposal is recorded in [DESIGN_ARCHITECTURE.md](../vncode-apple-preview-20261108/proposal/docs/DESIGN_ARCHITECTURE.md), [MOTION.md](../vncode-apple-preview-20261108/proposal/docs/MOTION.md) and its [direction contract](../vncode-apple-preview-20261108/reports/direction-contract.md). The contract was captured after initial preview code; its approval-pending language describes that historical preview stage. The Apple direction was user-pinned, not chosen by a random seed. The preview’s recorded seed (`a04f3def2f017b05`) describes that exploration only; the older seed (`4d76fcce170bad27`) remains attached to the older approved direction with its original provenance limitation.
+
+The current token source is [theme.css](src/main/resources/com/vncode/app/styles/theme.css), then [workspace-controls.css](src/main/resources/com/vncode/app/styles/workspace-controls.css), then the material paints installed by [ThemeService](src/main/java/com/vncode/app/shared/ThemeService.java). Native geometry and behavior come from FXML and the workspace controllers. The external HTML preview, its videos and these documentation swatches do not certify current JavaFX behavior. Current native capture and interaction validation is pending at [the native evidence workspace](../vncode-native-glass-20261108/); no Windows performance, installer or marketplace acceptance claim follows from this source snapshot.
 
 **Key Characteristics:**
 
-- White and graphite grounds, one blue interaction family, and written semantic states.
-- Compact native controls and virtualized data sheets with room for complete order contents.
-- Flat navigation, fine borders and limited popup elevation.
-- Visible store identity, management access and the existing named delete confirmation.
-- Bundled Inter and consistent line icons; shared structure in both themes.
-- Read-only detail motion and draft feedback that respect system and manual reduced motion.
+- Pearl and charcoal grounds, blue action and focus, and written semantic states.
+- Floating navigation and toolbar around large opaque, virtualized work sheets.
+- Bundled Inter, shared line icons and stable control bounds in both themes.
+- Visible store identity, Add inside Manage, and the existing named delete confirmation.
+- Native settings with Light, Dark and System, material control and reduced motion.
+- Relationship-based JavaFX motion with cancellation and retained list context.
 
 ## Colors
 
-Cool white material and blue-black ink pair with nearly neutral graphite and pale text; restrained blue identifies action, selection and focus. Semantic green, amber and red accompany written operational states.
+Pearl and white working surfaces pair with charcoal and pale ink in the dark theme. Blue identifies action, focus and selection; semantic green, amber and red accompany written operational states.
 
-The frontmatter is the normative snapshot. Unprefixed paint names match the dark theme’s JavaFX looked-up colors without their leading hyphen; `light-` names record the corresponding light paints. Shared `on-accent`, `success-fill`, `warning-fill` and `on-warning` values apply to filled controls. Component tokens describe the dark variant; light controls substitute the matching `light-` paint where present. Typography and geometry are shared.
+The frontmatter is normative. Unprefixed names record dark-theme looked-up paints without their JavaFX leading hyphen; `light-` names record differences in the light theme. Shared colors keep the unprefixed value. Component tokens describe the dark variant; light controls substitute the corresponding light paint. The material colors record the effective runtime default amount (55), not the stylesheet-only fallback.
 
 ### Primary
 
 | Character | Token family | Application |
 | --- | --- | --- |
-| Workbench Blue | `accent`, `accent-hover`, `accent-active` | Primary action fill and checked selection controls. |
-| Pale / Deep Blue Ink | `accent-text` | Active navigation text, selected counts and native tab underlines. |
-| Slate Blue / Blue Wash | `ui-selected` | Selected navigation, rows and popup entries. |
-| Focus Blue | `focus`, `focus-primary` | Keyboard focus boundaries, with a light boundary on filled primary/success/danger buttons. |
+| Action Blue / Pale Action Blue | `accent`, `accent-hover`, `accent-active` | Primary controls and checked selection controls. |
+| Action Ink | `on-accent` | White on light-theme blue; dark ink on dark-theme pale blue. |
+| Blue Detail | `accent-text` | Navigation icons, selected counts and native tab underlines. |
+| Blue Wash | `ui-selected`, `nav-selected` | Data selection and the sidebar indicator. |
+| Focus Boundary | `focus`, `focus-primary` | Keyboard boundary, including contrasting primary-button focus. |
 
 ### Neutral
 
 | Character | Token family | Application |
 | --- | --- | --- |
-| Graphite Ground / Cool Workbench | `bg-primary` | Workspace and header background. |
-| Graphite Rail / Pale Navigation | `nav-surface`, `ui-table-header` | Sidebar and column headers. |
-| Raised Graphite / White Sheet | `bg-secondary`, `ui-field` | Data sheets, input fields and read-only drawer. |
-| Quiet Material | `ui-panel`, `ui-control` | Panels and ordinary controls; adjustable white material in the light theme. |
-| Paper Ink / Blue-black Ink | `text-primary` | Main labels and working content. |
-| Mist / Slate Copy | `text-secondary`, `text-muted` | Secondary labels, metadata and placeholders. |
-| Fine Rule / Strong Boundary | `border-color`, `border-color-hover`, `ui-input-border` | Surface dividers, stronger interactive boundaries and input outlines. |
-| Neutral Hover | `ui-row-hover`, `ui-control-hover` | Row and control hover feedback. |
+| Charcoal / Pearl Ground | `bg-primary` | Ground behind the floating shell. |
+| Opaque Navigation | `nav-surface` | Solid fallback when material is disabled. |
+| Charcoal Sheet / White Sheet | `bg-secondary`, `ui-panel`, `ui-field`, `ui-table-header` | Opaque data, fields, cards and detail content. |
+| Quiet Control | `ui-control`, `ui-control-hover`, `ui-control-pressed` | Stable ordinary action states. |
+| Pale Ink / Carbon Ink | `text-primary` | Main labels and working content. |
+| Secondary / Muted Ink | `text-secondary`, `text-muted` | Supporting text, metadata and prompts. |
+| Fine Rule / Strong Boundary | `border-color`, `border-color-hover`, `row-rule`, `ui-input-border` | Dividers, row rules and interactive boundaries. |
+| Navigation Material | `glass-surface`, `glass-elevated`, `glass-highlight` | Background paints and inset highlights for chrome and eligible overlays. |
 
-Success, danger and warning use their named text and surface pairs. Filled action variants use their separate fill paints so the darker button treatment is not confused with state text. The selected state is a fill plus text/control state, rather than color alone.
+Success, danger and warning retain their named text/surface pairs. Filled variants use separate fills and contrasting `on-semantic` or `on-warning` ink. Selection combines fill, written state and native control state rather than color alone.
 
-Light panel/control frontmatter values reflect `ThemeService` at the saved default material amount (55). Runtime replaces the stylesheet’s fallback tints with white paints: surface alpha is `.005 + amount × .00995`; button alpha adds `.035 × amount / 100`, clamped to one and formatted to three decimals. The amount is bounded from zero to one hundred. Solid fields, the table sheet, drawer, text and selection retain their own paints. This preference does not enable a blur effect. Its formula and fallback distinction live in the sidecar.
+`ThemeService` preserves existing `app_theme`, `glass_transparency` and `ui_reduced_motion` preferences and adds the saved `glass_enabled` switch. The amount is bounded from zero to one hundred. Both themes apply it to consumed material paints only; fields, lists, tables, dialogs and drawer content retain opaque semantic paints. Turning material off uses solid navigation and overlay surfaces with the same geometry. This is a paint fallback, not native OS backdrop blur. Exact formulas and stylesheet fallback values live in the sidecar.
 
 **The Shared Palette Rule.** Use the active theme’s semantic paints for common controls and data states; marketplace identity does not introduce a competing page palette.
 
-**The Text Stays Solid Rule.** Apply the light material preference to background paints only. Text, control boundaries, selection and the application window remain fully legible.
+**The Text Stays Solid Rule.** Apply material preference to chrome and eligible overlay background paints only. Text, working rows, control boundaries, selection and the application window retain their own paints and opacity.
 
 ## Typography
 
-**Body and interface font:** bundled Inter, loaded from the project’s regular and bold font assets by `UiFonts`. There is no separate native display face or authored line-height/tracking scale.
+**Body and interface font:** bundled Inter, loaded from the existing regular and bold assets by `UiFonts`. There is no separate display face, proprietary Apple font, authored tracking scale or native tabular-number feature.
 
-The typography is compact and direct. Page headings and record names carry emphasis; metadata stays regular. The frontmatter records the shared roles actually used, without inheriting the preview’s web-only numeral or text-layout properties.
+The compact hierarchy separates page titles, section titles, record names and supporting data. The frontmatter records the roles actually reused in native styles, including ordinary and bold control text.
 
 | Role | Use |
 | --- | --- |
-| `headline` | Main workspace page heading. |
-| `welcome-title` | Overview heading. |
-| `title` | Detail drawer heading and small section hierarchy. |
-| `body` | Root and general descriptive text. |
-| `control` | Buttons, tabs, navigation and standard fields. |
+| `headline`, `welcome-title` | Main page and overview headings. |
+| `section-title` | Secondary sections and native dialog headings. |
+| `title` | Drawer heading and smaller section hierarchy. |
+| `body` | General copy and fields. |
+| `control`, `control-strong` | Buttons, tabs and navigation; bold for primary/selected state. |
 | `record-title` | Product names and emphasized order data. |
-| `metadata` | Product/Catalog/Ozon supporting row data. |
-| `column-label` | Table column headings. |
-| `badge` | Compact semantic state badge. |
+| `metadata`, `column-label` | Supporting row data and quiet column headings. |
+| `badge` | Compact written semantic states. |
 
-Local native exceptions remain visible: the sidebar wordmark is bold (20px); navigation group labels are bold (10px); GS1 uses a smaller section title (20px), and overview news headings use (16px). Navigation group labels organize destinations; they are not a reusable eyebrow above page headings. The table records do not establish a monospace family or an explicit tabular-number feature.
+Local exceptions remain visible: the sidebar wordmark is bold (20px), navigation group labels are regular (12px), and the edition footer is (11px). Group labels organize destinations rather than acting as an eyebrow above page headings. Current source may retain domain-specific table typography; the shared scale does not erase meaning or full identifiers.
 
 **The Working Hierarchy Rule.** Use Inter weight and size to separate page titles, record titles and supporting data. Keep metadata readable without giving every cell heading weight.
 
 ## Layout
 
-The expanded shell has a fixed navigation rail (196px) and header (58px). The header has horizontal inset (22px) and vertical inset (10px). Main Ozon and product pages use page inset (16px), tight heading/filter groups and a list that takes the available height. Regular navigation entries have a minimum and preferred height (38px); secondary utilities may retain their native preferred height.
+The desktop shell has outer inset (8px), a sidebar-to-content gap (10px) and header-to-sheet gap (8px). Expanded navigation is (202px), narrows to (194px) below scene width (1350px), and automatically becomes an icon rail (68px) below (1100px). Manual collapse can override automatic layout; returning to automatic layout clears that override. Collapsed controls keep accessible names and tooltips. These are native scene measurements, not mobile web breakpoints.
 
-The sidebar automatically contracts to an icon rail (64px) when the workspace viewport is below (1240px), with a manual collapse override. It retains tooltips and accessible names. Below a header content width of (800px), the store selector’s preferred width changes from (220px) to (180px), the management label yields to its named icon, and the header theme shortcut hides. Secondary diagnostics already live in the overflow at all widths. These are separate native measurements, not web viewport breakpoints or a mobile navigation claim.
+The floating header is (52px) with inset (7px / 12px). Below header content width (800px), the store selector changes preferred width from (220px) to (180px), Manage and Find Action show their named icons, and secondary diagnostics remain in overflow. The theme shortcut stays accessible in the header. Manage sits beside the store name and contains Edit and Add; the small delete action remains separate and confirmed. Add is not a sidebar destination.
 
-Controls keep stable bounds during hover and focus. Normal buttons have a minimum height (36px), fields (34px), and header icon actions a minimum size (32 × 34px). The shared button inset is vertical/horizontal (7px / 11px), field inset (6px / 10px), and panel inset (12px). Domain overrides remain intentional where present; frontmatter padding does not imply a fixed height.
+The recurring work sheet uses the shared sheet inset (20px), with shared cards at the smaller inset (16px). The final workspace stylesheet supplies the effective sheet treatment over older constructor/FXML defaults. Heading/filter groups are compact and the list takes available height. Ordinary navigation has minimum/preferred height (36px); buttons have minimum height (34px), shared fields (36px) and header icons (34 × 34px). Hover, press and focus do not change bounds.
 
-Product list rows are fixed (76px). Ozon single-item orders start at (76px) and add (68px) per additional item: an item block (60px) plus gap (8px). Catalog registration rows use (71px). Ozon column headers use (44px); the shared table header requests (42px). Preserve computed order height and internal list scrolling. Batch bars use their own layout space below the list and wrap their actions; they do not cover the last row. Overview uses task links and news without the removed counter trio.
+Dense list CSS establishes a minimum row height (70px), while source-owned content sizing remains authoritative: product cells are fixed (76px), Ozon rows use (76px) plus (68px) for each additional item, and registration rows may retain their existing content calculation. Do not compress a multi-item order to the minimum. Shared table headers request (36px); domain-specific layouts may need their own widths. Virtualized lists keep internal scrolling. The shared viewport can scroll the whole page in a short window while retaining room for list content and actions.
+
+Batch controls use their own footer space below the list, with a fine top rule and shared minimum height (52px); action groups wrap instead of covering the last row. The overview retains task links/news and the removal of its old three-counter band.
 
 ## Elevation & Depth
 
-The workbench is flat at rest: shared cards, controls and data containers use tone and fine borders, and the shared workspace stylesheet clears card/button effects. The light material setting changes background paint alpha while preserving opaque content. The drawer uses a solid sheet with a left divider, not a cast shadow. Native context menus and combo-box choice popups retain their existing soft drop shadows.
+Navigation material floats above the ground through layered paints, an inset highlight and a small downward shadow. Opaque work sheets, rows, ordinary controls and read-only content remain flat, separated by tone and fine rules. This bounded native treatment is the implementation of the approved glass direction; JavaFX has no Chromium `backdrop-filter`, and no OS backdrop capture, transparent-window effect or JNI/FFM dependency is implied.
 
 | Native effect | Purpose |
 | --- | --- |
-| `dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 8, 0, 0, 2)` | Context-menu elevation. |
-| `dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 10, 0, 0, 4)` | Combo-box popup elevation. |
-| `innershadow(gaussian, -focus, 1, 1, 0, 0)` | Input focus boundary, not surface elevation. |
+| `dropshadow(gaussian, rgba(0,0,0,.05), 8, 0, 0, 2)` | Sidebar chrome. |
+| `dropshadow(gaussian, rgba(0,0,0,.06), 8, 0, 0, 2)` | Toolbar chrome. |
+| `dropshadow(gaussian, rgba(0,0,0,.14), 18, 0, 0, 5)` | Menu, choice and date popup. |
+| `dropshadow(gaussian, rgba(0,0,0,.12), 10, 0, 0, 3)` | Tooltip. |
+| `innershadow(gaussian,-focus,1,1,0,0)` | Input keyboard focus boundary. |
 
-Checkbox/radio focus also uses a small native focus effect. These focus treatments signal keyboard interaction; they do not create a decorative halo vocabulary for panels.
+Material-disabled chrome removes its highlight/shadow treatment and keeps solid surfaces. Popup and dialog contents use the current theme; no per-row blur or effect is part of the shared system.
 
-**The Bordered Sheet Rule.** Keep working surfaces flat and separate them with tone and fine rules. Reserve the existing soft shadows for temporary menus and choice popups.
+**The Bordered Sheet Rule.** Keep opaque working sheets flat and separate them with tone and fine rules. Use the bounded native shadows for floating chrome and temporary popups.
 
 ## Shapes
 
-Controls and fields use the `control` corner; shared panels, lists, menus and dialogs use the `surface` corner. Badges and ordinary checkbox boxes use the smaller `detail` corner. General icon buttons use the `icon` corner, while compact header icons return to the control background corner. Product checkboxes retain their local slightly larger box (20px) and corner (5px); ordinary checkbox/radio boxes have a minimum dimension (19px).
+Sheets, shell chrome, dialogs and read-only drawers use the surface corner. Controls, fields, navigation selection and icon buttons share the control corner. Popups use the smaller popup corner; chips, menu entries and tooltips use the compact corner. Written badges and checkboxes retain their own smaller corners. Ordinary checkbox/radio boxes have a minimum dimension (18px); product checkboxes retain their existing larger local box (20px).
 
-Data and chrome boundaries are fine strokes (1px). Tabs are square-edged with a bottom border (2px) for the selected state. The read-only drawer has square outer edges and only a left divider. Radios and status dots use their native circular silhouette. Existing Feather line icons come through Ikonli; use consistent library artwork rather than Unicode substitutes. The black VN logo remains the supplied image asset.
+Working boundaries use fine strokes (1px). Tabs are square-edged with a selected bottom rule (2px). Radios and status dots keep their native circular shape. Feather line icons come through Ikonli; keep consistent library artwork rather than extending existing isolated glyph substitutions. The supplied VN black logo remains the identity asset.
 
 ## Components
 
 ### Buttons
 
-Precise and restrained, with stable geometry. Ordinary controls use `button-secondary`; primary actions use `button-primary` with white text and bold weight. Hover and press resolve through the current theme. Standard focus changes the border; primary, success and danger fills use their dedicated contrasting focus paint. Disabled buttons and menu buttons use opacity (.52).
+Compact, gently curved controls retain stable geometry. Ordinary actions use neutral fill and a visible input boundary. Primary actions use the theme action fill with bold control text and contrasting `on-accent` ink; the dark primary is pale blue with dark ink. Success, danger and warning fills use their separate contrasting ink. Hover and press resolve through the current theme. Shared disabled controls retain full opacity; the final native validation must verify variant-specific disabled appearance.
 
-The header’s management and utility actions have transparent default backgrounds and neutral hover fills. Its separate delete icon uses danger color and the existing deletion handler/confirmation. Product bulk-edit actions deliberately use neutral outlined controls even though their native action class is primary. They do not turn the whole batch bar blue. Success, danger and warning filled variants remain for actions whose meaning warrants them.
+Header management and utilities use transparent default backgrounds and neutral hover feedback. The separate delete icon retains danger color, its existing handler and the named confirmation. Product bulk-edit controls remain neutral outlined actions despite their native primary class; they do not turn the whole footer blue.
 
 ### Chips
 
-Product repair filters use a warning surface, warning text and the control corner. A selected repair filter adds a warning boundary. Compact state badges use the smaller badge geometry and semantic surface/text pairs. Preserve the written state and count; do not use the color as the only indication.
+Product repair filters use warning surface/text and a compact corner. Selected repair filters add a warning boundary. Written badges retain semantic surface/text pairs. Keep the state name and count visible rather than relying on color.
 
 ### Cards / Containers
 
-The recurring container is an inset data sheet, with a solid sheet fill, fine border and the surface corner. Ordinary panels use the panel paint and padding. Overview workflow entries and news use horizontal dividers and transparent backgrounds instead of inheriting a floating-card treatment. Selection fills a row; hover uses the quieter row paint, and keyboard focus remains visible.
+An opaque, inset work sheet is the recurring container. Shared cards use the same sheet fill and fine border with their smaller internal inset (16px). Overview task entries/news keep their existing divider-led presentation. Hover uses the quieter row paint; selection uses its own fill and native state; keyboard focus remains visible. Material belongs to surrounding chrome and eligible overlays, not the scrolling data.
 
 ### Inputs / Fields
 
-Fields, combo boxes and choices use the solid field paint, strong input boundary and control corner. Placeholder text uses the muted paint. Focus adds the theme focus boundary and inner focus effect; invalid text input uses danger at the boundary. Native checkbox checked and mixed states share the action fill and white mark. Popup options inherit the selected theme, native keyboard behavior and the existing popup shadows.
+Fields, combo boxes and choices use a solid field paint, strong boundary and the control corner. Prompt text is muted. Focus adds the theme boundary and inner focus effect; errors use a danger boundary. Checked and mixed checkbox states use action fill and `on-accent` mark, including dark-theme dark ink. Choice/date popups inherit current theme paints and native keyboard behavior.
 
 ### Navigation
 
-The sidebar pairs the native line icon with readable text, quiet default/hover states and a selected wash with stronger text. It scrolls its destination area while retaining utility access. Collapsed navigation preserves labels through tooltips and accessible names. The store selector remains independent of route navigation; edit/add management sits beside it and deletion remains a separate small control.
+The sidebar pairs native line icons and readable text with quiet default/hover states. A separate rounded indicator moves between independent destinations while selected text becomes stronger. The scrollable destination area retains utilities. Store selection is independent of route navigation. Manage beside the store selector contains Edit and Add; deleting stays a separate small action. The palette and onboarding reach the same Manage menu; they do not expose a separate Add action.
 
-Native tabs use a transparent body and a selected bottom rule. The underline switches immediately through the JavaFX selected state. No moving underline node, web keyboard handler or 220ms prototype tab animation is part of this implementation.
+Native tabs keep the quiet bottom rule. Their selected underline changes through JavaFX state; selected content crossfades through the motion boundary. No web View Transition or sliding page direction inferred from tab/menu order is part of the native runtime.
+
+### Preferences and command palette
+
+The real native settings route presents Light, Dark and System, a material enable switch, the saved material amount and reduced motion, alongside existing integration/account utilities. Following System tracks JavaFX platform color preference; a saved explicit theme remains explicit. A header toggle deliberately selects the other explicit theme. Existing saved choices are loaded rather than reset by the redesign.
+
+Find Action opens the native palette, also available with Ctrl+K on Windows. It filters existing actions, Enter invokes the first visible result and actions retain their existing access/lifecycle guards. The palette does not create new business permissions. Add remains inside header Manage.
 
 ### Read-only detail drawer
 
-The drawer overlays the right edge of the retained list with preferred width (420px), maximum width bounded by the smaller of (480px) or ninety percent of its host, and content padding (18px). Its heading and close control remain above a vertically scrolling body. Content is grouped into labelled sections and fields, including all supplied order items and identifiers, with wrapping values. Focusable values support the copy context menu and the platform copy shortcut. Opening focuses Close; Escape closes; closing restores the earlier focus owner when it is still in the same scene.
+The solid rounded drawer overlays the right edge of a retained list with preferred width (420px), bounded by the smaller of (480px) or ninety percent of its host, and inset (18px). The heading/close action stay above a vertically scrolling body of labelled, wrapping values. Copy actions retain full supplied identifiers. Opening focuses Close; Escape closes; closing restores the earlier focus owner if still in the same scene. Product editing remains a protected modal; no separate product-detail route or shared-image transition is claimed.
 
 ### Motion and draft feedback
 
-[WorkspaceMotion](src/main/java/com/vncode/app/shared/WorkspaceMotion.java) owns interruptible local feedback. The drawer opens over (220ms) from a horizontal offset (28px) and opacity (.5); it closes over (140ms) toward offset (20px) and zero opacity. Its spline is `(.16, 1, .3, 1)`. Selection-count feedback fades over (120ms), and the settings edit bar enters over (180ms) from a vertical offset (8px) and opacity (.6). The helper cancels prior animation and restores transform/opacity before replay; native fade defaults are not relabelled as the drawer spline.
+[WorkspaceMotionTokens](src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java), [WorkspaceMotion](src/main/java/com/vncode/app/shared/WorkspaceMotion.java) and native navigation boundaries implement relationship-based motion. Independent route content enters with a small vertical offset (6px) over (200ms); shared header/sidebar remain in place. Native tabs/selected-count feedback use (150ms). Opening a WB supply for printing uses Forward and returning from its detail uses Back, with offsets (22px / -18px) over (260ms). Other independent destinations use Sibling; product editing remains modal. The sidebar indicator and manual-collapse content adjustment use (220ms).
 
-The JavaFX system reduced-motion preference or saved manual preference bypasses these transitions. Theme changes update existing roots in place. Znack settings drafts remain bound to complete store identity; the bar is edit feedback, not proof of a remote save. Signing and destructive operations retain their protected dialogs. There are no per-row entrances or deliberate task delays in this motion system.
+Dialogs enter with local scale (.96 → 1) and fade over (240ms); popups use (.97 → 1) over (170ms), with a bounded local pivot. Drawers enter from (30px) over (220ms), close over (130ms), and restore focus. Draft feedback enters from (8px) over (180ms). These use the native arrival spline `(.16, 1, .3, 1)`. Closing native dialogs is not recorded as the preview’s separate close animation.
 
-**The Continuity Rule.** Keep the selected record, list and store identity intact through local feedback. Reduced motion updates the same state immediately.
+The system reduced-motion preference or saved manual preference removes spatial movement and scale; the shared helper retains a short opacity response (.85 → 1 over 40ms). Sidebar movement updates directly. The helper cancels previous motion, restores original transforms/opacity and cleans up when detached or hidden. No animation snapshots the table, adds row entrances, delays API work or proves a remote save. Settings drafts remain bound to complete store identity, and signing/destructive operations retain their guarded dialogs.
 
-The [.impeccable/design.json](.impeccable/design.json) sidecar carries native effects, motion, measured layout thresholds, material behavior and representative self-contained HTML/CSS swatches. Those swatches translate the observed controls for documentation; they do not execute JavaFX handlers. Their eight-step color ramps are generated display aids, not additional application tokens.
+**The Continuity Rule.** Keep the selected record, list and store identity intact through local feedback. Reduced motion completes the same state and focus updates without spatial movement.
+
+The [.impeccable/design.json](.impeccable/design.json) sidecar holds effects, motion, layout thresholds, material behavior and self-contained HTML/CSS translations for documentation. Its color ramps are generated display aids, not additional runtime paints. Current native/Windows validation remains pending; preview measurements are not native performance results.
 
 ## Do's and Don'ts
 
 ### Do:
 
 - **Do** reuse the shared semantic paints and bundled Inter in both themes.
-- **Do** keep the active store and management access visible, with the existing named confirmation for deletion.
+- **Do** keep the active store and Manage visible, place Add inside Manage, and retain the named confirmation for deletion.
 - **Do** retain list virtualization, barcode/GTIN data and complete multi-item orders when adapting a surface.
 - **Do** allocate layout space for batch actions and let their controls wrap at constrained widths.
 - **Do** preserve readable focus, written status, truthful empty states and accessible names for icon-only actions.
-- **Do** retain background-only light opacity and immediate feedback when motion is reduced.
+- **Do** retain existing appearance choices and respect both system and manual reduced motion.
 
 ### Don't:
 
 - **Don’t** restore the overview’s removed metric trio or its reserved empty band.
 - **Don’t** replace the header’s store controls with the former FBS delay text.
-- **Don’t** apply opacity to a parent node or window to implement the light material setting.
+- **Don’t** apply material opacity to a parent node or window, or blur/fade the scrolling working rows.
 - **Don’t** add per-row entrances, artificial task delays or decorative animation to the working lists.
-- **Don’t** describe the native tab underline as animated or import prototype-only behavior as an implemented rule.
-- **Don’t** treat synthetic screenshots or HTML component swatches as marketplace readback or Windows release verification.
+- **Don’t** promise OS backdrop blur, shared-product-image routing or browser View Transitions from this native implementation.
+- **Don’t** treat synthetic screenshots, HTML swatches or source inspection as marketplace readback, Windows performance or installer verification.

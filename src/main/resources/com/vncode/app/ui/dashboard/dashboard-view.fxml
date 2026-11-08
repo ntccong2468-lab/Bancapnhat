@@ -12,14 +12,14 @@
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<VBox spacing="6.0" minHeight="0" minWidth="0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.dashboard.DashboardController" styleClass="app-page,dashboard-workspace">
+<VBox spacing="6.0" minHeight="0" minWidth="0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.dashboard.DashboardController" styleClass="app-page,dashboard-workspace,workspace-page,workspace-sheet">
     <padding>
         <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
     </padding>
     <children>
-        <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="workspace-toolbar">
             <children>
-                <Label fx:id="titleLabel" styleClass="h2" text="Dashboard" />
+                <Label fx:id="titleLabel" styleClass="h2,page-title" text="Dashboard" />
                 <ProgressIndicator fx:id="loadingIndicator" managed="false" maxHeight="18.0" maxWidth="18.0" prefHeight="18.0" prefWidth="18.0" visible="false" />
                 <Label fx:id="statusLabel" styleClass="text-muted" text="" />
                 <HBox HBox.hgrow="ALWAYS" />

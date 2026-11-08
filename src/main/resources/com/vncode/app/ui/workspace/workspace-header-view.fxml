@@ -2,7 +2,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-<HBox fx:id="headerRoot" alignment="CENTER_LEFT" spacing="8" minWidth="0" styleClass="header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.WorkspaceHeaderController">
+<HBox fx:id="headerRoot" alignment="CENTER_LEFT" spacing="8" minWidth="0" minHeight="52" prefHeight="52" maxHeight="52" styleClass="header,workspace-glass-header" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.WorkspaceHeaderController">
     <ComboBox fx:id="shopComboBox" prefWidth="220" minWidth="130" prefHeight="34" promptText="%header.shop_prompt" />
     <MenuButton fx:id="manageShopButton" text="%header.manage_shops">
         <graphic><FontIcon iconLiteral="fth-edit-2" iconSize="16"/></graphic>
@@ -15,6 +15,7 @@
     </MenuButton>
     <Button fx:id="deleteShopButton" onAction="#onDeleteShop" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-trash-2" iconSize="16"/></graphic></Button>
     <Region minWidth="0" HBox.hgrow="ALWAYS"/>
+    <Button fx:id="searchActionsButton" onAction="#onSearchActions" text="%header.find_action" styleClass="workspace-command-button"><graphic><FontIcon iconLiteral="fth-search" iconSize="16"/></graphic></Button>
     <ProgressIndicator fx:id="syncLoadingIndicator" managed="false" visible="false" maxWidth="18" maxHeight="18" />
     <Label fx:id="syncLoadingLabel" managed="false" visible="false" text="%header.sync_products_kiz" maxWidth="150" wrapText="true" styleClass="text-muted"/>
     <Button fx:id="themeButton" onAction="#onToggleTheme" styleClass="btn-icon"><graphic><FontIcon iconLiteral="fth-sun" iconSize="16"/></graphic></Button>

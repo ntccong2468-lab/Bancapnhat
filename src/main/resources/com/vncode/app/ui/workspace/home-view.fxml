@@ -5,19 +5,20 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0" minWidth="0" prefHeight="700.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.HomeController">
+<BorderPane styleClass="workspace-shell" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="0" minWidth="0" prefHeight="700.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vncode.app.ui.workspace.HomeController">
+   <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
    <left>
-      <StackPane fx:id="sidebarContainer" minHeight="0" BorderPane.alignment="CENTER" />
+      <StackPane fx:id="sidebarContainer" minHeight="0" BorderPane.alignment="CENTER"><BorderPane.margin><Insets right="10"/></BorderPane.margin></StackPane>
    </left>
    <center>
-      <BorderPane fx:id="contentPane" minHeight="0" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: -bg-primary;" BorderPane.alignment="CENTER">
+      <BorderPane fx:id="contentPane" minHeight="0" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <top>
-            <StackPane fx:id="headerContainer" BorderPane.alignment="CENTER" />
+            <StackPane fx:id="headerContainer" BorderPane.alignment="CENTER"><BorderPane.margin><Insets bottom="8"/></BorderPane.margin></StackPane>
          </top>
          <center>
             <StackPane fx:id="dynamicContentContainer" minHeight="0" BorderPane.alignment="CENTER">
                <padding>
-                  <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                  <Insets bottom="0" left="0" right="0" top="0" />
                </padding>
             </StackPane>
          </center>

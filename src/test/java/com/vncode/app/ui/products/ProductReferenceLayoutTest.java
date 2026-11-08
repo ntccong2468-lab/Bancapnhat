@@ -103,12 +103,21 @@ class ProductReferenceLayoutTest {
             await(()->pane.selectedKeys().size()==105);
             fx(()->{
                 pane.applyCss();pane.layout();assertEquals(1331,stage.getScene().getWidth(),1,"Measure the actual reference client width");var select=(CheckBox)pane.lookup("#productSelectAll");assertTrue(select.isSelected());assertFalse(select.isIndeterminate());
-                var bar=pane.lookup("#productBulkActions");assertTrue(bar.isVisible());assertTrue(bar.getBoundsInLocal().getHeight()<90,"The action bar stays one compact row at the reference width: "+bar.getBoundsInLocal());assertTrue(bar.localToScene(bar.getBoundsInLocal()).getMinY()>pane.lookup("#productRows").localToScene(pane.lookup("#productRows").getBoundsInLocal()).getMaxY());
+                var bar=pane.lookup("#productBulkActions");assertTrue(bar.isVisible(),"The approved batch footer stays visible");
+                var footerBounds=bar.localToScene(bar.getBoundsInLocal());
+                var rowsBounds=pane.lookup("#productRows").localToScene(pane.lookup("#productRows").getBoundsInLocal());
+                assertTrue(footerBounds.getHeight()<90,"The action bar stays one compact row at the reference width: "+footerBounds);
+                assertTrue(footerBounds.getMinY()>=rowsBounds.getMaxY()-1,
+                        "The shared divider may touch, but the batch footer must not cover product rows: footer="+footerBounds+" rows="+rowsBounds);
                 var sync=pane.lookup("#productSync");assertTrue(sync.localToScene(sync.getBoundsInLocal()).getMinX()>pane.getWidth()-180,"Sync belongs in the top-right corner");
                 double previous=-1,firstY=-1;
                 for(String field:List.of("brand","material","gender","tnved","documents")){var button=(Button)pane.lookup("#productEdit_"+field);assertNotNull(button.getGraphic());assertFalse(button.isDisabled());var bounds=button.localToScene(button.getBoundsInLocal());double x=bounds.getMinX();assertTrue(x>previous);previous=x;if(firstY<0)firstY=bounds.getMinY();else assertEquals(firstY,bounds.getMinY(),1,"Every batch action remains in the same row");button.fire();}
                 assertEquals(List.of("brand","material","gender","tnved","documents"),actions);
-                ((Button)pane.lookup("#productClearSelection")).fire();assertTrue(pane.selectedKeys().isEmpty());assertFalse(bar.isVisible());return null;
+                ((Button)pane.lookup("#productClearSelection")).fire();assertTrue(pane.selectedKeys().isEmpty());
+                assertTrue(bar.isVisible()&&bar.isManaged(),"Approved batch footer remains available without selection");
+                for(String field:List.of("brand","material","gender","tnved","documents"))
+                    assertTrue(((Button)pane.lookup("#productEdit_"+field)).isDisabled(),"Clearing selection disables the existing "+field+" action");
+                assertEquals(List.of("brand","material","gender","tnved","documents"),actions,"Clearing selection must not invoke another batch action");return null;
             });
         }finally{fx(()->{pane.dispose();stage.close();I18nService.getInstance().setLanguage(language);return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }

@@ -19,7 +19,7 @@ final class Gs1SyncReportDialog {
     static void show(Window window,Shop selected){
         if(selected==null)return;var shop=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
         var dialog=new Dialog<Void>();if(window!=null)dialog.initOwner(window);AlertService.applyTheme(dialog);dialog.setTitle(tr("gs1.sync.report")+" · "+shop.getName());
-        var report=new Report(shop);dialog.getDialogPane().setContent(report);dialog.getDialogPane().setPrefSize(920,580);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);dialog.setOnHidden(e->report.dispose());dialog.show();
+        var report=new Report(shop);dialog.getDialogPane().getStyleClass().add("workspace-overlay");dialog.getDialogPane().setContent(report);dialog.getDialogPane().setPrefSize(920,580);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);dialog.setOnHidden(e->report.dispose());dialog.show();
     }
     static final class Report extends VBox {
         private final Shop shop;private final SyncRunRepository reports=new SyncRunRepository();
@@ -29,10 +29,10 @@ final class Gs1SyncReportDialog {
         private final PauseTransition timer=new PauseTransition(Duration.seconds(4));
         private boolean busy,closed;private String run="";private Task<?> task;
         Report(Shop shop){
-            this.shop=shop;setId("gs1SyncReport");setSpacing(10);status.setWrapText(true);events.setWrapText(true);runs.setMaxWidth(Double.MAX_VALUE);
+            this.shop=shop;setId("gs1SyncReport");getStyleClass().add("workspace-form");setSpacing(10);status.setWrapText(true);events.setWrapText(true);runs.setMaxWidth(Double.MAX_VALUE);table.getStyleClass().add("dense-data-table");
             runs.setCellFactory(v->cell());runs.setButtonCell(cell());table.setId("gs1SyncReportSources");table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
             column(tr("gs1.sync.source"),r->r.productId().equals("CATALOG")?"National Catalog":"Честный знак");column(tr("znack.registration.status"),r->tr("jobs.status."+r.state()));column(tr("jobs.step"),r->step(r.step()));column(tr("jobs.reason"),SyncRunRepository.Item::error);
-            getChildren().setAll(new HBox(10,runs,refresh),status,table,events);HBox.setHgrow(runs,Priority.ALWAYS);VBox.setVgrow(table,Priority.ALWAYS);
+            var toolbar=new HBox(10,runs,refresh);toolbar.getStyleClass().add("workspace-toolbar");getChildren().setAll(toolbar,status,table,events);HBox.setHgrow(runs,Priority.ALWAYS);VBox.setVgrow(table,Priority.ALWAYS);
             refresh.setText(tr("gs1.sync.refresh_report"));refresh.setOnAction(e->load());runs.setOnAction(e->{if(!busy){run=runs.getValue()==null?"":runs.getValue().id();load();}});timer.setOnFinished(e->load());load();
         }
         private record Page(List<SyncRunRepository.Run> runs,SyncRunRepository.Run run,List<SyncRunRepository.Item> items,List<SyncRunRepository.Event> events){}

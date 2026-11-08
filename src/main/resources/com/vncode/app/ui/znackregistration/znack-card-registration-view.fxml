@@ -5,19 +5,18 @@
 <?import javafx.scene.layout.*?>
 
 <VBox spacing="8" minHeight="0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page,registration-reference">
+      fx:controller="com.vncode.app.ui.znackregistration.ZnackCardRegistrationController" styleClass="app-page,registration-reference,workspace-page">
     <StackPane fx:id="ozonRegistrationHost" minHeight="0" VBox.vgrow="ALWAYS" visible="false" managed="false"/>
-    <VBox fx:id="wbRegistrationContent" minHeight="0" minWidth="0" spacing="6" VBox.vgrow="ALWAYS">
+    <VBox fx:id="wbRegistrationContent" styleClass="workspace-sheet" minHeight="0" minWidth="0" spacing="4" VBox.vgrow="ALWAYS">
     <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
-    <HBox fx:id="registrationHeader" alignment="CENTER_LEFT" spacing="10">
-        <Label fx:id="titleLabel" text="Đăng ký thẻ Znack" styleClass="h2" minWidth="210" prefWidth="240" maxWidth="260"/>
+    <HBox fx:id="registrationHeader" alignment="CENTER_LEFT" spacing="10" styleClass="workspace-toolbar">
+        <Label fx:id="titleLabel" text="Đăng ký thẻ Znack" styleClass="h2,page-title" minWidth="210" prefWidth="240" maxWidth="260"/>
         <Pane HBox.hgrow="ALWAYS"/>
         <Button fx:id="configButton" text="Cấu hình giấy tờ" onAction="#onConfig" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
         <Button fx:id="signApprovedButton" text="Ký thẻ đã duyệt" onAction="#onSignApproved" styleClass="btn-secondary" minWidth="110" wrapText="true"/>
-        <Button fx:id="updateWbButton" text="Cập nhật GTIN lên WB" onAction="#onUpdateWb" styleClass="btn-secondary" minWidth="140" wrapText="true"/>
         <Button fx:id="syncZnackButton" text="Đồng bộ Znack" onAction="#onSyncZnack" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
     </HBox>
-    <Label fx:id="wbPriceImpactLabel" wrapText="true" styleClass="text-muted"/>
+    <Label fx:id="wbPriceImpactLabel" minHeight="-Infinity" wrapText="true" styleClass="text-muted"/>
     <Label fx:id="loadingLabel" text="Đang tải..." visible="false" managed="false" styleClass="text-muted"/>
     <Label fx:id="readinessLabel" visible="false" managed="false" wrapText="true" styleClass="text-muted"/>
     <Label fx:id="operationLabel" visible="false" managed="false" wrapText="true" styleClass="text-muted"/>
@@ -32,43 +31,45 @@
         <Button fx:id="connectionButton" text="Kiểm tra kết nối" onAction="#onConnection" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
         <Button fx:id="provenanceButton" text="Nguồn dữ liệu" onAction="#onProvenance" styleClass="btn-secondary" minWidth="100" wrapText="true"/>
     </VBox>
-    <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6">
+    <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6" styleClass="workspace-toolbar">
         <TextField fx:id="searchField" accessibleText="%products.search" promptText="Tìm theo tên, article, SKU..." prefWidth="280"/>
         <MenuButton fx:id="categoryMenuButton" text="Danh mục"/>
         <ComboBox fx:id="statusFilter" accessibleText="%ui.filter.status" prefWidth="195"/>
         <Button fx:id="clearFiltersButton" text="Xóa bộ lọc" onAction="#onClearFilters"/>
     </FlowPane>
     <StackPane fx:id="registrationTableHost" minHeight="0" VBox.vgrow="ALWAYS">
-        <TableView fx:id="productTable" minHeight="0">
+        <TableView fx:id="productTable" minHeight="0" styleClass="dense-data-list">
             <columns>
                 <TableColumn fx:id="selectionColumn" text="✓" minWidth="48" prefWidth="48" maxWidth="48" sortable="false"/>
                 <TableColumn fx:id="imageColumn" text="Ảnh" minWidth="64" prefWidth="64" maxWidth="64"/>
-                <TableColumn fx:id="nameColumn" text="Sản phẩm" prefWidth="220"/>
-                <TableColumn fx:id="articleColumn" text="Article" prefWidth="145"/>
-                <TableColumn fx:id="genderColumn" text="Giới tính" prefWidth="95"/>
-                <TableColumn fx:id="colorColumn" text="Màu" prefWidth="72"/>
+                <TableColumn fx:id="nameColumn" text="Sản phẩm" minWidth="160" prefWidth="220"/>
+                <TableColumn fx:id="articleColumn" text="Article" minWidth="100" prefWidth="145"/>
+                <TableColumn fx:id="genderColumn" text="Giới tính" minWidth="70" prefWidth="95"/>
+                <TableColumn fx:id="colorColumn" text="Màu" minWidth="60" prefWidth="72"/>
                 <TableColumn fx:id="sizeColumn" text="Size" prefWidth="95" minWidth="90"/>
                 <TableColumn fx:id="russianSizeColumn" visible="false" text="Size RU" prefWidth="88"/>
-                <TableColumn fx:id="barcodeColumn" text="Barcode WB" prefWidth="175"/>
+                <TableColumn fx:id="barcodeColumn" text="Barcode WB" minWidth="135" prefWidth="175"/>
                 <TableColumn fx:id="verifiedGtinColumn" visible="false" text="GTIN đã xác minh" prefWidth="175"/>
-                <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="154"/>
+                <TableColumn fx:id="statusColumn" text="Trạng thái" minWidth="110" prefWidth="154"/>
                 <TableColumn fx:id="moderationColumn" visible="false" text="Kiểm duyệt" prefWidth="185"/>
                 <TableColumn fx:id="marketplaceSyncColumn" visible="false" text="Đồng bộ WB" prefWidth="180"/>
                 <TableColumn fx:id="detailColumn" text="Chi tiết" prefWidth="180" visible="false"/>
-                <TableColumn fx:id="actionColumn" text="Thao tác" prefWidth="134" maxWidth="160"/>
+                <TableColumn fx:id="actionColumn" text="Thao tác" minWidth="134" prefWidth="134" maxWidth="160"/>
             </columns>
         </TableView>
         <Label fx:id="emptyLabel" text="Không có SKU" visible="false" managed="false" styleClass="text-muted"/>
     </StackPane>
-    <HBox alignment="CENTER_LEFT" spacing="10">
+    <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6" styleClass="workspace-batch-footer">
         <CheckBox fx:id="allFilteredCheckBox" text="Chọn tất cả kết quả đang lọc" onAction="#onToggleAllFiltered"/>
         <Button fx:id="registerSelectedButton" text="Đăng ký" onAction="#onRegisterSelected" styleClass="btn-primary"/>
         <Label fx:id="paginationLabel" styleClass="text-muted"/>
         <Button fx:id="loadMoreButton" text="Tải thêm" onAction="#onLoadMore" styleClass="btn-secondary"/>
+
+        <Button fx:id="updateWbButton" text="Cập nhật GTIN lên WB" onAction="#onUpdateWb" styleClass="btn-secondary" minWidth="140" wrapText="true"/>
         <Pane HBox.hgrow="ALWAYS"/>
         <Hyperlink fx:id="reportLink" text="Báo cáo" visible="false" managed="false" onAction="#onReport"/>
-    </HBox>
+        <Label fx:id="summaryLabel" wrapText="true" styleClass="text-muted"/>
+    </FlowPane>
     <Label fx:id="batchProgressLabel" wrapText="true" visible="false" managed="false" styleClass="text-muted"/>
-    <Label fx:id="summaryLabel" wrapText="true" styleClass="text-muted"/>
     </VBox>
 </VBox>

@@ -38,9 +38,9 @@ public final class TnvedPane extends BorderPane {
     private String submittedQuery="";
     private LocalDate submittedDate;
     public TnvedPane(TnvedCatalog catalog) {
-        this.catalog=catalog;setPadding(new Insets(16));
-        var title=new Label(tr("tnved.title"));title.getStyleClass().add("h2");
-        var header=new HBox(12,title,importButton,backupButton);header.setPadding(new Insets(0,0,12,0));setTop(new VBox(8,header,status));
+        this.catalog=catalog;getStyleClass().add("workspace-page");setPadding(new Insets(16));
+        var title=new Label(tr("tnved.title"));title.getStyleClass().add("page-title");
+        var header=new HBox(12,title,importButton,backupButton);header.getStyleClass().add("workspace-toolbar");header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);header.setPadding(new Insets(0,0,8,0));setTop(new VBox(8,header,status));
         tree.setShowRoot(false);tree.setMinWidth(160);
         tree.getSelectionModel().selectedItemProperty().addListener((o,a,b)->{if(b!=null&&b.getValue()!=null)showDetail(b.getValue());});
         query.setPromptText(tr("tnved.search"));
@@ -54,13 +54,13 @@ public final class TnvedPane extends BorderPane {
                 default->row.getValue().sourceUrl();}));column.setPrefWidth(heading.equals("Mã")?110:200);results.getColumns().add(column);
         }
         results.getSelectionModel().selectedItemProperty().addListener((o,a,b)->{if(b!=null)showDetail(b);});results.setPlaceholder(new Label(emptyBranchText()));
-        var center=new VBox(10,new HBox(8,query,searchButton),activeOnly,results,more);HBox.setHgrow(query,Priority.ALWAYS);VBox.setVgrow(results,Priority.ALWAYS);
+        var searchBar=new HBox(8,query,searchButton);searchBar.getStyleClass().add("workspace-toolbar");var center=new VBox(8,searchBar,activeOnly,results,more);center.setMinWidth(0);center.getStyleClass().add("workspace-sheet");results.getStyleClass().add("dense-data-table");HBox.setHgrow(query,Priority.ALWAYS);VBox.setVgrow(results,Priority.ALWAYS);
         detail.setEditable(false);detail.setWrapText(true);detail.setPromptText(tr("tnved.select_hint"));
         var copy=new Button(tr("tnved.copy"));copy.setOnAction(e->{if(displayedNode!=null){var content=new ClipboardContent();content.putString(displayedNode.code());Clipboard.getSystemClipboard().setContent(content);}});
         useSelected.setText(tr("tnved.use_selected"));useSelected.setOnAction(e->{if(onSelect!=null&&!useSelected.isDisabled())onSelect.accept(displayedNode);});updateSelectionButton();
-        var right=new VBox(10,new Label(tr("tnved.detail_hint")),detail,new FlowPane(8,8,copy,useSelected));VBox.setVgrow(detail,Priority.ALWAYS);
+        var right=new VBox(10,new Label(tr("tnved.detail_hint")),detail,new FlowPane(8,8,copy,useSelected));right.setMinWidth(0);right.getStyleClass().add("workspace-sheet");VBox.setVgrow(detail,Priority.ALWAYS);
         var split=new SplitPane(tree,center,right);split.setDividerPositions(.23,.70);
-        var reference=new Tab(tr("tnved.reference_tab"),new FashionTnvedBrowser());var imported=new Tab(tr("tnved.imported_tab"),split);var tabs=new TabPane(reference,imported);tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);setCenter(tabs);
+        var reference=new Tab(tr("tnved.reference_tab"),new FashionTnvedBrowser());var imported=new Tab(tr("tnved.imported_tab"),split);var tabs=new TabPane(reference,imported);tabs.getStyleClass().add("workspace-tab-strip");tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);setCenter(tabs);
         Runnable controls=()->{boolean advanced=tabs.getSelectionModel().getSelectedItem()==imported;for(var node:List.of(importButton,backupButton,status)){node.setVisible(advanced);node.setManaged(advanced);}};
         tabs.getSelectionModel().selectedItemProperty().addListener((o,a,b)->controls.run());controls.run();
         widthProperty().addListener((o,a,b)->split.setOrientation(b.doubleValue()>0&&b.doubleValue()<850?javafx.geometry.Orientation.VERTICAL:javafx.geometry.Orientation.HORIZONTAL));
