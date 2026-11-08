@@ -262,7 +262,13 @@ class ZnackCardRegistrationControllerTest {
             var render=ZnackCardRegistrationController.class.getDeclaredMethod("renderBatchProgress",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress.class);render.setAccessible(true);
             var progress=new com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.Progress("old-batch",100,0,0,100,"","","","","SOURCE_CONFIGURATION_CHANGED",com.vncode.app.integration.znack.registration.ZnackRegistrationBatchService.State.NEEDS_ACTION);
             render.invoke(controller,progress);
-            assertTrue(((Label)loader.getNamespace().get("batchProgressLabel")).getText().contains("SOURCE_CONFIGURATION_CHANGED"));
+            String reasonKey="znack.registration.reason.SOURCE_CONFIGURATION_CHANGED";
+            String expectedReason=I18nService.getInstance().tr(reasonKey);
+            assertNotEquals(reasonKey,expectedReason,"The action reason needs an actual translation");
+            var label=(Label)loader.getNamespace().get("batchProgressLabel");
+            assertTrue(label.getText().contains(expectedReason),"The terminal batch must show the translated action reason");
+            assertTrue(label.getTooltip().getText().contains(expectedReason));
+            assertFalse(label.getText().contains("SOURCE_CONFIGURATION_CHANGED"),"Technical source codes belong in diagnostics");
             var run=ZnackCardRegistrationController.class.getDeclaredField("lastRegistrationRun");run.setAccessible(true);run.set(controller,"newer-gtin-run");render.invoke(controller,progress);
             assertEquals("newer-gtin-run",run.get(controller));return null;
         });
