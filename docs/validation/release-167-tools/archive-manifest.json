@@ -1,0 +1,108 @@
+{
+  "kind": "VNCODE_167_SESSION_VALIDATION_TOOL_ARCHIVE",
+  "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "windowsBuildRun": 42611294387,
+  "statusAtArchive": "Pending full Windows/native/package/publication; archive is not a passing release receipt.",
+  "toolsExecutedByArchiveTask": false,
+  "networkCallsByArchiveTask": false,
+  "files": [
+    {
+      "path": "verify_package-certificate-guard.py",
+      "bytes": 76978,
+      "sha256": "1af43751eabd4020911ee1951665d05dd4f873bd4005e50c37608ca728bc219f",
+      "sessionSource": "/workspace/vncode-167-release/verify_package-certificate-guard.py",
+      "exactByteCopy": true,
+      "contentScope": "Static verification source or public source/build/hash metadata; no seller payload or credentials."
+    },
+    {
+      "path": "verify_public_preservation-certificate-guard.py",
+      "bytes": 12406,
+      "sha256": "5cabcecb0f0f93b253ff0140558eaf61b4999af79f00f427636c8dad01a1125f",
+      "sessionSource": "/workspace/vncode-167-release/verify_public_preservation-certificate-guard.py",
+      "exactByteCopy": true,
+      "contentScope": "Static verification source or public source/build/hash metadata; no seller payload or credentials."
+    },
+    {
+      "path": "Installed166UpdateProbe.java",
+      "bytes": 3584,
+      "sha256": "d7c0d48c0d4417db06ed8277c58d629e01428786f2dd7fe7bd1a633a836dd39b",
+      "sessionSource": "/workspace/vncode-167-release/installed166/probe-source/Installed166UpdateProbe.java",
+      "exactByteCopy": true,
+      "contentScope": "Static verification source or public source/build/hash metadata; no seller payload or credentials."
+    },
+    {
+      "path": "metadata/source-inclusion-fifth-attempt.json",
+      "bytes": 89062,
+      "sha256": "63b37971dd05c8cb4ab6ba877b0a34a9d9cdc94eda25d39309123006625402e2",
+      "sessionSource": "/workspace/vncode-167-release/source-inclusion-fifth-attempt.json",
+      "exactByteCopy": true,
+      "contentScope": "Static verification source or public source/build/hash metadata; no seller payload or credentials."
+    },
+    {
+      "path": "metadata/source-inclusion-certificate-first-attempt.json",
+      "bytes": 97836,
+      "sha256": "f8b0994e43ed625e5fb051f1b14551bfb4928b7f932fac9fb5e97c9d04d65d71",
+      "sessionSource": "/workspace/vncode-167-release/source-inclusion-certificate-first-attempt.json",
+      "exactByteCopy": true,
+      "contentScope": "Static verification source or public source/build/hash metadata; no seller payload or credentials."
+    },
+    {
+      "path": "metadata/source-inclusion-certificate-pre-guard-attempt.json",
+      "bytes": 100349,
+      "sha256": "ef28606a62e94c8b3e7c334887562a11e9c994db52565c507bbc92cdd7c1e680",
+      "sessionSource": "/workspace/vncode-167-release/source-inclusion-certificate-pre-guard-attempt.json",
+      "exactByteCopy": true,
+      "contentScope": "Static verification source or public source/build/hash metadata; no seller payload or credentials."
+    },
+    {
+      "path": "metadata/installed166-extraction.json",
+      "bytes": 325,
+      "sha256": "caf327ff4a29aca2da2882843df0fa0286b8b768aa9cbf33d6d4962ee5b182b4",
+      "sessionSource": "/workspace/vncode-167-release/installed166/extraction.json",
+      "exactByteCopy": true,
+      "contentScope": "Static verification source or public source/build/hash metadata; no seller payload or credentials."
+    },
+    {
+      "path": "metadata/updater-before.json",
+      "bytes": 662,
+      "sha256": "71045e20e863fbbb0509a6901e0782205fe0e1feac11e8c8f6bf24d4bbef5454",
+      "sessionSource": "/workspace/vncode-167-release/updater-before.json",
+      "exactByteCopy": true,
+      "contentScope": "Static verification source or public source/build/hash metadata; no seller payload or credentials."
+    },
+    {
+      "path": "metadata/releases-before.required-fields.json",
+      "bytes": 158330,
+      "sha256": "a317c42979133ab656d639f0d8f41003a007b16c0d0812179a027be6ebc4dcf5",
+      "sessionSource": "/workspace/vncode-167-release/releases-before.json",
+      "exactByteCopy": false,
+      "contentScope": "Derived projection of public release fields consumed by unchanged verifier; original raw SHA differs."
+    },
+    {
+      "path": "metadata/tags-before-final.json",
+      "bytes": 16147,
+      "sha256": "4c4d977ee17c2e16756eba31140c1c4c2983f0d3b647d3cd50bc43b3bb5fc29c",
+      "sessionSource": "/workspace/vncode-167-release/tags-before-final.json",
+      "exactByteCopy": true,
+      "contentScope": "Exact public45-tag snapshot; no credentials."
+    },
+    {
+      "path": "metadata/releases-before.projection-provenance.json",
+      "bytes": 11570,
+      "sha256": "507405c608dd4e3bdbf30429bdc69d4a7ef1b55aa07c47b42308772790b4a990",
+      "sessionSource": "derived from public snapshot and archived verifier field constants",
+      "exactByteCopy": false,
+      "contentScope": "Projection provenance and exact retained/dropped field lists and record IDs."
+    },
+    {
+      "path": "README.md",
+      "bytes": 14604,
+      "sha256": "1b308401863b5f1cfea672a7e5ebb07b31db4c5bb89726c41204f4f12351a412",
+      "sessionSource": "Archive recovery documentation, not an outside-session byte copy.",
+      "exactByteCopy": false,
+      "contentScope": "Pinned hashes, dependency restoration recipes and scope/limits; commands documented but not executed."
+    }
+  ],
+  "metadataPolicy": "Three exact hash-pinned historical source manifests; minimal166 before hashes/probe receipt; exact45-tag snapshot; DERIVED exact-consumed-fields16-release/258-asset public-before projection with raw/projection SHA and retained/dropped fields. Current inclusion and failed preflight receipt already tracked. Fresh current-source artifact bytes and after-publication snapshots remain gated future inputs.",
+  "softSizeBudgetBytes": 665600
+}

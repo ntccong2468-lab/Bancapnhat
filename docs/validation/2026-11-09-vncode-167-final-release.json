@@ -1,0 +1,94 @@
+{
+  "kind": "VNCODE_FINAL_RELEASE_RECEIPT",
+  "recordedAtUtc": "2026-11-09T13:45:54.392174+00:00",
+  "result": "PUBLISHED_AND_VERIFIED",
+  "version": "1.6.7",
+  "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "sourceBranch": "release/vn-code-1.6.7",
+  "documentationBranch": "release/vn-code-1.6.7-publication",
+  "fullWindowsRun": 42611294387,
+  "publicationRun": 42627047589,
+  "publicationHeadSha": "b1e5e7774e1ab01d0c1c57ee934900c6927638f7",
+  "releaseId": 438471378,
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.7",
+  "publishedAt": "2026-11-09T13:38:02Z",
+  "latestTag": "v1.6.7",
+  "immutable": true,
+  "exeUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.7/VN-code-1.6.7-Windows-x64.exe",
+  "exe": {
+    "bytes": 149379584,
+    "sha256": "2da4f820660798d8b3979d90b751c1f1c4f9b1d281550b807c558558c6cdbd3b"
+  },
+  "msi": {
+    "bytes": 148710661,
+    "sha256": "b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be"
+  },
+  "windowsFullJava": {
+    "tests": 4188,
+    "suites": 547,
+    "passed": 4186,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "skips": [
+      "Gs1PrefixTemplateStoreTest.privatePermissionsAreAppliedWhereSupported",
+      "WindowsSecretProtectorTest.neverFallsBackToPlaintextOffWindows"
+    ]
+  },
+  "publicDownloads": {
+    "count": 16,
+    "bytes": 534004049,
+    "allMatchWindowsBuildAndGitHubDigests": true
+  },
+  "previousHistoryPreserved": {
+    "releases": 16,
+    "assets": 258,
+    "tagRefs": 45
+  },
+  "actual166Updater": {
+    "status": "AVAILABLE",
+    "latestVersion": "1.6.7",
+    "exactNewMsiSelected": true,
+    "sellerPopupObserved": false
+  },
+  "includedChanges": [
+    "Full published1.6.6 ancestry",
+    "WB KIZ colors and permit validation",
+    "Approved native desktop UI and shop management",
+    "KIZ/Znack/WB GTIN reconciliation and revision guards",
+    "Latin/Cyrillic declaration-number normalization and actionable registry errors",
+    "CryptoPro certificate discovery from user and CAdES/container stores,32/64-bit, fresh list and exact fingerprint routing",
+    "Explicit confirmation before verifying a changed signer; cancellation does not sign or write; existing reset/ownership policies retained"
+  ],
+  "security": {
+    "run": 42611297755,
+    "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+    "javaAnalysis": "PASS",
+    "javaGate": "FAIL",
+    "findings": 8,
+    "newFindings": 0,
+    "oldHigh": 1,
+    "javascriptFindings": 0,
+    "dispatchOnlyJobs": "SKIPPED",
+    "limitation": "Existing GS1 extraction warning; not all-security-green."
+  },
+  "limitations": [
+    "No real seller CryptoPro certificate/token or Windows-machine validation in this environment.",
+    "Changed signer still resets local mappings and archives unused KIZ under existing policy, after explicit confirmation. Same-enterprise renewal preserving these data is not implemented.",
+    "Actual old updater ran through inherited Cloud proxy/CA; no independent anonymous-network or seller-popup claim.",
+    "Installers remain unsigned as with prior baseline.",
+    "No seller API writes, purchases, actual signing, license activation, Gmail messages or portal deployment in this release-verification stage."
+  ],
+  "evidenceSha256": {
+    "2026-11-09-vncode-167-package.json": "345bb254e80404107a65160a77e040dcefb3ecfb0ee8e4714384dba285028958",
+    "2026-11-09-vncode-167-build-run.json": "bf70acf826405192519b1cc53d0f10e44b4ec823431711ac7c9709eba51b1a84",
+    "2026-11-09-vncode-167-artifact-review.json": "800190cf2f99bae483408fe9b0cbc8505bf67f128caa82e646b13bee40d28f19",
+    "2026-11-09-vncode-167-publication.json": "851487c62f11c88e6330bd0a4684637198162153500bea602eef2d687b0d9dd1",
+    "2026-11-09-vncode-167-publication-run.json": "ca24a4c7e1c0789cadeecd8f5b8db6c59b0a03e272409b07770200bfae528c06",
+    "2026-11-09-vncode-167-published-latest.json": "553774efcd13dd81549adb632c98ea88ac3252c8f55ed1b094bd929561d1b7aa",
+    "2026-11-09-vncode-167-public-preservation.json": "17ba726b2dc4bb55ea924b339ca95bbdd1d4bed1124b99b80587dd84d1a27555",
+    "2026-11-09-vncode-167-updater.json": "8144652615456a694bac78eb85e309735b00c1f7cbdc4d0efcebfba50ee513f8",
+    "2026-11-09-vncode-167-post-publication-review.json": "00171d3723445a6d7a1a5e9901523882c38db34fb54879fdd206e2f0c976d9fe",
+    "2026-11-09-vncode-167-certificate-guard-security.json": "1cf3df3b83135571d3c79551fcae159f534345c618110932de67639e1298330f"
+  }
+}

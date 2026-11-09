@@ -1,0 +1,1976 @@
+{
+  "schemaVersion": 1,
+  "kind": "RELEASE_SOURCE_INCLUSION",
+  "version": "1.6.7",
+  "recordedAtUtc": "2026-11-09T10:59:34.301596+00:00",
+  "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+  "sourceTree": "c8473f49cfe397e2ca59a2645c98037e60693d97",
+  "releaseBranch": "release/vn-code-1.6.7",
+  "observedHead": "056dcd0b78268cd14dfc5e36b22201d6a0166132",
+  "observedBranch": "release/vn-code-1.6.7-publication",
+  "observedHeadMatchesPinnedSource": false,
+  "fullWindowsBuildRunId": 42605121356,
+  "buildStatusNotAssessedByThisReceipt": true,
+  "previousRelease": {
+    "version": "1.6.6",
+    "sourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+    "releaseId": "437862752",
+    "includedByAncestry": true,
+    "priorSourceInclusionReceipt": "docs/validation/2026-11-07-vncode-166-source-inclusion.json",
+    "priorSourceInclusionReceiptSha256": "f491b602ccf2e0d6e918278992636aa14024ce6cd99fd7ef228a2b44dd7883d4",
+    "priorMilestonesRechecked": [
+      {
+        "change": "Latest 1.6.4",
+        "commit": "86d76d86aae1ea55c5aa014a0bf209c3b1ed99ad",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Code Doctor",
+        "commit": "c2e9dcfc56b4287f7ece05bc058e310fa5bd9942",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Znack states and WB GTIN",
+        "commit": "5710392b9caaade838a94f33b6e4bdfe8d64cc3a",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Product declaration",
+        "commit": "af3bf5c7330bfc1b1ebf3693d4f97190e06e8a54",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Declaration translations",
+        "commit": "fd20aa84304baed67277263e4814f2ba2569612e",
+        "includedByAncestry": true
+      },
+      {
+        "change": "WB/Ozon KIZ mapping TN VED",
+        "commit": "5ad16bf3f7ed7d4d3911fd44ab39f42c9f24483c",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Ozon PDF combined KIZ",
+        "commit": "8845573c6fd2031840236ceb998ffd2dc0dad972",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Ozon acceptance KIZ replacement",
+        "commit": "3c865b6d6c15d616d083c65502a02778d77de6f2",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Shared reviewed Ozon Catalog variant",
+        "commit": "cae86ef71149a9be505b060360a7a9db8e07c5b4",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Live API audit handoff",
+        "commit": "1da051ef815046998dcd7afb41b503dd0cf1ae06",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Latest 1.6.5",
+        "commit": "4ffea8a2732ad04d1a3fc481d472867ba2683a8a",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Ozon automatic KIZ replacement and fair retry",
+        "commit": "86b1dcc1c7bf45d7a0d37ef50f9dd350e436a9c4",
+        "includedByAncestry": true
+      },
+      {
+        "change": "WB automatic GTIN and storage coordination",
+        "commit": "a95201dc1148cd11ce21eff42daef79af8e8c1f9",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Accepted Catalog feed enters Processing",
+        "commit": "a43b7e13590025dee2410d461f2b60ef601d5d97",
+        "includedByAncestry": true
+      },
+      {
+        "change": "GTIN report and Ozon print product metadata",
+        "commit": "2e5b50a7735ac564b45e2aec12d2e9e19c0d58d9",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Version 1.6.6 and flat updater progress",
+        "commit": "bd3175d61cb1bb133999e8a6e5b011902d50c7cb",
+        "includedByAncestry": true
+      },
+      {
+        "change": "Single carrier-only printing context guard",
+        "commit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+        "includedByAncestry": true
+      }
+    ],
+    "oldTagsOrAssetsModifiedByThisAudit": false
+  },
+  "includedUnreleasedChanges": [
+    {
+      "change": "WB colors and Catalog permit evidence",
+      "commit": "ae2d48a2e397428869d553b7e008402f469a3566",
+      "includedByAncestry": true,
+      "handover": "docs/validation/2026-11-08-wb-kiz-color-documents-handoff.md",
+      "handoverSha256": "2ce1880032a115d810d7ffd2ff268f91dd25d281c1eac08a5eab3b74cd9edbcd"
+    },
+    {
+      "change": "Approved native Liquid Glass workspace and shop management",
+      "commit": "5f816b1df7772a8fb40771c6851b146c4356f76d",
+      "includedByAncestry": true,
+      "handover": "docs/validation/2026-11-08-native-liquid-glass-handoff.md",
+      "handoverSha256": "333849eb3f260f85dd24750f236df0df5794e52517e7811c41f8753162be0b50"
+    },
+    {
+      "change": "Catalog read revision and WB GTIN mapping reconciliation",
+      "commit": "6905fe0a73b5300b6f5390ed0c71dbeca62ea81a",
+      "includedByAncestry": true,
+      "handover": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.md",
+      "handoverSha256": "0fc006bdbea55d3ba9fb6a79cca616b1094f4e8051ad0e6884ac235e16582752"
+    },
+    {
+      "change": "Permit registry script normalization and precise document rejection",
+      "commit": "0a00fbd837d5e92eeb0018e480fb1891436107e9",
+      "includedByAncestry": true,
+      "handover": "docs/validation/2026-11-08-registration-permit-script-fix.md",
+      "handoverSha256": "1feecf7314abdce62a25c8152139115833dcba08985b5dba3fff6d3cfc01227d"
+    },
+    {
+      "change": "Renewed CryptoPro certificate discovery, cancellation and shared pre-sign routing",
+      "commit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+      "includedByAncestry": true,
+      "handover": "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
+      "handoverSha256": "851e92d84a2dd132ca22bcbf73415ca62c1ba92daeb8dc6155a4b677669436a5",
+      "manifest": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+      "manifestSha256": "0f3237c0b29f990b00f976b15ef61650f0b9cbfda314cf391db491476a6385fa"
+    }
+  ],
+  "runtimeDiff": {
+    "baseline": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+    "head": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "uniqueChangedFiles": 114,
+    "javaFiles": 89,
+    "resourceFiles": 25,
+    "addedFiles": 12,
+    "modifiedFiles": 102,
+    "deletedFiles": 0,
+    "changedRuntimePlusPomCount": 115,
+    "runtimeUnchangedSinceLastHandoverCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "runtimeUnchangedSinceLastHandover": true,
+    "inputs": [
+      {
+        "path": "src/main/java/com/vncode/app/features/catalogsync/CatalogPermitEvidence.java",
+        "gitStatus": "A",
+        "sha256": "9aa9c75788dcbe369e038cb7a0ca3b3db65ad41a19d53ac748b5ba13bce0e84f",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/catalogsync/CatalogProductData.java",
+        "gitStatus": "M",
+        "sha256": "f4312e8d94f23d718dd6bb20a4b9809100d547d60c438a2ca4fb5c770148f020",
+        "previousReleaseSha256": "aca0022eb7a55b7de9804518f01a9e09b63aedf429de7732cdcec23fe4794e24",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/fbo/FboVerifiedGtinRepository.java",
+        "gitStatus": "M",
+        "sha256": "4e48b476d1eb3b9ec72ce1c28ce57b5fd3a35fe0fdc6308f593ea7b71c4b68db",
+        "previousReleaseSha256": "68f8ba2f9e2c5dc2100452e833b0f9723e2808a983c4e9d5fbbf541dbbb171da",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/GtinColorIdentity.java",
+        "gitStatus": "A",
+        "sha256": "e12987e930239f4609603b2cba27950e470001db3a78dc754a43d5f30cd31442",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/GtinMatchingService.java",
+        "gitStatus": "M",
+        "sha256": "bad3f72287df8c665f8664e28bb7ba366bc28bbd7e636997e4291976af65705e",
+        "previousReleaseSha256": "15cdba30602a364551c488762db2967fe42dbf38696af77a284456552ca5357d",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/GtinSyncModels.java",
+        "gitStatus": "M",
+        "sha256": "217a0620e2afe964ba0d059efa53800c429f0f61b800953f511af6e6f6eedb75",
+        "previousReleaseSha256": "9697297d1812a6d3d4c4098714eac0cdb51e2a39c298839d7b54bebae3dddbfd",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/GtinSyncRepository.java",
+        "gitStatus": "M",
+        "sha256": "44e9b92d8c8dbac7f4a462404670edad1deeb0c1664e408989263a89a56db286",
+        "previousReleaseSha256": "5f8cd707116513846f0df1495063a6391bef8039f54e722dacce3db7799781af",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/OzonReviewedVariantProof.java",
+        "gitStatus": "M",
+        "sha256": "85550d9849d938c0b9c2dd940c2d591cac5434c498af7b3579828ee0b921332c",
+        "previousReleaseSha256": "90415a3b34f4abff4bba853d2efb9c42414e980cc11c8b275c769808ac39ea36",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/RegisteredGtinProof.java",
+        "gitStatus": "M",
+        "sha256": "9060053132709ce9113968dada61932e072bd60ea42065ee7951f214494b01da",
+        "previousReleaseSha256": "ebc1c97dc63deccf165733fd201b315b2cb42660039ef9bc3a53ed4175a8199b",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+        "gitStatus": "M",
+        "sha256": "de9ef97c4bed03fcde0e2b672c4b55665986bd78525ceeeb3d8c14834b6d213f",
+        "previousReleaseSha256": "b33cda3c37eb10602875bace6883983282480b9932e7f92957c824523d4b1acb",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kiz/KizRegistrationIdentityRepository.java",
+        "gitStatus": "M",
+        "sha256": "55958716a29b36591144a9232fbd42331840d083b25ec8c1b8302891fb9fb402",
+        "previousReleaseSha256": "10316d2891bfacb33192a2f273557ad0a3d565afe88dd7024911b8c5444b2eeb",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java",
+        "gitStatus": "M",
+        "sha256": "2f4e0ef03096387e57c934b849628c5246f741d7f326ba9307e41ef8062feca9",
+        "previousReleaseSha256": "43fdf838d8d4e94c4008482e145d07df444062a6f0811eef7d0ba2e1b656e15f",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kizmapping/WbCatalogMappingService.java",
+        "gitStatus": "M",
+        "sha256": "8fa47dbc7e3cc21c0c6fb1cae8e9ab5d12097af0f0647f06c5d2277744f65b43",
+        "previousReleaseSha256": "dbf914b6fe222fd5c063e4cdf0d597cadd9235a124f133fa7d98eb8b79dd45b6",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/products/ConfiguredProductDeclaration.java",
+        "gitStatus": "M",
+        "sha256": "d3034fd8a13c4acf66e8dbe5d67bd83658c1d5a3d0e4f67750a241a6b8fa7b73",
+        "previousReleaseSha256": "144ea9f097dd3cfab6b5111a9abc04c7ee758735bb2162a8e73d95a0f4b8b364",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+        "gitStatus": "M",
+        "sha256": "a308a39b17390572032bd3b2437cf67edd32afdc435d5ce722c7286d918a2e93",
+        "previousReleaseSha256": "ab9884d9250b8c6884424303eaae0459ee0d14f4455e3f0daa4b6844186d7405",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/products/ProductRepository.java",
+        "gitStatus": "M",
+        "sha256": "83a1659591782d557f2f9ad8ec8e70a5df055a5d3b8c4ed7fdd9aa93763a83b8",
+        "previousReleaseSha256": "c005a1308ffb6285b0e5c0f7888bd021a57013011ea2d7c56ecd41f55e1bafc5",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/sync/RegistrationSources.java",
+        "gitStatus": "M",
+        "sha256": "49038f398af963af36ec1c00486277c886f0a96cf6751b34ebaa09dfdd228a06",
+        "previousReleaseSha256": "04fba3d58a24f44deec8ebb1ada8bb492524816e7d6c27e2e271b930ff1cc22e",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/sync/SyncRunRepository.java",
+        "gitStatus": "M",
+        "sha256": "88d4b58c705cde5b47f4d6fb5ba1005e8c3e023a5e0fbd136c052e01ef88a124",
+        "previousReleaseSha256": "25e319201ffc83eb256a67a79567d74f97d7512815105f5ca010655f634886f0",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "gitStatus": "M",
+        "sha256": "85bad3ff194b3905ec7a9fe4c4af354061661027beb03ad43828904e7863589a",
+        "previousReleaseSha256": "0415d2f8fe8fe7fe2317f5749f486da7e5aae1f326777a1eaf3d488db22a9457",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+        "gitStatus": "M",
+        "sha256": "95fd6cf768be98da855c919c902484239ec477e00a50a71c361d92a9a71fa958",
+        "previousReleaseSha256": "f2aeddff1b5fd2496e591a790c57d616fb705fc86c5be4265b93ac73e753f42b",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/sync/ZnackGtinReviewService.java",
+        "gitStatus": "M",
+        "sha256": "d22cf5221e6016bd35bd38cea134a62ad8d2970d0b957b5719ee9a1f5c4d7b64",
+        "previousReleaseSha256": "d2c928c16290e4719ce7c05889d7a31c0702207a7b5a567b5a19120c125a0ae7",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/listing/ListingIdentity.java",
+        "gitStatus": "M",
+        "sha256": "ca2fa7ec15f8b4a902b8f40cf160a58347eaf11bce7a8a3bba041a41e35d36d3",
+        "previousReleaseSha256": "4ac8557a0811bf63324c60f84a7e027c9743a2854ff64998e36fd50430a794d8",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/wb/WbGtinProductReader.java",
+        "gitStatus": "M",
+        "sha256": "92731af003aa556942eca2cc48fd3c6cf20bc29f813bc5413cd5fae91c90ab7e",
+        "previousReleaseSha256": "152a88dc7612ab4033a710418e1efb94efbdbcb2ccd961112421cf187632347e",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java",
+        "gitStatus": "M",
+        "sha256": "138f56dc3aa839ee62df8968e56223be6b4dbb4098681ecb70a27ba80ed7a8ec",
+        "previousReleaseSha256": "f91807d667d40d173e2c486fa680648e8c76f86491e0e2bdc8a84337493eb826",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/CatalogConnectionService.java",
+        "gitStatus": "M",
+        "sha256": "a9f6d2f1121630f5a7050dc8462bcb7b2471f99e31cd8ac27c9c85160fa7bbe5",
+        "previousReleaseSha256": "a5e99e17e055e4572eeae4c725b40dd54356f851070493c903fc79c3a4784ca8",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/CatalogCredentialRepository.java",
+        "gitStatus": "M",
+        "sha256": "50b93eddf6499ebb33bccb9cbf55dc77804dddf0ee59bdc3370eb7a6ac5d9761",
+        "previousReleaseSha256": "0beff8393a5b084f4976a0c07b310bd090a0be0f61a32b5644b48319e675fd6d",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/CatalogReadRevision.java",
+        "gitStatus": "A",
+        "sha256": "60166e1b840cf2788e45c6bcffb5e1ca3c1cc74a3895873ae4fe9fdefbaaaa2f",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+        "gitStatus": "M",
+        "sha256": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637",
+        "previousReleaseSha256": "7e942cb3060019891d608533d141f864da164ce2c9249bc8e16a7171de453449",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackModels.java",
+        "gitStatus": "M",
+        "sha256": "83b4dd8c03ccc464e1dbc767e75618336bd024c4aa9d505422a07238c1873fe3",
+        "previousReleaseSha256": "aef156fd5e2b69adbd6c4bffd1098979e79b70dd2ea1ad7de4e907c8341c1449",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPermitDocumentParser.java",
+        "gitStatus": "M",
+        "sha256": "e98ace6872053dfc46d43f741dedfdb5c281275195752aad3224ce9b5dde5e30",
+        "previousReleaseSha256": "93461f876180b91ea3941b3406d60f4f36a0a5754a574a8ad741be7d17fcea0b",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "gitStatus": "M",
+        "sha256": "ecb2c6cb4ba5aa7fa49f2dcce6237f0ed0a1d8478894754a93de2fbc6e10596d",
+        "previousReleaseSha256": "fa8c7e505a0908166be5856930add8dc8fd509afb2b1cd09b5ea3df558f841cb",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/CatalogProductDataParser.java",
+        "gitStatus": "M",
+        "sha256": "7006a1e7acef63a6dca9a38c4c0132d3dfdceb40b082a4de238254e94cf5c027",
+        "previousReleaseSha256": "f8eeb44fa95ee2fdba22fc5851d83757974e1a289c6d3eded14450a07422f409",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/CatalogScanCheckpoint.java",
+        "gitStatus": "M",
+        "sha256": "dbb998ed4042600cf094b4859f6a1f107b71d15cd52699aacc2ae3c302dab9e4",
+        "previousReleaseSha256": "6e5bb52150c80ed7800ccd616e1c585d4a9d94c7772f2abf07f33e57ddb67d21",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/CatalogVersionCheckpoint.java",
+        "gitStatus": "M",
+        "sha256": "5aa1394a10d717fca7888b02c43bbfd75918fdce48b879e3e1f3063594dc3750",
+        "previousReleaseSha256": "3287f8b415c70a0e236d8f6e05abee2c1d316bbf0fa162be880e71bc315fcf48",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+        "gitStatus": "M",
+        "sha256": "a0a9960b87772c371f9efb559f731949a6de3532d9b46ac82f66b03b95309257",
+        "previousReleaseSha256": "3e48b81d29a0e0d08d2c842a0290f25c9d93fe98418bb54d841fa2ce1360344d",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogVersionSource.java",
+        "gitStatus": "M",
+        "sha256": "34541333ae549e196b8a891de6c2343e42a930609e979580cb1d2219f2b15e57",
+        "previousReleaseSha256": "2f18d27c81b6198d17ba889bc829cd4fc99a1366198246779de9705aeedb16b5",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepository.java",
+        "gitStatus": "M",
+        "sha256": "4136347cf0fbb22498e5a9bacfc4fb16938534d69fbd9167ae3e6971c7948862",
+        "previousReleaseSha256": "c5a561020847b6a322a0bf873c738d73b8004cbf49b4072416577d78b61108e0",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonExistingCardLinkService.java",
+        "gitStatus": "M",
+        "sha256": "a696b62f58f5c1d5e861bf3fb2eb8dbd715d7174cde4f888a9863363a91cf909",
+        "previousReleaseSha256": "aacff8dcddf7cf6010b3622be2683b45ecdc03956ba2a9f8cf356892bd6c812c",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationExistingCards.java",
+        "gitStatus": "M",
+        "sha256": "392fc9bef99a25cbb6274d6e1431a68452e5436638989330a3eb920ee8aeac98",
+        "previousReleaseSha256": "77cde48189d55d81f3092f2be9feed41081cbf9980c21052848cee81a320631a",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationPermitValidator.java",
+        "gitStatus": "M",
+        "sha256": "2bb2aeaa10101812499947b2605ee80aff6672edd86bc61df14de4198cf79e2c",
+        "previousReleaseSha256": "6c165a4416d3c4cdac973bc64b3190cef64df67f93dcf902ca235749ead57e7a",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "gitStatus": "M",
+        "sha256": "de4ab01bfddac7ea8f4730696b17956570e4f75969b6602d7354b5e240b7f997",
+        "previousReleaseSha256": "b436e8a93b1528979c014ac0ba2178260ffcc068b36d870124743be654b230ee",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java",
+        "gitStatus": "M",
+        "sha256": "f1b2c0d4d01453bd40f7602dd8168c089589511f77e54301f01c05e86817fba0",
+        "previousReleaseSha256": "106bd0de6f119c01c7ad6d6fddc01089064f13c0ae486ce780db562b2f6c9549",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+        "gitStatus": "M",
+        "previousReleaseSha256": "7a3c30fe4d55b9586886cc498a790d4626ec1836a29c632ae84c77e9bc68dada",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "sha256": "6fea9f65e8d2af2fb1ddb47dec7f415f3a786ec49530f86d84f2ecbe956fe913"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+        "gitStatus": "M",
+        "previousReleaseSha256": "4ed3be18d406cac1ae0a4100230f693277c0890624756a2a797ae8024939823c",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "sha256": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "gitStatus": "M",
+        "previousReleaseSha256": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "sha256": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java",
+        "gitStatus": "A",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "sha256": "fa4f50b40536f1e79a7de258e4be0ce58784504291be981785759683b5e810e1"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+        "gitStatus": "M",
+        "sha256": "face7924c69ccb2cd55d75d78365a8bfe3e586237259e7081b281e767c559385",
+        "previousReleaseSha256": "3d4f95a922073bc572571ca4809397df61cd8b3c9824859eac084939c25ed68f",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/MotionBoundary.java",
+        "gitStatus": "A",
+        "sha256": "167e66c8d3d28bf54b8813a68e5b1171006b0610b0f57fcfa3ac7d7d9af8b441",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/NavigationContext.java",
+        "gitStatus": "A",
+        "sha256": "03da0c027839976165ff9e8b56eb972bdef6276e366839c11ab48c46ca3fb090",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/PermitDocumentDate.java",
+        "gitStatus": "A",
+        "sha256": "877bb84312ab1ae9c400ee162d9f4ed81cf63e6c46cef6db68792a2906724f0b",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/PermitDocumentNumber.java",
+        "gitStatus": "A",
+        "sha256": "0a7d902a951d85ee316dda261cdcdad09e2a7a75e5c5a3ec3de2112f3f4893fc",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/ThemeService.java",
+        "gitStatus": "M",
+        "sha256": "efe6e2aabe381cf07d9eee533e5b42cbea1f96350ebfaad062c28a4b9b01c691",
+        "previousReleaseSha256": "a684e93f9a89bc6b134226fffc9507bbd8f184c1ee6bc3c61207ad98cad325f1",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceMotion.java",
+        "gitStatus": "M",
+        "sha256": "5397c27263316f53104366aac40f64b5a6c6f962a2e1ddeb7be9b115333fd5d9",
+        "previousReleaseSha256": "8c2e769a171459b55adf02ed64c320f625fe3f8520d29d9ad07a4512770aef9b",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java",
+        "gitStatus": "A",
+        "sha256": "d6a5f1834f8ee96a65f4ee9e196dd431c12711c280f4e7fcff2294f997e85a51",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/GlassSettingsDialog.java",
+        "gitStatus": "M",
+        "sha256": "a5b64641a1e043ef718eecc831e2295730c44314560b3077af70c2d9551333ed",
+        "previousReleaseSha256": "578f9b36919af19bfd36d021ca2ce7d0a48fde037c084d1d93bedd9429b650de",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/catalogsync/CatalogSyncPane.java",
+        "gitStatus": "M",
+        "sha256": "51a5116f1a2c1d426294608bb2859d5ddfa500981d91416ff9796fa5571382e5",
+        "previousReleaseSha256": "d31854258d5beb6dcf3e2226d3843f627412c9760211baa716e251e2a25123a0",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/controls/WorkspaceFilterTabs.java",
+        "gitStatus": "A",
+        "sha256": "f8ea25aa4a3e4e2ef84de96cb97b929a0002fc11e0092ec43920ae60fa2cec87",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/dashboard/WelcomePane.java",
+        "gitStatus": "M",
+        "sha256": "6f766dc03d009bc669de9a0ede9b2d3a34b4bdfc0912e893b9a409b3b048659f",
+        "previousReleaseSha256": "4a3387f26724180cd26e3a90731fcedaaa8fa1d49b02cc2d4acff6fd6361e1ae",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/gs1/Gs1Dialogs.java",
+        "gitStatus": "M",
+        "sha256": "d74c9df4a72f1e35f1dd24005d0cd01ba1fc2a4a4b81c3d567b060e3a7fead46",
+        "previousReleaseSha256": "b41d38265edcd3a6fb03c5e94e449fafabeff02dcc61dcc3141e2c0b5c0b71e2",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/gs1/Gs1JoinDialog.java",
+        "gitStatus": "M",
+        "sha256": "4085072937fac2aaeea1435b9dc3cf81f9a270be96a41f7bc2783d768fb60b6a",
+        "previousReleaseSha256": "23ca86b1cca60c9fafdfc3cea432f096d33ea134e53dda3e894df05ed54f0233",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "gitStatus": "M",
+        "sha256": "2dd316f9c1a164d4fae4fe4a859e22a603bece0645b64e9e74812f231a6b3440",
+        "previousReleaseSha256": "9ff2b0c35a1a5339d691eba01fda0d0281a340455aa9bfd0e6662c5f8dcf7b53",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/gs1/Gs1PrefixDocumentDialog.java",
+        "gitStatus": "M",
+        "sha256": "ea45be18b5a428a3fc6ae0259979c3078c3aa20a0aa56a3da5dde004bef3ca0d",
+        "previousReleaseSha256": "c246360d7602229fd45fb69c44d8ed1ff23d7d195563a24589d156a32effd368",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/gs1/Gs1PrefixRequestDialog.java",
+        "gitStatus": "M",
+        "sha256": "6008a1916971b0e3cac28334321d4e6ced02c8e76795cbce7d2fafecf54e7fce",
+        "previousReleaseSha256": "e0d89ffafa6125c6ada3131fa8f13bb2a6734c05133410e70303fe10a09ba410",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/gs1/Gs1SyncReportDialog.java",
+        "gitStatus": "M",
+        "sha256": "509478cdab123a208609109fea8805124fcafdf8ca43d0dcee9f849c56799620",
+        "previousReleaseSha256": "9c9f4c43800ae47d97d72e2aa9fc5cbaf634a4a0176512dcf35e72abe87173fb",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/guides/GuidesPane.java",
+        "gitStatus": "M",
+        "sha256": "81e41dd3b6e13c85a94e78af4f384c1c14c482bef5a6c9d8273ae3d3c57a8f4e",
+        "previousReleaseSha256": "1c75375c6f9c276c762c2f56bbb02961d3460f47447e4fc9de1537fb0f04d17e",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/kiz/KizWarehousePane.java",
+        "gitStatus": "M",
+        "sha256": "823dcfc5e5f04d31f536acc2f7cc60f1f941a5adde446570c12b5a06f7a1e2c3",
+        "previousReleaseSha256": "e5439ca7c0250bb4a457455aeb600f49ba2683a3256c352227070b3752887668",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/kiz/ShipmentKizPane.java",
+        "gitStatus": "M",
+        "sha256": "f76d34b5754b1d0843917166cbf7c30e9b064637a422c18e40e3b89d294de5bd",
+        "previousReleaseSha256": "f9db0fddf70565295fc25f87755c0aeba74066c984547add884fe8349b85bfba",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+        "gitStatus": "M",
+        "sha256": "40506c990e0e008509816b623f9e44fd73b43de1451defedd700686593b57b1a",
+        "previousReleaseSha256": "e70703ca607c51c227ca131280fd522c2b51238dcd6bbdb48014be5b02865454",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/license/LicensePane.java",
+        "gitStatus": "M",
+        "sha256": "4d76a23b7b63234a061d9bedbbc363f607c56e31d9585cf5b12bbcf318aaa185",
+        "previousReleaseSha256": "d2f249dcca2296108ea34b14459ddb5898b07409cf876cb70013e4db2a4d40e6",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/listingcopy/ListingCopyPane.java",
+        "gitStatus": "M",
+        "sha256": "45d0b3effc08beb4d1afae4fe900a93e7686c92b6d9475b48443d19c0f6f9f31",
+        "previousReleaseSha256": "fa17faea8d87c97ec28e6869a49c801d1e55b1cf46d106891555661e45ae9d18",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/listingcopy/ListingCopyPreviewPane.java",
+        "gitStatus": "M",
+        "sha256": "53b0ee88c362b67418b60669e96be09070e73c06b6e5d167ce9c21c304589a7d",
+        "previousReleaseSha256": "54a7613aafd49f4efeadd813dd5e990f9f12533a153f0dd14ed4cd64074f7cae",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/news/NewsPane.java",
+        "gitStatus": "M",
+        "sha256": "e165255846bb69e99e5e860aac8b8a08dedfbd937a5dffa5747f394bceabaa0c",
+        "previousReleaseSha256": "24e8d53e283dcd6ef6bfdb14c67d533d5a902eb4aeaf9a1b06c7f523c20f902c",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+        "gitStatus": "M",
+        "sha256": "f20bc75738eb1dc3d5f0ac5eddcd7a41dff8c61ad9d47c262d50ea9192438f0d",
+        "previousReleaseSha256": "d64fbc07db465f6a120b7f818fd2384fd9fb72f2b5cf2f2e37fe4369ad7ba426",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/packing/PackingController.java",
+        "gitStatus": "M",
+        "sha256": "ae77668cdcc411e9761257a2d0e6a98eb57b1d1b12d45b154b430aad3182278f",
+        "previousReleaseSha256": "8c7d1fc1a0d6156bd9db045211ba8fc29040499f42a6bd2a5b11423f6f0e5969",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "gitStatus": "M",
+        "sha256": "c0582cfefa73efae84484109ba16cb64bafa06d0f9229d849f3cff79d8bac729",
+        "previousReleaseSha256": "33e9871930a63474e9f2aa33ccae69b4e69003f75b605411b5b785eaecf095ac",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "gitStatus": "M",
+        "sha256": "249b4c2aaed8e75c0746c8a77f51391bc994ff90ebbdcf791629d8501e1e5d88",
+        "previousReleaseSha256": "6f633bf278637b1d1bb17ea27c09b38fb4fc9a06782f6a0719b2f671ac2b86f3",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/shop/ShopSidebarController.java",
+        "gitStatus": "M",
+        "sha256": "297ae735137a2201beda82c0d220d213e5bd24c4faf2888ecdffb685be4e5ea9",
+        "previousReleaseSha256": "90f6a4d0d61b91699ae939aba4ab821b16ff6208fdf0c32f8e6c50304308c2f0",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/supply/WbShippingPane.java",
+        "gitStatus": "M",
+        "sha256": "33637ff0baed29c5b699fbf98405459fb28fa8c4b4d2459cb7b42e8a96aaddfd",
+        "previousReleaseSha256": "5c92246282f70b45284c85442679a1430068273261aefd40eacd53d466f045b4",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/tnved/TnvedPane.java",
+        "gitStatus": "M",
+        "sha256": "dc14497b6fbc8dd9986f3ccbd775d872595ab39abc59425c65bcd417a76420d8",
+        "previousReleaseSha256": "0db36dc7e3c044bde7f15b9939b5c381e570d2cb34e482f8cc42e9ffeea1ec4b",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+        "gitStatus": "M",
+        "sha256": "37a7ce807957cccbf0adfb6b1458912c9d992d4bbfa19d533a4a8b3e2b9dc4d9",
+        "previousReleaseSha256": "f40e97980e2dee13fdd39f8c01428ca93b39666d6b78a944a4c2e684ae31be82",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/WorkspaceAppearancePane.java",
+        "gitStatus": "A",
+        "sha256": "5e3a9eba83ac874516971347f380e5d27660843f28e1f5fa1946fb9398040e1f",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/WorkspaceCommandPalette.java",
+        "gitStatus": "A",
+        "sha256": "8b031bb7d67fde024e90d1a5e6c6e5eccc2b0898982933597ab3d94ac6a1715e",
+        "previousReleaseSha256": null,
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/WorkspaceDetailDrawer.java",
+        "gitStatus": "M",
+        "sha256": "8d3136645b522a02cda3d24989561be865d850668dd312d73b6eedda8ff3ad91",
+        "previousReleaseSha256": "2c23296cd6e48ece3699274036a569adfb683ffbe0dafc6f25bd1d941c2a91be",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/WorkspaceHeaderController.java",
+        "gitStatus": "M",
+        "sha256": "7e7c638381d9bb4917b8432755db10905648640a2fc9c89303ec64132fd6122a",
+        "previousReleaseSha256": "cee4da992f699b9d71f42ed9525547c2059f297f06efdf10a816370acf809fea",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/WorkspaceNavigator.java",
+        "gitStatus": "M",
+        "sha256": "0f099fa8d9583985fbcb66221ef1e958cf76b05e3cb08c1b1b1b206a159d3e2d",
+        "previousReleaseSha256": "6c6c4bd097ee5738f010ad4e2f23c529cfbdcf0e03bca51af0c25d0259d3fc52",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "gitStatus": "M",
+        "previousReleaseSha256": "0bdd21365108fbc8196a17ff0df9701f4840e11a5d9051d1858e81f429568cde",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "sha256": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+        "gitStatus": "M",
+        "sha256": "3ee30d528bbf781e721af0ec61958986c00d7740786ae11fa15b29fd4a09223e",
+        "previousReleaseSha256": "230314c1b3e83fc89bf12d473e0a1a6333e19cd424ca869f0e42fddb3ff04104",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java",
+        "gitStatus": "M",
+        "sha256": "d9c1bc53738551050ba956db18f14773262bdc5e7c6973b571d07ed6bdfb8693",
+        "previousReleaseSha256": "a0cb8ea8a760de461b7197ee2faad3a896f366efba3699cabcb72cdffc7a0e25",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+        "gitStatus": "M",
+        "sha256": "4e26be1868d1c51f0cdacc70ae19a0baa8b024c0ecfe165786f5ed04fa758468",
+        "previousReleaseSha256": "105bc0aeb23e47b23bcdd26c91531ce129a4e3fe52812dd710c0ec28bfcedf27",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "gitStatus": "M",
+        "sha256": "3e1aa972cb5486db09eb3a6b1f662115ed442299693b3742bbc4a4297b1e90a1",
+        "previousReleaseSha256": "b3b105443d7e55c5f8a4b8d7878c93e1f0280fa2a362d33977db7d754e795fca",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "gitStatus": "M",
+        "sha256": "537fd96f498926d12c265d5b7b9e5013b2585e43ab3018f1331e80c7e75a73ee",
+        "previousReleaseSha256": "cf2dc5f6a0d695221b82ec6d4ab70f0d2caeef288aaddea784a4a7c5ee0a2ff5",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "gitStatus": "M",
+        "sha256": "9c7f7e965eb4622aca65790d474a20a65cd2b1cb5019a30e6074b29cf1e12bb1",
+        "previousReleaseSha256": "878e929779307de35cf0e9b109470c86b3979da7d66f11954fd92c07fd5f9546",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "gitStatus": "M",
+        "sha256": "7b5f34bfcb462cb870d84d1ed295188434badbc08cc9535c6cab4ef4e84416cc",
+        "previousReleaseSha256": "d8982e19b38deb5496801b0aea588fef71d5ec7618172a969da879b2bcc55cb8",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/styles/theme.css",
+        "gitStatus": "M",
+        "sha256": "1b7351d42484618861c5b08243215dec93f7bb82a5ebbe68c171945b6e7b95fd",
+        "previousReleaseSha256": "a80243c51938ad55112e972d9aca5a1bbb3b423541ff23695b6ccdebee6fd4f8",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+        "gitStatus": "M",
+        "sha256": "ff48471b892c10481c44f9d4f6f0688d0cac41eea59129fa07f6985080a4169a",
+        "previousReleaseSha256": "08e903daed2562619b517c70e70e07dff79494d001768092a87781794657e4f2",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/dashboard/dashboard-view.fxml",
+        "gitStatus": "M",
+        "sha256": "e35fa7efecf598e302776f31cf6ad82791df0913611177259a4c69df94c5b6c7",
+        "previousReleaseSha256": "0ee2ced8c649bec87b1f76cc27e7916cd2efae3f447ec6c7090c95dce1185401",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/fbo/fbo-packing-view.fxml",
+        "gitStatus": "M",
+        "sha256": "47575b0e0d57f85abb763b413361fd02c10c83cccaec35241bad76ccc38c2c61",
+        "previousReleaseSha256": "0102aaf28d5ae4636718bf0708fe43b58ebd7f224e150889e8f60d4d6346b903",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/fbosupply/fbo-supply-orders-view.fxml",
+        "gitStatus": "M",
+        "sha256": "7344353a70c60867730900b0c8e927ca41c156a79f2fa32696360f0a8d3c33be",
+        "previousReleaseSha256": "38d749ff538d53dd1e48bebfd31255c386296306a4ecf54059f0f4f09ee49d22",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/finance/finance-dashboard-view.fxml",
+        "gitStatus": "M",
+        "sha256": "e8e35d0247bbd0d6610d8b7c8eef0ad2e65310376d726b32ad8dae41a811b420",
+        "previousReleaseSha256": "d1aefc62081c9af288e857c6e4a1a7e05213f15c5d7f0a418e27416e48aec7ac",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/finance/finance-penalty-view.fxml",
+        "gitStatus": "M",
+        "sha256": "beb6fd3849057e6c305f79aafde06b24150340221e32051bcc83cf154a3d3d67",
+        "previousReleaseSha256": "e8a59925426ed4f6bcf76ca255eb27690b73f9fd2fbc31e1b94f5f5cdff06488",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/gtinsync/gtin-sync-view.fxml",
+        "gitStatus": "M",
+        "sha256": "e3ebcc113eaefae662c7a79bceb0859b27ba2d63a008323d10003df797c53ef0",
+        "previousReleaseSha256": "1659e4d1fb9b9ba8760343d7c63eb78bef56fc724dfe6066d055c5f26f522ee1",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/history/print-history-view.fxml",
+        "gitStatus": "M",
+        "sha256": "1fe97aa1121fef31973bb6a3cf0ffe2739e0caec6ac29ca79c8c9872acacc78f",
+        "previousReleaseSha256": "c268f74f9356c7c1f24176d13c039c0a6e791199562649b610c11792d3501399",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/kizmapping/kiz-mapping-view.fxml",
+        "gitStatus": "M",
+        "sha256": "bffbda9e0b9e64bec99f94a3e4b2f59c1850000a7bd467ae06a08d179b95cdec",
+        "previousReleaseSha256": "d8f5381124cee1d6f37599cb0e53e7d8934d03133c9f05295535721cdeb579e8",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+        "gitStatus": "M",
+        "sha256": "c53685fcaa8d9217aad3a558013559c37f3db58537f7560e99d18955321c5115",
+        "previousReleaseSha256": "9e328b0ae85113d1b15ebb178391d8d7a22eec73538df7cc886c84748b249e91",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/packing/packing-view.fxml",
+        "gitStatus": "M",
+        "sha256": "c0ce8478afe5a15da223b26014d9c133c5c8c33998de3e5254bf44bd80605515",
+        "previousReleaseSha256": "4aae5b59cc8695b0ce558f81dac8170c506256c8ecaa858b4ec36edbc1e2f326",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/print/print-template-designer-view.fxml",
+        "gitStatus": "M",
+        "sha256": "2a8ca1f305f2460fbcab397a6a25ca3931a756c9a1622697b8724320a53ffa76",
+        "previousReleaseSha256": "62b24b472fdb4efe8b42a1d096b42e66da1bf73f0ca94b6e4c968617637b1214",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/shop/shop-sidebar-view.fxml",
+        "gitStatus": "M",
+        "sha256": "8f6912062b95af08fad9d0cbe39145ec8efa60a4991689fa213c17b44e14c470",
+        "previousReleaseSha256": "0fccfe859726aa51b98c032e5d2e63a06666a447e60019c63cdf4aef4837428f",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/supply/supply-detail-view.fxml",
+        "gitStatus": "M",
+        "sha256": "c79db635cebf0de91dc4d5768641deb80f9ea224ac70d920630ff4074e568e92",
+        "previousReleaseSha256": "590c732f6dd56be15cff825b33404b9d599da46f55a3bc1fb185b170940ee830",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/supply/supply-list-view.fxml",
+        "gitStatus": "M",
+        "sha256": "cfcaf5a1b6c7a6660fca4d5882a3d2d3b544d22d3a4b67bbbffdc06762c7a0f3",
+        "previousReleaseSha256": "ed267115d92bb1162ec6297c856147e0e1ff0a609aa727658fe80e98477069d1",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/supply/supply-management-view.fxml",
+        "gitStatus": "M",
+        "sha256": "b7d296e063f3d72ee027c2bfd5b824adc349fdef65c6ed1684dc2f082a971883",
+        "previousReleaseSha256": "60846858c66ca26d2f698177e1f5a02139317506818605c9096ee50f656c33ed",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/workspace/home-view.fxml",
+        "gitStatus": "M",
+        "sha256": "15dc48b76cab1aa3a51818a743a711bf34ad80605dcc163de8b471c22455912c",
+        "previousReleaseSha256": "73c4d0b47c25b090f92b9382f00d0fe10971937d231c2e6aca840440a6364f44",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/workspace/workspace-header-view.fxml",
+        "gitStatus": "M",
+        "sha256": "d68d2e96ec051657799e4946512a71cc155ea574830c5a8b805d1cadedf6d9d1",
+        "previousReleaseSha256": "df90c5e5a6da4d5d3b1291acc6767e945ca4c002502e24b69c4009dd87ecc453",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/znack/znack-automation-view.fxml",
+        "gitStatus": "M",
+        "sha256": "d5bd2b2e657caa810649942f30c5b731aea9583f086e6b7ea5730e2f9236b466",
+        "previousReleaseSha256": "526d7606eeac94b3fbeeb5d046975c372c8d6f85c782ca9eca4b510bb5ecc38b",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml",
+        "gitStatus": "M",
+        "sha256": "81eb2e2d7332dffb62310fb3aaa9b6d9376a9f366ad4b4c4b34e6975d4ad0988",
+        "previousReleaseSha256": "564614c5642d51ca1a2f1eaf47802a225bae42344e46f3b26f5e7363f13994a4",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      }
+    ]
+  },
+  "pom": {
+    "path": "pom.xml",
+    "previousReleaseSha256": "e1aa9f037112b63278810b01256f05705c3250b6f8e3f7da4b9741df78c54728",
+    "sha256": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635",
+    "oldProjectVersion": "1.6.6",
+    "newProjectVersion": "1.6.7",
+    "oldAppVersion": "1.6.6",
+    "newAppVersion": "1.6.7",
+    "onlyTwoVersionValueChanges": true,
+    "dependencyDefinitionsUnchanged": true,
+    "allOtherPomBytesUnchanged": true
+  },
+  "priorHandoverCoverage": {
+    "receipts": [
+      {
+        "path": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json",
+        "sha256": "14fbce973adb26cfd4cd2d3fd83ae1cdf06967f9586fc0155a10a6796b48fdc0",
+        "manifestField": "finalAcceptance.sourceFiles"
+      },
+      {
+        "path": "docs/validation/registration-permit-script-20261108/verification.json",
+        "sha256": "8a3496b469cdd637e5b88668c30a40cda063e37a2c6cbb41241017977657e1e2",
+        "manifestField": "candidate.source_manifest"
+      },
+      {
+        "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "sha256": "0f3237c0b29f990b00f976b15ef61650f0b9cbfda314cf391db491476a6385fa",
+        "manifestField": "inputs"
+      }
+    ],
+    "coveredRuntimeFiles": 114,
+    "matchingRuntimeFiles": 114,
+    "missing": [],
+    "mismatches": [],
+    "overlapPolicy": "Original109runtimehashes retained exactly; supplemental certificate manifest supplies five additional runtime files. Every current input compared with frozen Git blobs."
+  },
+  "compatibility": {
+    "schemaVersionRetained": 6,
+    "schemaVersionBasis": "Prior release and four handovers; every schema/migration-named runtime file plus Database.java is byte-identical to 1.6.6.",
+    "schemaOrMigrationSourceChanges": false,
+    "schemaAndMigrationInputs": [
+      {
+        "path": "src/main/java/com/vncode/app/config/Database.java",
+        "unchanged": true,
+        "sha256": "0689d2b91b6957ed25142c495dc1b9d03f54b457d109579fc4612a8cd38d90d1"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/config/ShopCredentialSchema.java",
+        "unchanged": true,
+        "sha256": "d57196b09fea6b9f3ef397ae20280245f9f445e6781b843f75289487fe2254d0"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gs1/Gs1BalanceSchema.java",
+        "unchanged": true,
+        "sha256": "d975d7f1bed72968054e07a307bf12ea7d7110e812d22981f210ab1a249650a1"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/GtinSyncSchema.java",
+        "unchanged": true,
+        "sha256": "e30ba9c031d6d33adb2f6f78c88ce8ef43bc3c4f58cba646e7c6c257103c0bad"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kiz/KizWarehouseSchema.java",
+        "unchanged": true,
+        "sha256": "11f5495d66315d6d0d6239ed511fcede7b65e179417171d0d335f7878da57bc8"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kiz/SellerKizImportSchema.java",
+        "unchanged": true,
+        "sha256": "cf5f652f291f20391d33539be07bbc3d551182c22250175a8f0a22dd4d74048d"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/listingcopy/ListingCopySchema.java",
+        "unchanged": true,
+        "sha256": "4a0edbadcfde91fbc7de30212a94c03f42e5cd66267984ddd13826f10852e851"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/news/SellerNewsSchema.java",
+        "unchanged": true,
+        "sha256": "94f2d1e9f43e277701757d97bcbb91afafbe256543e1f5bfe8ab5bd9d05e1e15"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/products/ProductSchema.java",
+        "unchanged": true,
+        "sha256": "48606e94870cc2080b0da34663c3c521e2a41e3166cad3d371273b589df84735"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/sync/SyncSchema.java",
+        "unchanged": true,
+        "sha256": "282ce7f29e632854a090d67bde6a3c759b7d4318c13ed71f251ea229656feae3"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/ozon/OzonSchemaSupport.java",
+        "unchanged": true,
+        "sha256": "521298731a55788902c14593d2c6ed4c93899a883a8b3edae5ce92d48c2efbb5"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/wb/WbSchemaSupport.java",
+        "unchanged": true,
+        "sha256": "e578d9229119d0f58f04ee4bab7f27be6d9d1f12490a6b89701a400ce969ecb6"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java",
+        "unchanged": true,
+        "sha256": "9c1a423b9dab1e2f55a508c095eba762504d25f77164835af958365d7c02c519"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationSchema.java",
+        "unchanged": true,
+        "sha256": "a0b3a4463be4b4d027094ad42777b8c6cb4707d8bf27504467fad48672beb04a"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/LocalDataMigrationGate.java",
+        "unchanged": true,
+        "sha256": "13f31da98f4ef44b2f59a4ee40fd1b98a2a94cc26019666fc873433597eb1629"
+      }
+    ],
+    "dependenciesUnchangedApartFromAppVersion": true,
+    "catalogReadEpochUsesExistingAppConfig": true,
+    "legacyRollout": "Run a complete Znack sync once after upgrading legacy caches; do not delete profile/feed/jobs."
+  },
+  "method": {
+    "sourceTruth": "git show of immutable pinned commit, never current working files",
+    "checks": [
+      "Previous release and four unreleased source commits are ancestors",
+      "Recheck all 17 previous-release inclusion milestones",
+      "Hash each unique changed runtime input and POM",
+      "Compare 109 runtime hashes to prior final handover manifests",
+      "Compare POM bytes after the two exact version substitutions",
+      "Compare every schema/migration-named runtime input and Database.java to previous release",
+      "Compare all runtime/dependency/packaging input Git objects to the failed first attempt",
+      "Recheck exact three-path fixture/preflight-only correction delta",
+      "Preserve first-attempt XML failure provenance; require a fresh full Windows run",
+      "Preserve the second Windows preflight failure and deterministic wrong-dialog red/green evidence",
+      "Bind the final grouped 184-case regression to the unchanged production and frozen final fixture",
+      "Keep the fresh final Windows build requirement; no recovered or merged test results"
+    ],
+    "writes": "This outside-repository evidence file only",
+    "mavenOrTestsRun": false,
+    "networkOrApiCalls": false,
+    "repositoryEdits": false,
+    "doesNotCertify": "Windows build result, JAR/native payload, seller API behavior, or public publication."
+  },
+  "sellerCredentialsOrDatasetIncluded": false,
+  "observedHeadContainsPinnedSource": true,
+  "activeCheckoutRuntimeAndPomMatchPinnedSource": true,
+  "firstAttemptProvenance": {
+    "sourceCommit": "026f1a86ae5928769a9b36720c2da98cf8dd7efd",
+    "fullWindowsBuildRunId": 42515409829,
+    "result": "full-java-failed-before-packaging",
+    "originalJava": {
+      "tests": 4122,
+      "failures": 1,
+      "errors": 1,
+      "skipped": 2
+    },
+    "originalSuites": 544,
+    "originalPassedCases": 4118,
+    "failureCases": [
+      {
+        "suite": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "case": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "kind": "error",
+        "xmlSha256": "df17a6f6c0cfdcd53d3486c013bb07863456ecbe5e57d03a477bc393cf2a8738"
+      },
+      {
+        "suite": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+        "case": "terminalBatchShowsActionReasonAndKeepsMoreRecentReport",
+        "kind": "failure",
+        "xmlSha256": "60261579eacb09b76b89c20d478420a235a8e03aa6bdeb27cce843a5e2570b41"
+      }
+    ],
+    "failedXmlDirectory": "failed-windows/target/surefire-reports",
+    "failedXmlInventorySha256": "f38a4c19fd60e7805679ac00ea8bca80a68ef35b7f976a70cd7f269b8c05ff7a",
+    "failedXmlFiles": 544,
+    "originalSourceInclusionReceipt": {
+      "path": "source-inclusion-first-attempt.json",
+      "sha256": "9e5e3f288b97e98b3f3d6ef73972d5c1fb386ff5526a1f4190f431d72bfb1a32"
+    },
+    "originalPackageVerifier": {
+      "path": "verify_package-first-attempt.py",
+      "sha256": "3c2b3ffd136d0ca77b435dd0963ee56da41f9dcc5c4538e500a4036ea11c4847"
+    },
+    "testOnlyCorrectionCommit": "968d639f6e8233d572b4992f1ac3a4bd09a91903",
+    "changedPaths": [
+      {
+        "path": ".github/workflows/publish-vncode-baseline.yml",
+        "previousSha256": "0d7538ddc192b38791653a82e685ed5b50dd2a5dc21ebaea3f22ca8a9ad66e62",
+        "sha256": "3ec073ca3d8e635b6104538442b1572d1a2ecc1e18f43aa74a21a574fef33b76"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+        "previousSha256": "5b2ed2fdde4427808a779b88b2f5945d30778db71b06e293493445b76c4ba992",
+        "sha256": "3a3b0e1badae494838fb58a7fe40a82dc208bc605cd3a86e1fafdd547867d194"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+        "previousSha256": "dcac9c8a3b9fe2b99b576b77e870b04c80722060b33cf78a4ecf2fef6fc4bf2b",
+        "sha256": "9c0fafcdc035b96f76caf7b2646661ad91f197b8117dddac43a44196562ead52"
+      }
+    ],
+    "corrections": [
+      "Synchronize native focus and hover before the Robot click; retain real click, clipboard, status, open-window and no-Apply assertions; assert one press and one action.",
+      "Expect the translated source-configuration action reason in label and tooltip; retain newer-report identity and reject the raw technical code."
+    ],
+    "productionAndPackagingInputsUnchanged": [
+      {
+        "path": "src/main",
+        "previousGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "gitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "unchanged": true
+      },
+      {
+        "path": "pom.xml",
+        "previousGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "gitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "unchanged": true
+      },
+      {
+        "path": "build.bat",
+        "previousGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "gitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "unchanged": true
+      },
+      {
+        "path": "build.sh",
+        "previousGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "gitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "unchanged": true
+      },
+      {
+        "path": ".mvn",
+        "previousGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "gitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw",
+        "previousGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "gitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw.cmd",
+        "previousGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "gitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "unchanged": true
+      }
+    ],
+    "workflowOnlyAddsEarlyPreflightClasses": true,
+    "newEarlyPreflightClasses": [
+      "FashionTnvedBrowserTest",
+      "ZnackCardRegistrationControllerTest"
+    ],
+    "newEarlyPreflightCases": 43,
+    "freshFullWindowsSuiteRerunRequired": true,
+    "freshFullWindowsBuildRunId": 42523983786,
+    "earlierTestResultsReused": false,
+    "originalFailuresPreserved": true,
+    "recoveryOrSkipGateAdded": false,
+    "freshFullWindowsBuildOutcome": "failed-during-early-preflight; retained in secondAttemptProvenance"
+  },
+  "secondAttemptProvenance": {
+    "sourceCommit": "968d639f6e8233d572b4992f1ac3a4bd09a91903",
+    "fullWindowsBuildRunId": 42523983786,
+    "result": "early-preflight-failed; full suite not started",
+    "originalJava": {
+      "tests": 164,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "originalSuites": 6,
+    "originalPassedCases": 163,
+    "failureCases": [
+      {
+        "suite": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+        "case": "selectedReplacementUsesReviewedDurableBatch",
+        "kind": "failure",
+        "xmlSha256": "0344aac0854177a772d438aab747417847e7fd84dffd21e1b144ebf28170d474"
+      }
+    ],
+    "failedXmlDirectory": "failed-preflight-revised/target/surefire-reports",
+    "failedXmlInventorySha256": "fab774683d0f9f06858b352c01edfcb9024406b1af1a1929e96305bc14cefb82",
+    "failedXmlFiles": 6,
+    "originalSourceInclusionReceipt": {
+      "path": "source-inclusion-second-attempt.json",
+      "sha256": "31fe4addc82645c0918e514fac6bf00e721cd0fc97cfa9f807c07240d56780ed"
+    },
+    "originalPackageVerifier": {
+      "path": "verify_package-second-attempt.py",
+      "sha256": "99daa7937121374c39b1b360df1335d9285bf2f70a0a7bb89c847fceaaaf7843"
+    },
+    "testOnlyCorrectionCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
+    "changedPaths": [
+      {
+        "path": "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+        "previousSha256": "9c0fafcdc035b96f76caf7b2646661ad91f197b8117dddac43a44196562ead52",
+        "sha256": "769c3170d60891c5944242d78707dcd8fa447a98b232c889417580852f5c5f49"
+      }
+    ],
+    "cause": "The broad test dialog predicate accepted an unrelated existing OK alert while the actual asynchronous registration confirmation remained pending.",
+    "correction": "Accept only a newly created window with the exact translated registration header, exact 1/1 batch content and OK; assert unrelated nonmodal notification remains open/unaccepted; retain real source-review and REPLACE dispatch assertions.",
+    "productionAndPackagingInputsUnchanged": [
+      {
+        "path": "src/main",
+        "firstAttemptGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "previousGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "gitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "unchanged": true
+      },
+      {
+        "path": "pom.xml",
+        "firstAttemptGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "previousGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "gitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "unchanged": true
+      },
+      {
+        "path": "build.bat",
+        "firstAttemptGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "previousGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "gitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "unchanged": true
+      },
+      {
+        "path": "build.sh",
+        "firstAttemptGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "previousGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "gitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "unchanged": true
+      },
+      {
+        "path": ".mvn",
+        "firstAttemptGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "previousGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "gitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw",
+        "firstAttemptGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "previousGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "gitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw.cmd",
+        "firstAttemptGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "previousGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "gitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "unchanged": true
+      }
+    ],
+    "deterministicStandaloneReproductions": [
+      {
+        "path": "dialog-provenance/wrong-dialog-red-first.log",
+        "sha256": "d147f13b5b63c70dbd7d3156cbb9ba3407ef975a45a5ba27a77c33e7b2728911",
+        "result": "failed-as-expected",
+        "observedMarker": "UNRELATED_ACCEPTS=1, SHOWING=false",
+        "fixtureOnly": true,
+        "sellerApiCalls": false
+      },
+      {
+        "path": "dialog-provenance/wrong-dialog-red-nonmodal.log",
+        "sha256": "110927783a2a6486d46fefccfd0c126b8ddaee0f7d4185784aae137e9a21ea93",
+        "result": "failed-as-expected",
+        "observedMarker": "UNRELATED_ACCEPTS=1, SHOWING=false",
+        "fixtureOnly": true,
+        "sellerApiCalls": false
+      },
+      {
+        "path": "dialog-provenance/wrong-dialog-fixed-nonmodal.log",
+        "sha256": "f24655742680cdbc4d9450e1d35db013f9ea2788879d2c2edb44925a53fa4f8b",
+        "result": "passed",
+        "observedMarker": "EXTERNAL_UNRELATED_ACCEPTS=0, SHOWING=true",
+        "fixtureOnly": true,
+        "sellerApiCalls": false
+      }
+    ],
+    "groupedRegression": {
+      "platform": "Linux/Xvfb",
+      "log": "ui-grouped-regression.log",
+      "logSha256": "56a5ee1c354278de8b04600502b5c129cbca4df2117308d4c84f2ab3a1c39eca",
+      "classes": {
+        "com.vncode.app.integration.ozon.OzonLabelServiceTest": {
+          "tests": 52,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest": {
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.shared.MavenWrapperIntegrityTest": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.FxmlSmokeTest": {
+          "tests": 58,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.tnved.FashionTnvedBrowserTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.workspace.WorkspaceChromeUiTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.znackregistration.FlowAuditDiagnosticsTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest": {
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest": {
+          "tests": 40,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      },
+      "totals": {
+        "tests": 184,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "exactWindows164ClassGroupIncluded": true,
+      "extraClasses": [
+        "WorkspaceChromeUiTest",
+        "FlowAuditDiagnosticsTest",
+        "RegistrationDiagnosticsTest"
+      ],
+      "finalControllerFixtureSha256": "769c3170d60891c5944242d78707dcd8fa447a98b232c889417580852f5c5f49",
+      "windowsVerificationClaimed": false,
+      "doNotSumWithOtherTestRuns": true
+    },
+    "freshFullWindowsSuiteRerunRequired": true,
+    "freshFullWindowsBuildRunId": 42525209391,
+    "earlierTestResultsReused": false,
+    "originalFailuresPreserved": true,
+    "recoveryOrSkipGateAdded": false,
+    "freshFullWindowsBuildOutcome": "full-java-failed-before-packaging; retained in thirdAttemptProvenance"
+  },
+  "finalFreshWindowsBuild": {
+    "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "runId": 42605121356,
+    "startedAtUtc": "2026-11-09T10:57:44Z",
+    "required": "Fresh unfiltered clean verify, native/migration/DPAPI/install/uninstall/coexistence/passive upgrade and 16assets; no oldWindows result reuse.",
+    "status": "not-assessed-by-this-source-receipt",
+    "reusedOrReconciledTestResults": false
+  },
+  "thirdAttemptProvenance": {
+    "sourceCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
+    "fullWindowsBuildRunId": 42525209391,
+    "result": "full-java-failed-before-packaging",
+    "originalJava": {
+      "tests": 4122,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2
+    },
+    "originalPassedCases": 4119,
+    "originalSuites": 544,
+    "failureCases": [
+      {
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "test": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "kind": "failure",
+        "message": "Copy delivery: focused=true, hover=false, presses=0, actions=0, status= ==> expected: <true> but was: <false>",
+        "detail": "org.opentest4j.AssertionFailedError: Copy delivery: focused=true, hover=false, presses=0, actions=0, status= ==> expected: <true> but was: <false>\n\tat org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)\n\tat org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)\n\tat org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)\n\tat org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)\n\tat org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)\n\tat com.vncode.app.ui.tnved.FashionTnvedBrowserTest.awaitFx(FashionTnvedBrowserTest.java:20)\n\tat com.vncode.app.ui.tnved.FashionTnvedBrowserTest.actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker(FashionTnvedBrowserTest.java:47)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n"
+      }
+    ],
+    "originalSourceInclusionReceipt": {
+      "path": "source-inclusion-third-attempt.json",
+      "sha256": "abb7420a12ecd075eb1d130a366e8ff607f63f843d42e4e7171aabbbd66a333a"
+    },
+    "originalPackageVerifier": {
+      "path": "verify_package-third-attempt.py",
+      "sha256": "191ce1b9458935c2bdf7212f18a9245f61f43e51ca838c3328324bb94c497b91"
+    },
+    "failedReceipt": {
+      "path": "third-windows-failure-summary.json",
+      "sha256": "09f142e2eab75bee23cb73b07d2c6c9fcc77c0156dbdf140548120eeb554d02d"
+    },
+    "testOnlyCorrectionCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "changedPaths": [
+      {
+        "path": ".github/workflows/publish-vncode-baseline.yml",
+        "previousSha256": "3ec073ca3d8e635b6104538442b1572d1a2ecc1e18f43aa74a21a574fef33b76",
+        "sha256": "d1f07d16a906fc1d1327ecd3c10c39f490d784d7b79454b721c706567dc71f99"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+        "previousSha256": "3a3b0e1badae494838fb58a7fe40a82dc208bc605cd3a86e1fafdd547867d194",
+        "sha256": "30b1c0b70866d10b149d216fa4221556d291be70acab7ec478eb2f3d090a61a9"
+      }
+    ],
+    "productionAndPackagingInputsUnchanged": [
+      {
+        "path": "src/main",
+        "previousGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "gitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "unchanged": true
+      },
+      {
+        "path": "pom.xml",
+        "previousGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "gitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "unchanged": true
+      },
+      {
+        "path": "build.bat",
+        "previousGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "gitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "unchanged": true
+      },
+      {
+        "path": "build.sh",
+        "previousGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "gitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "unchanged": true
+      },
+      {
+        "path": ".mvn",
+        "previousGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "gitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw",
+        "previousGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "gitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw.cmd",
+        "previousGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "gitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "unchanged": true
+      }
+    ],
+    "cause": "Windows confirms focus=true but hover=false and no press/action before click. A stationary OS pointer retained from the preflight JVM is a strong hypothesis; the original Windows pointer/bounds were not captured, so exact root cause is not claimed proven.",
+    "correction": "Observe a distinct real native move inside the new Scene, then find/measure the live Copy button and move into it before exactly one real click; retain all clipboard/status/open-window/no-Apply and press/action assertions and the same total4second deadline.",
+    "nativePointerEvidence": {
+      "path": "native-pointer-provenance/verification.json",
+      "sha256": "18a2216d5acfc5dfb4b3810c968697b5b057021bd7323ff3ceea9806053d3fdc",
+      "scope": "Linux/Xvfb real native input:6 successful attempts over2 fresh JVMs on one display with retained pointer; targeted Maven3 cases. These overlap the184-case group and are not summed; not Windows root-cause reproduction."
+    },
+    "groupedRegression": {
+      "platform": "Linux/Xvfb",
+      "classes": {
+        "com.vncode.app.integration.ozon.OzonLabelServiceTest": {
+          "tests": 52,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "4244ac43f88becb63ff22b48cba8415a14fe344570117a4dd1d748b6bd5562f3"
+        },
+        "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest": {
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "d7a16cb41e26b4893bda12ac4b5bea3083e67b1af5e4634fb719679ee48d7477"
+        },
+        "com.vncode.app.shared.MavenWrapperIntegrityTest": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "cd492ec89f3e18e634ab5bb688f7572d4ae669e1e5e49b734b3ea45eb48bef85"
+        },
+        "com.vncode.app.ui.FxmlSmokeTest": {
+          "tests": 58,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "d44e175849bf253b7e4a0abcdc913aa838253756881bcbfcb1876769dd76be78"
+        },
+        "com.vncode.app.ui.tnved.FashionTnvedBrowserTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "c8b069eb1965d006b4e074df1583bc4d59928955d9156d2630733208458bd778"
+        },
+        "com.vncode.app.ui.workspace.WorkspaceChromeUiTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "1faeda325967e68619feb2a7448f7135bf90e1564f31fb873fb8b1373cbd60c0"
+        },
+        "com.vncode.app.ui.znackregistration.FlowAuditDiagnosticsTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "f0b5f00c3e81319e2ecbb53e1612cc926955df19e2427758a37f212967daf272"
+        },
+        "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest": {
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "77a9410d931bff88536bb0fe58d4669350dd71c59ec0aacf509fd371de7022d5"
+        },
+        "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest": {
+          "tests": 40,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "35d2ce0686da03ccdb958f8e388b08e858a1ec4a7e503d9487ab0e786eb8efa6"
+        }
+      },
+      "totals": {
+        "tests": 184,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "log": "native-mouse-grouped-20261109.log",
+      "logSha256": "600a1e57667c7dbd5849165544f17258b372e05166174933ae1868f5d0fdc653",
+      "windowsVerificationClaimed": false
+    },
+    "workflowAddsSecondFreshJvmNativePreflight": true,
+    "existing164PreflightAndUnfilteredCleanVerifyKept": true,
+    "freshFullWindowsSourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "freshFullWindowsBuildRunId": 42570802535,
+    "freshFullWindowsSuiteRerunRequired": true,
+    "earlierTestResultsReused": false,
+    "originalFailuresPreserved": true,
+    "recoveryOrSkipGateAdded": false,
+    "freshFullWindowsBuildOutcome": "full-java-failed-before-packaging; retained in fourthAttemptProvenance"
+  },
+  "fourthAttemptProvenance": {
+    "sourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "fullWindowsBuildRunId": 42570802535,
+    "result": "full-java-failed-before-packaging",
+    "originalJava": {
+      "tests": 4122,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2
+    },
+    "originalPassedCases": 4119,
+    "originalSuites": 544,
+    "failureCases": [
+      {
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "test": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "kind": "failure",
+        "message": "Copy delivery: focused=true, hover=false, parkingMoves=0, mouse=Point2D [x = 65.5, y = 71.5], parking=Point2D [x = 65.99999999999997, y = 71.0], bounds=null, liveButton=false, presses=0, actions=0, status= ==> expected: <true> but was: <false>",
+        "detail": "org.opentest4j.AssertionFailedError: Copy delivery: focused=true, hover=false, parkingMoves=0, mouse=Point2D [x = 65.5, y = 71.5], parking=Point2D [x = 65.99999999999997, y = 71.0], bounds=null, liveButton=false, presses=0, actions=0, status= ==> expected: <true> but was: <false>\n\tat org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)\n\tat org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)\n\tat org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)\n\tat org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)\n\tat org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)\n\tat com.vncode.app.ui.tnved.FashionTnvedBrowserTest.awaitFx(FashionTnvedBrowserTest.java:20)\n\tat com.vncode.app.ui.tnved.FashionTnvedBrowserTest.actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker(FashionTnvedBrowserTest.java:62)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n"
+      }
+    ],
+    "originalSourceInclusionReceipt": {
+      "path": "source-inclusion-fourth-attempt.json",
+      "sha256": "f107d1842516bd013e8c500a291efd389f4b584a84c45a4255ab8ac187de1e35"
+    },
+    "originalPackageVerifier": {
+      "path": "verify_package-fourth-attempt.py",
+      "sha256": "c6d7ef8d9dbe4d6e9731aa373cb339f61cdf6f5bef6a1df3191801f8b9d6dc64"
+    },
+    "failedReceipt": {
+      "path": "fourth-windows-failure-summary.json",
+      "sha256": "2583aff133c20e93a4a94ea44d290bf90832e10f9793e14380d6648b42541cf9"
+    },
+    "testOnlyCorrectionCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "changedPaths": [
+      {
+        "path": ".github/workflows/publish-vncode-baseline.yml",
+        "previousSha256": "d1f07d16a906fc1d1327ecd3c10c39f490d784d7b79454b721c706567dc71f99",
+        "sha256": "37ea6a995190f8ddf728e015b9cd439b9591e7dc17e390fe186da912f9323ece"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+        "previousSha256": "30b1c0b70866d10b149d216fa4221556d291be70acab7ec478eb2f3d090a61a9",
+        "sha256": "71505e104251a159f39fc37e76186b81611f34d06b2832b90f785851c4c69739"
+      },
+      {
+        "path": "tools/diagnostics/windows-input-observer.ps1",
+        "previousSha256": null,
+        "sha256": "03cfc19bb1d0cfe30836f025e16c7b67c8ff2ec5d3555633c25985baa666234a"
+      }
+    ],
+    "productionAndPackagingInputsUnchanged": [
+      {
+        "path": "src/main",
+        "previousGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "gitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "unchanged": true
+      },
+      {
+        "path": "pom.xml",
+        "previousGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "gitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "unchanged": true
+      },
+      {
+        "path": "build.bat",
+        "previousGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "gitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "unchanged": true
+      },
+      {
+        "path": "build.sh",
+        "previousGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "gitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "unchanged": true
+      },
+      {
+        "path": ".mvn",
+        "previousGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "gitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw",
+        "previousGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "gitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw.cmd",
+        "previousGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "gitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "unchanged": true
+      }
+    ],
+    "cause": "The original full run confirms no matching root parking move before click; its OS window provenance was not captured. Controlled fast probe42584347083 conclusively showed foreground console occlusion, not a DPI/session-lock difference. That fast probe had visible observer consoles and is not proof of the historical full-run cause.",
+    "correction": "Set alwaysOnTop only on the temporary native-input test Stage before show, preserving the same deadline/parking/one realclick/allassertions. Keep read-only OS observation hidden in future full Windows runs and retain it in verification/failure evidence. No production UI, input simulation by the observer, OS policy changes, test exclusion or recovery.",
+    "nativeWindowEvidence": {
+      "fixtureVerification": "native-aot-fixture-verification.json",
+      "fixtureVerificationSha256": "f78bd61f3ba47d06922572d929660cd3a4371f9bc6b702e7a64db938c5bca801",
+      "nativeOsReview": "native-diagnostic-os-review.json",
+      "nativeOsReviewSha256": "cd45413d6164627edfa13a5635d0b308fdddd0c4e0630684c2ba35dd2cad070b",
+      "sceneReview": "native-diagnostic-analysis-native-mouse.json",
+      "sceneReviewSha256": "23bdc44525c8166d90c64df7bd2d36b1a7206ed28fe143512058c642cebca26d",
+      "initialDiagnosticRun": 42584347083,
+      "initialDiagnosticWasConfoundedByVisibleObserverConsole": true,
+      "historicalFullConsoleCauseProven": false,
+      "quickControlRun": 42586963144,
+      "quickControlStatusNotAssessedBySourceReceipt": true,
+      "targetedLinuxJUnit": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "doNotSumOverlappingRuns": true
+    },
+    "sourceFileCount": 2985,
+    "addedSourceFileIsCiOnly": true,
+    "newCiScriptIncludedInPortableRuntime": false,
+    "hiddenObserverReadOnly": true,
+    "sameUnfilteredCleanVerifyAnd164Plus3Preflight": true,
+    "topLevelReleaseAssetCountUnchanged": 16,
+    "freshFullWindowsSourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "freshFullWindowsBuildRunId": 42587222212,
+    "freshFullWindowsSuiteRerunRequired": true,
+    "earlierTestResultsReused": false,
+    "originalFailuresPreserved": true,
+    "recoveryOrSkipGateAdded": false
+  },
+  "postVerifiedCertificateChanges": {
+    "baseSourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "baseFullWindowsBuildRunId": 42587222212,
+    "baseFullWindowsBuildOutcome": "success",
+    "baseFullWindowsJava": {
+      "tests": 4122,
+      "passed": 4120,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "suites": 544
+    },
+    "basePackageProof": {
+      "path": "package-verification.json.baseline-0f5",
+      "sha256": "761ef10f7ffbe0d99a39ece9d53edcd73ca352157956e76533714489f383fb9d"
+    },
+    "baseSourceProof": {
+      "path": "source-inclusion-fifth-attempt.json",
+      "sha256": "63b37971dd05c8cb4ab6ba877b0a34a9d9cdc94eda25d39309123006625402e2"
+    },
+    "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "fullWindowsBuildRunId": 42605121356,
+    "earlierTestResultsReused": false,
+    "freshFullWindowsSuiteRerunRequired": true,
+    "certificateFixCommits": [
+      "e77437c5ddbd168c7cfecfcf12d202f019751d87"
+    ],
+    "changedPaths": [
+      {
+        "path": ".github/workflows/publish-vncode-baseline.yml",
+        "previousSha256": "37ea6a995190f8ddf728e015b9cd439b9591e7dc17e390fe186da912f9323ece",
+        "sha256": "b55b752cd3b29fc4f67811892f607a925fc7d882c97304a365bf5e14c1713aed"
+      },
+      {
+        "path": "docs/releases/VN-code-1.6.7.md",
+        "previousSha256": "32f8ed1b392ce18f38c84e43490129f8a0576e6f4128ab146cdcdbb38c21605e",
+        "sha256": "0cc303177a5d4446d28e39f77cb8f19a0a7eb3e7de681eeb304bd43017c7377f"
+      },
+      {
+        "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
+        "previousSha256": null,
+        "sha256": "851e92d84a2dd132ca22bcbf73415ca62c1ba92daeb8dc6155a4b677669436a5"
+      },
+      {
+        "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "previousSha256": null,
+        "sha256": "0f3237c0b29f990b00f976b15ef61650f0b9cbfda314cf391db491476a6385fa"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+        "previousSha256": "7a3c30fe4d55b9586886cc498a790d4626ec1836a29c632ae84c77e9bc68dada",
+        "sha256": "6fea9f65e8d2af2fb1ddb47dec7f415f3a786ec49530f86d84f2ecbe956fe913"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+        "previousSha256": "4ed3be18d406cac1ae0a4100230f693277c0890624756a2a797ae8024939823c",
+        "sha256": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "previousSha256": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c",
+        "sha256": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java",
+        "previousSha256": null,
+        "sha256": "fa4f50b40536f1e79a7de258e4be0ce58784504291be981785759683b5e810e1"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "previousSha256": "0bdd21365108fbc8196a17ff0df9701f4840e11a5d9051d1858e81f429568cde",
+        "sha256": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java",
+        "previousSha256": null,
+        "sha256": "b679c7ade785334a9bae90427adf36e3ec1e342e8ef722310435e94030c3e343"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateRoutingTest.java",
+        "previousSha256": null,
+        "sha256": "7179a0c3b158bfab80f0343ab3818263f93f3f88e906bd9b2f2d6a88fc9de1c0"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/DarkReferenceScreensTest.java",
+        "previousSha256": "8ab454c6cf9b44864e66514d656f340687fd92416ef4f26f5c0ffad3a97101cf",
+        "sha256": "6d930601e5e49828bbcee2d12a44cfff0da12c443bb66a42a0f5c498dc93c3ba"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/workspace/ApprovedWorkspaceAcceptanceTest.java",
+        "previousSha256": "f8650221bc9bbbe215f0ec3d320bc6c6d7f3c7dfaac3bacbe1f7e11aaa76d339",
+        "sha256": "7421b7c88434340699e30a7531f5d7f961758d23a872104ca8d6c1d2cda2f455"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/znack/CertificateDiscoveryFixture.java",
+        "previousSha256": null,
+        "sha256": "a7ed5adfb1dead1e2788bcc5d90566a19c52d180951da71f3adcfc6d57f3dbf4"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/znack/ZnackAutomationControllerTest.java",
+        "previousSha256": "20ed516ce238d2546d05c45f69e24864ded2377ae8b5f021e90f99bd66af8400",
+        "sha256": "ef8d7bfff0f9feb73bd3d497a3b34f499d92a87f52f3b17d1bf3dfe0be0d053d"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/znack/ZnackCertificateDiscoveryUiTest.java",
+        "previousSha256": null,
+        "sha256": "fa7803c411adff91f331ac54080f1a788e3dee4e356e5ff42c4c7dea04631076"
+      }
+    ],
+    "supplementalManifest": {
+      "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+      "sha256": "0f3237c0b29f990b00f976b15ef61650f0b9cbfda314cf391db491476a6385fa"
+    },
+    "knownLiveDeviceAcceptance": "Not run; seller Windows/CryptoPro certificate/token not attached. Two actualWindowsPowerShell syntheticCOM/parser cases required in newCI, not realCryptoPro."
+  }
+}

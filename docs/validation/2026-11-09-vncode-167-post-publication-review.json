@@ -1,0 +1,65 @@
+{
+  "kind": "VNCODE_167_POST_PUBLICATION_INDEPENDENT_REVIEW",
+  "result": "PASS",
+  "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "fullWindowsBuildRun": 42611294387,
+  "publicationRun": 42627047589,
+  "releaseId": 438471378,
+  "tag": "v1.6.7",
+  "publishedAt": "2026-11-09T13:38:02Z",
+  "immutable": true,
+  "checks": {
+    "publisherRunSucceeded": true,
+    "publisherLatestPackagePublicReceiptPinsMatch": true,
+    "publicAssetCount": 16,
+    "actualPublicBytesRehashed": 534004049,
+    "publicAssetHashesMatchWindowsArtifactsPackageReceiptPublisherReceiptAndGithubDigests": true,
+    "publicVerificationXml": {
+      "suites": 547,
+      "tests": 4188,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 4186,
+      "requiredCertificateSuites": {
+        "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest": 12,
+        "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest": 38,
+        "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest": 14
+      },
+      "exactExpectedTwoSkipIdentities": true
+    },
+    "actual166UpdaterSelected167Msi": true,
+    "msi": {
+      "bytes": 148710661,
+      "sha256": "b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be"
+    },
+    "oldReleaseMetadataPreservedExcludingDownloadCounters": 16,
+    "oldReleaseAssetsPreserved": 258,
+    "oldTagObjectsPreserved": 45,
+    "finalReleaseCount": 17,
+    "finalTagCount": 46
+  },
+  "inputs": {
+    "publication-certificate-guard/publication-1.6.7.json": "851487c62f11c88e6330bd0a4684637198162153500bea602eef2d687b0d9dd1",
+    "publication-run-certificate-guard.json": "ca24a4c7e1c0789cadeecd8f5b8db6c59b0a03e272409b07770200bfae528c06",
+    "latest-after-certificate-guard.json": "553774efcd13dd81549adb632c98ea88ac3252c8f55ed1b094bd929561d1b7aa",
+    "updater-after-certificate-guard.json": "8144652615456a694bac78eb85e309735b00c1f7cbdc4d0efcebfba50ee513f8",
+    "public-preservation-verification-certificate-guard.json": "17ba726b2dc4bb55ea924b339ca95bbdd1d4bed1124b99b80587dd84d1a27555",
+    "package-verification-certificate-guard.json": "345bb254e80404107a65160a77e040dcefb3ecfb0ee8e4714384dba285028958",
+    "releases-before.json": "8a7537b5bdcec8962aac8a77b820e2faf1ea078960d82df1c1a453802edffe06",
+    "releases-after-certificate-guard.json": "67fe743909b75e6502a74c49b5602eb08894d75ad8466d61cdad6ec05f3da5e7",
+    "tags-before-final.json": "4c4d977ee17c2e16756eba31140c1c4c2983f0d3b647d3cd50bc43b3bb5fc29c",
+    "tags-after-certificate-guard.json": "933fe02cb4d4b3352b09af72e7f7f89f6d05af838a64508bb561fd8b98ec8f01"
+  },
+  "scope": "Independent offline review and rehash of saved actual public downloads, Windows artifacts and publication/updater/history receipts; no new network requests, test execution, deployment or seller operations.",
+  "limitations": {
+    "sellerMachinePopupObserved": false,
+    "installationOnSellerMachineClaimed": false,
+    "independentAnonymousNetworkAccessProven": false,
+    "liveCryptoProDeviceAcceptanceClaimed": false
+  },
+  "repoMutations": false,
+  "releaseMutations": false,
+  "sellerApiMutations": false,
+  "licenseActivation": false
+}

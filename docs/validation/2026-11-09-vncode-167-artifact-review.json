@@ -1,0 +1,3530 @@
+{
+  "reviewedAtUtc": "2026-11-09T13:36:05.633768+00:00",
+  "kind": "Independent read-only certificate-guard raw artifact suite and smoke review",
+  "result": "PASS",
+  "findings": [],
+  "version": "1.6.7",
+  "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "fullWindowsBuildRunId": 42611294387,
+  "workflowId": 392732536,
+  "runCompletedSuccessfully": true,
+  "artifactId": 13677654170,
+  "artifactName": "VN-code-1.6.7-complete-baseline",
+  "localAssetCount": 16,
+  "verificationZipSha256": "98b54e6df7d9ff2363590aefe67225346eb8c2c0519351b83da66b2b01ca7580",
+  "artifactArchiveDigestFromSavedApiMetadata": "sha256:48236245a2d9fce62a31d34a3cf4516bb76614a4032dd447b13d6c77b31344b9",
+  "artifactArchiveBytesComparedByThisReviewer": false,
+  "junit": {
+    "suites": 547,
+    "tests": 4188,
+    "passed": 4186,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "perSuiteCaseCountsMatchXmlCounters": true,
+    "skips": [
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "case": "privatePermissionsAreAppliedWhereSupported",
+        "seconds": 0.0,
+        "passed": false,
+        "reasonAttributes": {
+          "type": "org.opentest4j.TestAbortedException"
+        },
+        "reasonText": "org.opentest4j.TestAbortedException: Assumption failed: assumption is not true\n\tat org.junit.jupiter.api.Assumptions.throwAssumptionFailed(Assumptions.java:321)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:120)\n\tat org.junit.jupiter.api.Assumptions.assumeTrue(Assumptions.java:71)\n\tat com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.privatePermissionsAreAppliedWhereSupported(Gs1PrefixTemplateStoreTest.java:109)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n"
+      },
+      {
+        "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "case": "neverFallsBackToPlaintextOffWindows",
+        "seconds": 0.0,
+        "passed": false,
+        "reasonAttributes": {
+          "message": "Disabled on operating system: Windows Server 2022"
+        },
+        "reasonText": null
+      }
+    ],
+    "skipReasonsVerifiedAgainstPinnedSource": true,
+    "fashionNativeCases": [
+      {
+        "suite": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "case": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "seconds": 0.25,
+        "passed": true
+      },
+      {
+        "suite": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "case": "filteringThenExplicitApplyReturnsTheChosenCode",
+        "seconds": 0.138,
+        "passed": true
+      },
+      {
+        "suite": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "case": "applyUsesTheCompletePerProductProposalUntilSellerChoosesAGlobalCode",
+        "seconds": 0.135,
+        "passed": true
+      }
+    ],
+    "requiredTenThousandStressCases": [
+      {
+        "suite": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+        "case": "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+        "seconds": 499.249,
+        "passed": true
+      },
+      {
+        "suite": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+        "case": "ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites",
+        "seconds": 1528.969,
+        "passed": true
+      },
+      {
+        "suite": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+        "case": "wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay",
+        "seconds": 552.6,
+        "passed": true
+      }
+    ],
+    "allSurefireXmlHashes": {
+      "com.vncode.app.BuildConfigTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.BuildConfigTest.xml",
+        "sha256": "0b7a07ca827b9d0999d46b2067f84d480dd536dc3caabc841f75830abd62fc9b",
+        "tests": 4
+      },
+      "com.vncode.app.config.DatabaseBatchSessionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.config.DatabaseBatchSessionTest.xml",
+        "sha256": "91a64e0d1a343088c4eaf9e844a808633ef3bb04b6f6f458f7ff64dec6196325",
+        "tests": 1
+      },
+      "com.vncode.app.config.DatabaseMigrationCompatibilityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.config.DatabaseMigrationCompatibilityTest.xml",
+        "sha256": "322195b0be5d860261ef7f7abd1b7d8cd602b73d04bd7e400c1d22e4cb435add",
+        "tests": 9
+      },
+      "com.vncode.app.config.SqliteWriteTransactionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.config.SqliteWriteTransactionTest.xml",
+        "sha256": "f526e773e3441bf8e9e092d335225f257ec611d0c0b507b46dfb42e4e335c6ee",
+        "tests": 5
+      },
+      "com.vncode.app.config.SynchronizedDataUpgradeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.config.SynchronizedDataUpgradeTest.xml",
+        "sha256": "7fa8991334e4b1a2269bbaf634de656fe7bd058ef7c9de000e02c86a6e1ee61b",
+        "tests": 2
+      },
+      "com.vncode.app.features.catalogsync.CatalogPermitEvidenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.catalogsync.CatalogPermitEvidenceTest.xml",
+        "sha256": "b18784179a9c9c1e292979653a76f8ab5f42fd80473c9e7a8eaf8cb5d20148c8",
+        "tests": 17
+      },
+      "com.vncode.app.features.catalogsync.CatalogProductDataParserTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.catalogsync.CatalogProductDataParserTest.xml",
+        "sha256": "91a0d74a5dcb1dc8938440e9ffdfd8a643d545ac76f075fd30868c5f768c0472",
+        "tests": 14
+      },
+      "com.vncode.app.features.catalogsync.CatalogSyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.catalogsync.CatalogSyncServiceTest.xml",
+        "sha256": "8b13909bef6c50558a87260f3d1557a7820e2910b08dd3dfd8ae627828640394",
+        "tests": 23
+      },
+      "com.vncode.app.features.fbo.FboBarcodePdfExporterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbo.FboBarcodePdfExporterTest.xml",
+        "sha256": "383b9f96d01aa08a7c3cd076ac93616279f1b0467c20efa577d0fcce0dbba2b9",
+        "tests": 2
+      },
+      "com.vncode.app.features.fbo.FboKizPrintPlannerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbo.FboKizPrintPlannerTest.xml",
+        "sha256": "59afa756e18f864bdcf4da16152dc4309a080a80a1962767d8cb58a62ce0ea3d",
+        "tests": 8
+      },
+      "com.vncode.app.features.fbo.FboProductImageServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbo.FboProductImageServiceTest.xml",
+        "sha256": "b694cd8960a977985d0e72f61020cde0da52611198aa38dbe7630afd3d3dae04",
+        "tests": 3
+      },
+      "com.vncode.app.features.fbo.FboProductRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbo.FboProductRepositoryTest.xml",
+        "sha256": "9a32e06a956b2d82b36127151f00bc6af990e7bfafadff3c564d3f34e7c0e2c6",
+        "tests": 2
+      },
+      "com.vncode.app.features.fbo.FboPurchaseServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbo.FboPurchaseServiceTest.xml",
+        "sha256": "12278f5676fdcb90211367154724e15df1ec7d8c3c06126d1d518f0d856c37b4",
+        "tests": 1
+      },
+      "com.vncode.app.features.fbo.FboVerifiedGtinRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbo.FboVerifiedGtinRepositoryTest.xml",
+        "sha256": "f797e056dc78f3895c80644de995bbd0bb67f436069d3a242f2f5e73cb73c3bb",
+        "tests": 10
+      },
+      "com.vncode.app.features.fbosupply.FboSupplyRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbosupply.FboSupplyRepositoryTest.xml",
+        "sha256": "849f936bf96d0803fc3972b01873a68697e6d4996212e83b0c9fb7cbac6f0fbf",
+        "tests": 5
+      },
+      "com.vncode.app.features.fbosupply.FboSupplyStatusMapperTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbosupply.FboSupplyStatusMapperTest.xml",
+        "sha256": "551f3de2d39e2d9e073d63e766ed9c85287e4f7b4485cede7e7273b94b335c28",
+        "tests": 2
+      },
+      "com.vncode.app.features.fbosupply.FboSupplySyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.fbosupply.FboSupplySyncServiceTest.xml",
+        "sha256": "673ad260d8f946b07dceb9637b2c43dd78f6187bf3d583ef0a8acd12d89cdc69",
+        "tests": 9
+      },
+      "com.vncode.app.features.finance.AnalyticsDatabaseTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.finance.AnalyticsDatabaseTest.xml",
+        "sha256": "e9cb81003c7194ac00bf0eec4cf003649c289756aaf1ef9949843f9a09933588",
+        "tests": 5
+      },
+      "com.vncode.app.features.finance.FinanceDashboardSnapshotTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.finance.FinanceDashboardSnapshotTest.xml",
+        "sha256": "165ae6ddb7e02e32cf64d4e808f34da962d2b37166124a7ba9d3bc382bb99c20",
+        "tests": 2
+      },
+      "com.vncode.app.features.finance.FinancePenaltyRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.finance.FinancePenaltyRepositoryTest.xml",
+        "sha256": "41c10817641dbc43f06be8dc03cd19ac84ca58a07fea60ac3428526caa1f460f",
+        "tests": 7
+      },
+      "com.vncode.app.features.finance.FinancePenaltySyncIntegrationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.finance.FinancePenaltySyncIntegrationTest.xml",
+        "sha256": "cb3250957507b93e6c6e25f16eef8a0e6a0f511fc9346ed8ed1ed08a745a62b0",
+        "tests": 5
+      },
+      "com.vncode.app.features.finance.FinancePenaltySyncStoreTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.finance.FinancePenaltySyncStoreTest.xml",
+        "sha256": "f7784703852efb63ee7806c35cc864363fe5e2ceddc838e718786dee755c7d0b",
+        "tests": 10
+      },
+      "com.vncode.app.features.finance.FinanceSyncPlannerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.finance.FinanceSyncPlannerTest.xml",
+        "sha256": "12c73b68c9c9788fd2242ece2210e2c9aaaa333ae51e9d3fedc62cb44f556c18",
+        "tests": 4
+      },
+      "com.vncode.app.features.finance.FinanceSyncSchedulerOwnerRaceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.finance.FinanceSyncSchedulerOwnerRaceTest.xml",
+        "sha256": "42a529d60b18fd0cd956f8a27a7433def46b3264071141465ce817374e42149a",
+        "tests": 4
+      },
+      "com.vncode.app.features.finance.WeeklyFinanceScheduleTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.finance.WeeklyFinanceScheduleTest.xml",
+        "sha256": "40c0a3428ceb4594c89dd55ac9d0f00429721517b8a810aaaca1bfc68d3c963d",
+        "tests": 2
+      },
+      "com.vncode.app.features.gs1.Gs1ActionPolicyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1ActionPolicyTest.xml",
+        "sha256": "bbc966aa0de686d9cddf00fdef78056c01ce3eeaf487363fb851423debc47cc3",
+        "tests": 9
+      },
+      "com.vncode.app.features.gs1.Gs1ApplicationServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1ApplicationServiceTest.xml",
+        "sha256": "e8dbea6f607400d559282aaba973066d0502dc2e5f86b04e3be6b757e00c355e",
+        "tests": 8
+      },
+      "com.vncode.app.features.gs1.Gs1AutomaticSessionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1AutomaticSessionTest.xml",
+        "sha256": "800dac97af729f421b99cf4afb796f67660deb4140c9a6990ad212c588a1cdfb",
+        "tests": 8
+      },
+      "com.vncode.app.features.gs1.Gs1AutomaticSyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1AutomaticSyncServiceTest.xml",
+        "sha256": "f15d667370c578c574d8726dd96ef22299436da6a54ef427b9ffed5c530da028",
+        "tests": 5
+      },
+      "com.vncode.app.features.gs1.Gs1AutoReminderSchedulerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1AutoReminderSchedulerTest.xml",
+        "sha256": "11bc7f5e52a79a06237f6439135aee79d8e5a7a4d01b7d0d95ac40fe79030897",
+        "tests": 1
+      },
+      "com.vncode.app.features.gs1.Gs1AutoReminderServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1AutoReminderServiceTest.xml",
+        "sha256": "68ff4e45be7639d4746db4f649911f21b88120a9b2f5a6ec7a9b42214b33b440",
+        "tests": 13
+      },
+      "com.vncode.app.features.gs1.Gs1BalanceRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1BalanceRepositoryTest.xml",
+        "sha256": "5bfa18be31b8e628df72196a4b128855e226225fba3ac7188e59a55ba26b5beb",
+        "tests": 1
+      },
+      "com.vncode.app.features.gs1.Gs1CacheScopeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1CacheScopeTest.xml",
+        "sha256": "60f4514f834e681c5ff97583a2dbd0a973deb898ed9551488fd359fa7d877777",
+        "tests": 5
+      },
+      "com.vncode.app.features.gs1.Gs1DashboardServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1DashboardServiceTest.xml",
+        "sha256": "ed4aeca40e8a5b61f1cd5701c1cfbee190259d667b901e968b3107e381416731",
+        "tests": 6
+      },
+      "com.vncode.app.features.gs1.Gs1LettersServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1LettersServiceTest.xml",
+        "sha256": "14d45812f58635725fc53d6764b54ce2a4de3fed7ee4c339a7c9b91344deb0e4",
+        "tests": 9
+      },
+      "com.vncode.app.features.gs1.Gs1PrefixDocumentServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1PrefixDocumentServiceTest.xml",
+        "sha256": "c651716ff43579f9f753270d389af50e9965879649ee08bab9d3b4d82cbf5722",
+        "tests": 10
+      },
+      "com.vncode.app.features.gs1.Gs1PrefixRequestServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1PrefixRequestServiceTest.xml",
+        "sha256": "2bf150ac8f0f36cee8647d262205d4e08cfbb8608f8e9511c44c2b05f9c7330f",
+        "tests": 14
+      },
+      "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest.xml",
+        "sha256": "430d40a294b002f5b8824fd34be6dc52d6f418a32674a06b57193a2684852ecd",
+        "tests": 9
+      },
+      "com.vncode.app.features.gs1.Gs1ReadinessServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1ReadinessServiceTest.xml",
+        "sha256": "11d498e554ca1ffaa61a78000c348b6898aaf1aa70b5796523c776243a52ef37",
+        "tests": 15
+      },
+      "com.vncode.app.features.gs1.Gs1ReminderPolicyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1ReminderPolicyTest.xml",
+        "sha256": "c4fa8a53018459b3630c6152b649fd337833b3324940d03558eb8b1619e1c2b2",
+        "tests": 3
+      },
+      "com.vncode.app.features.gs1.Gs1ReminderSchemaCompatibilityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1ReminderSchemaCompatibilityTest.xml",
+        "sha256": "7aec31ece2bd67a1b808bb5ea9a1bc51787ed89089ee75510ad4b57c935bec2e",
+        "tests": 3
+      },
+      "com.vncode.app.features.gs1.Gs1RepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1RepositoryTest.xml",
+        "sha256": "36c499c8ab086cf2baaf92e855bac2a7186c0ec0b76177bbfa40df3f62dde55f",
+        "tests": 9
+      },
+      "com.vncode.app.features.gs1.Gs1SerifFontSelectionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1SerifFontSelectionTest.xml",
+        "sha256": "523b95293de7d2c746cb6ce199c747ca55e7de6466c420646dbc0604457ebc7f",
+        "tests": 2
+      },
+      "com.vncode.app.features.gs1.Gs1SyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1SyncServiceTest.xml",
+        "sha256": "109482a7add560340668319097a6e22a17d4a85897aa4b2759a8c4fc5bcbb07b",
+        "tests": 10
+      },
+      "com.vncode.app.features.gs1.Gs1WordPrefixServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gs1.Gs1WordPrefixServiceTest.xml",
+        "sha256": "38eb8e45db840d4e6a084246dbf6af234530e0322357b00d704ad3ab6b6ed5d4",
+        "tests": 9
+      },
+      "com.vncode.app.features.gtinsync.GtinCatalogIndexTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinCatalogIndexTest.xml",
+        "sha256": "69802e7cae8ddb8e30757e616375b4b111e09e9c697877823f5bda83712665f4",
+        "tests": 8
+      },
+      "com.vncode.app.features.gtinsync.GtinColorIdentityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinColorIdentityTest.xml",
+        "sha256": "69d7f77d6f0b149cadb45aff54b7b6756dbaae95a33d3799b086a115d5c218ab",
+        "tests": 3
+      },
+      "com.vncode.app.features.gtinsync.GtinMatchingServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinMatchingServiceTest.xml",
+        "sha256": "dc601f5137d99ccc05fc89b899329b5a56a4b2b0c1a78027c8658341559cde15",
+        "tests": 7
+      },
+      "com.vncode.app.features.gtinsync.GtinPreviewServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinPreviewServiceTest.xml",
+        "sha256": "2b3ccb2ee11f357754f8d053e1dc1e08c7b7d6ff0153811de45288bc0b7e0f2b",
+        "tests": 7
+      },
+      "com.vncode.app.features.gtinsync.GtinPricePreflightTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinPricePreflightTest.xml",
+        "sha256": "a1fbc63d5e7f02f03317429f00a69ee9de5a052fc6026f802a490c2eaa0fc52d",
+        "tests": 9
+      },
+      "com.vncode.app.features.gtinsync.GtinProductReaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinProductReaderTest.xml",
+        "sha256": "cec9b436c82a3ae504a00d50560052a9a33632f3eacb6ae779da612f8368528d",
+        "tests": 2
+      },
+      "com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinSyncCoordinatorTest.xml",
+        "sha256": "6d7df328f04003c31bef95b55492741d71457e17eca44b59d29cb9c0af675a7d",
+        "tests": 20
+      },
+      "com.vncode.app.features.gtinsync.GtinSyncRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinSyncRepositoryTest.xml",
+        "sha256": "11e71226fb4a3ce413258be94de25d1c9a6c24ace46da3ff4b8704c5a721a10a",
+        "tests": 12
+      },
+      "com.vncode.app.features.gtinsync.GtinTnvedIdentityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinTnvedIdentityTest.xml",
+        "sha256": "e91b5ed2c312f515cec1c8f103e5c5c6546d3f5570dda8862a0abbd5c3c9064f",
+        "tests": 3
+      },
+      "com.vncode.app.features.gtinsync.MarketplaceBarcodeOrderingTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.MarketplaceBarcodeOrderingTest.xml",
+        "sha256": "9d1a14aeea7be2d23475f414bf7ecff3d96ba9914e4ad8a8caceef4c29439ae1",
+        "tests": 2
+      },
+      "com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.OzonSkuGtinMatcherTest.xml",
+        "sha256": "d56695bf45bb55c6ae2149a0019968eb7109c11acdc842886cd2efe57c37f648",
+        "tests": 4
+      },
+      "com.vncode.app.features.gtinsync.RegisteredGtinProofTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.RegisteredGtinProofTest.xml",
+        "sha256": "d709db087ff00422cedf93a6a98bf17b0b8e53081d4b0c926b8d9b78d99176da",
+        "tests": 12
+      },
+      "com.vncode.app.features.gtinsync.RegisteredGtinSourceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.RegisteredGtinSourceTest.xml",
+        "sha256": "c5ca00341c7d1a34595e91a69a7f0ecabf4f8661c74acd5e08efdee18acfb0fe",
+        "tests": 11
+      },
+      "com.vncode.app.features.gtinsync.RegisteredGtinValidatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.RegisteredGtinValidatorTest.xml",
+        "sha256": "4cb573723796f807eb171c31f8755445d5a92397258494653709dfd0befd20dc",
+        "tests": 1
+      },
+      "com.vncode.app.features.gtinsync.WbOzonCatalogBoundaryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.WbOzonCatalogBoundaryTest.xml",
+        "sha256": "aee2b9521a285108a3a0b2e9cbb64da2c81d9b526a0692f23b4c66b695bf5159",
+        "tests": 2
+      },
+      "com.vncode.app.features.gtinsync.WbOzonGtinDispatchServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.WbOzonGtinDispatchServiceTest.xml",
+        "sha256": "7d7dfe88852ffe44ed37ccfe2a9347fbd2d3d85190ea3c4bcf9fe9a61e59453e",
+        "tests": 6
+      },
+      "com.vncode.app.features.gtinsync.WbOzonGtinMatcherTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.WbOzonGtinMatcherTest.xml",
+        "sha256": "98555e6e95c9e75b4473ffed925fd88598a41d8d1e4be44dc691f0f4dfb44f5e",
+        "tests": 11
+      },
+      "com.vncode.app.features.gtinsync.WbOzonGtinReviewServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.WbOzonGtinReviewServiceTest.xml",
+        "sha256": "c5f79395f800ed5e36fde11f08e9395df849ff7ab83a359a55ed39b60cb5df41",
+        "tests": 7
+      },
+      "com.vncode.app.features.gtinsync.WbOzonLinkRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.WbOzonLinkRepositoryTest.xml",
+        "sha256": "7019ee7e89a6b484bc75aa038f64b6d7e4fcc2031444e8db23fc9af894544a88",
+        "tests": 15
+      },
+      "com.vncode.app.features.gtinsync.WbOzonQueuedGuardTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.gtinsync.WbOzonQueuedGuardTest.xml",
+        "sha256": "0506e0ab3a68ea974cc3f3225c630154047cac25187631973417dd56075350d1",
+        "tests": 1
+      },
+      "com.vncode.app.features.guides.GuideArticleTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.guides.GuideArticleTest.xml",
+        "sha256": "4e997ceb8f48926db14366966e9218a0bff42a3625413080210af39c4e5a11cc",
+        "tests": 1
+      },
+      "com.vncode.app.features.guides.GuideMediaRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.guides.GuideMediaRepositoryTest.xml",
+        "sha256": "69cd114ea03cd9d77d6d1b6e82809d931c2c69b8d64f32f11d69dfdcad015847",
+        "tests": 2
+      },
+      "com.vncode.app.features.jobs.JobCenterRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.jobs.JobCenterRepositoryTest.xml",
+        "sha256": "fd04e2250b0159013894034405dbf0f195f347cbf58d52b6f74433470e3728d7",
+        "tests": 1
+      },
+      "com.vncode.app.features.jobs.JobReportRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.jobs.JobReportRepositoryTest.xml",
+        "sha256": "89b4fdcfe6f7aa13dc5659c964be82ca5617d5436efb8532de3ecdcb0e174b55",
+        "tests": 6
+      },
+      "com.vncode.app.features.kiz.CatalogKeyPendingIdentityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.CatalogKeyPendingIdentityTest.xml",
+        "sha256": "85b4eba3613a7f803b6e774f69f421352944c0c5e8f6015a2438bab079c4a5c6",
+        "tests": 2
+      },
+      "com.vncode.app.features.kiz.KizCategoryAllocatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizCategoryAllocatorTest.xml",
+        "sha256": "a20e0774277c4ce14cf8799fe52f339c2fe87e74cbb20cc20392d625e09071fc",
+        "tests": 7
+      },
+      "com.vncode.app.features.kiz.KizCrossMarketplaceProofTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizCrossMarketplaceProofTest.xml",
+        "sha256": "dbe1a48d05053555c065913dab2119c173ce1839dece344f1bdaa4bc795ee3d7",
+        "tests": 17
+      },
+      "com.vncode.app.features.kiz.KizImportFormatsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizImportFormatsTest.xml",
+        "sha256": "d9894d862d2cec93a770ca38cce43aadf7d8dcea327922e4a2b41df01c22fc59",
+        "tests": 13
+      },
+      "com.vncode.app.features.kiz.KizPendingIdentityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizPendingIdentityTest.xml",
+        "sha256": "01f1478a7a2715f956fe6bb605944f70d4a436e395c2404bb3ad17ca4d91c4cb",
+        "tests": 23
+      },
+      "com.vncode.app.features.kiz.KizPrintPurchaseSessionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizPrintPurchaseSessionTest.xml",
+        "sha256": "16d47fb908330075b15176dd155f4beda409953e9603d33d9b060efcbc7e4109",
+        "tests": 12
+      },
+      "com.vncode.app.features.kiz.KizPurchaseMappingProofTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizPurchaseMappingProofTest.xml",
+        "sha256": "467e381e085ab9b4fdbef56e688b2c457fa1a3a8cc226308d09c94606bd776c2",
+        "tests": 2
+      },
+      "com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest.xml",
+        "sha256": "79e5261369dac7fbca85f773554df58a909fab6ecac92a15c410f43d2f13fe26",
+        "tests": 21
+      },
+      "com.vncode.app.features.kiz.KizReimportRecoveryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizReimportRecoveryTest.xml",
+        "sha256": "5d02fefd9cc9dea01bf52f6d98f4383a400b4f96c7a97ba4b7970bd2be7c69c4",
+        "tests": 7
+      },
+      "com.vncode.app.features.kiz.KizServiceScopeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizServiceScopeTest.xml",
+        "sha256": "3f8dd1e70ec9990c02b043c0d8630a1c1ac442453b61997aa3178bf229f36485",
+        "tests": 3
+      },
+      "com.vncode.app.features.kiz.KizServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizServiceTest.xml",
+        "sha256": "1602f5e4df1e0ef06abb9ece76cdf64a44ed57e54faf3c5db93a7cbfe03d0135",
+        "tests": 5
+      },
+      "com.vncode.app.features.kiz.KizStockReplenisherTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizStockReplenisherTest.xml",
+        "sha256": "d46d1db2d3379c095255c62cf9a2d647a7ada4cddeca8c3faa4502dcf3cb2f3d",
+        "tests": 10
+      },
+      "com.vncode.app.features.kiz.KizWarehouseTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.KizWarehouseTest.xml",
+        "sha256": "706b5d38a481c93c68c0b3f4537e870719b8e8bca6ba44f209e0cd619de660e7",
+        "tests": 15
+      },
+      "com.vncode.app.features.kiz.OzonShipmentKizRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.OzonShipmentKizRepositoryTest.xml",
+        "sha256": "444c0338922d001c07b4218d6fa43efa39471dcf5d045593f2e936b35a957f81",
+        "tests": 3
+      },
+      "com.vncode.app.features.kiz.SellerKizImportSchemaTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.SellerKizImportSchemaTest.xml",
+        "sha256": "6f01f5d1ee84a7364496b75ee6d12625b4de6d1dce8897ec4b71ae03400fc545",
+        "tests": 1
+      },
+      "com.vncode.app.features.kiz.status.Kn3BatchReplacementTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.status.Kn3BatchReplacementTest.xml",
+        "sha256": "3f461adb6693cd15a6913160834eb8ca53e9d196ac23307c3cca3724fd979244",
+        "tests": 12
+      },
+      "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest.xml",
+        "sha256": "b3751c321b0c3f04cc46c654a7e4d79a156a2eb24b8aae50450fefaa294aacba",
+        "tests": 5
+      },
+      "com.vncode.app.features.kiz.status.Kn3ProtocolTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.status.Kn3ProtocolTest.xml",
+        "sha256": "000529dd46bb629108362f152d86ef3d8d48e6582ac401d23af0d6f63bd0cb84",
+        "tests": 5
+      },
+      "com.vncode.app.features.kiz.status.Kn3ReplacementTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.status.Kn3ReplacementTest.xml",
+        "sha256": "58d7c0d2d330bc9f9bace297a3c74c949efc85624daf9f8dbc2b141e6c027a0c",
+        "tests": 8
+      },
+      "com.vncode.app.features.kiz.WbLabelIdentifierRateLimiterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.WbLabelIdentifierRateLimiterTest.xml",
+        "sha256": "ec9b653dd8319b73dab279fc2d47a3e57d3e95f493cbbae20e1f1cbb0a3ebc06",
+        "tests": 3
+      },
+      "com.vncode.app.features.kiz.WbShipmentKizRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kiz.WbShipmentKizRepositoryTest.xml",
+        "sha256": "e251286fd45157e5966c294c8a44151d1779bc680f6de801c405c8eb698ad2bc",
+        "tests": 3
+      },
+      "com.vncode.app.features.kizmapping.KizMappingRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kizmapping.KizMappingRepositoryTest.xml",
+        "sha256": "01e92b8f5819651540321436114412577d5b1ad54485a0068aaa777bb000a774",
+        "tests": 3
+      },
+      "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest.xml",
+        "sha256": "7513d8019324e18fdf4f67f509872148fb47fe1a8ab941c11cc8bf287a4ff585",
+        "tests": 26
+      },
+      "com.vncode.app.features.kizmapping.VerifiedKizMappingsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kizmapping.VerifiedKizMappingsTest.xml",
+        "sha256": "a0e48bd39b5ca3a2ebcbea993a3503cec3e6d126c210e662e725d34993abe711",
+        "tests": 3
+      },
+      "com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest.xml",
+        "sha256": "420f95a62f6edd25606209d758d411c6669726688ac6d7f845334f743e712a01",
+        "tests": 21
+      },
+      "com.vncode.app.features.license.LicenseClockTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseClockTest.xml",
+        "sha256": "8bf453c3038960ea77307a80378cd6c9ab01836f5a74fc697c0b96f266616a34",
+        "tests": 4
+      },
+      "com.vncode.app.features.license.LicenseDeviceKeysTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseDeviceKeysTest.xml",
+        "sha256": "207ad5c01cbc306affd4d3a4bc98b91c9dfb1babdb71cf4ea60b266a69afe300",
+        "tests": 2
+      },
+      "com.vncode.app.features.license.LicenseListingBoundaryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseListingBoundaryTest.xml",
+        "sha256": "1a4a8d9c846589bd0760753ae4dd855e282b1b48bc809b30d70e239b39ff72bc",
+        "tests": 10
+      },
+      "com.vncode.app.features.license.LicenseOperationalBoundaryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseOperationalBoundaryTest.xml",
+        "sha256": "72fcf00f3487bfa6c38272cf5226b0e4a2742a6994749dd86f90536822d42bbf",
+        "tests": 9
+      },
+      "com.vncode.app.features.license.LicenseReadBoundaryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseReadBoundaryTest.xml",
+        "sha256": "4531dd2a7f0da3d4720dfb37ad40c9571cdd826287c03a6c40ce942dbec52b18",
+        "tests": 7
+      },
+      "com.vncode.app.features.license.LicenseRefreshCadenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseRefreshCadenceTest.xml",
+        "sha256": "396280a52e9dd65738b7c2f94b861ed0eb45844bd83aebaf3fb2f76ab4b4613d",
+        "tests": 3
+      },
+      "com.vncode.app.features.license.LicenseServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseServiceTest.xml",
+        "sha256": "d84244feac56e753c012e1023780c1c5ce0c3c3b2986d7c5916929a2af89f50b",
+        "tests": 26
+      },
+      "com.vncode.app.features.license.LicenseStoreTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseStoreTest.xml",
+        "sha256": "c04b037d268d3cb07931980c8cd251f90efe8c0846b93d26abb27730d6fdb6c5",
+        "tests": 5
+      },
+      "com.vncode.app.features.license.LicenseTrustRotationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseTrustRotationTest.xml",
+        "sha256": "1802b8f3eb2ef35f961fbd6f781574214172001f13fd7c9a0bf787d808aba227",
+        "tests": 2
+      },
+      "com.vncode.app.features.license.LicenseVerifierTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.license.LicenseVerifierTest.xml",
+        "sha256": "48ced8a4d0b8a02b8187562a9d282cc33d5e2dfa3b154f08b7b56137d01a68fc",
+        "tests": 9
+      },
+      "com.vncode.app.features.listingcopy.CopyDefaultsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.listingcopy.CopyDefaultsTest.xml",
+        "sha256": "124094e2f151ac764784f50de1d2c8db75514a3404d882871a3e7241bb11061c",
+        "tests": 13
+      },
+      "com.vncode.app.features.listingcopy.ListingCopyMappingTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.listingcopy.ListingCopyMappingTest.xml",
+        "sha256": "8228dd8553979911a8f72809bb797024e9fc9a7e202ce05114ec24c63493e3f8",
+        "tests": 6
+      },
+      "com.vncode.app.features.listingcopy.ListingCopyServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.listingcopy.ListingCopyServiceTest.xml",
+        "sha256": "017a551a392e0b196b7885868eea63bac389b0df39874e7b529afeef6ecbd4ed",
+        "tests": 13
+      },
+      "com.vncode.app.features.listingcopy.ListingCopyWorkflowTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.listingcopy.ListingCopyWorkflowTest.xml",
+        "sha256": "f8a94104073c4e4042d01e08f1c9079f885fad9da57dca7b1306f2c979c2f3b4",
+        "tests": 1
+      },
+      "com.vncode.app.features.listingcopy.ListingMediaReaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.listingcopy.ListingMediaReaderTest.xml",
+        "sha256": "eff8299f3cad0f2dbd7aa2bde7e12e6371c66cfc65eb850a4a60e169d021c980",
+        "tests": 2
+      },
+      "com.vncode.app.features.news.NewsServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.news.NewsServiceTest.xml",
+        "sha256": "2fbb1d4cab1bf7bd39ea79ea449de821610ba9be37c938b382d015992e968a40",
+        "tests": 7
+      },
+      "com.vncode.app.features.news.NewsTranslationServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.news.NewsTranslationServiceTest.xml",
+        "sha256": "076df87b455fffbf8b43bc90c097247aa61225f385b42ee841a6642482fee860",
+        "tests": 4
+      },
+      "com.vncode.app.features.news.OfficialNewsServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.news.OfficialNewsServiceTest.xml",
+        "sha256": "0f4bef08ccbe7181edd73be1dbdf8cdb2dd94d7a1545422fa0fe427abf5eb660",
+        "tests": 6
+      },
+      "com.vncode.app.features.order.ExcelOrderImportServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.order.ExcelOrderImportServiceTest.xml",
+        "sha256": "85aa61083f936d80aab416a43fc586d6d3076ed55b6a37764e94eebd7bf8d29a",
+        "tests": 4
+      },
+      "com.vncode.app.features.ozon.OzonFbsPrintStateTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.ozon.OzonFbsPrintStateTest.xml",
+        "sha256": "d1f007da4baadd4585b6a5a4239a50a05b86037603ebaa634b9f5267ef584e7f",
+        "tests": 4
+      },
+      "com.vncode.app.features.ozon.OzonFbsSnapshotServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.ozon.OzonFbsSnapshotServiceTest.xml",
+        "sha256": "3bb848ccaebd40014e68c65c72cb49cac474b73b7273368adbc95235bf2927f2",
+        "tests": 6
+      },
+      "com.vncode.app.features.ozon.OzonPostingSortingServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.ozon.OzonPostingSortingServiceTest.xml",
+        "sha256": "187fdd2eedb144587afb7490c5ce10eb52cfad02cead8becd4662dca8737b205",
+        "tests": 2
+      },
+      "com.vncode.app.features.packing.WbPackingPartialBatchTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.packing.WbPackingPartialBatchTest.xml",
+        "sha256": "f6321daf63b10be14ace93efd71e795cf38a403a6bf278c395f542c3b0c57511",
+        "tests": 2
+      },
+      "com.vncode.app.features.print.BarcodePrintServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.BarcodePrintServiceTest.xml",
+        "sha256": "7f3a6fd451245f8955ba81272a16a4e014aa9d5edd6432e65cc9921e87a2a2c9",
+        "tests": 3
+      },
+      "com.vncode.app.features.print.history.PrintHistoryServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.history.PrintHistoryServiceTest.xml",
+        "sha256": "3b6f567b37c32af8748cba2a7aa9819b8062a12ea99830fe110e6d6915bb6aa7",
+        "tests": 1
+      },
+      "com.vncode.app.features.print.KizAttachmentCheckpointRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.KizAttachmentCheckpointRepositoryTest.xml",
+        "sha256": "702cc953863b159e0be26caf42b0c8e3b940aa86bcb14a88b2e5f4fbcde70389",
+        "tests": 2
+      },
+      "com.vncode.app.features.print.KizAttachmentCoordinatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.KizAttachmentCoordinatorTest.xml",
+        "sha256": "8056f7e26e161a8c516fa27b07658559da34f68d0045d03c4147dea372571326",
+        "tests": 16
+      },
+      "com.vncode.app.features.print.KizAttachmentResumeStoreTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.KizAttachmentResumeStoreTest.xml",
+        "sha256": "a6e7a6af683a7f44f14fe3df69ebb6911e669a82b2fee6de91fa5fa8f4068ab9",
+        "tests": 5
+      },
+      "com.vncode.app.features.print.KizCategoryDeletionExportTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.KizCategoryDeletionExportTest.xml",
+        "sha256": "610998b555977524d0647e16c59c1c044d0778e721d76c7ca5fce7783822faae",
+        "tests": 2
+      },
+      "com.vncode.app.features.print.KizPrintHistoryRecoveryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.KizPrintHistoryRecoveryTest.xml",
+        "sha256": "3de3dc72458ea866218301f1e01277811c039f0309559732329381e95b3b4465",
+        "tests": 2
+      },
+      "com.vncode.app.features.print.OrderDetailsPdfExporterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.OrderDetailsPdfExporterTest.xml",
+        "sha256": "1b1a63d548a6dd8efbe29a2144a33ce2145eea18adc0044c77655c31d4e61346",
+        "tests": 2
+      },
+      "com.vncode.app.features.print.OrderExportWorkflowKizPlanningTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.OrderExportWorkflowKizPlanningTest.xml",
+        "sha256": "b795a3832d74316cced5092690b3d4204dcea8dadeae3258844fe3b27a9dd391",
+        "tests": 17
+      },
+      "com.vncode.app.features.print.PrintPublishRecoveryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.PrintPublishRecoveryTest.xml",
+        "sha256": "a371a785066766f2c2324a0496727261d26bbe16db8573b935c731ebabab3a77",
+        "tests": 9
+      },
+      "com.vncode.app.features.print.PrintTemplateServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.PrintTemplateServiceTest.xml",
+        "sha256": "3dea349fcebf6f968c4d9ee086e0330f84c016e29de677cff843f71d108f9687",
+        "tests": 12
+      },
+      "com.vncode.app.features.print.StickerTextTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.StickerTextTest.xml",
+        "sha256": "60d81f1456fa7f4215a1f509714f99e879ab1ac8dfc8ca5ccf89b5e1c2fa12ed",
+        "tests": 2
+      },
+      "com.vncode.app.features.print.StickerVectorPdfTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.StickerVectorPdfTest.xml",
+        "sha256": "afcce948ec8ed2675900dd5ac0a5bd658eab64eb2764fa4d697258fe9a4ff461",
+        "tests": 1
+      },
+      "com.vncode.app.features.print.WbReshipmentLabelServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.WbReshipmentLabelServiceTest.xml",
+        "sha256": "79add83b3998ceff5585a324790308a8fe171cc1f5a3a6c97b83af5a22c7eb8e",
+        "tests": 5
+      },
+      "com.vncode.app.features.print.ZnackKizExportServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.print.ZnackKizExportServiceTest.xml",
+        "sha256": "ccb36ddb4e66a85bec2d54a4516fc4937362ee674428bc5ac5aa8084d9ddcf66",
+        "tests": 3
+      },
+      "com.vncode.app.features.products.ConfiguredProductDeclarationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ConfiguredProductDeclarationTest.xml",
+        "sha256": "80995a824a81b422bff2b1fd60beb3f8a105faaaf992cbe5e1a5e0e113dc6769",
+        "tests": 5
+      },
+      "com.vncode.app.features.products.ProductBulkDocumentBudgetTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductBulkDocumentBudgetTest.xml",
+        "sha256": "49bbac950bd7e880fb930d28263b50fc89324e50e3ce8ecec752697e16b896a1",
+        "tests": 4
+      },
+      "com.vncode.app.features.products.ProductBulkEditServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductBulkEditServiceTest.xml",
+        "sha256": "c4cb1fbe333bc556670efb70a3d29dc4389917bf9ff800cad8f748ab0dd2c031",
+        "tests": 25
+      },
+      "com.vncode.app.features.products.ProductBulkEditWbIntegrationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductBulkEditWbIntegrationTest.xml",
+        "sha256": "83ea7ed28ebdb138a3496d41536da5bfe44b47ad6a813b8f1dc74993dfc9487a",
+        "tests": 10
+      },
+      "com.vncode.app.features.products.ProductDefaultProposalTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductDefaultProposalTest.xml",
+        "sha256": "b5a9dc4e44fe3b5d7c93ecf3ad1815babe974accacae5aea0b5df7ebb75b654b",
+        "tests": 6
+      },
+      "com.vncode.app.features.products.ProductEditAdapterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductEditAdapterTest.xml",
+        "sha256": "c48fee1fb4bae4eeacf110aedd5ca94d3d7c3853014fad0999c041d632741c34",
+        "tests": 16
+      },
+      "com.vncode.app.features.products.ProductEditBatchIntegrationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductEditBatchIntegrationTest.xml",
+        "sha256": "be56bd0c7af96de2801f81fbf97e3ff084b869ebd3242f25a7a4ec06fd9e2ea5",
+        "tests": 39
+      },
+      "com.vncode.app.features.products.ProductRefreshServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductRefreshServiceTest.xml",
+        "sha256": "36109bcca82331806ff399432d2da674e528cb795d15fecf78f925df32c14d2b",
+        "tests": 3
+      },
+      "com.vncode.app.features.products.ProductRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductRepositoryTest.xml",
+        "sha256": "5ce3294357508b9a770372b2ac586f43cac2fdb331f3ee4ac38ab5cb079f9a5b",
+        "tests": 19
+      },
+      "com.vncode.app.features.products.ProductSnapshotReaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductSnapshotReaderTest.xml",
+        "sha256": "a5aa6dfef51440666f8521b8cea67022d1f304f46dfeac7c38a6aabad76592de",
+        "tests": 18
+      },
+      "com.vncode.app.features.products.ProductSuggestionsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductSuggestionsTest.xml",
+        "sha256": "13133add72f317ea444ced6ba619fa310f17956478403f86d0680009aba6c22b",
+        "tests": 5
+      },
+      "com.vncode.app.features.products.ProductVariantTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.ProductVariantTest.xml",
+        "sha256": "174ad2850503e92cd5dafa3cf831093b5f7eab5b4adda6204d1080a052244637",
+        "tests": 4
+      },
+      "com.vncode.app.features.products.WbProductReadStabilityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.products.WbProductReadStabilityTest.xml",
+        "sha256": "d24b0c730855baad0ad5d7933e64c83e37f4a89b5a9ae8ada460d0167e669e89",
+        "tests": 3
+      },
+      "com.vncode.app.features.shop.OzonSellerCacheIsolationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.shop.OzonSellerCacheIsolationTest.xml",
+        "sha256": "a064cc88e8b37d4f2a40ca7d18ec960492f5c5e5f85ec8d1facfbbff585a2e98",
+        "tests": 3
+      },
+      "com.vncode.app.features.shop.ShopOperationCoordinatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.shop.ShopOperationCoordinatorTest.xml",
+        "sha256": "6c2bd317b782e6db9abbdf23ca16af3bf9899d707c0959035c00200f47382387",
+        "tests": 1
+      },
+      "com.vncode.app.features.supply.OrderSortingServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.supply.OrderSortingServiceTest.xml",
+        "sha256": "c8e16e29100d98a939cebde814241adbf2e0b25a756352dcfe07bfb127a9c64d",
+        "tests": 2
+      },
+      "com.vncode.app.features.supply.SupplyDisplayCacheTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.supply.SupplyDisplayCacheTest.xml",
+        "sha256": "aa917b067c9d63fe9d28c3b27e0c2d138667bbb958af66b8a69f2255cc9c8223",
+        "tests": 3
+      },
+      "com.vncode.app.features.sync.CatalogKeyRotationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.CatalogKeyRotationTest.xml",
+        "sha256": "67e317038accf5878330aff1e6ad48377e0027e747ed8119b9b2abd9e47069bf",
+        "tests": 16
+      },
+      "com.vncode.app.features.sync.FbsSyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.FbsSyncServiceTest.xml",
+        "sha256": "6b443838274268b1e66c5e9260b850c82ca7026bb6424daabe4c59b4ad48ddbc",
+        "tests": 23
+      },
+      "com.vncode.app.features.sync.GtinBulkPipelineTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.GtinBulkPipelineTest.xml",
+        "sha256": "a0f7abc0ee7f7e1cf09b8c0f153b4ef855362283a0551ad104a63b30c9e16d31",
+        "tests": 14
+      },
+      "com.vncode.app.features.sync.GtinRunStatusSnapshotTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.GtinRunStatusSnapshotTest.xml",
+        "sha256": "73876eff7cf5a604b97a6caa89ccc1a3a9c66db0d0b01ff0d25947f066cf9179",
+        "tests": 6
+      },
+      "com.vncode.app.features.sync.RegistrationAttemptReportsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.RegistrationAttemptReportsTest.xml",
+        "sha256": "7498a84df04566e0faab308fa13533e7a600704ddb316f5b59571f10891a296a",
+        "tests": 6
+      },
+      "com.vncode.app.features.sync.RegistrationCardIndexTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.RegistrationCardIndexTest.xml",
+        "sha256": "0d8625163b086cea96107645f68f23744bb3cf18d5667c236cc407cec9b67445",
+        "tests": 28
+      },
+      "com.vncode.app.features.sync.RegistrationSourcesTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.RegistrationSourcesTest.xml",
+        "sha256": "3f1d255240c67fdff49f3bdd690f871aaa92fd3f0a056aeb0af74b6620bb1e42",
+        "tests": 15
+      },
+      "com.vncode.app.features.sync.SyncCoordinatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.SyncCoordinatorTest.xml",
+        "sha256": "cb5d150e061b0685fb645ace8e277c2730a2c68c4c53a143e90f4ade695dced6",
+        "tests": 16
+      },
+      "com.vncode.app.features.sync.SyncDataScopeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.SyncDataScopeTest.xml",
+        "sha256": "6d96f2341284e004ac06459eacb8b2cec24dd3b3c477879185da1e33890df872",
+        "tests": 1
+      },
+      "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest.xml",
+        "sha256": "4f25412320f08206a272ec7387cc3d7197a69db781f7fd0367a29ec2f06e7b1e",
+        "tests": 4
+      },
+      "com.vncode.app.features.sync.SyncRunRepositoryMetricsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.SyncRunRepositoryMetricsTest.xml",
+        "sha256": "101a596b72867cd9acbf4525977dfa4f24591474f92f5cb6a26290d1fa96918f",
+        "tests": 3
+      },
+      "com.vncode.app.features.sync.WbAutomaticGtinUpdateTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.WbAutomaticGtinUpdateTest.xml",
+        "sha256": "9dc4e9219889b27c8118c11857a24851d7dc3ee3ff2e5546293da0766ff2e28f",
+        "tests": 3
+      },
+      "com.vncode.app.features.sync.WbBarcodeCompletionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.WbBarcodeCompletionTest.xml",
+        "sha256": "808740ba49d46f0c5108957bc0d69780c5988502bb169c01d50e5c56665a809c",
+        "tests": 10
+      },
+      "com.vncode.app.features.sync.ZnackAutoSyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.ZnackAutoSyncServiceTest.xml",
+        "sha256": "642919e2af67a418a867c13fa54592bc9d83283220b66f1b3989d9710cb8e6fe",
+        "tests": 36
+      },
+      "com.vncode.app.features.sync.ZnackCatalogSyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.ZnackCatalogSyncServiceTest.xml",
+        "sha256": "3ae615dfdb8a2b4925c9fdc588185c400fc4e1ee0492c0ffb63cfceaed62b7b3",
+        "tests": 11
+      },
+      "com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.ZnackGtinBackgroundServiceTest.xml",
+        "sha256": "03a811f6666dba652de6be6b04f5edf228c201bf6b7f2ef0cca888e648c8903b",
+        "tests": 12
+      },
+      "com.vncode.app.features.sync.ZnackMarketplaceActivationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.sync.ZnackMarketplaceActivationTest.xml",
+        "sha256": "2f4ae775c30601d78171af5197e87e1d352b6532536096299af2aa57f8f81bcf",
+        "tests": 3
+      },
+      "com.vncode.app.features.tnved.FashionTnvedTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.tnved.FashionTnvedTest.xml",
+        "sha256": "5eb39b8abdf2d0915cea0e94d475c1a2f9c3a0ff707eeafede83c28055eafccc",
+        "tests": 5
+      },
+      "com.vncode.app.features.tnved.ProductTnvedReviewServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.tnved.ProductTnvedReviewServiceTest.xml",
+        "sha256": "ec66df89d057e4b6815bf90e24a3c46631db8f8eda7582b926480fd8e92db27f",
+        "tests": 3
+      },
+      "com.vncode.app.features.tnved.TnvedCatalogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.tnved.TnvedCatalogTest.xml",
+        "sha256": "d9d3122319cb4b759d2762f88c7850140ec34a2dd0e86a41c8b1f371aaa15b83",
+        "tests": 7
+      },
+      "com.vncode.app.features.tnved.TnvedImporterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.tnved.TnvedImporterTest.xml",
+        "sha256": "d434e9b799a3d8e1dc069b9229e962be5053358516f235cb78b7b83175e18f5e",
+        "tests": 4
+      },
+      "com.vncode.app.features.znack.ZnackWorkspaceRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.features.znack.ZnackWorkspaceRepositoryTest.xml",
+        "sha256": "472062d8a063250a4855c73120bf45e998485aabea51b35b8788b335d389aeb3",
+        "tests": 5
+      },
+      "com.vncode.app.integration.gs1.Gs1MailClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.gs1.Gs1MailClientTest.xml",
+        "sha256": "2276c2960e2c68e94744acc4501d0f9e09a3cd2daebb81f9bae8d3a7d7747d3d",
+        "tests": 3
+      },
+      "com.vncode.app.integration.gs1.Gs1MembershipTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.gs1.Gs1MembershipTest.xml",
+        "sha256": "f453ee1c3d8707e0d1d9e1dc84701546b71b341774c5b63334feb995812c4032",
+        "tests": 4
+      },
+      "com.vncode.app.integration.gs1.Gs1MimeMailboxTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.gs1.Gs1MimeMailboxTest.xml",
+        "sha256": "f476b28f6301dd492def1545261f39c9d2da4f13c0bc8020a0a4e432a8a07793",
+        "tests": 4
+      },
+      "com.vncode.app.integration.gs1.NationalCatalogGs1ClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.gs1.NationalCatalogGs1ClientTest.xml",
+        "sha256": "11fb619f97c86f0a967e04a777a51af20ccd4eab7308475b1f4274341d3a20cf",
+        "tests": 10
+      },
+      "com.vncode.app.integration.license.LicenseConnectionRouterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.license.LicenseConnectionRouterTest.xml",
+        "sha256": "88ba458a89405c6bf6eba51e21c72dd9254654c5cf8db783c754ac644e4fc8b7",
+        "tests": 4
+      },
+      "com.vncode.app.integration.license.LicenseNetworkDiagnosticsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.license.LicenseNetworkDiagnosticsTest.xml",
+        "sha256": "8811af9331684456ce4b412db2985f73eb087bfac2679689d92ff9ad8c3e77de",
+        "tests": 8
+      },
+      "com.vncode.app.integration.license.PortalClientContractTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.license.PortalClientContractTest.xml",
+        "sha256": "13deb825295bff356dd57ec78448b32af568091d8b146d6ff78b11a2ec7ddea1",
+        "tests": 6
+      },
+      "com.vncode.app.integration.license.WebLicenseApiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.license.WebLicenseApiTest.xml",
+        "sha256": "93a155b9b29a11c757583ad3b631049f896a10ea9076c287e254c9158c05b6bd",
+        "tests": 25
+      },
+      "com.vncode.app.integration.listing.CatalogIdentityEvidenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.listing.CatalogIdentityEvidenceTest.xml",
+        "sha256": "3714291e6561f613ae8e6d02299c381e5b9b98c9d6d94cb79fbc2e855db3204b",
+        "tests": 1
+      },
+      "com.vncode.app.integration.listing.CredentialMigrationIdentityContractTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.listing.CredentialMigrationIdentityContractTest.xml",
+        "sha256": "2042789a1ae60e0f088400ac11997bf39816c5f59f54e3d16d5d26b4eab288fc",
+        "tests": 2
+      },
+      "com.vncode.app.integration.listing.GtinBatchTransportTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.listing.GtinBatchTransportTest.xml",
+        "sha256": "80559d8e15a102375949c7babcdc956e7e3de94a640cbaa77e5a7c6a1b64bf14",
+        "tests": 7
+      },
+      "com.vncode.app.integration.listing.GtinSnapshotStoreTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.listing.GtinSnapshotStoreTest.xml",
+        "sha256": "484b370ce06ca839b773d6b684e2dbff6f4c28ffec65ef1d0a1383709cde2f14",
+        "tests": 2
+      },
+      "com.vncode.app.integration.listing.ListingBeforeSendGuardTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.listing.ListingBeforeSendGuardTest.xml",
+        "sha256": "37be4a4b5b6c4093ba335c23c9aa6c49a41dae84511a3934bcdb5a7b162ed870",
+        "tests": 7
+      },
+      "com.vncode.app.integration.listing.ListingOwnerCheckBatchTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.listing.ListingOwnerCheckBatchTest.xml",
+        "sha256": "a231717d0438d1869bf3d0103bbeb244effa06daf738106895de67f3b411afda",
+        "tests": 2
+      },
+      "com.vncode.app.integration.listing.ListingRateLimitExceptionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.listing.ListingRateLimitExceptionTest.xml",
+        "sha256": "d7801454061378194f3ececdb4966b3a71648948537584256280101197fda7b7",
+        "tests": 4
+      },
+      "com.vncode.app.integration.listing.WbPriceTransportRateLimitTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.listing.WbPriceTransportRateLimitTest.xml",
+        "sha256": "e40f895992443f0c260c85aab1a7967828cfa884d6938e8ca3383cf280af2d01",
+        "tests": 2
+      },
+      "com.vncode.app.integration.marketplace.MarketplaceIsolationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.marketplace.MarketplaceIsolationTest.xml",
+        "sha256": "516761b6a4c58fc3a5e1d3de7ab7083f2e059a05e0b3c7c2ffedde035a653f50",
+        "tests": 1
+      },
+      "com.vncode.app.integration.ozon.finance.OzonFinanceAccrualApiClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.finance.OzonFinanceAccrualApiClientTest.xml",
+        "sha256": "ca086badce74a03211c67de5cc24307df67dac0f29a07b5303c32471ba662d7e",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.finance.OzonFinanceApiClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.finance.OzonFinanceApiClientTest.xml",
+        "sha256": "25a111673e0d40709e50c36f3d4a31e160796a73765b7ddbd8caf107ba3da289",
+        "tests": 4
+      },
+      "com.vncode.app.integration.ozon.OzonAcceptanceKizTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonAcceptanceKizTest.xml",
+        "sha256": "ec538f0adff5e0259ea8cfb98b8d6c03dbee2e27b65d3ec7aa2f3b224f73801f",
+        "tests": 45
+      },
+      "com.vncode.app.integration.ozon.OzonAcceptanceSourceSnapshotTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonAcceptanceSourceSnapshotTest.xml",
+        "sha256": "f2b4b8c4c66cc104ca15099dd38c4ddb7b164e87d7028576999a07de59e16c7d",
+        "tests": 4
+      },
+      "com.vncode.app.integration.ozon.OzonApiClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonApiClientTest.xml",
+        "sha256": "653440260f25e54e9fca81fa5f53546d1e28f70c2f716bf707c52d89e7fbe8a1",
+        "tests": 9
+      },
+      "com.vncode.app.integration.ozon.OzonApiRateLimiterCooldownTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonApiRateLimiterCooldownTest.xml",
+        "sha256": "7437242a01d971cde9ef847c582478e547fc704ae597f887283aba9e4159e163",
+        "tests": 2
+      },
+      "com.vncode.app.integration.ozon.OzonBarcodeQuotaTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonBarcodeQuotaTest.xml",
+        "sha256": "5e18aa089fcc4a8616d50948e3b83e6c0e1ef9d1f917f4b20f52be7f2441085b",
+        "tests": 2
+      },
+      "com.vncode.app.integration.ozon.OzonBatchPdfPerformanceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonBatchPdfPerformanceTest.xml",
+        "sha256": "c3fad446c8a98a5f5b08c9ef941054d37343de97e53548a5d6c3b0296d1435f7",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.OzonCarrierLabelNumbersTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonCarrierLabelNumbersTest.xml",
+        "sha256": "7d0e30351c7f71589f5b60c752abfd600c756763f4b41df9ba9775633bbf8454",
+        "tests": 5
+      },
+      "com.vncode.app.integration.ozon.OzonCatalogBarcodeOrderingTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonCatalogBarcodeOrderingTest.xml",
+        "sha256": "27a3695519cc949fb680ac48ee590bb150c09e7b7f39bc25630c81b3d1d6ee83",
+        "tests": 2
+      },
+      "com.vncode.app.integration.ozon.OzonCombinedLabelRendererTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonCombinedLabelRendererTest.xml",
+        "sha256": "612497e3d15c1619741b7befcdcbe166e6aa52720eaf741577dacd405bc1138d",
+        "tests": 4
+      },
+      "com.vncode.app.integration.ozon.OzonDurableReservationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonDurableReservationTest.xml",
+        "sha256": "08dcb18b5debf6950d9d94ae50b1d6f2e4905e8d17bc907afe9f331086bf78ae",
+        "tests": 1
+      },
+      "com.vncode.app.integration.ozon.OzonExemplarStateMachineTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonExemplarStateMachineTest.xml",
+        "sha256": "b81f3d060fa0dbb21a31c026daffc0c5026dcf170ed624c212a213acec44425b",
+        "tests": 7
+      },
+      "com.vncode.app.integration.ozon.OzonExemplarWorkflowTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonExemplarWorkflowTest.xml",
+        "sha256": "43f7e2d971db4d5108663742264abe6ffa2521f87ec8e6bfea568a419bd126d3",
+        "tests": 12
+      },
+      "com.vncode.app.integration.ozon.OzonExplicitSizeReaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonExplicitSizeReaderTest.xml",
+        "sha256": "188abc2839cc6f5d26518f3abf22eb9020e39f30e7152c898f083f4f6b803c71",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.OzonFboApiClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonFboApiClientTest.xml",
+        "sha256": "bb71a71d4446470ffd5c81703b9df2c9550cfbfd7b5bbaf1377f6f722a822c58",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.OzonFboCombinedPrintTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonFboCombinedPrintTest.xml",
+        "sha256": "f9e3499603b680e29fe38830454b0f82ab34563a6f08129dac620dd2bef8e64d",
+        "tests": 5
+      },
+      "com.vncode.app.integration.ozon.OzonFboWorkflowTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonFboWorkflowTest.xml",
+        "sha256": "1ddf558287c640495d520b6049550410a5027ecf92d70b1b6c14dc2e7f23a64f",
+        "tests": 4
+      },
+      "com.vncode.app.integration.ozon.OzonFbsPrintReportTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonFbsPrintReportTest.xml",
+        "sha256": "28df710a93ca0f5b60a3626187359f728a66554a92c92f0eefdd46bdf3819326",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.OzonFilteredSelectionQueryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonFilteredSelectionQueryTest.xml",
+        "sha256": "e1bee8c60f44b159ad49db9930281827a900407e20209083c8c0f36a1e05c0e5",
+        "tests": 2
+      },
+      "com.vncode.app.integration.ozon.OzonGtinAdapterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonGtinAdapterTest.xml",
+        "sha256": "fa7fc8c8bc615e6f72156496232c5d34e9d7d1cb2afddfb23d7c7090e85ad081",
+        "tests": 38
+      },
+      "com.vncode.app.integration.ozon.OzonGtinProductReaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonGtinProductReaderTest.xml",
+        "sha256": "9187242308357571c0d6562d6b9fa158432594b13442728c18c9437ca4c29698",
+        "tests": 21
+      },
+      "com.vncode.app.integration.ozon.OzonJsonTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonJsonTest.xml",
+        "sha256": "b9d4a057663d3e4ef8dd4e64e86d1b77ca674ffecad2e24f4b9981122fcb5667",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.OzonLabelPageIdentityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonLabelPageIdentityTest.xml",
+        "sha256": "2c2e0b2db846d7d6c507a789efa14bba35b8001a0c58b76d875421c2db829f3d",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.OzonLabelServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonLabelServiceTest.xml",
+        "sha256": "9ad77baa651ed9211bd42aa9dbea66b4ee3fd00b07cbc47b0191b5e331366777",
+        "tests": 52
+      },
+      "com.vncode.app.integration.ozon.OzonLargeShopReservationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonLargeShopReservationTest.xml",
+        "sha256": "879e384bd4bfd7b72796cbe9c7391ff49a841967573bcaa06465f94b0820ed23",
+        "tests": 5
+      },
+      "com.vncode.app.integration.ozon.OzonListingAdapterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonListingAdapterTest.xml",
+        "sha256": "6251e1dd8d96ad51ef3269032cf6fe79f4d58858cd329c8452e8bcf6c92d72d3",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.OzonListingImagesTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonListingImagesTest.xml",
+        "sha256": "f27fd45682150628d822c1497b4fe025b7a3fd4cc48fb3f13aa97e81fbaabc1d",
+        "tests": 2
+      },
+      "com.vncode.app.integration.ozon.OzonLiveAcceptanceCliTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonLiveAcceptanceCliTest.xml",
+        "sha256": "b0f54137eb6c51369c649881a0d6d389fb69f02a6538b54025966c3d63d3b7ec",
+        "tests": 2
+      },
+      "com.vncode.app.integration.ozon.OzonMappingAtomicIndependentTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonMappingAtomicIndependentTest.xml",
+        "sha256": "2c299cebbebe9e32290822541a81f1abb603c39f2e3ae70ff3925b20c24a6806",
+        "tests": 7
+      },
+      "com.vncode.app.integration.ozon.OzonOfficialLabelSelectorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonOfficialLabelSelectorTest.xml",
+        "sha256": "81d4e17ad4125c3340cf632b61043ba3f7d9ee4db9c58aa40a621c149ccc361a",
+        "tests": 14
+      },
+      "com.vncode.app.integration.ozon.OzonPerUnitPackageTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPerUnitPackageTest.xml",
+        "sha256": "73c87aa31fc8ea73be8e0e31ce3838b160af6bf4e09de44ffc161beca5cb315d",
+        "tests": 12
+      },
+      "com.vncode.app.integration.ozon.OzonPerUnitShipServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPerUnitShipServiceTest.xml",
+        "sha256": "1dc227b73ca6e8de44b56c7e8271f1cc7436aad3b47e293261c107115606041f",
+        "tests": 22
+      },
+      "com.vncode.app.integration.ozon.OzonPickingListPdfExporterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPickingListPdfExporterTest.xml",
+        "sha256": "b6a4b57ffabcf8a494eab461d8533ee417ca6e9e3d9c6419fbc199fc55948690",
+        "tests": 6
+      },
+      "com.vncode.app.integration.ozon.OzonPostingRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPostingRepositoryTest.xml",
+        "sha256": "55310d581c1c95214c54fea190634d8940b3db9c8a7af1c05be27e1e43a9acce",
+        "tests": 4
+      },
+      "com.vncode.app.integration.ozon.OzonPostingTrackingStoreTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPostingTrackingStoreTest.xml",
+        "sha256": "704f399f8a517b0e6c4b6fc8aad5cf22ca9749d286d9b5b3555eb26e0dd4f1a0",
+        "tests": 11
+      },
+      "com.vncode.app.integration.ozon.OzonPrintBatchReadTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPrintBatchReadTest.xml",
+        "sha256": "ff90ba38ee2ff57fbed549af688e548c68b2b4949aff3c28f00ffa43903e1825",
+        "tests": 5
+      },
+      "com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest.xml",
+        "sha256": "7173a59f433fd475ac58ca2c3c05e0e2f1cfcb39d8945bbc3ca0050df5f4a435",
+        "tests": 10
+      },
+      "com.vncode.app.integration.ozon.OzonPrintBundleServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPrintBundleServiceTest.xml",
+        "sha256": "7a9d074147ecd0b68993d09d1f2fbf8b0f0937e13b8f7d10ca563370800d4d68",
+        "tests": 73
+      },
+      "com.vncode.app.integration.ozon.OzonPrintHistoryServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPrintHistoryServiceTest.xml",
+        "sha256": "4d7803205ff1385a8ee4ec60a0697e29755008dcaa1eaee88a1a41b4dc8fe380",
+        "tests": 1
+      },
+      "com.vncode.app.integration.ozon.OzonPrintProductSnapshotTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPrintProductSnapshotTest.xml",
+        "sha256": "87d9cc07e71dfd1846c19789b8a2483b75c042a92bb2be17d90d57bf986cfda0",
+        "tests": 7
+      },
+      "com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPrintReadinessServiceTest.xml",
+        "sha256": "85e103e3abe204b01e806c0eee05a11f952446fdbaf6d8776ec00e3fd714115e",
+        "tests": 10
+      },
+      "com.vncode.app.integration.ozon.OzonPrintTimingTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonPrintTimingTest.xml",
+        "sha256": "d38feaf67c00c86c0fbae49982b632ed63633f5d50e98c6542a3f14af70b6f30",
+        "tests": 1
+      },
+      "com.vncode.app.integration.ozon.OzonProductBarcodePageTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonProductBarcodePageTest.xml",
+        "sha256": "2ba42792beb9f82cdb4c93fb64b911d0568f2a7adbfb43b782e33cb682094caa",
+        "tests": 1
+      },
+      "com.vncode.app.integration.ozon.OzonProductCardAttributeParserTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonProductCardAttributeParserTest.xml",
+        "sha256": "74cf0164ce675c3433b6e67f051ebc869bb43f54944b237e20554372b708c6ba",
+        "tests": 3
+      },
+      "com.vncode.app.integration.ozon.OzonProductGtinMappingRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonProductGtinMappingRepositoryTest.xml",
+        "sha256": "fc2426bf29ee48ce763900f9a4ddd4f2dd9b876af601905340e0cdd7b3264c07",
+        "tests": 6
+      },
+      "com.vncode.app.integration.ozon.OzonProductKizPolicyRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonProductKizPolicyRepositoryTest.xml",
+        "sha256": "3e6014cfdaa4c44d4f33707a6dce311c1efe82ab423037f49d8868b8e0283615",
+        "tests": 2
+      },
+      "com.vncode.app.integration.ozon.OzonProductLabelBarcodeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonProductLabelBarcodeTest.xml",
+        "sha256": "55caee2f92c7c674659ac0f4a1e63fd6139f10fe75ce836b816fd2848c3652ca",
+        "tests": 8
+      },
+      "com.vncode.app.integration.ozon.OzonRegistrationResumeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonRegistrationResumeTest.xml",
+        "sha256": "7c88b968b6580f3114fc3eff0e08aadfbcbc50fdc78f5c0bcf9280725d820d48",
+        "tests": 8
+      },
+      "com.vncode.app.integration.ozon.OzonRequirementAndPackageTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonRequirementAndPackageTest.xml",
+        "sha256": "300662c78a6dafabd81efc6b8cfe8207979183aef6cd136effbdd1a34481f079",
+        "tests": 6
+      },
+      "com.vncode.app.integration.ozon.OzonSharedCredentialCooldownTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonSharedCredentialCooldownTest.xml",
+        "sha256": "b3e76a3b2b4c5bf89a1a167d7bbe8fb61c2f507029b46b9375d3812215d04200",
+        "tests": 1
+      },
+      "com.vncode.app.integration.ozon.OzonShipRateLimitTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonShipRateLimitTest.xml",
+        "sha256": "cbd0dd4fd420a49e7c8e4b1eba55c8dad0127f227a64686b8ea8e9181d9af23c",
+        "tests": 2
+      },
+      "com.vncode.app.integration.ozon.OzonShipServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonShipServiceTest.xml",
+        "sha256": "a39d113fb3cbeebbbeccdc4a4c7450d11a6d6a5f329dfeded996f4b1ea5e3faa",
+        "tests": 9
+      },
+      "com.vncode.app.integration.ozon.OzonSnapshotRevisionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonSnapshotRevisionTest.xml",
+        "sha256": "187fbce8bee9b29f06cfe54b2be7a43a4afe1c3ec55f4bba3afaf16e8fd3e95f",
+        "tests": 9
+      },
+      "com.vncode.app.integration.ozon.OzonSyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.ozon.OzonSyncServiceTest.xml",
+        "sha256": "c73b9cd0e2119ae71ee6f64fbb5c5d20545b4b76eab14ea4b5e7339da70c23b4",
+        "tests": 33
+      },
+      "com.vncode.app.integration.translation.AutomaticNewsTranslatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.translation.AutomaticNewsTranslatorTest.xml",
+        "sha256": "f2c4775cea40373bd0682d36db359a5f5dabe0438540907d9e9f4d759e718e6b",
+        "tests": 3
+      },
+      "com.vncode.app.integration.translation.YandexNewsTranslatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.translation.YandexNewsTranslatorTest.xml",
+        "sha256": "cd1f4245de2b75a68f56630c02396ee923242dee36d3e5feb4be64d7fcd681f0",
+        "tests": 3
+      },
+      "com.vncode.app.integration.update.SignedUpdateManifestTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.SignedUpdateManifestTest.xml",
+        "sha256": "8aee2511717e6392ed50be99cdd34fd15e1841cae26d8e91a72c52d1fb3a3b3a",
+        "tests": 3
+      },
+      "com.vncode.app.integration.update.UpdateApiClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.UpdateApiClientTest.xml",
+        "sha256": "c873d3464253a43341aebfaa8daae338c014490c36fe1e0cea2741747af4e498",
+        "tests": 9
+      },
+      "com.vncode.app.integration.update.UpdateCancellationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.UpdateCancellationTest.xml",
+        "sha256": "cc9d5cbbada59a1844d1113bca56faead2c3f3e228da25016c8cedf4a2e80d8a",
+        "tests": 2
+      },
+      "com.vncode.app.integration.update.UpdateDownloadVerificationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.UpdateDownloadVerificationTest.xml",
+        "sha256": "1e1018a9d88a8086932063fd43077094b2b8c7f2246d10de8ea320fe57248a97",
+        "tests": 4
+      },
+      "com.vncode.app.integration.update.UpdateInstallerServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.UpdateInstallerServiceTest.xml",
+        "sha256": "703df5f3654203302dc4a21765f18c7a488e2a0ec61ed9bff6de766eb7a96d69",
+        "tests": 4
+      },
+      "com.vncode.app.integration.update.UpdatePresentationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.UpdatePresentationTest.xml",
+        "sha256": "3803571f3481ddb0372d4ef92b53de2ca4b3d927889a037f87beabfa3f0458c8",
+        "tests": 2
+      },
+      "com.vncode.app.integration.update.UpdateServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.UpdateServiceTest.xml",
+        "sha256": "d2382ec876c87fdb0e16f35fd04e63a122fb16e07ff1106389b2ef0055057317",
+        "tests": 2
+      },
+      "com.vncode.app.integration.update.UpdateSourceIsolationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.UpdateSourceIsolationTest.xml",
+        "sha256": "30eaf0623f039cbc9cccd1f8e3c7365ba2c76e3b498c0580621f4a73de9d4007",
+        "tests": 1
+      },
+      "com.vncode.app.integration.update.UpdateTransportTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.UpdateTransportTest.xml",
+        "sha256": "a386773a1717f330b1665d1525443b16b43034da8fe9bf88cf96994fba696365",
+        "tests": 3
+      },
+      "com.vncode.app.integration.update.VersionComparatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.update.VersionComparatorTest.xml",
+        "sha256": "38a62f66568269538db9256bea05d8dc7f2fd7c670fa8e7709bfbbe058807712",
+        "tests": 8
+      },
+      "com.vncode.app.integration.wb.fbw.WbFbwApiClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.fbw.WbFbwApiClientTest.xml",
+        "sha256": "3a0fca892ff98d52d4b22f42f3fb6e424e6f7cda8fd93d43d1b4178c27c5f166",
+        "tests": 3
+      },
+      "com.vncode.app.integration.wb.finance.WbAdvertisingApiClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.finance.WbAdvertisingApiClientTest.xml",
+        "sha256": "d2b5fa2393137b6c71357ac2e0621449e3ee40cf0e4a92f53df33958bac76e61",
+        "tests": 2
+      },
+      "com.vncode.app.integration.wb.finance.WbFinanceApiClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.finance.WbFinanceApiClientTest.xml",
+        "sha256": "81a40441461c8a1d10ada96fae029bc1afbb54cab5eb152edca4fc25dddef0ce",
+        "tests": 5
+      },
+      "com.vncode.app.integration.wb.WbApiDiagnosticSafetyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbApiDiagnosticSafetyTest.xml",
+        "sha256": "b39b1c096897300c494f730bd0d1ae67e4a3efa14dd37d7d9bd19e6927d5b9a2",
+        "tests": 4
+      },
+      "com.vncode.app.integration.wb.WbApiSchemaMappingTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbApiSchemaMappingTest.xml",
+        "sha256": "76b2f8a90a5416b15d9838d31a89c3778398a9d3d7e9208ce6f75f74ec43d600",
+        "tests": 6
+      },
+      "com.vncode.app.integration.wb.WbContentApiRateLimiterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbContentApiRateLimiterTest.xml",
+        "sha256": "7dbff84e921dfdd5bf9941ed6cbc1825280738abbf46ba3f49dce2b2f0286900",
+        "tests": 7
+      },
+      "com.vncode.app.integration.wb.WbDebtShipmentServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbDebtShipmentServiceTest.xml",
+        "sha256": "4f69cdb1a5a33672a72d84c69e38fcfe6332a18cefab36f9c5089988c282f3b5",
+        "tests": 6
+      },
+      "com.vncode.app.integration.wb.WbFbsSnapshotRaceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbFbsSnapshotRaceTest.xml",
+        "sha256": "dd3472ed9c281a3c2f708510a918940af1a907a955c1dec7025deb07922ea326",
+        "tests": 8
+      },
+      "com.vncode.app.integration.wb.WbGtinAdapterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbGtinAdapterTest.xml",
+        "sha256": "66aca154e2fccb11e89a375302e10341b35718fbbfba97cd6f2363b80d749117",
+        "tests": 51
+      },
+      "com.vncode.app.integration.wb.WbGtinPriceRepairTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbGtinPriceRepairTest.xml",
+        "sha256": "d5a076d6a67ed28a0cece4aa749f08f7a11aa8753ed8beb9a41d365ef2270d65",
+        "tests": 16
+      },
+      "com.vncode.app.integration.wb.WbGtinProductReaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbGtinProductReaderTest.xml",
+        "sha256": "5b72945f1ad28e6fce8dd01069be3b414a4cfbc132e4e70b57e42387ed1be22a",
+        "tests": 7
+      },
+      "com.vncode.app.integration.wb.WbListingAdapterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbListingAdapterTest.xml",
+        "sha256": "018a3b358a80988bd94aafc24d56f3ee45cc258a410bf9686d883f7457b7458e",
+        "tests": 5
+      },
+      "com.vncode.app.integration.wb.WbManualSyncIntegrityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbManualSyncIntegrityTest.xml",
+        "sha256": "afa1215424b3389d31a108df14cfc9e6ad416b168636aec0c39a3a637bb10c06",
+        "tests": 7
+      },
+      "com.vncode.app.integration.wb.WbMarketplaceCooldownTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbMarketplaceCooldownTest.xml",
+        "sha256": "f5c0b2c5f0a6aba1e3e59d0e85fd28592caefbe2c69d55ff1cc509d8e018e55a",
+        "tests": 2
+      },
+      "com.vncode.app.integration.wb.WbNewsClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbNewsClientTest.xml",
+        "sha256": "73d4e2a5404691be33585ee3dd46e0a3a73fa8f951ca45ec5d65e0c49eb1eb6c",
+        "tests": 2
+      },
+      "com.vncode.app.integration.wb.WbOrderRepositorySupplyDetailsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbOrderRepositorySupplyDetailsTest.xml",
+        "sha256": "30f575dc28f6735f0e735b184873b5376924275d5efbf8e18dde57f2f53b4bcd",
+        "tests": 11
+      },
+      "com.vncode.app.integration.wb.WbPriceApiRateLimiterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbPriceApiRateLimiterTest.xml",
+        "sha256": "6fe3bd263f80477cb2f60672887039d4b68b27f9940ce98a8fad577020e3eb71",
+        "tests": 6
+      },
+      "com.vncode.app.integration.wb.WbRegistrationSnapshotTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbRegistrationSnapshotTest.xml",
+        "sha256": "f1025c34e16a27ec67352e22b2f7066956415c7c083f2ec0ce917ac1653d634c",
+        "tests": 14
+      },
+      "com.vncode.app.integration.wb.WbShippingContractTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbShippingContractTest.xml",
+        "sha256": "7be954fb59565c46cc7723e3e41c0abf5fc5db2a9799c640f9068d843d545383",
+        "tests": 4
+      },
+      "com.vncode.app.integration.wb.WbShippingHistoryServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbShippingHistoryServiceTest.xml",
+        "sha256": "2c5d5e37dc9ac9b6aa46417836e89b2088294b4f140b61fadfcdc48bf99a6bb0",
+        "tests": 7
+      },
+      "com.vncode.app.integration.wb.WbShippingPreferenceServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbShippingPreferenceServiceTest.xml",
+        "sha256": "6b7968e368f4f287e958d3bdff26db1ee98b5993380d646aa497ab441af4f872",
+        "tests": 1
+      },
+      "com.vncode.app.integration.wb.WbShippingServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbShippingServiceTest.xml",
+        "sha256": "c3c08418dd92b183195cfe3dd31446a9f4634a8ab0abd69889045dce3cc26905",
+        "tests": 5
+      },
+      "com.vncode.app.integration.wb.WbShippingTransportTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbShippingTransportTest.xml",
+        "sha256": "144bf801ed061bf60492c41032af785506101d9a267e3b743a3f26a1411de0dc",
+        "tests": 1
+      },
+      "com.vncode.app.integration.wb.WbStatusBatchIntegrityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbStatusBatchIntegrityTest.xml",
+        "sha256": "1483ddced4cf2b8deaba317974f8700fa220c10af5929035989641db6a836e6a",
+        "tests": 1
+      },
+      "com.vncode.app.integration.wb.WbStickerServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbStickerServiceTest.xml",
+        "sha256": "a2555b72c71a0b005b01232f5352dcb47a75db7b29499557e9e0e1e2fe7ea8d8",
+        "tests": 3
+      },
+      "com.vncode.app.integration.wb.WbSupplyImagesTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbSupplyImagesTest.xml",
+        "sha256": "a67aed6b5971dfaac9ae7594ce17f4b7aec6b83c8682de628d994907bf165b28",
+        "tests": 2
+      },
+      "com.vncode.app.integration.wb.WbSupplySyncServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbSupplySyncServiceTest.xml",
+        "sha256": "70856ab52fdd8565fdeef5491f4dbf9a2847e374963e74dcf57a8b35bcb17a0e",
+        "tests": 5
+      },
+      "com.vncode.app.integration.wb.WbSupplyWorkflowTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbSupplyWorkflowTest.xml",
+        "sha256": "2ef7d4a9fb049c580c55f3682ea7fd716c9a1e604d5d1d5c21a0fcf5814a571d",
+        "tests": 3
+      },
+      "com.vncode.app.integration.wb.WbSyncRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.wb.WbSyncRepositoryTest.xml",
+        "sha256": "2b0e156e006315e31899cf2cbf5aeab128ced6a59ea6a95405b6f2ad3960f870",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.CatalogApiAuthorizationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.CatalogApiAuthorizationTest.xml",
+        "sha256": "29d84e506f372daf8aeedecbe74fdd991c03af75b27e6f8b38db40bcc25d9966",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.CatalogCountryDiagnosticsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.CatalogCountryDiagnosticsTest.xml",
+        "sha256": "bdb41c4610a1162c76f5c73dca60c235d6c2d4b42e073b3c0c34648d2aef87ac",
+        "tests": 10
+      },
+      "com.vncode.app.integration.znack.CatalogCredentialRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.CatalogCredentialRepositoryTest.xml",
+        "sha256": "2a6ca890ff0657535b838626d40c69cd37b467a9e563bf2bf622d859cbb81914",
+        "tests": 8
+      },
+      "com.vncode.app.integration.znack.CatalogDeviceConnectionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.CatalogDeviceConnectionTest.xml",
+        "sha256": "9245c811bcc5c2ce49f60014e0064e6c46688d2c89371a59232badf39894d668",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.ChestnyZnakBalanceClientTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ChestnyZnakBalanceClientTest.xml",
+        "sha256": "2bc3704892056d2f2eeaac2098edf4b3f252cc5c9dd970328b6da5303baee264",
+        "tests": 7
+      },
+      "com.vncode.app.integration.znack.registration.CatalogApprovedVariantValuesTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogApprovedVariantValuesTest.xml",
+        "sha256": "6ec52fc5a73b3c0beabad77eab393c48e7547235c7d62f062409bcd20979f3fb",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.CatalogArticleValueTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogArticleValueTest.xml",
+        "sha256": "64807677c7284b730715f3bb24ffdfc80e5bd25e02de47812688832614a706db",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.CatalogAutomaticRepairTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogAutomaticRepairTest.xml",
+        "sha256": "6719c6996818be88ffb5677054c855eedb32c1537f24e3c2179d4e45796a0dc9",
+        "tests": 7
+      },
+      "com.vncode.app.integration.znack.registration.CatalogCardStateTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogCardStateTest.xml",
+        "sha256": "588bf83251853bffb8d026b191d01b3623ae6b675ce8d651bae683db7e003bd7",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.CatalogCorrectionLifecycleTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogCorrectionLifecycleTest.xml",
+        "sha256": "fa5061853946131d83799ccad2d4d4ab32404aa2382b943142b9d00321bc151e",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest.xml",
+        "sha256": "58855f091dc7ee3239267625bff329ce2c0fb186af77c5ee99eb964073147727",
+        "tests": 18
+      },
+      "com.vncode.app.integration.znack.registration.CatalogFieldCorrectionsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogFieldCorrectionsTest.xml",
+        "sha256": "daf34c01f652f8bce7656a3c33cfe23846da1f89e45a2bbe9db331c76d6a6bfa",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceIntegrationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceIntegrationTest.xml",
+        "sha256": "edfcce63bc639bf3dbe6bcd9349d9e5c255919c87fb5b06a33783aa723aab4b8",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceTest.xml",
+        "sha256": "85cdb2e18df5e42de6358155ff18b3c409421c4c9e5a0ce6a83daf3faa2cb88f",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.CatalogPackingPolicyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogPackingPolicyTest.xml",
+        "sha256": "8bf7abed41e6209d2aea37829c5d2b90414d71873c5bba6ffa5b14e798add06b",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.registration.CatalogReadCursorRevisionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogReadCursorRevisionTest.xml",
+        "sha256": "a812525c752c07e880c307fc7c574b6d4ed2bbebb6eff88192bd0c11895db1ca",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.CatalogRepairImageBoundaryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogRepairImageBoundaryTest.xml",
+        "sha256": "7f4d174cc7aa8d0ed6bcbf264de4a6ebc67ef7ac12ea2861e76ba6b38c00f309",
+        "tests": 5
+      },
+      "com.vncode.app.integration.znack.registration.CatalogRepairImageEvidenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogRepairImageEvidenceTest.xml",
+        "sha256": "0cd11049643ca063ac1ed5879ff18e8709b710be3c42555d739f061f4b7c5a82",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.registration.CatalogRepairLedgerStateTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogRepairLedgerStateTest.xml",
+        "sha256": "beb3347428271ed0a94683b2a320f3ac4291dd68a6515a4c518a59adcc343779",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.CatalogReplacementEvidenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogReplacementEvidenceTest.xml",
+        "sha256": "224c63fddcfbe96cfddb1338c0215588424f8660211151fda79f33719cac2a18",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.registration.CatalogSubmissionGuardTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogSubmissionGuardTest.xml",
+        "sha256": "1d2518a06fc0e0e78db6d240cb5468bc922d1ad4242c88281a4a2b07e2744667",
+        "tests": 10
+      },
+      "com.vncode.app.integration.znack.registration.CatalogTerminalFeedProofTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogTerminalFeedProofTest.xml",
+        "sha256": "e2cf173fbfdb7bb412936858842f8505f5704c7644771ef9ba545cc23234aa46",
+        "tests": 7
+      },
+      "com.vncode.app.integration.znack.registration.CatalogUncreatedFeedProofTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogUncreatedFeedProofTest.xml",
+        "sha256": "5fca6082e16bf5d2c2f49dcad7a1acc962fe0d832b223c74d669d044786976aa",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest.xml",
+        "sha256": "0d16f750c49e11bc43ba3a8989c88f2e31014d77173340affc3ff388857001b0",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.NationalCatalogListWindowTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.NationalCatalogListWindowTest.xml",
+        "sha256": "ae9dc5865e92336ea3d258ec83dd37fa9e66b2df743d1c84492edb33bfc89015",
+        "tests": 8
+      },
+      "com.vncode.app.integration.znack.registration.NationalCatalogVersionSourceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.NationalCatalogVersionSourceTest.xml",
+        "sha256": "489e2b259be60f2039d8ae0dd8e3163166c2a221d3c32224ba673fdf9e171242",
+        "tests": 7
+      },
+      "com.vncode.app.integration.znack.registration.ObservedCatalogReadRevisionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ObservedCatalogReadRevisionTest.xml",
+        "sha256": "82cf18da4910e839c5d5462032309dd288226b5de0a2b2012d4c4cf8fdd8ee3d",
+        "tests": 5
+      },
+      "com.vncode.app.integration.znack.registration.OzonAllocationRecoveryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonAllocationRecoveryTest.xml",
+        "sha256": "50498f7e2ed18cb90f5e8379a471f117b44f26e42c173576e28bd7653923d629",
+        "tests": 9
+      },
+      "com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest.xml",
+        "sha256": "e1023c5240f62154f94a65819dd8756928033d8a6975dcbbf9748fdcab8a4d06",
+        "tests": 22
+      },
+      "com.vncode.app.integration.znack.registration.OzonCardBatchSigningTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonCardBatchSigningTest.xml",
+        "sha256": "200fb510e800493aba5f981c9fe3a9993685bd6d171d849d6c65b8681a6f4231",
+        "tests": 11
+      },
+      "com.vncode.app.integration.znack.registration.OzonCardRegistrationRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonCardRegistrationRepositoryTest.xml",
+        "sha256": "4e3ada818b61894ac792b3d3e56e747e1e635b33a77adde3b75b5e6ee5c6e538",
+        "tests": 12
+      },
+      "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest.xml",
+        "sha256": "8c4e133ea9004374bfd814fa2f1038d90327f34ab1f88a2c8a131995b421cc7c",
+        "tests": 92
+      },
+      "com.vncode.app.integration.znack.registration.OzonConsentRecoveryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonConsentRecoveryTest.xml",
+        "sha256": "4bb28527a2784a99b556640561acfec99780477b2350b68aa0690d91807009b1",
+        "tests": 7
+      },
+      "com.vncode.app.integration.znack.registration.OzonExistingCardLinkServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonExistingCardLinkServiceTest.xml",
+        "sha256": "f48d5bcacffcb639388c9788990e231695959a45734b9905f84faa3d163d4f2c",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.registration.OzonHistoryMigrationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonHistoryMigrationTest.xml",
+        "sha256": "7021dbbf5c364b7be6be76e4641784fbec7827ed706141d5256f676de80a543c",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.OzonRegistrationActiveBatchTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationActiveBatchTest.xml",
+        "sha256": "92abea2e8135ec910e3983fb4ca4c282252af33917f0ce2d2b249accc5e7d366",
+        "tests": 5
+      },
+      "com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReportsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReportsTest.xml",
+        "sha256": "ac4b4070a994930ad642b4cf27bce5bbc8021e91ba33ded4fc0ba5113599a807",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.registration.OzonRegistrationIntegrationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationIntegrationTest.xml",
+        "sha256": "e9f6b7add6c03ccfc1f4d0c23a17fdff2b03488ec4645501d167ec8326d6650d",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.OzonRegistrationTestCleanupTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationTestCleanupTest.xml",
+        "sha256": "c186b6e1c217333b5446faa202915e70d3365c5471b84838bbe522cc4c1d6c4f",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.registration.OzonReplacementFailClosedTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonReplacementFailClosedTest.xml",
+        "sha256": "9e20ff4fec9806956d170ee2efcf212040ce4c7132f6bf8ee21e960ca3901cef",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.OzonReviewedReplacementE2eTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonReviewedReplacementE2eTest.xml",
+        "sha256": "51db17bc999507e026dbc68aeb12c6ba400f5e3ea517695db6f47ee1038ed8a6",
+        "tests": 14
+      },
+      "com.vncode.app.integration.znack.registration.OzonReviewedVariantProofTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonReviewedVariantProofTest.xml",
+        "sha256": "08c4ced7bdb9c3c74595f819c6ba44b8c2732bd55fd9cac439caedf78a5786c6",
+        "tests": 17
+      },
+      "com.vncode.app.integration.znack.registration.OzonSandboxAllocationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonSandboxAllocationTest.xml",
+        "sha256": "47f9419b70692b57310d69b3d00fd822bb566b6d700502c7ce17ac2bc3628ccc",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.OzonSellerRegistrationE2eTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonSellerRegistrationE2eTest.xml",
+        "sha256": "1a2df8da8b6465ad86fa5acb603167c34d79d3036ae2741848514f6c209386c0",
+        "tests": 5
+      },
+      "com.vncode.app.integration.znack.registration.OzonSourceConsentPolicyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonSourceConsentPolicyTest.xml",
+        "sha256": "7596c4b29aa2d31291491bc9327536dcd68d2273628a7a4040a421455316a593",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.RegisteredCatalogOwnershipTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegisteredCatalogOwnershipTest.xml",
+        "sha256": "b703f7c507ca60a6ca31e5be68a1bac00a08a5ef80cf7536beb46aab8eec39f8",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationAllocationAtomicTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationAllocationAtomicTest.xml",
+        "sha256": "d6382499537d558e854fd8d2ff6139c4143e802b6c1d07d9e9da7f291f5cd930",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationAttributeRulesTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationAttributeRulesTest.xml",
+        "sha256": "0b5b33a104673f46a53f2921be5d5715800051439fc08759dbe18b24a769470f",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationAutomaticDraftTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationAutomaticDraftTest.xml",
+        "sha256": "ea1b63fac7ac0b22f3a13e6abb7e55e4bb1aa91663e89a0e8dd8633be6bc39c7",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationBatchReopenFeedTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationBatchReopenFeedTest.xml",
+        "sha256": "5a4e1bc515977e2b72e1f15d2a690a41d03a545beb5664979fe8749146f3cb8b",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationCatalogCooldownTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationCatalogCooldownTest.xml",
+        "sha256": "3d360bf25a826c539fd3c05d951c6e92ec9087d313369e19a4b96d980a320c0e",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationConnectionDiagnosticsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationConnectionDiagnosticsTest.xml",
+        "sha256": "1c2a186e1f376856e02b50f469a0f896c62a674acbb1550d494dc46c38fca22a",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest.xml",
+        "sha256": "e070260a11709b39766c5bac0dd65660716c4bc59dd816dd7fcc7da012509767",
+        "tests": 13
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationExistingCardsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationExistingCardsTest.xml",
+        "sha256": "f2fe51a22938363217c2fdb8dd8eeb75c18c96e9bbc15bfb9dacd88a688f436f",
+        "tests": 14
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceCountryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceCountryTest.xml",
+        "sha256": "5bb48aa1e95acf16944e75153beef15eaa1e17db54ab95f98a16db5f7c9e2f65",
+        "tests": 15
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceTest.xml",
+        "sha256": "fdf802ef9b69e64f3e110629abb2c7ca582048167f8e0aabe3653b856a2f2a99",
+        "tests": 8
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationLifecycleDecisionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationLifecycleDecisionTest.xml",
+        "sha256": "6fd50a0fa45982d1887007c759988c0e250e5fd585e39ecc84972c9bedeed1b2",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationMonitoringEngineTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationMonitoringEngineTest.xml",
+        "sha256": "4465a2b53bf7c6464172821c74353563e3faf3532e0d630d91eea07065385e29",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationPermitReadFailureTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationPermitReadFailureTest.xml",
+        "sha256": "eb9f486b1bc89f19f9ff4f67195e5540c0f389b7f33f9033caac5821350070c3",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest.xml",
+        "sha256": "e0228279a7414fcfcca6c6e85bbd52fc90efa9e70f6352bb3b59fe54617cf6ee",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationPreparationReuseTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationPreparationReuseTest.xml",
+        "sha256": "6248b83fe9ffd3db0fc5e47d203d6e60da60af8e203bfd03ce500d3a59ed75ca",
+        "tests": 8
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationPresetNormalizerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationPresetNormalizerTest.xml",
+        "sha256": "16a46da4e054b8c6f1b55ccf4edb3f38439f4f571636fb036eba606a4b739c4d",
+        "tests": 8
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationProductInputsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationProductInputsTest.xml",
+        "sha256": "0d7ca9c96a9c4ac47492bcecf9cea54d3ad2f76cc9dd98f2ebaff3ec5a60e060",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationRepairCheckpointTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationRepairCheckpointTest.xml",
+        "sha256": "bb69f41cba141879a65d67c8cfcd733ce826b71dae2bab7b6137c9035b4c27ee",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationRepairConsentTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationRepairConsentTest.xml",
+        "sha256": "d236630bbd57ca25099132e62e2fec7c63b0c1af40ea59118bd3acbe506482f1",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest.xml",
+        "sha256": "7883aadc20104836ef5ba0e8e05ff68a9c0cde18b3d7a5cc0661da5e206f77cc",
+        "tests": 19
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationSigningBatchEngineTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSigningBatchEngineTest.xml",
+        "sha256": "0491edff656f375aab759eead4c9cb9245467127f742115dcab74d34bbc8f050",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationSigningConsentTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSigningConsentTest.xml",
+        "sha256": "729154a0d98c29f96c4ab15e3573ad0b75b8b511a2127e13611ba1e6db24cb24",
+        "tests": 11
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest.xml",
+        "sha256": "825c9285727328d8b2ca04cb5e71cc1f1702be53fd955b69ea0637e83d2f3ab3",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest.xml",
+        "sha256": "073a83f0d799250a1b1c3c6e64617dbcf40d0319c4858331d9829922b204d67b",
+        "tests": 8
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationStorageConcurrencyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationStorageConcurrencyTest.xml",
+        "sha256": "00a5964f006d3be4226af9e06f7133e8a732a02dc13d805e16e27dd366e44984",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationSubmissionEngineTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSubmissionEngineTest.xml",
+        "sha256": "cb683612d41b6b1e96fa054391b16452388f84847550402aec12c18ff3a5c8f3",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationTemplateTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationTemplateTest.xml",
+        "sha256": "05deb3c2bb34284a75b1679f6cd9121a0e45644daa1f27083246d3f172bed075",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaultsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaultsTest.xml",
+        "sha256": "45a826b98598a567d681a730c921ca7c1d2c15531efdc7cdee87577f9dc96c94",
+        "tests": 11
+      },
+      "com.vncode.app.integration.znack.registration.v3.RegistrationAllocationPoolTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.RegistrationAllocationPoolTest.xml",
+        "sha256": "2d9ecf178ac5d44ffc668279b9a7538c0d4c617b52bb25b5040ff19a10faf1e5",
+        "tests": 5
+      },
+      "com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournalTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournalTest.xml",
+        "sha256": "a4168d3e552abe665e327a4e593c57ebf896611bc11070060d75c6b0601c9028",
+        "tests": 14
+      },
+      "com.vncode.app.integration.znack.registration.v3.RegistrationOrchestratorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.RegistrationOrchestratorTest.xml",
+        "sha256": "c5ab470aaceba14ab471d0fd67759fe58c6821737af1a947e506a0c53d811510",
+        "tests": 18
+      },
+      "com.vncode.app.integration.znack.registration.v3.RegistrationStoreTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.RegistrationStoreTest.xml",
+        "sha256": "7e44f127d4e96e53cc4e165b5ec0c6a11f5e68aa94852564385a3509d9cbe23c",
+        "tests": 8
+      },
+      "com.vncode.app.integration.znack.registration.v3.WbRegistrationImportTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.WbRegistrationImportTest.xml",
+        "sha256": "41e8ac3d9875e8cec24165af203805e25a331014f371f8a83af889c6fd262014",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.registration.WbConsentRecoveryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.WbConsentRecoveryTest.xml",
+        "sha256": "b3c7e45ce23f769a3023145e8ea7939ab03d896e5fb0aa7b8f45b43dd062a862",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.registration.WbSourceReviewHttpEndToEndTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.WbSourceReviewHttpEndToEndTest.xml",
+        "sha256": "8db97e08aff2743f4c8e7265d69811945537a1e406dc6b2fd68d0293d3a43ffa",
+        "tests": 15
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCardBatchSigningTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCardBatchSigningTest.xml",
+        "sha256": "d3510bd7af83fd749b3840a4a90a0b67b6fee6f863d1a382184b62524d615b34",
+        "tests": 11
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepositoryTest.xml",
+        "sha256": "cbf40e96a02446fb8d76959fc22e4146ddf1e7f6c9863b7585db68b2b2f3c8a1",
+        "tests": 16
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest.xml",
+        "sha256": "5ece49641f09838ea57881855fc1798bb1b944c910322bb340566a36b656a5d8",
+        "tests": 85
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCatalogObservationGuardTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCatalogObservationGuardTest.xml",
+        "sha256": "f934d07cc229306b81d421b67432eb6d9d0a688f86fcb65b5702e35908e72b1d",
+        "tests": 11
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCatalogSigningBatchTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCatalogSigningBatchTest.xml",
+        "sha256": "91674ff0763992a11153fd84f751bf57dd60410b00701bff85e4ee99c39e3e89",
+        "tests": 12
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCatalogSubmissionReadbackTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCatalogSubmissionReadbackTest.xml",
+        "sha256": "b631c9bf4d6b553844c66ad6785a67094a25f5076f3de6c655c4e1eab213eeb9",
+        "tests": 9
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest.xml",
+        "sha256": "915fb6f612b16f787c488eb5ddd14df6042c481dd230ad3c8e4ff14fa4d0d1c2",
+        "tests": 5
+      },
+      "com.vncode.app.integration.znack.registration.ZnackCurrentSchemaSubmissionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCurrentSchemaSubmissionTest.xml",
+        "sha256": "fa50c8f2028cf3b2dc68de05ab695a6364aa31e7c71c63010c17943df862e9ba",
+        "tests": 12
+      },
+      "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest.xml",
+        "sha256": "982e73e282fbdadffe2940242099a89ad52b12ca3dc0254cd730236d8904c485",
+        "tests": 44
+      },
+      "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest.xml",
+        "sha256": "8a878903b0f2a0ce1654aebd3989ad824c16e552728c94b01cd33cd4e2746cc7",
+        "tests": 9
+      },
+      "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest.xml",
+        "sha256": "f9c9c95fcb6bac6432124e45658d91c08daa877313fa5ad8edd7be624a5a117e",
+        "tests": 36
+      },
+      "com.vncode.app.integration.znack.registration.ZnackRegistrationCountryModelTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationCountryModelTest.xml",
+        "sha256": "39098c8dee649bef46e821ecd3372103c5e16ed2ea1928d32de3f54e5a2f130c",
+        "tests": 22
+      },
+      "com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest.xml",
+        "sha256": "8ce0482b488c91b803bd9b4c8e13e1cb060e35854b05b9386a6c5714a7b86164",
+        "tests": 11
+      },
+      "com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest.xml",
+        "sha256": "0b4a449d8b1e974edd9b6c9f354ebccd9582d660c299170d93947f19bab1590f",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.registration.ZnackRegistrationScopeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationScopeTest.xml",
+        "sha256": "f1ef05c82dda58bb86365a0a044f9555712b5428c3c518b2a25158b5f8ec44c1",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.registration.ZnackReviewedDraftSubmissionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackReviewedDraftSubmissionTest.xml",
+        "sha256": "99cef264692c1a038326cf9a797f23bbd3a9bf89d9e621f0a5831065864ec09d",
+        "tests": 8
+      },
+      "com.vncode.app.integration.znack.registration.ZnackVerifiedRegistrationAttributesTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackVerifiedRegistrationAttributesTest.xml",
+        "sha256": "294f9755280d261250c546284f68005c17903f8962f218040943dc5d4d2067a1",
+        "tests": 10
+      },
+      "com.vncode.app.integration.znack.registration.ZnackWbAttributeMapperTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackWbAttributeMapperTest.xml",
+        "sha256": "87bce756121ee1f1c4a243a1497c89711d1d60ce475c1d5594b7da524dd75644",
+        "tests": 14
+      },
+      "com.vncode.app.integration.znack.signature.BouncyCastleAdvisoryRegressionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.signature.BouncyCastleAdvisoryRegressionTest.xml",
+        "sha256": "c69bbdeb2c9748f99bdf54c2f5abdb616e5f0606edf22347ab14f90cc8b78c8c",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest.xml",
+        "sha256": "8120a96a4376d2179cacd509abc2f9d60d002e5ccab2dccfd1517ad123bd69b8",
+        "tests": 12
+      },
+      "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest.xml",
+        "sha256": "6d00e0ef86481760c66cfdffaab1c254d09046fbb9d3cf16c60abce60fbced17",
+        "tests": 38
+      },
+      "com.vncode.app.integration.znack.signature.CryptoProCommandRunnerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProCommandRunnerTest.xml",
+        "sha256": "c4dcc616f273f03694599635e71fbe7be6d06d67e443931484407cffc35a206d",
+        "tests": 10
+      },
+      "com.vncode.app.integration.znack.signature.CryptoProSignatureTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProSignatureTest.xml",
+        "sha256": "4104c36afff3d132a4f8dd78a001d2097c86e87b1cfc17e71a710481dfc32c24",
+        "tests": 24
+      },
+      "com.vncode.app.integration.znack.signature.CryptoProSignedCertificateReaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProSignedCertificateReaderTest.xml",
+        "sha256": "d2fee629201fcefa166e4cdc42ece6105cd0b1cd18be57d27c7453326d53756e",
+        "tests": 5
+      },
+      "com.vncode.app.integration.znack.signature.WindowsXmlSignatureTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.signature.WindowsXmlSignatureTest.xml",
+        "sha256": "c1a647db4b2508fa9ca22d090ca05d8ef07d56907b68eb0e0574abfccdcade1d",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.ZnackAccountInfoTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackAccountInfoTest.xml",
+        "sha256": "a5820868711f676447af330d59b6f1d328e661ac85e03441182c4992b8e5d86f",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.ZnackCatalogEndpointRoutingTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCatalogEndpointRoutingTest.xml",
+        "sha256": "03138a62a7c1b4ee61f03d24d2f8e3c82613deec292bf8f5fb5dc88ddebd0154",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest.xml",
+        "sha256": "c080f40bc5d297e9a5d7c95641a7541845d3856dd29de2ea6ba69b3b03b5334f",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.ZnackCisReadbackTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCisReadbackTest.xml",
+        "sha256": "5c511a08338f9a31f112fa7d6fbf3b3e764f9f68195914d96a3bfc0d3fe3455d",
+        "tests": 28
+      },
+      "com.vncode.app.integration.znack.ZnackConnectionReuseTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackConnectionReuseTest.xml",
+        "sha256": "a263b3d404a53ad322c2cc1fa7862956ca5dbb74dfcf0b133dabe0062b85bc24",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.ZnackErrorDetailsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackErrorDetailsTest.xml",
+        "sha256": "204b83057f3f6849af0b636b4db9781d95da84f6e6d61d36083a9b69040dc396",
+        "tests": 2
+      },
+      "com.vncode.app.integration.znack.ZnackGtinInventoryBulkTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackGtinInventoryBulkTest.xml",
+        "sha256": "f8a49fa96bb02960df63d8f214c3828375509b952bcbff37568e612429521161",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.ZnackGtinWorkflowTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackGtinWorkflowTest.xml",
+        "sha256": "d331174d3ad22f8525aa86a520afeb97d1eacd1acd42bccc4d9ce77fd3ace345",
+        "tests": 53
+      },
+      "com.vncode.app.integration.znack.ZnackIntroductionIdentityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackIntroductionIdentityTest.xml",
+        "sha256": "4c2db9b0f677373752260b9bf7e6b96ce89dfd7ab62a1a1247b9c3212bbb1c63",
+        "tests": 29
+      },
+      "com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest.xml",
+        "sha256": "c8c1ac39960419867d25ff5f9e3f2ec3a9728eed940717ad97a7f91cb22de7aa",
+        "tests": 7
+      },
+      "com.vncode.app.integration.znack.ZnackLicenseBoundaryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackLicenseBoundaryTest.xml",
+        "sha256": "d3d7e41322aaeefcdf18fc02f24f655a8096b6f7f39b68705315046be3263543",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.ZnackModuleTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackModuleTest.xml",
+        "sha256": "a8cd173dd265872cbef7ba555e859b32aedfbb6cb885d45668a1a7df93c972bf",
+        "tests": 76
+      },
+      "com.vncode.app.integration.znack.ZnackMutationTransportTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackMutationTransportTest.xml",
+        "sha256": "460f666235faa325c9b6d54e00159b5b255afaac6f511a29c38f23fca258c69c",
+        "tests": 7
+      },
+      "com.vncode.app.integration.znack.ZnackOrderReconciliationSafetyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackOrderReconciliationSafetyTest.xml",
+        "sha256": "bedf9411936cc670bb72307f2c64e4fb5e2a30041c8d5de12e8805d6c99b9c12",
+        "tests": 5
+      },
+      "com.vncode.app.integration.znack.ZnackPermitDocumentParserTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackPermitDocumentParserTest.xml",
+        "sha256": "bf45d680e18d78fed9fab651e1e25decb4133d02d115633468b83b92ed4f1679",
+        "tests": 6
+      },
+      "com.vncode.app.integration.znack.ZnackPipelineQueueExecutorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackPipelineQueueExecutorTest.xml",
+        "sha256": "55924751aefdb4f94caa1b2970eee001a01fa1becf0bc81e7a5df2331abc5384",
+        "tests": 1
+      },
+      "com.vncode.app.integration.znack.ZnackProductLabelMetadataParserTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackProductLabelMetadataParserTest.xml",
+        "sha256": "9be6df3ced2cc92305e6ab510d1e2cf322fbdf9e4ef8efbe8a50df967a7d4dad",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.ZnackProductServicePaginationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackProductServicePaginationTest.xml",
+        "sha256": "3f444d1b590b1a28b1f1f8780a655736c65f6153861be2f4b0ca5b57f539ec01",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.ZnackPurchaseMigrationSafetyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackPurchaseMigrationSafetyTest.xml",
+        "sha256": "262cc18d63f8b2164bd1d9e45d02c1aabdba9d1f154155b09bdb2fbc9a7041b9",
+        "tests": 4
+      },
+      "com.vncode.app.integration.znack.ZnackSanitizerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackSanitizerTest.xml",
+        "sha256": "faa86c6fc23ef29c4111d34ab8920e65dec26ae3286e181dcedd3e74e59b4421",
+        "tests": 3
+      },
+      "com.vncode.app.integration.znack.ZnackSigningSessionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.integration.znack.ZnackSigningSessionTest.xml",
+        "sha256": "bc71c01e04876a5a054de14b3079bcb8a1a16c12cfdd9ae8f8c3fb2153fe8c4c",
+        "tests": 9
+      },
+      "com.vncode.app.MainApplicationActivationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.MainApplicationActivationTest.xml",
+        "sha256": "872ef58e4e795135a5e9137a2ced462034e598ef421fe52bf13d9b20ad123269",
+        "tests": 3
+      },
+      "com.vncode.app.models.ShopSecretBoundaryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.models.ShopSecretBoundaryTest.xml",
+        "sha256": "75369d38881d1f81ccb6c78939d2a677e8600c48f0cb13fe4397f4688360b2ef",
+        "tests": 2
+      },
+      "com.vncode.app.performance.FbsUiLatencyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.performance.FbsUiLatencyTest.xml",
+        "sha256": "8c6ed657b4524541c78c4206f5faa9d679c7a6fc21fac1aea54ba2b8529f12d1",
+        "tests": 1
+      },
+      "com.vncode.app.performance.SellerWorkspacePerformanceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.performance.SellerWorkspacePerformanceTest.xml",
+        "sha256": "dd774af1f4d4069aad9e55f95bba5ee3df8d854f65f786f5c568be4164da4779",
+        "tests": 3
+      },
+      "com.vncode.app.shared.AppDataLockTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.AppDataLockTest.xml",
+        "sha256": "eac4ff14e10044c8015d82952a749d36e11e777e358465b0f2a264a610855f76",
+        "tests": 3
+      },
+      "com.vncode.app.shared.AppDataRecoveryServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.AppDataRecoveryServiceTest.xml",
+        "sha256": "e571d47d804f394445b92dd87a1b6034bfc052c657a14070678b64eefa3c0dc5",
+        "tests": 8
+      },
+      "com.vncode.app.shared.AppInstanceActivationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.AppInstanceActivationTest.xml",
+        "sha256": "c2aff268fad81728b09a7c9ee1e8f4d3c8966c5b9d979c66b005c0be10e34e69",
+        "tests": 8
+      },
+      "com.vncode.app.shared.AppPathsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.AppPathsTest.xml",
+        "sha256": "e33788b5bd24aa8d9ae728ffb2080ec12fda09122fe300f8ffbf1d43a0519179",
+        "tests": 12
+      },
+      "com.vncode.app.shared.AppTaskExecutorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.AppTaskExecutorTest.xml",
+        "sha256": "0c2512e79e4a0e9fb0342730d66ed9e109d7ac10ec13f8e2bbbed943329cbdea",
+        "tests": 2
+      },
+      "com.vncode.app.shared.BoundedHttpBodyTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.BoundedHttpBodyTest.xml",
+        "sha256": "69e2b4e1b3942154efb219d43ef2bed361eadc199878e9d1f273d9da218f4ee6",
+        "tests": 2
+      },
+      "com.vncode.app.shared.CatalogReadFailureTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.CatalogReadFailureTest.xml",
+        "sha256": "6a389d66d8a9c2d8aec9e809b5b0839f3b7ac83fdffc1a1f5cc51ce0bbb761ee",
+        "tests": 8
+      },
+      "com.vncode.app.shared.CatalogTaskExecutorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.CatalogTaskExecutorTest.xml",
+        "sha256": "c9f0045c8b4ec2b49bd4c8fe50be61d9365eb16db7444cfd40ac9021a8b8df95",
+        "tests": 5
+      },
+      "com.vncode.app.shared.CredentialSnapshotFixtureTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.CredentialSnapshotFixtureTest.xml",
+        "sha256": "4b48c17e05902052cc91409459cbf4dd8dd515e3600cdefbf154471222519e67",
+        "tests": 3
+      },
+      "com.vncode.app.shared.FriendlyErrorCodeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.FriendlyErrorCodeTest.xml",
+        "sha256": "af5d10654f275020159fa9421be143bebca456442cac881ae420b78b0a906a7c",
+        "tests": 15
+      },
+      "com.vncode.app.shared.KizPendingNoticeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.KizPendingNoticeTest.xml",
+        "sha256": "1bd87376072b5b418cffbcb6187726e73928802c733bf19ad3617ec75c770474",
+        "tests": 2
+      },
+      "com.vncode.app.shared.LocalDataMigrationActivationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.LocalDataMigrationActivationTest.xml",
+        "sha256": "a58a8f6f1e5ecb6cea4a56a8684a62d93a1f60250db141b00323f8ad274df2e5",
+        "tests": 1
+      },
+      "com.vncode.app.shared.LocalDataSnapshotServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.LocalDataSnapshotServiceTest.xml",
+        "sha256": "362ed3381a3d2aee047cc8f32da077e0bd11cf14a5ec33a27ffe14f0f6fec7fe",
+        "tests": 15
+      },
+      "com.vncode.app.shared.MarketplaceRequestBudgetTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.MarketplaceRequestBudgetTest.xml",
+        "sha256": "1bca14e879e8197daac05c437671589a9b2c475f52c697b3f61a63337b1ca6b9",
+        "tests": 4
+      },
+      "com.vncode.app.shared.MavenWrapperIntegrityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.MavenWrapperIntegrityTest.xml",
+        "sha256": "dd6962b716d34b5b61709789a15686abedd49d0be6ae039db17f15e7bfe2da1e",
+        "tests": 2
+      },
+      "com.vncode.app.shared.NaturalOrderComparatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.NaturalOrderComparatorTest.xml",
+        "sha256": "b7b74466beaa64706e7cc525ddaece199035e396d43ea8f6dc450f9692c708cc",
+        "tests": 1
+      },
+      "com.vncode.app.shared.PermitDocumentNumberTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.PermitDocumentNumberTest.xml",
+        "sha256": "33f9662af25cace71dfd8afac574e0b77ce6b6239fe5a2e2ccd02dd013085bfc",
+        "tests": 2
+      },
+      "com.vncode.app.shared.RateLimitDeferralTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.RateLimitDeferralTest.xml",
+        "sha256": "da83b979ba9644566f81c0b903cb6662f3ce71044c40a32a5e8e11164450bbbb",
+        "tests": 1
+      },
+      "com.vncode.app.shared.ReadRetryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.ReadRetryTest.xml",
+        "sha256": "61e726817a547f79334797e44032e3c48f55b28155eb6e8b800238434053b907",
+        "tests": 3
+      },
+      "com.vncode.app.shared.RegistrationBackgroundLifetimeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.RegistrationBackgroundLifetimeTest.xml",
+        "sha256": "3faa8b5cba56a874b608efaabd3b2796f04b4dd0a1a4cc957c144f2af11bd5fb",
+        "tests": 11
+      },
+      "com.vncode.app.shared.SellerArticleTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.SellerArticleTest.xml",
+        "sha256": "99bbd8f81ace8ec7d175317e98a8c4d51c10f6b233297477d9843ca834e84ecb",
+        "tests": 1
+      },
+      "com.vncode.app.shared.SellerMutationExecutorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.SellerMutationExecutorTest.xml",
+        "sha256": "f5bfa01fae295f2c2a897be2fb603ed80f680810f1493ed10e0fbb33f39c6062",
+        "tests": 3
+      },
+      "com.vncode.app.shared.ShopBatchRegistryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.ShopBatchRegistryTest.xml",
+        "sha256": "fe3189307bdddf4cf9db505db9cda37c5ec11680c228b41ed1e2b95c653a00af",
+        "tests": 4
+      },
+      "com.vncode.app.shared.ShopReadCoordinatorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.ShopReadCoordinatorTest.xml",
+        "sha256": "03fc0ef55f25961ab5333a41f6ad48647dbefd76e4c1e6b2f90f52b1083fcce8",
+        "tests": 6
+      },
+      "com.vncode.app.shared.TableRowsFxTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.TableRowsFxTest.xml",
+        "sha256": "137012f1b74f740aad7461144419c206f9d0e0679dec596c58dcef73d500ba43",
+        "tests": 2
+      },
+      "com.vncode.app.shared.TableRowsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.TableRowsTest.xml",
+        "sha256": "f915271292e353a8f3322566be2e69faf5a717edf1cd20ff9ffc6f7534964c67",
+        "tests": 11
+      },
+      "com.vncode.app.shared.TableScrollLoaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.TableScrollLoaderTest.xml",
+        "sha256": "4c6400cb32adeec9dd32dfe5ee08148667a3b0ddb8e3281458b1d7b83b94dee3",
+        "tests": 2
+      },
+      "com.vncode.app.shared.TaskStatusDockTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.TaskStatusDockTest.xml",
+        "sha256": "753ea0df995f6377bc9c13be9f9f7ae4953eaa5749d5ced3a43d1e33ed374a05",
+        "tests": 2
+      },
+      "com.vncode.app.shared.ThemeServiceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.ThemeServiceTest.xml",
+        "sha256": "aace68481a578883366bb7881f5810f9350aa13705ff3fbb50a579d793ac8825",
+        "tests": 10
+      },
+      "com.vncode.app.shared.ThumbnailCacheTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.ThumbnailCacheTest.xml",
+        "sha256": "cd605056de8c9b0022020dcacdfab677c6342cff789ffb128d7fc6a0af50433a",
+        "tests": 3
+      },
+      "com.vncode.app.shared.ThumbnailLoaderTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.ThumbnailLoaderTest.xml",
+        "sha256": "ba5ef632a5ddec9210dcd4bdb9e658b983c733d8a5382c5c8c0e12d2204c21fc",
+        "tests": 5
+      },
+      "com.vncode.app.shared.UpdateHandoffTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.UpdateHandoffTest.xml",
+        "sha256": "b5aef8ccaee4f721b19c1af4c5aee431d4800cae3df6f09fb895e62193365b4e",
+        "tests": 4
+      },
+      "com.vncode.app.shared.UpdateSnapshotHandoffTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.UpdateSnapshotHandoffTest.xml",
+        "sha256": "02882a4c6df9f9f264a7b5f57b47a209ceeb1f082597deaea1afbc85bf2ee1ed",
+        "tests": 6
+      },
+      "com.vncode.app.shared.UpdateSnapshotProgressTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.UpdateSnapshotProgressTest.xml",
+        "sha256": "df9b2c23ecf1a0dedead2141e59adab47f150eae95fbb9cd6e0bbdbec0a24321",
+        "tests": 2
+      },
+      "com.vncode.app.shared.WindowsSecretProtectorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.WindowsSecretProtectorTest.xml",
+        "sha256": "a2a15f6c5e6fb6031ef75d462243541b07b6ad59fd4e6bedd08d3ad5de3e7e49",
+        "tests": 3
+      },
+      "com.vncode.app.shared.WorkspaceMotionBoundaryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.shared.WorkspaceMotionBoundaryTest.xml",
+        "sha256": "82a37a7300f522105bc9b04a14f17b52ff4b528cb08a7c6cf0a614f55c430810",
+        "tests": 6
+      },
+      "com.vncode.app.testsupport.FinanceTestCleanupTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.testsupport.FinanceTestCleanupTest.xml",
+        "sha256": "bb7105b2959560a361d7122179558b6a8ae36e0074628b867b8e24cc6aff802c",
+        "tests": 1
+      },
+      "com.vncode.app.ui.catalogsync.CatalogSyncPaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.catalogsync.CatalogSyncPaneTest.xml",
+        "sha256": "bbd8efa12f9da6760139de7d0ebdbd8fd26af1ad0af65a2f1ead8cb25574024b",
+        "tests": 6
+      },
+      "com.vncode.app.ui.DarkReferenceScreensTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.DarkReferenceScreensTest.xml",
+        "sha256": "07bba74d3684aaccfc9990efc59200378597e9d594c1e6f7857781379199348a",
+        "tests": 3
+      },
+      "com.vncode.app.ui.DocumentDateInputTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.DocumentDateInputTest.xml",
+        "sha256": "fdcd3f94a2c9222fb83068483ff7626a131ae41b6ac76b9ae6161364edb2aba7",
+        "tests": 2
+      },
+      "com.vncode.app.ui.finance.FinancePenaltyUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.finance.FinancePenaltyUiTest.xml",
+        "sha256": "5298dcba85bd7fef12ed8f11330a02d2fe375358236e5718bc57e57078cca08e",
+        "tests": 1
+      },
+      "com.vncode.app.ui.FxmlSmokeTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.FxmlSmokeTest.xml",
+        "sha256": "a28b775891a9bde0e00cd9e9968e560cf476a4a273adc99ff1080ed0381c218b",
+        "tests": 58
+      },
+      "com.vncode.app.ui.gs1.Gs1PaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gs1.Gs1PaneTest.xml",
+        "sha256": "aa5aa31f042af41cd35c9d16cd0e83747cce49dfb7cea95cac782b42b781b4af",
+        "tests": 13
+      },
+      "com.vncode.app.ui.gs1.Gs1PrefixRequestDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gs1.Gs1PrefixRequestDialogTest.xml",
+        "sha256": "be8071ee5093abbdd3d07af098e4c29463533fc717c557106c1b5ff5622ff8b6",
+        "tests": 8
+      },
+      "com.vncode.app.ui.gs1.Gs1SyncReportDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gs1.Gs1SyncReportDialogTest.xml",
+        "sha256": "e05fb0c8cb055f17b10cf7157bc80614be01db0def27e7d706a55063d40fdf73",
+        "tests": 2
+      },
+      "com.vncode.app.ui.gs1.Gs1ZnackHeadingLayoutTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gs1.Gs1ZnackHeadingLayoutTest.xml",
+        "sha256": "cd3f8c73300e76b2064aa62780c1cc7f739acc922ef9cd58f1aa11ac67507af3",
+        "tests": 1
+      },
+      "com.vncode.app.ui.gtinsync.GtinSyncControllerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gtinsync.GtinSyncControllerTest.xml",
+        "sha256": "1367fa5af7728951d84bec4445d8e4a3aaaa0ce1cd0276a668a28b2fc19b815f",
+        "tests": 7
+      },
+      "com.vncode.app.ui.gtinsync.GtinSyncHistoryExporterTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gtinsync.GtinSyncHistoryExporterTest.xml",
+        "sha256": "eddd6d5ac92465f2b4dcc68ad2d80e7f16818d5e7feed0ae435d83c1f138ad32",
+        "tests": 2
+      },
+      "com.vncode.app.ui.gtinsync.GtinSyncViewModelTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gtinsync.GtinSyncViewModelTest.xml",
+        "sha256": "1b836a1c665e95efd76b35449cdc8afb89c6d38695ad3ada9968720a533bca18",
+        "tests": 3
+      },
+      "com.vncode.app.ui.gtinsync.GtinTranslationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gtinsync.GtinTranslationTest.xml",
+        "sha256": "eadeefd8b22170df2174bf43c9453d60d9e19de6bfdff43c956bac87d9a26902",
+        "tests": 1
+      },
+      "com.vncode.app.ui.gtinsync.WbGtinPriceConsentTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.gtinsync.WbGtinPriceConsentTest.xml",
+        "sha256": "493996c3b63e5c98c0251b0478993abf8028198e8717aa8999c763316d1d436f",
+        "tests": 1
+      },
+      "com.vncode.app.ui.kiz.KizImportDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.kiz.KizImportDialogTest.xml",
+        "sha256": "27b5342d0397625e267d5a8a70e77e9c519b6798a279ddbe0e1525ec06bbb654",
+        "tests": 2
+      },
+      "com.vncode.app.ui.kiz.KizPrintPurchaseDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.kiz.KizPrintPurchaseDialogTest.xml",
+        "sha256": "6f2813e35961d0b1016b011385ede4f6cd8fca88718b105c321533226c955eb4",
+        "tests": 3
+      },
+      "com.vncode.app.ui.kiz.KizWarehousePaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.kiz.KizWarehousePaneTest.xml",
+        "sha256": "780b0ce1d462d023d65b238f9921b904cd96c75b9a2eee8e55a498b74a360c2b",
+        "tests": 2
+      },
+      "com.vncode.app.ui.kiz.Kn3BatchUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.kiz.Kn3BatchUiTest.xml",
+        "sha256": "2284ca3e2d1fe5f62b6184167a1590bde8207096f65fc9bbfb112432b0a11393",
+        "tests": 4
+      },
+      "com.vncode.app.ui.kiz.WbShipmentKizPaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.kiz.WbShipmentKizPaneTest.xml",
+        "sha256": "a1c072f63435782dfd7d53e35b72bd103272dafcdfaefd19d7f6e769052bf761",
+        "tests": 9
+      },
+      "com.vncode.app.ui.kizmapping.KizMappingEditorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizMappingEditorTest.xml",
+        "sha256": "1aaf0a6324846404a78d1ffb6b526f745ff40b7768ea248a1ebc5b6b4a0883ab",
+        "tests": 1
+      },
+      "com.vncode.app.ui.kizmapping.KizMappingIssuesDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizMappingIssuesDialogTest.xml",
+        "sha256": "2fbc0925679cee72d6ab33b9ca1200701524d22b5afc7f9270398fafa14ac46a",
+        "tests": 4
+      },
+      "com.vncode.app.ui.kizmapping.OzonGtinMappingEditorTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.kizmapping.OzonGtinMappingEditorTest.xml",
+        "sha256": "632a3d9e314486ad84a10c85438c7bf2fc4169d122bed92db1a55f2975ff1166",
+        "tests": 3
+      },
+      "com.vncode.app.ui.license.LicensePaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.license.LicensePaneTest.xml",
+        "sha256": "e8ab7925ab5801983ab965a36349284b191a57dc404a1a0f75b4793ebdc4b0e3",
+        "tests": 8
+      },
+      "com.vncode.app.ui.listingcopy.ListingCopyPaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.listingcopy.ListingCopyPaneTest.xml",
+        "sha256": "0e45185a3de70e6f3750b59a63afdb7f9e3d6e6f86bd8a2396c45cbb1a08209a",
+        "tests": 16
+      },
+      "com.vncode.app.ui.news.NewsPaneLayoutTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.news.NewsPaneLayoutTest.xml",
+        "sha256": "82812cd65ad3561117131e191f08aa7ce699e8b184485e79b6aac3217d514542",
+        "tests": 1
+      },
+      "com.vncode.app.ui.ozon.OzonAcceptanceRetryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ozon.OzonAcceptanceRetryTest.xml",
+        "sha256": "0c0889e44073dbe7d5cf75d91244d78fbd4f4d05a0b599f249478749f5e00f9b",
+        "tests": 3
+      },
+      "com.vncode.app.ui.ozon.OzonBulkUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ozon.OzonBulkUiTest.xml",
+        "sha256": "98e0063e7099e3b04c3b54dc9cf1e4bbfbd68e9a02628616f3869e747e4894dd",
+        "tests": 14
+      },
+      "com.vncode.app.ui.ozon.OzonDashboardControllerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ozon.OzonDashboardControllerTest.xml",
+        "sha256": "8d962dbdb77e659677cb39be81693fed19668464869fa7ae2f8deed21f78be68",
+        "tests": 5
+      },
+      "com.vncode.app.ui.ozon.OzonFbsEnrichmentUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ozon.OzonFbsEnrichmentUiTest.xml",
+        "sha256": "4e217caf269606d93c3db4502726e1e0391ce5468115c09622b230aaa122c4f6",
+        "tests": 2
+      },
+      "com.vncode.app.ui.ozon.OzonFbsUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ozon.OzonFbsUiTest.xml",
+        "sha256": "a43954617e256dcd7bfebcd1047a284f2017cf35f4488d11965e68759a292170",
+        "tests": 4
+      },
+      "com.vncode.app.ui.ozon.OzonManualSyncUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ozon.OzonManualSyncUiTest.xml",
+        "sha256": "5be5f30ed80424297c16e209692ae39d21bdca0b4e8ac863252160cdc3ed3af0",
+        "tests": 1
+      },
+      "com.vncode.app.ui.ozon.OzonPrintedQueueUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ozon.OzonPrintedQueueUiTest.xml",
+        "sha256": "6e37001a240e9b7e4a525bfabad73f756bd134f568c2ba7118bda3d46a3b9317",
+        "tests": 7
+      },
+      "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest.xml",
+        "sha256": "a11608de1f09272a4bef1b63453817704f393bc4d0a3845a1fe0f3d7bfb29d04",
+        "tests": 1
+      },
+      "com.vncode.app.ui.packing.FbsResponsiveActionsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.packing.FbsResponsiveActionsTest.xml",
+        "sha256": "9eb7ebd9c21603ade05a0544b55ea0a92e8b3a9516ed8a057e183e0c3d11679b",
+        "tests": 1
+      },
+      "com.vncode.app.ui.packing.PackingDebtStatusVisualTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.packing.PackingDebtStatusVisualTest.xml",
+        "sha256": "120e003c3cf0484e21fdfe8a07456ca78404e60ff8d35f2b19e9683b456457ae",
+        "tests": 1
+      },
+      "com.vncode.app.ui.packing.PackingDebtTabTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.packing.PackingDebtTabTest.xml",
+        "sha256": "024ce97e6c27be6c1f16294d8e5cbb416e6d5162b3c3d3dfa36d29b963b74865",
+        "tests": 1
+      },
+      "com.vncode.app.ui.packing.WbReadbackPendingUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.packing.WbReadbackPendingUiTest.xml",
+        "sha256": "fe598a3c0ae36cf52486c74bf8e11999bc76c89ebe71ebbd7709f9cbae7afcfe",
+        "tests": 1
+      },
+      "com.vncode.app.ui.products.ProductBulkDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.products.ProductBulkDialogTest.xml",
+        "sha256": "e99dc8cc2abb0a13daa51264bffb852f2239e6760e6d7eb466ac4e54170a034d",
+        "tests": 30
+      },
+      "com.vncode.app.ui.products.ProductBulkEditPaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.products.ProductBulkEditPaneTest.xml",
+        "sha256": "67eee7d5b9cddcca654c8eb6f4ef86d16c2dc787f6d7d8ef02ba25aac87484c2",
+        "tests": 2
+      },
+      "com.vncode.app.ui.products.ProductEditInteractionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.products.ProductEditInteractionTest.xml",
+        "sha256": "bc304a72b67152a4e59f9bf825a482813f710ee4f49afdcfe8c0add4d6d7b5c1",
+        "tests": 5
+      },
+      "com.vncode.app.ui.products.ProductReferenceLayoutTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.products.ProductReferenceLayoutTest.xml",
+        "sha256": "78612a834ccb3b7b9804579b52e29ab36e1a0b92022391a511962252321e14ae",
+        "tests": 3
+      },
+      "com.vncode.app.ui.products.ProductRefreshUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.products.ProductRefreshUiTest.xml",
+        "sha256": "0c895e382e6e94a07535408a30fb2bd9eb83babf021d9171c58377eaabea1c10",
+        "tests": 2
+      },
+      "com.vncode.app.ui.products.ProductSelectionSmoothnessTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.products.ProductSelectionSmoothnessTest.xml",
+        "sha256": "0ab63dde7023ed3504416b0c8af8e45b4bb993ecd38bddcebc6c3bfdf7d9e69b",
+        "tests": 2
+      },
+      "com.vncode.app.ui.products.ProductSelectionTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.products.ProductSelectionTest.xml",
+        "sha256": "ce51eddfbaa77639131c18983c5a376af842d5f01f3027039d2348b3c712ccc3",
+        "tests": 2
+      },
+      "com.vncode.app.ui.ReferenceThemeAccessibilityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.ReferenceThemeAccessibilityTest.xml",
+        "sha256": "3eb9018f3a4a3e6fd122f97840850324c751b86d1214cffeb54fd896767ce7e7",
+        "tests": 1
+      },
+      "com.vncode.app.ui.shop.ShopSellerIsolationDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.shop.ShopSellerIsolationDialogTest.xml",
+        "sha256": "29b8a884d558a39cc883486cc9e3978a07a8e0c1e251b0ddd3556261fcf93edd",
+        "tests": 1
+      },
+      "com.vncode.app.ui.StartupProgressTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.StartupProgressTest.xml",
+        "sha256": "eb444ef024150adedc1a61cb4c476269fdfbbfcfb0ba7ab84f466200affe3677",
+        "tests": 8
+      },
+      "com.vncode.app.ui.supply.SupplyOrderPresentationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.supply.SupplyOrderPresentationTest.xml",
+        "sha256": "f54058b0cb60d384d7261248763e51e88e5b3f7ddb087a2751960767cb7dd125",
+        "tests": 2
+      },
+      "com.vncode.app.ui.supply.WbShippingHistoryPaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.supply.WbShippingHistoryPaneTest.xml",
+        "sha256": "9620791c0b9d50c069cbdfd041afb43d88756fbdd36a0a909b6a6329d8819153",
+        "tests": 2
+      },
+      "com.vncode.app.ui.tnved.FashionTnvedBrowserTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+        "sha256": "f35b963f2fc730c9813553fcd8d9532d503e676625fdbdf7f39bfdaab44ef05f",
+        "tests": 3
+      },
+      "com.vncode.app.ui.workspace.ApprovedWorkspaceAcceptanceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.ApprovedWorkspaceAcceptanceTest.xml",
+        "sha256": "3c10bd1e1440ae615e3ebbb8bdef1ff1d5437777fda82a26c07eb2166f9af8b9",
+        "tests": 4
+      },
+      "com.vncode.app.ui.workspace.DesktopShellEvidenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.DesktopShellEvidenceTest.xml",
+        "sha256": "e7ccc608f491c9fe342ce4a8c2b1a3091139c256988cad694e2c34aa0f3d762e",
+        "tests": 1
+      },
+      "com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest.xml",
+        "sha256": "2fb6afdfda71d36a7527f4f0c06053950d869d9007671e84c990b1dde3ca2352",
+        "tests": 1
+      },
+      "com.vncode.app.ui.workspace.JobCenterDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.JobCenterDialogTest.xml",
+        "sha256": "cd5932ee60e278e64a9c3b97c3c018788d52a68ecd826b046f0d0d40466ab43b",
+        "tests": 2
+      },
+      "com.vncode.app.ui.workspace.NativeGlassEvidenceTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.NativeGlassEvidenceTest.xml",
+        "sha256": "2560f182f67ff2007b30581ce30e612c3e1b7b77806f925ba2ca31e863e62391",
+        "tests": 1
+      },
+      "com.vncode.app.ui.workspace.SupplyPrintRequestTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.SupplyPrintRequestTest.xml",
+        "sha256": "a24f9259b654149393bfc6a07a807d61b02e9feca9e0a5324ca6c6e63de170d2",
+        "tests": 3
+      },
+      "com.vncode.app.ui.workspace.UpdateHandoffUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.UpdateHandoffUiTest.xml",
+        "sha256": "e5e35a97d7515e18472eb22e424595fb72c7d8ad5a3e06f0789350988117f7cd",
+        "tests": 6
+      },
+      "com.vncode.app.ui.workspace.WorkspaceChromeUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceChromeUiTest.xml",
+        "sha256": "1489f9025156c15eb839ebbe3a5615d0302d96dc43c96447b9c590e619bd20c3",
+        "tests": 3
+      },
+      "com.vncode.app.ui.workspace.WorkspaceCommandPaletteTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceCommandPaletteTest.xml",
+        "sha256": "e8221b7d180ecacc72c1983c30131bc57ff5b086c1685811633e47cc4fb500dc",
+        "tests": 2
+      },
+      "com.vncode.app.ui.workspace.WorkspaceJavaPagesLayoutTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceJavaPagesLayoutTest.xml",
+        "sha256": "d509de22837922d72d26f6a7b6dd87adf57a3ebccdb192767c20792bfdcd9bd2",
+        "tests": 1
+      },
+      "com.vncode.app.ui.workspace.WorkspaceListAreaTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceListAreaTest.xml",
+        "sha256": "9ab835f8321d49cb311d8d43b455cfa95d9ea94d1550bc83d3bb57f06e6c2692",
+        "tests": 1
+      },
+      "com.vncode.app.ui.workspace.WorkspaceNavigationContextTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceNavigationContextTest.xml",
+        "sha256": "b80108c33366f4ca6d75328a34e17760419b4939a2850c751476eff54b9ba411",
+        "tests": 2
+      },
+      "com.vncode.app.ui.workspace.WorkspaceNavigationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceNavigationTest.xml",
+        "sha256": "8737a20a8ff09616eaab33dc62cfc4e5d7b67dd9401ed2e219fc6f081abba27b",
+        "tests": 4
+      },
+      "com.vncode.app.ui.workspace.WorkspacePagesLayoutTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspacePagesLayoutTest.xml",
+        "sha256": "7fc67931eb4a02aa3a582b0f21c4fa1d30fe2fa17625ad812c44ca0215f6549b",
+        "tests": 1
+      },
+      "com.vncode.app.ui.workspace.WorkspaceStateTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceStateTest.xml",
+        "sha256": "fbc1ad33ddd66fa9a0dcf2afd5b7f6907ffb6e4706d67a87eecefe4767e375e4",
+        "tests": 3
+      },
+      "com.vncode.app.ui.WorkspaceWindowBoundsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.WorkspaceWindowBoundsTest.xml",
+        "sha256": "29ae7ca15920b7460512b73f49e996d43bd46ebb9d68300845cec86e6b93e645",
+        "tests": 3
+      },
+      "com.vncode.app.ui.znack.SignatureTestFailureTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znack.SignatureTestFailureTest.xml",
+        "sha256": "b53dc22c5c4d8f50064feb6d8489be68f29b5e5e4561b0dbac5d421a67140b94",
+        "tests": 11
+      },
+      "com.vncode.app.ui.znack.ZnackAutomationControllerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znack.ZnackAutomationControllerTest.xml",
+        "sha256": "25dfbf4be01411e255d6bb6440bd2a11629e3a095f24c26f9c3d99736e0e18c8",
+        "tests": 8
+      },
+      "com.vncode.app.ui.znack.ZnackAutomationInformationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znack.ZnackAutomationInformationTest.xml",
+        "sha256": "e27aaac4ca72cdbd1a3dea002456fd64ada2f57866f26c57a75fa4b39fa57176",
+        "tests": 5
+      },
+      "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest.xml",
+        "sha256": "2a61714c40d83afd3e72390f1b307a7bc4f99d6e84aa91b81cc60cc88431b3f7",
+        "tests": 14
+      },
+      "com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest.xml",
+        "sha256": "e39bae703c481e2d7e6af8dff442e3d5e36bdfd9f831805e0f12174ab3b074fd",
+        "tests": 6
+      },
+      "com.vncode.app.ui.znackregistration.ExistingDraftReviewTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.ExistingDraftReviewTest.xml",
+        "sha256": "6a25ec376499ce5be84733865fbc0cf9f1c467aeeae112b4ece08d3b37c935ef",
+        "tests": 2
+      },
+      "com.vncode.app.ui.znackregistration.FlowAuditDiagnosticsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.FlowAuditDiagnosticsTest.xml",
+        "sha256": "f178388906d181b53f5c63959280a01873d7221be85f57834a38655481714e25",
+        "tests": 4
+      },
+      "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest.xml",
+        "sha256": "bfb89e1e588211d601ad8cc65355b8c06105a37c2d91cff4dae9d4e460e640a1",
+        "tests": 16
+      },
+      "com.vncode.app.ui.znackregistration.OzonCatalogVariantLinkDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.OzonCatalogVariantLinkDialogTest.xml",
+        "sha256": "86ff387bf64cc69ff7dcc7d2e0aeedc61f74ca595498cb8850f4521251d692e8",
+        "tests": 3
+      },
+      "com.vncode.app.ui.znackregistration.OzonGtinConflictReviewTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.OzonGtinConflictReviewTest.xml",
+        "sha256": "dcf6d6829cf8fb59833dba8a6e2a382e7012e1646c25389aab23409230dd8529",
+        "tests": 6
+      },
+      "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest.xml",
+        "sha256": "80b459cb240d1620b5f0c919ae73ba267769ce9e8d4e20d86591e9902950255d",
+        "tests": 40
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest.xml",
+        "sha256": "825ee75b0622a53f02be5e0435dd8a888706fe07e2c5e8069ba898a89b77b096",
+        "tests": 7
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationCountryDisplayTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationCountryDisplayTest.xml",
+        "sha256": "18662a4604bca5237db38dcb3171055d3e6e5e39fad152fda6d88592d9b90b0f",
+        "tests": 3
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest.xml",
+        "sha256": "61587edeb04ac6d685ce16f57f402fb31293e685d7335f4ff75a47f06c6de117",
+        "tests": 13
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationDraftCompletionDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationDraftCompletionDialogTest.xml",
+        "sha256": "bf1957dcc144342383457e988677b920f2ae39167257f5cd2de304fad194493b",
+        "tests": 7
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest.xml",
+        "sha256": "318a3364492f2f79c0b62cb3edf338bc7f3feb6d746eb98d01ac648ed113f826",
+        "tests": 4
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationPreflightCorrectionsTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationPreflightCorrectionsTest.xml",
+        "sha256": "ff052bc580407648dcb272e5e5167ebc519fd141e05b59934fce0f1b445727e4",
+        "tests": 4
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationProvenanceDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationProvenanceDialogTest.xml",
+        "sha256": "a395978053d2d028c2852fd7f59d2df70fc171b826761118f36536c408bcc386",
+        "tests": 2
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationRepairHistoryDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationRepairHistoryDialogTest.xml",
+        "sha256": "21dd4e725b708f5b116c5de8f58443e5ee74745792664c4678cab0f7729c4022",
+        "tests": 2
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationReportDataTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationReportDataTest.xml",
+        "sha256": "8f1e6366ff3f8748ce93853a76f60a68cf2b7c0031d42cf83929b5795aaa96c6",
+        "tests": 5
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationSigningReviewDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationSigningReviewDialogTest.xml",
+        "sha256": "4e621ffff0740c3161c149158bf1f67fd21c78264957602caff9fffce6760d93",
+        "tests": 3
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest.xml",
+        "sha256": "032989bd4f26d3c320a7e89bd66a28a313cf526c2ae0769c6f9e9be45ccaa32a",
+        "tests": 12
+      },
+      "com.vncode.app.ui.znackregistration.RegistrationTableTextTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationTableTextTest.xml",
+        "sha256": "7030d561c8d8ebb20a43384112d02dc271dfa88ea47fce9e7453a9b10f51aea3",
+        "tests": 8
+      },
+      "com.vncode.app.ui.znackregistration.WbOzonGtinLinkDialogTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.WbOzonGtinLinkDialogTest.xml",
+        "sha256": "3b438da4351950d40c3530cfe51f35f70d60a001e2df4ba26dd220da0bf7594b",
+        "tests": 2
+      },
+      "com.vncode.app.ui.znackregistration.WbOzonSellerLoopbackIntegrationTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.WbOzonSellerLoopbackIntegrationTest.xml",
+        "sha256": "90145190af30c34839a3ff37c562a8ab2c2ce9c4a50361948fb5782acfa0a195",
+        "tests": 1
+      },
+      "com.vncode.app.ui.znackregistration.WbRejectedReplacementVisibilityTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.WbRejectedReplacementVisibilityTest.xml",
+        "sha256": "24711730f6e991fc3a5c6ce0891f6f3075f1a0ad7aa2fde16b958af0faf6c7db",
+        "tests": 1
+      },
+      "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest.xml",
+        "sha256": "8a1a3e4e11236c012c9aa1eaab44bf8b3902812e89eb542b5c615f91eac81317",
+        "tests": 40
+      },
+      "com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest": {
+        "file": "surefire-reports/TEST-com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest.xml",
+        "sha256": "e50e51573d7a95588f741dc0de5dcf596526b3c6b08fbdfcfd2738685611805e",
+        "tests": 19
+      },
+      "WindowsUpgradeDataProbeTest": {
+        "file": "surefire-reports/TEST-WindowsUpgradeDataProbeTest.xml",
+        "sha256": "a6e7350a4f2d91df0c5fd5299c4ec422280f61a400dbd3c9e1076bf05d139cff",
+        "tests": 3
+      }
+    }
+  },
+  "stressReports": {
+    "gtin-bulk-ozon-10000.json": {
+      "marketplace": "OZON",
+      "gtins": 10000,
+      "liveSellerMutations": false,
+      "simulatedApi": true,
+      "realApplicationPlannerAdaptersAndSqlite": true,
+      "writes": 100,
+      "reads": 60272,
+      "registrationEvidenceReads": 60000,
+      "certificateEvidenceReads": 60000,
+      "priceEvidenceReads": 0,
+      "pricePreflightReads": 0,
+      "maximumRequestItems": 100,
+      "maximumRequestBytes": 4114,
+      "verified": 10000,
+      "elapsedMs": 1475386.8763,
+      "quotaWaitSimulatedSeparately": true
+    },
+    "gtin-bulk-wildberries-10000.json": {
+      "marketplace": "WILDBERRIES",
+      "gtins": 10000,
+      "liveSellerMutations": false,
+      "simulatedApi": true,
+      "realApplicationPlannerAdaptersAndSqlite": true,
+      "writes": 4,
+      "reads": 214,
+      "registrationEvidenceReads": 0,
+      "certificateEvidenceReads": 0,
+      "priceEvidenceReads": 0,
+      "pricePreflightReads": 20,
+      "maximumRequestItems": 3000,
+      "maximumRequestBytes": 1396331,
+      "verified": 10000,
+      "elapsedMs": 498415.8363,
+      "quotaWaitSimulatedSeparately": true
+    },
+    "gtin-bulk-wildberries-10000-delayed-report.json": {
+      "marketplace": "WILDBERRIES",
+      "gtins": 10000,
+      "simulatedApi": true,
+      "liveSellerMutations": false,
+      "realApplicationPlannerAdaptersWorkerReportsAndSqlite": true,
+      "actualShopCountersKnown": false,
+      "beforeReadback": {
+        "TOTAL": 10000,
+        "WITH_GTIN": 10000,
+        "WITHOUT_GTIN": 0,
+        "SUBMITTED": 10000,
+        "UPDATED": 0,
+        "NOT_UPDATED": 10000,
+        "PENDING": 10000,
+        "FAILED": 0,
+        "UNVERIFIED": 0,
+        "BLOCKED": 0
+      },
+      "afterReadback": {
+        "TOTAL": 10000,
+        "WITH_GTIN": 10000,
+        "WITHOUT_GTIN": 0,
+        "SUBMITTED": 10000,
+        "UPDATED": 10000,
+        "NOT_UPDATED": 0,
+        "PENDING": 0,
+        "FAILED": 0,
+        "UNVERIFIED": 0,
+        "BLOCKED": 0
+      },
+      "writes": 4,
+      "reads": 227,
+      "maximumRequestItems": 3000,
+      "maximumRequestBytes": 1396471,
+      "elapsedMs": 551502.7015,
+      "quotaWaitSimulatedSeparately": true
+    }
+  },
+  "nativeInputEvidence": {
+    "members": [
+      "baseline-native-input-42611294387/windows-input-2872.jsonl",
+      "baseline-native-input-42611294387/windows-input-initial-2872.json",
+      "baseline-native-input-42611294387/windows-input-snapshot-20261109T114842298Z-7828.json",
+      "baseline-native-input-42611294387/windows-input.stop"
+    ],
+    "sampleRecordsIncludingStop": 6073,
+    "observerStopped": true,
+    "stopReason": "stop-file",
+    "logSha256": "a35ee5053edd6240449139f150f60e2ab3e28a1dc0e0cfd5bac759203fe1c265",
+    "scope": "Read-only OS evidence on Windows. This review does not infer the cause of historical full-run failures from these samples."
+  },
+  "smokes": {
+    "native-smoke.json": {
+      "nativeLauncher": "passed",
+      "windowTitle": "VN code v1.6.7",
+      "historyPreserved": true,
+      "appName": "VN code",
+      "version": "1.6.7",
+      "schemaMigration": "3 to 6",
+      "platform": "windows-x64",
+      "liveMarketplaceMutations": false,
+      "rollbackSnapshotVerified": true
+    },
+    "gs1-smoke.json": {
+      "appName": "VN code",
+      "version": "1.6.7",
+      "result": "passed",
+      "dpapiRoundTrip": true,
+      "protectedPasswordPersistence": true,
+      "unverifiedInvoiceBlocked": true,
+      "liveGS1Mutations": false,
+      "catalogKeyDpapiRoundTrip": true,
+      "catalogKeyPurposeIsolated": true
+    },
+    "side-by-side-smoke.json": {
+      "wcodeFilesUnchanged": true,
+      "independentRegistrations": true,
+      "wcodeVersion": "1.1.75",
+      "uninstallPreservesWcode": true,
+      "appName": "VN code",
+      "windowTitle": "VN code v1.6.7",
+      "version": "1.6.7",
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "result": "passed",
+      "freshVncodeData": true,
+      "platform": "windows-x64",
+      "liveMarketplaceMutations": false
+    },
+    "upgrade-baseline-smoke.json": {
+      "singleRegistration": true,
+      "appName": "VN code",
+      "fromVersion": "1.6.6",
+      "baselineInstallerSha256": "161a2578413e13454ce575f51c61192c9ec7b9bd187f5728fd645456454ccf9f",
+      "version": "1.6.7",
+      "passiveExeHandoffVerified": true,
+      "result": "passed",
+      "dataPreserved": true,
+      "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+      "baselineInstallerBytes": 149293568,
+      "windowTitle": "VN code v1.6.7",
+      "baselineTag": "v1.6.6",
+      "singleShortcutPerLocation": true,
+      "passiveExeEmbeddedMsiSha256": "b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be",
+      "liveMarketplaceMutations": false,
+      "fingerprint": "8829ce33ae3bbffb1630e83cbd7eeb9885a9baa471fec7fed3db2a50d6fe713c",
+      "passiveExeInstallerSha256": "2da4f820660798d8b3979d90b751c1f1c4f9b1d281550b807c558558c6cdbd3b"
+    },
+    "previous-baseline.json": {
+      "version": "1.6.6",
+      "tag": "v1.6.6",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.6/VN-code-1.6.6-Windows-x64.exe",
+      "sha256": "161a2578413e13454ce575f51c61192c9ec7b9bd187f5728fd645456454ccf9f",
+      "bytes": 149293568,
+      "skipUpgrade": false
+    }
+  },
+  "allFiveInnerSmokeCopiesMatchOuterBytes": true,
+  "candidateInstallerFingerprints": {
+    "exe": {
+      "name": "VN-code-1.6.7-Windows-x64.exe",
+      "bytes": 149379584,
+      "sha256": "2da4f820660798d8b3979d90b751c1f1c4f9b1d281550b807c558558c6cdbd3b",
+      "peMachine": "0x8664 AMD64"
+    },
+    "msi": {
+      "name": "VN-code-1.6.7-Windows-x64.msi",
+      "bytes": 148710661,
+      "sha256": "b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be",
+      "oleHeaderValid": true
+    },
+    "passiveExeProofMatchesBothFinalFiles": true
+  },
+  "baselineInstallerMetadataMatchesSaved166Latest": true,
+  "upgradeFingerprintMeaning": "The fingerprint field is preserved synthetic profile/template data before/after passive upgrade, not another installer checksum.",
+  "sourceSmokeAndFixtureBlobHashes": {
+    ".github/workflows/publish-vncode-baseline.yml": "b55b752cd3b29fc4f67811892f607a925fc7d882c97304a365bf5e14c1713aed",
+    "tools/windows-native-smoke.ps1": "c38c028230e0713b086b002fb4d9a2840486d8c3cc2ebc5fa48df87f18cff5d9",
+    "tools/windows-gs1-smoke.ps1": "d37997330b1e99a1e36b44368df63950f2c144ffc8179a387a36d57e2e07522d",
+    "tools/WindowsGs1Probe.java": "31adb3d15710e24a25109026002b864bb9fe0d2c7a2a19656b4d12b7397e0dbb",
+    "tools/windows-side-by-side-smoke.ps1": "4a1d937247fb24a739a95ca2a8aa08986a83b255e04ed459c00d2c1ee7d31537",
+    "tools/windows-baseline-upgrade-smoke.ps1": "ea576b65238238b0238975ea32b147970b7df11bd3e86f1c7309dc053152abc1",
+    "tools/WindowsUpgradeDataProbe.java": "e8819e8f5e70c8d188a7b4edd910b380eadf3bcce2f16bee30a7f42230be3d45",
+    "src/test/java/com/vncode/app/features/sync/GtinBulkPipelineTest.java": "405b2d847713887e59cb99d164fc61a44b2738190a5e685ee02a39c22a37eb98",
+    "src/test/java/com/vncode/app/features/gs1/Gs1PrefixTemplateStoreTest.java": "3b8f87a24e0267a801578e54bedc789edceb05e434a283d0403fee914b785d73",
+    "src/test/java/com/vncode/app/shared/WindowsSecretProtectorTest.java": "7d2afdca1228d4d0e0f3285b6bb90aebc983b9514b160c633392ca29ca0f1861",
+    "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java": "71505e104251a159f39fc37e76186b81611f34d06b2832b90f785851c4c69739"
+  },
+  "evidenceInterpretation": "JUnit uses real application code with synthetic/local mock data and includes an actual native Robot click on the Windows runner. Native launcher/migration/DPAPI/MSI install/coexistence/passive EXE upgrade were executed by the pinned successful Windows workflow using isolated synthetic CI profiles. This reviewer read the reports and pinned script source locally and did not re-execute the application.",
+  "liveSellerApiAcceptanceClaimed": false,
+  "livePaidKizPurchaseClaimed": false,
+  "actualSellerCertificateDiscoveryOrSigningVerified": false,
+  "allHistoricalUpgradeVersionsVerified": false,
+  "allSecurityGatesPassedClaimed": false,
+  "securityScope": "Separate fresh CodeQL run42611297755 on exactd023 has the same8 old Java findings and failed high-severity gate, with existing GS1 extraction limitation. This artifact review does not turn security gates green.",
+  "promotionDecision": "Not made by this reviewer; current d023 raw Windows artifact evidence passes the stated independent suite/smoke scope. Publication and public/updater verification remain separate root actions.",
+  "networkCalls": false,
+  "mavenOrCiDispatch": false,
+  "repositoryEdits": false,
+  "sellerApiCalls": false,
+  "certificateSuites": {
+    "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest": {
+      "tests": 12,
+      "allPassed": true,
+      "cases": [
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "discoversTokenCertificateWhenCertmgrIsMissingOrStoreIsEmpty",
+          "seconds": 0.017,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "deduplicatesSameCertificateAcrossStoresAndNormalizesThumbprintForComparison",
+          "seconds": 0.005,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "rejectsUnstructuredIncompleteOrInvalidCertificatesWithoutLeakingPayload",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "preservesCancellationAndTimeoutEvenWhenCertmgrAlreadyReturnedAnOldCertificate",
+          "seconds": 0.004,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "discoveryScriptIsReadOnlyAndParsesWithActualWindowsPowerShellWhenAvailable",
+          "seconds": 0.174,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "rejectsThumbprintOfAnotherPublicCertificateBeforeOfferingItForSelection",
+          "seconds": 0.002,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "actualWindowsScriptContinuesPastOneUnreadablePublicCertificateUsingSyntheticComObjects",
+          "seconds": 0.269,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "readsOtherHostArchitectureEvenWhenFirstHostSuccessfullyFindsOnlyOldCertificates",
+          "seconds": 0.002,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "discoversRenewedTokenCertificateEvenWhenCurrentUserStoreStillContainsOldCertificate",
+          "seconds": 0.003,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "preservesDistinctAliasesWhenNoActualThumbprintIsAvailable",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "sharesOneTimeBudgetAcrossCertmgrAndAllReadOnlyHosts",
+          "seconds": 0.079,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+          "case": "preservesCertmgrOnlyInstallWhenComIsMissingOrReturnsMalformedData",
+          "seconds": 0.002,
+          "passed": true
+        }
+      ],
+      "xmlSha256": "8120a96a4376d2179cacd509abc2f9d60d002e5ccab2dccfd1517ad123bd69b8"
+    },
+    "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest": {
+      "tests": 38,
+      "allPassed": true,
+      "cases": [
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "existingLicenseFallbackReceivesOnlyTheBudgetLeftAfterProbesAndPrimary",
+          "seconds": 0.004,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "aliasesAndPartialFingerprintsKeepOriginalPathWithoutDiscovery(String)[1]",
+          "seconds": 0.002,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "aliasesAndPartialFingerprintsKeepOriginalPathWithoutDiscovery(String)[2]",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "aliasesAndPartialFingerprintsKeepOriginalPathWithoutDiscovery(String)[3]",
+          "seconds": 0.002,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "currentUserMatchKeepsCryptcpAndDoesNotEnumerateCades",
+          "seconds": 0.002,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "routedSignerCannotResetTheDeadlineForSubsequentHosts",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "unavailableUmyStillRequiresExactCadesProof(CryptoProErrorCode)[1]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "unavailableUmyStillRequiresExactCadesProof(CryptoProErrorCode)[2]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "unavailableUmyStillRequiresExactCadesProof(CryptoProErrorCode)[3]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "selectorOrProviderLabelCannotSubstituteForMatchingThumbprint",
+          "seconds": 0.002,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "primarySigningFailuresDoNotTriggerTheNewRoute(CryptoProErrorCode)[1]",
+          "seconds": 0.002,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "primarySigningFailuresDoNotTriggerTheNewRoute(CryptoProErrorCode)[2]",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "primarySigningFailuresDoNotTriggerTheNewRoute(CryptoProErrorCode)[3]",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "primarySigningFailuresDoNotTriggerTheNewRoute(CryptoProErrorCode)[4]",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "primarySigningFailuresDoNotTriggerTheNewRoute(CryptoProErrorCode)[5]",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "exactFingerprintNormalizesCaseAndWhitespace",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "unavailableDiscoveryWithoutExactProofRetainsPrimaryBehavior",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "productionWindowsLookupReadsOnlyUmyWhenExactCertificateIsThere",
+          "seconds": 0.003,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[1]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[2]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[3]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[4]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[5]",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[6]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[7]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[8]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[9]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[10]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[11]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[12]",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "failureAfterRoutedSigningNeverStartsAnotherSigningAttempt(CryptoProErrorCode)[13]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "legacyInjectedConstructorDoesNotEnableNewDiscovery",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "terminalUmyReadFailureDoesNotStartAnotherReadOrSign(CryptoProErrorCode)[1]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "terminalUmyReadFailureDoesNotStartAnotherReadOrSign(CryptoProErrorCode)[2]",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "probesAndRoutedSignatureUseOneDecreasingTimeBudget",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "tokenCertificateIsChosenBeforeAnySigningEvenWhenOldUmyCertificateExists",
+          "seconds": 0.0,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "terminalCadesReadFailureDoesNotStartSigning(CryptoProErrorCode)[1]",
+          "seconds": 0.001,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+          "case": "terminalCadesReadFailureDoesNotStartSigning(CryptoProErrorCode)[2]",
+          "seconds": 0.0,
+          "passed": true
+        }
+      ],
+      "xmlSha256": "6d00e0ef86481760c66cfdffaab1c254d09046fbb9d3cf16c60abce60fbced17"
+    },
+    "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest": {
+      "tests": 14,
+      "allPassed": true,
+      "cases": [
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "missingConfiguredCertificateDoesNotAutomaticallySelectItsRenewal",
+          "seconds": 0.343,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "enteringEditDiscoversNewCertificatesWithoutChangingTheSavedSigner",
+          "seconds": 0.321,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "confirmedUnchangedSignerChangeOnlyPreparesTheOriginalVerificationTask",
+          "seconds": 0.322,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "signerChangeWarningExistsInEveryLocaleAndNamesTheAffectedLocalData",
+          "seconds": 0.277,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "shopChangeDuringConfirmationCannotStartVerificationForThePreviousShop",
+          "seconds": 0.311,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "cancellingEditDiscardsItsDelayedDiscoveryWithoutChangingTheSavedCertificate",
+          "seconds": 0.392,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "cancellingDiscoveryInterruptsOnlyItsReadAndReopeningEditCanReadFreshCertificates",
+          "seconds": 0.365,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "explicitlySelectedRenewalSurvivesDropdownRefreshWithoutInheritingVerification",
+          "seconds": 0.499,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "selectionChangeDuringConfirmationCannotVerifyThePreviouslySelectedCertificate",
+          "seconds": 0.403,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "persistedSettingsChangeDuringConfirmationCannotBeOverwrittenByTheOldSnapshot",
+          "seconds": 0.339,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "draftSettingsChangeDuringConfirmationCannotStartVerificationFromTheOldSnapshot",
+          "seconds": 0.323,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "cancellingSignerChangeStartsNoSigningTaskAndKeepsStoredData",
+          "seconds": 0.299,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "sameStoredFingerprintWithDifferentFormattingDoesNotRequestSignerChangeConfirmation",
+          "seconds": 0.301,
+          "passed": true
+        },
+        {
+          "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+          "case": "delayedEditDiscoveryCannotReplaceTheNextShopsSelectedCertificate",
+          "seconds": 0.395,
+          "passed": true
+        }
+      ],
+      "xmlSha256": "2a61714c40d83afd3e72390f1b307a7bc4f99d6e84aa91b81cc60cc88431b3f7"
+    }
+  },
+  "sourceAndRuntimeCounts": {
+    "sourceArchiveFiles": 2993,
+    "classes": 1987,
+    "javaClassMajor": 69,
+    "portableApplicationJarSha256": "6e888e5402bd3e4b8536fda0e78c423c255fd74f34f6060cf7b21e0fc506c402",
+    "passedPackageRuntimeCoverage": {
+      "runtimeInputs": 115,
+      "javaInputs": 90,
+      "resourceInputs": 25,
+      "runtimePlusPom": 116
+    },
+    "scope": "Raw source ZIP file count and portable JAR class count/hash independently checked; runtime source coverage counts cross-checked against the passed pinned package verifier."
+  },
+  "actualAssetDigests": {
+    "VN-code-1.6.7-source.zip": {
+      "bytes": 38625360,
+      "sha256": "aeb978bfc812f0700b52661c1d810cf3b66a8ef4e4ad3cbffd9aa0061fe9c22a"
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "63d1f37252f8fe78ef5692cb53626113720e5b06bcec5d486b4c2044692e4b1f"
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "106e65d19dc1fe5cf22b5fef4de9466311624ca17d3c3b47f5ba94af6b0a4197"
+    },
+    "VN-code-1.6.7-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "6923b4f1a3a00734d701b5d09ec6ab317e5c9648254e12fdfbf3ec813f16b203"
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "079549d1cca9207aff0b6a2f260ff8eeb1e2c4d0054c04756dfa4817b846d7ea"
+    },
+    "VN-code-1.6.7-Windows-x64.zip": {
+      "bytes": 148299313,
+      "sha256": "f88861e190ec4d9f61f441d525fd3575b2b4336c7543d18775a05e807d77fbea"
+    },
+    "VN-code-1.6.7-Windows-x64.exe": {
+      "bytes": 149379584,
+      "sha256": "2da4f820660798d8b3979d90b751c1f1c4f9b1d281550b807c558558c6cdbd3b"
+    },
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "28eac27d3257b45a6d5ad5e7657f7502a3beb346b815ea5c0fa1a0d974d31044"
+    },
+    "release-notes.md": {
+      "bytes": 3053,
+      "sha256": "670e61438268ac3501a44f4b6f90ca7a485bb396cc731a024a09a78cfda24984"
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "2fb85067882f508f07ced1062b060fe8ce1e92dd78c288be1a8cf1b0b119ddfd"
+    },
+    "VN-code-1.6.7-Windows-x64.msi": {
+      "bytes": 148710661,
+      "sha256": "b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be"
+    },
+    "VN-code-1.6.7-history.bundle": {
+      "bytes": 46076547,
+      "sha256": "0019e3fb4260eb398f2472d449b4532e8dca11059b8bedfae0633059fa318c26"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "0d0a3b21edbff0d43de23dabf08cb1512e4b72d2848ad985b6d36ed9d02a54fe"
+    },
+    "VN-code-1.6.7-verification.zip": {
+      "bytes": 2903725,
+      "sha256": "98b54e6df7d9ff2363590aefe67225346eb8c2c0519351b83da66b2b01ca7580"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "788e86c616084b76a0b25d62c7574745fa566246bae4018594b3a00139757bf4"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "6ebff916e1199db0c8b9504dc3a6f4de708b74d3d07e2f68a93e69bd61351fb9"
+    }
+  },
+  "packageReceiptSha256": "345bb254e80404107a65160a77e040dcefb3ecfb0ee8e4714384dba285028958",
+  "packageVerifierSha256": "1af43751eabd4020911ee1951665d05dd4f873bd4005e50c37608ca728bc219f",
+  "newCertificateSyntheticRegressionCovered": true,
+  "actualSellerNewCertificateIssueVerified": false,
+  "independentSmokeSourceAudit": {
+    "result": "PASS",
+    "findings": [],
+    "installerSha256": {
+      "exe": "2da4f820660798d8b3979d90b751c1f1c4f9b1d281550b807c558558c6cdbd3b",
+      "msi": "b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be"
+    },
+    "embeddedMsiEvidence": "Pinned Windows upgrade script reads the final EXE MSI resource using resource-only LoadLibraryEx, validates MSI magic and compares extracted bytes hash to delivered MSI, then executes that exact EXE /passive /norestart and checks EXE hash before/after. Reviewer did not execute or install locally.",
+    "migrationScope": "Schema3→6 synthetic fixture verifies registration GTIN/feed/good_id/status history and rollback snapshot/integrity/FKs. KIZ stock preservation is verified separately by the actual166→167 upgrade fixture, not a full historical migration matrix.",
+    "dpapiScope": "Actual Windows CurrentUser DPAPI roundtrip/persistence/purpose-isolation with synthetic local secrets and unverified-invoice rejection; no seller credentials.",
+    "sxsScope": "Actual WCode1.1.75/newMSI coexistence, independent registrations/UpgradeCode and old WCode/profile/sentinel preservation through install/uninstall.",
+    "passiveUpgradeScope": "Actual immutable166 baseline EXE upgraded by new final EXE, with seeded synthetic shop/templates/FBO/registration/print/KIZ history and stock preserved, one registration/shortcut and data preserved after uninstall.",
+    "allFiveInnerOuterCopiesEqual": true,
+    "baseline166MatchesSavedImmutableRelease": true,
+    "actualSignerOrSellerCertificateAcceptance": false,
+    "reviewerExecutedInstallers": false
+  }
+}

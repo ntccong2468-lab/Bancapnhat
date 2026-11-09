@@ -2,9 +2,11 @@
 
 **VN code** là ứng dụng Windows do Nguyễn Thành Công phát triển và quản lý, phục vụ seller trên Wildberries và Ozon.
 
-Bản phát hành mới nhất: **VNCode 1.6.6**. [Tải bộ cài Windows 64-bit](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.6/VN-code-1.6.6-Windows-x64.exe) · [Release Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/latest) · [Bản nền](docs/releases/BASELINE.md) · [Ghi chú 1.6.6](docs/releases/VN-code-1.6.6.md).
+Bản phát hành mới nhất: **VN Code 1.6.7**. [Tải bộ cài Windows 64-bit](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.7/VN-code-1.6.7-Windows-x64.exe) · [Release Latest](https://github.com/ntccong2468-lab/Bancapnhat/releases/latest) · [Bản nền](docs/releases/BASELINE.md) · [Ghi chú1.6.7](docs/releases/VN-code-1.6.7.md).
 
-**1.6.6 đã phát hành lên Latest lúc 21:46:11 UTC ngày 07.11.2026 (00:46:11 MSK ngày 08.11).** Kế thừa toàn bộ 1.6.5, gộp Ozon tự thay KIZ/PDF kết hợp, Znack nhận feed/GTIN WB nền, shared writer, báo cáo đúng phạm vi và audit giao diện. [Bàn giao và giới hạn kiểm chứng](docs/validation/2026-11-07-vncode-166-release-handoff.md).
+**1.6.7 đã lên Latest lúc16:38:02 MSK ngày09.11.2026 (13:38:02 UTC).** Kế thừa toàn bộ1.6.6, gộp sửa WB KIZ màu/giấy tờ, Znack/GTIN/read revision, số giấy tờ Latin/Cyrillic, giao diện native đã duyệt và nhận diện chứng thư mới. Có xác nhận trước khi thay người ký để công khai tác động tới dữ liệu cục bộ. [Bàn giao đầy đủ](docs/validation/2026-11-09-vncode-167-release-handoff.md), [receipt cuối](docs/validation/2026-11-09-vncode-167-final-release.json).
+
+Sau nâng cấp, chạy **Đồng bộ Znack đầy đủ một lần** để làm mới cache cũ. Giữ profile, feed và journal; không xóa dữ liệu hoặc đăng ký lại thẻ chỉ để làm sạch báo cáo.
 
 Ứng dụng quản lý đơn, đồng bộ sản phẩm/GTIN, đăng ký thẻ Catalog, mua và gán KIZ, in tem và báo cáo. Repository chứa toàn bộ mã nguồn ứng dụng, website/Portal, kiểm thử và công cụ build. Bản phát hành mới đóng gói mã nguồn ZIP, Git bundle, bộ cài EXE/MSI, runtime Windows kèm Java và checksum để tiếp tục chỉnh sửa từ một bản nền.
 
@@ -30,7 +32,9 @@ Workflow **Build complete VNCode baseline** kiểm tra và đóng gói từ mộ
 
 ## Phạm vi kiểm chứng
 
-[Bàn giao 1.6.6](docs/validation/2026-11-07-vncode-166-release-handoff.md) và [biên nhận công bố](docs/validation/2026-11-07-vncode-166-publication.json): **3.979 ca Windows** (3.977 đạt, 2 bỏ qua, 0 lỗi/thất bại), native/migration/DPAPI/cài-gỡ/nâng cấp từ 1.6.5 giữ dữ liệu đạt; đủ 16 tệp đã tải và kiểm hash. [Payload](docs/validation/2026-11-07-vncode-166-package.json): 2.917 tệp source ZIP khớp Git, JAR 1.956 class đúng nguồn. Updater binary 1.6.5 nhận AVAILABLE 1.6.6 và đúng MSI/hash/kích thước; chưa quan sát popup máy seller. Node 160/160, portal 67/67 trong phạm vi riêng. [Security](docs/validation/2026-11-07-vncode-166-security.json) giữ Java gate thất bại ở tám finding cũ/1 high thumbprint; không có finding mới. [Audit và ảnh native](docs/validation/2026-11-07-report-pdf-app-audit.md).
+[Windows42611294387](docs/validation/2026-11-09-vncode-167-build-run.json): **4.188 ca/547 lớp,4.186 đạt,0 lỗi/thất bại,2 OS skip**; native/migration/snapshot/DPAPI/cài-gỡ/coexistence/nâng cấp từ1.6.6 giữ dữ liệu đạt. [Package](docs/validation/2026-11-09-vncode-167-package.json) kiểm source ZIP2.993 tệp và JAR production1.987 class. Publisher42627047589 đạt; [16 tệp công khai đã tải/kiểm hash](docs/validation/2026-11-09-vncode-167-public-preservation.json), giữ16 release/258 asset/45 tag cũ. [Updater binary1.6.6](docs/validation/2026-11-09-vncode-167-updater.json) nhận AVAILABLE1.6.7/đúng MSI/hash/size; chưa quan sát popup máy seller. [Review sau công bố](docs/validation/2026-11-09-vncode-167-post-publication-review.json) đạt.
+
+[Fresh security đúng nguồn](docs/validation/2026-11-09-vncode-167-certificate-guard-security.json) vẫn giữ **Java gate FAIL** ở tám finding cũ/1 high thumbprint;0 finding mới, JavaScript/lint đạt. Không gọi mọi security gate xanh. Chứng thư được kiểm bằng fixture và PowerShell tổng hợp trên Windows; chưa nghiệm thu token/PKI seller thật hoặc migration gia hạn cùngINN giữ kho/mapping. [Công cụ phiên và cách khôi phục](docs/validation/release-167-tools/README.md).
 
 Hồ sơ Ozon thật trước đó ngày 04.11: 22 đơn và 2 đơn mới được nhận, đọc lại xác nhận; PDF 25 vận đơn + 13 KIZ gilet = 38 trang, 2 tác vụ theo lô, không tải nhãn riêng, xuất 6,999 giây. KIZ in từ reservation đúng đơn; kết quả này không xác nhận Ozon chấp nhận KIZ. Lô 1.000 dùng mô phỏng, chưa có benchmark 1.000 đơn thật. Nghiệm thu sửa sản phẩm/Catalog của bản nền vẫn giữ giới hạn trong hồ sơ: gửi lại giá trị đang có của năm trường, thẻ Catalog mới ở draft/moderation chưa ký/công bố. Không coi HTTP 200, số liệu mô phỏng hoặc ảnh giao diện là kết quả nghiệp vụ trên shop thật. [Giới hạn bảo mật còn lại](docs/validation/2026-11-03-release-security-review.md) tiếp tục áp dụng.
 

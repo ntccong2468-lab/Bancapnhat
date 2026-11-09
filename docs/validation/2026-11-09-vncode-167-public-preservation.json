@@ -1,0 +1,261 @@
+{
+  "verifiedAtUtc": "2026-11-09T13:42:01.191915+00:00",
+  "kind": "VNCODE_CERTIFICATE_GUARD_RELEASE_PUBLIC_PRESERVATION",
+  "version": "1.6.7",
+  "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "fullWindowsBuildRun": 42611294387,
+  "releaseId": 438471378,
+  "tag": "v1.6.7",
+  "publishedAt": "2026-11-09T13:38:02Z",
+  "immutable": true,
+  "result": "PASS",
+  "publicDirectory": "/workspace/vncode-167-release/public-downloads-certificate-guard",
+  "buildDirectory": "/workspace/vncode-167-release/windows-artifact-certificate-guard",
+  "packageReceipt": "package-verification-certificate-guard.json",
+  "inputMetadataSha256": {
+    "package-verification-certificate-guard.json": "345bb254e80404107a65160a77e040dcefb3ecfb0ee8e4714384dba285028958",
+    "releases-before.json": "8a7537b5bdcec8962aac8a77b820e2faf1ea078960d82df1c1a453802edffe06",
+    "releases-after-certificate-guard.json": "67fe743909b75e6502a74c49b5602eb08894d75ad8466d61cdad6ec05f3da5e7",
+    "latest-after-certificate-guard.json": "553774efcd13dd81549adb632c98ea88ac3252c8f55ed1b094bd929561d1b7aa",
+    "tags-before-final.json": "4c4d977ee17c2e16756eba31140c1c4c2983f0d3b647d3cd50bc43b3bb5fc29c",
+    "tags-after-certificate-guard.json": "933fe02cb4d4b3352b09af72e7f7f89f6d05af838a64508bb561fd8b98ec8f01"
+  },
+  "publicAssets": {
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "28eac27d3257b45a6d5ad5e7657f7502a3beb346b815ea5c0fa1a0d974d31044",
+      "assetId": 727619344,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "106e65d19dc1fe5cf22b5fef4de9466311624ca17d3c3b47f5ba94af6b0a4197",
+      "assetId": 727619134,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "2fb85067882f508f07ced1062b060fe8ce1e92dd78c288be1a8cf1b0b119ddfd",
+      "assetId": 727619476,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "63d1f37252f8fe78ef5692cb53626113720e5b06bcec5d486b4c2044692e4b1f",
+      "assetId": 727619242,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "0d0a3b21edbff0d43de23dabf08cb1512e4b72d2848ad985b6d36ed9d02a54fe",
+      "assetId": 727619567,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "release-notes.md": {
+      "bytes": 3053,
+      "sha256": "670e61438268ac3501a44f4b6f90ca7a485bb396cc731a024a09a78cfda24984",
+      "assetId": 727619200,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "079549d1cca9207aff0b6a2f260ff8eeb1e2c4d0054c04756dfa4817b846d7ea",
+      "assetId": 727619402,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "6ebff916e1199db0c8b9504dc3a6f4de708b74d3d07e2f68a93e69bd61351fb9",
+      "assetId": 727619529,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "788e86c616084b76a0b25d62c7574745fa566246bae4018594b3a00139757bf4",
+      "assetId": 727619283,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "VN-code-1.6.7-history.bundle": {
+      "bytes": 46076547,
+      "sha256": "0019e3fb4260eb398f2472d449b4532e8dca11059b8bedfae0633059fa318c26",
+      "assetId": 727618931,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "VN-code-1.6.7-source.zip": {
+      "bytes": 38625360,
+      "sha256": "aeb978bfc812f0700b52661c1d810cf3b66a8ef4e4ad3cbffd9aa0061fe9c22a",
+      "assetId": 727618801,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "VN-code-1.6.7-verification.zip": {
+      "bytes": 2903725,
+      "sha256": "98b54e6df7d9ff2363590aefe67225346eb8c2c0519351b83da66b2b01ca7580",
+      "assetId": 727619068,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "VN-code-1.6.7-Windows-x64.exe": {
+      "bytes": 149379584,
+      "sha256": "2da4f820660798d8b3979d90b751c1f1c4f9b1d281550b807c558558c6cdbd3b",
+      "assetId": 727618097,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "VN-code-1.6.7-Windows-x64.msi": {
+      "bytes": 148710661,
+      "sha256": "b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be",
+      "assetId": 727618307,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "VN-code-1.6.7-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "6923b4f1a3a00734d701b5d09ec6ab317e5c9648254e12fdfbf3ec813f16b203",
+      "assetId": 727618555,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    },
+    "VN-code-1.6.7-Windows-x64.zip": {
+      "bytes": 148299313,
+      "sha256": "f88861e190ec4d9f61f441d525fd3575b2b4336c7543d18775a05e807d77fbea",
+      "assetId": 727618593,
+      "matchesWindowsArtifact": true,
+      "matchesCertificatePackageReceipt": true,
+      "matchesGitHubDigest": true
+    }
+  },
+  "allSixteenActualDownloadsMatchWindowsArtifact": true,
+  "allSixteenMatchNewCertificatePackageReceipt": true,
+  "previousReleases": [
+    {
+      "releaseId": 437862752,
+      "tag": "v1.6.6",
+      "assets": 16
+    },
+    {
+      "releaseId": 437689422,
+      "tag": "v1.6.5",
+      "assets": 16
+    },
+    {
+      "releaseId": 435647198,
+      "tag": "v1.6.4",
+      "assets": 16
+    },
+    {
+      "releaseId": 434558799,
+      "tag": "v1.6.3",
+      "assets": 16
+    },
+    {
+      "releaseId": 433607147,
+      "tag": "v1.6.2",
+      "assets": 16
+    },
+    {
+      "releaseId": 433167599,
+      "tag": "v1.6.1",
+      "assets": 16
+    },
+    {
+      "releaseId": 430401567,
+      "tag": "v1.6.0",
+      "assets": 16
+    },
+    {
+      "releaseId": 427548236,
+      "tag": "v1.5.19",
+      "assets": 16
+    },
+    {
+      "releaseId": 426304599,
+      "tag": "v1.5.18",
+      "assets": 16
+    },
+    {
+      "releaseId": 423411451,
+      "tag": "v1.5.17",
+      "assets": 16
+    },
+    {
+      "releaseId": 423202074,
+      "tag": "v1.5.16",
+      "assets": 16
+    },
+    {
+      "releaseId": 422945241,
+      "tag": "v1.5.15",
+      "assets": 16
+    },
+    {
+      "releaseId": 422637565,
+      "tag": "v1.5.14",
+      "assets": 16
+    },
+    {
+      "releaseId": 422171061,
+      "tag": "v1.5.13",
+      "assets": 16
+    },
+    {
+      "releaseId": 421236216,
+      "tag": "v1.5.12",
+      "assets": 16
+    },
+    {
+      "releaseId": 420825131,
+      "tag": "v1.5.11",
+      "assets": 18
+    }
+  ],
+  "previousReleaseCount": 16,
+  "previousAssetCount": 258,
+  "previousTagCount": 45,
+  "finalReleaseCount": 17,
+  "finalTagCount": 46,
+  "previousTagsUnchanged": true,
+  "oldDownloadCountersExcluded": true,
+  "updater": {
+    "verified": true,
+    "receiptFile": "updater-after-certificate-guard.json",
+    "receiptSha256": "8144652615456a694bac78eb85e309735b00c1f7cbdc4d0efcebfba50ee513f8",
+    "installedBinaryVersion": "1.6.6",
+    "latestVersion": "1.6.7",
+    "selectedDownload": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.7/VN-code-1.6.7-Windows-x64.msi",
+    "sha256": "b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be",
+    "size": 148710661,
+    "sellerPopupObserved": false,
+    "anonymousNetworkAccessIndependentlyProven": false,
+    "scope": "Actual166 probe receipt compared to NEW167 MSI; inherited Cloud proxy/CA, no installation or seller-popup acceptance inferred."
+  },
+  "networkScope": "Offline comparison of actual public downloads saved by release tooling; no independent anonymous-network proof claimed.",
+  "sellerApiMutations": false,
+  "licenseActivation": false,
+  "releaseMutationsByThisVerifier": false
+}

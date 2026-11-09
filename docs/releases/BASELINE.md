@@ -1,6 +1,20 @@
 # VNCode consolidated baseline
 
-Bản Latest hiện là **VN Code 1.6.6**, tag immutable `v1.6.6`, nguồn `ac8ba1c939e22d0318877a3a2ba7242359cce78e`, release `437862752`, công bố **08.11.2026 00:46:11 MSK (07.11.2026 21:46:11 UTC)**. [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.6/VN-code-1.6.6-Windows-x64.exe), [ghi chú](VN-code-1.6.6.md), [bàn giao](../validation/2026-11-07-vncode-166-release-handoff.md), [công bố](../validation/2026-11-07-vncode-166-publication.json).
+Latest hiện là **VN Code1.6.7**, tag immutable `v1.6.7`, nguồn **`d0231cd6913ce3a1764067bad0901b32c535de41`**, release **438471378**; công bố **09.11.2026 16:38:02 MSK (13:38:02 UTC)**. [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.7/VN-code-1.6.7-Windows-x64.exe), [ghi chú](VN-code-1.6.7.md), [bàn giao](../validation/2026-11-09-vncode-167-release-handoff.md), [receipt cuối](../validation/2026-11-09-vncode-167-final-release.json).
+
+Windows **42611294387 SUCCESS:4.188 ca/547 lớp,4.186 đạt,0 failure/error,2 OS skip đúng danh tính**, đủ ba stress10.000 và các case chứng thư/confirmation. Native launcher, migration3→6/snapshot, DPAPI, cài/gỡ/coexistence và passive EXE upgrade từ1.6.6 giữ dữ liệu đạt. Publisher **42627047589**, tooling `b1e5e7774e1ab01d0c1c57ee934900c6927638f7`, đã phát hành đúng nguồn. [Build](../validation/2026-11-09-vncode-167-build-run.json), [package](../validation/2026-11-09-vncode-167-package.json).
+
+**16 tệp public tải/kiểm thực**, source ZIP **2.993 tệp**, JAR production **1.987 class**; **16 release/258 asset/45 tag cũ được giữ**, không prune. Binary1.6.6 thật nhận AVAILABLE1.6.7/đúng MSI SHA `b042992e037f3487cee97c470989aab86e2196cd1e67e5cb64a8c4af046924be`,148710661 bytes. [Bảo toàn](../validation/2026-11-09-vncode-167-public-preservation.json), [updater](../validation/2026-11-09-vncode-167-updater.json), [review cuối](../validation/2026-11-09-vncode-167-post-publication-review.json).
+
+Gói giữ đủ EXE, MSI, portable ZIP, source ZIP, Git bundle, verification ZIP, EXE `.sha256`, `build-info.json`, `release-notes.md`, native/GS1/side-by-side/upgrade/previous-baseline JSON, asset manifest và SHA256SUMS; các tệp phiên bản hiện dùng tiền tố **`VN-code-1.6.7-`**. Giữ nguồn/asset/checksum bất biến; commit tài liệu sau phát hành không đổi binary.
+
+Đủ mọi sửa1.6.6, bốn phần chưa phát hành trước đó và sửa chứng thư/confirmation. Không đổi schema6/dependency/UpgradeCode. Sau nâng cấp chạy **Đồng bộ Znack đầy đủ một lần**. Không tự migration chứng thư gia hạn cùngINN, không bỏ owner/private-key/consent. Bộ cài chưa ký Authenticode; [Java CodeQL vẫn FAIL ở8 finding cũ](../validation/2026-11-09-vncode-167-certificate-guard-security.json), không có finding mới. Chưa nghiệm thu CryptoPro seller thật, popup máy seller hoặc1000 đơn thật. [Công cụ khôi phục phiên](../validation/release-167-tools/README.md).
+
+## Các bản nền trước — lịch sử
+
+Những số liệu dưới đây giữ nguyên phạm vi của từng phiên bản; không dùng làm nghiệm thu1.6.7.
+
+Bản nền trước là **VN Code 1.6.6**, tag immutable `v1.6.6`, nguồn `ac8ba1c939e22d0318877a3a2ba7242359cce78e`, release `437862752`, công bố **08.11.2026 00:46:11 MSK (07.11.2026 21:46:11 UTC)**. [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.6/VN-code-1.6.6-Windows-x64.exe), [ghi chú](VN-code-1.6.6.md), [bàn giao](../validation/2026-11-07-vncode-166-release-handoff.md), [công bố](../validation/2026-11-07-vncode-166-publication.json).
 
 Windows `42408546769`: **3.979 ca/527 lớp, 0 lỗi/thất bại, 2 OS skip**, ba stress 10.000 và native/migration/DPAPI/cài-gỡ/nâng cấp 1.6.5 giữ dữ liệu đạt. Publisher `42417349432` đạt, đủ 16 asset tải/kiểm thực; 15 release cũ/242 asset không đổi. Source ZIP 2.917 tệp khớp Git, JAR 1.956 class đúng launcher/feed; updater binary 1.6.5 nhận AVAILABLE 1.6.6/đúng MSI. Node 160/160, portal 67/67 ở phạm vi riêng. Bộ cài chưa ký Authenticode; Java CodeQL giữ tám finding cũ/1 high thumbprint, không gọi toàn bộ security gate đạt.
 
@@ -18,7 +32,7 @@ Kế thừa toàn bộ 1.6.2. Áp dụng giao diện native đã duyệt, ưu ti
 
 [Tải bộ cài EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.3/VN-code-1.6.3-Windows-x64.exe), [ghi chú 1.6.3](VN-code-1.6.3.md), [bàn giao](../validation/2026-11-04-vncode-163-handoff.md), [biên nhận Latest](../validation/2026-11-04-vncode-163-published-latest.json). Lịch sử tính năng nền ở [ghi chú 1.6.2](VN-code-1.6.2.md).
 
-## Gói nguồn và kiểm chứng
+## Hồ sơ gói lịch sử1.6.3
 
 Release giữ đủ 16 tệp: EXE, MSI, ZIP chạy độc lập kèm Java, source ZIP, Git history bundle, verification ZIP, tệp EXE `.sha256`, `build-info.json`, `release-notes.md`, `native-smoke.json`, `gs1-smoke.json`, `side-by-side-smoke.json`, `upgrade-baseline-smoke.json`, `previous-baseline.json`, `asset-manifest.json`, `SHA256SUMS`. Các tệp có tiền tố phiên bản dùng `VN-code-1.6.3-`.
 
