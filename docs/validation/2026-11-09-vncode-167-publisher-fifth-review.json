@@ -1,0 +1,94 @@
+{
+  "kind": "FIFTH_ATTEMPT_SOURCE_ONLY_PUBLISHER_REVIEW",
+  "reviewedAtUtc": "2026-11-09T08:42:11.288223+00:00",
+  "publicationCheckoutHeadAtReview": "bbfbd180c4f2f84c177d4b09cdbac86592b1618f",
+  "candidate": {
+    "version": "1.6.7",
+    "applicationSourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "buildRunId": 42587222212,
+    "workflowId": 392732536,
+    "baselineVersion": "1.6.6",
+    "draftReleaseId": 438471378
+  },
+  "publisherFileSha256": "fa4fd16d07fead1ebafc9d090d3a05087557ccd5e2a8471c36ab05a4c3c7c4f7",
+  "publisherComparedTo166": {
+    "result": "PASS",
+    "onlyReviewedSubstitutions": [
+      {
+        "before": "version:'1.6.6'",
+        "after": "version:'1.6.7'"
+      },
+      {
+        "before": "source:'ac8ba1c939e22d0318877a3a2ba7242359cce78e'",
+        "after": "source:'0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96'"
+      },
+      {
+        "before": "build:42408546769",
+        "after": "build:42587222212"
+      },
+      {
+        "before": "baseline:'1.6.5'",
+        "after": "baseline:'1.6.6'"
+      },
+      {
+        "before": "releaseId:437862752",
+        "after": "releaseId:438471378"
+      },
+      {
+        "before": "vncode-166-release-",
+        "after": "vncode-167-release-"
+      },
+      {
+        "before": "publication-1.6.6.json",
+        "after": "publication-1.6.7.json"
+      }
+    ],
+    "allInheritedGatesUnchanged": true
+  },
+  "helper": {
+    "path": "/workspace/vncode-167-release/verify_package.py",
+    "sha256": "2c25e237fe998629c4905a30c13ebb475a4f5232d8d21807a5cf122241c9070c",
+    "fourthBackupSha256": "c6d7ef8d9dbe4d6e9731aa373cb339f61cdf6f5bef6a1df3191801f8b9d6dc64",
+    "allFunctionsExceptInclusionIdenticalToFourthBackup": true,
+    "inclusionExtension": "Preserve first/second/third historical provenance; add fourth failed210 and new0f5 fixture/observer correction checks. Source count2985. No artifact gate removed."
+  },
+  "sourceOnlyInclusion": {
+    "result": "PASS",
+    "sha256": "63b37971dd05c8cb4ab6ba877b0a34a9d9cdc94eda25d39309123006625402e2",
+    "bothCopiesEqual": true,
+    "gitFiles": 2985,
+    "runtimeInputs": 109,
+    "priorHandoverHashesMatched": 109,
+    "fourthFailedSource": "210c01d4a0854a55333151f252a74308888279ad",
+    "fourthFailedRun": 42570802535,
+    "fourthCorrectionSource": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "fourthCorrectionBuild": 42587222212,
+    "nativeFixtureOnlyWindowIsolationVerified": true,
+    "observerSourceSha256": "03cfc19bb1d0cfe30836f025e16c7b67c8ff2ec5d3555633c25985baa666234a",
+    "archiveMappingScope": "Reused pinned Git mapping to exercise source/schema checks. No actual Windows ZIP supplied; not package verification."
+  },
+  "baselineWorkflow": {
+    "unchangedUnfilteredCommandAndExitGate": true,
+    "original164AndFreshJvm3PreflightsRetained": true,
+    "allNativeMigrationProtectionInstallUpgradeGatesRetained": true,
+    "observerHidden": true,
+    "observerReadOnly": true,
+    "observerOutsideTargetAndOut": true,
+    "observerParentAndDurationBounded": true,
+    "observerCleanupOnlyOwnProcess": true,
+    "diagnosticsOnlyInsideVerificationZipAndFailedArtifact": true,
+    "topLevelReleaseAssetSetStill16": true,
+    "historicalFullConsoleCauseProven": false
+  },
+  "businessRuntimePomBuildWrappersUnchangedSince026": true,
+  "findings": [],
+  "actualWindowsRunStatusQueried": false,
+  "quickDiagnosticStatusQueried": false,
+  "quickDiagnosticAndFreshWindowsAndFinalPackageRequiredBeforePublication": true,
+  "actualWindowsArtifactProvided": false,
+  "packageVerificationClaimed": false,
+  "networkCalls": false,
+  "MavenOrNodeTestsRun": false,
+  "publicationPerformed": false,
+  "repositoryEditsInThisReview": false
+}

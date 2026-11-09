@@ -1,0 +1,64 @@
+{
+  "recordedAtUtc": "2026-11-09T08:36:22.237787+00:00",
+  "purpose": "Fixture isolation and diagnostic-scope cleanup, not production or Windows release acceptance",
+  "applicationSourceBeforeThisFixtureChange": "210c01d4a0854a55333151f252a74308888279ad",
+  "files": [
+    {
+      "path": "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+      "sha256": "71505e104251a159f39fc37e76186b81611f34d06b2832b90f785851c4c69739",
+      "change": "Temporary native test Stage.setAlwaysOnTop(true) before show; no change to parking logic,4s deadline,single real Robot click or business assertions."
+    },
+    {
+      "path": "tools/diagnostics/NativePointerDiagnosticExtension.java",
+      "sha256": "2c604ac5cbe40403f76154a115dc2f97c3e0c5c94084f4f75272fe5c6c734214",
+      "change": "AfterEach removes stored Window listener, cancels traces, detaches exact Scene/original-root/Window handlers and resets state; no Window.hide/close or input mutation."
+    }
+  ],
+  "rootCauseEvidence": "Actual fast Windows diagnostic42584347083 shows native target occluded by PowerShell ConsoleWindowClass windows in screenshots and WindowFromPhysicalPoint; under-pointerPID matches observer in02/07 and mainConsole in06. Historical full-run cause is not conclusively established by those new captures.",
+  "rootCauseAnalysis": "native-diagnostic-analysis-native-mouse.json",
+  "maven": {
+    "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -Dtest=FashionTnvedBrowserTest test",
+    "result": "PASS",
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "totalSeconds": 19.959,
+    "log": "native-aot-targeted-20261109.log",
+    "logSha256": "7bd1a50ccd90424bba4b68c6791f4ce3e3cfb6f2982c3e4cc6009c91fc412974",
+    "scope": "Linux/Xvfb only"
+  },
+  "standalone": {
+    "result": "PASS",
+    "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH /workspace/toolchains/xvfb-current/root/usr/bin/xvfb-run -a -s '-screen 0 1600x1000x24' /workspace/toolchains/jdk-25.0.4.1/bin/java -cp \"$(cat /workspace/vncode-167-release/native-pointer-diagnostics/cleanup-classpath.txt)\" com.vncode.app.ui.tnved.NativePointerCleanupProbe /workspace/vncode-167-release/native-pointer-diagnostics/aot-cleanup-output",
+    "nativeMethodExecutions": 2,
+    "nativeAssertionsUnchanged": true,
+    "outOfScopeFashionWindowNotTraced": true,
+    "outOfScopeWindowStillShowingAfterCleanup": true,
+    "observerReinstalledForNextNativeScope": true,
+    "traceFiles": 2,
+    "observerInstallTransitions": [
+      true,
+      false,
+      true,
+      false
+    ],
+    "remainingTracesAfterEach": [
+      0,
+      0
+    ],
+    "log": "native-pointer-diagnostics/aot-cleanup.log",
+    "logSha256": "9223e7964a18707351d5b9db33b91babd9a8dcf55ae415b3db3f65b9bb26fd18",
+    "probeSourceSha256": "b4ff24f29a904aba65623b0e92cb9cc645086e3a33c1bc9cd5578f5f37e90281",
+    "scope": "Linux/Xvfb only; overlaps the native method in Maven, do not add as unique cases"
+  },
+  "independentReview": "hover_review read-only review found no concrete defect or weakened assertion in the two-file patch.",
+  "windowsZOrderFixVerified": false,
+  "windowsQuickProbeStillRequired": true,
+  "sourceMainOrRuntimeChanged": false,
+  "assertionsSkippedOrWeakened": false,
+  "deadlineIncreased": false,
+  "sellerApiCalls": false,
+  "licenseActivation": false,
+  "commitPerformedByAgent": false
+}

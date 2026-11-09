@@ -1,116 +1,191 @@
 {
   "version": "1.6.7",
-  "finalApplicationSourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
-  "freshFullWindowsBuildRunId": 42570802535,
+  "finalApplicationSourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+  "freshFullWindowsBuildRunId": 42587222212,
+  "sourceFileCount": 2985,
   "securityAnalysisSourceCommit": "026f1a86ae5928769a9b36720c2da98cf8dd7efd",
   "securityAnalysisRunId": 42515488357,
   "freshCodeqlRunOnFinalSourceClaimed": false,
-  "sameRuntimeAndSecurityConfigurationAsAnalyzed026": true,
-  "changedFilesBetweenAnalyzed026AndFinal210": [
+  "sameMainRuntimePomBuildAndSecurityCiAsAnalyzed026": true,
+  "allToolsTreeByteIdentical": false,
+  "changedFilesBetweenAnalyzed026AndFinal0f5": [
     ".github/workflows/publish-vncode-baseline.yml",
     "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
-    "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java"
+    "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+    "tools/diagnostics/windows-input-observer.ps1"
   ],
   "verifiedObjectComparisons": [
     {
       "path": "src/main",
       "gitObjectAnalyzed026": "6391b819a197b1008dcb18079cb4d67e273bda01",
-      "gitObjectFinal210": "6391b819a197b1008dcb18079cb4d67e273bda01",
+      "gitObjectFinal0f5": "6391b819a197b1008dcb18079cb4d67e273bda01",
       "byteIdentical": true
     },
     {
       "path": "pom.xml",
       "gitObjectAnalyzed026": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
-      "gitObjectFinal210": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+      "gitObjectFinal0f5": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
       "byteIdentical": true
     },
     {
       "path": "build.bat",
       "gitObjectAnalyzed026": "49ec97fc18599388110ab430ede46da6badd007d",
-      "gitObjectFinal210": "49ec97fc18599388110ab430ede46da6badd007d",
+      "gitObjectFinal0f5": "49ec97fc18599388110ab430ede46da6badd007d",
       "byteIdentical": true
     },
     {
       "path": "build.sh",
       "gitObjectAnalyzed026": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
-      "gitObjectFinal210": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+      "gitObjectFinal0f5": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
       "byteIdentical": true
     },
     {
       "path": "proguard.conf",
       "gitObjectAnalyzed026": "80a62085ea43b32b1fdaab7d285684c0d4e18d41",
-      "gitObjectFinal210": "80a62085ea43b32b1fdaab7d285684c0d4e18d41",
+      "gitObjectFinal0f5": "80a62085ea43b32b1fdaab7d285684c0d4e18d41",
       "byteIdentical": true
     },
     {
       "path": ".github/workflows/security-ci.yml",
       "gitObjectAnalyzed026": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
-      "gitObjectFinal210": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+      "gitObjectFinal0f5": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
       "byteIdentical": true
     },
     {
       "path": "tools/codeql-sarif-gate.mjs",
       "gitObjectAnalyzed026": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
-      "gitObjectFinal210": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+      "gitObjectFinal0f5": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
       "byteIdentical": true
     },
     {
       "path": "website/license-portal/package.json",
       "gitObjectAnalyzed026": "d8b7f98aa6a77407a503162744e8e0037849152e",
-      "gitObjectFinal210": "d8b7f98aa6a77407a503162744e8e0037849152e",
+      "gitObjectFinal0f5": "d8b7f98aa6a77407a503162744e8e0037849152e",
       "byteIdentical": true
     },
     {
       "path": "website/license-portal/package-lock.json",
       "gitObjectAnalyzed026": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
-      "gitObjectFinal210": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
-      "byteIdentical": true
-    },
-    {
-      "path": "tools",
-      "gitObjectAnalyzed026": "8fddf9d1a825992822120f1baed922eb23c9a30a",
-      "gitObjectFinal210": "8fddf9d1a825992822120f1baed922eb23c9a30a",
+      "gitObjectFinal0f5": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
       "byteIdentical": true
     },
     {
       "path": "website/license-portal",
       "gitObjectAnalyzed026": "7db06f8d488a8fa9412d8febc818831f2b940383",
-      "gitObjectFinal210": "7db06f8d488a8fa9412d8febc818831f2b940383",
+      "gitObjectFinal0f5": "7db06f8d488a8fa9412d8febc818831f2b940383",
       "byteIdentical": true
     },
     {
       "path": "tools/openqodex-health-gate.mjs",
       "gitObjectAnalyzed026": "06085c2b5611e55b113f2676a4e5a671f72d13de",
-      "gitObjectFinal210": "06085c2b5611e55b113f2676a4e5a671f72d13de",
+      "gitObjectFinal0f5": "06085c2b5611e55b113f2676a4e5a671f72d13de",
       "byteIdentical": true
     },
     {
       "path": "mvnw",
       "gitObjectAnalyzed026": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
-      "gitObjectFinal210": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+      "gitObjectFinal0f5": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
       "byteIdentical": true
     },
     {
       "path": "mvnw.cmd",
       "gitObjectAnalyzed026": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
-      "gitObjectFinal210": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+      "gitObjectFinal0f5": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
       "byteIdentical": true
     },
     {
       "path": ".mvn",
       "gitObjectAnalyzed026": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
-      "gitObjectFinal210": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+      "gitObjectFinal0f5": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+      "byteIdentical": true
+    },
+    {
+      "path": "tools/codeql-sarif-gate.test.mjs",
+      "gitObjectAnalyzed026": "9347eb0ac0c4ffd6563fa609526d683f12fb1183",
+      "gitObjectFinal0f5": "9347eb0ac0c4ffd6563fa609526d683f12fb1183",
+      "byteIdentical": true
+    },
+    {
+      "path": "tools/openqodex-health-gate.test.mjs",
+      "gitObjectAnalyzed026": "36024cd545ab600a7ff92c861731742ad549ba4b",
+      "gitObjectFinal0f5": "36024cd545ab600a7ff92c861731742ad549ba4b",
+      "byteIdentical": true
+    },
+    {
+      "path": "tools/baseline-release.mjs",
+      "gitObjectAnalyzed026": "0c19d3f9d71ea57a31b273b38907700540f06841",
+      "gitObjectFinal0f5": "0c19d3f9d71ea57a31b273b38907700540f06841",
       "byteIdentical": true
     }
   ],
-  "securityDisposition": "Security run 42515488357 actually analyzed source 026f1a86. Its Java analysis has the same eight findings as published 1.6.6, including the existing severity 7.5 Windows/CryptoPro certificate-store thumbprint identifier; the high-severity gate remains FAILED. JavaScript CodeQL and lint/audit passed in that historical run. OpenQodex and Dependency Review were skipped by dispatch design. No fresh CodeQL execution or fresh scanner pass on 210c01d is claimed. No finding is suppressed or gate weakened.",
-  "analysisInputScope": "The unchanged security workflow compiles Java main sources with ./mvnw -B -DskipTests clean compile. Main sources, POM, build scripts/wrappers, all tools and the full portal tree are Git-object identical between analyzed 026 and final 210. Only two Java UI test fixtures and the Windows baseline preflight selection differ; this is source provenance, not a new security execution.",
-  "fixtureValidationScope": "Root reports 184/184 selected Linux/Xvfb tests passed on the final native-pointer fixture, covering the complete early Windows preflight selection plus WorkspaceChrome and diagnostics. Standalone evidence retained six native parking/one-click attempts across two JVMs on the same Xvfb display, with the same OS cursor coordinate retained across their boundary; targeted Maven 3/3 overlaps that scope. The exact old Windows cursor/geometry cause remains a hypothesis. The new Windows run 42570802535 must independently complete full clean verify, packaging, native checks and upgrade; no Windows success is claimed by this record.",
-  "nativePointerEvidence": "native-pointer-provenance/verification.json",
+  "javascriptInputProvenance": {
+    "method": "Compare tracked Git path/mode/type/blob entries for all JS/TS/module source extensions, HTML/inline-JS component candidates and Node package manifests across the whole checkout.",
+    "extensions": [
+      ".cjs",
+      ".cts",
+      ".es",
+      ".es6",
+      ".htm",
+      ".html",
+      ".js",
+      ".jsx",
+      ".mjs",
+      ".mts",
+      ".svelte",
+      ".ts",
+      ".tsx",
+      ".vue",
+      ".xhtml"
+    ],
+    "packageManifestNames": [
+      "package.json",
+      "package-lock.json",
+      "npm-shrinkwrap.json"
+    ],
+    "candidateFilesCompared": 114,
+    "allMatchingEntriesByteIdentical": true,
+    "canonicalInventorySha256": "99551fd3f74a1a69f240803adf5062c09d8c3c74e73810bc5c33498c364fcc39",
+    "freshJavaScriptAnalysisClaimed": false
+  },
+  "changedToolsTree": {
+    "gitObjectAnalyzed026": "8fddf9d1a825992822120f1baed922eb23c9a30a",
+    "gitObjectFinal0f5": "863684e80264e2286224e2ee99102a3a7786a79c",
+    "byteIdentical": false,
+    "changedPaths": [
+      "tools/diagnostics/windows-input-observer.ps1"
+    ],
+    "allPriorToolsFilesUnchanged": true,
+    "newScriptGitObject": "a39db2da9c8905b628ebf19f5a1d1e3b9dc1d836",
+    "newScriptGitBlobSha256": "03cfc19bb1d0cfe30836f025e16c7b67c8ff2ec5d3555633c25985baa666234a",
+    "newScriptCoveredByHistoricalCodeql": false
+  },
+  "securityDisposition": "Security run 42515488357 actually analyzed source 026f1a86. Java SARIF has the same eight findings as published 1.6.6, including the existing severity 7.5 Windows/CryptoPro certificate-store thumbprint identifier; the high-severity gate remains FAILED. JavaScript CodeQL and lint/audit passed in that historical run. OpenQodex and Dependency Review were skipped by dispatch design. No fresh CodeQL or other scanner pass on 0f5f321 is claimed. No finding is suppressed or gate weakened.",
+  "analysisInputScope": "The unchanged security workflow compiles main Java with ./mvnw -B -DskipTests clean compile. Main sources, POM, build scripts/wrappers, security CI/gates, existing JavaScript/module inputs and the full portal tree match analyzed 026 by Git objects. The whole tools tree does NOT match: it adds one PowerShell diagnostic script, outside the Java compile and JS source set. This provenance comparison is not a new security execution.",
+  "newPowerShellValidationScope": {
+    "manualSourceReview": "Reviewed P/Invoke declarations and all call sites: Windows/session/window/cursor/DPI/power APIs are reads, registry keys are opened non-writable, process handles use QUERY_LIMITED_INFORMATION, and fixed numeric policy names are selected. No input injection, cursor/focus/DPI/session/power/registry changes, account/command-line/window-title export, network calls or seller operations. Script writes its requested CI diagnostic directory only.",
+    "historicalWindowsDiagnosticRun": 42584347083,
+    "historicalDiagnosticSourceCommit": "aebb84148ee74522c7dfc8a50459bef1bdd652f2",
+    "historicalScriptGitObject": "0c46ac0b00b8dee499dafdca6975c137976c392e",
+    "currentScriptDifferenceFromExecutedHistoricalScript": "Only ValidateRange MaxSeconds upper bound changed from 7200 to 14400; native-read implementation is byte-identical. This does not claim execution of the final range/hidden-launch combination.",
+    "historicalWindowsExecutionScope": "The earlier script emitted actual native Windows metadata, but the diagnostic matrix FAILED because visible PowerShell observer/runner consoles occluded the native test window. This is diagnostic evidence, not a native business-test pass or release acceptance.",
+    "firstDiagnosticConsoleEvidence": "native-diagnostic-analysis-native-mouse.json",
+    "secondQuickWindowsDiagnosticRunId": 42586963144,
+    "secondQuickResultClaimed": false,
+    "currentFullWindowsRunId": 42587222212,
+    "currentFullResultClaimed": false,
+    "newWorkflowScope": "Windows baseline now launches the observer with WindowStyle Hidden and retains OS-input evidence around the unchanged unfiltered clean verify. Its finally block stops only the Process object it created after a stop-file/grace period. No seller data/configuration is changed.",
+    "securityScannerForNewPowerShellClaimed": false,
+    "javaObserverHelperInPinnedApplicationSource": false,
+    "javaObserverHelperScope": "The Java diagnostic extension and its AWT-controlled probes belong to publication-branch diagnostic tooling, not the pinned application source or shipped runtime. Only the read-only PowerShell observer is newly added to this application-source snapshot."
+  },
+  "fixtureValidationScope": "The temporary native-copy test Stage is now topmost to isolate it from confirmed CI console occlusion. Its existing 4-second shared deadline, native parking checks, one real Robot click and every clipboard/status/no-Apply/open-window assertion remain. Targeted Linux Maven 3/3 and standalone scope/cleanup checks passed; these overlap and are not fresh Windows acceptance. No production UI, marketplace rules or runtime source changed. The historical full-run console cause is not established from the new fast diagnostic alone.",
+  "nativePointerEvidence": "native-aot-fixture-verification.json",
+  "historicalFullRunConsoleCauseEstablished": false,
   "priorFailedWindowsRuns": [
     42515409829,
     42523983786,
-    42525209391
+    42525209391,
+    42570802535
   ],
   "priorFailedWindowsSources": [
     {
@@ -138,20 +213,30 @@
       "errors": 0,
       "skipped": 2,
       "failureScope": "FashionTnvedBrowserTest pre-click hover gate; zero presses/actions"
+    },
+    {
+      "runId": 42570802535,
+      "sourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+      "fullTests": 4122,
+      "passed": 4119,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2,
+      "failureScope": "FashionTnvedBrowserTest pre-click native parking gate; zero presses/actions. Historical full-run console interference remains unproven."
     }
   ],
   "historicalProvenance": {
-    "priorFinalSourceCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
-    "priorWindowsRunId": 42525209391,
-    "priorRecord": "security-provenance-c9c7b36.json",
-    "priorRecordSha256": "798ba9e5dde1b6242a44d13581ae280e0227b13bde20846b8d29db87ade75d15",
+    "priorFinalSourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "priorWindowsRunId": 42570802535,
+    "priorRecord": "security-provenance-210c01d.json",
+    "priorRecordSha256": "af2c3305487d2e933e7fc69373e026243099985d7a2232f63ddcde68d0e41a78",
     "oldRecordRetainedUnchanged": true
   },
   "priorSecurityEvidence": "security-review/security-review.json",
-  "gateChanges": false,
+  "securityGateChanges": false,
   "newScannerExecution": false,
   "networkCallsForThisRecord": false,
   "sellerApiMutations": false,
   "licenseActivation": false,
-  "reviewedAt": "2026-11-09T06:05:45.846674+00:00"
+  "reviewedAt": "2026-11-09T08:41:47.345295+00:00"
 }

@@ -1,6 +1,15 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **09.11.2026, 11:13 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **09.11.2026, 11:46 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## VN Code 1.6.7 — nguồn 0f5f321, full Windows42587222212 và xác nhận nhanh song song
+
+- Appsource **0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96**, branch `release/vn-code-1.6.7`, Windows **42587222212** (08:36:51UTC). Production/POM/build/wrappers giữ nguyên byte từ026; source **2.985 tệp** do thêm đúng một PS observer dànhCI, runtime vẫn **109 inputs+POM/1.978 class dự kiến**. Draft438471378 target0f5/tagv1.6.7/0assets/chưaPublish; publisher pin đúng build/source mới và giữ mọi gate.
+- Fastdiag **42584347083/aebb841** đã xác nhận console che cửa sổ thử trong các phase lỗi. Root đã tạo confounder khi observer cóconsolehiểnthị; **không kết luận AWT/DPI/lock gây lỗi**. Các mẫu đềuDefault/Active/no screensaver/96dpi/FXscale1; nửa pixel cũng có trongphasePASS. [OS review](../validation/2026-11-09-vncode-167-native-os-review.json), [Scene/ảnh review](../validation/2026-11-09-vncode-167-native-scene-review.json). Nguyên nhân console của các runfullcũ chưa được capture, không chứng minh hồi tố.
+- Fixture chỉ thêm **alwaysOnTop cho Stage thử native**, giữ tổng4s/parking/oneRobotclick/allassertions; không thayappUI/DPI/security. Observer chạyHidden vàcleanupđúngscope; fullWindows cóPSreadonlyhidden ngoài target, giữlogtrongverificationZIP/failureartifact để không lặp mù. Không injector/unlock/policychange; unfiltered cleanverify/164+fresh3/native/install/upgrade và16asset giữ nguyên. [AOT Linux3ca vàscopecheck](../validation/2026-11-09-vncode-167-native-aot.json).
+- Xác nhận nhanh **42586963144/source9107db8** chạy song song: native trước/AWTgraphics+toolkit/cácđốichiếu100%/121lớpUI737ca/nativeJVMmới và console-visible control. Đây làdiag, không thayfullgate. Full425872 đã qua164+fresh3preflight, đangcleanverify. Nếuquick cònfindingchưa xử lý phải dừngfullsớm/sửa, khôngpublish. [Inclusion](../validation/2026-11-08-vncode-167-source-inclusion.json), [publisher/helper source-onlyreview](../validation/2026-11-09-vncode-167-publisher-fifth-review.json); chưa WindowsZIP/packagePASS.
+- [Security](../validation/2026-11-08-vncode-167-security-provenance.json): scanthật026/run42515488357/cùng8finding/JavaFAIL,17object+114JS/packageinputs giữ nguyên; **wholetools tree khác** vìPSmới, khôngclaimbyteidenticaltoànbộ hoặcCodeQLmới. Không seller APIwrite/mua/ký/licenseactivation/Gmail trongrelease.
+- **Chưa phát hành.** Cần quickcontrol+fullWindows+complete16asset/package/independentreviewPASS rồi stableowner-requested-167, kiểm16publicbytes/old16releases258assets45tags/updater166→167, cập nhật bàn giao vàpush. State/helper ở `/workspace/vncode-167-release`, fifthmonitor59067/quickmonitor61515. Bốn lượtFAIL vàcácpinbêndưới giữ lịch sử, không lấy làmPASS.
 
 ## VN Code 1.6.7 — Windows lần bốn lỗi native input, đang chẩn đoán nhanh
 

@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "kind": "RELEASE_SOURCE_INCLUSION",
   "version": "1.6.7",
-  "recordedAtUtc": "2026-11-09T06:06:08.524829+00:00",
-  "sourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
-  "sourceTree": "468a8290fec06ee9af94a3fae47cbd7b7f61f3c2",
+  "recordedAtUtc": "2026-11-09T08:40:52.997420+00:00",
+  "sourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+  "sourceTree": "475e50ae5116cc4de4e92c71f593020aa25f979e",
   "releaseBranch": "release/vn-code-1.6.7",
-  "observedHead": "a13a147432a81e1202a61283df938f5789acdd19",
+  "observedHead": "bbfbd180c4f2f84c177d4b09cdbac86592b1618f",
   "observedBranch": "release/vn-code-1.6.7-publication",
   "observedHeadMatchesPinnedSource": false,
-  "fullWindowsBuildRunId": 42570802535,
+  "fullWindowsBuildRunId": 42587222212,
   "buildStatusNotAssessedByThisReceipt": true,
   "previousRelease": {
     "version": "1.6.6",
@@ -1483,10 +1483,10 @@
     "freshFullWindowsBuildOutcome": "full-java-failed-before-packaging; retained in thirdAttemptProvenance"
   },
   "finalFreshWindowsBuild": {
-    "sourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
-    "runId": 42570802535,
-    "startedAtUtc": "2026-11-09T06:03:44Z",
-    "required": "Fresh clean verify, native, install/uninstall and baseline upgrade; successful complete artifact required before publication.",
+    "sourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "runId": 42587222212,
+    "startedAtUtc": "2026-11-09T08:36:51Z",
+    "required": "Fresh clean verify, native, install/uninstall and baseline upgrade; successful complete artifact required before publication. Quick native/window control must also pass.",
     "status": "not-assessed-by-this-source-receipt",
     "reusedOrReconciledTestResults": false
   },
@@ -1668,6 +1668,137 @@
     "existing164PreflightAndUnfilteredCleanVerifyKept": true,
     "freshFullWindowsSourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
     "freshFullWindowsBuildRunId": 42570802535,
+    "freshFullWindowsSuiteRerunRequired": true,
+    "earlierTestResultsReused": false,
+    "originalFailuresPreserved": true,
+    "recoveryOrSkipGateAdded": false,
+    "freshFullWindowsBuildOutcome": "full-java-failed-before-packaging; retained in fourthAttemptProvenance"
+  },
+  "fourthAttemptProvenance": {
+    "sourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "fullWindowsBuildRunId": 42570802535,
+    "result": "full-java-failed-before-packaging",
+    "originalJava": {
+      "tests": 4122,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2
+    },
+    "originalPassedCases": 4119,
+    "originalSuites": 544,
+    "failureCases": [
+      {
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "test": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "kind": "failure",
+        "message": "Copy delivery: focused=true, hover=false, parkingMoves=0, mouse=Point2D [x = 65.5, y = 71.5], parking=Point2D [x = 65.99999999999997, y = 71.0], bounds=null, liveButton=false, presses=0, actions=0, status= ==> expected: <true> but was: <false>",
+        "detail": "org.opentest4j.AssertionFailedError: Copy delivery: focused=true, hover=false, parkingMoves=0, mouse=Point2D [x = 65.5, y = 71.5], parking=Point2D [x = 65.99999999999997, y = 71.0], bounds=null, liveButton=false, presses=0, actions=0, status= ==> expected: <true> but was: <false>\n\tat org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)\n\tat org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)\n\tat org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)\n\tat org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)\n\tat org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)\n\tat com.vncode.app.ui.tnved.FashionTnvedBrowserTest.awaitFx(FashionTnvedBrowserTest.java:20)\n\tat com.vncode.app.ui.tnved.FashionTnvedBrowserTest.actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker(FashionTnvedBrowserTest.java:62)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n"
+      }
+    ],
+    "originalSourceInclusionReceipt": {
+      "path": "source-inclusion-fourth-attempt.json",
+      "sha256": "f107d1842516bd013e8c500a291efd389f4b584a84c45a4255ab8ac187de1e35"
+    },
+    "originalPackageVerifier": {
+      "path": "verify_package-fourth-attempt.py",
+      "sha256": "c6d7ef8d9dbe4d6e9731aa373cb339f61cdf6f5bef6a1df3191801f8b9d6dc64"
+    },
+    "failedReceipt": {
+      "path": "fourth-windows-failure-summary.json",
+      "sha256": "2583aff133c20e93a4a94ea44d290bf90832e10f9793e14380d6648b42541cf9"
+    },
+    "testOnlyCorrectionCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "changedPaths": [
+      {
+        "path": ".github/workflows/publish-vncode-baseline.yml",
+        "previousSha256": "d1f07d16a906fc1d1327ecd3c10c39f490d784d7b79454b721c706567dc71f99",
+        "sha256": "37ea6a995190f8ddf728e015b9cd439b9591e7dc17e390fe186da912f9323ece"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+        "previousSha256": "30b1c0b70866d10b149d216fa4221556d291be70acab7ec478eb2f3d090a61a9",
+        "sha256": "71505e104251a159f39fc37e76186b81611f34d06b2832b90f785851c4c69739"
+      },
+      {
+        "path": "tools/diagnostics/windows-input-observer.ps1",
+        "previousSha256": null,
+        "sha256": "03cfc19bb1d0cfe30836f025e16c7b67c8ff2ec5d3555633c25985baa666234a"
+      }
+    ],
+    "productionAndPackagingInputsUnchanged": [
+      {
+        "path": "src/main",
+        "previousGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "gitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "unchanged": true
+      },
+      {
+        "path": "pom.xml",
+        "previousGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "gitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "unchanged": true
+      },
+      {
+        "path": "build.bat",
+        "previousGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "gitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "unchanged": true
+      },
+      {
+        "path": "build.sh",
+        "previousGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "gitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "unchanged": true
+      },
+      {
+        "path": ".mvn",
+        "previousGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "gitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw",
+        "previousGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "gitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw.cmd",
+        "previousGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "gitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "unchanged": true
+      }
+    ],
+    "cause": "The original full run confirms no matching root parking move before click; its OS window provenance was not captured. Controlled fast probe42584347083 conclusively showed foreground console occlusion, not a DPI/session-lock difference. That fast probe had visible observer consoles and is not proof of the historical full-run cause.",
+    "correction": "Set alwaysOnTop only on the temporary native-input test Stage before show, preserving the same deadline/parking/one realclick/allassertions. Keep read-only OS observation hidden in future full Windows runs and retain it in verification/failure evidence. No production UI, input simulation by the observer, OS policy changes, test exclusion or recovery.",
+    "nativeWindowEvidence": {
+      "fixtureVerification": "native-aot-fixture-verification.json",
+      "fixtureVerificationSha256": "f78bd61f3ba47d06922572d929660cd3a4371f9bc6b702e7a64db938c5bca801",
+      "nativeOsReview": "native-diagnostic-os-review.json",
+      "nativeOsReviewSha256": "cd45413d6164627edfa13a5635d0b308fdddd0c4e0630684c2ba35dd2cad070b",
+      "sceneReview": "native-diagnostic-analysis-native-mouse.json",
+      "sceneReviewSha256": "23bdc44525c8166d90c64df7bd2d36b1a7206ed28fe143512058c642cebca26d",
+      "initialDiagnosticRun": 42584347083,
+      "initialDiagnosticWasConfoundedByVisibleObserverConsole": true,
+      "historicalFullConsoleCauseProven": false,
+      "quickControlRun": 42586963144,
+      "quickControlStatusNotAssessedBySourceReceipt": true,
+      "targetedLinuxJUnit": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "doNotSumOverlappingRuns": true
+    },
+    "sourceFileCount": 2985,
+    "addedSourceFileIsCiOnly": true,
+    "newCiScriptIncludedInPortableRuntime": false,
+    "hiddenObserverReadOnly": true,
+    "sameUnfilteredCleanVerifyAnd164Plus3Preflight": true,
+    "topLevelReleaseAssetCountUnchanged": 16,
+    "freshFullWindowsSourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "freshFullWindowsBuildRunId": 42587222212,
     "freshFullWindowsSuiteRerunRequired": true,
     "earlierTestResultsReused": false,
     "originalFailuresPreserved": true,

@@ -1,0 +1,1581 @@
+{
+  "recordedAtUtc": "2026-11-09T08:30:30.369942+00:00",
+  "diagnosticRunId": 42584347083,
+  "kind": "Read-only analysis of actual Windows FX event/native routing and screenshots",
+  "confirmedFinding": "Visible Windows PowerShell ConsoleWindowClass windows occlude the native test target in failed diagnostic phases. This is direct screenshot and native WindowFromPhysicalPoint evidence, not a DPI inference.",
+  "exactEvidence": [
+    "Phase02 screenshot shows PowerShell console covering copy-button region; Scene receives MOUSE_EXITED when pointer moves to button center228,279. WindowFromPhysicalPoint/foreground identify observerPID4508/HWND196770 instead of targetJavaPID3416/HWND262662.",
+    "Phase07 screenshot shows PowerShell console covering almost entire browser, including parking point65,71; under-pointer/foreground is observerPID7244/HWND721028, while targetJavaPID4320/HWND721066 has logical focus and enabled=true but zero Scene events.",
+    "Phase01 PASS is the contrast: during real native press/release, under-pointer/foreground becomes the JavaFX targetHWND524452; Glass enabled,scale1 in both pass and failure.",
+    "Across inspected target samples input desktop is Default, session Active, screensaver false; native capture/menuOwner are0. Current artifact does not establish idle/lock, modal-disable, retained capture or DPI as the cause."
+  ],
+  "comparisonLimit": "AWT initialization comparisons are confounded by the observer/runner console occlusion. No AWT-related production defect or DPI override is justified from this run. Historical full-run failure remains unproven because its native screenshot/routing evidence was not retained.",
+  "historicalFullRunRootCauseEstablished": false,
+  "minimalNextControl": [
+    "Launch diagnostic PowerShell observers hidden or with NoNewWindow; ensure they never create an occluding window.",
+    "Fixture-only Stage.setAlwaysOnTop(true) before show is a defensible isolation control against CI runner console z-order; retain one real native click, clipboard/status/no-Apply/open-window assertions and the original4s deadline. Validate this control in quick Windows probes first.",
+    "Verify native window under the pointer is the actual JavaFX HWND in baseline, AWT-controls and fresh-JVM probes before another full run. No production DPI/business change needed based on this evidence."
+  ],
+  "helperScopeFinding": "The Window list listener remains installed after the actual native test, so phase06 second trace belongs to another later Fashionbrowser window. Analyze phase06 pointer-5204-1 as native test only; deactivate/remove listener after actual native AfterEach for future diagnostics.",
+  "phases": [
+    {
+      "phase": "01-native-before",
+      "nativeFixtureTrace": "pointer-5828-1-state.jsonl",
+      "targetHwnd": "524452",
+      "targetGlassEnabled": true,
+      "targetGlassFocused": true,
+      "targetModal": false,
+      "glassWindowCount": 1,
+      "platformScale": [
+        1.0,
+        1.0
+      ],
+      "outputScale": [
+        1.0,
+        1.0
+      ],
+      "robotMouse": {
+        "x": 228.5,
+        "y": 279.5
+      },
+      "sceneMoves": 3,
+      "rootMoves": 3,
+      "visibleCopyButton": {
+        "description": "javafx.scene.control.Button#tnvedCopy_4202111000",
+        "visible": true,
+        "disabled": false,
+        "mouseTransparent": false,
+        "pickOnBounds": true,
+        "opacity": 1.0,
+        "hover": true,
+        "boundsLocal": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:36.0, maxY:36.0, maxZ:0.0]",
+        "boundsScreen": "BoundingBox [minX:210.0, minY:261.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:246.0, maxY:297.0, maxZ:0.0]",
+        "transforms": "[]",
+        "mouseLocal": {
+          "x": 18.5,
+          "y": 18.5
+        },
+        "containsMouse": true,
+        "clip": null
+      },
+      "sceneMoveEnterExitPressEvents": [
+        {
+          "elapsedMillis": 1819,
+          "type": "MOUSE_ENTERED",
+          "screenX": 512.0,
+          "screenY": 384.0,
+          "sceneX": 450.0,
+          "sceneY": 317.0,
+          "target": "javafx.scene.Scene"
+        },
+        {
+          "elapsedMillis": 1825,
+          "type": "MOUSE_MOVED",
+          "screenX": 512.0,
+          "screenY": 384.0,
+          "sceneX": 450.0,
+          "sceneY": 317.0,
+          "target": "com.sun.javafx.scene.control.LabeledText#null"
+        },
+        {
+          "elapsedMillis": 2224,
+          "type": "MOUSE_MOVED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "com.vncode.app.ui.tnved.FashionTnvedBrowser#fashionTnvedBrowser"
+        },
+        {
+          "elapsedMillis": 2233,
+          "type": "MOUSE_MOVED",
+          "screenX": 228.0,
+          "screenY": 279.0,
+          "sceneX": 166.0,
+          "sceneY": 212.0,
+          "target": "org.kordamp.ikonli.javafx.FontIcon#null"
+        },
+        {
+          "elapsedMillis": 2252,
+          "type": "MOUSE_PRESSED",
+          "screenX": 228.0,
+          "screenY": 279.0,
+          "sceneX": 166.0,
+          "sceneY": 212.0,
+          "target": "org.kordamp.ikonli.javafx.FontIcon#null"
+        },
+        {
+          "elapsedMillis": 2254,
+          "type": "MOUSE_RELEASED",
+          "screenX": 228.0,
+          "screenY": 279.0,
+          "sceneX": 166.0,
+          "sceneY": 212.0,
+          "target": "org.kordamp.ikonli.javafx.FontIcon#null"
+        }
+      ],
+      "nativeWindowRoutingSamples": [
+        {
+          "time": "2026-11-09T08:14:42.9530582+00:00",
+          "cursor": {
+            "x": 512,
+            "y": 384
+          },
+          "hitHwnd": "131234",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 5708,
+          "hitIsTarget": false,
+          "foregroundHwnd": "131234",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 5708,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "0",
+            "focusHwnd": "0",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:14:43.9634017+00:00",
+          "cursor": {
+            "x": 512,
+            "y": 384
+          },
+          "hitHwnd": "131234",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 5708,
+          "hitIsTarget": false,
+          "foregroundHwnd": "131234",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 5708,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "0",
+            "focusHwnd": "0",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:14:45.0005512+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "524452",
+          "hitClass": "GlassWndClass-GlassWindowClass-2",
+          "hitPid": 5828,
+          "hitIsTarget": true,
+          "foregroundHwnd": "524452",
+          "foregroundClass": "GlassWndClass-GlassWindowClass-2",
+          "foregroundPid": 5828,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "524452",
+            "focusHwnd": "524452",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        }
+      ],
+      "images": [
+        {
+          "file": "native-diagnostic-artifact/01-native-before/pointer-5828-1-before-hide.png",
+          "sha256": "9d2e32c9b3c8ca9259f79ce366855087449c01014b817edb3926e11007149fe6"
+        }
+      ],
+      "additionalTracesIgnoredAsOutsideNativeTest": 0
+    },
+    {
+      "phase": "02-graphics-before-fx",
+      "nativeFixtureTrace": "pointer-3416-1-state.jsonl",
+      "targetHwnd": "262662",
+      "targetGlassEnabled": true,
+      "targetGlassFocused": true,
+      "targetModal": false,
+      "glassWindowCount": 1,
+      "platformScale": [
+        1.0,
+        1.0
+      ],
+      "outputScale": [
+        1.0,
+        1.0
+      ],
+      "robotMouse": {
+        "x": 228.5,
+        "y": 279.5
+      },
+      "sceneMoves": 1,
+      "rootMoves": 1,
+      "visibleCopyButton": {
+        "description": "javafx.scene.control.Button#tnvedCopy_4202111000",
+        "visible": true,
+        "disabled": false,
+        "mouseTransparent": false,
+        "pickOnBounds": true,
+        "opacity": 1.0,
+        "hover": false,
+        "boundsLocal": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:36.0, maxY:36.0, maxZ:0.0]",
+        "boundsScreen": "BoundingBox [minX:210.0, minY:261.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:246.0, maxY:297.0, maxZ:0.0]",
+        "transforms": "[]",
+        "mouseLocal": {
+          "x": 18.5,
+          "y": 18.5
+        },
+        "containsMouse": true,
+        "clip": null
+      },
+      "sceneMoveEnterExitPressEvents": [
+        {
+          "elapsedMillis": 785,
+          "type": "MOUSE_ENTERED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "javafx.scene.Scene"
+        },
+        {
+          "elapsedMillis": 786,
+          "type": "MOUSE_MOVED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "com.vncode.app.ui.tnved.FashionTnvedBrowser#fashionTnvedBrowser"
+        },
+        {
+          "elapsedMillis": 796,
+          "type": "MOUSE_EXITED",
+          "screenX": 228.0,
+          "screenY": 279.0,
+          "sceneX": 166.0,
+          "sceneY": 212.0,
+          "target": "javafx.scene.Scene"
+        }
+      ],
+      "nativeWindowRoutingSamples": [
+        {
+          "time": "2026-11-09T08:14:51.4867796+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "196770",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 4508,
+          "hitIsTarget": false,
+          "foregroundHwnd": "196770",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 4508,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "0",
+            "focusHwnd": "0",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:14:52.5048638+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "196770",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 4508,
+          "hitIsTarget": false,
+          "foregroundHwnd": "196770",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 4508,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "262662",
+            "focusHwnd": "262662",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:14:53.5337146+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "196770",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 4508,
+          "hitIsTarget": false,
+          "foregroundHwnd": "196770",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 4508,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "262662",
+            "focusHwnd": "262662",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:14:54.5612007+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "196770",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 4508,
+          "hitIsTarget": false,
+          "foregroundHwnd": "196770",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 4508,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "262662",
+            "focusHwnd": "262662",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:14:55.5835542+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "196770",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 4508,
+          "hitIsTarget": false,
+          "foregroundHwnd": "196770",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 4508,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "262662",
+            "focusHwnd": "262662",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        }
+      ],
+      "images": [
+        {
+          "file": "native-diagnostic-artifact/02-graphics-before-fx/pointer-3416-1-before-hide.png",
+          "sha256": "7ce187cc2f510c0cf680920c0c7f5064d417bd7276763f5afde3255efe49bb5b"
+        }
+      ],
+      "additionalTracesIgnoredAsOutsideNativeTest": 0
+    },
+    {
+      "phase": "03-toolkit-before-fx",
+      "nativeFixtureTrace": "pointer-1672-1-state.jsonl",
+      "targetHwnd": "197110",
+      "targetGlassEnabled": true,
+      "targetGlassFocused": true,
+      "targetModal": false,
+      "glassWindowCount": 1,
+      "platformScale": [
+        1.0,
+        1.0
+      ],
+      "outputScale": [
+        1.0,
+        1.0
+      ],
+      "robotMouse": {
+        "y": 71.5,
+        "x": 65.5
+      },
+      "sceneMoves": 0,
+      "rootMoves": 0,
+      "visibleCopyButton": {
+        "description": "javafx.scene.control.Button#tnvedCopy_4202111000",
+        "visible": true,
+        "disabled": false,
+        "mouseTransparent": false,
+        "pickOnBounds": true,
+        "opacity": 1.0,
+        "hover": false,
+        "boundsLocal": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:36.0, maxY:36.0, maxZ:0.0]",
+        "boundsScreen": "BoundingBox [minX:210.0, minY:261.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:246.0, maxY:297.0, maxZ:0.0]",
+        "transforms": "[]",
+        "mouseLocal": {
+          "y": -189.5,
+          "x": -144.5
+        },
+        "containsMouse": false,
+        "clip": null
+      },
+      "sceneMoveEnterExitPressEvents": [],
+      "nativeWindowRoutingSamples": [
+        {
+          "time": "2026-11-09T08:15:01.9946116+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "327902",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6104,
+          "hitIsTarget": false,
+          "foregroundHwnd": "327902",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6104,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "0",
+            "focusHwnd": "0",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:03.0137489+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "327902",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6104,
+          "hitIsTarget": false,
+          "foregroundHwnd": "327902",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6104,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "197110",
+            "focusHwnd": "197110",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:04.0410295+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "327902",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6104,
+          "hitIsTarget": false,
+          "foregroundHwnd": "327902",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6104,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "197110",
+            "focusHwnd": "197110",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:05.0618492+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "327902",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6104,
+          "hitIsTarget": false,
+          "foregroundHwnd": "327902",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6104,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "197110",
+            "focusHwnd": "197110",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:06.0859689+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "327902",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6104,
+          "hitIsTarget": false,
+          "foregroundHwnd": "327902",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6104,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "197110",
+            "focusHwnd": "197110",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        }
+      ],
+      "images": [
+        {
+          "file": "native-diagnostic-artifact/03-toolkit-before-fx/pointer-1672-1-before-hide.png",
+          "sha256": "a2a61be2f8e00265e918f8bbc040d6939b0c511559b6a96965f2eb2fd5759d18"
+        }
+      ],
+      "additionalTracesIgnoredAsOutsideNativeTest": 0
+    },
+    {
+      "phase": "04-graphics-scale100",
+      "nativeFixtureTrace": "pointer-5812-1-state.jsonl",
+      "targetHwnd": "524674",
+      "targetGlassEnabled": true,
+      "targetGlassFocused": true,
+      "targetModal": false,
+      "glassWindowCount": 1,
+      "platformScale": [
+        1.0,
+        1.0
+      ],
+      "outputScale": [
+        1.0,
+        1.0
+      ],
+      "robotMouse": {
+        "x": 228.5,
+        "y": 279.5
+      },
+      "sceneMoves": 2,
+      "rootMoves": 2,
+      "visibleCopyButton": {
+        "description": "javafx.scene.control.Button#tnvedCopy_4202111000",
+        "visible": true,
+        "disabled": false,
+        "mouseTransparent": false,
+        "pickOnBounds": true,
+        "opacity": 1.0,
+        "hover": false,
+        "boundsLocal": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:36.0, maxY:36.0, maxZ:0.0]",
+        "boundsScreen": "BoundingBox [minX:210.0, minY:261.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:246.0, maxY:297.0, maxZ:0.0]",
+        "transforms": "[]",
+        "mouseLocal": {
+          "x": 18.5,
+          "y": 18.5
+        },
+        "containsMouse": true,
+        "clip": null
+      },
+      "sceneMoveEnterExitPressEvents": [
+        {
+          "elapsedMillis": 562,
+          "type": "MOUSE_ENTERED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "javafx.scene.Scene"
+        },
+        {
+          "elapsedMillis": 563,
+          "type": "MOUSE_MOVED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "com.vncode.app.ui.tnved.FashionTnvedBrowser#fashionTnvedBrowser"
+        },
+        {
+          "elapsedMillis": 722,
+          "type": "MOUSE_MOVED",
+          "screenX": 958.0,
+          "screenY": 643.0,
+          "sceneX": 896.0,
+          "sceneY": 576.0,
+          "target": "com.vncode.app.ui.tnved.FashionTnvedBrowser#fashionTnvedBrowser"
+        },
+        {
+          "elapsedMillis": 732,
+          "type": "MOUSE_EXITED",
+          "screenX": 228.0,
+          "screenY": 279.0,
+          "sceneX": 166.0,
+          "sceneY": 212.0,
+          "target": "javafx.scene.Scene"
+        }
+      ],
+      "nativeWindowRoutingSamples": [
+        {
+          "time": "2026-11-09T08:15:12.5593277+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "524674",
+          "hitClass": "GlassWndClass-GlassWindowClass-2",
+          "hitPid": 5812,
+          "hitIsTarget": true,
+          "foregroundHwnd": "393526",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 3400,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "524674",
+            "focusHwnd": "524674",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:13.5760504+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "393526",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 3400,
+          "hitIsTarget": false,
+          "foregroundHwnd": "393526",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 3400,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "524674",
+            "focusHwnd": "524674",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:14.6048720+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "393526",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 3400,
+          "hitIsTarget": false,
+          "foregroundHwnd": "393526",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 3400,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "524674",
+            "focusHwnd": "524674",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:15.6278325+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "393526",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 3400,
+          "hitIsTarget": false,
+          "foregroundHwnd": "393526",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 3400,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "524674",
+            "focusHwnd": "524674",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        }
+      ],
+      "images": [
+        {
+          "file": "native-diagnostic-artifact/04-graphics-scale100/pointer-5812-1-before-hide.png",
+          "sha256": "0b2810116c045f6a3dbd4081c8948855ea47efcb4e3a8c044c45a58d58503569"
+        }
+      ],
+      "additionalTracesIgnoredAsOutsideNativeTest": 0
+    },
+    {
+      "phase": "05-toolkit-scale100",
+      "nativeFixtureTrace": "pointer-984-1-state.jsonl",
+      "targetHwnd": "393358",
+      "targetGlassEnabled": true,
+      "targetGlassFocused": true,
+      "targetModal": false,
+      "glassWindowCount": 1,
+      "platformScale": [
+        1.0,
+        1.0
+      ],
+      "outputScale": [
+        1.0,
+        1.0
+      ],
+      "robotMouse": {
+        "x": 228.5,
+        "y": 279.5
+      },
+      "sceneMoves": 1,
+      "rootMoves": 1,
+      "visibleCopyButton": {
+        "description": "javafx.scene.control.Button#tnvedCopy_4202111000",
+        "visible": true,
+        "disabled": false,
+        "mouseTransparent": false,
+        "pickOnBounds": true,
+        "opacity": 1.0,
+        "hover": false,
+        "boundsLocal": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:36.0, maxY:36.0, maxZ:0.0]",
+        "boundsScreen": "BoundingBox [minX:210.0, minY:261.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:246.0, maxY:297.0, maxZ:0.0]",
+        "transforms": "[]",
+        "mouseLocal": {
+          "x": 18.5,
+          "y": 18.5
+        },
+        "containsMouse": true,
+        "clip": null
+      },
+      "sceneMoveEnterExitPressEvents": [
+        {
+          "elapsedMillis": 733,
+          "type": "MOUSE_ENTERED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "javafx.scene.Scene"
+        },
+        {
+          "elapsedMillis": 734,
+          "type": "MOUSE_MOVED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "com.vncode.app.ui.tnved.FashionTnvedBrowser#fashionTnvedBrowser"
+        },
+        {
+          "elapsedMillis": 745,
+          "type": "MOUSE_EXITED",
+          "screenX": 228.0,
+          "screenY": 279.0,
+          "sceneX": 166.0,
+          "sceneY": 212.0,
+          "target": "javafx.scene.Scene"
+        }
+      ],
+      "nativeWindowRoutingSamples": [
+        {
+          "time": "2026-11-09T08:15:23.1107625+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "524606",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6108,
+          "hitIsTarget": false,
+          "foregroundHwnd": "524606",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6108,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "0",
+            "focusHwnd": "0",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:24.1299868+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "524606",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6108,
+          "hitIsTarget": false,
+          "foregroundHwnd": "524606",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6108,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "393358",
+            "focusHwnd": "393358",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:25.1568553+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "524606",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6108,
+          "hitIsTarget": false,
+          "foregroundHwnd": "524606",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6108,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "393358",
+            "focusHwnd": "393358",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:26.1774713+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "524606",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6108,
+          "hitIsTarget": false,
+          "foregroundHwnd": "524606",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6108,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "393358",
+            "focusHwnd": "393358",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:15:27.1995718+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 279
+          },
+          "hitHwnd": "524606",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 6108,
+          "hitIsTarget": false,
+          "foregroundHwnd": "524606",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 6108,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "393358",
+            "focusHwnd": "393358",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        }
+      ],
+      "images": [
+        {
+          "file": "native-diagnostic-artifact/05-toolkit-scale100/pointer-984-1-before-hide.png",
+          "sha256": "7ce187cc2f510c0cf680920c0c7f5064d417bd7276763f5afde3255efe49bb5b"
+        }
+      ],
+      "additionalTracesIgnoredAsOutsideNativeTest": 0
+    },
+    {
+      "phase": "06-all-fx-ui",
+      "nativeFixtureTrace": "pointer-5204-1-state.jsonl",
+      "targetHwnd": "2097708",
+      "targetGlassEnabled": true,
+      "targetGlassFocused": true,
+      "targetModal": false,
+      "glassWindowCount": 1,
+      "platformScale": [
+        1.0,
+        1.0
+      ],
+      "outputScale": [
+        1.0,
+        1.0
+      ],
+      "robotMouse": {
+        "y": 261.5,
+        "x": 228.5
+      },
+      "sceneMoves": 1,
+      "rootMoves": 1,
+      "visibleCopyButton": {
+        "description": "javafx.scene.control.Button#tnvedCopy_4202111000",
+        "visible": true,
+        "disabled": false,
+        "mouseTransparent": false,
+        "pickOnBounds": true,
+        "opacity": 1.0,
+        "hover": false,
+        "boundsLocal": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:36.0, maxY:36.0, maxZ:0.0]",
+        "boundsScreen": "BoundingBox [minX:210.0, minY:243.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:246.0, maxY:279.0, maxZ:0.0]",
+        "transforms": "[]",
+        "mouseLocal": {
+          "y": 18.5,
+          "x": 18.5
+        },
+        "containsMouse": true,
+        "clip": null
+      },
+      "sceneMoveEnterExitPressEvents": [
+        {
+          "elapsedMillis": 158,
+          "type": "MOUSE_ENTERED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "javafx.scene.Scene"
+        },
+        {
+          "elapsedMillis": 159,
+          "type": "MOUSE_MOVED",
+          "screenX": 65.0,
+          "screenY": 71.0,
+          "sceneX": 3.0,
+          "sceneY": 4.0,
+          "target": "com.vncode.app.ui.tnved.FashionTnvedBrowser#fashionTnvedBrowser"
+        },
+        {
+          "elapsedMillis": 164,
+          "type": "MOUSE_EXITED",
+          "screenX": 228.0,
+          "screenY": 261.0,
+          "sceneX": 166.0,
+          "sceneY": 194.0,
+          "target": "javafx.scene.Scene"
+        }
+      ],
+      "nativeWindowRoutingSamples": [
+        {
+          "time": "2026-11-09T08:21:03.2438348+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 261
+          },
+          "hitHwnd": "197142",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7840,
+          "hitIsTarget": false,
+          "foregroundHwnd": "197142",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7840,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "2097708",
+            "focusHwnd": "2097708",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:21:04.2570810+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 261
+          },
+          "hitHwnd": "197142",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7840,
+          "hitIsTarget": false,
+          "foregroundHwnd": "197142",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7840,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "2097708",
+            "focusHwnd": "2097708",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:21:05.2810018+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 261
+          },
+          "hitHwnd": "197142",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7840,
+          "hitIsTarget": false,
+          "foregroundHwnd": "197142",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7840,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "2097708",
+            "focusHwnd": "2097708",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:21:06.2992794+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 261
+          },
+          "hitHwnd": "197142",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7840,
+          "hitIsTarget": false,
+          "foregroundHwnd": "197142",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7840,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "2097708",
+            "focusHwnd": "2097708",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        }
+      ],
+      "images": [
+        {
+          "file": "native-diagnostic-artifact/06-all-fx-ui/pointer-5204-1-before-hide.png",
+          "sha256": "50d3652ebdf91f3c7d7c5c27fbcb9c476db12c09a5c16d010628c937ec54cd03"
+        }
+      ],
+      "additionalTracesIgnoredAsOutsideNativeTest": 1
+    },
+    {
+      "phase": "07-native-after",
+      "nativeFixtureTrace": "pointer-4320-1-state.jsonl",
+      "targetHwnd": "721066",
+      "targetGlassEnabled": true,
+      "targetGlassFocused": true,
+      "targetModal": false,
+      "glassWindowCount": 1,
+      "platformScale": [
+        1.0,
+        1.0
+      ],
+      "outputScale": [
+        1.0,
+        1.0
+      ],
+      "robotMouse": {
+        "x": 65.5,
+        "y": 71.5
+      },
+      "sceneMoves": 0,
+      "rootMoves": 0,
+      "visibleCopyButton": {
+        "description": "javafx.scene.control.Button#tnvedCopy_4202111000",
+        "visible": true,
+        "disabled": false,
+        "mouseTransparent": false,
+        "pickOnBounds": true,
+        "opacity": 1.0,
+        "hover": false,
+        "boundsLocal": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:36.0, maxY:36.0, maxZ:0.0]",
+        "boundsScreen": "BoundingBox [minX:210.0, minY:261.0, minZ:0.0, width:36.0, height:36.0, depth:0.0, maxX:246.0, maxY:297.0, maxZ:0.0]",
+        "transforms": "[]",
+        "mouseLocal": {
+          "x": -144.5,
+          "y": -189.5
+        },
+        "containsMouse": false,
+        "clip": null
+      },
+      "sceneMoveEnterExitPressEvents": [],
+      "nativeWindowRoutingSamples": [
+        {
+          "time": "2026-11-09T08:26:00.0302063+00:00",
+          "cursor": {
+            "x": 228,
+            "y": 261
+          },
+          "hitHwnd": "721028",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7244,
+          "hitIsTarget": false,
+          "foregroundHwnd": "721028",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7244,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "721066",
+            "focusHwnd": "721066",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:26:01.0479997+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "721028",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7244,
+          "hitIsTarget": false,
+          "foregroundHwnd": "721028",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7244,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "721066",
+            "focusHwnd": "721066",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:26:02.0746649+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "721028",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7244,
+          "hitIsTarget": false,
+          "foregroundHwnd": "721028",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7244,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "721066",
+            "focusHwnd": "721066",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:26:03.0955376+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "721028",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7244,
+          "hitIsTarget": false,
+          "foregroundHwnd": "721028",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7244,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "721066",
+            "focusHwnd": "721066",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        },
+        {
+          "time": "2026-11-09T08:26:04.1167847+00:00",
+          "cursor": {
+            "x": 65,
+            "y": 71
+          },
+          "hitHwnd": "721028",
+          "hitClass": "ConsoleWindowClass",
+          "hitPid": 7244,
+          "hitIsTarget": false,
+          "foregroundHwnd": "721028",
+          "foregroundClass": "ConsoleWindowClass",
+          "foregroundPid": 7244,
+          "javaGuiThread": {
+            "available": true,
+            "flags": 0,
+            "activeHwnd": "721066",
+            "focusHwnd": "721066",
+            "captureHwnd": "0",
+            "menuOwnerHwnd": "0",
+            "moveSizeHwnd": "0",
+            "caretHwnd": "0",
+            "caretRect": {
+              "left": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0
+            }
+          },
+          "inputDesktop": "Default",
+          "sessionState": "Active",
+          "screensaverRunning": false
+        }
+      ],
+      "images": [
+        {
+          "file": "native-diagnostic-artifact/07-native-after/pointer-4320-1-before-hide.png",
+          "sha256": "a2a61be2f8e00265e918f8bbc040d6939b0c511559b6a96965f2eb2fd5759d18"
+        }
+      ],
+      "additionalTracesIgnoredAsOutsideNativeTest": 0
+    }
+  ],
+  "sourceOrTestEdits": false,
+  "mavenOrCiDispatch": false,
+  "sellerApiCalls": false
+}

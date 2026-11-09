@@ -10,7 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
-| **1.6.7 chưa công bố: fullWindows42570802535 còn1native-inputfailure; đang chẩn đoán Windows nhanh, giữ đủ fullgate/source109+POM** | [Nguồn gộp](../validation/2026-11-08-vncode-167-source-inclusion.json), [điểm tiếp tục](CURRENT.md) |
+| **1.6.7 chưa công bố: nguồn0f5f321/full42587222212 +quick42586963144, fixtureAOT chốngconsoleche; source2985/runtime109+POM; giữ mọi gate** | [Nguồn gộp](../validation/2026-11-08-vncode-167-source-inclusion.json), [điểm tiếp tục](CURRENT.md) |
 | **Znack giấy tờ lẫn Latin/Cyrillic: 360 ca, 3 tra cứu API thật, lỗi registry riêng, giữ ID WB/Ozon; chưa phát hành** | [Bàn giao](../validation/2026-11-08-registration-permit-script-fix.md), [receipt](../validation/registration-permit-script-20261108/verification.json) |
 | **KIZ/Znack/GTIN WB: 707 ca nguồn cuối, read epoch/046/mapping/permit/feed-id; 114 = 113 article + 1 size; chưa phát hành** | [Bàn giao](../validation/2026-11-08-kiz-znack-wb-gtin-audit.md), [receipt và API thật](../validation/2026-11-08-kiz-znack-wb-gtin-audit.json) |
 | **Apple/Liquid Glass native đã duyệt/triển khai: 562 ca, 139 PNG, hai finding review đã sửa; chưa phát hành** | [Bàn giao native](../validation/2026-11-08-native-liquid-glass-handoff.md), [biên nhận tổng hợp](../validation/2026-11-08-native-liquid-glass.json) |

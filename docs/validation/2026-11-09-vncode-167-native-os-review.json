@@ -1,0 +1,2463 @@
+{
+  "kind": "NATIVE_INPUT_DIAGNOSTIC_OS_ARTIFACT_REVIEW",
+  "reviewedAtUtc": "2026-11-09T08:30:47.172933+00:00",
+  "workflowRun": 42584347083,
+  "scope": "Read already-downloaded Windows native observer, JavaFX trace and Surefire XML artifacts. No rerun or mutation.",
+  "result": "Foreground/physical-hit console occlusion observed in failed native phases; no sampled lock/screensaver/DPI difference supports previous hypotheses.",
+  "phases": [
+    {
+      "phase": "01-native-before",
+      "javaTotals": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "osSamples": 10,
+      "nativeWindowHandles": [
+        "524452"
+      ],
+      "nativeVisibleOsSamples": 1,
+      "nativeForegroundMatchCount": 1,
+      "nativePhysicalHitMatchCount": 1,
+      "observerConsoleForegroundCount": 0,
+      "anyConsoleForegroundCount": 0,
+      "allSampledInputDesktopDefault": true,
+      "allSampledSessionActiveConsole2": true,
+      "anySampledScreenSaverRunning": false,
+      "nativeDpiTuples": [
+        "(96, 2, True, 2)"
+      ],
+      "targetGuiCaptureOrMenuObserved": false,
+      "examples": [
+        {
+          "timeUtc": "2026-11-09T08:14:45.0005512+00:00",
+          "observerPid": 5708,
+          "idleMilliseconds": 32,
+          "physicalCursor": {
+            "x": 228,
+            "y": 279
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 279
+          },
+          "foreground": {
+            "hwnd": "524452",
+            "valid": true,
+            "pid": 5828,
+            "threadId": 5788,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524452",
+              "focusHwnd": "524452",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "524452",
+            "valid": true,
+            "pid": 5828,
+            "threadId": 5788,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524452",
+              "focusHwnd": "524452",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "524452",
+            "valid": true,
+            "pid": 5828,
+            "threadId": 5788,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524452",
+              "focusHwnd": "524452",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        },
+        {
+          "timeUtc": "2026-11-09T08:14:45.0005512+00:00",
+          "observerPid": 5708,
+          "idleMilliseconds": 32,
+          "physicalCursor": {
+            "x": 228,
+            "y": 279
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 279
+          },
+          "foreground": {
+            "hwnd": "524452",
+            "valid": true,
+            "pid": 5828,
+            "threadId": 5788,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524452",
+              "focusHwnd": "524452",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "524452",
+            "valid": true,
+            "pid": 5828,
+            "threadId": 5788,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524452",
+              "focusHwnd": "524452",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "524452",
+            "valid": true,
+            "pid": 5828,
+            "threadId": 5788,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524452",
+              "focusHwnd": "524452",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        }
+      ],
+      "sourceLogs": [
+        {
+          "path": "01-native-before/windows-input-5708.jsonl",
+          "sha256": "7528193eac5a0b46d7936c607876473f433100951b09bcc61b1f353ab5ec3c32"
+        }
+      ],
+      "sourceNativeTraces": [
+        {
+          "path": "01-native-before/pointer-5828-1-state.jsonl",
+          "sha256": "ada21671ab8f6a6c472bd316c24e791a42b68d3c50bc20ba1e3c08989ba217c3"
+        }
+      ]
+    },
+    {
+      "phase": "02-graphics-before-fx",
+      "javaTotals": {
+        "tests": 3,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "osSamples": 9,
+      "nativeWindowHandles": [
+        "262662"
+      ],
+      "nativeVisibleOsSamples": 4,
+      "nativeForegroundMatchCount": 0,
+      "nativePhysicalHitMatchCount": 0,
+      "observerConsoleForegroundCount": 4,
+      "anyConsoleForegroundCount": 4,
+      "allSampledInputDesktopDefault": true,
+      "allSampledSessionActiveConsole2": true,
+      "anySampledScreenSaverRunning": false,
+      "nativeDpiTuples": [
+        "(96, 2, True, 2)"
+      ],
+      "targetGuiCaptureOrMenuObserved": false,
+      "examples": [
+        {
+          "timeUtc": "2026-11-09T08:14:52.5048638+00:00",
+          "observerPid": 4508,
+          "idleMilliseconds": 422,
+          "physicalCursor": {
+            "x": 228,
+            "y": 279
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 279
+          },
+          "foreground": {
+            "hwnd": "196770",
+            "valid": true,
+            "pid": 4508,
+            "threadId": 1752,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 156,
+              "right": 1024,
+              "bottom": 675
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "196770",
+            "valid": true,
+            "pid": 4508,
+            "threadId": 1752,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 156,
+              "right": 1024,
+              "bottom": 675
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "262662",
+            "valid": true,
+            "pid": 3416,
+            "threadId": 6880,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "262662",
+              "focusHwnd": "262662",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        },
+        {
+          "timeUtc": "2026-11-09T08:14:55.5835542+00:00",
+          "observerPid": 4508,
+          "idleMilliseconds": 3500,
+          "physicalCursor": {
+            "x": 228,
+            "y": 279
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 279
+          },
+          "foreground": {
+            "hwnd": "196770",
+            "valid": true,
+            "pid": 4508,
+            "threadId": 1752,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 156,
+              "right": 1024,
+              "bottom": 675
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "196770",
+            "valid": true,
+            "pid": 4508,
+            "threadId": 1752,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 156,
+              "right": 1024,
+              "bottom": 675
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "262662",
+            "valid": true,
+            "pid": 3416,
+            "threadId": 6880,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "262662",
+              "focusHwnd": "262662",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        }
+      ],
+      "sourceLogs": [
+        {
+          "path": "02-graphics-before-fx/windows-input-4508.jsonl",
+          "sha256": "99ba923f9158dafd12c261e22da090e71342923206c67389ea914dd846ece20e"
+        }
+      ],
+      "sourceNativeTraces": [
+        {
+          "path": "02-graphics-before-fx/pointer-3416-1-state.jsonl",
+          "sha256": "f9e6f6977d79cb868744d26d24d1909e0fd9c07f919ae45ad7c448a99d655a2b"
+        }
+      ]
+    },
+    {
+      "phase": "03-toolkit-before-fx",
+      "javaTotals": {
+        "tests": 3,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "osSamples": 9,
+      "nativeWindowHandles": [
+        "197110"
+      ],
+      "nativeVisibleOsSamples": 4,
+      "nativeForegroundMatchCount": 0,
+      "nativePhysicalHitMatchCount": 0,
+      "observerConsoleForegroundCount": 4,
+      "anyConsoleForegroundCount": 4,
+      "allSampledInputDesktopDefault": true,
+      "allSampledSessionActiveConsole2": true,
+      "anySampledScreenSaverRunning": false,
+      "nativeDpiTuples": [
+        "(96, 2, True, 2)"
+      ],
+      "targetGuiCaptureOrMenuObserved": false,
+      "examples": [
+        {
+          "timeUtc": "2026-11-09T08:15:03.0137489+00:00",
+          "observerPid": 6104,
+          "idleMilliseconds": 687,
+          "physicalCursor": {
+            "x": 65,
+            "y": 71
+          },
+          "cursorInObserverDpiContext": {
+            "x": 65,
+            "y": 71
+          },
+          "foreground": {
+            "hwnd": "327902",
+            "valid": true,
+            "pid": 6104,
+            "threadId": 5712,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 52,
+              "right": 1024,
+              "bottom": 571
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "327902",
+            "valid": true,
+            "pid": 6104,
+            "threadId": 5712,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 52,
+              "right": 1024,
+              "bottom": 571
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "197110",
+            "valid": true,
+            "pid": 1672,
+            "threadId": 2840,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "197110",
+              "focusHwnd": "197110",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        },
+        {
+          "timeUtc": "2026-11-09T08:15:06.0859689+00:00",
+          "observerPid": 6104,
+          "idleMilliseconds": 3765,
+          "physicalCursor": {
+            "x": 65,
+            "y": 71
+          },
+          "cursorInObserverDpiContext": {
+            "x": 65,
+            "y": 71
+          },
+          "foreground": {
+            "hwnd": "327902",
+            "valid": true,
+            "pid": 6104,
+            "threadId": 5712,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 52,
+              "right": 1024,
+              "bottom": 571
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "327902",
+            "valid": true,
+            "pid": 6104,
+            "threadId": 5712,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 52,
+              "right": 1024,
+              "bottom": 571
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "197110",
+            "valid": true,
+            "pid": 1672,
+            "threadId": 2840,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "197110",
+              "focusHwnd": "197110",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        }
+      ],
+      "sourceLogs": [
+        {
+          "path": "03-toolkit-before-fx/windows-input-6104.jsonl",
+          "sha256": "092865477cb3781054b194848e8a41013e60897d9529158e0642582419a79ded"
+        }
+      ],
+      "sourceNativeTraces": [
+        {
+          "path": "03-toolkit-before-fx/pointer-1672-1-state.jsonl",
+          "sha256": "397b61aab7bf1958abfc67dd551cecab45e0dfd52600bc7cccd7c3d97da0d33b"
+        }
+      ]
+    },
+    {
+      "phase": "04-graphics-scale100",
+      "javaTotals": {
+        "tests": 3,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "osSamples": 9,
+      "nativeWindowHandles": [
+        "524674"
+      ],
+      "nativeVisibleOsSamples": 4,
+      "nativeForegroundMatchCount": 0,
+      "nativePhysicalHitMatchCount": 1,
+      "observerConsoleForegroundCount": 4,
+      "anyConsoleForegroundCount": 4,
+      "allSampledInputDesktopDefault": true,
+      "allSampledSessionActiveConsole2": true,
+      "anySampledScreenSaverRunning": false,
+      "nativeDpiTuples": [
+        "(96, 2, True, 2)"
+      ],
+      "targetGuiCaptureOrMenuObserved": false,
+      "examples": [
+        {
+          "timeUtc": "2026-11-09T08:15:12.5593277+00:00",
+          "observerPid": 3400,
+          "idleMilliseconds": 10234,
+          "physicalCursor": {
+            "x": 65,
+            "y": 71
+          },
+          "cursorInObserverDpiContext": {
+            "x": 65,
+            "y": 71
+          },
+          "foreground": {
+            "hwnd": "393526",
+            "valid": true,
+            "pid": 3400,
+            "threadId": 1220,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 104,
+              "right": 1024,
+              "bottom": 623
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "524674",
+            "valid": true,
+            "pid": 5812,
+            "threadId": 1236,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524674",
+              "focusHwnd": "524674",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "524674",
+            "valid": true,
+            "pid": 5812,
+            "threadId": 1236,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524674",
+              "focusHwnd": "524674",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        },
+        {
+          "timeUtc": "2026-11-09T08:15:15.6278325+00:00",
+          "observerPid": 3400,
+          "idleMilliseconds": 2860,
+          "physicalCursor": {
+            "x": 228,
+            "y": 279
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 279
+          },
+          "foreground": {
+            "hwnd": "393526",
+            "valid": true,
+            "pid": 3400,
+            "threadId": 1220,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 104,
+              "right": 1024,
+              "bottom": 623
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "393526",
+            "valid": true,
+            "pid": 3400,
+            "threadId": 1220,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 104,
+              "right": 1024,
+              "bottom": 623
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "524674",
+            "valid": true,
+            "pid": 5812,
+            "threadId": 1236,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "524674",
+              "focusHwnd": "524674",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        }
+      ],
+      "sourceLogs": [
+        {
+          "path": "04-graphics-scale100/windows-input-3400.jsonl",
+          "sha256": "76191c73d5e65614324237e15d76edd9f159dfe2d43e96374d64bc27ececdd45"
+        }
+      ],
+      "sourceNativeTraces": [
+        {
+          "path": "04-graphics-scale100/pointer-5812-1-state.jsonl",
+          "sha256": "94e3f5ef5166b9d3aa9e44da999bf6e79208cdb1158e998aa714e386ac181d0b"
+        }
+      ]
+    },
+    {
+      "phase": "05-toolkit-scale100",
+      "javaTotals": {
+        "tests": 3,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "osSamples": 9,
+      "nativeWindowHandles": [
+        "393358"
+      ],
+      "nativeVisibleOsSamples": 4,
+      "nativeForegroundMatchCount": 0,
+      "nativePhysicalHitMatchCount": 0,
+      "observerConsoleForegroundCount": 4,
+      "anyConsoleForegroundCount": 4,
+      "allSampledInputDesktopDefault": true,
+      "allSampledSessionActiveConsole2": true,
+      "anySampledScreenSaverRunning": false,
+      "nativeDpiTuples": [
+        "(96, 2, True, 2)"
+      ],
+      "targetGuiCaptureOrMenuObserved": false,
+      "examples": [
+        {
+          "timeUtc": "2026-11-09T08:15:24.1299868+00:00",
+          "observerPid": 6108,
+          "idleMilliseconds": 687,
+          "physicalCursor": {
+            "x": 228,
+            "y": 279
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 279
+          },
+          "foreground": {
+            "hwnd": "524606",
+            "valid": true,
+            "pid": 6108,
+            "threadId": 7724,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 156,
+              "right": 1024,
+              "bottom": 675
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "524606",
+            "valid": true,
+            "pid": 6108,
+            "threadId": 7724,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 156,
+              "right": 1024,
+              "bottom": 675
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "393358",
+            "valid": true,
+            "pid": 984,
+            "threadId": 7064,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "393358",
+              "focusHwnd": "393358",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        },
+        {
+          "timeUtc": "2026-11-09T08:15:27.1995718+00:00",
+          "observerPid": 6108,
+          "idleMilliseconds": 3750,
+          "physicalCursor": {
+            "x": 228,
+            "y": 279
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 279
+          },
+          "foreground": {
+            "hwnd": "524606",
+            "valid": true,
+            "pid": 6108,
+            "threadId": 7724,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 156,
+              "right": 1024,
+              "bottom": 675
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "524606",
+            "valid": true,
+            "pid": 6108,
+            "threadId": 7724,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 156,
+              "right": 1024,
+              "bottom": 675
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "393358",
+            "valid": true,
+            "pid": 984,
+            "threadId": 7064,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "393358",
+              "focusHwnd": "393358",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        }
+      ],
+      "sourceLogs": [
+        {
+          "path": "05-toolkit-scale100/windows-input-6108.jsonl",
+          "sha256": "feb8ff61aec8d748f687acddb5af2bb01fd0d7e0e8bee9858aa6ce939bae7282"
+        }
+      ],
+      "sourceNativeTraces": [
+        {
+          "path": "05-toolkit-scale100/pointer-984-1-state.jsonl",
+          "sha256": "b59651205b00688d245a2cb3931b4031c57b39ca5af90e457f0e361e674ea95e"
+        }
+      ]
+    },
+    {
+      "phase": "06-all-fx-ui",
+      "javaTotals": {
+        "tests": 737,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 121,
+      "osSamples": 616,
+      "nativeWindowHandles": [
+        "2097708"
+      ],
+      "nativeVisibleOsSamples": 4,
+      "nativeForegroundMatchCount": 0,
+      "nativePhysicalHitMatchCount": 0,
+      "observerConsoleForegroundCount": 0,
+      "anyConsoleForegroundCount": 4,
+      "allSampledInputDesktopDefault": true,
+      "allSampledSessionActiveConsole2": true,
+      "anySampledScreenSaverRunning": false,
+      "nativeDpiTuples": [
+        "(96, 2, True, 2)"
+      ],
+      "targetGuiCaptureOrMenuObserved": false,
+      "examples": [
+        {
+          "timeUtc": "2026-11-09T08:21:03.2438348+00:00",
+          "observerPid": 7316,
+          "idleMilliseconds": 110,
+          "physicalCursor": {
+            "x": 228,
+            "y": 261
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 261
+          },
+          "foreground": {
+            "hwnd": "197142",
+            "valid": true,
+            "pid": 7840,
+            "threadId": 7836,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 78,
+              "right": 1024,
+              "bottom": 597
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": false,
+              "win32Error": 87
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "197142",
+            "valid": true,
+            "pid": 7840,
+            "threadId": 7836,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 78,
+              "right": 1024,
+              "bottom": 597
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": false,
+              "win32Error": 87
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "2097708",
+            "valid": true,
+            "pid": 5204,
+            "threadId": 1356,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-200",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "2097708",
+              "focusHwnd": "2097708",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        },
+        {
+          "timeUtc": "2026-11-09T08:21:06.2992794+00:00",
+          "observerPid": 7316,
+          "idleMilliseconds": 3157,
+          "physicalCursor": {
+            "x": 228,
+            "y": 261
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 261
+          },
+          "foreground": {
+            "hwnd": "197142",
+            "valid": true,
+            "pid": 7840,
+            "threadId": 7836,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 78,
+              "right": 1024,
+              "bottom": 597
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": false,
+              "win32Error": 87
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "197142",
+            "valid": true,
+            "pid": 7840,
+            "threadId": 7836,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 78,
+              "right": 1024,
+              "bottom": 597
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": false,
+              "win32Error": 87
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "2097708",
+            "valid": true,
+            "pid": 5204,
+            "threadId": 1356,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-200",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "2097708",
+              "focusHwnd": "2097708",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        }
+      ],
+      "sourceLogs": [
+        {
+          "path": "06-all-fx-ui/windows-input-7316.jsonl",
+          "sha256": "dfe276671b33d579d94d7c8a06746480fe1f3d083e819d195ae6f421e2b9b724"
+        }
+      ],
+      "sourceNativeTraces": [
+        {
+          "path": "06-all-fx-ui/pointer-5204-1-state.jsonl",
+          "sha256": "bb0fada3128a82949470a39b48a35a5d8e2a231a968fb8449ea6df2ca248e231"
+        }
+      ]
+    },
+    {
+      "phase": "07-native-after",
+      "javaTotals": {
+        "tests": 3,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "osSamples": 9,
+      "nativeWindowHandles": [
+        "721066"
+      ],
+      "nativeVisibleOsSamples": 5,
+      "nativeForegroundMatchCount": 0,
+      "nativePhysicalHitMatchCount": 0,
+      "observerConsoleForegroundCount": 5,
+      "anyConsoleForegroundCount": 5,
+      "allSampledInputDesktopDefault": true,
+      "allSampledSessionActiveConsole2": true,
+      "anySampledScreenSaverRunning": false,
+      "nativeDpiTuples": [
+        "(96, 2, True, 2)"
+      ],
+      "targetGuiCaptureOrMenuObserved": false,
+      "examples": [
+        {
+          "timeUtc": "2026-11-09T08:26:00.0302063+00:00",
+          "observerPid": 7244,
+          "idleMilliseconds": 296891,
+          "physicalCursor": {
+            "x": 228,
+            "y": 261
+          },
+          "cursorInObserverDpiContext": {
+            "x": 228,
+            "y": 261
+          },
+          "foreground": {
+            "hwnd": "721028",
+            "valid": true,
+            "pid": 7244,
+            "threadId": 3344,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 52,
+              "right": 1024,
+              "bottom": 571
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "721028",
+            "valid": true,
+            "pid": 7244,
+            "threadId": 3344,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 52,
+              "right": 1024,
+              "bottom": 571
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "721066",
+            "valid": true,
+            "pid": 4320,
+            "threadId": 536,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "721066",
+              "focusHwnd": "721066",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        },
+        {
+          "timeUtc": "2026-11-09T08:26:04.1167847+00:00",
+          "observerPid": 7244,
+          "idleMilliseconds": 3860,
+          "physicalCursor": {
+            "x": 65,
+            "y": 71
+          },
+          "cursorInObserverDpiContext": {
+            "x": 65,
+            "y": 71
+          },
+          "foreground": {
+            "hwnd": "721028",
+            "valid": true,
+            "pid": 7244,
+            "threadId": 3344,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 52,
+              "right": 1024,
+              "bottom": 571
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "windowUnderPhysicalCursor": {
+            "hwnd": "721028",
+            "valid": true,
+            "pid": 7244,
+            "threadId": 3344,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "ConsoleWindowClass",
+            "boundsInObserverDpiContext": {
+              "left": 31,
+              "top": 52,
+              "right": 1024,
+              "bottom": 571
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 0
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "0",
+              "focusHwnd": "0",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "197142",
+              "caretRect": {
+                "left": 0,
+                "top": 464,
+                "right": 8,
+                "bottom": 480
+              }
+            }
+          },
+          "targetJavaWindow": {
+            "hwnd": "721066",
+            "valid": true,
+            "pid": 4320,
+            "threadId": 536,
+            "processSessionId": 2,
+            "enabled": true,
+            "visible": true,
+            "iconic": false,
+            "ownerHwnd": "0",
+            "class": "GlassWndClass-GlassWindowClass-2",
+            "boundsInObserverDpiContext": {
+              "left": 54,
+              "top": 36,
+              "right": 970,
+              "bottom": 655
+            },
+            "dpi": 96,
+            "windowDpiContext": {
+              "rawContext": "34",
+              "awareness": 2,
+              "unaware": false,
+              "systemAware": false,
+              "perMonitorAware": false,
+              "perMonitorAwareV2": true,
+              "unawareGdiScaled": false
+            },
+            "processDpi": {
+              "hresult": 0,
+              "awareness": 2
+            },
+            "guiThread": {
+              "available": true,
+              "flags": 0,
+              "activeHwnd": "721066",
+              "focusHwnd": "721066",
+              "captureHwnd": "0",
+              "menuOwnerHwnd": "0",
+              "moveSizeHwnd": "0",
+              "caretHwnd": "0",
+              "caretRect": {
+                "left": 0,
+                "top": 0,
+                "right": 0,
+                "bottom": 0
+              }
+            }
+          }
+        }
+      ],
+      "sourceLogs": [
+        {
+          "path": "07-native-after/windows-input-7244.jsonl",
+          "sha256": "553c774bcd02d42294c78b6e670f7680b7a86aa6e19632bb9fdec09b841d52bd"
+        }
+      ],
+      "sourceNativeTraces": [
+        {
+          "path": "07-native-after/pointer-4320-1-state.jsonl",
+          "sha256": "5584bd4bf0cf68e5f9719a4e8a7272ef61a25d3b5e89b352ca77fe81ab25f4ec"
+        }
+      ]
+    }
+  ],
+  "establishedFacts": [
+    "Failed native windows were enabled and visible while actual global foreground/physical-cursor hit pointed to ConsoleWindowClass.",
+    "In phases02/03/04/05/07 the console foreground PID equals observer PID, proving diagnostic observer-window interference.",
+    "In phase06 the actual native-test target was covered by another console; its owning process name was not captured, so attribution to Maven/main runner remains an inference.",
+    "Target-local GetGUIThreadInfo active/focus handles can match Java while global GetForegroundWindow points to a console; local focus is insufficient as a native delivery precondition.",
+    "All sampled input desktops were Default on WinSta0/session2Active; no sampled screensaver was running.",
+    "All sampled native target DPI values were96/per-monitor-v2/process-awareness2; JavaFX stable trace scales were1.",
+    "A half-pixel Robot cursor offset also occurs in passing phase01; it is not by itself evidence of DPI mismatch."
+  ],
+  "minimalNextControl": [
+    "Hide or reuse the observer console instead of creating a visible observer window.",
+    "Use a test-fixture-only always-on-top Stage to prevent runner-console occlusion, retaining one real click and every original clipboard/status/window/no-Apply assertion.",
+    "Repeat fast native positive controls and verify native hit/foreground evidence before another unfiltered full build."
+  ],
+  "limits": [
+    "No original third/fourth full-run native foreground/window-hit snapshots exist, so this does not prove every historical full failure had identical console provenance.",
+    "Sampling every1s can miss brief window changes.",
+    "No GetAsyncKeyState snapshot exists; arrived FX events provide button flags, but zero-event phases cannot establish global physical button state.",
+    "Desktop policies and DPI were observed in this diagnostic run; no security, input, power or registry settings were changed."
+  ],
+  "repositoryEdits": false,
+  "testsOrMavenRun": false,
+  "networkCalls": false,
+  "publicationPerformed": false
+}

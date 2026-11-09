@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 09.11.2026 MSK — 1.6.7 nguồn0f5f321, khắc phục scope kiểm chuột và giữ chứng cứ full
+
+Fastprobe42584347083 chứngminhconsoleobserver/worker che nativeWindow; đây cóconfounder Root, khôngphảibằngchứngAWTDPI/lock, càngkhôngchứngminhnguyênnhânfullcũ. DùngStageAOT chỉfixture vàhiddenobserver, giữ4s/oneclick/allasserts. Source0f5f321 thêmCIreadonlyPS vàbaselineFullSnapshot, runtime/POM/schema unchanged;2985files/109runtime+POM. Full42587222212 vàquickcontrol42586963144 song song, chưacôngbố. Quick121UI737case/visibleconsolecontrol phảiđạt, fullvẫnunfiltered4122/native/upgrade; lưuOSmetadata trongZIP/failedartifact, khôngskip/reuse. [Inclusion](validation/2026-11-08-vncode-167-source-inclusion.json), [review](validation/2026-11-09-vncode-167-publisher-fifth-review.json). Bài học: côngcụquan sát phải thật sự không che/chiếm input; phânbiệtFXthreadfocus vàOSforeground/hitwindow; khôngthửchỉnhDPI khiđãcóbằngchứngz-order. JavaCodeQLvẫn8findingcũ/FAIL,PSmớiđượcreviewriêng, khôngclaimalltoolsbyteequal. Tiếp tục từCURRENT/STATEvànhữngrunthật, chưaLatest.
+
 ## 09.11.2026 MSK — Windows native input cần chẩn đoán thay vì lặp full mù
 
 Lượt42570802535/source210 thất bại duy nhất Fashion native Copy trướcclick:4122/4119pass/1failure/2OSskip, rootparking counter0 dùRobotmouse đổiđúngtọađộ. Không thể kếtluận zeroSceneevent hoặc chỉstationarypointer từcounterMOUSE_MOVED. [Lỗi lần bốn](validation/2026-11-09-vncode-167-fourth-windows-failure.json). Đã tạo fastCI aebb841 chỉ quan sát desktop/session/capture/DPI và Scene/rootANY, đốichiếu AWTgraphics/toolkit-before-FX +100%scale,121lớpUI/FX737ca khoảng9phút, nativefreshJVM trướcsau. Không unlock/inject/changepolicy, khôngprodchange hoặc hạgates. ChưaPublish; cần chứngcứrootcause rồi freshfull4122/native/upgrade. Kinhnghiệm: Robot cursorposition vàFXcachedfocus không chứngminh eventdelivery; chẩnđoán matchingcounter riêng vớiScenerouting/nativecapture, không nóiđãchứngminh từmộtphỏngđoán.

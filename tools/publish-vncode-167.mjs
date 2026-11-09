@@ -10,8 +10,8 @@ import {requiredAssets, validateCompleteRelease} from './baseline-release.mjs';
 import {validateBuild, validateNativeSmoke, validateSideBySideSmoke, validateUpgradeSmoke} from './publish-vncode-windows.mjs';
 
 // One owner-requested release. These constants deliberately cannot be replaced by dispatch inputs.
-export const candidate=Object.freeze({version:'1.6.7',source:'210c01d4a0854a55333151f252a74308888279ad',
-  build:42570802535,workflow:392732536,baseline:'1.6.6',repo:'ntccong2468-lab/Bancapnhat',releaseId:438471378});
+export const candidate=Object.freeze({version:'1.6.7',source:'0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96',
+  build:42587222212,workflow:392732536,baseline:'1.6.6',repo:'ntccong2468-lab/Bancapnhat',releaseId:438471378});
 export const assets=Object.freeze([...requiredAssets(candidate.version),'asset-manifest.json','SHA256SUMS',
   'gs1-smoke.json','side-by-side-smoke.json','previous-baseline.json']);
 const json=bytes=>JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));
