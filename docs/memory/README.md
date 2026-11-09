@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| Chứng thư mới CryptoPro/token, hủy đọc và preroute ký — app e774 / freshWindows42605121356, chưa phát hành | [Bàn giao](../validation/2026-11-09-cryptopro-certificate-discovery-handoff.md), [192 ca/manifest](../validation/2026-11-09-cryptopro-certificate-discovery.json), [inclusion114](../validation/2026-11-08-vncode-167-source-inclusion.json) |
 | **1.6.7 chưa công bố: nguồn0f5f321/full42587222212 đang chạy; Windows737UI và native control42586963144 đạt; source2985/runtime109+POM** | [Nguồn gộp](../validation/2026-11-08-vncode-167-source-inclusion.json), [điểm tiếp tục](CURRENT.md) |
 | **Znack giấy tờ lẫn Latin/Cyrillic: 360 ca, 3 tra cứu API thật, lỗi registry riêng, giữ ID WB/Ozon; chưa phát hành** | [Bàn giao](../validation/2026-11-08-registration-permit-script-fix.md), [receipt](../validation/registration-permit-script-20261108/verification.json) |
 | **KIZ/Znack/GTIN WB: 707 ca nguồn cuối, read epoch/046/mapping/permit/feed-id; 114 = 113 article + 1 size; chưa phát hành** | [Bàn giao](../validation/2026-11-08-kiz-znack-wb-gtin-audit.md), [receipt và API thật](../validation/2026-11-08-kiz-znack-wb-gtin-audit.json) |

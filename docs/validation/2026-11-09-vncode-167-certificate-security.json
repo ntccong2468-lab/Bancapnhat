@@ -1,0 +1,904 @@
+{
+  "schemaVersion": 1,
+  "version": "1.6.7",
+  "reviewedAt": "2026-11-09T11:05:35.017730+00:00",
+  "applicationSourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+  "freshSecurityRun": {
+    "conclusion": "failure",
+    "createdAt": "2026-11-09T10:58:08Z",
+    "databaseId": 42605173295,
+    "headBranch": "release/vn-code-1.6.7",
+    "headSha": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "jobs": [
+      {
+        "completedAt": "2026-11-09T10:58:30Z",
+        "conclusion": "success",
+        "databaseId": 129119208035,
+        "name": "lint-and-audit",
+        "startedAt": "2026-11-09T10:58:11Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Check workflow syntax and expressions",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Check portal JavaScript syntax",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Install portal dependencies without lifecycle scripts",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Test portal",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Test release and security tools",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Audit the portal lockfile, including development dependencies",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 17,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 18,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 19,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42605173295/job/129119208035"
+      },
+      {
+        "completedAt": "2026-11-09T11:02:45Z",
+        "conclusion": "failure",
+        "databaseId": 129119208382,
+        "name": "codeql (java-kotlin, manual)",
+        "startedAt": "2026-11-09T10:58:11Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Initialize CodeQL",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Compile Java for analysis",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Analyze without write permissions",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "failure",
+            "name": "Gate on high, critical or unclassified security findings",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Preserve CodeQL findings for review",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Analyze without write permissions",
+            "number": 13,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Initialize CodeQL",
+            "number": 14,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+            "number": 15,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 16,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42605173295/job/129119208382"
+      },
+      {
+        "completedAt": "2026-11-09T11:00:45Z",
+        "conclusion": "success",
+        "databaseId": 129119208444,
+        "name": "codeql (javascript-typescript, none)",
+        "startedAt": "2026-11-09T10:58:11Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "skipped",
+            "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Initialize CodeQL",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "skipped",
+            "name": "Compile Java for analysis",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Analyze without write permissions",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Gate on high, critical or unclassified security findings",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Preserve CodeQL findings for review",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Analyze without write permissions",
+            "number": 14,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Initialize CodeQL",
+            "number": 15,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 16,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42605173295/job/129119208444"
+      },
+      {
+        "completedAt": "2026-11-09T10:58:09Z",
+        "conclusion": "skipped",
+        "databaseId": 129119209891,
+        "name": "changed-dependencies",
+        "startedAt": "2026-11-09T10:58:10Z",
+        "status": "completed",
+        "steps": [],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42605173295/job/129119209891"
+      },
+      {
+        "completedAt": "2026-11-09T10:58:09Z",
+        "conclusion": "skipped",
+        "databaseId": 129119210200,
+        "name": "openqodex-scan",
+        "startedAt": "2026-11-09T10:58:10Z",
+        "status": "completed",
+        "steps": [],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42605173295/job/129119210200"
+      }
+    ],
+    "status": "completed",
+    "updatedAt": "2026-11-09T11:02:46Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42605173295",
+    "workflowDatabaseId": 403818652
+  },
+  "freshCodeqlOnThisSource": true,
+  "priorAnalyzedSourceCommit": "026f1a86ae5928769a9b36720c2da98cf8dd7efd",
+  "priorSecurityRunId": 42515488357,
+  "publishedBaseline": {
+    "version": "1.6.6",
+    "sourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+    "securityRunId": 42408547869
+  },
+  "artifactMetadata": {
+    "total_count": 2,
+    "artifacts": [
+      {
+        "id": 13668281026,
+        "name": "codeql-javascript-typescript",
+        "size_in_bytes": 129933,
+        "expired": false,
+        "digest": "sha256:26b572e362ade000e6209fdd34e60e8d583b09d7f15354e4bb777072e9bd7889",
+        "created_at": "2026-11-09T11:00:28Z",
+        "updated_at": "2026-11-09T11:00:28Z"
+      },
+      {
+        "id": 13667034144,
+        "name": "codeql-java-kotlin",
+        "size_in_bytes": 169157,
+        "expired": false,
+        "digest": "sha256:c01917de1512be94afbda00c4501d9b59c3549f1c69fc550aa80efc0467cd5a3",
+        "created_at": "2026-11-09T11:02:26Z",
+        "updated_at": "2026-11-09T11:02:26Z"
+      }
+    ]
+  },
+  "reports": {
+    "java-kotlin": {
+      "path": "/workspace/vncode-167-release/security-review-certificate/codeql-java-kotlin/java.sarif",
+      "sha256": "9ba076ca9ad8888a781b7e54f2650360f78bff6e4eb677f43258f52fe39d09f3",
+      "bytes": 1883921,
+      "findings": [
+        {
+          "rule": "java/relative-path-command",
+          "securitySeverity": 5.4,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/integration/update/UpdateInstallerService.java",
+              "region": {
+                "startLine": 127,
+                "startColumn": 17,
+                "endColumn": 33
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "5e47ddf8e7576114:1",
+            "primaryLocationStartColumnFingerprint": "0"
+          },
+          "message": "Command with a relative path 'powershell.exe' is executed.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/unreleased-lock",
+          "securitySeverity": 5.0,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java",
+              "region": {
+                "startLine": 20,
+                "startColumn": 13,
+                "endColumn": 37
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "1c959fa0c2feeceb:1",
+            "primaryLocationStartColumnFingerprint": "0"
+          },
+          "message": "This lock might not be unlocked or might be locked more times than it is unlocked.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/unreleased-lock",
+          "securitySeverity": 5.0,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java",
+              "region": {
+                "startLine": 21,
+                "startColumn": 35,
+                "endColumn": 66
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "ec953ab4f695477c:1",
+            "primaryLocationStartColumnFingerprint": "22"
+          },
+          "message": "This lock might not be unlocked or might be locked more times than it is unlocked.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/potentially-weak-cryptographic-algorithm",
+          "securitySeverity": 7.5,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+              "region": {
+                "startLine": 71,
+                "startColumn": 41,
+                "endColumn": 75
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "f18fb515f996423:1",
+            "primaryLocationStartColumnFingerprint": "32"
+          },
+          "message": "Cryptographic algorithm [SHA-1](1) may not be secure. Consider using a different algorithm.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/relative-path-command",
+          "securitySeverity": 5.4,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/shared/WindowsSecretProtector.java",
+              "region": {
+                "startLine": 64,
+                "startColumn": 40,
+                "endColumn": 56
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "176942700d2b673a:1",
+            "primaryLocationStartColumnFingerprint": "27"
+          },
+          "message": "Command with a relative path 'powershell.exe' is executed.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/local-temp-file-or-directory-information-disclosure",
+          "securitySeverity": 6.5,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/features/listingcopy/ListingMediaReader.java",
+              "region": {
+                "startLine": 18,
+                "startColumn": 58,
+                "endColumn": 94
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "8a9a5ebcaef6d9ee:1",
+            "primaryLocationStartColumnFingerprint": "53"
+          },
+          "message": "Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users.",
+          "codeFlowCount": 1
+        },
+        {
+          "rule": "java/local-temp-file-or-directory-information-disclosure",
+          "securitySeverity": 6.5,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/shared/AppPaths.java",
+              "region": {
+                "startLine": 93,
+                "startColumn": 26,
+                "endColumn": 67
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "93d7d4ca12ac6368:1",
+            "primaryLocationStartColumnFingerprint": "17"
+          },
+          "message": "Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users.",
+          "codeFlowCount": 2
+        },
+        {
+          "rule": "java/local-temp-file-or-directory-information-disclosure",
+          "securitySeverity": 6.5,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/shared/AppPaths.java",
+              "region": {
+                "startLine": 197,
+                "startColumn": 41,
+                "endColumn": 82
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "52cbdf8e49ecd7a1:1",
+            "primaryLocationStartColumnFingerprint": "16"
+          },
+          "message": "Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users.",
+          "codeFlowCount": 4
+        }
+      ],
+      "findingCount": 8,
+      "blockedCount": 1,
+      "runs": [
+        {
+          "tool": "CodeQL",
+          "semanticVersion": "2.27.3",
+          "queryPacks": [
+            {
+              "name": "codeql/java-queries",
+              "semanticVersion": "1.11.13+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            },
+            {
+              "name": "codeql/java-all",
+              "semanticVersion": "9.3.3+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            },
+            {
+              "name": "codeql/threat-models",
+              "semanticVersion": "1.1.0+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            }
+          ],
+          "executionSuccessful": [
+            true
+          ],
+          "warningOrErrorNotifications": [
+            {
+              "level": "error",
+              "id": "java/diagnostics/extraction-errors",
+              "message": "Extraction incomplete in file: src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+            }
+          ]
+        }
+      ]
+    },
+    "javascript-typescript": {
+      "path": "/workspace/vncode-167-release/security-review-certificate/codeql-javascript-typescript/javascript.sarif",
+      "sha256": "244a73612dcbe1436f7549e7d54f3a31c1814b39b00539cbac0696de0f0ac325",
+      "bytes": 1321609,
+      "findings": [],
+      "findingCount": 0,
+      "blockedCount": 0,
+      "runs": [
+        {
+          "tool": "CodeQL",
+          "semanticVersion": "2.27.3",
+          "queryPacks": [
+            {
+              "name": "codeql/javascript-queries",
+              "semanticVersion": "2.4.8+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            },
+            {
+              "name": "codeql/javascript-all",
+              "semanticVersion": "2.10.4+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            },
+            {
+              "name": "codeql/threat-models",
+              "semanticVersion": "1.1.0+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            }
+          ],
+          "executionSuccessful": [
+            true
+          ],
+          "warningOrErrorNotifications": []
+        }
+      ]
+    }
+  },
+  "comparisonReports": {
+    "prior026": {
+      "java-kotlin": {
+        "path": "/tmp/vncode-167-security-42515488357/codeql-java-kotlin/java.sarif",
+        "sha256": "796c436e25c66b2a51a222e4b006e86888ae4551b5100a5862ad50abaff07579",
+        "bytes": 1881087,
+        "findingCount": 8,
+        "blockedCount": 1
+      },
+      "javascript-typescript": {
+        "path": "/tmp/vncode-167-security-42515488357/codeql-javascript-typescript/javascript.sarif",
+        "sha256": "45d03349c5b6ba60c4bbabef4c8f0accb3f258c728d915c2ca6720be422dc36e",
+        "bytes": 1319163,
+        "findingCount": 0,
+        "blockedCount": 0
+      }
+    },
+    "published166": {
+      "java-kotlin": {
+        "path": "/workspace/vncode-166-release-work/security-final/codeql-java-kotlin/java.sarif",
+        "sha256": "81da6ee2158af7d31857af3053c22f9e934c449862ed6c84f1467f297866c5cd",
+        "bytes": 1862518,
+        "findingCount": 8,
+        "blockedCount": 1
+      },
+      "javascript-typescript": {
+        "path": "/workspace/vncode-166-release-work/security-final/codeql-javascript-typescript/javascript.sarif",
+        "sha256": "7f14eb7d143710b74fd6b2bd3434dd8e54f289605d5e045e2a1ab69450bb1572",
+        "bytes": 1303888,
+        "findingCount": 0,
+        "blockedCount": 0
+      }
+    }
+  },
+  "normalizedComparisons": {
+    "java-kotlin": {
+      "newVs026": [],
+      "resolvedVs026": [],
+      "newVsPublished166": [],
+      "resolvedVsPublished166": [],
+      "fullNormalizedFindingsIdenticalTo026": true,
+      "fullNormalizedFindingsIdenticalTo166": true
+    },
+    "javascript-typescript": {
+      "newVs026": [],
+      "resolvedVs026": [],
+      "newVsPublished166": [],
+      "resolvedVsPublished166": [],
+      "fullNormalizedFindingsIdenticalTo026": true,
+      "fullNormalizedFindingsIdenticalTo166": true
+    }
+  },
+  "normalizationMethod": "Resolve SARIF rule references against driver or query-pack extensions; preserve rule, numeric security severity, all primary physical locations, partial fingerprints, normalized message whitespace and code-flow count. Compare stable location/fingerprint identities and also full normalized finding records. Raw SARIF hashes separately preserve exact bytes.",
+  "sameEightExistingJavaFindingsAndNoNewResults": true,
+  "newFindingReviewRequired": false,
+  "findingFileComparisons": [
+    {
+      "file": "src/main/java/com/vncode/app/features/listingcopy/ListingMediaReader.java",
+      "sha256": {
+        "current": "f95dcc068b75818cf7d9785a7fbbe8c11c13b75fd8539d49b933bd6a4329009e",
+        "analyzed026": "f95dcc068b75818cf7d9785a7fbbe8c11c13b75fd8539d49b933bd6a4329009e",
+        "published166": "f95dcc068b75818cf7d9785a7fbbe8c11c13b75fd8539d49b933bd6a4329009e"
+      },
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/update/UpdateInstallerService.java",
+      "sha256": {
+        "current": "062fc0743e8eeb2f24887b8a13972145fca6e7c057c9571f2dac8f8a5827cf97",
+        "analyzed026": "062fc0743e8eeb2f24887b8a13972145fca6e7c057c9571f2dac8f8a5827cf97",
+        "published166": "062fc0743e8eeb2f24887b8a13972145fca6e7c057c9571f2dac8f8a5827cf97"
+      },
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java",
+      "sha256": {
+        "current": "09d0b2221434e3dafba25c3b0bbb239d8627725222c205815988091540dd50eb",
+        "analyzed026": "09d0b2221434e3dafba25c3b0bbb239d8627725222c205815988091540dd50eb",
+        "published166": "09d0b2221434e3dafba25c3b0bbb239d8627725222c205815988091540dd50eb"
+      },
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+      "sha256": {
+        "current": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+        "analyzed026": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c",
+        "published166": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c"
+      },
+      "currentByteIdenticalTo026": false,
+      "currentByteIdenticalTo166": false
+    },
+    {
+      "file": "src/main/java/com/vncode/app/shared/AppPaths.java",
+      "sha256": {
+        "current": "33a693fcb5e6943fc488be5ff91ee10057e2125149790c85d041d45c1377986c",
+        "analyzed026": "33a693fcb5e6943fc488be5ff91ee10057e2125149790c85d041d45c1377986c",
+        "published166": "33a693fcb5e6943fc488be5ff91ee10057e2125149790c85d041d45c1377986c"
+      },
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/shared/WindowsSecretProtector.java",
+      "sha256": {
+        "current": "192991d3acf5ce57bb5b12d223d9733a561907b4a043572e6f57ff8f44be8779",
+        "analyzed026": "192991d3acf5ce57bb5b12d223d9733a561907b4a043572e6f57ff8f44be8779",
+        "published166": "192991d3acf5ce57bb5b12d223d9733a561907b4a043572e6f57ff8f44be8779"
+      },
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    }
+  ],
+  "sourceReview": {
+    "reviewedAt": "2026-11-09T11:01:06.169512+00:00",
+    "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "priorAnalyzedSourceCommit": "026f1a86ae5928769a9b36720c2da98cf8dd7efd",
+    "published166SourceCommit": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
+    "mainRuntimeByteIdenticalTo026": false,
+    "mainChangesVs026": [
+      "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+      "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+      "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+      "A\tsrc/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java",
+      "M\tsrc/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java"
+    ],
+    "objectComparisons": [
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "sha256": {
+          "current": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+          "analyzed026": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c",
+          "published166": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c"
+        },
+        "currentByteIdenticalTo026": false,
+        "currentByteIdenticalTo166": false
+      },
+      {
+        "path": "pom.xml",
+        "sha256": {
+          "current": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635",
+          "analyzed026": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635",
+          "published166": "e1aa9f037112b63278810b01256f05705c3250b6f8e3f7da4b9741df78c54728"
+        },
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": false
+      },
+      {
+        "path": ".github/workflows/security-ci.yml",
+        "sha256": {
+          "current": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+          "analyzed026": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+          "published166": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0"
+        },
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true
+      },
+      {
+        "path": "tools/codeql-sarif-gate.mjs",
+        "sha256": {
+          "current": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+          "analyzed026": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+          "published166": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb"
+        },
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true
+      },
+      {
+        "path": "tools/codeql-sarif-gate.test.mjs",
+        "sha256": {
+          "current": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48",
+          "analyzed026": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48",
+          "published166": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48"
+        },
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true
+      },
+      {
+        "path": "tools/openqodex-health-gate.mjs",
+        "sha256": {
+          "current": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5",
+          "analyzed026": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5",
+          "published166": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5"
+        },
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true
+      },
+      {
+        "path": "tools/openqodex-health-gate.test.mjs",
+        "sha256": {
+          "current": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71",
+          "analyzed026": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71",
+          "published166": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71"
+        },
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true
+      },
+      {
+        "path": "website/license-portal/package.json",
+        "sha256": {
+          "current": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18",
+          "analyzed026": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18",
+          "published166": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18"
+        },
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true
+      },
+      {
+        "path": "website/license-portal/package-lock.json",
+        "sha256": {
+          "current": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485",
+          "analyzed026": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485",
+          "published166": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485"
+        },
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true
+      }
+    ],
+    "readerDiffVs026": "diff --git a/src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java b/src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java\nindex ffb683b..e90b2e4 100644\n--- a/src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java\n+++ b/src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java\n@@ -67,7 +67,7 @@ public final class CryptoProSignedCertificateReader {\n      * CZ/Catalog authenticates the CMS signature and certificate on receipt.\n      */\n     @SuppressWarnings(\"codeql[java/potentially-weak-cryptographic-algorithm] Windows certificate-store identifier; never a signing algorithm\")\n-    private static String windowsCertificateThumbprint(Certificate certificate) throws Exception {\n+    static String windowsCertificateThumbprint(Certificate certificate) throws Exception {\n         return HexFormat.of().formatHex(MessageDigest.getInstance(\"SHA-1\").digest(certificate.getEncoded(\"DER\")));\n     }\n \n",
+    "sha1CallsInCurrentMain": [
+      "e77437c5ddbd168c7cfecfcf12d202f019751d87:src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java:71:        return HexFormat.of().formatHex(MessageDigest.getInstance(\"SHA-1\").digest(certificate.getEncoded(\"DER\")));"
+    ],
+    "javascriptInputs": {
+      "currentCount": 114,
+      "prior026Count": 114,
+      "published166Count": 112,
+      "sameAs026": true,
+      "sameAs166": false,
+      "currentCanonicalInventorySha256": "9f04476919222a21d1b3b4b89464906a4da537bdfe996a0bc11125beb0489269"
+    },
+    "portalTreeComparisons": {
+      "current": "7db06f8d488a8fa9412d8febc818831f2b940383",
+      "analyzed026": "7db06f8d488a8fa9412d8febc818831f2b940383",
+      "published166": "7db06f8d488a8fa9412d8febc818831f2b940383"
+    },
+    "mavenPomDiffVs166": "diff --git a/pom.xml b/pom.xml\nindex 7031fd8..935acfe 100644\n--- a/pom.xml\n+++ b/pom.xml\n@@ -6,7 +6,7 @@\n \n     <groupId>com.vncode</groupId>\n     <artifactId>VNcode</artifactId>\n-    <version>1.6.6</version>\n+    <version>1.6.7</version>\n     <name>VN code</name>\n \n     <properties>\n@@ -14,7 +14,7 @@\n         <junit.version>5.12.1</junit.version>\n         <slf4j.version>1.7.36</slf4j.version>\n         <log4j.version>2.24.3</log4j.version>\n-        <app.version>1.6.6</app.version>\n+        <app.version>1.6.7</app.version>\n         <app.vendor>VN code</app.vendor>\n         <app.update.public-key></app.update.public-key>\n         <app.update.publisher></app.update.publisher>\n",
+    "limitations": [
+      "Git provenance comparison is not a fresh scanner execution.",
+      "Only source/public fixture and CI data inspected; no license activation or seller API mutation."
+    ]
+  },
+  "currentMainByteIdenticalTo026": false,
+  "allFindingFilesByteIdenticalToPublished166": false,
+  "readerVisibilityOnlyChange": true,
+  "sha1FindingDisposition": "The existing severity7.5 result is the same single Windows/CryptoPro certificate-store SHA-1 thumbprint identifier at reader line71. The helper visibility changed only from private to package-private and new discovery reuses it to bind public DER to the exact store thumbprint. No new SHA-1 call was introduced. This is not the CMS signing algorithm, password hashing or updater integrity algorithm. The Java security gate remains FAILED; no query, threshold, suppression or gate was changed for this release.",
+  "manualChangedCertificateSourceReview": {
+    "changedMainFiles": 5,
+    "confirmedNewSecurityDefects": [],
+    "facts": [
+      "Public-certificate enumeration uses fixed COM providers/read-only stores and fixed encoded script; exports public DER only, never private keys or import/install actions.",
+      "DER identity is checked against normalized exact40hex thumbprint using the existing identifier helper; discovery marks private-key proof false.",
+      "Shared routing reads current-user My first, requires exact public-certificate proof before choosing CAdES, and does not switch providers after routed signing failure.",
+      "All production routing probes/signing subprocess hosts receive the original execution-deadline runner; queue waiting and existing process cleanup are outside this budget.",
+      "UI discovery tasks guard both generation and task identity; refresh changes in-memory controls only, not persisted signer or catalog/KIZ ownership."
+    ],
+    "independentSourceReviewPerformed": true,
+    "actualCryptoProOrSellerAcceptanceClaimed": false
+  },
+  "unchangedGateAndDependencyScope": {
+    "securityWorkflowSame026And166": true,
+    "codeqlGateSame026And166": true,
+    "mavenDeclaredCoordinatesUnchanged": true,
+    "pomSame026": true,
+    "fullPortalTreeSame026And166": true,
+    "portalPackageAndLockfileSame026And166": true,
+    "all114JsInputsSame026": true,
+    "allJsInputsSame166": false,
+    "javaTransitiveVulnerabilityAuditPerformed": false
+  },
+  "limitations": [
+    "This is a fresh CodeQL/source review on the pinned source, not an all-security-green result.",
+    "OpenQodex scanner job and Dependency Review job were skipped by workflow_dispatch design; no fresh OpenQodex/Gitleaks or dependency-review result is claimed.",
+    "No local Maven/scanner build, seller API mutation, real CryptoPro/token operation, license activation, Gmail, portal deployment or publication was performed for this review.",
+    "Functional Windows installer/upgrade acceptance belongs to the separate Windows run42605121356 and is not inferred from security CI.",
+    "Read invocation warning/error notifications above for CodeQL extraction coverage; executionSuccessful alone does not prove every source file extracted without errors."
+  ],
+  "oldProvenanceSupersededForCurrentMain": "Prior security-provenance-0f5f321.json remains accurate history for0f5. Its claim that main source equals026 does not apply to e774; this review instead uses actual fresh analysis and records all five certificate runtime changes.",
+  "extractionCoverage": {
+    "current": {
+      "warningOrErrorNotifications": [
+        {
+          "id": "java/diagnostics/extraction-errors",
+          "level": "error",
+          "message": "Extraction incomplete in file: src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+        }
+      ],
+      "successfullyExtractedFileNotices": 757,
+      "certificateExtractedFileNotices": [
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java",
+        "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java"
+      ]
+    },
+    "prior026": {
+      "warningOrErrorNotifications": [
+        {
+          "id": "java/diagnostics/extraction-errors",
+          "level": "error",
+          "message": "Extraction incomplete in file: src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+        }
+      ],
+      "successfullyExtractedFileNotices": 756,
+      "certificateExtractedFileNotices": [
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java"
+      ]
+    },
+    "published166": {
+      "warningOrErrorNotifications": [
+        {
+          "id": "java/diagnostics/extraction-errors",
+          "level": "error",
+          "message": "Extraction incomplete in file: src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+        }
+      ],
+      "successfullyExtractedFileNotices": 745,
+      "certificateExtractedFileNotices": [
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+        "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java"
+      ]
+    },
+    "currentWarningsSame026": true,
+    "currentWarningsSame166": true
+  },
+  "existingExtractionWarningUnchangedFrom026And166": true,
+  "allFiveChangedCertificateFilesHaveSuccessfulExtractionNotices": true,
+  "currentGateEvaluationUsingUnchangedRepositoryTool": {
+    "java-kotlin": {
+      "total": 8,
+      "blocked": 1
+    },
+    "javascript-typescript": {
+      "total": 0,
+      "blocked": 0
+    }
+  }
+}

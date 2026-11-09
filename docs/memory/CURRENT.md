@@ -1,6 +1,29 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **09.11.2026, 11:55 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **09.11.2026, 14:01 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## 1.6.7 — nguồn e774: Windows preflight lỗi assertion stderr PowerShell, đang chẩn đoán
+
+- **42605121356 đã FAILED sớm**: 220 ca,219 đạt/1failure/0error/0skip. [Receipt](../validation/2026-11-09-vncode-167-certificate-first-windows-failure.json). Chưa chạy full, chưa bộ cài; không dùng run này để publish. Script PowerShell thật đã exit0/trả đúng hai chứng thư tổng hợp và DER/thumbprint; 38routing+6UI đều đạt. Assertion cuối đòi stderr0 nhưng thực392byte; nội dung chưa được capture. Giả thuyết module-preparation Progress/CLIXML chưa được chứng minh.
+- Đang dựng diagnostic chỉ đọc, exactappsourcee774, chỉ mở rộng message của assertion để ghi stderrBase64 từ fixture tổng hợp; không hạ assertion hoặc chạy CryptoPro seller. Chưa sửa production/fixture trước khi biết nội dung. Sau sửa có căn cứ cần SHA mới/fresh Windows full; publisher/helper e774 vẫn chặn failedrun, draft0asset, **chưaPublish**.
+- Security mới42605173295/e774: Java phân tích được, gate vẫnFAIL đúng8 finding cũ/0new; JS0 vàlint/auditPASS, dispatch-onlyOpenQodex/DependencyReviewSKIPPED. Reviewer đang lưu receipt; không all-security-green. Những mục “đang chạy” ngay dưới giữ mốc trước khi có kết quả này.
+
+## VN Code 1.6.7 — nguồn e77437c đã sửa chứng thư, Windows mới42605121356 đang chạy
+
+- Người dùng yêu cầu sửa thêm chứng thư mới không có trong danh sách VN Code (CryptoPro/WBCode trên cùng máy thấy). Đã sửa theo Code Doctor/review chéo và gộp vào **appsource `e77437c5ddbd168c7cfecfcf12d202f019751d87`**, nhánh `release/vn-code-1.6.7`, đã push. Nhánh publication đã merge appsource; publisher/helper/draft cần cùng source/run mới. **Chưa Publish, Latest vẫn1.6.6** tại lần đọc thật gần nhất; draft438471378 giữ0asset.
+- [Bàn giao chứng thư](../validation/2026-11-09-cryptopro-certificate-discovery-handoff.md), [manifest/192ca](../validation/2026-11-09-cryptopro-certificate-discovery.json): discovery uMy + CAdES2/100/CAPICOM2 ở64/32bit, đối chiếu thumbprint/DER, giữ alias và các mục tốt khi một mục hỏng. Mở Edit đọc mới; Cancel/Save/shop/refresh ngắt riêng readonlyTask và generation/identity chặn callback cũ. Không tự chọn chứng thư gia hạn hoặc kế thừa verified. Provider dùng chung quyết định CAdES trước khi ký nếu có đúng chứng thư; không retry sau lỗi ký. Bounded runner giữ ngân sách giữa host; không gồm chờ khóa hàng đợi hoặc cleanup500ms.
+- RED với nguyên discovery service0f5 đã thất bại đúng việc bỏ sót token mới. Initial125 có1 lỗi fixture `parkNanos` trả sớm; giữ bằng chứng, sửa monotonic elapsed, không hạ assertion. Nguồn cuối **192/14 ca Linux/Xvfb đạt,0skip**, clean package đạt; **1.986 production class** khớp, JAR SHA`a7c341edaad942fa38d7b7136f8da12941e8991c365118828899c64eb38d9bbd`. Hai PowerShell cases trên Linux chỉ kiểm cấu trúc; Windows phải thực thi parser/mockCOM thật. Không có seller CryptoPro/token để nghiệm thu thiết bị thật.
+- **Fresh Windows42605121356**, job129119027761, sourcee774, workflow392732536; started10:57:44UTC. Giữ full unfiltered clean verify/native/migration/DPAPI/cài-gỡ/coexistence/passive upgrade166/16assets, preflight bổ sung mọi certificatecase. Security mới **42605173295/sourcee774** đang chạy; chưa được dùng scan026 thay mã mới. No sellerwrite/mua/kýthật/licenseactivation/Gmail/Portal deploy.
+- [Inclusion](../validation/2026-11-08-vncode-167-source-inclusion.json): **2.992 sourcefiles,114runtime=89Java+25resource+POM**; original109runtime giữ nguyên byte, thêm đúng5file chứng thư. Giữ đủ bốn commit nghiệp vụ trước và1.6.6. POM1.6.7/schema/dependency/UpgradeCode giữ nguyên. **0f5/run425872 đã đạt** là baseline lưu nguyên, không nghiệm thu mã chứng thư mới; các lỗi cũ vẫn giữ.
+- Tiếp tục từ `/workspace/vncode-167-release/STATE.json`, pins`certificate-pins.json`, helpermới`verify_package-certificate.py`/artifactdir`windows-artifact-certificate`. Đợi freshWindows/package/review PASS mới gọi stable `owner-requested-167` sourcee774/build42605121356; kiểm16publicbytes, old16release258asset45tags và updaterimmutable166→167 rồi cập nhật memory/bàn giao và commit/push. Các pin0f5 bên dưới là lịch sử đã bị thay bởi yêu cầu chứng thư mới.
+
+## VN Code 1.6.7 — bổ sung sửa nhận diện chứng thư mới trước khi phát hành
+
+- Người dùng xác nhận chứng thư mới có trong CryptoPro/WBCode trên cùng máy nhưng **không có trong danh sách VN Code**. Giữ draft 438471378; chưa công bố. Tiếp tục sửa discovery trước khi phát hành theo yêu cầu đã có.
+- Baseline app `0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96` đã **SUCCESS Windows 42587222212**: 4.122 ca/544 lớp, 4.120 đạt, 0 failure/error, 2 OS skip. Đủ 16 asset, native/migration/DPAPI/cài-gỡ/coexistence/passive upgrade từ1.6.6; helper và review độc lập đạt. Đây là bằng chứng **trước sửa chứng thư**, không nghiệm thu mã thay đổi tiếp theo. Lưu nguyên bộ baseline ngoài Git trong `/workspace/vncode-167-release/windows-artifact-baseline-0f5`.
+- Audit chỉ ra discovery chỉ đọc `certmgr -list -store uMy`, trong khi ký CAdES đã tìm cả container location100. Đây là thiếu sót mã xác nhận được; chưa chứng minh vị trí thực của chứng thư seller. Không có cache chứng thư dài hạn; dropdown vốn đọc lại mỗi lần mở.
+- Đang bổ sung đọc chứng thư chỉ đọc từ các kho CAdES cùng phạm vi ký, làm mới khi mở Chỉnh sửa và giữ lựa chọn theo thumbprint chuẩn hóa. Không import/export khóa, tự chọn chứng thư mới, nới owner/private-key/license hoặc sửa chính sách đổi người ký/dữ liệu. Phải chạy regression và fresh Windows/package trên SHA mới trước Publish.
+- State tiếp tục: `/workspace/vncode-167-release/STATE.json`. Independent baseline review: `artifact-suite-independent-review.json`, SHA `0e06b624fb405684bdaa45b8ddc767d435c419368bdf01a8e69a3036628d0374`. Latest vẫn1.6.6 tại lần đọc trước; chưa có seller CryptoPro để nghiệm thu chứng thư thật. Mục “chờ full” bên dưới là lịch sử đã hoàn tất.
 
 ## VN Code 1.6.7 — xác nhận Windows ngắn đã đạt, chờ full 42587222212
 

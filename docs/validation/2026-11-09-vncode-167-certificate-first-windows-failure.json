@@ -1,0 +1,109 @@
+{
+  "kind": "CERTIFICATE_WINDOWS_PREFLIGHT_FAILURE",
+  "recordedAtUtc": "2026-11-09T11:06:15.020112+00:00",
+  "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+  "runId": 42605121356,
+  "jobId": 129119027761,
+  "workflowId": 392732536,
+  "conclusion": "failure",
+  "phase": "early Windows preflight",
+  "totals": {
+    "tests": 220,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0
+  },
+  "passed": 219,
+  "suites": [
+    {
+      "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+      "tests": 12,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e0e9fd744fa1808892081e79183c6a0e8f17753d75a12e6809a79231082d1cd6"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+      "tests": 38,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "22d54b9324dc92801ce0c644254f49b14fbef84215e95c40287135a2b33bd9bc"
+    },
+    {
+      "suite": "com.vncode.app.integration.ozon.OzonLabelServiceTest",
+      "tests": 52,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "b3e1732d4f4ca7f4b89abb41046a9d05d194a2713701de81a1d51884c8f872ca"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f5f778e1cca2c6fdc6c660e73cbeac4a5753831cee81920c1ad154e609899606"
+    },
+    {
+      "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "aa3c0ad570d664ba950d77d2503a88d860d24f51a9525aff2a47ea46c47b99cb"
+    },
+    {
+      "suite": "com.vncode.app.shared.MavenWrapperIntegrityTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f357987ebe0f16bb16c12a174c8e9f70fa938d624b73464fa7266ecf999cff63"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "acb0bafb5f907eca2f99d3b0704791ba6d9ba6329083c4ecd659d025517f2799"
+    },
+    {
+      "suite": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "276ae8002ec763281b5702d1da42daf2f64c53350a4628d6abfa81c98f318849"
+    },
+    {
+      "suite": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "d67186fd5db22397af6bc296c5a299d3740202b44f56f7169a88c74c3de6c7d0"
+    }
+  ],
+  "failingCases": [
+    {
+      "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+      "case": "actualWindowsScriptContinuesPastOneUnreadablePublicCertificateUsingSyntheticComObjects",
+      "type": "org.opentest4j.AssertionFailedError",
+      "message": "Read-only fixture must not log certificate identities or export errors. ==> expected: <0> but was: <392>"
+    }
+  ],
+  "unfilteredFullSuiteRun": false,
+  "installerBuilt": false,
+  "actualPowerShellScriptProducedCorrectBothSyntheticCertificates": true,
+  "routing38AndUi6Passed": true,
+  "stderrBytes": 392,
+  "stderrContentCapturedByThisRun": false,
+  "stderrContentDiagnosis": "Unknown; separate controlled Windows diagnostic required. Module preparation Progress CLIXML is a hypothesis only.",
+  "resultReuseAllowedForFinalSource": false,
+  "licenseActivation": false,
+  "liveCertificateOrSigningVerified": false
+}

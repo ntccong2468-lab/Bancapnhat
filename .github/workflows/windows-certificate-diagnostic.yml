@@ -1,0 +1,124 @@
+name: Diagnose Windows synthetic certificate discovery stderr
+on:
+  push:
+    branches: [release/vn-code-1.6.7-publication]
+    paths: [.github/workflows/windows-certificate-diagnostic.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  certificate-stderr:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    env:
+      EXPECTED_SOURCE: e77437c5ddbd168c7cfecfcf12d202f019751d87
+    steps:
+      - name: Configure isolated diagnostic workspace
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          "LOCALAPPDATA=$env:RUNNER_TEMP\vncode-certificate-diagnostic-${{ github.run_id }}" >> $env:GITHUB_ENV
+          $root=Join-Path $env:RUNNER_TEMP "certificate-diagnostic-${{ github.run_id }}"
+          New-Item -ItemType Directory -Force $root | Out-Null
+          "DIAGNOSTIC_ROOT=$root" >> $env:GITHUB_ENV
+          @{sourceCommit=$env:EXPECTED_SOURCE;workflowEventCommit=$env:GITHUB_SHA;runId=$env:GITHUB_RUN_ID;diagnosticOnly=$true;releaseGate=$false;phase='planned-synthetic-stderr-capture'} | ConvertTo-Json | Set-Content "$root/diagnostic-plan.json" -Encoding utf8NoBOM
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: e77437c5ddbd168c7cfecfcf12d202f019751d87
+          persist-credentials: false
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: '25'
+          distribution: oracle
+          cache: maven
+      - name: Pin source and append synthetic stderr to only the failing assertion message
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          if((git rev-parse HEAD).Trim() -cne $env:EXPECTED_SOURCE){throw 'Wrong diagnostic application source.'}
+          if(@(git status --porcelain).Count -ne 0){throw 'Diagnostic source must start clean.'}
+          $test='src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java'
+          $before='        assertEquals(0, result.stderr().length, "Read-only fixture must not log certificate identities or export errors.");'
+          $after='        assertEquals(0, result.stderr().length, "Read-only fixture must not log certificate identities or export errors. stderrBase64=" + Base64.getEncoder().encodeToString(result.stderr()));'
+          $text=[IO.File]::ReadAllText((Join-Path $PWD $test))
+          if([regex]::Matches($text,[regex]::Escape($before)).Count -ne 1){throw 'Expected exactly one original assertion.'}
+          $originalHash=(Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant()
+          [IO.File]::WriteAllText((Join-Path $PWD $test),$text.Replace($before,$after),[Text.UTF8Encoding]::new($false))
+          $changed=@(git diff --name-only)
+          if($changed.Count -ne 1 -or $changed[0] -cne $test){throw 'Only the synthetic test assertion message may change.'}
+          if((git diff --numstat -- $test) -cne "1`t1`t$test"){throw 'Diagnostic patch must replace exactly one line.'}
+          git diff -- $test | Set-Content "$env:DIAGNOSTIC_ROOT/assertion-message-only.patch" -Encoding utf8NoBOM
+          Copy-Item $test "$env:DIAGNOSTIC_ROOT/diagnostic-CryptoProCertificateDiscoveryServiceTest.java"
+          @{
+            sourceCommit=$env:EXPECTED_SOURCE
+            workflowEventCommit=$env:GITHUB_SHA
+            workflowDefinitionCommit=$env:GITHUB_WORKFLOW_SHA
+            workflowRef=$env:GITHUB_WORKFLOW_REF
+            runId=$env:GITHUB_RUN_ID
+            diagnosticOnly=$true
+            releaseGate=$false
+            runtimeSourceChanged=$false
+            changedFile=$test
+            changedAssertion='Message only; expected zero stderr bytes and all other assertions retained.'
+            originalTestSha256=$originalHash
+            diagnosticTestSha256=(Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant()
+            inputScope='Synthetic New-Object function and synthetic public certificate DER only; no real CryptoPro/token store, signing, seller API, license, installer or publication.'
+          } | ConvertTo-Json | Set-Content "$env:DIAGNOSTIC_ROOT/source-and-patch.json" -Encoding utf8NoBOM
+      - name: Capture the exact expected Windows red result
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $PSNativeCommandUseErrorActionPreference=$false
+          $method='actualWindowsScriptContinuesPastOneUnreadablePublicCertificateUsingSyntheticComObjects'
+          .\mvnw.cmd -B "-Dtest=CryptoProCertificateDiscoveryServiceTest#$method" test 2>&1 | Tee-Object "$env:DIAGNOSTIC_ROOT/maven.log" | Out-Host
+          $code=$LASTEXITCODE
+          @{exitCode=$code;sourceCommit=$env:EXPECTED_SOURCE;diagnosticOnly=$true;releaseGate=$false} | ConvertTo-Json | Set-Content "$env:DIAGNOSTIC_ROOT/maven-exit.json" -Encoding utf8NoBOM
+          if(Test-Path target/surefire-reports){Copy-Item target/surefire-reports "$env:DIAGNOSTIC_ROOT/surefire-reports" -Recurse}
+          $changed=@(git diff --name-only)
+          $test='src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java'
+          if($changed.Count -ne 1 -or $changed[0] -cne $test){throw 'Application source changed during the diagnostic.'}
+          $patch=Get-Content "$env:DIAGNOSTIC_ROOT/source-and-patch.json" -Raw | ConvertFrom-Json
+          if((Get-FileHash $test -Algorithm SHA256).Hash.ToLowerInvariant() -cne $patch.diagnosticTestSha256){throw 'The assertion-only diagnostic patch changed during execution.'}
+          [xml]$report=[IO.File]::ReadAllText((Join-Path $PWD 'target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest.xml'))
+          $suite=$report.testsuite
+          $cases=@($suite.testcase)
+          $message=if($cases.Count -eq 1){[string]$cases[0].failure.message}else{''}
+          $match=[regex]::Match($message,'stderrBase64=([A-Za-z0-9+/]+={0,2})')
+          $expectedRed=$code -ne 0 -and [int]$suite.tests -eq 1 -and [int]$suite.failures -eq 1 -and [int]$suite.errors -eq 0 -and [int]$suite.skipped -eq 0 -and $cases.Count -eq 1 -and $cases[0].name -ceq $method -and $message.Contains('Read-only fixture must not log certificate identities or export errors.') -and $match.Success
+          $stderrLength=$null
+          if($match.Success){
+            $encoded=$match.Groups[1].Value
+            $bytes=[Convert]::FromBase64String($encoded)
+            $stderrLength=$bytes.Length
+            [IO.File]::WriteAllBytes("$env:DIAGNOSTIC_ROOT/synthetic-powershell-stderr.bin",$bytes)
+            [IO.File]::WriteAllText("$env:DIAGNOSTIC_ROOT/synthetic-powershell-stderr.base64.txt",$encoded,[Text.UTF8Encoding]::new($false))
+          }
+          @{
+            sourceCommit=$env:EXPECTED_SOURCE
+            workflowEventCommit=$env:GITHUB_SHA
+            workflowDefinitionCommit=$env:GITHUB_WORKFLOW_SHA
+            runId=$env:GITHUB_RUN_ID
+            platform='windows-2022'
+            selectedMethod=$method
+            tests=[int]$suite.tests
+            failures=[int]$suite.failures
+            errors=[int]$suite.errors
+            skipped=[int]$suite.skipped
+            mavenExitCode=$code
+            capturedStderrBytes=$stderrLength
+            expectedRedCaptured=$expectedRed
+            diagnosticOnly=$true
+            releaseGate=$false
+            runtimeSourceChanged=$false
+            assertionUnchanged='Expected zero stderr bytes; only failure message includes controlled synthetic stderr.'
+          } | ConvertTo-Json | Set-Content "$env:DIAGNOSTIC_ROOT/diagnostic-result.json" -Encoding utf8NoBOM
+          if(-not $expectedRed){throw 'The exact expected single-failure red diagnostic was not reproduced; inspect preserved evidence.'}
+          Write-Host 'Expected red diagnostic captured. This is not passing application or release verification.'
+      - name: Preserve diagnostic evidence only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: windows-certificate-diagnostic-${{ github.run_id }}
+          path: ${{ env.DIAGNOSTIC_ROOT }}
+          if-no-files-found: error
+          retention-days: 30
