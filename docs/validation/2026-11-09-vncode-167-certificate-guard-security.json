@@ -1,0 +1,1242 @@
+{
+  "schemaVersion": 1,
+  "version": "1.6.7",
+  "reviewedAt": "2026-11-09T11:52:48.887139+00:00",
+  "applicationSourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "freshSecurityRun": {
+    "conclusion": "failure",
+    "createdAt": "2026-11-09T11:43:37Z",
+    "databaseId": 42611297755,
+    "headBranch": "release/vn-code-1.6.7",
+    "headSha": "d0231cd6913ce3a1764067bad0901b32c535de41",
+    "jobs": [
+      {
+        "completedAt": "2026-11-09T11:46:02Z",
+        "conclusion": "success",
+        "databaseId": 129140109981,
+        "name": "codeql (javascript-typescript, none)",
+        "startedAt": "2026-11-09T11:43:41Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "skipped",
+            "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Initialize CodeQL",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "skipped",
+            "name": "Compile Java for analysis",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Analyze without write permissions",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Gate on high, critical or unclassified security findings",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Preserve CodeQL findings for review",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Analyze without write permissions",
+            "number": 14,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Initialize CodeQL",
+            "number": 15,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 16,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42611297755/job/129140109981"
+      },
+      {
+        "completedAt": "2026-11-09T11:48:25Z",
+        "conclusion": "failure",
+        "databaseId": 129140110239,
+        "name": "codeql (java-kotlin, manual)",
+        "startedAt": "2026-11-09T11:43:41Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Initialize CodeQL",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Compile Java for analysis",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Analyze without write permissions",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "failure",
+            "name": "Gate on high, critical or unclassified security findings",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Preserve CodeQL findings for review",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Analyze without write permissions",
+            "number": 13,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Initialize CodeQL",
+            "number": 14,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+            "number": 15,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 16,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 17,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42611297755/job/129140110239"
+      },
+      {
+        "completedAt": "2026-11-09T11:43:59Z",
+        "conclusion": "success",
+        "databaseId": 129140110340,
+        "name": "lint-and-audit",
+        "startedAt": "2026-11-09T11:43:41Z",
+        "status": "completed",
+        "steps": [
+          {
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 2,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 3,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Check workflow syntax and expressions",
+            "number": 4,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Check portal JavaScript syntax",
+            "number": 5,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Install portal dependencies without lifecycle scripts",
+            "number": 6,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Test portal",
+            "number": 7,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Test release and security tools",
+            "number": 8,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Audit the portal lockfile, including development dependencies",
+            "number": 9,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+            "number": 17,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+            "number": 18,
+            "status": "completed"
+          },
+          {
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 19,
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42611297755/job/129140110340"
+      },
+      {
+        "completedAt": "2026-11-09T11:43:39Z",
+        "conclusion": "skipped",
+        "databaseId": 129140112053,
+        "name": "openqodex-scan",
+        "startedAt": "2026-11-09T11:43:39Z",
+        "status": "completed",
+        "steps": [],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42611297755/job/129140112053"
+      },
+      {
+        "completedAt": "2026-11-09T11:43:39Z",
+        "conclusion": "skipped",
+        "databaseId": 129140112304,
+        "name": "changed-dependencies",
+        "startedAt": "2026-11-09T11:43:39Z",
+        "status": "completed",
+        "steps": [],
+        "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42611297755/job/129140112304"
+      }
+    ],
+    "status": "completed",
+    "updatedAt": "2026-11-09T11:48:26Z",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42611297755",
+    "workflowDatabaseId": 403818652
+  },
+  "freshCodeqlOnThisSource": true,
+  "artifactMetadata": {
+    "total_count": 2,
+    "artifacts": [
+      {
+        "id": 13670289023,
+        "name": "codeql-java-kotlin",
+        "size_in_bytes": 169171,
+        "expired": false,
+        "digest": "sha256:d9087b212b521d2cbbfe464b2a6cdb9b6823bbab950c8d44b1246149b2db8f7d",
+        "created_at": "2026-11-09T11:48:06Z",
+        "updated_at": "2026-11-09T11:48:06Z"
+      },
+      {
+        "id": 13669833854,
+        "name": "codeql-javascript-typescript",
+        "size_in_bytes": 129935,
+        "expired": false,
+        "digest": "sha256:11c5b59c17f34b798c830ffe7f2a038aaf4899fa2ff3051ae79a87d037014b92",
+        "created_at": "2026-11-09T11:45:44Z",
+        "updated_at": "2026-11-09T11:45:44Z"
+      }
+    ]
+  },
+  "reports": {
+    "java-kotlin": {
+      "path": "/workspace/vncode-167-release/security-review-certificate-guard/codeql-java-kotlin/java.sarif",
+      "sha256": "74b480917ad8634e9f19225b89a134b9941522d03b71c189fef8387b99d2d541",
+      "bytes": 1883921,
+      "findings": [
+        {
+          "rule": "java/relative-path-command",
+          "securitySeverity": 5.4,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/integration/update/UpdateInstallerService.java",
+              "region": {
+                "startLine": 127,
+                "startColumn": 17,
+                "endColumn": 33
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "5e47ddf8e7576114:1",
+            "primaryLocationStartColumnFingerprint": "0"
+          },
+          "message": "Command with a relative path 'powershell.exe' is executed.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/unreleased-lock",
+          "securitySeverity": 5.0,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java",
+              "region": {
+                "startLine": 20,
+                "startColumn": 13,
+                "endColumn": 37
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "1c959fa0c2feeceb:1",
+            "primaryLocationStartColumnFingerprint": "0"
+          },
+          "message": "This lock might not be unlocked or might be locked more times than it is unlocked.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/unreleased-lock",
+          "securitySeverity": 5.0,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java",
+              "region": {
+                "startLine": 21,
+                "startColumn": 35,
+                "endColumn": 66
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "ec953ab4f695477c:1",
+            "primaryLocationStartColumnFingerprint": "22"
+          },
+          "message": "This lock might not be unlocked or might be locked more times than it is unlocked.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/potentially-weak-cryptographic-algorithm",
+          "securitySeverity": 7.5,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+              "region": {
+                "startLine": 71,
+                "startColumn": 41,
+                "endColumn": 75
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "f18fb515f996423:1",
+            "primaryLocationStartColumnFingerprint": "32"
+          },
+          "message": "Cryptographic algorithm [SHA-1](1) may not be secure. Consider using a different algorithm.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/relative-path-command",
+          "securitySeverity": 5.4,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/shared/WindowsSecretProtector.java",
+              "region": {
+                "startLine": 64,
+                "startColumn": 40,
+                "endColumn": 56
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "176942700d2b673a:1",
+            "primaryLocationStartColumnFingerprint": "27"
+          },
+          "message": "Command with a relative path 'powershell.exe' is executed.",
+          "codeFlowCount": 0
+        },
+        {
+          "rule": "java/local-temp-file-or-directory-information-disclosure",
+          "securitySeverity": 6.5,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/features/listingcopy/ListingMediaReader.java",
+              "region": {
+                "startLine": 18,
+                "startColumn": 58,
+                "endColumn": 94
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "8a9a5ebcaef6d9ee:1",
+            "primaryLocationStartColumnFingerprint": "53"
+          },
+          "message": "Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users.",
+          "codeFlowCount": 1
+        },
+        {
+          "rule": "java/local-temp-file-or-directory-information-disclosure",
+          "securitySeverity": 6.5,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/shared/AppPaths.java",
+              "region": {
+                "startLine": 93,
+                "startColumn": 26,
+                "endColumn": 67
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "93d7d4ca12ac6368:1",
+            "primaryLocationStartColumnFingerprint": "17"
+          },
+          "message": "Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users.",
+          "codeFlowCount": 2
+        },
+        {
+          "rule": "java/local-temp-file-or-directory-information-disclosure",
+          "securitySeverity": 6.5,
+          "locations": [
+            {
+              "file": "src/main/java/com/vncode/app/shared/AppPaths.java",
+              "region": {
+                "startLine": 197,
+                "startColumn": 41,
+                "endColumn": 82
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "52cbdf8e49ecd7a1:1",
+            "primaryLocationStartColumnFingerprint": "16"
+          },
+          "message": "Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users. Local information disclosure vulnerability from [system temp directory](1) due to use of file or directory readable by other local users.",
+          "codeFlowCount": 4
+        }
+      ],
+      "findingCount": 8,
+      "blockedCount": 1,
+      "runs": [
+        {
+          "tool": "CodeQL",
+          "semanticVersion": "2.27.3",
+          "queryPacks": [
+            {
+              "name": "codeql/java-queries",
+              "semanticVersion": "1.11.13+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            },
+            {
+              "name": "codeql/java-all",
+              "semanticVersion": "9.3.3+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            },
+            {
+              "name": "codeql/threat-models",
+              "semanticVersion": "1.1.0+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            }
+          ],
+          "executionSuccessful": [
+            true
+          ],
+          "warningOrErrorNotifications": [
+            {
+              "level": "error",
+              "id": "java/diagnostics/extraction-errors",
+              "message": "Extraction incomplete in file: src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+            }
+          ]
+        }
+      ]
+    },
+    "javascript-typescript": {
+      "path": "/workspace/vncode-167-release/security-review-certificate-guard/codeql-javascript-typescript/javascript.sarif",
+      "sha256": "97ca55635e91f2420d24bb3e3ac4df33ae7a53e66a5bdf5431b70f6206a5c03c",
+      "bytes": 1321609,
+      "findings": [],
+      "findingCount": 0,
+      "blockedCount": 0,
+      "runs": [
+        {
+          "tool": "CodeQL",
+          "semanticVersion": "2.27.3",
+          "queryPacks": [
+            {
+              "name": "codeql/javascript-queries",
+              "semanticVersion": "2.4.8+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            },
+            {
+              "name": "codeql/javascript-all",
+              "semanticVersion": "2.10.4+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            },
+            {
+              "name": "codeql/threat-models",
+              "semanticVersion": "1.1.0+a1575b98a8cc19bcfa7bb6cb41be688cb3dae65c"
+            }
+          ],
+          "executionSuccessful": [
+            true
+          ],
+          "warningOrErrorNotifications": []
+        }
+      ]
+    }
+  },
+  "referenceReports": {
+    "e774": {
+      "java-kotlin": {
+        "path": "/workspace/vncode-167-release/security-review-certificate/codeql-java-kotlin/java.sarif",
+        "sha256": "9ba076ca9ad8888a781b7e54f2650360f78bff6e4eb677f43258f52fe39d09f3",
+        "bytes": 1883921,
+        "findingCount": 8,
+        "blockedCount": 1
+      },
+      "javascript-typescript": {
+        "path": "/workspace/vncode-167-release/security-review-certificate/codeql-javascript-typescript/javascript.sarif",
+        "sha256": "244a73612dcbe1436f7549e7d54f3a31c1814b39b00539cbac0696de0f0ac325",
+        "bytes": 1321609,
+        "findingCount": 0,
+        "blockedCount": 0
+      }
+    },
+    "026": {
+      "java-kotlin": {
+        "path": "/tmp/vncode-167-security-42515488357/codeql-java-kotlin/java.sarif",
+        "sha256": "796c436e25c66b2a51a222e4b006e86888ae4551b5100a5862ad50abaff07579",
+        "bytes": 1881087,
+        "findingCount": 8,
+        "blockedCount": 1
+      },
+      "javascript-typescript": {
+        "path": "/tmp/vncode-167-security-42515488357/codeql-javascript-typescript/javascript.sarif",
+        "sha256": "45d03349c5b6ba60c4bbabef4c8f0accb3f258c728d915c2ca6720be422dc36e",
+        "bytes": 1319163,
+        "findingCount": 0,
+        "blockedCount": 0
+      }
+    },
+    "166": {
+      "java-kotlin": {
+        "path": "/workspace/vncode-166-release-work/security-final/codeql-java-kotlin/java.sarif",
+        "sha256": "81da6ee2158af7d31857af3053c22f9e934c449862ed6c84f1467f297866c5cd",
+        "bytes": 1862518,
+        "findingCount": 8,
+        "blockedCount": 1
+      },
+      "javascript-typescript": {
+        "path": "/workspace/vncode-166-release-work/security-final/codeql-javascript-typescript/javascript.sarif",
+        "sha256": "7f14eb7d143710b74fd6b2bd3434dd8e54f289605d5e045e2a1ab69450bb1572",
+        "bytes": 1303888,
+        "findingCount": 0,
+        "blockedCount": 0
+      }
+    }
+  },
+  "normalizedComparisons": {
+    "e774": {
+      "java-kotlin": {
+        "new": [],
+        "resolved": [],
+        "fullNormalizedFindingsIdentical": true
+      },
+      "javascript-typescript": {
+        "new": [],
+        "resolved": [],
+        "fullNormalizedFindingsIdentical": true
+      }
+    },
+    "026": {
+      "java-kotlin": {
+        "new": [],
+        "resolved": [],
+        "fullNormalizedFindingsIdentical": true
+      },
+      "javascript-typescript": {
+        "new": [],
+        "resolved": [],
+        "fullNormalizedFindingsIdentical": true
+      }
+    },
+    "166": {
+      "java-kotlin": {
+        "new": [],
+        "resolved": [],
+        "fullNormalizedFindingsIdentical": true
+      },
+      "javascript-typescript": {
+        "new": [],
+        "resolved": [],
+        "fullNormalizedFindingsIdentical": true
+      }
+    }
+  },
+  "normalizationMethod": "Resolve driver/query-pack SARIF rule references; retain rule, numeric security severity, all primary physical locations, partial fingerprints, whitespace-normalized messages and code-flow counts. Compare stable finding identities and full normalized records; retain raw report SHA256 separately.",
+  "sameEightExistingJavaFindingsAndNoNewResults": true,
+  "newFindingReviewRequired": false,
+  "findingFileComparisons": [
+    {
+      "file": "src/main/java/com/vncode/app/features/listingcopy/ListingMediaReader.java",
+      "sha256": {
+        "current": "f95dcc068b75818cf7d9785a7fbbe8c11c13b75fd8539d49b933bd6a4329009e",
+        "e774": "f95dcc068b75818cf7d9785a7fbbe8c11c13b75fd8539d49b933bd6a4329009e",
+        "026": "f95dcc068b75818cf7d9785a7fbbe8c11c13b75fd8539d49b933bd6a4329009e",
+        "166": "f95dcc068b75818cf7d9785a7fbbe8c11c13b75fd8539d49b933bd6a4329009e"
+      },
+      "currentByteIdenticalToE774": true,
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/update/UpdateInstallerService.java",
+      "sha256": {
+        "current": "062fc0743e8eeb2f24887b8a13972145fca6e7c057c9571f2dac8f8a5827cf97",
+        "e774": "062fc0743e8eeb2f24887b8a13972145fca6e7c057c9571f2dac8f8a5827cf97",
+        "026": "062fc0743e8eeb2f24887b8a13972145fca6e7c057c9571f2dac8f8a5827cf97",
+        "166": "062fc0743e8eeb2f24887b8a13972145fca6e7c057c9571f2dac8f8a5827cf97"
+      },
+      "currentByteIdenticalToE774": true,
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java",
+      "sha256": {
+        "current": "09d0b2221434e3dafba25c3b0bbb239d8627725222c205815988091540dd50eb",
+        "e774": "09d0b2221434e3dafba25c3b0bbb239d8627725222c205815988091540dd50eb",
+        "026": "09d0b2221434e3dafba25c3b0bbb239d8627725222c205815988091540dd50eb",
+        "166": "09d0b2221434e3dafba25c3b0bbb239d8627725222c205815988091540dd50eb"
+      },
+      "currentByteIdenticalToE774": true,
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+      "sha256": {
+        "current": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+        "e774": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+        "026": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c",
+        "166": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c"
+      },
+      "currentByteIdenticalToE774": true,
+      "currentByteIdenticalTo026": false,
+      "currentByteIdenticalTo166": false
+    },
+    {
+      "file": "src/main/java/com/vncode/app/shared/AppPaths.java",
+      "sha256": {
+        "current": "33a693fcb5e6943fc488be5ff91ee10057e2125149790c85d041d45c1377986c",
+        "e774": "33a693fcb5e6943fc488be5ff91ee10057e2125149790c85d041d45c1377986c",
+        "026": "33a693fcb5e6943fc488be5ff91ee10057e2125149790c85d041d45c1377986c",
+        "166": "33a693fcb5e6943fc488be5ff91ee10057e2125149790c85d041d45c1377986c"
+      },
+      "currentByteIdenticalToE774": true,
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/shared/WindowsSecretProtector.java",
+      "sha256": {
+        "current": "192991d3acf5ce57bb5b12d223d9733a561907b4a043572e6f57ff8f44be8779",
+        "e774": "192991d3acf5ce57bb5b12d223d9733a561907b4a043572e6f57ff8f44be8779",
+        "026": "192991d3acf5ce57bb5b12d223d9733a561907b4a043572e6f57ff8f44be8779",
+        "166": "192991d3acf5ce57bb5b12d223d9733a561907b4a043572e6f57ff8f44be8779"
+      },
+      "currentByteIdenticalToE774": true,
+      "currentByteIdenticalTo026": true,
+      "currentByteIdenticalTo166": true
+    }
+  ],
+  "allFindingFilesByteIdenticalToE774": true,
+  "allFindingFilesByteIdenticalToPublished166": false,
+  "currentMainByteIdenticalToE774": false,
+  "currentMainByteIdenticalTo026": false,
+  "sourceReview": {
+    "reviewedAt": "2026-11-09T11:46:55.858123+00:00",
+    "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+    "references": {
+      "current": "d0231cd6913ce3a1764067bad0901b32c535de41",
+      "analyzedE774": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+      "prior2a5": "2a5c335c14874bdea18094825c48477b825ba858",
+      "analyzed026": "026f1a86ae5928769a9b36720c2da98cf8dd7efd",
+      "published166": "ac8ba1c939e22d0318877a3a2ba7242359cce78e"
+    },
+    "mainRuntimeByteIdenticalToE774": false,
+    "mainRuntimeByteIdenticalTo026": false,
+    "mainChangesByReference": {
+      "analyzedE774": [
+        "M\tsrc/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "M\tsrc/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_zh.properties"
+      ],
+      "prior2a5": [
+        "M\tsrc/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "M\tsrc/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_zh.properties"
+      ],
+      "analyzed026": [
+        "M\tsrc/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "A\tsrc/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java",
+        "M\tsrc/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_zh.properties"
+      ],
+      "published166": [
+        "A\tsrc/main/java/com/vncode/app/features/catalogsync/CatalogPermitEvidence.java",
+        "M\tsrc/main/java/com/vncode/app/features/catalogsync/CatalogProductData.java",
+        "M\tsrc/main/java/com/vncode/app/features/fbo/FboVerifiedGtinRepository.java",
+        "A\tsrc/main/java/com/vncode/app/features/gtinsync/GtinColorIdentity.java",
+        "M\tsrc/main/java/com/vncode/app/features/gtinsync/GtinMatchingService.java",
+        "M\tsrc/main/java/com/vncode/app/features/gtinsync/GtinSyncModels.java",
+        "M\tsrc/main/java/com/vncode/app/features/gtinsync/GtinSyncRepository.java",
+        "M\tsrc/main/java/com/vncode/app/features/gtinsync/OzonReviewedVariantProof.java",
+        "M\tsrc/main/java/com/vncode/app/features/gtinsync/RegisteredGtinProof.java",
+        "M\tsrc/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+        "M\tsrc/main/java/com/vncode/app/features/kiz/KizRegistrationIdentityRepository.java",
+        "M\tsrc/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java",
+        "M\tsrc/main/java/com/vncode/app/features/kizmapping/WbCatalogMappingService.java",
+        "M\tsrc/main/java/com/vncode/app/features/products/ConfiguredProductDeclaration.java",
+        "M\tsrc/main/java/com/vncode/app/features/products/ProductBulkEditService.java",
+        "M\tsrc/main/java/com/vncode/app/features/products/ProductRepository.java",
+        "M\tsrc/main/java/com/vncode/app/features/sync/RegistrationSources.java",
+        "M\tsrc/main/java/com/vncode/app/features/sync/SyncRunRepository.java",
+        "M\tsrc/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "M\tsrc/main/java/com/vncode/app/features/sync/ZnackCatalogSyncService.java",
+        "M\tsrc/main/java/com/vncode/app/features/sync/ZnackGtinReviewService.java",
+        "M\tsrc/main/java/com/vncode/app/integration/listing/ListingIdentity.java",
+        "M\tsrc/main/java/com/vncode/app/integration/wb/WbGtinProductReader.java",
+        "M\tsrc/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/CatalogConnectionService.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/CatalogCredentialRepository.java",
+        "A\tsrc/main/java/com/vncode/app/integration/znack/CatalogReadRevision.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/ZnackModels.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/ZnackPermitDocumentParser.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/CatalogProductDataParser.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/CatalogScanCheckpoint.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/CatalogVersionCheckpoint.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/NationalCatalogVersionSource.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepository.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/OzonExistingCardLinkService.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/RegistrationExistingCards.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/RegistrationPermitValidator.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+        "M\tsrc/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "A\tsrc/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java",
+        "M\tsrc/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+        "A\tsrc/main/java/com/vncode/app/shared/MotionBoundary.java",
+        "A\tsrc/main/java/com/vncode/app/shared/NavigationContext.java",
+        "A\tsrc/main/java/com/vncode/app/shared/PermitDocumentDate.java",
+        "A\tsrc/main/java/com/vncode/app/shared/PermitDocumentNumber.java",
+        "M\tsrc/main/java/com/vncode/app/shared/ThemeService.java",
+        "M\tsrc/main/java/com/vncode/app/shared/WorkspaceMotion.java",
+        "A\tsrc/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java",
+        "M\tsrc/main/java/com/vncode/app/ui/GlassSettingsDialog.java",
+        "M\tsrc/main/java/com/vncode/app/ui/catalogsync/CatalogSyncPane.java",
+        "A\tsrc/main/java/com/vncode/app/ui/controls/WorkspaceFilterTabs.java",
+        "M\tsrc/main/java/com/vncode/app/ui/dashboard/WelcomePane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/gs1/Gs1Dialogs.java",
+        "M\tsrc/main/java/com/vncode/app/ui/gs1/Gs1JoinDialog.java",
+        "M\tsrc/main/java/com/vncode/app/ui/gs1/Gs1Pane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/gs1/Gs1PrefixDocumentDialog.java",
+        "M\tsrc/main/java/com/vncode/app/ui/gs1/Gs1PrefixRequestDialog.java",
+        "M\tsrc/main/java/com/vncode/app/ui/gs1/Gs1SyncReportDialog.java",
+        "M\tsrc/main/java/com/vncode/app/ui/guides/GuidesPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/kiz/KizWarehousePane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/kiz/ShipmentKizPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+        "M\tsrc/main/java/com/vncode/app/ui/license/LicensePane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/listingcopy/ListingCopyPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/listingcopy/ListingCopyPreviewPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/news/NewsPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+        "M\tsrc/main/java/com/vncode/app/ui/packing/PackingController.java",
+        "M\tsrc/main/java/com/vncode/app/ui/products/ProductBulkEditPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/shop/ShopSidebarController.java",
+        "M\tsrc/main/java/com/vncode/app/ui/supply/WbShippingPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/tnved/TnvedPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/workspace/HomeController.java",
+        "A\tsrc/main/java/com/vncode/app/ui/workspace/WorkspaceAppearancePane.java",
+        "A\tsrc/main/java/com/vncode/app/ui/workspace/WorkspaceCommandPalette.java",
+        "M\tsrc/main/java/com/vncode/app/ui/workspace/WorkspaceDetailDrawer.java",
+        "M\tsrc/main/java/com/vncode/app/ui/workspace/WorkspaceHeaderController.java",
+        "M\tsrc/main/java/com/vncode/app/ui/workspace/WorkspaceNavigator.java",
+        "M\tsrc/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "M\tsrc/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+        "M\tsrc/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java",
+        "M\tsrc/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "M\tsrc/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "M\tsrc/main/resources/com/vncode/app/styles/theme.css",
+        "M\tsrc/main/resources/com/vncode/app/styles/workspace-controls.css",
+        "M\tsrc/main/resources/com/vncode/app/ui/dashboard/dashboard-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/fbo/fbo-packing-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/fbosupply/fbo-supply-orders-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/finance/finance-dashboard-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/finance/finance-penalty-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/gtinsync/gtin-sync-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/history/print-history-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/kizmapping/kiz-mapping-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/packing/packing-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/print/print-template-designer-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/shop/shop-sidebar-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/supply/supply-detail-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/supply/supply-list-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/supply/supply-management-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/workspace/home-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/workspace/workspace-header-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/znack/znack-automation-view.fxml",
+        "M\tsrc/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml"
+      ]
+    },
+    "objectComparisons": [
+      {
+        "path": "src/main",
+        "gitObjects": {
+          "current": "e198e6ea2d9b572f634dfa559eaea10a7abece71",
+          "analyzedE774": "f31e1166667bcf789f49530ef53e921648400fb2",
+          "prior2a5": "f31e1166667bcf789f49530ef53e921648400fb2",
+          "analyzed026": "6391b819a197b1008dcb18079cb4d67e273bda01",
+          "published166": "6ea292d9b175ed6059bb28da8b8e99eee45a9edc"
+        },
+        "currentByteIdenticalToE774": false,
+        "currentByteIdenticalTo026": false,
+        "currentByteIdenticalTo166": false
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+        "gitObjects": {
+          "current": "e90b2e4c2f0ebce8fd9403583bdb510fae670dbd",
+          "analyzedE774": "e90b2e4c2f0ebce8fd9403583bdb510fae670dbd",
+          "prior2a5": "e90b2e4c2f0ebce8fd9403583bdb510fae670dbd",
+          "analyzed026": "ffb683b5225243f11a034d9e50fb1a99d7cdbb39",
+          "published166": "ffb683b5225243f11a034d9e50fb1a99d7cdbb39"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": false,
+        "currentByteIdenticalTo166": false,
+        "sha256": {
+          "current": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+          "analyzedE774": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+          "prior2a5": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+          "analyzed026": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c",
+          "published166": "b728adb2a610759e1a2e9152c1d84f779dc291c18790f8a9687a88aefeed7a9c"
+        }
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "gitObjects": {
+          "current": "c10a53b3ac44cf3d1c677a04d1a0cefd0a6436cc",
+          "analyzedE774": "d2f2382ce97db23a277b0fa7480e1ad52bab7ac5",
+          "prior2a5": "d2f2382ce97db23a277b0fa7480e1ad52bab7ac5",
+          "analyzed026": "d2f2382ce97db23a277b0fa7480e1ad52bab7ac5",
+          "published166": "d2f2382ce97db23a277b0fa7480e1ad52bab7ac5"
+        },
+        "currentByteIdenticalToE774": false,
+        "currentByteIdenticalTo026": false,
+        "currentByteIdenticalTo166": false,
+        "sha256": {
+          "current": "b739d436080593c83f8b094180c89400c2ec7e4eb3d7f496a441d86bec8e9344",
+          "analyzedE774": "81105100203d83538c52decd1016353e77bd2187d2ff46f20dbe9005f1b39f94",
+          "prior2a5": "81105100203d83538c52decd1016353e77bd2187d2ff46f20dbe9005f1b39f94",
+          "analyzed026": "81105100203d83538c52decd1016353e77bd2187d2ff46f20dbe9005f1b39f94",
+          "published166": "81105100203d83538c52decd1016353e77bd2187d2ff46f20dbe9005f1b39f94"
+        }
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "gitObjects": {
+          "current": "2b1a93f4dd27d55f181b68c1ee01130d925ab02e",
+          "analyzedE774": "e3fd847e6e6c09797d0347dd5d305f298461338d",
+          "prior2a5": "e3fd847e6e6c09797d0347dd5d305f298461338d",
+          "analyzed026": "90387e93b33fd197c788798c1cd920cb65427650",
+          "published166": "90387e93b33fd197c788798c1cd920cb65427650"
+        },
+        "currentByteIdenticalToE774": false,
+        "currentByteIdenticalTo026": false,
+        "currentByteIdenticalTo166": false,
+        "sha256": {
+          "current": "71cfff7d751e25c883f1690589359f666ae244cf0e977255fecaf61bbe32701a",
+          "analyzedE774": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773",
+          "prior2a5": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773",
+          "analyzed026": "0bdd21365108fbc8196a17ff0df9701f4840e11a5d9051d1858e81f429568cde",
+          "published166": "0bdd21365108fbc8196a17ff0df9701f4840e11a5d9051d1858e81f429568cde"
+        }
+      },
+      {
+        "path": "pom.xml",
+        "gitObjects": {
+          "current": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+          "analyzedE774": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+          "prior2a5": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+          "analyzed026": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+          "published166": "7031fd8c416217dd9b9b84c24305aba5c8fef2ff"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": false,
+        "sha256": {
+          "current": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635",
+          "analyzedE774": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635",
+          "prior2a5": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635",
+          "analyzed026": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635",
+          "published166": "e1aa9f037112b63278810b01256f05705c3250b6f8e3f7da4b9741df78c54728"
+        }
+      },
+      {
+        "path": ".github/workflows/security-ci.yml",
+        "gitObjects": {
+          "current": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+          "analyzedE774": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+          "prior2a5": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+          "analyzed026": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+          "published166": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true,
+        "sha256": {
+          "current": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+          "analyzedE774": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+          "prior2a5": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+          "analyzed026": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+          "published166": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0"
+        }
+      },
+      {
+        "path": "tools/codeql-sarif-gate.mjs",
+        "gitObjects": {
+          "current": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+          "analyzedE774": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+          "prior2a5": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+          "analyzed026": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+          "published166": "6e7b1c6a5c1eaf599113db089f9d455de44df466"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true,
+        "sha256": {
+          "current": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+          "analyzedE774": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+          "prior2a5": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+          "analyzed026": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+          "published166": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb"
+        }
+      },
+      {
+        "path": "tools/codeql-sarif-gate.test.mjs",
+        "gitObjects": {
+          "current": "9347eb0ac0c4ffd6563fa609526d683f12fb1183",
+          "analyzedE774": "9347eb0ac0c4ffd6563fa609526d683f12fb1183",
+          "prior2a5": "9347eb0ac0c4ffd6563fa609526d683f12fb1183",
+          "analyzed026": "9347eb0ac0c4ffd6563fa609526d683f12fb1183",
+          "published166": "9347eb0ac0c4ffd6563fa609526d683f12fb1183"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true,
+        "sha256": {
+          "current": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48",
+          "analyzedE774": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48",
+          "prior2a5": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48",
+          "analyzed026": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48",
+          "published166": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48"
+        }
+      },
+      {
+        "path": "tools/openqodex-health-gate.mjs",
+        "gitObjects": {
+          "current": "06085c2b5611e55b113f2676a4e5a671f72d13de",
+          "analyzedE774": "06085c2b5611e55b113f2676a4e5a671f72d13de",
+          "prior2a5": "06085c2b5611e55b113f2676a4e5a671f72d13de",
+          "analyzed026": "06085c2b5611e55b113f2676a4e5a671f72d13de",
+          "published166": "06085c2b5611e55b113f2676a4e5a671f72d13de"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true,
+        "sha256": {
+          "current": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5",
+          "analyzedE774": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5",
+          "prior2a5": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5",
+          "analyzed026": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5",
+          "published166": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5"
+        }
+      },
+      {
+        "path": "tools/openqodex-health-gate.test.mjs",
+        "gitObjects": {
+          "current": "36024cd545ab600a7ff92c861731742ad549ba4b",
+          "analyzedE774": "36024cd545ab600a7ff92c861731742ad549ba4b",
+          "prior2a5": "36024cd545ab600a7ff92c861731742ad549ba4b",
+          "analyzed026": "36024cd545ab600a7ff92c861731742ad549ba4b",
+          "published166": "36024cd545ab600a7ff92c861731742ad549ba4b"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true,
+        "sha256": {
+          "current": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71",
+          "analyzedE774": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71",
+          "prior2a5": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71",
+          "analyzed026": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71",
+          "published166": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71"
+        }
+      },
+      {
+        "path": "website/license-portal/package.json",
+        "gitObjects": {
+          "current": "d8b7f98aa6a77407a503162744e8e0037849152e",
+          "analyzedE774": "d8b7f98aa6a77407a503162744e8e0037849152e",
+          "prior2a5": "d8b7f98aa6a77407a503162744e8e0037849152e",
+          "analyzed026": "d8b7f98aa6a77407a503162744e8e0037849152e",
+          "published166": "d8b7f98aa6a77407a503162744e8e0037849152e"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true,
+        "sha256": {
+          "current": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18",
+          "analyzedE774": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18",
+          "prior2a5": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18",
+          "analyzed026": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18",
+          "published166": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18"
+        }
+      },
+      {
+        "path": "website/license-portal/package-lock.json",
+        "gitObjects": {
+          "current": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
+          "analyzedE774": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
+          "prior2a5": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
+          "analyzed026": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
+          "published166": "2400769ff0c2c05093ba7360e4c1f6065030b5e2"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true,
+        "sha256": {
+          "current": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485",
+          "analyzedE774": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485",
+          "prior2a5": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485",
+          "analyzed026": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485",
+          "published166": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485"
+        }
+      },
+      {
+        "path": "website/license-portal",
+        "gitObjects": {
+          "current": "7db06f8d488a8fa9412d8febc818831f2b940383",
+          "analyzedE774": "7db06f8d488a8fa9412d8febc818831f2b940383",
+          "prior2a5": "7db06f8d488a8fa9412d8febc818831f2b940383",
+          "analyzed026": "7db06f8d488a8fa9412d8febc818831f2b940383",
+          "published166": "7db06f8d488a8fa9412d8febc818831f2b940383"
+        },
+        "currentByteIdenticalToE774": true,
+        "currentByteIdenticalTo026": true,
+        "currentByteIdenticalTo166": true
+      }
+    ],
+    "readerDiffVsE774": "",
+    "readerDiffVs026": "diff --git a/src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java b/src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java\nindex ffb683b..e90b2e4 100644\n--- a/src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java\n+++ b/src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java\n@@ -67,7 +67,7 @@ public final class CryptoProSignedCertificateReader {\n      * CZ/Catalog authenticates the CMS signature and certificate on receipt.\n      */\n     @SuppressWarnings(\"codeql[java/potentially-weak-cryptographic-algorithm] Windows certificate-store identifier; never a signing algorithm\")\n-    private static String windowsCertificateThumbprint(Certificate certificate) throws Exception {\n+    static String windowsCertificateThumbprint(Certificate certificate) throws Exception {\n         return HexFormat.of().formatHex(MessageDigest.getInstance(\"SHA-1\").digest(certificate.getEncoded(\"DER\")));\n     }\n \n",
+    "guardJavaDiffVs2a5": "diff --git a/src/main/java/com/vncode/app/integration/znack/ZnackRepository.java b/src/main/java/com/vncode/app/integration/znack/ZnackRepository.java\nindex d2f2382..c10a53b 100644\n--- a/src/main/java/com/vncode/app/integration/znack/ZnackRepository.java\n+++ b/src/main/java/com/vncode/app/integration/znack/ZnackRepository.java\n@@ -182,7 +182,13 @@ public final class ZnackRepository {\n         }\n     }\n \n-    private static boolean signerChanged(Settings previous, Settings next) {\n+    /**\n+     * Read-only preview of the exact signer-change predicate used by certificate persistence.\n+     * UI confirmation must not substitute account names/INN for this stored certificate identity.\n+     * This preview neither authenticates the certificate nor bypasses the transaction's scope,\n+     * active-operation or optimistic settings checks.\n+     */\n+    public static boolean signerChanged(Settings previous, Settings next) {\n         String previousSelector = value(previous.signerCertificate()).trim();\n         String nextSelector = value(next.signerCertificate()).trim();\n         if (previousSelector.isBlank()) return false;\ndiff --git a/src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java b/src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java\nindex e3fd847..2b1a93f 100644\n--- a/src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java\n+++ b/src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java\n@@ -156,6 +156,21 @@ public class ZnackAutomationController {\n     private CertificateReader certificateReader = settings -> new CryptoProCertificateDiscoveryService().discover(\n             settings.certmgrPath(), settings.csptestPath(),\n             Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));\n+    private java.util.function.BooleanSupplier signerChangeConfirmation = () -> AlertService.showConfirmation(\n+            tr(\"znack.signature.change.title\"), tr(\"znack.signature.change.header\"), tr(\"znack.signature.change.body\"))\n+            .filter(ButtonType.OK::equals).isPresent();\n+    private SignatureTaskSubmitter signatureTaskSubmitter = AppTaskExecutor::execute;\n+\n+    @FunctionalInterface\n+    interface SignatureTaskSubmitter {\n+        void submit(Task<?> task, java.util.function.Consumer<Throwable> rejected);\n+    }\n+    void signerChangeConfirmation(java.util.function.BooleanSupplier confirmation) {\n+        signerChangeConfirmation = Objects.requireNonNull(confirmation);\n+    }\n+    void signatureTaskSubmitter(SignatureTaskSubmitter submitter) {\n+        signatureTaskSubmitter = Objects.requireNonNull(submitter);\n+    }\n \n     @FunctionalInterface\n     interface CertificateReader {\n@@ -810,6 +825,20 @@ public class ZnackAutomationController {\n         ZnackRepository currentRepository = repository;\n         Settings expectedSettings = loaded;\n         Settings candidateSettings = settings();\n+        if (ZnackRepository.signerChanged(expectedSettings, candidateSettings)) {\n+            if (!signerChangeConfirmation.getAsBoolean()) return;\n+            // A modal dialog runs a nested FX loop. Do not sign after its shop, selection or\n+            // persisted settings have changed while the confirmation was open.\n+            if (generation != shopGeneration || currentRepository != repository\n+                    || !expectedSettings.equals(loaded) || !candidateSettings.equals(settings())\n+                    || signatureTestRunning || accountRefreshRunning || selectedCertificateExpired()) return;\n+            try {\n+                if (!expectedSettings.equals(currentRepository.getSettings())) return;\n+            } catch (RuntimeException unavailable) {\n+                AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(unavailable));\n+                return;\n+            }\n+        }\n         var signaturePhase = new java.util.concurrent.atomic.AtomicReference<>(SignatureTestFailure.Phase.LOCAL_SIGNATURE);\n         setSignatureTestBusy(true);\n         Task<SignatureVerification> task = new Task<>() {\n@@ -917,7 +946,7 @@ public class ZnackAutomationController {\n             }\n         };\n         task.setOnFailed(event -> taskFailure.accept(task.getException()));\n-        AppTaskExecutor.execute(task, taskFailure);\n+        signatureTaskSubmitter.submit(task, taskFailure);\n     }\n \n     /** Loading state for the signature test: disable the button/combo and show a \"loading\" label. */\n",
+    "sha1CallsInCurrentMain": [
+      "d0231cd6913ce3a1764067bad0901b32c535de41:src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java:71:        return HexFormat.of().formatHex(MessageDigest.getInstance(\"SHA-1\").digest(certificate.getEncoded(\"DER\")));"
+    ],
+    "javascriptInputs": {
+      "currentCount": 114,
+      "counts": {
+        "current": 114,
+        "analyzedE774": 114,
+        "prior2a5": 114,
+        "analyzed026": 114,
+        "published166": 112
+      },
+      "sameAsE774": true,
+      "sameAs026": true,
+      "sameAs166": false,
+      "currentCanonicalInventorySha256": "9f04476919222a21d1b3b4b89464906a4da537bdfe996a0bc11125beb0489269"
+    },
+    "mavenPomDiffVs166": "diff --git a/pom.xml b/pom.xml\nindex 7031fd8..935acfe 100644\n--- a/pom.xml\n+++ b/pom.xml\n@@ -6,7 +6,7 @@\n \n     <groupId>com.vncode</groupId>\n     <artifactId>VNcode</artifactId>\n-    <version>1.6.6</version>\n+    <version>1.6.7</version>\n     <name>VN code</name>\n \n     <properties>\n@@ -14,7 +14,7 @@\n         <junit.version>5.12.1</junit.version>\n         <slf4j.version>1.7.36</slf4j.version>\n         <log4j.version>2.24.3</log4j.version>\n-        <app.version>1.6.6</app.version>\n+        <app.version>1.6.7</app.version>\n         <app.vendor>VN code</app.vendor>\n         <app.update.public-key></app.update.public-key>\n         <app.update.publisher></app.update.publisher>\n",
+    "limitations": [
+      "Source comparison is not a scanner execution. A fresh scan on guard source is required because runtime Java/resources changed.",
+      "No license activation or seller/certificate operation is performed."
+    ]
+  },
+  "gateEvaluationUsingUnchangedRepositoryTool": {
+    "java-kotlin": {
+      "total": 8,
+      "blocked": 1
+    },
+    "javascript-typescript": {
+      "total": 0,
+      "blocked": 0
+    }
+  },
+  "extractionCoverage": {
+    "javaSuccessfullyExtractedNotices": 757,
+    "sixChangedCertificateJavaFiles": [
+      "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+      "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
+      "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+      "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+      "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java",
+      "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java"
+    ],
+    "allSixHaveSuccessfullyExtractedNotices": true,
+    "currentWarnings": [
+      {
+        "level": "error",
+        "id": "java/diagnostics/extraction-errors",
+        "message": "Extraction incomplete in file: src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+      }
+    ],
+    "warningsIdenticalToReferences": {
+      "e774": true,
+      "026": true,
+      "166": true
+    },
+    "actualJavascriptSuccessfullyExtractedNotices": 111
+  },
+  "highFindingDisposition": "Same existing severity7.5 SHA-1 Windows/CryptoPro certificate-store identifier at reader line71. Reader is byte-identical to scanned e774; only helper visibility changed relative026/166. No new SHA-1 call; this is not the CMS signing algorithm, password hashing or updater integrity. Java gate remains FAILED; no query, threshold, suppression or security gate was weakened.",
+  "manualGuardReview": {
+    "confirmedNewSecurityDefects": [],
+    "scope": "Six Java certificate-related files plus four localized warning-resource files differ from026; guard adds repository predicate visibility and UI confirmation on top of e774. Source review is separate from actual seller/token acceptance.",
+    "facts": [
+      "Repository signerChanged changes only from private to public with documentation; predicate body, owner/resetSQL, transaction/CAS/active-work checks and schema remain unchanged.",
+      "Before submitting the first local signing/auth task, UI checks the exact repository signer-change predicate and obtains explicit modal confirmation; cancellation exits before the task is submitted.",
+      "After modal confirmation, UI rejects changed shop, repository,loaded/candidate/persisted settings, running work or expired selection. Lookup errors show a sanitized error and exit before signing.",
+      "Default confirmation and task executor remain actual production functions; package-private injection methods support synthetic UI tests only.",
+      "Discovery/public-DER binding, private-key and CMS identity verification, owner/INN and signing no-retry/deadline controls remain unchanged from e774.",
+      "Four locale files add only three explanatory warning keys each; they describe existing catalog/mapping/KIZ reset consequences."
+    ],
+    "independentReadOnlySourceReview": true,
+    "conditionalFinding": {
+      "id": "SIGNER_CHANGE_PREVIEW_METADATA_MISMATCH",
+      "condition": "Selected full thumbprintB has inconsistent discovery metadata.thumbprintM equal to previous certificateM.",
+      "counterexample": "Expected selectorM/metadataM; candidate selectorB/metadataM. Preview signerChanged returnsfalse from equal metadata. Actual CMS thumbprintB passes selectedB verification, recovery writes metadataB, and final signerChanged returns true before reset.",
+      "evidence": "Static source control-flow counterexample; not executed against a real device or seller profile. CAdES DER-bound discovery prevents this inconsistency for its own records, while legacy certmgr parsing allows explicit selector separate from thumbprint.",
+      "impact": "Under this malformed-public-metadata condition the existing reset may happen without the new confirmation.",
+      "suggestion": "Conservatively reject or confirm inconsistent full thumbprint selection before signing; also fail closed before authentication/persistence if verified signer-change is true but confirmation was absent.",
+      "rootNotified": true,
+      "disposition": "Retriaged as non-actionable for current production: no normal producer of the mismatched record was found. This synthetic/corrupted-metadata counterexample remains documented; no runtime change or rerun is recommended from it alone.",
+      "currentProductionReachabilityDemonstrated": false,
+      "producerInvariants": [
+        "Certmgr parser flushes a record before a second selector-like field. Selector/id and thumbprint keys share that boundary set; explicitB plus thumbprintM produces B/blank and M/M, not B/M.",
+        "CAdES discovery and actualCMS constructors bind selector to the validated public DER fingerprint.",
+        "preserveVerifiedCertificateMetadata restores the configured selector when a discovered fingerprint matches the actual verified certificate.",
+        "Normal UI selection, draft and signature-success paths write selector and metadata together. The counterexample required arbitrary test injection or external/corrupted legacy data with no demonstrated current producer."
+      ],
+      "independentReviewerRetriagedNonActionable": true,
+      "parentIndependentlyConfirmedProducerInvariant": true
+    }
+  },
+  "unchangedInputs": {
+    "securityWorkflowAndGateSame166026AndE774": true,
+    "mavenDeclaredCoordinatesUnchanged": true,
+    "pomSame026AndE774": true,
+    "fullPortalTreeAndPackageLockSame166026AndE774": true,
+    "all114JsAndNodeCandidatesSame026AndE774": true,
+    "allJsCandidatesSame166": false
+  },
+  "supersededProvenance": "The2a5 final-source-provenance record is historical only. UI, repository and four resources changed, so runtime identity to e774 cannot be reused; this review uses an actual fresh guard-source scan.",
+  "separateWindowsBuildRunId": 42611294387,
+  "windowsPackageResultClaimed": false,
+  "limitations": [
+    "Fresh CodeQL/source review does not establish all-security-green: the Java gate is still FAILED with its recorded high finding.",
+    "Existing GS1 extraction-error notification limits scanner coverage; executionSuccessful does not imply perfect extraction. See exact notifications and comparison above.",
+    "OpenQodex and Dependency Review were skipped by workflow_dispatch design; no fresh scanner-only OpenQodex/Gitleaks or transitive Java dependency review result is claimed.",
+    "No local Maven/scanner build, seller API mutation, real certificate/token operation, license activation,Gmail,portal deployment,installer execution or publication was performed for this review.",
+    "Windows package/upgrade/native and actual seller acceptance remain separate. No current Windows/package pass is inferred from security CI."
+  ],
+  "newCodeqlFindingReviewRequired": false,
+  "manualFindingRequiresTriage": false,
+  "promotionDecision": "Not made. No confirmed new security defect found in current production guard paths; the synthetic conditional counterexample was retained with its non-actionable disposition. Existing Java gate remains failed with the recorded old findings."
+}

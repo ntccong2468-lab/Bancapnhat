@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "version": "1.6.7",
+  "recordedAtUtc": "2026-11-09T11:15:00.359818+00:00",
+  "finalApplicationSourceCommit": "2a5c335c14874bdea18094825c48477b825ba858",
+  "pendingWindowsBuildRunId": 42607033320,
+  "pendingWindowsBuildResultClaimed": false,
+  "actualCodeqlAnalysis": {
+    "runId": 42605173295,
+    "workflowDatabaseId": 403818652,
+    "headCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "headBranch": "release/vn-code-1.6.7",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42605173295",
+    "runConclusion": "failure",
+    "reviewFile": "security-review-certificate/newreview.json",
+    "reviewSha256": "30a0ac9fa6fe71f5e53836189a968cc101408f7f7e1de3d7f9ca523e0846665c",
+    "javaSarifSha256": "9ba076ca9ad8888a781b7e54f2650360f78bff6e4eb677f43258f52fe39d09f3",
+    "javascriptSarifSha256": "244a73612dcbe1436f7549e7d54f3a31c1814b39b00539cbac0696de0f0ac325"
+  },
+  "freshCodeqlScanOnFinalSourceClaimed": false,
+  "entireSourceSnapshotsIdentical": false,
+  "changedFilesBetweenAnalyzedAndFinal": [
+    {
+      "status": "M",
+      "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md"
+    },
+    {
+      "status": "M",
+      "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json"
+    },
+    {
+      "status": "A",
+      "path": "docs/validation/2026-11-09-cryptopro-windows-progress-diagnostic.json"
+    },
+    {
+      "status": "M",
+      "path": "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java"
+    }
+  ],
+  "analysisInputComparisons": [
+    {
+      "path": "src/main",
+      "analyzedGitObject": "f31e1166667bcf789f49530ef53e921648400fb2",
+      "finalGitObject": "f31e1166667bcf789f49530ef53e921648400fb2",
+      "byteIdentical": true,
+      "trackedFileCount": 799,
+      "canonicalGitInventorySha256": "b2fde3696f755c84d0ffbb80f3727a66b2402b559533e3d8fb05551822496791"
+    },
+    {
+      "path": "pom.xml",
+      "analyzedGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+      "finalGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "b45d1c4c267545ae7ae581ec8ca1e5687a6773852d011d14b874bc483dd4c2b1",
+      "analyzedBlobSha256": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635",
+      "finalBlobSha256": "0c7049705051d6f7cf9a387e475cfc91c6943f1764a07752ea2bb095619a4635"
+    },
+    {
+      "path": ".mvn",
+      "analyzedGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+      "finalGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+      "byteIdentical": true,
+      "trackedFileCount": 2,
+      "canonicalGitInventorySha256": "0ca831b8ee8e877fedf45167c407db91e040cbc856677d0a4e905f9aad335eb3"
+    },
+    {
+      "path": "mvnw",
+      "analyzedGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+      "finalGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "054add667476777e4ef458d5574b60294b861aee47432ec1a85e4982e9ed5976",
+      "analyzedBlobSha256": "36b0fd37f8c524790fd1d9700690a4a6d50544dd50c74debe19069d92f983b0f",
+      "finalBlobSha256": "36b0fd37f8c524790fd1d9700690a4a6d50544dd50c74debe19069d92f983b0f"
+    },
+    {
+      "path": "mvnw.cmd",
+      "analyzedGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+      "finalGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "6146c23db05e4bdb56700ca532fd08d736c0b9fe98b472aa5eaeed0027dd8196",
+      "analyzedBlobSha256": "5288c2f345e41ef9b8dfdc101cc8c597e732182cff66552f57816cd9f92a6deb",
+      "finalBlobSha256": "5288c2f345e41ef9b8dfdc101cc8c597e732182cff66552f57816cd9f92a6deb"
+    },
+    {
+      "path": "build.bat",
+      "analyzedGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+      "finalGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "cdf8f90076416b4ff1051aa8160752c40cea6547cebc962559f9c70c1ff5434e",
+      "analyzedBlobSha256": "5b4b4d0bc82e29d7fc9a5d61a317e9002e2d24fb8cfe994c5283c7d0f60e01bf",
+      "finalBlobSha256": "5b4b4d0bc82e29d7fc9a5d61a317e9002e2d24fb8cfe994c5283c7d0f60e01bf"
+    },
+    {
+      "path": "build.sh",
+      "analyzedGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+      "finalGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "c8817074d4126cbd7f8889cb330445bfbd417495f7a30232ac8c31fe99ac0669",
+      "analyzedBlobSha256": "ceb158d4b28cec801bb550c7c18205fde8c24b06102a3a2af6eb379d33280d3e",
+      "finalBlobSha256": "ceb158d4b28cec801bb550c7c18205fde8c24b06102a3a2af6eb379d33280d3e"
+    },
+    {
+      "path": "proguard.conf",
+      "analyzedGitObject": "80a62085ea43b32b1fdaab7d285684c0d4e18d41",
+      "finalGitObject": "80a62085ea43b32b1fdaab7d285684c0d4e18d41",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "23ee374ee22e6fd7e3028a4fcbb49c5763585aef445ec4980373f60f1de81e98",
+      "analyzedBlobSha256": "71d051558bbe78c0bb0048291d987e47ce7e871ef264668e0e6d4a97af5cadc8",
+      "finalBlobSha256": "71d051558bbe78c0bb0048291d987e47ce7e871ef264668e0e6d4a97af5cadc8"
+    },
+    {
+      "path": ".github/workflows/security-ci.yml",
+      "analyzedGitObject": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+      "finalGitObject": "841d6c78a7ded8b4b6e95d7edf06043fd33936b6",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "0255eef79b9659c14c8a7e179c8b81218253ef43572cd7405ae4e354a2aec5b7",
+      "analyzedBlobSha256": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+      "finalBlobSha256": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0"
+    },
+    {
+      "path": ".github/workflows",
+      "analyzedGitObject": "fa8c20ca6a825e347aa3d3b0c7de88c883a3fe53",
+      "finalGitObject": "fa8c20ca6a825e347aa3d3b0c7de88c883a3fe53",
+      "byteIdentical": true,
+      "trackedFileCount": 23,
+      "canonicalGitInventorySha256": "e8457a8f205fa23c2a530ff4a9841f3e2feb4bacbbe6f02f3b9111f45ee8b6ca"
+    },
+    {
+      "path": "tools/codeql-sarif-gate.mjs",
+      "analyzedGitObject": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+      "finalGitObject": "6e7b1c6a5c1eaf599113db089f9d455de44df466",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "409018335f2c6040872b2b7b73876789ef3b2fe4bfcc43f41e7371b91edb5896",
+      "analyzedBlobSha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+      "finalBlobSha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb"
+    },
+    {
+      "path": "tools/codeql-sarif-gate.test.mjs",
+      "analyzedGitObject": "9347eb0ac0c4ffd6563fa609526d683f12fb1183",
+      "finalGitObject": "9347eb0ac0c4ffd6563fa609526d683f12fb1183",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "0c33218262a116d9310208c10f9ed664569f611057bf3875c23197f73a50fda9",
+      "analyzedBlobSha256": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48",
+      "finalBlobSha256": "a5062c570238f4ff8128c12befa96422516c3c39b636dafa9e552854f335bb48"
+    },
+    {
+      "path": "tools/openqodex-health-gate.mjs",
+      "analyzedGitObject": "06085c2b5611e55b113f2676a4e5a671f72d13de",
+      "finalGitObject": "06085c2b5611e55b113f2676a4e5a671f72d13de",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "9503eefbae59f924aaaeac55dc83e42a79cae673dc50bf497a2ae804cb6a378c",
+      "analyzedBlobSha256": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5",
+      "finalBlobSha256": "3831e27d7af2fb0c1a3e2541ec0ede1f1aa9a302d2d898c7a5b49b23844153a5"
+    },
+    {
+      "path": "tools/openqodex-health-gate.test.mjs",
+      "analyzedGitObject": "36024cd545ab600a7ff92c861731742ad549ba4b",
+      "finalGitObject": "36024cd545ab600a7ff92c861731742ad549ba4b",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "36ca07fc7b5f55a38b36e75302aeb97b823481e461c686eacd1c9c73f4bc503c",
+      "analyzedBlobSha256": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71",
+      "finalBlobSha256": "f459272c3fb227f170b0c00a459ebd6645a1ca07fc5550599fb2c48c0e3aed71"
+    },
+    {
+      "path": "tools",
+      "analyzedGitObject": "863684e80264e2286224e2ee99102a3a7786a79c",
+      "finalGitObject": "863684e80264e2286224e2ee99102a3a7786a79c",
+      "byteIdentical": true,
+      "trackedFileCount": 68,
+      "canonicalGitInventorySha256": "2661b668b8de75a641eeac29b242c43a4322258da13c839bdcbe91a4ccd67d27"
+    },
+    {
+      "path": "website/license-portal",
+      "analyzedGitObject": "7db06f8d488a8fa9412d8febc818831f2b940383",
+      "finalGitObject": "7db06f8d488a8fa9412d8febc818831f2b940383",
+      "byteIdentical": true,
+      "trackedFileCount": 53,
+      "canonicalGitInventorySha256": "9ebf41aa12f1ad178eef54a499d6da9fdc4690ad5c6036a78b640ed87c881c30"
+    },
+    {
+      "path": "website/license-portal/package.json",
+      "analyzedGitObject": "d8b7f98aa6a77407a503162744e8e0037849152e",
+      "finalGitObject": "d8b7f98aa6a77407a503162744e8e0037849152e",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "8febba4d1f71b5bf7191bc2f5644b915dd043d947e63fb55c3456d560f6ff7d6",
+      "analyzedBlobSha256": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18",
+      "finalBlobSha256": "8c7aec98501749c8ac2a544c29734d5662d4c451eb4afbd8d5ff08690b742c18"
+    },
+    {
+      "path": "website/license-portal/package-lock.json",
+      "analyzedGitObject": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
+      "finalGitObject": "2400769ff0c2c05093ba7360e4c1f6065030b5e2",
+      "byteIdentical": true,
+      "trackedFileCount": 1,
+      "canonicalGitInventorySha256": "d954747e1476175234c78302b88ff0a5bbe22a27a32ce9ab871ea31b635c7b11",
+      "analyzedBlobSha256": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485",
+      "finalBlobSha256": "de74d93640f6ebe2027062211559d46bfe47ee0c1e184e7f1a0740b849187485"
+    }
+  ],
+  "javascriptAndNodeInputs": {
+    "method": "Tracked Git path/mode/type/blob entries for JS/TS/module/HTML source candidates and Node package manifests across the entire checkout.",
+    "sourceExtensions": [
+      ".cjs",
+      ".cts",
+      ".es",
+      ".es6",
+      ".htm",
+      ".html",
+      ".js",
+      ".jsx",
+      ".mjs",
+      ".mts",
+      ".svelte",
+      ".ts",
+      ".tsx",
+      ".vue",
+      ".xhtml"
+    ],
+    "packageManifestNames": [
+      "npm-shrinkwrap.json",
+      "package-lock.json",
+      "package.json"
+    ],
+    "analyzedCount": 114,
+    "finalCount": 114,
+    "allEntriesByteIdentical": true,
+    "canonicalInventorySha256": "548906c84b8bcd6fb9ce915a6ce2c7b38a21b4d0a2c6789e3d6c3ad2bdaba228"
+  },
+  "actualJavascriptExtractionProvenance": {
+    "successfullyExtractedSourcePathsFromAnalyzedSarif": 111,
+    "allCorrespondingFinalGitObjectsIdentical": true,
+    "canonicalInventorySha256": "531fc6ac86a90c3878af5cf2a17caa65f2417446d83e84665a5a1b51bba63fed",
+    "scope": "Actual111 successfully-extracted notices include workflow files in addition to JavaScript; all111 tracked inputs match the final source. This provenance record does not rerun extraction."
+  },
+  "javaAnalysisScope": {
+    "workflowCompileCommand": "./mvnw -B -DskipTests clean compile",
+    "mainSourceTreeByteIdentical": true,
+    "pomAndMavenInputsByteIdentical": true,
+    "changedTestInSuccessfullyExtractedJavaNotices": false,
+    "explanation": "The only Java delta is a synthetic test fixture, outside the main compile used by CodeQL. It sets ProgressPreference to SilentlyContinue; expected stderr0, errors and functional assertions remain unchanged. The other three deltas are validation documents."
+  },
+  "securityDisposition": {
+    "sameEightExistingJavaFindingsAs026AndPublished166": true,
+    "javaFindingCount": 8,
+    "javaHighCriticalOrUnclassifiedCount": 1,
+    "javaGateConclusion": "failure",
+    "javascriptFindingCount": 0,
+    "javascriptGateConclusion": "success",
+    "lintAndAuditConclusion": "success",
+    "openqodexConclusion": "skipped",
+    "dependencyReviewConclusion": "skipped",
+    "newFindingsFromActualFreshAnalyzedSource": [],
+    "highFinding": "Existing severity7.5 Windows/CryptoPro SHA-1 certificate-store identifier in the same reader helper; no new SHA-1 invocation. Its helper visibility change was already included in actual scanned source e774 and is unchanged in final2a5. The gate remains FAILED."
+  },
+  "extractionLimitations": {
+    "existingGs1SignatureInkExtractionErrorUnchangedAcross166026AndE774": true,
+    "message": "Extraction incomplete in file: src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java",
+    "allFiveChangedCertificateFilesHadSuccessfulExtractionNoticesInActualE774Scan": true,
+    "finalSameRuntimeBytesDoNotExpandScannerCoverage": true
+  },
+  "scopeAndLimits": [
+    "This is an offline Git/input-provenance comparison linked to an actual prior scan; it is not a new CodeQL execution on2a5.",
+    "All actual Java main-compile inputs, security workflow/gates,114 JS/Node candidates and111 actual JS extraction inputs match e774 exactly. Thus the source-input review supports reuse of the recorded e774 analysis without claiming a fresh final-source scan.",
+    "Whole source is different in exactly one synthetic Java test plus three validation documents; do not state whole-source byte identity.",
+    "Preserve the existing high-severity Java gateFAIL and GS1 extraction limitation; no all-security-green claim.",
+    "OpenQodex and Dependency Review were skipped by workflow_dispatch in the actual run. No new scanner/dependency/security gate execution is claimed.",
+    "The new full Windows/package run is separate and pending; no installer/publication/updater result is inferred from security provenance.",
+    "No repository edits,Maven,network/API calls,dispatch,real certificate or seller operations,license activation or publication were performed for this provenance record."
+  ],
+  "historicalPriorSourceReviewRetainedUnchanged": true,
+  "networkCallsForThisRecord": false,
+  "repositoryEditsForThisRecord": false
+}

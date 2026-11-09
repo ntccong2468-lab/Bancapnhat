@@ -8,7 +8,7 @@ import {assets,candidate as c,validateEvidence,validateStagedAssets,validateRele
 
 function evidence(){return {
   run:{status:'completed',conclusion:'success',repository:{full_name:c.repo},head_repository:{full_name:c.repo},head_sha:c.source,workflow_id:c.workflow},
-  info:{version:c.version,sourceCommit:c.source,runId:c.build,workflow:'publish-vncode-baseline.yml',verification:{fullJavaSuiteRun:true,nativeSmokeRun:true,baselineUpgradeRun:true,java:{tests:4000,failures:0,errors:0,skipped:2,passed:3998}}},
+  info:{version:c.version,sourceCommit:c.source,runId:c.build,workflow:'publish-vncode-baseline.yml',verification:{fullJavaSuiteRun:true,nativeSmokeRun:true,baselineUpgradeRun:true,java:{tests:4188,failures:0,errors:0,skipped:2,passed:4186}}},
   manifest:{version:c.version,sourceCommit:c.source,files:Object.fromEntries(assets.map(n=>[n,{bytes:123,sha256:'a'.repeat(64)}]))},
   native:{version:c.version,platform:'windows-x64',appName:'VN code',windowTitle:`VN code v${c.version}`,nativeLauncher:'passed',schemaMigration:'3 to 6',historyPreserved:true,rollbackSnapshotVerified:true,liveMarketplaceMutations:false},
   isolation:{appName:'VN code',version:c.version,platform:'windows-x64',result:'passed',wcodeVersion:'1.1.75',windowTitle:`VN code v${c.version}`,installerUpgradeUuid:'8CBBA0E2-6E73-4F56-9101-6BC0948D3C72',independentRegistrations:true,freshVncodeData:true,wcodeFilesUnchanged:true,uninstallPreservesWcode:true,liveMarketplaceMutations:false},
@@ -22,6 +22,23 @@ test('wrong source, incomplete tests and unproved native upgrade cannot publish'
     e=>e.info.verification.baselineUpgradeRun=false,e=>e.upgrade.fromVersion='1.5.19',e=>e.upgrade.passiveExeHandoffVerified=false,
     e=>e.native.historyPreserved=false,e=>e.gs1.liveGS1Mutations=true,e=>delete e.manifest.files[assets[0]]]){
     const e=evidence();change(e);assert.throws(()=>validateEvidence(e));
+  }
+});
+test('frozen certificate source rejects partial totals, overcounts and changed OS skip counts',()=>{
+  const summaries=[
+    {tests:4000,skipped:2,passed:3998},
+    {tests:4122,skipped:2,passed:4120},
+    {tests:4180,skipped:2,passed:4178},
+    {tests:4189,skipped:2,passed:4187},
+    {tests:4188,skipped:0,passed:4188},
+    {tests:4188,skipped:1,passed:4187},
+    {tests:4188,skipped:3,passed:4185},
+    {tests:4188,skipped:2,passed:4185},
+    {tests:'4188',skipped:2,passed:4186}
+  ];
+  for(const summary of summaries){
+    const e=evidence();Object.assign(e.info.verification.java,summary);
+    assert.throws(()=>validateEvidence(e),JSON.stringify(summary));
   }
 });
 test('every staged asset must match exact content before switching Latest',()=>{

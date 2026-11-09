@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "kind": "INDEPENDENT_FINAL_GUARD_HELPER_REVIEW",
+  "result": "passed-static-and-source-only",
+  "reviewedAtUtc": "2026-11-09T11:49:16.827440+00:00",
+  "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "fullWindowsBuildRunId": 42611294387,
+  "version": "1.6.7",
+  "helper": {
+    "path": "/workspace/vncode-167-release/verify_package-certificate-guard.py",
+    "sha256": "1af43751eabd4020911ee1951665d05dd4f873bd4005e50c37608ca728bc219f",
+    "preservedPreGuardHelper": {
+      "path": "/workspace/vncode-167-release/verify_package-certificate.py",
+      "sha256": "3d7ef95c99d4c055f2503a0651e157d8992ccb24c6517796952794e057eb163d"
+    }
+  },
+  "publisher": {
+    "path": "tools/publish-vncode-167.mjs",
+    "sha256": "4c64dac22ad4dc4125e9623ef1e0fca74bef5d88c1fe4a3136050f0e705242f0",
+    "importedCandidate": {
+      "version": "1.6.7",
+      "source": "d0231cd6913ce3a1764067bad0901b32c535de41",
+      "build": 42611294387,
+      "workflow": 392732536,
+      "baseline": "1.6.6",
+      "repo": "ntccong2468-lab/Bancapnhat",
+      "releaseId": 438471378
+    },
+    "exact16AssetNamesMatchHelper": true
+  },
+  "sourceInclusion": {
+    "sha256": "10f1384af2fd2b5b7b53fd50d38ff46e78546f7095099cc5e1b7a0000026c88f",
+    "outsideAndRepositoryCopiesIdentical": true,
+    "currentFiles": 2993,
+    "historical0f5Files": 2985,
+    "runtimeInputs": 115,
+    "javaInputs": 90,
+    "resourceInputs": 25,
+    "expectedApplicationClasses": 1987,
+    "certificateDeltaPaths": 22,
+    "guardDeltaPaths": 9,
+    "guardRuntimePaths": 6,
+    "original109RuntimeInputsUnchanged": 105,
+    "overriddenOriginalRuntimePaths": [
+      "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "src/main/resources/com/vncode/app/i18n/messages_zh.properties"
+    ],
+    "sourceOnlyExecutionPassed": true,
+    "archivedArgumentWasGitTreeNotWindowsArchive": true
+  },
+  "history": {
+    "fourOriginalFailedRunsPreserved": [
+      42515409829,
+      42523983786,
+      42525209391,
+      42570802535
+    ],
+    "historical0f5SuccessReceiptSource": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "historical0f5SuccessReceiptRun": 42587222212,
+    "historical0f5SuccessReceiptSha256": "761ef10f7ffbe0d99a39ece9d53edcd73ca352157956e76533714489f383fb9d",
+    "firstCertificateFailureAndProgressDiagnosticValidated": true,
+    "historicalProgressCorrectionPinnedTo": "2a5c335c14874bdea18094825c48477b825ba858",
+    "cancelledPreGuardAttemptValidated": true,
+    "cancelledPreGuardSource": "2a5c335c14874bdea18094825c48477b825ba858",
+    "cancelledPreGuardRun": 42607033320,
+    "cancelledPreGuardFullSuiteAccepted": false,
+    "oldProofsRejectedAsCurrent": {
+      "source-inclusion-fifth-attempt.json": "SOURCE_INCLUSION_IDENTITY:sourceCommit",
+      "source-inclusion-certificate-pre-guard-attempt.json": "SOURCE_INCLUSION_IDENTITY:sourceCommit"
+    },
+    "historicalAndProgressVerifiersDoNotReadCurrentSOURCE": true
+  },
+  "guards": {
+    "functionsUnchangedFromReviewedPreGuardHelper": [
+      "zip_files",
+      "checksums",
+      "text_equivalence",
+      "verify_smokes",
+      "verify_portable",
+      "verify_xml",
+      "verify_remote_metadata",
+      "verify"
+    ],
+    "exactJavaSummary": {
+      "tests": 4188,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 4186
+    },
+    "exactSuiteCount": 547,
+    "requiredCertificateSuiteCounts": {
+      "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest": 12,
+      "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest": 38,
+      "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest": 14
+    },
+    "exactOsSkipIdentities": [
+      [
+        "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "privatePermissionsAreAppliedWhereSupported"
+      ],
+      [
+        "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "neverFallsBackToPlaintextOffWindows"
+      ]
+    ],
+    "actualCaseCountsAndStatusesMustMatchXmlCounters": true,
+    "newCertificateSuitesCannotSkipOrFail": true,
+    "threeTenThousandStressCasesStillRequired": [
+      "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+      "ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites",
+      "wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay"
+    ],
+    "localeWarningOnlyChanges": [
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "previousSha256": "3e1aa972cb5486db09eb3a6b1f662115ed442299693b3742bbc4a4297b1e90a1",
+        "currentSha256": "b0652f4d504115c96990eb665f118d0e73400bd7ee2ee1d98e42a1f583f95056",
+        "existingLinesPreservedExactly": true,
+        "onlyThreeWarningKeysAdded": true
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "previousSha256": "537fd96f498926d12c265d5b7b9e5013b2585e43ab3018f1331e80c7e75a73ee",
+        "currentSha256": "905deb3359b688c1ec38dab3463a5f612dbd86455d3a1011cf558f8486d6af63",
+        "existingLinesPreservedExactly": true,
+        "onlyThreeWarningKeysAdded": true
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "previousSha256": "9c7f7e965eb4622aca65790d474a20a65cd2b1cb5019a30e6074b29cf1e12bb1",
+        "currentSha256": "176cf4c02162026dc97e75d82679f95a95eb84e6f4ac3a2934345c9bd8a62a9d",
+        "existingLinesPreservedExactly": true,
+        "onlyThreeWarningKeysAdded": true
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "previousSha256": "7b5f34bfcb462cb870d84d1ed295188434badbc08cc9535c6cab4ef4e84416cc",
+        "currentSha256": "67c1bd76424852de2b99a08fe6cd4a79a62677dc877e9ff3ff4219f76eb32049",
+        "existingLinesPreservedExactly": true,
+        "onlyThreeWarningKeysAdded": true
+      }
+    ],
+    "repositoryBusinessLogicUnchangedByGuardVisibilityPreview": true,
+    "all16AssetHashSourceRuntimeNativeMigrationIsolationPassiveUpgradeAndBundleGuardsRetained": true,
+    "separateFreshGuardArtifactAndReceiptDefaults": true
+  },
+  "findings": [
+    {
+      "severity": "P2",
+      "status": "resolved",
+      "description": "Prior minimum-2800 gate could accept incomplete suites. Frozen-source helper/publisher now require4188 tests; helper requires547 suites,12/38/14 certificate cases, exact two historical OS skips and matching XML case/status counters."
+    }
+  ],
+  "openFindings": [],
+  "scope": {
+    "offlineOnly": true,
+    "networkCalls": false,
+    "mavenRun": false,
+    "installerExecuted": false,
+    "sellerApiCalls": false,
+    "actualCryptoProDevicesTested": false,
+    "currentWindowsArtifactsInspected": false,
+    "currentWindowsFullOrPackagePassClaimed": false,
+    "publicationPerformed": false
+  },
+  "limitations": [
+    "This receipt approves helper/source binding only. It is not a Windows run, package verification or publication receipt.",
+    "Fresh run42611294387 must still complete unfiltered full Java verification, native/migration/install/upgrade gates and all16 current-source assets.",
+    "Historical success/failure receipts are preserved as history; no earlier test outcome is accepted as the current guard build."
+  ]
+}

@@ -10,8 +10,8 @@ import {requiredAssets, validateCompleteRelease} from './baseline-release.mjs';
 import {validateBuild, validateNativeSmoke, validateSideBySideSmoke, validateUpgradeSmoke} from './publish-vncode-windows.mjs';
 
 // One owner-requested release. These constants deliberately cannot be replaced by dispatch inputs.
-export const candidate=Object.freeze({version:'1.6.7',source:'e77437c5ddbd168c7cfecfcf12d202f019751d87',
-  build:42605121356,workflow:392732536,baseline:'1.6.6',repo:'ntccong2468-lab/Bancapnhat',releaseId:438471378});
+export const candidate=Object.freeze({version:'1.6.7',source:'d0231cd6913ce3a1764067bad0901b32c535de41',
+  build:42611294387,workflow:392732536,baseline:'1.6.6',repo:'ntccong2468-lab/Bancapnhat',releaseId:438471378});
 export const assets=Object.freeze([...requiredAssets(candidate.version),'asset-manifest.json','SHA256SUMS',
   'gs1-smoke.json','side-by-side-smoke.json','previous-baseline.json']);
 const json=bytes=>JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/,''));
@@ -28,8 +28,8 @@ export function validateEvidence({run,info,manifest,native,isolation,upgrade,gs1
   for(const name of requiredAssets(c.version))assert.ok(manifest.files[name],`Missing manifest member: ${name}`);
   for(const key of ['fullJavaSuiteRun','nativeSmokeRun','baselineUpgradeRun'])assert.equal(info.verification[key],true);
   const tests=info.verification.java;
-  assert.ok(Number.isInteger(tests.tests)&&tests.tests>=2800);assert.equal(tests.failures,0);assert.equal(tests.errors,0);
-  assert.ok(Number.isInteger(tests.skipped)&&tests.skipped>=0&&tests.skipped<=2);assert.equal(tests.passed,tests.tests-tests.skipped);
+  assert.equal(tests.tests,4188,'Pinned source must contain all 4188 Windows tests');assert.equal(tests.failures,0);assert.equal(tests.errors,0);
+  assert.equal(tests.skipped,2,'Pinned Windows source has exactly two OS skips');assert.equal(tests.passed,4186);
   validateNativeSmoke(native,c.version);validateSideBySideSmoke(isolation,c.version);validateUpgradeSmoke(upgrade,c.version,c.baseline);
   assert.equal(upgrade.passiveExeHandoffVerified,true);
   assert.equal(previous.version,c.baseline);assert.equal(previous.skipUpgrade,false);

@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "kind": "RELEASE_SOURCE_INCLUSION",
   "version": "1.6.7",
-  "recordedAtUtc": "2026-11-09T10:59:34.301596+00:00",
-  "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
-  "sourceTree": "c8473f49cfe397e2ca59a2645c98037e60693d97",
+  "recordedAtUtc": "2026-11-09T11:46:51.504002+00:00",
+  "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "sourceTree": "84912aa53b1ff0b94d0c9c7200a34f52010012b6",
   "releaseBranch": "release/vn-code-1.6.7",
-  "observedHead": "056dcd0b78268cd14dfc5e36b22201d6a0166132",
+  "observedHead": "f865b906285a5f2ecc34a13ce9e10e81c4f5d26a",
   "observedBranch": "release/vn-code-1.6.7-publication",
   "observedHeadMatchesPinnedSource": false,
-  "fullWindowsBuildRunId": 42605121356,
+  "fullWindowsBuildRunId": 42611294387,
   "buildStatusNotAssessedByThisReceipt": true,
   "previousRelease": {
     "version": "1.6.6",
@@ -141,22 +141,43 @@
       "commit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
       "includedByAncestry": true,
       "handover": "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
-      "handoverSha256": "851e92d84a2dd132ca22bcbf73415ca62c1ba92daeb8dc6155a4b677669436a5",
+      "handoverRevision": "2a5c335c14874bdea18094825c48477b825ba858",
+      "handoverSha256": "cfac1ac76bb16e26ec9e20ac84588b85c91297d4499c910f5a384732dafa0e6c",
       "manifest": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
-      "manifestSha256": "0f3237c0b29f990b00f976b15ef61650f0b9cbfda314cf391db491476a6385fa"
+      "manifestSha256": "cbd975d2c509dc00c6d9fad51547f70fe6cfaac1ac3d5dc1b7b3fce34f33c759"
+    },
+    {
+      "change": "Windows synthetic certificate fixture progress correction",
+      "commit": "2a5c335c14874bdea18094825c48477b825ba858",
+      "includedByAncestry": true,
+      "handover": "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
+      "handoverSha256": "cfac1ac76bb16e26ec9e20ac84588b85c91297d4499c910f5a384732dafa0e6c",
+      "manifest": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+      "manifestSha256": "cbd975d2c509dc00c6d9fad51547f70fe6cfaac1ac3d5dc1b7b3fce34f33c759",
+      "handoverRevision": "2a5c335c14874bdea18094825c48477b825ba858"
+    },
+    {
+      "change": "Confirm signer changes before verification can retire local Catalog/KIZ data; existing ownership policy retained",
+      "commit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+      "includedByAncestry": true,
+      "handover": "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
+      "handoverRevision": "d0231cd6913ce3a1764067bad0901b32c535de41",
+      "handoverSha256": "b401bae74efbc7237bf1ad384bad3342e4b2e56f6e216be38ed4ff8922e5029d",
+      "manifest": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+      "manifestSha256": "5eb6f458e4cb8d360ae4c363dae1f4c7f83c6e43ec0c2aa74206c98d6eb34fb8"
     }
   ],
   "runtimeDiff": {
     "baseline": "ac8ba1c939e22d0318877a3a2ba7242359cce78e",
-    "head": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
-    "uniqueChangedFiles": 114,
-    "javaFiles": 89,
+    "head": "d0231cd6913ce3a1764067bad0901b32c535de41",
+    "uniqueChangedFiles": 115,
+    "javaFiles": 90,
     "resourceFiles": 25,
     "addedFiles": 12,
-    "modifiedFiles": 102,
+    "modifiedFiles": 103,
     "deletedFiles": 0,
-    "changedRuntimePlusPomCount": 115,
-    "runtimeUnchangedSinceLastHandoverCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "changedRuntimePlusPomCount": 116,
+    "runtimeUnchangedSinceLastHandoverCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
     "runtimeUnchangedSinceLastHandover": true,
     "inputs": [
       {
@@ -406,6 +427,14 @@
         "previousReleaseSha256": "fa8c7e505a0908166be5856930add8dc8fd509afb2b1cd09b5ea3df558f841cb",
         "priorHandoverMatch": true,
         "priorHandoverReceipt": "docs/validation/2026-11-08-kiz-znack-wb-gtin-audit.json"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "gitStatus": "M",
+        "previousReleaseSha256": "81105100203d83538c52decd1016353e77bd2187d2ff46f20dbe9005f1b39f94",
+        "priorHandoverMatch": true,
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "sha256": "b739d436080593c83f8b094180c89400c2ec7e4eb3d7f496a441d86bec8e9344"
       },
       {
         "path": "src/main/java/com/vncode/app/integration/znack/registration/CatalogProductDataParser.java",
@@ -845,7 +874,8 @@
         "previousReleaseSha256": "0bdd21365108fbc8196a17ff0df9701f4840e11a5d9051d1858e81f429568cde",
         "priorHandoverMatch": true,
         "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
-        "sha256": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773"
+        "sha256": "71cfff7d751e25c883f1690589359f666ae244cf0e977255fecaf61bbe32701a",
+        "previousHandoverSha256": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773"
       },
       {
         "path": "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
@@ -874,34 +904,38 @@
       {
         "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
         "gitStatus": "M",
-        "sha256": "3e1aa972cb5486db09eb3a6b1f662115ed442299693b3742bbc4a4297b1e90a1",
+        "sha256": "b0652f4d504115c96990eb665f118d0e73400bd7ee2ee1d98e42a1f583f95056",
         "previousReleaseSha256": "b3b105443d7e55c5f8a4b8d7878c93e1f0280fa2a362d33977db7d754e795fca",
         "priorHandoverMatch": true,
-        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "previousHandoverSha256": "3e1aa972cb5486db09eb3a6b1f662115ed442299693b3742bbc4a4297b1e90a1"
       },
       {
         "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
         "gitStatus": "M",
-        "sha256": "537fd96f498926d12c265d5b7b9e5013b2585e43ab3018f1331e80c7e75a73ee",
+        "sha256": "905deb3359b688c1ec38dab3463a5f612dbd86455d3a1011cf558f8486d6af63",
         "previousReleaseSha256": "cf2dc5f6a0d695221b82ec6d4ab70f0d2caeef288aaddea784a4a7c5ee0a2ff5",
         "priorHandoverMatch": true,
-        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "previousHandoverSha256": "537fd96f498926d12c265d5b7b9e5013b2585e43ab3018f1331e80c7e75a73ee"
       },
       {
         "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
         "gitStatus": "M",
-        "sha256": "9c7f7e965eb4622aca65790d474a20a65cd2b1cb5019a30e6074b29cf1e12bb1",
+        "sha256": "176cf4c02162026dc97e75d82679f95a95eb84e6f4ac3a2934345c9bd8a62a9d",
         "previousReleaseSha256": "878e929779307de35cf0e9b109470c86b3979da7d66f11954fd92c07fd5f9546",
         "priorHandoverMatch": true,
-        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "previousHandoverSha256": "9c7f7e965eb4622aca65790d474a20a65cd2b1cb5019a30e6074b29cf1e12bb1"
       },
       {
         "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
         "gitStatus": "M",
-        "sha256": "7b5f34bfcb462cb870d84d1ed295188434badbc08cc9535c6cab4ef4e84416cc",
+        "sha256": "67c1bd76424852de2b99a08fe6cd4a79a62677dc877e9ff3ff4219f76eb32049",
         "previousReleaseSha256": "d8982e19b38deb5496801b0aea588fef71d5ec7618172a969da879b2bcc55cb8",
         "priorHandoverMatch": true,
-        "priorHandoverReceipt": "docs/validation/registration-permit-script-20261108/verification.json"
+        "priorHandoverReceipt": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "previousHandoverSha256": "7b5f34bfcb462cb870d84d1ed295188434badbc08cc9535c6cab4ef4e84416cc"
       },
       {
         "path": "src/main/resources/com/vncode/app/styles/theme.css",
@@ -1099,15 +1133,15 @@
       },
       {
         "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
-        "sha256": "0f3237c0b29f990b00f976b15ef61650f0b9cbfda314cf391db491476a6385fa",
+        "sha256": "5eb6f458e4cb8d360ae4c363dae1f4c7f83c6e43ec0c2aa74206c98d6eb34fb8",
         "manifestField": "inputs"
       }
     ],
-    "coveredRuntimeFiles": 114,
-    "matchingRuntimeFiles": 114,
+    "coveredRuntimeFiles": 115,
+    "matchingRuntimeFiles": 115,
     "missing": [],
     "mismatches": [],
-    "overlapPolicy": "Original109runtimehashes retained exactly; supplemental certificate manifest supplies five additional runtime files. Every current input compared with frozen Git blobs."
+    "overlapPolicy": "Historical109proof retained:105currentruntimehashesunchanged; fourlocale files only addthree signer-change keys each. Supplementalcertificate manifest supplies currentguard/discovery hashes andoverrides only declaredsource paths."
   },
   "compatibility": {
     "schemaVersionRetained": 6,
@@ -1537,10 +1571,10 @@
     "freshFullWindowsBuildOutcome": "full-java-failed-before-packaging; retained in thirdAttemptProvenance"
   },
   "finalFreshWindowsBuild": {
-    "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
-    "runId": 42605121356,
-    "startedAtUtc": "2026-11-09T10:57:44Z",
-    "required": "Fresh unfiltered clean verify, native/migration/DPAPI/install/uninstall/coexistence/passive upgrade and 16assets; no oldWindows result reuse.",
+    "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+    "runId": 42611294387,
+    "startedAtUtc": "2026-11-09T11:43:36Z",
+    "required": "Fresh unfiltered clean verify with4188tests/547suites/exacttwoOSskips andcertsuites12/38/14;native/migration/DPAPI/install/uninstall/coexistence/passiveupgrade and16assets. No historicalresultreuse.",
     "status": "not-assessed-by-this-source-receipt",
     "reusedOrReconciledTestResults": false
   },
@@ -1878,12 +1912,14 @@
       "path": "source-inclusion-fifth-attempt.json",
       "sha256": "63b37971dd05c8cb4ab6ba877b0a34a9d9cdc94eda25d39309123006625402e2"
     },
-    "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
-    "fullWindowsBuildRunId": 42605121356,
+    "sourceCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+    "fullWindowsBuildRunId": 42611294387,
     "earlierTestResultsReused": false,
     "freshFullWindowsSuiteRerunRequired": true,
     "certificateFixCommits": [
-      "e77437c5ddbd168c7cfecfcf12d202f019751d87"
+      "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+      "2a5c335c14874bdea18094825c48477b825ba858",
+      "d0231cd6913ce3a1764067bad0901b32c535de41"
     ],
     "changedPaths": [
       {
@@ -1899,12 +1935,22 @@
       {
         "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
         "previousSha256": null,
-        "sha256": "851e92d84a2dd132ca22bcbf73415ca62c1ba92daeb8dc6155a4b677669436a5"
+        "sha256": "b401bae74efbc7237bf1ad384bad3342e4b2e56f6e216be38ed4ff8922e5029d"
       },
       {
         "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
         "previousSha256": null,
-        "sha256": "0f3237c0b29f990b00f976b15ef61650f0b9cbfda314cf391db491476a6385fa"
+        "sha256": "5eb6f458e4cb8d360ae4c363dae1f4c7f83c6e43ec0c2aa74206c98d6eb34fb8"
+      },
+      {
+        "path": "docs/validation/2026-11-09-cryptopro-windows-progress-diagnostic.json",
+        "previousSha256": null,
+        "sha256": "01a5d97f7b5f6825e7ed1fb19d68b82620faba9b568192b7f046f8f452a38d31"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "previousSha256": "81105100203d83538c52decd1016353e77bd2187d2ff46f20dbe9005f1b39f94",
+        "sha256": "b739d436080593c83f8b094180c89400c2ec7e4eb3d7f496a441d86bec8e9344"
       },
       {
         "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java",
@@ -1929,12 +1975,32 @@
       {
         "path": "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
         "previousSha256": "0bdd21365108fbc8196a17ff0df9701f4840e11a5d9051d1858e81f429568cde",
-        "sha256": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773"
+        "sha256": "71cfff7d751e25c883f1690589359f666ae244cf0e977255fecaf61bbe32701a"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "previousSha256": "3e1aa972cb5486db09eb3a6b1f662115ed442299693b3742bbc4a4297b1e90a1",
+        "sha256": "b0652f4d504115c96990eb665f118d0e73400bd7ee2ee1d98e42a1f583f95056"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "previousSha256": "537fd96f498926d12c265d5b7b9e5013b2585e43ab3018f1331e80c7e75a73ee",
+        "sha256": "905deb3359b688c1ec38dab3463a5f612dbd86455d3a1011cf558f8486d6af63"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "previousSha256": "9c7f7e965eb4622aca65790d474a20a65cd2b1cb5019a30e6074b29cf1e12bb1",
+        "sha256": "176cf4c02162026dc97e75d82679f95a95eb84e6f4ac3a2934345c9bd8a62a9d"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "previousSha256": "7b5f34bfcb462cb870d84d1ed295188434badbc08cc9535c6cab4ef4e84416cc",
+        "sha256": "67c1bd76424852de2b99a08fe6cd4a79a62677dc877e9ff3ff4219f76eb32049"
       },
       {
         "path": "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java",
         "previousSha256": null,
-        "sha256": "b679c7ade785334a9bae90427adf36e3ec1e342e8ef722310435e94030c3e343"
+        "sha256": "058984456ce57540120c070e889816f5276b24721f50619957e1bbecc637a48e"
       },
       {
         "path": "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateRoutingTest.java",
@@ -1964,13 +2030,104 @@
       {
         "path": "src/test/java/com/vncode/app/ui/znack/ZnackCertificateDiscoveryUiTest.java",
         "previousSha256": null,
-        "sha256": "fa7803c411adff91f331ac54080f1a788e3dee4e356e5ff42c4c7dea04631076"
+        "sha256": "41a9485f11818ccdc893d84161472e87cc30a3e81b5acbaeef447671485f1b21"
       }
     ],
     "supplementalManifest": {
       "path": "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
-      "sha256": "0f3237c0b29f990b00f976b15ef61650f0b9cbfda314cf391db491476a6385fa"
+      "sha256": "5eb6f458e4cb8d360ae4c363dae1f4c7f83c6e43ec0c2aa74206c98d6eb34fb8"
     },
-    "knownLiveDeviceAcceptance": "Not run; seller Windows/CryptoPro certificate/token not attached. Two actualWindowsPowerShell syntheticCOM/parser cases required in newCI, not realCryptoPro."
+    "knownLiveDeviceAcceptance": "Not run; seller Windows/CryptoPro certificate/token not attached. Two actualWindowsPowerShell syntheticCOM/parser cases required in newCI, not realCryptoPro.",
+    "firstCertificateAttempt": {
+      "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+      "runId": 42605121356,
+      "workflowId": 392732536,
+      "conclusion": "failure",
+      "phase": "early Windows preflight",
+      "java": {
+        "tests": 220,
+        "passed": 219,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "fullSuiteRan": false,
+      "installerBuilt": false,
+      "failedReceiptSha256": "688fe5ac068dfb8a87ca7d4c855fdb6558ba2a24e499fe1360fa2b41dd53c422",
+      "diagnosticRunId": 42606535850,
+      "diagnosticApplicationSource": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+      "diagnosticOutcome": "expected single failure REDcaptured, no releaseverification",
+      "diagnosticStderrBytes": 392,
+      "diagnosticStderrSha256": "a3639af5e23464fc391dae127fd5493f02c8178068a35866d9c7fdd35dcd623f",
+      "diagnosticClassification": "One CLIXML Progress record, Preparing modules for first use.; no errorrecords/certdata",
+      "correctionCommit": "2a5c335c14874bdea18094825c48477b825ba858",
+      "productionAndPackagingUnchanged": true,
+      "newUnfilteredFullWindowsRunRequired": true,
+      "correctionDeltaPaths": [
+        "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
+        "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "docs/validation/2026-11-09-cryptopro-windows-progress-diagnostic.json",
+        "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java"
+      ]
+    },
+    "cancelledPreGuardAttempt": {
+      "sourceCommit": "2a5c335c14874bdea18094825c48477b825ba858",
+      "runId": 42607033320,
+      "workflowId": 392732536,
+      "conclusion": "cancelled",
+      "preflightJava": {
+        "tests": 220,
+        "passed": 220,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "freshJvmNativeJava": {
+        "tests": 3,
+        "passed": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "fullSuiteStarted": true,
+      "fullSuiteAccepted": false,
+      "installerBuilt": false,
+      "earlierTestResultsReused": false,
+      "sourceProofSha256": "ef28606a62e94c8b3e7c334887562a11e9c994db52565c507bbc92cdd7c1e680",
+      "guardCorrectionCommit": "d0231cd6913ce3a1764067bad0901b32c535de41",
+      "guardDeltaPaths": [
+        "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
+        "docs/validation/2026-11-09-cryptopro-certificate-discovery.json",
+        "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "src/test/java/com/vncode/app/ui/znack/ZnackCertificateDiscoveryUiTest.java"
+      ],
+      "guardRuntimePaths": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_zh.properties"
+      ],
+      "freshUnfilteredFullWindowsRunRequired": true
+    },
+    "originalRuntimeRetention": {
+      "historicalCount": 109,
+      "currentByteIdenticalCount": 105,
+      "changedExistingPaths": [
+        "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_zh.properties"
+      ],
+      "existingLocaleKeysAndLinesPreserved": true,
+      "newGuardLocaleKeysPerFile": 3,
+      "additionalRuntimeInputs": 6
+    }
   }
 }
