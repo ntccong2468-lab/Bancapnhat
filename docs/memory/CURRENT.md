@@ -1,6 +1,14 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **09.11.2026, 09:08 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **09.11.2026, 11:13 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## VN Code 1.6.7 — Windows lần bốn lỗi native input, đang chẩn đoán nhanh
+
+- Người dùng vẫn yêu cầu **phát hành lên Latest**. Chưa công bố: Latest1.6.6/draft438471378 giữ nguyên. Nguồn app **210c01d4a0854a55333151f252a74308888279ad**, full Windows **42570802535** đã FAILED: **4.122 ca/544 lớp, 4.119 đạt, 1 failure, 0 error, 2 OS skip**, chưa đóng gói/native/upgrade. [Biên nhận lỗi lần bốn](../validation/2026-11-09-vncode-167-fourth-windows-failure.json). Không dùng run này để công bố; publisher vẫn chặn theo conclusion.
+- Dấu vết native Copy trước click: focus=true, parkingMoves=0; Robot mouse65.5/71.5 so parking66/71. Con trỏ đã đổi vị trí, nhưng counter chỉ đo root MOUSE_MOVED tại đúng tọa độ; chưa đủ để nói Scene không nhận bất kỳ sự kiện nào. Giả thuyết con trỏ đứng yên không giải thích đủ. Cần phân biệt desktop/session/idle, native capture/modal, event routing và AWT-before-FX/DPI.
+- Đã tạo workflow **Diagnose Windows native pointer delivery** trên nhánh publication, commit **aebb841**, chỉ chẩn đoán, không tạo release. Nó chạy native3 trước, graphics/toolkit-before-FX riêngJVM (cả mặc định và100% scale làm đối chiếu), toàn bộ121 lớpUI/FX737ca (~550s lượtfull trước), rồi native3 JVM mới dù nhóm trước lỗi. Các lượt chồng nhau không cộng thành nghiệm thu full app. Không sửa assertions hoặc production.
+- Helper chỉ quan sát method native: Scene/root MouseEvent.ANY, tọa độ/target, FX/Glass HWND/enabled/modal/scales, ảnh native vùng browser tổng hợp trướchide; IOasync/ngoài4sdeadline. Mặc định không khởi động AWT/FX sớm; warmup AWT là perturbation chẩn đoán có gắn nhãn. PowerShell chỉ đọc desktop/session/screensaver/idle/power/DPI/capture/foreground/physical cursor; không input injection, unlock/switch desktop, đổiOSpolicy hoặc app security; không ghi tên tài khoản/commandline/title.
+- Không chạy lại100phút khi chưa có chứng cứ mới. Sau fastprobe xác định/sửa đúng lỗi fixture/CI, tạo nguồn app mới từ210, chạy fresh full Windows và mọi native/install/upgrade gate; giữ cả4 lần lỗi. Runtime/POM/build vẫn giống026, đủ109runtime+POM. State/diagnostics ở `/workspace/vncode-167-release`.
 
 ## VN Code 1.6.7 — nguồn 210c01d, chạy Windows 42570802535
 
