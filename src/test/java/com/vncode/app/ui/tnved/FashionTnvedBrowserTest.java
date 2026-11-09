@@ -37,7 +37,9 @@ class FashionTnvedBrowserTest {
         var parkingMoves=new java.util.concurrent.atomic.AtomicInteger();var parking=new AtomicReference<javafx.geometry.Point2D>();
         String code=fx(()->{
             var browser=new FashionTnvedBrowser();browser.setOnSelect(selected::set);var scene=new Scene(browser,900,580);
-            com.vncode.app.shared.ThemeService.applyTheme(scene);stage[0]=new javafx.stage.Stage();stage[0].setScene(scene);stage[0].show();stage[0].toFront();stage[0].requestFocus();browser.applyCss();browser.layout();
+            com.vncode.app.shared.ThemeService.applyTheme(scene);stage[0]=new javafx.stage.Stage();stage[0].setScene(scene);
+            stage[0].setAlwaysOnTop(true); // Keep this native fixture above CI runner/observer consoles.
+            stage[0].show();stage[0].toFront();stage[0].requestFocus();browser.applyCss();browser.layout();
             @SuppressWarnings("unchecked")var list=(ListView<Entry>)browser.lookup("#tnvedReferenceRows");return list.getItems().getFirst().code();
         });
         try{
