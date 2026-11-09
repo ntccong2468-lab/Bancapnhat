@@ -196,6 +196,7 @@ class CryptoProCertificateDiscoveryServiceTest {
         String first = Base64.getEncoder().encodeToString(certificate(1));
         String last = Base64.getEncoder().encodeToString(certificate(2));
         String fixture = """
+                $ProgressPreference = 'SilentlyContinue'
                 $script:fixtureCalls = 0
                 function Fixture-Certificate([string]$thumbprint, [string]$encoded, [bool]$broken) {
                   $item = [pscustomobject]@{ Thumbprint = $thumbprint; Encoded = $encoded; Broken = $broken }

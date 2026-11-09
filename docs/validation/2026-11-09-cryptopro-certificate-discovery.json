@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "CERTIFICATE_DISCOVERY_SOURCE_MANIFEST",
-  "recordedAtUtc": "2026-11-09T10:57:24.531248+00:00",
+  "recordedAtUtc": "2026-11-09T11:11:23.705410+00:00",
   "baseSourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
   "version": "1.6.7",
   "publicationStatus": "not-published; new fullWindowsinstaller verification required",
@@ -181,18 +181,53 @@
   "inputs": {
     ".github/workflows/publish-vncode-baseline.yml": "b55b752cd3b29fc4f67811892f607a925fc7d882c97304a365bf5e14c1713aed",
     "docs/releases/VN-code-1.6.7.md": "0cc303177a5d4446d28e39f77cb8f19a0a7eb3e7de681eeb304bd43017c7377f",
-    "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md": "851e92d84a2dd132ca22bcbf73415ca62c1ba92daeb8dc6155a4b677669436a5",
+    "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md": "cfac1ac76bb16e26ec9e20ac84588b85c91297d4499c910f5a384732dafa0e6c",
+    "docs/validation/2026-11-09-cryptopro-windows-progress-diagnostic.json": "01a5d97f7b5f6825e7ed1fb19d68b82620faba9b568192b7f046f8f452a38d31",
     "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java": "6fea9f65e8d2af2fb1ddb47dec7f415f3a786ec49530f86d84f2ecbe956fe913",
     "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da",
     "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
     "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java": "fa4f50b40536f1e79a7de258e4be0ce58784504291be981785759683b5e810e1",
     "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773",
-    "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java": "b679c7ade785334a9bae90427adf36e3ec1e342e8ef722310435e94030c3e343",
+    "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java": "058984456ce57540120c070e889816f5276b24721f50619957e1bbecc637a48e",
     "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateRoutingTest.java": "7179a0c3b158bfab80f0343ab3818263f93f3f88e906bd9b2f2d6a88fc9de1c0",
     "src/test/java/com/vncode/app/ui/DarkReferenceScreensTest.java": "6d930601e5e49828bbcee2d12a44cfff0da12c443bb66a42a0f5c498dc93c3ba",
     "src/test/java/com/vncode/app/ui/workspace/ApprovedWorkspaceAcceptanceTest.java": "7421b7c88434340699e30a7531f5d7f961758d23a872104ca8d6c1d2cda2f455",
     "src/test/java/com/vncode/app/ui/znack/CertificateDiscoveryFixture.java": "a7ed5adfb1dead1e2788bcc5d90566a19c52d180951da71f3adcfc6d57f3dbf4",
     "src/test/java/com/vncode/app/ui/znack/ZnackAutomationControllerTest.java": "ef8d7bfff0f9feb73bd3d497a3b34f499d92a87f52f3b17d1bf3dfe0be0d053d",
     "src/test/java/com/vncode/app/ui/znack/ZnackCertificateDiscoveryUiTest.java": "fa7803c411adff91f331ac54080f1a788e3dee4e356e5ff42c4c7dea04631076"
+  },
+  "windowsFixtureCorrection": {
+    "predecessorSourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "failedEarlyWindowsRun": 42605121356,
+    "failedEarlyWindowsJava": {
+      "tests": 220,
+      "passed": 219,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0
+    },
+    "fullSuiteRanOnFailedAttempt": false,
+    "diagnosticRun": 42606535850,
+    "diagnosticReceipt": "docs/validation/2026-11-09-cryptopro-windows-progress-diagnostic.json",
+    "diagnosticReceiptSha256": "01a5d97f7b5f6825e7ed1fb19d68b82620faba9b568192b7f046f8f452a38d31",
+    "diagnosticStderrSha256": "a3639af5e23464fc391dae127fd5493f02c8178068a35866d9c7fdd35dcd623f",
+    "stderrClassification": "One CLIXML Progress record: Preparing modules for first use.; no Errorrecords/certdata.",
+    "testDelta": "Only one ProgressPreference line in synthetic fixture before Add-Member; all assertions and production unchanged.",
+    "newTestSha256": "058984456ce57540120c070e889816f5276b24721f50619957e1bbecc637a48e",
+    "targetedLinuxAfterCorrection": {
+      "command": "/workspace/toolchains/mvn-vncode -Dtest=CryptoProCertificateDiscoveryServiceTest test",
+      "totals": {
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSha256": "75c0d16e56f134fa5edac84cbe275e85fb647b83db9c2b8bea34eba019d297ae",
+      "logSha256": "938ad00de89a23d8067aa08312de40387b9a5a792ec35fbc3c92a051a9245e3b",
+      "actualWindowsBranchRun": false
+    },
+    "earlier192TestsAndPackageApplyToUnchangedRuntimeOnly": true,
+    "freshFullWindowsRequired": true,
+    "doNotSumOverlappingTests": true
   }
 }
