@@ -11,6 +11,7 @@ import com.vncode.app.integration.znack.signature.CryptoProException;
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.FxmlViewLoader;
 import com.vncode.app.shared.I18nService;
+import com.vncode.app.shared.AppTaskExecutor;
 import com.vncode.app.testsupport.ShopReadTestCleanup;
 import javafx.application.Platform;
 import javafx.event.Event;
@@ -19,6 +20,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ComboBoxBase;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.concurrent.Task;
+import javafx.concurrent.Worker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,13 +30,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
+import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -73,6 +81,8 @@ class ZnackCertificateDiscoveryUiTest {
             loader=FxmlViewLoader.loader(ZnackAutomationController.class,"znack-automation-view.fxml");
             FxmlViewLoader.load(loader);controller=loader.getController();
             controller.certificateReader(settings -> { throw new AssertionError("Fixture must supply discovery"); });
+            controller.signerChangeConfirmation(() -> { throw new AssertionError("Fixture must supply signer-change confirmation"); });
+            controller.signatureTaskSubmitter((task,rejected) -> { throw new AssertionError("Fixture must not execute real certificate signing"); });
             controller.setShop(new Shop(1,"Certificate fixture","fixture"));
             return null;
         });
@@ -273,6 +283,122 @@ class ZnackCertificateDiscoveryUiTest {
             assertEquals(OLD,certificates().getValue().selector());
             assertFalse(node("testSignatureButton",Button.class).isDisabled());
             assertEquals(saved,repository.getSettings());return null;
+        });
+    }
+
+    @Test void cancellingSignerChangeStartsNoSigningTaskAndKeepsStoredData() throws Exception {
+        prepareRenewalSelection();
+        var confirmations=new AtomicInteger();
+        fx(() -> {
+            controller.certificateReader(settings -> { throw new AssertionError("Confirmation cannot read a certificate store"); });
+            controller.signerChangeConfirmation(() -> { confirmations.incrementAndGet();return false; });
+            assertEquals(0,AppTaskExecutor.getRunningTaskCount());
+            node("testSignatureButton",Button.class).fire();
+            assertEquals(1,confirmations.get());
+            assertEquals(0,AppTaskExecutor.getRunningTaskCount());
+            assertFalse(node("testSignatureButton",Button.class).isDisabled());
+            assertEquals(saved,repository.getSettings());assertTrue(repository.findLogs().isEmpty());
+            return null;
+        });
+    }
+
+    @Test void confirmedUnchangedSignerChangeOnlyPreparesTheOriginalVerificationTask() throws Exception {
+        prepareRenewalSelection();
+        var confirmations=new AtomicInteger();var submitted=new AtomicReference<Task<?>>();
+        fx(() -> {
+            controller.signerChangeConfirmation(() -> { confirmations.incrementAndGet();return true; });
+            controller.signatureTaskSubmitter((task,rejected) -> submitted.set(task));
+            node("testSignatureButton",Button.class).fire();
+            assertEquals(1,confirmations.get());assertNotNull(submitted.get());
+            assertEquals(Worker.State.READY,submitted.get().getState(),"Fixture captures continuation without running CryptoPro or HTTP");
+            assertTrue(node("testSignatureButton",Button.class).isDisabled());
+            assertEquals(saved,repository.getSettings());assertTrue(repository.findLogs().isEmpty());
+            return null;
+        });
+    }
+
+    @Test void sameStoredFingerprintWithDifferentFormattingDoesNotRequestSignerChangeConfirmation() throws Exception {
+        prepareRenewalSelection();
+        var submitted=new AtomicReference<Task<?>>();
+        fx(() -> {
+            certificates().setValue(certificate(" a ".repeat(40)));
+            controller.signerChangeConfirmation(() -> { throw new AssertionError("Same stored fingerprint cannot reset Catalog ownership"); });
+            controller.signatureTaskSubmitter((task,rejected) -> submitted.set(task));
+            node("testSignatureButton",Button.class).fire();
+            assertNotNull(submitted.get());assertEquals(Worker.State.READY,submitted.get().getState());
+            assertEquals(saved,repository.getSettings());return null;
+        });
+    }
+
+    @Test void shopChangeDuringConfirmationCannotStartVerificationForThePreviousShop() throws Exception {
+        prepareRenewalSelection();
+        fx(() -> {
+            controller.signerChangeConfirmation(() -> { controller.setShop(null);return true; });
+            node("testSignatureButton",Button.class).fire();
+            assertEquals(saved,repository.getSettings());assertTrue(repository.findLogs().isEmpty());return null;
+        });
+    }
+
+    @Test void selectionChangeDuringConfirmationCannotVerifyThePreviouslySelectedCertificate() throws Exception {
+        prepareRenewalSelection();
+        fx(() -> {
+            controller.signerChangeConfirmation(() -> { certificates().setValue(certificate(OLD));return true; });
+            node("testSignatureButton",Button.class).fire();
+            assertEquals(OLD,certificates().getValue().selector());
+            assertFalse(node("testSignatureButton",Button.class).isDisabled());
+            assertEquals(saved,repository.getSettings());assertTrue(repository.findLogs().isEmpty());return null;
+        });
+    }
+
+    @Test void draftSettingsChangeDuringConfirmationCannotStartVerificationFromTheOldSnapshot() throws Exception {
+        prepareRenewalSelection();
+        fx(() -> {
+            controller.signerChangeConfirmation(() -> { node("omsConnectionField",TextField.class).setText("synthetic-new-draft");return true; });
+            node("testSignatureButton",Button.class).fire();
+            assertFalse(node("testSignatureButton",Button.class).isDisabled());
+            assertEquals(saved,repository.getSettings());assertTrue(repository.findLogs().isEmpty());return null;
+        });
+    }
+
+    @Test void persistedSettingsChangeDuringConfirmationCannotBeOverwrittenByTheOldSnapshot() throws Exception {
+        prepareRenewalSelection();
+        fx(() -> {
+            controller.signerChangeConfirmation(() -> {
+                try(var c=Database.getConnection();var s=c.createStatement()) {
+                    s.execute("UPDATE znack_settings SET oms_connection='synthetic-concurrent' WHERE shop_id=1");
+                } catch(Exception failure) { throw new AssertionError(failure); }
+                return true;
+            });
+            node("testSignatureButton",Button.class).fire();
+            assertEquals("synthetic-concurrent",repository.getSettings().omsConnection());
+            assertEquals(OLD,repository.getSettings().signerCertificate());
+            assertTrue(repository.findLogs().isEmpty());return null;
+        });
+    }
+
+    @Test void signerChangeWarningExistsInEveryLocaleAndNamesTheAffectedLocalData() throws Exception {
+        for(String locale:List.of("vi","en","ru","zh")) {
+            var properties=new Properties();
+            try(var input=getClass().getResourceAsStream("/com/vncode/app/i18n/messages_"+locale+".properties")) {
+                assertNotNull(input);properties.load(new InputStreamReader(input,StandardCharsets.UTF_8));
+            }
+            for(String key:List.of("title","header","body"))
+                assertFalse(properties.getProperty("znack.signature.change."+key,"").isBlank(),locale+" "+key);
+            String body=properties.getProperty("znack.signature.change.body");
+            var affectedFields=locale.equals("ru")?List.of("GTIN","КИЗ","Каталога","API","Znack"):List.of("GTIN","KIZ","Catalog","API","Znack");
+            for(String affected:affectedFields)assertTrue(body.contains(affected),locale+" "+affected);
+        }
+    }
+
+    private void prepareRenewalSelection() throws Exception {
+        fx(() -> {
+            controller.certificateReader(settings -> List.of(certificate(OLD),certificate(RENEWED)));
+            node("editSettingsButton",Button.class).fire();return null;
+        });
+        ShopReadTestCleanup.awaitSharedIdle();
+        fx(() -> {
+            certificates().setValue(certificates().getItems().stream().filter(c -> RENEWED.equals(c.selector())).findFirst().orElseThrow());
+            assertFalse(node("testSignatureButton",Button.class).isDisabled());return null;
         });
     }
 
