@@ -68,6 +68,10 @@ jobs:
         run: |
           .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,OzonLabelServiceTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest,FashionTnvedBrowserTest,ZnackCardRegistrationControllerTest' test
           if($LASTEXITCODE -ne 0){throw 'Windows fixture preflight failed.'}
+          # A fresh JavaFX process inherits the desktop pointer left by preflight.
+          # Exercise that boundary before starting the long, unfiltered full suite.
+          .\mvnw.cmd -B '-Dtest=FashionTnvedBrowserTest' test
+          if($LASTEXITCODE -ne 0){throw 'Repeated native pointer preflight failed.'}
       - name: Verify whole Java application and package
         shell: pwsh
         env:
