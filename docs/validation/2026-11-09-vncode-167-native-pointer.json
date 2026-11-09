@@ -1,0 +1,83 @@
+{
+  "recordedAtUtc": "2026-11-09T06:02:07.780372+00:00",
+  "kind": "Native pointer fixture verification, not production or Windows acceptance",
+  "baseApplicationSource": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
+  "observedCheckoutHead": "27487e387b79f37c59585e195c1716cb7b7abc9f",
+  "fixturePath": "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+  "fixtureSha256": "30b1c0b70866d10b149d216fa4221556d291be70acab7ec478eb2f3d090a61a9",
+  "failedWindowsRun": 42525209391,
+  "failedWindowsFixtureReportSha256": "e606697640450269454db4d2c0c4b6074f4fd3493702fdf46f5837e59e72c961",
+  "confirmedFailure": "At pre-click hover wait: focused=true,hover=false,presses=0,actions=0,status empty. Copy handler was not exercised.",
+  "rootCauseStatus": "Hypothesis, not exact Windows reproduction: native pointer may already remain at button coordinate across preflight/full JVMs, so same-coordinate Robot move may deliver no enter/move to fresh Scene. Initial VirtualFlow target bounds/cell can also become stale; old Windows report did not capture pointer/bounds.",
+  "fix": "Force distinct native parking point inside same Scene; await matching MOUSE_MOVED delivery before re-finding/re-measuring live copy button and moving into it. Then perform one real Robot click.",
+  "productionChanges": false,
+  "assertionsRemoved": false,
+  "timeoutIncreased": false,
+  "nativeClickCount": 1,
+  "sharedGestureDeadlineSeconds": 4,
+  "syntheticMouseEventsOrButtonFire": false,
+  "assertions": [
+    "native parking MOUSE_MOVED received",
+    "live button belongs to current Scene",
+    "button width>=36 and enabled",
+    "focused and hovered before click",
+    "exactly one native press and action",
+    "clipboard changed from before-copy to selected code",
+    "status contains code",
+    "picker remains open",
+    "Apply callback remains untouched"
+  ],
+  "standalone": {
+    "result": "PASS",
+    "attempts": 6,
+    "javaProcesses": 2,
+    "sameXvfbDisplay": true,
+    "attemptsPerProcess": 3,
+    "cursorPositionRetainedAcrossProcesses": "Point2D [x = 516.0, y = 352.0]",
+    "testMethod": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+    "compiledOutsideTarget": true,
+    "platform": "Linux/Xvfb/JDK25.0.4.1/JavaFX25.0.2",
+    "windowsRootCauseProven": false,
+    "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH /workspace/toolchains/xvfb-current/root/usr/bin/xvfb-run -a -s '-screen 0 1600x1000x24' /tmp/vncode-native-mouse-20261109/run-two-processes.sh /workspace/toolchains/jdk-25.0.4.1/bin/java \"/tmp/vncode-native-mouse-20261109:$(cat /tmp/vncode-native-mouse-20261109/classpath.txt)\" /tmp/vncode-native-mouse-20261109"
+  },
+  "mavenTargeted": {
+    "result": "PASS",
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "totalSeconds": 19.03,
+    "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -Dtest=FashionTnvedBrowserTest test",
+    "scope": "Linux/Xvfb targeted JUnit only; overlaps native method in standalone attempts; do not add as9 unique cases"
+  },
+  "independentReview": "Read-only hover_review: no concrete defect, no weakened assertion, preserved4s/singleclick and no production change. Windows rerun still needed.",
+  "files": {
+    "maven-targeted.log": {
+      "bytes": 7634,
+      "sha256": "c0a89f6795b4d75c1e438c4e6581cea5fba8efaacda08a068ffa890dc4387405"
+    },
+    "run-two-processes.sh": {
+      "bytes": 193,
+      "sha256": "6e1c3402168a20c7f44722aafe865cc50c8f3f230a4f1a93f312c30130355828"
+    },
+    "TnvedDistinctMoveProbe.java": {
+      "bytes": 751,
+      "sha256": "0e47945473ca557c04fe6df2a97ab5f52232246667a9345eb5d23f7a55e5dcde"
+    },
+    "first-jvm.log": {
+      "bytes": 9570,
+      "sha256": "696c9d8d1bb04483155f556a207e29da26123df60c4303d5b2aa13bd49bfc072"
+    },
+    "second-jvm.log": {
+      "bytes": 9727,
+      "sha256": "c8dae497fc958be9b5da748f699ebfa4c2023f54121ba478be78d047f4533857"
+    },
+    "classpath.txt": {
+      "bytes": 7356,
+      "sha256": "cc7a04337afb580757e6e37978c8cb015c70deb4d626ede7e062f678d995adfc"
+    }
+  },
+  "sellerApiWrites": false,
+  "licenseActivation": false,
+  "windowsAcceptancePending": true
+}

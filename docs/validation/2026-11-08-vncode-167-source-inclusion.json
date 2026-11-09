@@ -2,14 +2,14 @@
   "schemaVersion": 1,
   "kind": "RELEASE_SOURCE_INCLUSION",
   "version": "1.6.7",
-  "recordedAtUtc": "2026-11-08T21:29:14.346973+00:00",
-  "sourceCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
-  "sourceTree": "95e87c03659b0dba9be807a710f409d73bd8e2c7",
+  "recordedAtUtc": "2026-11-09T06:06:08.524829+00:00",
+  "sourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+  "sourceTree": "468a8290fec06ee9af94a3fae47cbd7b7f61f3c2",
   "releaseBranch": "release/vn-code-1.6.7",
-  "observedHead": "7ae2abab81a6be90040cc0f3b73f40b89800fdbc",
+  "observedHead": "a13a147432a81e1202a61283df938f5789acdd19",
   "observedBranch": "release/vn-code-1.6.7-publication",
   "observedHeadMatchesPinnedSource": false,
-  "fullWindowsBuildRunId": "42525209391",
+  "fullWindowsBuildRunId": 42570802535,
   "buildStatusNotAssessedByThisReceipt": true,
   "previousRelease": {
     "version": "1.6.6",
@@ -1479,14 +1479,198 @@
     "freshFullWindowsBuildRunId": 42525209391,
     "earlierTestResultsReused": false,
     "originalFailuresPreserved": true,
-    "recoveryOrSkipGateAdded": false
+    "recoveryOrSkipGateAdded": false,
+    "freshFullWindowsBuildOutcome": "full-java-failed-before-packaging; retained in thirdAttemptProvenance"
   },
   "finalFreshWindowsBuild": {
-    "sourceCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
-    "runId": 42525209391,
-    "startedAtUtc": "2026-11-08T21:26:26Z",
+    "sourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "runId": 42570802535,
+    "startedAtUtc": "2026-11-09T06:03:44Z",
     "required": "Fresh clean verify, native, install/uninstall and baseline upgrade; successful complete artifact required before publication.",
     "status": "not-assessed-by-this-source-receipt",
     "reusedOrReconciledTestResults": false
+  },
+  "thirdAttemptProvenance": {
+    "sourceCommit": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
+    "fullWindowsBuildRunId": 42525209391,
+    "result": "full-java-failed-before-packaging",
+    "originalJava": {
+      "tests": 4122,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 2
+    },
+    "originalPassedCases": 4119,
+    "originalSuites": 544,
+    "failureCases": [
+      {
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "test": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "kind": "failure",
+        "message": "Copy delivery: focused=true, hover=false, presses=0, actions=0, status= ==> expected: <true> but was: <false>",
+        "detail": "org.opentest4j.AssertionFailedError: Copy delivery: focused=true, hover=false, presses=0, actions=0, status= ==> expected: <true> but was: <false>\n\tat org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)\n\tat org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)\n\tat org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)\n\tat org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)\n\tat org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)\n\tat com.vncode.app.ui.tnved.FashionTnvedBrowserTest.awaitFx(FashionTnvedBrowserTest.java:20)\n\tat com.vncode.app.ui.tnved.FashionTnvedBrowserTest.actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker(FashionTnvedBrowserTest.java:47)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n"
+      }
+    ],
+    "originalSourceInclusionReceipt": {
+      "path": "source-inclusion-third-attempt.json",
+      "sha256": "abb7420a12ecd075eb1d130a366e8ff607f63f843d42e4e7171aabbbd66a333a"
+    },
+    "originalPackageVerifier": {
+      "path": "verify_package-third-attempt.py",
+      "sha256": "191ce1b9458935c2bdf7212f18a9245f61f43e51ca838c3328324bb94c497b91"
+    },
+    "failedReceipt": {
+      "path": "third-windows-failure-summary.json",
+      "sha256": "09f142e2eab75bee23cb73b07d2c6c9fcc77c0156dbdf140548120eeb554d02d"
+    },
+    "testOnlyCorrectionCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "changedPaths": [
+      {
+        "path": ".github/workflows/publish-vncode-baseline.yml",
+        "previousSha256": "3ec073ca3d8e635b6104538442b1572d1a2ecc1e18f43aa74a21a574fef33b76",
+        "sha256": "d1f07d16a906fc1d1327ecd3c10c39f490d784d7b79454b721c706567dc71f99"
+      },
+      {
+        "path": "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+        "previousSha256": "3a3b0e1badae494838fb58a7fe40a82dc208bc605cd3a86e1fafdd547867d194",
+        "sha256": "30b1c0b70866d10b149d216fa4221556d291be70acab7ec478eb2f3d090a61a9"
+      }
+    ],
+    "productionAndPackagingInputsUnchanged": [
+      {
+        "path": "src/main",
+        "previousGitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "gitObject": "6391b819a197b1008dcb18079cb4d67e273bda01",
+        "unchanged": true
+      },
+      {
+        "path": "pom.xml",
+        "previousGitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "gitObject": "935acfebc8a296b63b0dfcdd42aab689349a4ac7",
+        "unchanged": true
+      },
+      {
+        "path": "build.bat",
+        "previousGitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "gitObject": "49ec97fc18599388110ab430ede46da6badd007d",
+        "unchanged": true
+      },
+      {
+        "path": "build.sh",
+        "previousGitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "gitObject": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+        "unchanged": true
+      },
+      {
+        "path": ".mvn",
+        "previousGitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "gitObject": "fd93f81a5ac1d5a12afe17a2bc6f8584ac58bacd",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw",
+        "previousGitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "gitObject": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+        "unchanged": true
+      },
+      {
+        "path": "mvnw.cmd",
+        "previousGitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "gitObject": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+        "unchanged": true
+      }
+    ],
+    "cause": "Windows confirms focus=true but hover=false and no press/action before click. A stationary OS pointer retained from the preflight JVM is a strong hypothesis; the original Windows pointer/bounds were not captured, so exact root cause is not claimed proven.",
+    "correction": "Observe a distinct real native move inside the new Scene, then find/measure the live Copy button and move into it before exactly one real click; retain all clipboard/status/open-window/no-Apply and press/action assertions and the same total4second deadline.",
+    "nativePointerEvidence": {
+      "path": "native-pointer-provenance/verification.json",
+      "sha256": "18a2216d5acfc5dfb4b3810c968697b5b057021bd7323ff3ceea9806053d3fdc",
+      "scope": "Linux/Xvfb real native input:6 successful attempts over2 fresh JVMs on one display with retained pointer; targeted Maven3 cases. These overlap the184-case group and are not summed; not Windows root-cause reproduction."
+    },
+    "groupedRegression": {
+      "platform": "Linux/Xvfb",
+      "classes": {
+        "com.vncode.app.integration.ozon.OzonLabelServiceTest": {
+          "tests": 52,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "4244ac43f88becb63ff22b48cba8415a14fe344570117a4dd1d748b6bd5562f3"
+        },
+        "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest": {
+          "tests": 9,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "d7a16cb41e26b4893bda12ac4b5bea3083e67b1af5e4634fb719679ee48d7477"
+        },
+        "com.vncode.app.shared.MavenWrapperIntegrityTest": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "cd492ec89f3e18e634ab5bb688f7572d4ae669e1e5e49b734b3ea45eb48bef85"
+        },
+        "com.vncode.app.ui.FxmlSmokeTest": {
+          "tests": 58,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "d44e175849bf253b7e4a0abcdc913aa838253756881bcbfcb1876769dd76be78"
+        },
+        "com.vncode.app.ui.tnved.FashionTnvedBrowserTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "c8b069eb1965d006b4e074df1583bc4d59928955d9156d2630733208458bd778"
+        },
+        "com.vncode.app.ui.workspace.WorkspaceChromeUiTest": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "1faeda325967e68619feb2a7448f7135bf90e1564f31fb873fb8b1373cbd60c0"
+        },
+        "com.vncode.app.ui.znackregistration.FlowAuditDiagnosticsTest": {
+          "tests": 4,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "f0b5f00c3e81319e2ecbb53e1612cc926955df19e2427758a37f212967daf272"
+        },
+        "com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest": {
+          "tests": 13,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "77a9410d931bff88536bb0fe58d4669350dd71c59ec0aacf509fd371de7022d5"
+        },
+        "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest": {
+          "tests": 40,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "reportSha256": "35d2ce0686da03ccdb958f8e388b08e858a1ec4a7e503d9487ab0e786eb8efa6"
+        }
+      },
+      "totals": {
+        "tests": 184,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "log": "native-mouse-grouped-20261109.log",
+      "logSha256": "600a1e57667c7dbd5849165544f17258b372e05166174933ae1868f5d0fdc653",
+      "windowsVerificationClaimed": false
+    },
+    "workflowAddsSecondFreshJvmNativePreflight": true,
+    "existing164PreflightAndUnfilteredCleanVerifyKept": true,
+    "freshFullWindowsSourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "freshFullWindowsBuildRunId": 42570802535,
+    "freshFullWindowsSuiteRerunRequired": true,
+    "earlierTestResultsReused": false,
+    "originalFailuresPreserved": true,
+    "recoveryOrSkipGateAdded": false
   }
 }

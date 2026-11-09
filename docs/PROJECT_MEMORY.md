@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 09.11.2026 MSK — 1.6.7 chạy Windows lần bốn, không bỏ gate
+
+Người dùng tiếp tục yêu cầu lên Latest. Run42525209391/sourcec9 thất bại duy nhất native hover trước click (4122ca/4119pass/1failure/2OSskip;3stress10kpass), chưa có bộ cài. Nguồn mới **210c01d**, Windows **42570802535**: chỉ test+workflow, giữ runtime/POM/wrapper/build byte-identical. Quan sát native parking event thật rồi live button/oneclick, giữ4s/allassertions; preflight thêm JVM thứ hai, vẫn đủ164 và unfiltered clean verify/native/upgrade. Linux6attempts/2JVM và nhóm184 đạt, không cộng chồng hoặc giả Windows nghiệm thu. Stationary-pointer Windows là giả thuyết, không có original pointer capture. [Third failure](validation/2026-11-09-vncode-167-third-windows-failure.json), [native evidence](validation/2026-11-09-vncode-167-native-pointer.json), [inclusion](validation/2026-11-08-vncode-167-source-inclusion.json). Publisher/helper/draft438471378 repin nguồn/run mới; giữ cả3 lỗi cũ và read-only security026/same8/JavaFAIL. Chưa Publish. Kinh nghiệm: native input test phải quan sát delivery tại vị trí khác trước click; không coi Robot API return hoặc focus là event delivery, không tăng timeout/skip để che lỗi.
+
 ## 09.11.2026 MSK — 1.6.7 chốt c9c7b36, Windows chạy lại đầy đủ
 
 Nguồn app c9c7b36, run42525209391 thay968/run42523983786 đã lỗi164ca. Đã chứng minh driver chọn nhầm OK thông báo cũ; chỉ sửa fixture nhận đúng cửa sổ mới/header/body và giữ toàn bộ consent/REPLACE/assertions. Nhóm184/184 đạt, production/POM giống026, không hạ gate hoặc reuse. Draft438471378 targetc9/tagv167/assets0 đã xác nhận; module/helper/inclusion repin, Node165/actionlint đạt. Chưa công bố, tiếp tục fresh full Windows và toàn bộ kiểm bộ cài. CURRENT có pin và trạng thái đầy đủ.

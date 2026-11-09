@@ -1,6 +1,16 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **09.11.2026, 00:30 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+Cập nhật: **09.11.2026, 09:08 MSK (UTC+03:00)**. Đối chiếu Git/PR/Latest trước khi tiếp tục. [Chỉ mục bộ nhớ](README.md).
+
+## VN Code 1.6.7 — nguồn 210c01d, chạy Windows 42570802535
+
+- Người dùng tiếp tục yêu cầu **phát hành lên Latest**. Latest đọc thật vẫn 1.6.6; draft 438471378 vẫn chưa công bố/0 asset, đã PATCH đồng thời tag v1.6.7 và target **210c01d4a0854a55333151f252a74308888279ad**. Appbranch `release/vn-code-1.6.7`; tooling ở `release/vn-code-1.6.7-publication` pin run **42570802535**, workflow392732536, baseline1.6.6.
+- Run trước **42525209391/c9c7b36** đã FAILED: **4.122 ca/544 lớp, 4.119 đạt, 1 failure, 0 error, 2 OS skip**; cả ba stress10k đạt, chưa đóng gói/native/upgrade. [Lỗi lần ba](../validation/2026-11-09-vncode-167-third-windows-failure.json). Dấu vết xác nhận lỗi trước click: focus=true/hover=false/0 press/action. Con trỏ còn ở tọa độ cũ qua JVM là giả thuyết mạnh; chưa capture pointer/bounds cũ trên Windows, không gọi đã chứng minh nguyên nhân Windows.
+- Sửa duy nhất fixture: quan sát một native MOUSE_MOVED thật tại vị trí khác trong Scene, tìm/đo lại nút rồi một real Robot click; giữ đủ assertion clipboard/status/press/action/window/no-Apply và tổng hạn4s. Thêm một lần FashionTnvedBrowserTest trong JVM Windows mới sau164 preflight để bắt ranh giới này sớm; **unfiltered clean verify và mọi native/upgrade gate giữ nguyên**. Source210 chỉ đổi test+workflow so c9; production/POM/build/wrapper giống byte.
+- [Native pointer](../validation/2026-11-09-vncode-167-native-pointer.json): 6/6 lần native input qua2JVM cùng Xvfb có con trỏ giữ nguyên, Maven mục tiêu3/3; nhóm kết hợp **184/184 đạt**. Các nhóm giao nhau, không cộng số ca; đây chưa phải Windows/package PASS. [Inclusion](../validation/2026-11-08-vncode-167-source-inclusion.json) vẫn đủ109 runtime+POM/2.984 source files và đủ bốn commit nghiệp vụ. Helper ngoàiGit đã thêm thirdAttempt provenance, giữ lỗi cũ và không reuse/recovery/skip.
+- [Security provenance](../validation/2026-11-08-vncode-167-security-provenance.json): scan thật vẫn026/run42515488357, cùng8 finding cũ/Java gateFAIL; 15 Git object runtime/security/portal giống nguồn210, không claim CodeQL mới. Không seller API mutation/mua/ký/license activation/Gmail trong lượt phát hành.
+- Node tooling **165/165 đạt**, actionlint toàn workflow đạt (không ShellCheck/Pyflakes). Windows nguồn210 đã qua **164 preflight + 3 ca trong JVM mới**; full clean verify đang chạy. [Review publisher/helper độc lập](../validation/2026-11-09-vncode-167-publisher-review.json) giữ mọi gate, không claim artifact/package đã đạt.
+- **Chưa phát hành.** Đợi Windows42570802535 và complete-baseline16files đạt; helper sẽ tải/kiểm sau success, rồi review độc lập/publish owner-requested-167/kiểm16publicbytes/giữold16releases258assets45tags/updaterbinary166→167. Cập nhật bàn giao và push sau receipt thật. State/helper ở `/workspace/vncode-167-release`, monitor44498. Những pin c9/968/026 bên dưới là lịch sử đã lỗi, không dùng để công bố.
 
 ## VN Code 1.6.7 — nguồn chốt c9c7b36, chờ Windows 42525209391
 

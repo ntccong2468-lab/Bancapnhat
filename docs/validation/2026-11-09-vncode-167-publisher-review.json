@@ -1,0 +1,102 @@
+{
+  "kind": "FOURTH_ATTEMPT_SOURCE_ONLY_PUBLISHER_REVIEW",
+  "reviewedAtUtc": "2026-11-09T06:09:55.249604+00:00",
+  "publicationCheckoutHeadAtReview": "a13a147432a81e1202a61283df938f5789acdd19",
+  "publisherWorkingTreeModified": true,
+  "publisherFileSha256": "41630f7dc0520b36d635bed921ba1162878f76fd48c7163a1092fce8017fd518",
+  "candidate": {
+    "version": "1.6.7",
+    "applicationSourceCommit": "210c01d4a0854a55333151f252a74308888279ad",
+    "buildRunId": 42570802535,
+    "workflowId": 392732536,
+    "baselineVersion": "1.6.6",
+    "draftReleaseId": 438471378
+  },
+  "normalized166PublisherComparison": {
+    "result": "PASS",
+    "onlyReplacements": [
+      {
+        "before": "version:'1.6.6'",
+        "after": "version:'1.6.7'"
+      },
+      {
+        "before": "source:'ac8ba1c939e22d0318877a3a2ba7242359cce78e'",
+        "after": "source:'210c01d4a0854a55333151f252a74308888279ad'"
+      },
+      {
+        "before": "build:42408546769",
+        "after": "build:42570802535"
+      },
+      {
+        "before": "baseline:'1.6.5'",
+        "after": "baseline:'1.6.6'"
+      },
+      {
+        "before": "releaseId:437862752",
+        "after": "releaseId:438471378"
+      },
+      {
+        "before": "vncode-166-release-",
+        "after": "vncode-167-release-"
+      },
+      {
+        "before": "publication-1.6.6.json",
+        "after": "publication-1.6.7.json"
+      }
+    ],
+    "inheritedGatesUnchanged": true
+  },
+  "publisherTestsOnlyImportAndTempPrefixChanged": true,
+  "baselineWorkflowReview": "Added a second fresh Maven JVM FashionTnvedBrowserTest preflight. Original 164-case selection, unfiltered clean verify, native, migration, data protection, install/uninstall and upgrade gates remain.",
+  "nativePointerFixtureReview": {
+    "result": "no material finding in reviewed diff",
+    "oneRealClickRetained": true,
+    "pressActionClipboardStatusDialogAndNoApplyAssertionsRetained": true,
+    "sameFourSecondTotalBudget": true,
+    "logicalCoordinateUseConsistentWithJavaFxRobot": true,
+    "parkingMovementObservedByRootCaptureFilter": true,
+    "targetRemeasuredAfterParkingEvent": true,
+    "staleNodeAndPointerDiagnosticsAdded": true,
+    "originalWindowsRootCauseProven": false,
+    "originalWindowsRootCauseClassification": "Stationary pointer across preflight/full JVMs is a hypothesis; original failed run did not capture pointer/bounds. New fixture explicitly observes distinct native movement."
+  },
+  "packageHelper": {
+    "path": "/workspace/vncode-167-release/verify_package.py",
+    "sha256": "c6d7ef8d9dbe4d6e9731aa373cb339f61cdf6f5bef6a1df3191801f8b9d6dc64",
+    "activeSource": "210c01d4a0854a55333151f252a74308888279ad",
+    "activeBuild": 42570802535,
+    "thirdFailedSource": "c9c7b36cd9e68cd3cec159e7be904c4ffe04913f",
+    "thirdFailedBuild": 42525209391,
+    "historicalFirstSecondAndThirdProvenanceDistinct": true,
+    "allUnrelatedPackageGatesUnchanged": true,
+    "syntaxAndPrimitiveGuardChecks": "PASS"
+  },
+  "sourceOnlyInclusion": {
+    "result": "PASS",
+    "sourceFiles": 2984,
+    "runtimeInputs": 109,
+    "priorHandoverRuntimeHashesMatched": 109,
+    "runtimePlusPom": 110,
+    "proofSha256": "f107d1842516bd013e8c500a291efd389f4b584a84c45a4255ab8ac187de1e35",
+    "bothProofCopiesEqual": true,
+    "actualGitBlobsChecked": true,
+    "allSevenProductionPackagingInputsUnchangedFromC9": true,
+    "c9To210ChangedPathsOnly": [
+      ".github/workflows/publish-vncode-baseline.yml",
+      "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java"
+    ],
+    "archiveArgument": "Pinned Git mapping reused solely to exercise schema/source validation, not a downloaded Windows ZIP."
+  },
+  "writesToPriorReleases": false,
+  "postPublicationAssetUploads": false,
+  "findings": [],
+  "actualWindowsBuildStatusCheckedByThisReview": false,
+  "actualWindowsCompletionAndArtifactVerification": "PENDING; not established by source-only review",
+  "windowsZipProvided": false,
+  "packageVerificationClaimed": false,
+  "nodeOrMavenTestsRunByReviewer": false,
+  "networkCalls": false,
+  "repositoryEditsByReviewer": false,
+  "externalHelperEditedByReviewer": true,
+  "publicationPerformed": false
+}
