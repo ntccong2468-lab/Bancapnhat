@@ -136,6 +136,7 @@ public class ZnackAutomationController {
     private String currentHelpTopic;
     private boolean loading;
     private boolean certificateDiscoveryRunning;
+    private Task<List<CryptoProCertificateInfo>> certificateDiscoveryTask;
     private boolean updatingCertificateSelection;
     private boolean reopeningCertificatePopup;
     private boolean productSyncRunning;
@@ -152,6 +153,15 @@ public class ZnackAutomationController {
     private boolean accountBalancesFromCurrentCheck;
     private boolean updatingBalanceChoice;
     private AccountReader accountReader = this::readAccount;
+    private CertificateReader certificateReader = settings -> new CryptoProCertificateDiscoveryService().discover(
+            settings.certmgrPath(), settings.csptestPath(),
+            Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
+
+    @FunctionalInterface
+    interface CertificateReader {
+        List<CryptoProCertificateInfo> read(Settings settings) throws CryptoProException;
+    }
+    void certificateReader(CertificateReader reader) { certificateReader = Objects.requireNonNull(reader); }
 
     @FunctionalInterface
     interface AccountReader {
@@ -407,7 +417,12 @@ public class ZnackAutomationController {
         showOmsHelp("oms_id");
     }
     @FXML private void showCatalogHelp(){AlertService.showInfo(tr("znack.catalog.title"),tr("znack.settings.catalog_key"),tr("znack.catalog.help"));}
-    @FXML private void editSettings(){settingsEditing=!settingsEditing;if(!settingsEditing){settingsDrafts.remove(draftScope());if(repository!=null)load();}applyEditMode();updateSaveState();}
+    @FXML private void editSettings(){
+        settingsEditing=!settingsEditing;
+        if(!settingsEditing){invalidateCertificateDiscovery();settingsDrafts.remove(draftScope());if(repository!=null)load();}
+        applyEditMode();updateSaveState();
+        if(settingsEditing)loadCertificates();
+    }
     private void applyEditMode(){
         boolean opening=settingsEditing&&!settingsSaveBar.isManaged();
         settingsSaveBar.setVisible(settingsEditing);settingsSaveBar.setManaged(settingsEditing);
@@ -459,6 +474,7 @@ public class ZnackAutomationController {
             repository.log("SETTINGS_SAVE", null, "INFO", "SAVED", null);
             loaded = settings;
             settingsDrafts.remove(draftScope());
+            invalidateCertificateDiscovery();
             settingsEditing=false;applyEditMode();
             resetAccountSession();
             savedFingerprint = fingerprint();
@@ -682,18 +698,20 @@ public class ZnackAutomationController {
         updateSaveState();
         Task<List<CryptoProCertificateInfo>> task = new Task<>() {
             @Override protected List<CryptoProCertificateInfo> call() throws CryptoProException {
-                return new CryptoProCertificateDiscoveryService().discover(
-                        discoverySettings.certmgrPath(), discoverySettings.csptestPath(),
-                        Duration.ofSeconds(discoverySettings.resolvedCryptoProTimeoutSeconds()));
+                return certificateReader.read(discoverySettings);
             }
         };
+        certificateDiscoveryTask = task;
         task.setOnSucceeded(event -> {
-            if (generation != certificateDiscoveryGeneration) return;
+            if (generation != certificateDiscoveryGeneration || certificateDiscoveryTask != task) return;
+            certificateDiscoveryTask = null;
             certificateDiscoveryRunning = false;
             applyDiscoveredCertificates(task.getValue(), Instant.now());
         });
         java.util.function.Consumer<Throwable> taskFailure = rejection -> {
-            if (generation != certificateDiscoveryGeneration) return;
+            if (generation != certificateDiscoveryGeneration
+                    || (certificateDiscoveryTask != null && certificateDiscoveryTask != task)) return;
+            if (certificateDiscoveryTask == task) certificateDiscoveryTask = null;
             certificateDiscoveryRunning = false;
             updateSignatureSummary();
             updateSaveState();
@@ -702,6 +720,13 @@ public class ZnackAutomationController {
                     ? signatureError(error) : value(failure == null ? null : failure.getMessage()));
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
+        task.setOnCancelled(event -> {
+            if (generation != certificateDiscoveryGeneration || certificateDiscoveryTask != task) return;
+            certificateDiscoveryTask = null;
+            certificateDiscoveryRunning = false;
+            updateSignatureSummary();
+            updateSaveState();
+        });
         AppTaskExecutor.execute(task, taskFailure);
     }
 
@@ -710,7 +735,7 @@ public class ZnackAutomationController {
         boolean resizeOpenPopup = signatureCertificateCombo.isShowing();
         String previousSelector = selectedCertificate();
         CryptoProCertificateInfo current = signatureCertificateCombo.getValue();
-        boolean hadConfiguredCertificate = !blank(previousSelector);
+        boolean hadConfiguredCertificate = !blank(previousSelector) || !blank(loaded.signerCertificate());
         List<CryptoProCertificateInfo> certificates = new ArrayList<>(orderedCertificates(discovered, now));
         CryptoProCertificateInfo previous = findCertificate(certificates, previousSelector);
         if (previous == null && current != null && previousSelector.equals(current.selector()) && current.expired(now)) {
@@ -1508,8 +1533,17 @@ public class ZnackAutomationController {
                 actual.inn(), actual.validFrom(), actual.validTo(), true, actual.provider(), "");
     }
 
-    private static CryptoProCertificateInfo findCertificate(List<CryptoProCertificateInfo> certificates, String selector) {
-        return certificates.stream().filter(certificate -> selector.equals(certificate.selector())).findFirst().orElse(null);
+    static CryptoProCertificateInfo findCertificate(List<CryptoProCertificateInfo> certificates, String selector) {
+        if(blank(selector))return null;
+        String fingerprint=thumbprintSelector(selector);
+        return certificates.stream().filter(certificate -> selector.equals(certificate.selector())
+                || (!fingerprint.isEmpty() && fingerprint.equals(thumbprintSelector(certificate.selector()))))
+                .findFirst().orElse(null);
+    }
+
+    private static String thumbprintSelector(String selector) {
+        String normalized=value(selector).replaceAll("\\s+", "").toUpperCase(java.util.Locale.ROOT);
+        return normalized.matches("[A-F0-9]{40}")?normalized:"";
     }
 
     private boolean selectedCertificateExpired() {
@@ -1519,7 +1553,10 @@ public class ZnackAutomationController {
 
     private void invalidateCertificateDiscovery() {
         certificateDiscoveryGeneration++;
+        Task<List<CryptoProCertificateInfo>> task = certificateDiscoveryTask;
+        certificateDiscoveryTask = null;
         certificateDiscoveryRunning = false;
+        if (task != null) task.cancel(true);
     }
 
     private String certificateDisplay(CryptoProCertificateInfo certificate) {

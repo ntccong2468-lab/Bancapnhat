@@ -20,6 +20,36 @@ public class CryptoProCertificateDiscoveryService {
     }
 
     public List<CryptoProCertificateInfo> discover(String certmgrOverride, String csptestOverride, Duration timeout) throws CryptoProException {
+        var deadline = new WindowsCadesCertificateDiscovery.Deadline(timeout);
+        var certificates = new LinkedHashMap<String, CryptoProCertificateInfo>();
+        CryptoProException certmgrFailure = null;
+        boolean certmgrRead = false;
+        try {
+            merge(certificates, readCertmgr(certmgrOverride, deadline.remaining()));
+            certmgrRead = true;
+        } catch (CryptoProException failure) {
+            if (interrupted(failure)) throw failure;
+            certmgrFailure = failure;
+        }
+        if (WindowsCadesSignatureProvider.isWindows()) {
+            try {
+                // A renewed token certificate may not yet have a copy in current-user My.
+                // Supplement even a nonempty certmgr result; never import or select a key here.
+                merge(certificates, new WindowsCadesCertificateDiscovery(runner).discover(deadline.remaining()));
+                return List.copyOf(certificates.values());
+            } catch (CryptoProException failure) {
+                if (interrupted(failure)) throw failure;
+                if (!certmgrRead) {
+                    throw new CryptoProException(CryptoProErrorCode.DISCOVERY_FAILED,
+                            "Neither CryptoPro certificate discovery source could be read.", failure);
+                }
+            }
+        }
+        if (certmgrFailure != null) throw certmgrFailure;
+        return List.copyOf(certificates.values());
+    }
+
+    List<CryptoProCertificateInfo> readCertmgr(String certmgrOverride, Duration timeout) throws CryptoProException {
         String certmgr = runner.resolve(certmgrOverride, "certmgr");
         CryptoProCommandRunner.Result result = runner.run(List.of(certmgr, "-list", "-store", "uMy"), timeout);
         if (result.exitCode() != 0) {
@@ -31,6 +61,21 @@ public class CryptoProCertificateDiscoveryService {
                     "CryptoPro certificate discovery failed (exit " + result.exitCode() + "): " + result.diagnostic());
         }
         return parse(result.stdoutText());
+    }
+
+    private static boolean interrupted(CryptoProException failure) {
+        return failure.code() == CryptoProErrorCode.CANCELLED || failure.code() == CryptoProErrorCode.TIMEOUT;
+    }
+
+    private static void merge(Map<String, CryptoProCertificateInfo> certificates, List<CryptoProCertificateInfo> discovered) {
+        for (var certificate : discovered) {
+            String thumbprint = certificate.thumbprint() == null ? "" : certificate.thumbprint().replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+            String selector = certificate.selector() == null ? "" : certificate.selector();
+            String normalizedSelector = selector.replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+            String key = thumbprint.matches("[A-F0-9]{40}") ? "thumbprint:" + thumbprint
+                    : normalizedSelector.matches("[A-F0-9]{40}") ? "thumbprint:" + normalizedSelector : "alias:" + selector;
+            if (!selector.isBlank()) certificates.putIfAbsent(key, certificate);
+        }
     }
 
     public List<CryptoProCertificateInfo> usable(List<CryptoProCertificateInfo> certificates, Instant now) {
