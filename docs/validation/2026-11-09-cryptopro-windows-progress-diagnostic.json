@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "kind": "CERTIFICATE_WINDOWS_STDERR_DIAGNOSTIC",
+  "recordedAtUtc": "2026-11-09T11:10:40.136399+00:00",
+  "runId": 42606535850,
+  "workflowSourceCommit": "75e953feddc77ddc76ad0e7020398edc5e3f9f6a",
+  "checkedOutApplicationSourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+  "workflow": "windows-certificate-diagnostic.yml",
+  "diagnosticOnly": true,
+  "applicationReleaseGate": false,
+  "originalFailedPreflight": 42605121356,
+  "scriptReturnedBothExpectedCertificatesBeforeFinalAssertion": true,
+  "testOnlyPatch": "Exactly one assertion message expanded to capture Base64 stderr; expected0 and all other assertions unchanged. Production unchanged.",
+  "diagnosticTestSha256": "5ba69136ad0607ea2434115d0827e027564185267c03450c78a24b0b30b9da5d",
+  "originalGitTestSha256": "b679c7ade785334a9bae90427adf36e3ec1e342e8ef722310435e94030c3e343",
+  "originalWindowsCheckoutTestSha256": "5a90267042794ad585bbd96414d42083a7e6fd5d1eda3010c2531452b7450433",
+  "capture": {
+    "bytes": 392,
+    "sha256": "a3639af5e23464fc391dae127fd5493f02c8178068a35866d9c7fdd35dcd623f",
+    "text": "#< CLIXML\r\n<Objs Version=\"1.1.0.1\" xmlns=\"http://schemas.microsoft.com/powershell/2004/04\"><Obj S=\"progress\" RefId=\"0\"><TN RefId=\"0\"><T>System.Management.Automation.PSCustomObject</T><T>System.Object</T></TN><MS><I64 N=\"SourceId\">1</I64><PR N=\"Record\"><AV>Preparing modules for first use.</AV><AI>0</AI><Nil /><PI>-1</PI><PC>-1</PC><T>Completed</T><SR>-1</SR><SD> </SD></PR></MS></Obj></Objs>",
+    "clixmlObjectCount": 1,
+    "allStreams": "progress",
+    "activities": [
+      "Preparing modules for first use."
+    ],
+    "errorRecords": 0,
+    "certificateOrPrivateKeyData": false
+  },
+  "junit": {
+    "expectedRedCaptured": true,
+    "failures": 1,
+    "sourceCommit": "e77437c5ddbd168c7cfecfcf12d202f019751d87",
+    "skipped": 0,
+    "runId": "42606535850",
+    "tests": 1,
+    "capturedStderrBytes": 392,
+    "selectedMethod": "actualWindowsScriptContinuesPastOneUnreadablePublicCertificateUsingSyntheticComObjects",
+    "diagnosticOnly": true,
+    "runtimeSourceChanged": false,
+    "mavenExitCode": 1,
+    "assertionUnchanged": "Expected zero stderr bytes; only failure message includes controlled synthetic stderr.",
+    "workflowEventCommit": "75e953feddc77ddc76ad0e7020398edc5e3f9f6a",
+    "errors": 0,
+    "workflowDefinitionCommit": "75e953feddc77ddc76ad0e7020398edc5e3f9f6a",
+    "releaseGate": false,
+    "platform": "windows-2022"
+  },
+  "conclusion": "Synthetic fixture Add-Member triggers PowerShell module-preparation Progress CLIXML on stderr. Functional certificate records and DER checks passed; strict stderr0 failed.",
+  "minimalCorrection": "Set only fixture ProgressPreference=SilentlyContinue before Add-Member; retain stderr0 assertion and ErrorActionPreference=Stop in production script. Do not redirect/filter errors or change production discovery.",
+  "windowsAcceptanceAfterCorrection": "Pending fresh source/full run; diagnosticRED is not passing releaseverification.",
+  "realCryptoProOrSellerOperations": false
+}
