@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "kind": "CERTIFICATE_DISCOVERY_SOURCE_MANIFEST",
+  "recordedAtUtc": "2026-11-09T10:57:24.531248+00:00",
+  "baseSourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+  "version": "1.6.7",
+  "publicationStatus": "not-published; new fullWindowsinstaller verification required",
+  "handover": "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md",
+  "focusedTests": {
+    "recordedAt": "2026-11-09T10:56:01.034730+00:00",
+    "kind": "CERTIFICATE_FOCUSED_RUN",
+    "result": "passed",
+    "platform": "Linux/Xvfb/JDK25",
+    "totals": {
+      "tests": 192,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suiteCount": 14,
+    "suites": [
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest",
+        "sha256": "633edbd8814695644ee14a976bb0e9a6c7aaa655147521ab89e58d9bd5e18896",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.signature.CryptoProCommandRunnerTest",
+        "sha256": "282e23b0a50fd4f6b9aa5f80f54334377fe4021554132e24407ecaf9c3d12e1f",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.signature.CryptoProSignatureTest",
+        "sha256": "b45e0bb2dabe49a0bcd59ac022780aeb6b866c3d4cdab6e1c1b0d974b3a57288",
+        "tests": 24,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.signature.CryptoProSignedCertificateReaderTest",
+        "sha256": "4817b4b3f9a006ddadffc61f2a0c1bceef6e5e426606f89e4a6a53835526ebeb",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.signature.WindowsXmlSignatureTest",
+        "sha256": "15e4211ad1ffa37d1a457c80412cd8e5ea7dd267b960b91d6e31ad3a25fd0b6e",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.ui.DarkReferenceScreensTest",
+        "sha256": "5dc6eb6975fbe9175742d27a8f2e72454525fed2432be87755a47919376ec1ab",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.ui.FxmlSmokeTest",
+        "sha256": "6740cdc540c05e5d8ad08cf0768229651d410977035fe8ee98103b35e68e59ce",
+        "tests": 58,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.ui.workspace.ApprovedWorkspaceAcceptanceTest",
+        "sha256": "e2c8724f9bf1bda287f0b96f2a8fa6f80e7ac09e15a8cf4f918d230aa18a2830",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.ui.znack.SignatureTestFailureTest",
+        "sha256": "65c1e542cbc7a2be56f8f77310afeaf7c87b5d7ae7c874ee5e4e0c346901ecab",
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.ui.znack.ZnackAutomationControllerTest",
+        "sha256": "88fff2913e3b4e63674cb6b6a87edb372af29190405c0841c6a15a2e7a6e070c",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.ui.znack.ZnackAutomationInformationTest",
+        "sha256": "78bf1fd8e62b89aa8728d3342481a79d372b618e7d5c6a1218818ea69cb72b92",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+        "sha256": "fc6cfaa423a3081639bfcd88ca39a03de0e4a7365c45d0e5cd244199a7a2ef12",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+        "sha256": "43b7bbd4583d57acafde6c87ffe166ffffea49bb208f61df4eff775d5e54b6b0",
+        "tests": 38,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+        "sha256": "7f8ea2b01f77062ebd2a82420335bf0f7db8b373094ce07bfab8fc2361ff9873",
+        "tests": 6,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -Dtest=CryptoProCertificateDiscoveryServiceTest,CryptoProCertificateRoutingTest,CryptoProSignatureTest,CryptoProSignedCertificateReaderTest,CryptoProCommandRunnerTest,WindowsXmlSignatureTest,ZnackAutomationControllerTest,ZnackCertificateDiscoveryUiTest,ZnackAutomationInformationTest,FxmlSmokeTest,ZnackCertificateSettingsRepositoryTest,SignatureTestFailureTest,DarkReferenceScreensTest,ApprovedWorkspaceAcceptanceTest test",
+    "inputs": {
+      "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java": "6fea9f65e8d2af2fb1ddb47dec7f415f3a786ec49530f86d84f2ecbe956fe913",
+      "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da",
+      "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+      "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773",
+      "src/test/java/com/vncode/app/ui/DarkReferenceScreensTest.java": "6d930601e5e49828bbcee2d12a44cfff0da12c443bb66a42a0f5c498dc93c3ba",
+      "src/test/java/com/vncode/app/ui/workspace/ApprovedWorkspaceAcceptanceTest.java": "7421b7c88434340699e30a7531f5d7f961758d23a872104ca8d6c1d2cda2f455",
+      "src/test/java/com/vncode/app/ui/znack/ZnackAutomationControllerTest.java": "ef8d7bfff0f9feb73bd3d497a3b34f499d92a87f52f3b17d1bf3dfe0be0d053d",
+      "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java": "fa4f50b40536f1e79a7de258e4be0ce58784504291be981785759683b5e810e1",
+      "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java": "b679c7ade785334a9bae90427adf36e3ec1e342e8ef722310435e94030c3e343",
+      "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateRoutingTest.java": "7179a0c3b158bfab80f0343ab3818263f93f3f88e906bd9b2f2d6a88fc9de1c0",
+      "src/test/java/com/vncode/app/ui/znack/CertificateDiscoveryFixture.java": "a7ed5adfb1dead1e2788bcc5d90566a19c52d180951da71f3adcfc6d57f3dbf4",
+      "src/test/java/com/vncode/app/ui/znack/ZnackCertificateDiscoveryUiTest.java": "fa7803c411adff91f331ac54080f1a788e3dee4e356e5ff42c4c7dea04631076"
+    },
+    "logSha256": "5cd8eb83a18919e0086b5c9673fca6f35bdc510dad93ac5a7aaa1484e5e1665c",
+    "liveCertificateRead": false,
+    "liveSignature": false,
+    "sellerApiWrites": false,
+    "windowsPowerShellContractMode": "Not run on Linux; two cases assert structure only. Actual Windows PS parser/mockCOM execution required in fresh Windows run.",
+    "initialRegression": {
+      "source": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+      "entireOriginalDiscoveryServiceRestored": true,
+      "originalFixtureUsedSyntheticFingerprintsBeforeDerBindingReview": true,
+      "tests": 1,
+      "failures": 1,
+      "errors": 0,
+      "logSha256": "409b217fc502cfa6b79d89b926e490c6ac200635c4db4d9cb8482b9c2a6214e5"
+    },
+    "earlierFocusedRun": "certificate-initial-focused-result.json (125 cases,1 timing fixture failure; kept)",
+    "overlappingRunsNotSummed": true
+  },
+  "localPackage": {
+    "recordedAt": "2026-11-09T10:56:40.544678+00:00",
+    "result": "passed",
+    "command": "/workspace/toolchains/mvn-vncode -DskipTests clean package",
+    "scope": "Production compilation/package after separately saved192/14focusedtests; tests intentionally not rerun by package command. NotWindowsinstaller.",
+    "file": "target/VNcode-1.6.7.jar",
+    "bytes": 7605870,
+    "sha256": "a7c341edaad942fa38d7b7136f8da12941e8991c365118828899c64eb38d9bbd",
+    "applicationClasses": 1986,
+    "allProductionClassesMatchTargetOutput": true,
+    "javaClassMajor": 69,
+    "testFixtureClassesInJar": false,
+    "logSha256": "58caa77383afe9ece1daacd943b905e56b9e9f9274305983961a8ea5dd06da7f"
+  },
+  "inputs": {
+    ".github/workflows/publish-vncode-baseline.yml": "b55b752cd3b29fc4f67811892f607a925fc7d882c97304a365bf5e14c1713aed",
+    "docs/releases/VN-code-1.6.7.md": "0cc303177a5d4446d28e39f77cb8f19a0a7eb3e7de681eeb304bd43017c7377f",
+    "docs/validation/2026-11-09-cryptopro-certificate-discovery-handoff.md": "851e92d84a2dd132ca22bcbf73415ca62c1ba92daeb8dc6155a4b677669436a5",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java": "6fea9f65e8d2af2fb1ddb47dec7f415f3a786ec49530f86d84f2ecbe956fe913",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+    "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java": "fa4f50b40536f1e79a7de258e4be0ce58784504291be981785759683b5e810e1",
+    "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java": "18378f0d94e93d45af1bc7051be0b85074f9393e90ec3d753c7b766553570773",
+    "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java": "b679c7ade785334a9bae90427adf36e3ec1e342e8ef722310435e94030c3e343",
+    "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateRoutingTest.java": "7179a0c3b158bfab80f0343ab3818263f93f3f88e906bd9b2f2d6a88fc9de1c0",
+    "src/test/java/com/vncode/app/ui/DarkReferenceScreensTest.java": "6d930601e5e49828bbcee2d12a44cfff0da12c443bb66a42a0f5c498dc93c3ba",
+    "src/test/java/com/vncode/app/ui/workspace/ApprovedWorkspaceAcceptanceTest.java": "7421b7c88434340699e30a7531f5d7f961758d23a872104ca8d6c1d2cda2f455",
+    "src/test/java/com/vncode/app/ui/znack/CertificateDiscoveryFixture.java": "a7ed5adfb1dead1e2788bcc5d90566a19c52d180951da71f3adcfc6d57f3dbf4",
+    "src/test/java/com/vncode/app/ui/znack/ZnackAutomationControllerTest.java": "ef8d7bfff0f9feb73bd3d497a3b34f499d92a87f52f3b17d1bf3dfe0be0d053d",
+    "src/test/java/com/vncode/app/ui/znack/ZnackCertificateDiscoveryUiTest.java": "fa7803c411adff91f331ac54080f1a788e3dee4e356e5ff42c4c7dea04631076"
+  }
+}

@@ -54,7 +54,7 @@ class DarkReferenceScreensTest {
     }
     @Test void settingsRequireExplicitEditAndCancelRestoresSavedValues()throws Exception{
         fx(()->{
-            var loader=FxmlViewLoader.loader(ZnackAutomationController.class,"znack-automation-view.fxml");Parent view=FxmlViewLoader.load(loader);var controller=(ZnackAutomationController)loader.getController();controller.setShop(shop);show(view,1349,809);
+            var loader=FxmlViewLoader.loader(ZnackAutomationController.class,"znack-automation-view.fxml");Parent view=FxmlViewLoader.load(loader);var controller=(ZnackAutomationController)loader.getController();com.vncode.app.ui.znack.CertificateDiscoveryFixture.install(controller);controller.setShop(shop);show(view,1349,809);
             var settings=(Tab)loader.getNamespace().get("settingsTab");settings.getTabPane().getSelectionModel().select(settings);
             var oms=(TextField)loader.getNamespace().get("omsIdField");var key=(PasswordField)loader.getNamespace().get("catalogKeyField");var edit=(Button)loader.getNamespace().get("editSettingsButton");var save=(Button)loader.getNamespace().get("saveButton");
             assertFalse(oms.isEditable());assertFalse(key.isEditable());assertFalse(save.isVisible());

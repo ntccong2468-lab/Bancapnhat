@@ -100,6 +100,26 @@ class ZnackAutomationControllerTest {
         assertFalse(ZnackAutomationController.certificateSelectable(expired, now));
     }
 
+    @Test void certificateLookupPreservesTheSameThumbprintAcrossCaseAndSpacingChanges() {
+        var discovered=certificate("AB".repeat(20), "CN=Fixture", Instant.now().plusSeconds(86400));
+        String copied=" ab ".repeat(20);
+
+        assertSame(discovered, ZnackAutomationController.findCertificate(List.of(discovered), copied));
+        assertNull(ZnackAutomationController.findCertificate(List.of(discovered), "CD".repeat(20)),
+                "A renewed certificate has a different identity even when its owner is unchanged");
+    }
+
+    @Test void certificateLookupDoesNotGuessIdentityFromAliasesOrMalformedThumbprints() {
+        var alias=certificate("Token Alias", "CN=Fixture", Instant.now().plusSeconds(86400));
+        var fingerprint=certificate("AB".repeat(20), "CN=Fixture", Instant.now().plusSeconds(86400));
+        var certificates=List.of(alias, fingerprint);
+
+        assertSame(alias, ZnackAutomationController.findCertificate(certificates, "Token Alias"));
+        for(String selector:List.of("token alias", "TokenAlias", "AB".repeat(19), "AB".repeat(20)+"-", ""))
+            assertNull(ZnackAutomationController.findCertificate(certificates, selector));
+        assertNull(ZnackAutomationController.findCertificate(certificates, null));
+    }
+
     @Test void formatsAuditLogForCopying() {
         String text = ZnackAutomationController.logText(new OperationLog(
                 1, 2, "Shop", "SIGNATURE_TEST", null, "ERROR",

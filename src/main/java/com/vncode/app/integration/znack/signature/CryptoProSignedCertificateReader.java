@@ -67,7 +67,7 @@ public final class CryptoProSignedCertificateReader {
      * CZ/Catalog authenticates the CMS signature and certificate on receipt.
      */
     @SuppressWarnings("codeql[java/potentially-weak-cryptographic-algorithm] Windows certificate-store identifier; never a signing algorithm")
-    private static String windowsCertificateThumbprint(Certificate certificate) throws Exception {
+    static String windowsCertificateThumbprint(Certificate certificate) throws Exception {
         return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(certificate.getEncoded("DER")));
     }
 

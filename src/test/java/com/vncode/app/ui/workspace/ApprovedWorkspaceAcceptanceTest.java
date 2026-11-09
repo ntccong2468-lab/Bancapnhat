@@ -182,6 +182,7 @@ class ApprovedWorkspaceAcceptanceTest {
         fx(()->{
             WorkspaceMotion.setReduced(true);var loader=FxmlViewLoader.loader(com.vncode.app.MainApplication.class,"/com/vncode/app/ui/znack/znack-automation-view.fxml");loader.load();
             var controller=(com.vncode.app.ui.znack.ZnackAutomationController)loader.getController();
+            com.vncode.app.ui.znack.CertificateDiscoveryFixture.install(controller);
             controller.setShop(wb);((Button)loader.getNamespace().get("editSettingsButton")).fire();
             ((TextField)loader.getNamespace().get("omsIdField")).setText("synthetic-unsaved-first");
             controller.setShop(ozon);assertEquals("",((TextField)loader.getNamespace().get("omsIdField")).getText());

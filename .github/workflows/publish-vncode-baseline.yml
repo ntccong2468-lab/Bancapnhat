@@ -66,7 +66,7 @@ jobs:
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-baseline-preflight-${{ github.run_id }}
         run: |
-          .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,OzonLabelServiceTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest,FashionTnvedBrowserTest,ZnackCardRegistrationControllerTest' test
+          .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,OzonLabelServiceTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest,FashionTnvedBrowserTest,ZnackCardRegistrationControllerTest,CryptoProCertificateDiscoveryServiceTest,ZnackCertificateDiscoveryUiTest,CryptoProCertificateRoutingTest' test
           if($LASTEXITCODE -ne 0){throw 'Windows fixture preflight failed.'}
           # A fresh JavaFX process inherits the desktop pointer left by preflight.
           # Exercise that boundary before starting the long, unfiltered full suite.

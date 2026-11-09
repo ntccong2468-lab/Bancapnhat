@@ -11,6 +11,7 @@ Bản này kế thừa đầy đủ 1.6.6 và gộp các chỉnh sửa KIZ mappi
 - Khi đổi API Catalog, kết quả cũ không ghi đè dữ liệu của kết nối mới; giữ lịch sử, kho KIZ và các yêu cầu đang theo dõi.
 - Giao diện mới đã duyệt áp dụng vào app: nền sáng/tối/hệ thống, danh sách rộng, thanh điều hướng gọn, chuyển động có tùy chọn giảm và bảng tìm nhanh Ctrl+K.
 - Nút **Thêm cửa hàng** nằm trong **Quản lý** cạnh ô chọn cửa hàng. Sửa nút thao tác bị ép chiều rộng và màu menu sau khi đổi nền.
+- Chữ ký điện tử: bổ sung đọc chứng thư từ kho CryptoPro trên thiết bị bên cạnh kho người dùng, làm mới danh sách khi mở **Chỉnh sửa cấu hình** và giữ lựa chọn khi cùng thumbprint chỉ khác cách viết. Chứng thư mới vẫn cần được chọn và kiểm tra trước khi sử dụng.
 
 Giữ toàn bộ chức năng đã có: nhận FBS Ozon theo lô, tự thay KIZ seller nhập theo danh mục, vận đơn Ozon gốc và nhãn KIZ kết hợp, phiếu nhặt hàng cùng quy tắc WB, Đơn nợ WB, năm nút sửa sản phẩm, lưu dữ liệu đồng bộ và cập nhật ứng dụng.
 

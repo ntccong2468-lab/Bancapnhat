@@ -16,6 +16,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 
 public class CryptoProSignatureProvider implements ZnackSignatureProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(CryptoProSignatureProvider.class);
@@ -23,28 +24,72 @@ public class CryptoProSignatureProvider implements ZnackSignatureProvider {
     private final String cryptcpOverride;
     private final String certificateSelector;
     private final Duration timeout;
-    private final ZnackSignatureProvider windowsFallback;
+    private final TimedSigner windowsFallback;
+    private final CertificateStores certificateStores;
+    private final TimedSigner cadesSigner;
+
+    interface CertificateStores {
+        List<CryptoProCertificateInfo> currentUser(Duration remaining, CryptoProCommandRunner boundedRunner) throws CryptoProException;
+        List<CryptoProCertificateInfo> cades(Duration remaining, CryptoProCommandRunner boundedRunner) throws CryptoProException;
+    }
+
+    @FunctionalInterface
+    interface TimedSigner {
+        CryptoProSigningResult sign(byte[] payload, ZnackSignatureContext context, Duration remaining,
+                                    CryptoProCommandRunner boundedRunner)
+                throws CryptoProException;
+    }
 
     public CryptoProSignatureProvider(String cryptcpOverride, String certificateSelector, Duration timeout) {
         this(new CryptoProCommandRunner(), cryptcpOverride, certificateSelector, timeout,
-                // Fallback chain when cryptcp is absent: csptest (ships with every CryptoPro CSP) →
-                // CAdESCOM (Windows-only, part of the CAdES Browser Plug-in).
-                new CsptestSignatureProvider(certificateSelector, timeout,
-                        WindowsCadesSignatureProvider.isWindows()
-                                ? new WindowsCadesSignatureProvider(certificateSelector, timeout) : null));
+                WindowsCadesSignatureProvider.isWindows());
+    }
+
+    CryptoProSignatureProvider(CryptoProCommandRunner runner, String cryptcpOverride, String certificateSelector,
+                               Duration timeout, boolean windowsRouting) {
+        this(runner, cryptcpOverride, certificateSelector, timeout,
+                (payload, context, remaining, boundedRunner) -> new CsptestSignatureProvider(boundedRunner, null,
+                        certificateSelector, remaining,
+                        windowsRouting ? new WindowsCadesSignatureProvider(boundedRunner, certificateSelector, remaining) : null)
+                        .sign(payload, context),
+                windowsRouting ? defaultCertificateStores() : null,
+                windowsRouting ? (payload, context, remaining, boundedRunner) ->
+                        new WindowsCadesSignatureProvider(boundedRunner, certificateSelector, remaining).sign(payload, context) : null);
     }
 
     CryptoProSignatureProvider(CryptoProCommandRunner runner, String cryptcpOverride, String certificateSelector, Duration timeout) {
-        this(runner, cryptcpOverride, certificateSelector, timeout, null);
+        this(runner, cryptcpOverride, certificateSelector, timeout, (ZnackSignatureProvider) null);
     }
 
     CryptoProSignatureProvider(CryptoProCommandRunner runner, String cryptcpOverride, String certificateSelector,
                                Duration timeout, ZnackSignatureProvider windowsFallback) {
+        this(runner, cryptcpOverride, certificateSelector, timeout,
+                windowsFallback == null ? null : (payload, context, remaining, boundedRunner) -> windowsFallback.sign(payload, context),
+                null, null);
+    }
+
+    CryptoProSignatureProvider(CryptoProCommandRunner runner, String cryptcpOverride, String certificateSelector,
+                               Duration timeout, TimedSigner windowsFallback, CertificateStores certificateStores,
+                               TimedSigner cadesSigner) {
         this.runner = runner;
         this.cryptcpOverride = cryptcpOverride;
         this.certificateSelector = certificateSelector == null ? "" : certificateSelector.trim();
         this.timeout = timeout;
         this.windowsFallback = windowsFallback;
+        this.certificateStores = certificateStores;
+        this.cadesSigner = cadesSigner;
+    }
+
+    private static CertificateStores defaultCertificateStores() {
+        return new CertificateStores() {
+            @Override public List<CryptoProCertificateInfo> currentUser(Duration remaining, CryptoProCommandRunner boundedRunner) throws CryptoProException {
+                return new CryptoProCertificateDiscoveryService(boundedRunner).readCertmgr(null, remaining);
+            }
+
+            @Override public List<CryptoProCertificateInfo> cades(Duration remaining, CryptoProCommandRunner boundedRunner) throws CryptoProException {
+                return new WindowsCadesCertificateDiscovery(boundedRunner).discover(remaining);
+            }
+        };
     }
 
     @Override
@@ -55,6 +100,14 @@ public class CryptoProSignatureProvider implements ZnackSignatureProvider {
     private CryptoProSigningResult signQueued(byte[] payload, ZnackSignatureContext context) throws CryptoProException {
         if (certificateSelector.isBlank()) {
             throw new CryptoProException(CryptoProErrorCode.TOKEN_OR_CERTIFICATE_ABSENT, "Select a CryptoPro certificate before signing.");
+        }
+        SigningDeadline deadline = certificateStores == null ? null : new SigningDeadline(timeout);
+        // Decide using fresh public-certificate reads before invoking either signing implementation.
+        // A routed CAdES failure must never fall through to a second signing attempt.
+        if (preferCades(deadline)) {
+            CryptoProSigningResult signature = cadesSigner.sign(payload, context, deadline.remaining(), boundedRunner(deadline));
+            deadline.remaining();
+            return signature;
         }
         Path workDir = null;
         Path input = null;
@@ -73,10 +126,11 @@ public class CryptoProSignatureProvider implements ZnackSignatureProvider {
                     context.detached() ? "-detached" : "-attached",
                     input.toString(),
                     output.toString()));
-            CryptoProCommandRunner.Result result = runner.run(command, timeout);
+            CryptoProCommandRunner.Result result = runner.run(command, remaining(deadline));
             if (result.exitCode() != 0) throw failure(result);
             byte[] raw = Files.isRegularFile(output) && Files.size(output) > 0 ? Files.readAllBytes(output) : result.stdout();
             byte[] cms = cms(raw);
+            if (deadline != null) deadline.remaining();
             return new CryptoProSigningResult(cms, result.diagnostic());
         } catch (CryptoProException e) {
             if ((e.code() == CryptoProErrorCode.CRYPTCP_MISSING
@@ -86,7 +140,9 @@ public class CryptoProSignatureProvider implements ZnackSignatureProvider {
                 LOGGER.warn("cryptcp signing unavailable; trying csptest/CAdESCOM fallback. code={}, details={}",
                         e.code(), ZnackSanitizer.error(e));
                 try {
-                    return windowsFallback.sign(payload, context);
+                    CryptoProSigningResult signature = windowsFallback.sign(payload, context, remaining(deadline), boundedRunner(deadline));
+                    if (deadline != null) deadline.remaining();
+                    return signature;
                 } catch (CryptoProException fallbackError) {
                     CryptoProException combined = new CryptoProException(fallbackError.code(),
                             "cryptcp failed before fallback: " + ZnackSanitizer.error(e)
@@ -106,6 +162,78 @@ public class CryptoProSignatureProvider implements ZnackSignatureProvider {
             try { if (input != null) Files.deleteIfExists(input); } catch (Exception ignored) {}
             try { if (output != null) Files.deleteIfExists(output); } catch (Exception ignored) {}
             try { if (workDir != null) Files.deleteIfExists(workDir); } catch (Exception ignored) {}
+        }
+    }
+
+    private boolean preferCades(SigningDeadline deadline) throws CryptoProException {
+        String thumbprint = normalizedThumbprint(certificateSelector);
+        if (certificateStores == null || cadesSigner == null || thumbprint.isEmpty()) return false;
+        try {
+            if (containsThumbprint(certificateStores.currentUser(deadline.remaining(), boundedRunner(deadline)), thumbprint)) return false;
+        } catch (CryptoProException unavailable) {
+            propagateTerminal(unavailable);
+            // An unavailable read is not evidence of absence; require an exact CAdES match below.
+        }
+        try {
+            return containsThumbprint(certificateStores.cades(deadline.remaining(), boundedRunner(deadline)), thumbprint);
+        } catch (CryptoProException unavailable) {
+            propagateTerminal(unavailable);
+            return false;
+        }
+    }
+
+    private static boolean containsThumbprint(List<CryptoProCertificateInfo> certificates, String selected) {
+        return certificates.stream().anyMatch(certificate -> selected.equals(normalizedThumbprint(certificate.thumbprint())));
+    }
+
+    private static String normalizedThumbprint(String value) {
+        String normalized = value == null ? "" : value.replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+        return normalized.matches("[A-F0-9]{40}") ? normalized : "";
+    }
+
+    private static void propagateTerminal(CryptoProException failure) throws CryptoProException {
+        if (failure.code() == CryptoProErrorCode.CANCELLED || failure.code() == CryptoProErrorCode.TIMEOUT) throw failure;
+    }
+
+    private Duration remaining(SigningDeadline deadline) throws CryptoProException {
+        return deadline == null ? timeout : deadline.remaining();
+    }
+
+    private CryptoProCommandRunner boundedRunner(SigningDeadline deadline) {
+        if (deadline == null) return runner;
+        return new CryptoProCommandRunner() {
+            @Override public String resolve(String override, String command) throws CryptoProException {
+                deadline.remaining();
+                String resolved = runner.resolve(override, command);
+                deadline.remaining();
+                return resolved;
+            }
+
+            @Override public Result run(List<String> command, Duration requested) throws CryptoProException {
+                Duration left = deadline.remaining();
+                Result result = runner.run(command, requested.compareTo(left) < 0 ? requested : left);
+                deadline.remaining();
+                return result;
+            }
+        };
+    }
+
+    private static final class SigningDeadline {
+        private final long started = System.nanoTime();
+        private final long budget;
+
+        SigningDeadline(Duration timeout) {
+            if (timeout == null || timeout.isZero() || timeout.isNegative())
+                throw new IllegalArgumentException("CryptoPro timeout must be positive.");
+            budget = timeout.toNanos();
+        }
+
+        Duration remaining() throws CryptoProException {
+            if (Thread.currentThread().isInterrupted())
+                throw new CryptoProException(CryptoProErrorCode.CANCELLED, "CryptoPro signing was cancelled.");
+            long remaining = budget - (System.nanoTime() - started);
+            if (remaining <= 0) throw new CryptoProException(CryptoProErrorCode.TIMEOUT, "CryptoPro signing timed out.");
+            return Duration.ofNanos(remaining);
         }
     }
 
