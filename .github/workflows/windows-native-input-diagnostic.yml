@@ -54,12 +54,14 @@ jobs:
           } | ForEach-Object {[IO.Path]::GetRelativePath($root,$_.FullName).Replace('\','.').Replace('/','.').Replace('.java','')} | Sort-Object)
           if($classes.Count -ne 121){throw "Diagnostic class list changed: $($classes.Count)"}
           $classes | Set-Content "$env:DIAGNOSTIC_ROOT/selected-classes.txt" -Encoding utf8NoBOM
-          function Invoke-Phase([string]$name,[string]$selection,[string]$awtFirst='false',[string]$uiScale=''){
+          function Invoke-Phase([string]$name,[string]$selection,[string]$awtFirst='false',[string]$uiScale='',[bool]$visibleObserver=$false){
             $phase=Join-Path $env:DIAGNOSTIC_ROOT $name
             New-Item -ItemType Directory -Force $phase | Out-Null
             $observer=Join-Path $repo 'tools/diagnostics/windows-input-observer.ps1'
             & $observer -Directory $phase -Mode Snapshot -ParentProcessId $PID | Out-Host
-            $watch=Start-Process pwsh -PassThru -ArgumentList @('-NoProfile','-File',$observer,'-Directory',$phase,'-Mode','Observe','-ParentProcessId',"$PID",'-MaxSeconds','1500')
+            # The observer must never create a visible console above the test window.
+            $observerStyle=if($visibleObserver){'Normal'}else{'Hidden'}
+            $watch=Start-Process pwsh -WindowStyle $observerStyle -PassThru -ArgumentList @('-NoProfile','-File',$observer,'-Directory',$phase,'-Mode','Observe','-ParentProcessId',"$PID",'-MaxSeconds','1500')
             try {
               if(Test-Path target/surefire-reports){Remove-Item target/surefire-reports -Recurse -Force}
               $mavenArgs=@('-B',"-Dtest=$selection","-Dvncode.native.pointer.diagnostics=$phase","-Dvncode.native.pointer.awt.first=$awtFirst")
@@ -67,7 +69,7 @@ jobs:
               .\mvnw.cmd @mavenArgs surefire:test 2>&1 | Tee-Object "$phase/maven.log" | Out-Host
               $code=$LASTEXITCODE
               if(Test-Path target/surefire-reports){Copy-Item target/surefire-reports "$phase/surefire-reports" -Recurse}
-              @{phase=$name;exitCode=$code;selectedClasses=$selection;awtFirst=$awtFirst;uiScale=$uiScale;diagnosticOnly=$true;releaseGate=$false} | ConvertTo-Json | Set-Content "$phase/result.json" -Encoding utf8NoBOM
+              @{phase=$name;exitCode=$code;selectedClasses=$selection;awtFirst=$awtFirst;uiScale=$uiScale;observerStyle=$observerStyle;diagnosticOnly=$true;releaseGate=$false} | ConvertTo-Json | Set-Content "$phase/result.json" -Encoding utf8NoBOM
               return $code
             } finally {
               New-Item -ItemType File -Force "$phase/windows-input.stop" | Out-Null
@@ -83,7 +85,9 @@ jobs:
           $f=Invoke-Phase '06-all-fx-ui' ($classes -join ',')
           # A fresh JVM still runs after the shared-state phase fails; compare evidence.
           $g=Invoke-Phase '07-native-after' 'FashionTnvedBrowserTest'
-          if($a -ne 0 -or $b -ne 0 -or $c -ne 0 -or $d -ne 0 -or $e -ne 0 -or $f -ne 0 -or $g -ne 0){throw 'Native diagnostic detected a failure; inspect preserved evidence.'}
+          # Deliberate non-release control: the fixture must resist a worker console.
+          $h=Invoke-Phase '08-visible-console-control' 'FashionTnvedBrowserTest' 'false' '' $true
+          if($a -ne 0 -or $b -ne 0 -or $c -ne 0 -or $d -ne 0 -or $e -ne 0 -or $f -ne 0 -or $g -ne 0 -or $h -ne 0){throw 'Native diagnostic detected a failure; inspect preserved evidence.'}
       - name: Preserve diagnostic evidence only
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

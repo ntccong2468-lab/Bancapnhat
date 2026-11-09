@@ -22,12 +22,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +42,7 @@ public final class NativePointerDiagnosticExtension implements BeforeAllCallback
                     Double.isFinite(value)?new com.google.gson.JsonPrimitive(value):com.google.gson.JsonNull.INSTANCE)
             .registerTypeAdapter(Float.class,(com.google.gson.JsonSerializer<Float>)(value,type,context) ->
                     Float.isFinite(value)?new com.google.gson.JsonPrimitive(value):com.google.gson.JsonNull.INSTANCE).create();
-    private static final Set<Window> TRACED = Collections.newSetFromMap(new IdentityHashMap<>());
+    private static final Map<Window,Trace> TRACES = new IdentityHashMap<>();
     private static final AtomicInteger IDS = new AtomicInteger();
     private static final java.util.concurrent.ScheduledExecutorService SCHEDULER =
             Executors.newSingleThreadScheduledExecutor(r -> {
@@ -52,6 +50,7 @@ public final class NativePointerDiagnosticExtension implements BeforeAllCallback
             });
     private static boolean installed;
     private static Path output;
+    private static ListChangeListener<Window> windowListener;
 
     private static boolean actualNativeMethod(ExtensionContext context) {
         return context.getRequiredTestClass().getName().equals("com.vncode.app.ui.tnved.FashionTnvedBrowserTest")
@@ -104,6 +103,17 @@ public final class NativePointerDiagnosticExtension implements BeforeAllCallback
 
     @Override public void afterEach(ExtensionContext context) throws Exception {
         if (!actualNativeMethod(context) || System.getProperty("vncode.native.pointer.diagnostics", "").isBlank()) return;
+        var cleanup = new java.util.concurrent.FutureTask<Void>(() -> {
+            if (windowListener != null) Window.getWindows().removeListener(windowListener);
+            windowListener = null;
+            for (var trace : List.copyOf(TRACES.values())) trace.close();
+            TRACES.clear();
+            if (output != null) append(output.resolve("observer.jsonl"), Map.of("time",Instant.now().toString(),
+                    "pid",ProcessHandle.current().pid(),"installed",false,"remainingTraces",TRACES.size(),"observationalOnly",true));
+            installed = false;output = null;
+            return null;
+        });
+        Platform.runLater(cleanup);cleanup.get(10,TimeUnit.SECONDS);
         // Drain observational IO only after the original test and its cleanup finish.
         SCHEDULER.submit(() -> {}).get(10, TimeUnit.SECONDS);
     }
@@ -113,45 +123,51 @@ public final class NativePointerDiagnosticExtension implements BeforeAllCallback
         installed = true;output = directory;
         try {Files.createDirectories(directory);} catch (Exception failure) {throw new IllegalStateException(failure);}
         append(directory.resolve("observer.jsonl"), Map.of("time",Instant.now().toString(),"pid",ProcessHandle.current().pid(),"installed",true,"observationalOnly",true));
-        Window.getWindows().addListener((ListChangeListener<Window>) change -> {
+        windowListener = change -> {
             while (change.next()) if (change.wasAdded()) for (var window : change.getAddedSubList()) observe(window);
-        });
+        };
+        Window.getWindows().addListener(windowListener);
         for (var window : List.copyOf(Window.getWindows())) observe(window);
     }
 
     private static void observe(Window window) {
         var scene = window.getScene();
-        if (scene == null || !"fashionTnvedBrowser".equals(scene.getRoot().getId()) || !TRACED.add(window)) return;
-        new Trace(window, scene);
+        if (scene == null || !"fashionTnvedBrowser".equals(scene.getRoot().getId()) || TRACES.containsKey(window)) return;
+        TRACES.put(window,new Trace(window, scene));
     }
 
     private static final class Trace {
         final Window window;
         final Scene scene;
+        final javafx.scene.Parent root;
         final Path prefix;
         final long begun = System.nanoTime();
         final AtomicInteger sceneMoves = new AtomicInteger(), rootMoves = new AtomicInteger();
         final javafx.event.EventHandler<MouseEvent> sceneEvents;
         final javafx.event.EventHandler<MouseEvent> rootEvents;
+        final javafx.event.EventHandler<WindowEvent> shownEvents;
+        final javafx.event.EventHandler<WindowEvent> hidingEvents;
         volatile boolean closed;
         ScheduledFuture<?> sampling;
 
         Trace(Window window, Scene scene) {
-            this.window=window;this.scene=scene;
+            this.window=window;this.scene=scene;this.root=scene.getRoot();
             prefix = output.resolve("pointer-"+ProcessHandle.current().pid()+"-"+IDS.incrementAndGet());
             sceneEvents = event -> event("scene",event);
             rootEvents = event -> event("root",event);
             scene.addEventFilter(MouseEvent.ANY, sceneEvents);
-            scene.getRoot().addEventFilter(MouseEvent.ANY, rootEvents);
-            window.addEventFilter(WindowEvent.WINDOW_SHOWN, event -> {
+            root.addEventFilter(MouseEvent.ANY, rootEvents);
+            shownEvents = event -> {
                 // The original test starts its four-second deadline after Stage.show
                 // returns, so this native capture occurs before that deadline.
                 sample("native-window-shown");capture("shown");
-            });
-            window.addEventFilter(WindowEvent.WINDOW_HIDING, event -> {
+            };
+            hidingEvents = event -> {
                 // Hiding is in the original finally block, after its assertions.
                 sample("before-hide");capture("before-hide");close();
-            });
+            };
+            window.addEventFilter(WindowEvent.WINDOW_SHOWN, shownEvents);
+            window.addEventFilter(WindowEvent.WINDOW_HIDING, hidingEvents);
             sample("attached");
             sampling = SCHEDULER.scheduleAtFixedRate(() -> {
                 if (!closed) Platform.runLater(() -> {if (!closed) sample("periodic");});
@@ -217,8 +233,11 @@ public final class NativePointerDiagnosticExtension implements BeforeAllCallback
         }
 
         void close() {
+            if (closed) return;
             closed=true;if(sampling!=null)sampling.cancel(false);
-            scene.removeEventFilter(MouseEvent.ANY,sceneEvents);scene.getRoot().removeEventFilter(MouseEvent.ANY,rootEvents);
+            scene.removeEventFilter(MouseEvent.ANY,sceneEvents);root.removeEventFilter(MouseEvent.ANY,rootEvents);
+            window.removeEventFilter(WindowEvent.WINDOW_SHOWN,shownEvents);window.removeEventFilter(WindowEvent.WINDOW_HIDING,hidingEvents);
+            TRACES.remove(window);
         }
         Map<String,Object> base(String reason) {
             var row=new LinkedHashMap<String,Object>();row.put("time",Instant.now().toString());

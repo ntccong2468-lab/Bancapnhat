@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory = $true)][ValidateNotNullOrEmpty()][string] $Directory,
     [ValidateSet('Snapshot', 'Observe')][string] $Mode = 'Snapshot',
     [ValidateRange(0, 2147483647)][int] $ParentProcessId = 0,
-    [ValidateRange(1, 7200)][int] $MaxSeconds = 1200
+    [ValidateRange(1, 14400)][int] $MaxSeconds = 1200
 )
 
 # Diagnostic only: no injected input, desktop/session changes, power-setting
