@@ -156,6 +156,21 @@ public class ZnackAutomationController {
     private CertificateReader certificateReader = settings -> new CryptoProCertificateDiscoveryService().discover(
             settings.certmgrPath(), settings.csptestPath(),
             Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
+    private java.util.function.BooleanSupplier signerChangeConfirmation = () -> AlertService.showConfirmation(
+            tr("znack.signature.change.title"), tr("znack.signature.change.header"), tr("znack.signature.change.body"))
+            .filter(ButtonType.OK::equals).isPresent();
+    private SignatureTaskSubmitter signatureTaskSubmitter = AppTaskExecutor::execute;
+
+    @FunctionalInterface
+    interface SignatureTaskSubmitter {
+        void submit(Task<?> task, java.util.function.Consumer<Throwable> rejected);
+    }
+    void signerChangeConfirmation(java.util.function.BooleanSupplier confirmation) {
+        signerChangeConfirmation = Objects.requireNonNull(confirmation);
+    }
+    void signatureTaskSubmitter(SignatureTaskSubmitter submitter) {
+        signatureTaskSubmitter = Objects.requireNonNull(submitter);
+    }
 
     @FunctionalInterface
     interface CertificateReader {
@@ -810,6 +825,20 @@ public class ZnackAutomationController {
         ZnackRepository currentRepository = repository;
         Settings expectedSettings = loaded;
         Settings candidateSettings = settings();
+        if (ZnackRepository.signerChanged(expectedSettings, candidateSettings)) {
+            if (!signerChangeConfirmation.getAsBoolean()) return;
+            // A modal dialog runs a nested FX loop. Do not sign after its shop, selection or
+            // persisted settings have changed while the confirmation was open.
+            if (generation != shopGeneration || currentRepository != repository
+                    || !expectedSettings.equals(loaded) || !candidateSettings.equals(settings())
+                    || signatureTestRunning || accountRefreshRunning || selectedCertificateExpired()) return;
+            try {
+                if (!expectedSettings.equals(currentRepository.getSettings())) return;
+            } catch (RuntimeException unavailable) {
+                AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(unavailable));
+                return;
+            }
+        }
         var signaturePhase = new java.util.concurrent.atomic.AtomicReference<>(SignatureTestFailure.Phase.LOCAL_SIGNATURE);
         setSignatureTestBusy(true);
         Task<SignatureVerification> task = new Task<>() {
@@ -917,7 +946,7 @@ public class ZnackAutomationController {
             }
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
-        AppTaskExecutor.execute(task, taskFailure);
+        signatureTaskSubmitter.submit(task, taskFailure);
     }
 
     /** Loading state for the signature test: disable the button/combo and show a "loading" label. */

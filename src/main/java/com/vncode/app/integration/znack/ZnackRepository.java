@@ -182,7 +182,13 @@ public final class ZnackRepository {
         }
     }
 
-    private static boolean signerChanged(Settings previous, Settings next) {
+    /**
+     * Read-only preview of the exact signer-change predicate used by certificate persistence.
+     * UI confirmation must not substitute account names/INN for this stored certificate identity.
+     * This preview neither authenticates the certificate nor bypasses the transaction's scope,
+     * active-operation or optimistic settings checks.
+     */
+    public static boolean signerChanged(Settings previous, Settings next) {
         String previousSelector = value(previous.signerCertificate()).trim();
         String nextSelector = value(next.signerCertificate()).trim();
         if (previousSelector.isBlank()) return false;
