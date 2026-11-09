@@ -77,8 +77,30 @@ jobs:
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-baseline-${{ github.run_id }}
         run: |
-          .\mvnw.cmd -B clean verify
-          if($LASTEXITCODE -ne 0){throw 'Full Windows Java verification failed.'}
+          $ErrorActionPreference='Stop'
+          $nativeInput=Join-Path $env:RUNNER_TEMP "baseline-native-input-$env:GITHUB_RUN_ID"
+          New-Item -ItemType Directory -Force $nativeInput | Out-Null
+          $observer=Join-Path $env:GITHUB_WORKSPACE 'tools/diagnostics/windows-input-observer.ps1'
+          # Console interference in the original full runs is still unproven.
+          # Preserve read-only OS evidence without exposing another observer console.
+          & $observer -Directory $nativeInput -Mode Snapshot -ParentProcessId $PID | Out-Host
+          $nativeInputWatch=$null
+          try {
+            $nativeInputWatch=Start-Process pwsh -WindowStyle Hidden -PassThru -ArgumentList @('-NoProfile','-File',"`"$observer`"",'-Directory',"`"$nativeInput`"",'-Mode','Observe','-ParentProcessId',"$PID",'-MaxSeconds','11000')
+            .\mvnw.cmd -B clean verify
+            if($LASTEXITCODE -ne 0){throw 'Full Windows Java verification failed.'}
+          } finally {
+            try {
+              New-Item -ItemType File -Force (Join-Path $nativeInput 'windows-input.stop') | Out-Null
+              if($null -ne $nativeInputWatch){
+                $nativeInputWatch.Refresh()
+                if(-not $nativeInputWatch.HasExited -and -not $nativeInputWatch.WaitForExit(10000)){
+                  Stop-Process -InputObject $nativeInputWatch -Force
+                }
+              }
+            } catch { Write-Warning 'Native input observer cleanup failed.' }
+            finally { if($null -ne $nativeInputWatch){$nativeInputWatch.Dispose()} }
+          }
       - name: Build final EXE from verified Java
         id: package
         shell: cmd
@@ -144,6 +166,7 @@ jobs:
           Copy-Item target/surefire-reports $proof -Recurse
           Copy-Item out/*smoke.json,out/previous-baseline.json $proof
           Copy-Item target/gtin-bulk-*.json $proof
+          Copy-Item -LiteralPath (Join-Path $env:RUNNER_TEMP "baseline-native-input-$env:GITHUB_RUN_ID") -Destination $proof -Recurse
           Compress-Archive -Path "$proof/*" -DestinationPath "out/VN-code-$version-verification.zip"
           $tests=0;$failures=0;$errors=0;$skipped=0
           foreach($report in Get-ChildItem target/surefire-reports -Filter 'TEST-*.xml'){
@@ -179,4 +202,5 @@ jobs:
           path: |
             target/surefire-reports/TEST-*.xml
             out/*.json
+            ${{ runner.temp }}/baseline-native-input-${{ github.run_id }}/
           if-no-files-found: ignore
