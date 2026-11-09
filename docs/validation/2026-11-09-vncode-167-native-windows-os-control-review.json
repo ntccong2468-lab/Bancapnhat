@@ -1,0 +1,1618 @@
+{
+  "kind": "WINDOWS_NATIVE_AOT_OS_CONTROL_REVIEW",
+  "reviewedAtUtc": "2026-11-09T08:53:00.410765+00:00",
+  "red": {
+    "runId": 42584347083,
+    "sourceCommit": "aebb84148ee74522c7dfc8a50459bef1bdd652f2",
+    "phases": [
+      {
+        "phase": "01-native-before",
+        "observerStyle": null,
+        "awtFirst": "false",
+        "uiScale": "",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "524452"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          false
+        ],
+        "nativeGlassLevels": [
+          1
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 18,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 9,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 10,
+        "nativeVisibleOsSamples": 1,
+        "physicalHitMatchesTargetCount": 1,
+        "foregroundMatchesTargetCount": 1,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 9,
+        "directJavaForegroundAndPhysicalHitExamples": [
+          {
+            "timeUtc": "2026-11-09T08:14:45.0005512+00:00",
+            "physicalCursor": {
+              "x": 228,
+              "y": 279
+            },
+            "foreground": {
+              "hwnd": "524452",
+              "valid": true,
+              "pid": 5828,
+              "threadId": 5788,
+              "processSessionId": 2,
+              "enabled": true,
+              "visible": true,
+              "iconic": false,
+              "ownerHwnd": "0",
+              "class": "GlassWndClass-GlassWindowClass-2",
+              "boundsInObserverDpiContext": {
+                "left": 54,
+                "top": 36,
+                "right": 970,
+                "bottom": 655
+              },
+              "dpi": 96,
+              "windowDpiContext": {
+                "rawContext": "34",
+                "awareness": 2,
+                "unaware": false,
+                "systemAware": false,
+                "perMonitorAware": false,
+                "perMonitorAwareV2": true,
+                "unawareGdiScaled": false
+              },
+              "processDpi": {
+                "hresult": 0,
+                "awareness": 2
+              },
+              "guiThread": {
+                "available": true,
+                "flags": 0,
+                "activeHwnd": "524452",
+                "focusHwnd": "524452",
+                "captureHwnd": "0",
+                "menuOwnerHwnd": "0",
+                "moveSizeHwnd": "0",
+                "caretHwnd": "0",
+                "caretRect": {
+                  "left": 0,
+                  "top": 0,
+                  "right": 0,
+                  "bottom": 0
+                }
+              }
+            },
+            "windowUnderPhysicalCursor": {
+              "hwnd": "524452",
+              "valid": true,
+              "pid": 5828,
+              "threadId": 5788,
+              "processSessionId": 2,
+              "enabled": true,
+              "visible": true,
+              "iconic": false,
+              "ownerHwnd": "0",
+              "class": "GlassWndClass-GlassWindowClass-2",
+              "boundsInObserverDpiContext": {
+                "left": 54,
+                "top": 36,
+                "right": 970,
+                "bottom": 655
+              },
+              "dpi": 96,
+              "windowDpiContext": {
+                "rawContext": "34",
+                "awareness": 2,
+                "unaware": false,
+                "systemAware": false,
+                "perMonitorAware": false,
+                "perMonitorAwareV2": true,
+                "unawareGdiScaled": false
+              },
+              "processDpi": {
+                "hresult": 0,
+                "awareness": 2
+              },
+              "guiThread": {
+                "available": true,
+                "flags": 0,
+                "activeHwnd": "524452",
+                "focusHwnd": "524452",
+                "captureHwnd": "0",
+                "menuOwnerHwnd": "0",
+                "moveSizeHwnd": "0",
+                "caretHwnd": "0",
+                "caretRect": {
+                  "left": 0,
+                  "top": 0,
+                  "right": 0,
+                  "bottom": 0
+                }
+              }
+            }
+          }
+        ],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "01-native-before/result.json",
+            "sha256": "476e71f44747cd7960fe23b64c815c7d5b04253491491887aad58a23243ebfa7"
+          },
+          {
+            "path": "01-native-before/windows-input-5708.jsonl",
+            "sha256": "7528193eac5a0b46d7936c607876473f433100951b09bcc61b1f353ab5ec3c32"
+          },
+          {
+            "path": "01-native-before/pointer-5828-1-state.jsonl",
+            "sha256": "ada21671ab8f6a6c472bd316c24e791a42b68d3c50bc20ba1e3c08989ba217c3"
+          },
+          {
+            "path": "01-native-before/pointer-5828-1-events.jsonl",
+            "sha256": "f7855d2b2fccb87347f460af1c93aa50caae3e392e8643d33128c9c5b746fbe0"
+          },
+          {
+            "path": "01-native-before/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "b5d13c0b8af8c7ea6104f466bdbbebdbbfae2d5b6b5002a84db1988ce7e7fd2d"
+          }
+        ]
+      },
+      {
+        "phase": "02-graphics-before-fx",
+        "observerStyle": null,
+        "awtFirst": "graphics",
+        "uiScale": "",
+        "exitCode": 1,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "262662"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          false
+        ],
+        "nativeGlassLevels": [
+          1
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 1,
+          "MOUSE_MOVED": 1,
+          "MOUSE_EXITED": 1,
+          "MOUSE_EXITED_TARGET": 1
+        },
+        "osSamples": 9,
+        "nativeVisibleOsSamples": 4,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 4,
+        "observerConsoleSamplesAllTimes": 9,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "02-graphics-before-fx/result.json",
+            "sha256": "fe1657f0f19b9eb6f24275e79035d7245c9ce7335f2b0fd214269fb32a53e4bd"
+          },
+          {
+            "path": "02-graphics-before-fx/windows-input-4508.jsonl",
+            "sha256": "99ba923f9158dafd12c261e22da090e71342923206c67389ea914dd846ece20e"
+          },
+          {
+            "path": "02-graphics-before-fx/pointer-3416-1-state.jsonl",
+            "sha256": "f9e6f6977d79cb868744d26d24d1909e0fd9c07f919ae45ad7c448a99d655a2b"
+          },
+          {
+            "path": "02-graphics-before-fx/pointer-3416-1-events.jsonl",
+            "sha256": "f8c074345a8da87fe6e871b3fe505426d7ca6164cda2a6c92746d48d212bdaec"
+          },
+          {
+            "path": "02-graphics-before-fx/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "c5bbed377fad42cb1cc6335db79cc234781a009c6d204d8477138c01fd0874df"
+          }
+        ]
+      },
+      {
+        "phase": "03-toolkit-before-fx",
+        "observerStyle": null,
+        "awtFirst": "true",
+        "uiScale": "",
+        "exitCode": 1,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "197110"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          false
+        ],
+        "nativeGlassLevels": [
+          1
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {},
+        "osSamples": 9,
+        "nativeVisibleOsSamples": 4,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 4,
+        "observerConsoleSamplesAllTimes": 9,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "03-toolkit-before-fx/result.json",
+            "sha256": "07f06fdda922e72cd06f1b196f89ea9d84757c85826e5ac02af2b6c73deb8c46"
+          },
+          {
+            "path": "03-toolkit-before-fx/windows-input-6104.jsonl",
+            "sha256": "092865477cb3781054b194848e8a41013e60897d9529158e0642582419a79ded"
+          },
+          {
+            "path": "03-toolkit-before-fx/pointer-1672-1-state.jsonl",
+            "sha256": "397b61aab7bf1958abfc67dd551cecab45e0dfd52600bc7cccd7c3d97da0d33b"
+          },
+          {
+            "path": "03-toolkit-before-fx/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "bbc3d0029b001008c78db886f88b5899246a53b830fa1f72f82f2bbd683b3548"
+          }
+        ]
+      },
+      {
+        "phase": "04-graphics-scale100",
+        "observerStyle": null,
+        "awtFirst": "graphics",
+        "uiScale": "100%",
+        "exitCode": 1,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "524674"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          false
+        ],
+        "nativeGlassLevels": [
+          1
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 1,
+          "MOUSE_MOVED": 2,
+          "MOUSE_EXITED": 1,
+          "MOUSE_EXITED_TARGET": 1
+        },
+        "osSamples": 9,
+        "nativeVisibleOsSamples": 4,
+        "physicalHitMatchesTargetCount": 1,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 4,
+        "observerConsoleSamplesAllTimes": 9,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "04-graphics-scale100/result.json",
+            "sha256": "20e23eaacecdf0f98b00ae82461cd3de7f77b2bed36ca0b39ac169b7d2dc4df2"
+          },
+          {
+            "path": "04-graphics-scale100/windows-input-3400.jsonl",
+            "sha256": "76191c73d5e65614324237e15d76edd9f159dfe2d43e96374d64bc27ececdd45"
+          },
+          {
+            "path": "04-graphics-scale100/pointer-5812-1-state.jsonl",
+            "sha256": "94e3f5ef5166b9d3aa9e44da999bf6e79208cdb1158e998aa714e386ac181d0b"
+          },
+          {
+            "path": "04-graphics-scale100/pointer-5812-1-events.jsonl",
+            "sha256": "3113411a273e60494998d411205d707d12e7ec03f4234a250de2e1ec6218c845"
+          },
+          {
+            "path": "04-graphics-scale100/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "09fc2922f28b348d39b008c359db7b2707a1e8f0cdc030e9cdf908f601a21529"
+          }
+        ]
+      },
+      {
+        "phase": "05-toolkit-scale100",
+        "observerStyle": null,
+        "awtFirst": "true",
+        "uiScale": "100%",
+        "exitCode": 1,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "393358"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          false
+        ],
+        "nativeGlassLevels": [
+          1
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 1,
+          "MOUSE_MOVED": 1,
+          "MOUSE_EXITED": 1,
+          "MOUSE_EXITED_TARGET": 1
+        },
+        "osSamples": 9,
+        "nativeVisibleOsSamples": 4,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 4,
+        "observerConsoleSamplesAllTimes": 9,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "05-toolkit-scale100/result.json",
+            "sha256": "d50c10a6a68026862eee44cbd5a4e018ee0ab04de1dd4123eee895a50224802c"
+          },
+          {
+            "path": "05-toolkit-scale100/windows-input-6108.jsonl",
+            "sha256": "feb8ff61aec8d748f687acddb5af2bb01fd0d7e0e8bee9858aa6ce939bae7282"
+          },
+          {
+            "path": "05-toolkit-scale100/pointer-984-1-state.jsonl",
+            "sha256": "b59651205b00688d245a2cb3931b4031c57b39ca5af90e457f0e361e674ea95e"
+          },
+          {
+            "path": "05-toolkit-scale100/pointer-984-1-events.jsonl",
+            "sha256": "0d16ad39b4eb983a08820a9ad7b03fc42e5321f489ddc6e688c5986e7b9b8b1d"
+          },
+          {
+            "path": "05-toolkit-scale100/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "7c5b075092f0cf0be02cbaec37d6a9cfd2462b516c08823aeaf46eda4dd40306"
+          }
+        ]
+      },
+      {
+        "phase": "06-all-fx-ui",
+        "observerStyle": null,
+        "awtFirst": "false",
+        "uiScale": "",
+        "exitCode": 1,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 737,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 121,
+        "nativeHandles": [
+          "2097708"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          false
+        ],
+        "nativeGlassLevels": [
+          1
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 1,
+          "MOUSE_MOVED": 1,
+          "MOUSE_EXITED": 1,
+          "MOUSE_EXITED_TARGET": 1
+        },
+        "osSamples": 616,
+        "nativeVisibleOsSamples": 4,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 4,
+        "observerConsoleSamplesAllTimes": 213,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "06-all-fx-ui/result.json",
+            "sha256": "6be653b03e16575617fd5e27fa519fe4187b8754885c926300cfccb68bd0aedb"
+          },
+          {
+            "path": "06-all-fx-ui/windows-input-7316.jsonl",
+            "sha256": "dfe276671b33d579d94d7c8a06746480fe1f3d083e819d195ae6f421e2b9b724"
+          },
+          {
+            "path": "06-all-fx-ui/pointer-5204-1-state.jsonl",
+            "sha256": "bb0fada3128a82949470a39b48a35a5d8e2a231a968fb8449ea6df2ca248e231"
+          },
+          {
+            "path": "06-all-fx-ui/pointer-5204-1-events.jsonl",
+            "sha256": "7211a7229c45d477712e3fa5967786ac31646369a6af463b7fa03c21337b1d3e"
+          },
+          {
+            "path": "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "0eb80a00acfa6e6f2bd46fc2d38e00a1e4824fcbbc82889f11abcdd242ea7f12"
+          }
+        ]
+      },
+      {
+        "phase": "07-native-after",
+        "observerStyle": null,
+        "awtFirst": "false",
+        "uiScale": "",
+        "exitCode": 1,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "721066"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          false
+        ],
+        "nativeGlassLevels": [
+          1
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {},
+        "osSamples": 9,
+        "nativeVisibleOsSamples": 5,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 5,
+        "observerConsoleSamplesAllTimes": 9,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "07-native-after/result.json",
+            "sha256": "21bec43f9b5a1d6bacc18c716c8be05ea3451b223510706ed50beef3f0c4e0d8"
+          },
+          {
+            "path": "07-native-after/windows-input-7244.jsonl",
+            "sha256": "553c774bcd02d42294c78b6e670f7680b7a86aa6e19632bb9fdec09b841d52bd"
+          },
+          {
+            "path": "07-native-after/pointer-4320-1-state.jsonl",
+            "sha256": "5584bd4bf0cf68e5f9719a4e8a7272ef61a25d3b5e89b352ca77fe81ab25f4ec"
+          },
+          {
+            "path": "07-native-after/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "34a17a231b2c4042a28dd74df5b5083a603328791209d41e37846d4f88efd12b"
+          }
+        ]
+      }
+    ]
+  },
+  "green": {
+    "runId": 42586963144,
+    "sourceCommit": "9107db88eda1dedf463f3aed578502de81cdebc1",
+    "savedJobConclusion": "success",
+    "savedJobMetadataSha256": "d34dcbef2fd9ff22165fff87a8bda5317f46ab0e81048e6ae774bade79ef66d2",
+    "phases": [
+      {
+        "phase": "01-native-before",
+        "observerStyle": "Hidden",
+        "awtFirst": "false",
+        "uiScale": "",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "524332"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          true
+        ],
+        "nativeGlassLevels": [
+          1,
+          2
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 18,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 9,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 9,
+        "nativeVisibleOsSamples": 0,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 0,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "01-native-before/result.json",
+            "sha256": "03f9c124325df157bb1123efe107ee05e7fd64c9a551ec1d05e09f797417b318"
+          },
+          {
+            "path": "01-native-before/windows-input-2064.jsonl",
+            "sha256": "b2b02fe1a991d429d39ef60e2043cec92e437a07edae2e75cfb71e931dff1515"
+          },
+          {
+            "path": "01-native-before/pointer-5244-1-state.jsonl",
+            "sha256": "2e5029db3789cb6e4194ad24a7f5c8cf55f05a9bb2bb4f5adcbe329a70e3477c"
+          },
+          {
+            "path": "01-native-before/pointer-5244-1-events.jsonl",
+            "sha256": "fec76dda1250099704f8e4d6c26cf4fb64b274c5edd93b783343ffeedb319671"
+          },
+          {
+            "path": "01-native-before/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "a0869ad64d236037c4a6c7677566499af99d5586d81759f0a85d27cc4501e0f0"
+          }
+        ]
+      },
+      {
+        "phase": "02-graphics-before-fx",
+        "observerStyle": "Hidden",
+        "awtFirst": "graphics",
+        "uiScale": "",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "197074"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          true
+        ],
+        "nativeGlassLevels": [
+          1,
+          2
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 17,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 8,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 7,
+        "nativeVisibleOsSamples": 0,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 0,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "02-graphics-before-fx/result.json",
+            "sha256": "9102ab97069fc2de2822159ce285696e5bdd848678a33ae66593636a62be280d"
+          },
+          {
+            "path": "02-graphics-before-fx/windows-input-648.jsonl",
+            "sha256": "4c9125fc504543ab6e3b5b4dc95f1505e5a1aceb01e98d999acc0f670cdecbbd"
+          },
+          {
+            "path": "02-graphics-before-fx/pointer-4928-1-state.jsonl",
+            "sha256": "770e49efdaf94c0f21a8a6c947c3332677cbaf7adb716e58a72e738c042f5803"
+          },
+          {
+            "path": "02-graphics-before-fx/pointer-4928-1-events.jsonl",
+            "sha256": "c86a3028c0e52a31a6e2a1b859f2c66d98e6c9321a640b826bbae9f0558c0523"
+          },
+          {
+            "path": "02-graphics-before-fx/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "2da169654c3d779237e1da5e97a1030170c37c67d1998f7227691d61e724c5ef"
+          }
+        ]
+      },
+      {
+        "phase": "03-toolkit-before-fx",
+        "observerStyle": "Hidden",
+        "awtFirst": "true",
+        "uiScale": "",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "197132"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          true
+        ],
+        "nativeGlassLevels": [
+          1,
+          2
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 17,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 8,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 6,
+        "nativeVisibleOsSamples": 0,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 0,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "03-toolkit-before-fx/result.json",
+            "sha256": "11e5d6ec53935799b2760e7d156bbc99d0ac28f069593be0fe44b82f1e670445"
+          },
+          {
+            "path": "03-toolkit-before-fx/windows-input-6220.jsonl",
+            "sha256": "036942e206e6d0f1f65e7f45c781d0f931c0aef2096b9fb7de79eb2d91effc72"
+          },
+          {
+            "path": "03-toolkit-before-fx/pointer-1880-1-state.jsonl",
+            "sha256": "2d50161a4dc1c6f2dceae7462dcd2f298e4cddd497936c120af8807341bc1a29"
+          },
+          {
+            "path": "03-toolkit-before-fx/pointer-1880-1-events.jsonl",
+            "sha256": "362f91ec2a12c4a7968c901b5447ed0730d1aed27e2c59de26a0bbd03ad98bf0"
+          },
+          {
+            "path": "03-toolkit-before-fx/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "6c4d60582f36cc277268fe775f271248132e39d1a929659002f30ffb03875c61"
+          }
+        ]
+      },
+      {
+        "phase": "04-graphics-scale100",
+        "observerStyle": "Hidden",
+        "awtFirst": "graphics",
+        "uiScale": "100%",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "458946"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          true
+        ],
+        "nativeGlassLevels": [
+          1,
+          2
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 17,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 8,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 6,
+        "nativeVisibleOsSamples": 0,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 0,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "04-graphics-scale100/result.json",
+            "sha256": "8acfd18c5d517d0f12216d6a7657c96134870950fb6d6a76c1cabe07d36a5fae"
+          },
+          {
+            "path": "04-graphics-scale100/windows-input-3284.jsonl",
+            "sha256": "c0250a0d1fed2955290ed7425871f2acfb363cfb98dba6bfd998123ee2a50fed"
+          },
+          {
+            "path": "04-graphics-scale100/pointer-5428-1-state.jsonl",
+            "sha256": "a24da88424614ec0ad72820d0196d91fb6f02b459e29b09addcd2ca9065d5696"
+          },
+          {
+            "path": "04-graphics-scale100/pointer-5428-1-events.jsonl",
+            "sha256": "52b4d182fc9960cfc1f6851e396a23f33380e1d6a01fd04b0ec6b7e9af53e4ec"
+          },
+          {
+            "path": "04-graphics-scale100/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "de82c83715a6c7b0158a604b96161bf55b1950ecfb26d8f0657cd4a2d0a09b94"
+          }
+        ]
+      },
+      {
+        "phase": "05-toolkit-scale100",
+        "observerStyle": "Hidden",
+        "awtFirst": "true",
+        "uiScale": "100%",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "328204"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          true
+        ],
+        "nativeGlassLevels": [
+          1,
+          2
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 17,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 8,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 7,
+        "nativeVisibleOsSamples": 0,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 0,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "05-toolkit-scale100/result.json",
+            "sha256": "83225b93cf9d89f1d4bb0b6d215ca1e1bab4e680b13e5c6c4995280915f3639c"
+          },
+          {
+            "path": "05-toolkit-scale100/windows-input-4284.jsonl",
+            "sha256": "c7f69cd89823939af94399a93a4728a07199a5070932f098f3e63f0d31760cc9"
+          },
+          {
+            "path": "05-toolkit-scale100/pointer-7896-1-state.jsonl",
+            "sha256": "32ce1503957bbe4e2c0b3df5d474e115909bee2e516fb485d4761b64f265bd25"
+          },
+          {
+            "path": "05-toolkit-scale100/pointer-7896-1-events.jsonl",
+            "sha256": "4cc3f3b6767e4648b1cac3861200865d447849bdc9a9b2fc0f97db4cc922ad02"
+          },
+          {
+            "path": "05-toolkit-scale100/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "fcd7a1c648f5f33727ad28345c529d03646be35d4bebc7758bb70c96d805abaf"
+          }
+        ]
+      },
+      {
+        "phase": "06-all-fx-ui",
+        "observerStyle": "Hidden",
+        "awtFirst": "false",
+        "uiScale": "",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 737,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 121,
+        "nativeHandles": [
+          "197216"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          true
+        ],
+        "nativeGlassLevels": [
+          1,
+          2
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 16,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 7,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 585,
+        "nativeVisibleOsSamples": 0,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 0,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "06-all-fx-ui/result.json",
+            "sha256": "7dd07452bd7a9a317e10f71094f14cf6842f1cf6b2a5295f768b2cfddb44837d"
+          },
+          {
+            "path": "06-all-fx-ui/windows-input-7412.jsonl",
+            "sha256": "538e1da7d80e1183bd0e64bf3b730c2496510094a1698fbcde4aeb81f2a749e8"
+          },
+          {
+            "path": "06-all-fx-ui/pointer-4328-1-state.jsonl",
+            "sha256": "5d062c37c5b23f6bac3925194b2902fb05628b0ce9efcbd1cf0e235a60f5aad7"
+          },
+          {
+            "path": "06-all-fx-ui/pointer-4328-1-events.jsonl",
+            "sha256": "a9e1e9e789f10ce708bc544934daf127da1531e9dc6194bbd879cd54bc7ab12e"
+          },
+          {
+            "path": "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "136e8feb9fb35421c8123a71d30bb928474540da175abe6f9750f05cae8081d8"
+          }
+        ]
+      },
+      {
+        "phase": "07-native-after",
+        "observerStyle": "Hidden",
+        "awtFirst": "false",
+        "uiScale": "",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "1376414"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          true
+        ],
+        "nativeGlassLevels": [
+          1,
+          2
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 16,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 7,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 7,
+        "nativeVisibleOsSamples": 1,
+        "physicalHitMatchesTargetCount": 1,
+        "foregroundMatchesTargetCount": 1,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 0,
+        "directJavaForegroundAndPhysicalHitExamples": [
+          {
+            "timeUtc": "2026-11-09T08:47:20.7939450+00:00",
+            "physicalCursor": {
+              "x": 228,
+              "y": 279
+            },
+            "foreground": {
+              "hwnd": "1376414",
+              "valid": true,
+              "pid": 2384,
+              "threadId": 3000,
+              "processSessionId": 2,
+              "enabled": true,
+              "visible": true,
+              "iconic": false,
+              "ownerHwnd": "0",
+              "class": "GlassWndClass-GlassWindowClass-2",
+              "boundsInObserverDpiContext": {
+                "left": 54,
+                "top": 36,
+                "right": 970,
+                "bottom": 655
+              },
+              "dpi": 96,
+              "windowDpiContext": {
+                "rawContext": "34",
+                "awareness": 2,
+                "unaware": false,
+                "systemAware": false,
+                "perMonitorAware": false,
+                "perMonitorAwareV2": true,
+                "unawareGdiScaled": false
+              },
+              "processDpi": {
+                "hresult": 0,
+                "awareness": 2
+              },
+              "guiThread": {
+                "available": true,
+                "flags": 0,
+                "activeHwnd": "1376414",
+                "focusHwnd": "1376414",
+                "captureHwnd": "0",
+                "menuOwnerHwnd": "0",
+                "moveSizeHwnd": "0",
+                "caretHwnd": "0",
+                "caretRect": {
+                  "left": 0,
+                  "top": 0,
+                  "right": 0,
+                  "bottom": 0
+                }
+              }
+            },
+            "windowUnderPhysicalCursor": {
+              "hwnd": "1376414",
+              "valid": true,
+              "pid": 2384,
+              "threadId": 3000,
+              "processSessionId": 2,
+              "enabled": true,
+              "visible": true,
+              "iconic": false,
+              "ownerHwnd": "0",
+              "class": "GlassWndClass-GlassWindowClass-2",
+              "boundsInObserverDpiContext": {
+                "left": 54,
+                "top": 36,
+                "right": 970,
+                "bottom": 655
+              },
+              "dpi": 96,
+              "windowDpiContext": {
+                "rawContext": "34",
+                "awareness": 2,
+                "unaware": false,
+                "systemAware": false,
+                "perMonitorAware": false,
+                "perMonitorAwareV2": true,
+                "unawareGdiScaled": false
+              },
+              "processDpi": {
+                "hresult": 0,
+                "awareness": 2
+              },
+              "guiThread": {
+                "available": true,
+                "flags": 0,
+                "activeHwnd": "1376414",
+                "focusHwnd": "1376414",
+                "captureHwnd": "0",
+                "menuOwnerHwnd": "0",
+                "moveSizeHwnd": "0",
+                "caretHwnd": "0",
+                "caretRect": {
+                  "left": 0,
+                  "top": 0,
+                  "right": 0,
+                  "bottom": 0
+                }
+              }
+            }
+          }
+        ],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "07-native-after/result.json",
+            "sha256": "987ddf1471ded7c30cf1dd5af1ebe43672df5aa57be6376fa30b02f5890bc2e7"
+          },
+          {
+            "path": "07-native-after/windows-input-6172.jsonl",
+            "sha256": "d3aa2087d0b7c99efd0f89b2fc9e519b7b58f0d610c195ac219169411b869782"
+          },
+          {
+            "path": "07-native-after/pointer-2384-1-state.jsonl",
+            "sha256": "57a7c0948fcd48e85eb4bacdabad2982055c0b4b43b92e36d0e7b1e3e3d48ca3"
+          },
+          {
+            "path": "07-native-after/pointer-2384-1-events.jsonl",
+            "sha256": "c53e54e1eaa6bf57537fe792ecf2ad8e5527c5c9512c6142b848c9ab2fd785cd"
+          },
+          {
+            "path": "07-native-after/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "8123ca27033b36ba2024ca6d5d676202eb297d251fccb70741b25f07b25d7afe"
+          }
+        ]
+      },
+      {
+        "phase": "08-visible-console-control",
+        "observerStyle": "Normal",
+        "awtFirst": "false",
+        "uiScale": "",
+        "exitCode": 0,
+        "diagnosticOnly": true,
+        "javaTotals": {
+          "tests": 3,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "xmlSuites": 1,
+        "nativeHandles": [
+          "1441950"
+        ],
+        "nativeStageAlwaysOnTopValues": [
+          true
+        ],
+        "nativeGlassLevels": [
+          1,
+          2
+        ],
+        "nativeFxScaleTuples": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "nativeSceneEventCounts": {
+          "MOUSE_ENTERED": 1,
+          "MOUSE_ENTERED_TARGET": 17,
+          "MOUSE_MOVED": 3,
+          "MOUSE_EXITED_TARGET": 8,
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1
+        },
+        "osSamples": 7,
+        "nativeVisibleOsSamples": 0,
+        "physicalHitMatchesTargetCount": 0,
+        "foregroundMatchesTargetCount": 0,
+        "consoleForegroundDuringNativeVisibleCount": 0,
+        "observerConsoleSamplesAllTimes": 7,
+        "directJavaForegroundAndPhysicalHitExamples": [],
+        "nativeDpiTuples": [
+          [
+            96,
+            2,
+            true,
+            2
+          ]
+        ],
+        "desktopTriples": [
+          [
+            "Default",
+            "WinSta0",
+            "Default"
+          ]
+        ],
+        "sessionTuples": [
+          [
+            2,
+            2,
+            "Active"
+          ]
+        ],
+        "screenSaverRunningObserved": false,
+        "sourceFiles": [
+          {
+            "path": "08-visible-console-control/result.json",
+            "sha256": "ab4ad593e2b1c0c6d3d1e7a5e3bff4fb31c7a4f8d6c1789b7ac40cc33f0b94d1"
+          },
+          {
+            "path": "08-visible-console-control/windows-input-1188.jsonl",
+            "sha256": "126d0028f81ce2418fc3972cfac0dd3c2e8a7aa20245c029798a34205d64e2ba"
+          },
+          {
+            "path": "08-visible-console-control/pointer-2192-1-state.jsonl",
+            "sha256": "5964b74db2228ca97d33fbf074890d162bcf4715814f7cc608a1ccafc77c4898"
+          },
+          {
+            "path": "08-visible-console-control/pointer-2192-1-events.jsonl",
+            "sha256": "ba792ad502c0b79d33c969a9cd6c8840899571d225eab8747b6e6341779eb15e"
+          },
+          {
+            "path": "08-visible-console-control/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml",
+            "sha256": "d579e2c3df53673829ab61f95a3ed333c1e6f2bdfe9de55c937dce847c366959"
+          }
+        ]
+      }
+    ]
+  },
+  "candidate": {
+    "version": "1.6.7",
+    "sourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+    "fullWindowsBuildRunId": 42587222212,
+    "nativeTestPath": "src/test/java/com/vncode/app/ui/tnved/FashionTnvedBrowserTest.java",
+    "nativeTestGitObject": "a43238aedaf9c12674132aa2e69e2834f2539bf0",
+    "nativeTestSha256": "71505e104251a159f39fc37e76186b81611f34d06b2832b90f785851c4c69739",
+    "nativeTestBytesIdenticalToGreenDiagnosticSource": true
+  },
+  "controlFindings": [
+    "All eight GREEN phases passed their own XML and exit gates: seven separate3-case native runs plus the737-case UI/FX phase. These are overlapping diagnostic executions, not758 unique tests or a full-suite replacement.",
+    "The GREEN native Stage is always-on-top in every observed trace; each phase contains exactly one Scene-level native press/release/click sequence, and the passing original assertions verify clipboard, status, open dialog and no Apply.",
+    "The deliberate phase08 uses a Normal visible observer console, confirmed by its native console foreground samples, while the AOT test still passes and receives native mouse events.",
+    "Phase07 directly sampled Java HWND1376414 as both actual foreground and physical-cursor hit at2026-11-09T08:47:20.7939450+00:00.",
+    "All GREEN sampled desktops/session remain Default/WinSta0/session2Active; no screensaver was sampled. All recorded matching-native HWND DPI readings remain96/per-monitor-v2/process-awareness2, and all native FX scales remain1.",
+    "RED controls showed console occlusion despite local Java focus, while GREEN AOT isolation passes the same AWT and scale variants. No application DPI change is justified by this evidence."
+  ],
+  "samplingLimits": [
+    "Most successful native windows were open for less than the1-second OS sampling period. No synchronous active-Stage OS hit/foreground sample was captured for phase08; its positive evidence is the deliberate visible-console setup, AOT trace and native event/assertion success, not an invented WindowFromPoint sample.",
+    "This control establishes console interference in the diagnostic scenario and fixture isolation effectiveness. It does not prove identical console provenance for every original full-suite failure.",
+    "No status was queried for full Windows42587222212, and no release ZIP, native installer or package verification is claimed.",
+    "No seller API, purchase, signing, activation, application security or production runtime behavior was changed by this review."
+  ],
+  "sourceOnlyReview": true,
+  "newTestsExecutedByReviewer": false,
+  "networkCalls": false,
+  "repositoryEdits": false,
+  "publicationPerformed": false
+}

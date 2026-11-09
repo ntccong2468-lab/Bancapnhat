@@ -1,0 +1,100 @@
+{
+  "recordedAtUtc": "2026-11-09T08:48:54.291299+00:00",
+  "runId": 42586963144,
+  "diagnosticSource": "9107db88eda1dedf463f3aed578502de81cdebc1",
+  "applicationSourceWithIdenticalTestFixture": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+  "result": "PASS",
+  "phases": [
+    {
+      "phase": "01-native-before",
+      "mode": "false",
+      "uiScale": "",
+      "observerStyle": "Hidden",
+      "suites": 1,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "phase": "02-graphics-before-fx",
+      "mode": "graphics",
+      "uiScale": "",
+      "observerStyle": "Hidden",
+      "suites": 1,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "phase": "03-toolkit-before-fx",
+      "mode": "true",
+      "uiScale": "",
+      "observerStyle": "Hidden",
+      "suites": 1,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "phase": "04-graphics-scale100",
+      "mode": "graphics",
+      "uiScale": "100%",
+      "observerStyle": "Hidden",
+      "suites": 1,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "phase": "05-toolkit-scale100",
+      "mode": "true",
+      "uiScale": "100%",
+      "observerStyle": "Hidden",
+      "suites": 1,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "phase": "06-all-fx-ui",
+      "mode": "false",
+      "uiScale": "",
+      "observerStyle": "Hidden",
+      "suites": 121,
+      "tests": 737,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "phase": "07-native-after",
+      "mode": "false",
+      "uiScale": "",
+      "observerStyle": "Hidden",
+      "suites": 1,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "phase": "08-visible-console-control",
+      "mode": "false",
+      "uiScale": "",
+      "observerStyle": "Normal",
+      "suites": 1,
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "overlappingExecutionsNotSummedAsUniqueTests": true,
+  "diagnosticDoesNotReplaceFullWindows": true,
+  "originalHistoricalFullConsoleCauseProven": false
+}

@@ -1,0 +1,1275 @@
+{
+  "recordedAtUtc": "2026-11-09T08:53:34.523577+00:00",
+  "kind": "Independent review of actual Windows native AOT controls and helper cleanup",
+  "diagnosticRunId": 42586963144,
+  "diagnosticSourceCommit": "9107db88eda1dedf463f3aed578502de81cdebc1",
+  "applicationSourceCommit": "0f5f3217b4d5c33ec1c10a1ed279c9dd78f62e96",
+  "result": "PASS within diagnostic scope",
+  "applicationFixtureGitBlobSha256": "71505e104251a159f39fc37e76186b81611f34d06b2832b90f785851c4c69739",
+  "applicationFixtureBytesEqualToDiagnostic": true,
+  "mainSourceTreeAndPomEqualToPinnedApplication": true,
+  "redFixtureGitBlobSha256": "30b1c0b70866d10b149d216fa4221556d291be70acab7ec478eb2f3d090a61a9",
+  "redSource210BytesEqualToFirstDiagnosticAebb": true,
+  "exactFixtureDelta": "Only Stage.setAlwaysOnTop(true), explanatory fixture comment and line splitting in setup. Deadline/parking/single real click/all assertions byte-unchanged.",
+  "mainRuntimeCodeChangedByFixture": false,
+  "diagnosticHelperGitBlobSha256": "2c604ac5cbe40403f76154a115dc2f97c3e0c5c94084f4f75272fe5c6c734214",
+  "diagnosticHelperIsNotShippedRuntime": true,
+  "oldDiagnosticRunId": 42584347083,
+  "redComparisonEvidence": "native-diagnostic-analysis-native-mouse.json",
+  "redComparisonScope": "Previous fast diagnostic proved visible console occlusion. The new phase08 keeps a visible console and the topmost test receives one native press/release/click and satisfies all original outcomes. This validates fixture isolation; it does not retrospectively prove the cause of earlier full-run failures.",
+  "uiGroup": {
+    "tests": 737,
+    "passed": 737,
+    "xmlSuites": 121,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "allUiPhaseTraceCount": 1,
+    "helperCleanupStateAfterNative": {
+      "installed": false,
+      "remainingTraces": 0
+    }
+  },
+  "eightNativeControlsPass": true,
+  "caseExecutionsAcrossAllPhases": {
+    "tests": 758,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "uniqueCaseCountClaimedAcrossRepeatedControls": false,
+  "testGateOrAssertionWeakened": false,
+  "phases": [
+    {
+      "phase": "01-native-before",
+      "result": "PASS",
+      "tests": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "nativeCase": {
+        "name": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "reportedSeconds": 3.27
+      },
+      "alwaysOnTop": true,
+      "glassLevel": 2,
+      "targetHwnd": "524332",
+      "eventCounts": {
+        "scene": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        },
+        "root": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        }
+      },
+      "nativePressedNotSynthesized": true,
+      "actionCountEvidence": "The unchanged actual native test passed its explicit actions==1 assertion. ActionEvent is not independently logged by this MouseEvent observer.",
+      "traceCount": 1,
+      "observerInstallState": [
+        true,
+        false
+      ],
+      "remainingTracesAfterEach": 0,
+      "nativeOsTargetSamples": [],
+      "osSamplingScope": "One-second OS polling may miss a short-lived native click; Scene/root input and passing assertions remain the direct per-click evidence.",
+      "observerStyle": "Hidden",
+      "awtFirst": "false",
+      "uiScale": "",
+      "awtAndScalePropertiesMatchXml": true,
+      "awtFirstMetadata": null
+    },
+    {
+      "phase": "02-graphics-before-fx",
+      "result": "PASS",
+      "tests": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "nativeCase": {
+        "name": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "reportedSeconds": 2.478
+      },
+      "alwaysOnTop": true,
+      "glassLevel": 2,
+      "targetHwnd": "197074",
+      "eventCounts": {
+        "scene": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        },
+        "root": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        }
+      },
+      "nativePressedNotSynthesized": true,
+      "actionCountEvidence": "The unchanged actual native test passed its explicit actions==1 assertion. ActionEvent is not independently logged by this MouseEvent observer.",
+      "traceCount": 1,
+      "observerInstallState": [
+        true,
+        false
+      ],
+      "remainingTracesAfterEach": 0,
+      "nativeOsTargetSamples": [],
+      "osSamplingScope": "One-second OS polling may miss a short-lived native click; Scene/root input and passing assertions remain the direct per-click evidence.",
+      "observerStyle": "Hidden",
+      "awtFirst": "graphics",
+      "uiScale": "",
+      "awtAndScalePropertiesMatchXml": true,
+      "awtFirstMetadata": {
+        "time": "2026-11-09T08:36:47.128357900Z",
+        "pid": 4928,
+        "phase": "awt-before-original-test-BeforeAll",
+        "controlledInitialization": true,
+        "releaseAcceptance": false,
+        "helperCalledPlatformHere": false,
+        "awtHeadlessProperty": null,
+        "mode": "graphics",
+        "explicitToolkitInitialization": false,
+        "awtToolkitClass": null,
+        "graphicsEnvironmentClass": "sun.awt.Win32GraphicsEnvironment",
+        "headless": false,
+        "screenDeviceId": "\\Display0",
+        "screenBounds": "java.awt.Rectangle[x=0,y=0,width=1024,height=768]",
+        "defaultTransform": "AffineTransform[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]",
+        "normalizingTransform": "AffineTransform[[1.333333333333333, 0.0, 0.0], [0.0, 1.333333333333333, 0.0]]"
+      }
+    },
+    {
+      "phase": "03-toolkit-before-fx",
+      "result": "PASS",
+      "tests": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "nativeCase": {
+        "name": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "reportedSeconds": 2.551
+      },
+      "alwaysOnTop": true,
+      "glassLevel": 2,
+      "targetHwnd": "197132",
+      "eventCounts": {
+        "scene": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        },
+        "root": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        }
+      },
+      "nativePressedNotSynthesized": true,
+      "actionCountEvidence": "The unchanged actual native test passed its explicit actions==1 assertion. ActionEvent is not independently logged by this MouseEvent observer.",
+      "traceCount": 1,
+      "observerInstallState": [
+        true,
+        false
+      ],
+      "remainingTracesAfterEach": 0,
+      "nativeOsTargetSamples": [],
+      "osSamplingScope": "One-second OS polling may miss a short-lived native click; Scene/root input and passing assertions remain the direct per-click evidence.",
+      "observerStyle": "Hidden",
+      "awtFirst": "true",
+      "uiScale": "",
+      "awtAndScalePropertiesMatchXml": true,
+      "awtFirstMetadata": {
+        "time": "2026-11-09T08:36:55.944929600Z",
+        "pid": 1880,
+        "phase": "awt-before-original-test-BeforeAll",
+        "controlledInitialization": true,
+        "releaseAcceptance": false,
+        "helperCalledPlatformHere": false,
+        "awtHeadlessProperty": null,
+        "mode": "true",
+        "explicitToolkitInitialization": true,
+        "awtToolkitClass": "sun.awt.windows.WToolkit",
+        "graphicsEnvironmentClass": "sun.awt.Win32GraphicsEnvironment",
+        "headless": false,
+        "screenDeviceId": "\\Display0",
+        "screenBounds": "java.awt.Rectangle[x=0,y=0,width=1024,height=768]",
+        "defaultTransform": "AffineTransform[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]",
+        "normalizingTransform": "AffineTransform[[1.333333333333333, 0.0, 0.0], [0.0, 1.333333333333333, 0.0]]",
+        "screenResolution": 96
+      }
+    },
+    {
+      "phase": "04-graphics-scale100",
+      "result": "PASS",
+      "tests": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "nativeCase": {
+        "name": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "reportedSeconds": 2.557
+      },
+      "alwaysOnTop": true,
+      "glassLevel": 2,
+      "targetHwnd": "458946",
+      "eventCounts": {
+        "scene": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        },
+        "root": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        }
+      },
+      "nativePressedNotSynthesized": true,
+      "actionCountEvidence": "The unchanged actual native test passed its explicit actions==1 assertion. ActionEvent is not independently logged by this MouseEvent observer.",
+      "traceCount": 1,
+      "observerInstallState": [
+        true,
+        false
+      ],
+      "remainingTracesAfterEach": 0,
+      "nativeOsTargetSamples": [],
+      "osSamplingScope": "One-second OS polling may miss a short-lived native click; Scene/root input and passing assertions remain the direct per-click evidence.",
+      "observerStyle": "Hidden",
+      "awtFirst": "graphics",
+      "uiScale": "100%",
+      "awtAndScalePropertiesMatchXml": true,
+      "awtFirstMetadata": {
+        "time": "2026-11-09T08:37:04.043900800Z",
+        "pid": 5428,
+        "phase": "awt-before-original-test-BeforeAll",
+        "controlledInitialization": true,
+        "releaseAcceptance": false,
+        "helperCalledPlatformHere": false,
+        "awtHeadlessProperty": null,
+        "mode": "graphics",
+        "explicitToolkitInitialization": false,
+        "awtToolkitClass": null,
+        "graphicsEnvironmentClass": "sun.awt.Win32GraphicsEnvironment",
+        "headless": false,
+        "screenDeviceId": "\\Display0",
+        "screenBounds": "java.awt.Rectangle[x=0,y=0,width=1024,height=768]",
+        "defaultTransform": "AffineTransform[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]",
+        "normalizingTransform": "AffineTransform[[1.333333333333333, 0.0, 0.0], [0.0, 1.333333333333333, 0.0]]"
+      }
+    },
+    {
+      "phase": "05-toolkit-scale100",
+      "result": "PASS",
+      "tests": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "nativeCase": {
+        "name": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "reportedSeconds": 2.459
+      },
+      "alwaysOnTop": true,
+      "glassLevel": 2,
+      "targetHwnd": "328204",
+      "eventCounts": {
+        "scene": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        },
+        "root": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        }
+      },
+      "nativePressedNotSynthesized": true,
+      "actionCountEvidence": "The unchanged actual native test passed its explicit actions==1 assertion. ActionEvent is not independently logged by this MouseEvent observer.",
+      "traceCount": 1,
+      "observerInstallState": [
+        true,
+        false
+      ],
+      "remainingTracesAfterEach": 0,
+      "nativeOsTargetSamples": [],
+      "osSamplingScope": "One-second OS polling may miss a short-lived native click; Scene/root input and passing assertions remain the direct per-click evidence.",
+      "observerStyle": "Hidden",
+      "awtFirst": "true",
+      "uiScale": "100%",
+      "awtAndScalePropertiesMatchXml": true,
+      "awtFirstMetadata": {
+        "time": "2026-11-09T08:37:12.131999400Z",
+        "pid": 7896,
+        "phase": "awt-before-original-test-BeforeAll",
+        "controlledInitialization": true,
+        "releaseAcceptance": false,
+        "helperCalledPlatformHere": false,
+        "awtHeadlessProperty": null,
+        "mode": "true",
+        "explicitToolkitInitialization": true,
+        "awtToolkitClass": "sun.awt.windows.WToolkit",
+        "graphicsEnvironmentClass": "sun.awt.Win32GraphicsEnvironment",
+        "headless": false,
+        "screenDeviceId": "\\Display0",
+        "screenBounds": "java.awt.Rectangle[x=0,y=0,width=1024,height=768]",
+        "defaultTransform": "AffineTransform[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]",
+        "normalizingTransform": "AffineTransform[[1.333333333333333, 0.0, 0.0], [0.0, 1.333333333333333, 0.0]]",
+        "screenResolution": 96
+      }
+    },
+    {
+      "phase": "06-all-fx-ui",
+      "result": "PASS",
+      "tests": {
+        "tests": 737,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 121,
+      "nativeCase": {
+        "name": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "reportedSeconds": 0.436
+      },
+      "alwaysOnTop": true,
+      "glassLevel": 2,
+      "targetHwnd": "197216",
+      "eventCounts": {
+        "scene": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        },
+        "root": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        }
+      },
+      "nativePressedNotSynthesized": true,
+      "actionCountEvidence": "The unchanged actual native test passed its explicit actions==1 assertion. ActionEvent is not independently logged by this MouseEvent observer.",
+      "traceCount": 1,
+      "observerInstallState": [
+        true,
+        false
+      ],
+      "remainingTracesAfterEach": 0,
+      "nativeOsTargetSamples": [],
+      "osSamplingScope": "One-second OS polling may miss a short-lived native click; Scene/root input and passing assertions remain the direct per-click evidence.",
+      "observerStyle": "Hidden",
+      "awtFirst": "false",
+      "uiScale": "",
+      "awtAndScalePropertiesMatchXml": true,
+      "awtFirstMetadata": null
+    },
+    {
+      "phase": "07-native-after",
+      "result": "PASS",
+      "tests": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "nativeCase": {
+        "name": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "reportedSeconds": 2.685
+      },
+      "alwaysOnTop": true,
+      "glassLevel": 2,
+      "targetHwnd": "1376414",
+      "eventCounts": {
+        "scene": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        },
+        "root": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        }
+      },
+      "nativePressedNotSynthesized": true,
+      "actionCountEvidence": "The unchanged actual native test passed its explicit actions==1 assertion. ActionEvent is not independently logged by this MouseEvent observer.",
+      "traceCount": 1,
+      "observerInstallState": [
+        true,
+        false
+      ],
+      "remainingTracesAfterEach": 0,
+      "nativeOsTargetSamples": [
+        {
+          "time": "2026-11-09T08:47:20.7939450+00:00",
+          "physicalCursor": {
+            "x": 228,
+            "y": 279
+          },
+          "targetVisible": true,
+          "hitHwnd": "1376414",
+          "hitClass": "GlassWndClass-GlassWindowClass-2",
+          "hitMatchesJavaTarget": true,
+          "foregroundHwnd": "1376414"
+        }
+      ],
+      "osSamplingScope": "One-second OS polling may miss a short-lived native click; Scene/root input and passing assertions remain the direct per-click evidence.",
+      "observerStyle": "Hidden",
+      "awtFirst": "false",
+      "uiScale": "",
+      "awtAndScalePropertiesMatchXml": true,
+      "awtFirstMetadata": null
+    },
+    {
+      "phase": "08-visible-console-control",
+      "result": "PASS",
+      "tests": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "nativeCase": {
+        "name": "actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker",
+        "class": "com.vncode.app.ui.tnved.FashionTnvedBrowserTest",
+        "reportedSeconds": 2.597
+      },
+      "alwaysOnTop": true,
+      "glassLevel": 2,
+      "targetHwnd": "1441950",
+      "eventCounts": {
+        "scene": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        },
+        "root": {
+          "MOUSE_PRESSED": 1,
+          "MOUSE_RELEASED": 1,
+          "MOUSE_CLICKED": 1,
+          "MOUSE_MOVED": 3
+        }
+      },
+      "nativePressedNotSynthesized": true,
+      "actionCountEvidence": "The unchanged actual native test passed its explicit actions==1 assertion. ActionEvent is not independently logged by this MouseEvent observer.",
+      "traceCount": 1,
+      "observerInstallState": [
+        true,
+        false
+      ],
+      "remainingTracesAfterEach": 0,
+      "nativeOsTargetSamples": [],
+      "osSamplingScope": "One-second OS polling may miss a short-lived native click; Scene/root input and passing assertions remain the direct per-click evidence.",
+      "observerStyle": "Normal",
+      "awtFirst": "false",
+      "uiScale": "",
+      "awtAndScalePropertiesMatchXml": true,
+      "awtFirstMetadata": null
+    }
+  ],
+  "evidenceFiles": {
+    "01-native-before/result.json": {
+      "bytes": 228,
+      "sha256": "03f9c124325df157bb1123efe107ee05e7fd64c9a551ec1d05e09f797417b318"
+    },
+    "01-native-before/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml": {
+      "bytes": 24898,
+      "sha256": "a0869ad64d236037c4a6c7677566499af99d5586d81759f0a85d27cc4501e0f0"
+    },
+    "01-native-before/pointer-5244-1-state.jsonl": {
+      "bytes": 30049,
+      "sha256": "2e5029db3789cb6e4194ad24a7f5c8cf55f05a9bb2bb4f5adcbe329a70e3477c"
+    },
+    "01-native-before/pointer-5244-1-events.jsonl": {
+      "bytes": 23765,
+      "sha256": "fec76dda1250099704f8e4d6c26cf4fb64b274c5edd93b783343ffeedb319671"
+    },
+    "01-native-before/windows-input-2064.jsonl": {
+      "bytes": 30630,
+      "sha256": "b2b02fe1a991d429d39ef60e2043cec92e437a07edae2e75cfb71e931dff1515"
+    },
+    "01-native-before/observer.jsonl": {
+      "bytes": 211,
+      "sha256": "94e6f101d5868b4fa5b4e9124f4ecff19b2944fb41e67b7657c315016b627b31"
+    },
+    "01-native-before/pointer-5244-1-before-hide.png": {
+      "bytes": 50102,
+      "sha256": "515902c9baf3b27607ec1edf61003b5287006bb4b0aa2dd8b5d584d007cdcbc3"
+    },
+    "01-native-before/pointer-5244-1-shown.png": {
+      "bytes": 11823,
+      "sha256": "ecb4683d0cec7792a5f713f92ab1d2816e95b0400381661de8f715d9a3c821e1"
+    },
+    "02-graphics-before-fx/result.json": {
+      "bytes": 236,
+      "sha256": "9102ab97069fc2de2822159ce285696e5bdd848678a33ae66593636a62be280d"
+    },
+    "02-graphics-before-fx/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml": {
+      "bytes": 24974,
+      "sha256": "2da169654c3d779237e1da5e97a1030170c37c67d1998f7227691d61e724c5ef"
+    },
+    "02-graphics-before-fx/pointer-4928-1-state.jsonl": {
+      "bytes": 20806,
+      "sha256": "770e49efdaf94c0f21a8a6c947c3332677cbaf7adb716e58a72e738c042f5803"
+    },
+    "02-graphics-before-fx/pointer-4928-1-events.jsonl": {
+      "bytes": 22409,
+      "sha256": "c86a3028c0e52a31a6e2a1b859f2c66d98e6c9321a640b826bbae9f0558c0523"
+    },
+    "02-graphics-before-fx/windows-input-648.jsonl": {
+      "bytes": 27014,
+      "sha256": "4c9125fc504543ab6e3b5b4dc95f1505e5a1aceb01e98d999acc0f670cdecbbd"
+    },
+    "02-graphics-before-fx/awt-first.jsonl": {
+      "bytes": 665,
+      "sha256": "83b00e899579d843bf32c25d1662d91738f1de4fdc028f7a9f4e47b8525af405"
+    },
+    "02-graphics-before-fx/observer.jsonl": {
+      "bytes": 211,
+      "sha256": "329f4aeaaf64b7e8d3aff909ac8db2e5e3b69b47eafa38dbf71e9ec067252056"
+    },
+    "02-graphics-before-fx/pointer-4928-1-before-hide.png": {
+      "bytes": 50102,
+      "sha256": "515902c9baf3b27607ec1edf61003b5287006bb4b0aa2dd8b5d584d007cdcbc3"
+    },
+    "02-graphics-before-fx/pointer-4928-1-shown.png": {
+      "bytes": 11823,
+      "sha256": "ecb4683d0cec7792a5f713f92ab1d2816e95b0400381661de8f715d9a3c821e1"
+    },
+    "03-toolkit-before-fx/result.json": {
+      "bytes": 231,
+      "sha256": "11e5d6ec53935799b2760e7d156bbc99d0ac28f069593be0fe44b82f1e670445"
+    },
+    "03-toolkit-before-fx/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml": {
+      "bytes": 24972,
+      "sha256": "6c4d60582f36cc277268fe775f271248132e39d1a929659002f30ffb03875c61"
+    },
+    "03-toolkit-before-fx/pointer-1880-1-state.jsonl": {
+      "bytes": 20803,
+      "sha256": "2d50161a4dc1c6f2dceae7462dcd2f298e4cddd497936c120af8807341bc1a29"
+    },
+    "03-toolkit-before-fx/pointer-1880-1-events.jsonl": {
+      "bytes": 22409,
+      "sha256": "362f91ec2a12c4a7968c901b5447ed0730d1aed27e2c59de26a0bbd03ad98bf0"
+    },
+    "03-toolkit-before-fx/awt-first.jsonl": {
+      "bytes": 704,
+      "sha256": "b6d0df9cd1de109e28d5983af2adbe9c7158a60247e4da4194c4a1dc7bb28610"
+    },
+    "03-toolkit-before-fx/windows-input-6220.jsonl": {
+      "bytes": 25185,
+      "sha256": "036942e206e6d0f1f65e7f45c781d0f931c0aef2096b9fb7de79eb2d91effc72"
+    },
+    "03-toolkit-before-fx/observer.jsonl": {
+      "bytes": 211,
+      "sha256": "876f138228207a976b6681a826df8b56b9280a6db66bdca0ecb93927f8beab41"
+    },
+    "03-toolkit-before-fx/pointer-1880-1-shown.png": {
+      "bytes": 11823,
+      "sha256": "ecb4683d0cec7792a5f713f92ab1d2816e95b0400381661de8f715d9a3c821e1"
+    },
+    "03-toolkit-before-fx/pointer-1880-1-before-hide.png": {
+      "bytes": 50102,
+      "sha256": "515902c9baf3b27607ec1edf61003b5287006bb4b0aa2dd8b5d584d007cdcbc3"
+    },
+    "04-graphics-scale100/result.json": {
+      "bytes": 239,
+      "sha256": "8acfd18c5d517d0f12216d6a7657c96134870950fb6d6a76c1cabe07d36a5fae"
+    },
+    "04-graphics-scale100/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml": {
+      "bytes": 25094,
+      "sha256": "de82c83715a6c7b0158a604b96161bf55b1950ecfb26d8f0657cd4a2d0a09b94"
+    },
+    "04-graphics-scale100/pointer-5428-1-state.jsonl": {
+      "bytes": 20806,
+      "sha256": "a24da88424614ec0ad72820d0196d91fb6f02b459e29b09addcd2ca9065d5696"
+    },
+    "04-graphics-scale100/pointer-5428-1-events.jsonl": {
+      "bytes": 22400,
+      "sha256": "52b4d182fc9960cfc1f6851e396a23f33380e1d6a01fd04b0ec6b7e9af53e4ec"
+    },
+    "04-graphics-scale100/awt-first.jsonl": {
+      "bytes": 665,
+      "sha256": "fbbca861d8703a67513a117e6bbcc8318f8f8ebbc6898332c10750dbf0e1129c"
+    },
+    "04-graphics-scale100/windows-input-3284.jsonl": {
+      "bytes": 24548,
+      "sha256": "c0250a0d1fed2955290ed7425871f2acfb363cfb98dba6bfd998123ee2a50fed"
+    },
+    "04-graphics-scale100/observer.jsonl": {
+      "bytes": 211,
+      "sha256": "4e51dc22a31ec27cf3caa91638900c596fb343857ae6530be9738465ad31b495"
+    },
+    "04-graphics-scale100/pointer-5428-1-before-hide.png": {
+      "bytes": 50102,
+      "sha256": "515902c9baf3b27607ec1edf61003b5287006bb4b0aa2dd8b5d584d007cdcbc3"
+    },
+    "04-graphics-scale100/pointer-5428-1-shown.png": {
+      "bytes": 11823,
+      "sha256": "ecb4683d0cec7792a5f713f92ab1d2816e95b0400381661de8f715d9a3c821e1"
+    },
+    "05-toolkit-scale100/result.json": {
+      "bytes": 234,
+      "sha256": "83225b93cf9d89f1d4bb0b6d215ca1e1bab4e680b13e5c6c4995280915f3639c"
+    },
+    "05-toolkit-scale100/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml": {
+      "bytes": 25092,
+      "sha256": "fcd7a1c648f5f33727ad28345c529d03646be35d4bebc7758bb70c96d805abaf"
+    },
+    "05-toolkit-scale100/pointer-7896-1-state.jsonl": {
+      "bytes": 20803,
+      "sha256": "32ce1503957bbe4e2c0b3df5d474e115909bee2e516fb485d4761b64f265bd25"
+    },
+    "05-toolkit-scale100/pointer-7896-1-events.jsonl": {
+      "bytes": 22409,
+      "sha256": "4cc3f3b6767e4648b1cac3861200865d447849bdc9a9b2fc0f97db4cc922ad02"
+    },
+    "05-toolkit-scale100/awt-first.jsonl": {
+      "bytes": 704,
+      "sha256": "5cb1a8d14975b434a670a60c8837c881ad2c8d17267e3a0f52d43bf6f64b3da0"
+    },
+    "05-toolkit-scale100/windows-input-4284.jsonl": {
+      "bytes": 27021,
+      "sha256": "c7f69cd89823939af94399a93a4728a07199a5070932f098f3e63f0d31760cc9"
+    },
+    "05-toolkit-scale100/observer.jsonl": {
+      "bytes": 211,
+      "sha256": "612c25004379108e0c500f9dd7b0768e40af9c8fc358a164b500ad8291a2465b"
+    },
+    "05-toolkit-scale100/pointer-7896-1-before-hide.png": {
+      "bytes": 49259,
+      "sha256": "ad4fce2c25f7628df3732507d0326c679c303559466bbb7e92edb106208825dd"
+    },
+    "05-toolkit-scale100/pointer-7896-1-shown.png": {
+      "bytes": 11823,
+      "sha256": "ecb4683d0cec7792a5f713f92ab1d2816e95b0400381661de8f715d9a3c821e1"
+    },
+    "06-all-fx-ui/result.json": {
+      "bytes": 6647,
+      "sha256": "7dd07452bd7a9a317e10f71094f14cf6842f1cf6b2a5295f768b2cfddb44837d"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.MainApplicationActivationTest.xml": {
+      "bytes": 31092,
+      "sha256": "18f6e3a41eca4269f5c16cae2f06c29077d3deef03496023c073cf9ca7e771e3"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.config.DatabaseMigrationCompatibilityTest.xml": {
+      "bytes": 31943,
+      "sha256": "28b3891ae42979c0ef222581fa2ecfb4f27609af2190086f8f71ae833a0588ed"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.config.SynchronizedDataUpgradeTest.xml": {
+      "bytes": 30898,
+      "sha256": "e827538bc8292383c6cb62549bd804f9023b88396417f4b03f587afdfffad741"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.features.gtinsync.GtinSyncRepositoryTest.xml": {
+      "bytes": 32334,
+      "sha256": "bcb986ca82c600b4895990ee48f5b882559ed1223976af6fd92bda4702ed9aec"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.features.sync.RegistrationSourcesTest.xml": {
+      "bytes": 32809,
+      "sha256": "69c6dcc52e9721877a943b0ed0b18cf9bec0da30c868bf6fa1ef7aed5abb0463"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.integration.ozon.OzonSyncServiceTest.xml": {
+      "bytes": 35891,
+      "sha256": "d7433a081073c423045e3f7bcb887f1e240671f8f56910ca27b9cddfa215578e"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.integration.update.UpdatePresentationTest.xml": {
+      "bytes": 31208,
+      "sha256": "8d76ee472dc50ff85596a5b5af249954be9f42d8273140d6024aec92d5d41eb7"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationTestCleanupTest.xml": {
+      "bytes": 31003,
+      "sha256": "97adead694754bc2a5dc9d7b955c80f54053f87f708b06eca0e0af51645d2a3c"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonReviewedReplacementE2eTest.xml": {
+      "bytes": 33237,
+      "sha256": "b446c207f6ccb4c1f1604fa7e59271f8709ce3b7f8c8d3d8aee351b607a92b91"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonSellerRegistrationE2eTest.xml": {
+      "bytes": 31569,
+      "sha256": "4fe41c5e92a36bbef9c23e5b139ba3ae19d4d3650debb2269b29b25df692b46b"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.integration.znack.registration.WbSourceReviewHttpEndToEndTest.xml": {
+      "bytes": 34504,
+      "sha256": "c9f2e54a6af2f85d91251ddf674aa9b0bd838e4262dac9284ff77e1b67952264"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepositoryTest.xml": {
+      "bytes": 33678,
+      "sha256": "46e45fd92bd69f7fb0548d456364e296b107c4e6c664f5a754fa106b6f5d8f73"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.performance.FbsUiLatencyTest.xml": {
+      "bytes": 31439,
+      "sha256": "5b86b497c4133755daec8567313c27296ce14eb914cfb16c4e305a9f9c3c1741"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.AppDataLockTest.xml": {
+      "bytes": 31007,
+      "sha256": "ce361d619c1dab2b1497e60d5d8ab0583714b6926b8c4f10f8124bf0d3273049"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.AppTaskExecutorTest.xml": {
+      "bytes": 30916,
+      "sha256": "6ca253ff9148136aed1c278330fc7d9e762d8c8dc47f579966dbede61d390375"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.CatalogTaskExecutorTest.xml": {
+      "bytes": 31385,
+      "sha256": "623017c609b2bc23fdaa86956eabdb2fa9ee0564bc234d57187bfeffef819397"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.KizPendingNoticeTest.xml": {
+      "bytes": 30918,
+      "sha256": "28aad79131416950d6f2abf43f35e3c84de558b74318033ff048a698f1a46035"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.LocalDataMigrationActivationTest.xml": {
+      "bytes": 30828,
+      "sha256": "779696e80ef0e0eb2abccb357b28e8e9d9bf2ecb0dbc769ff507b7bba07a2679"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.LocalDataSnapshotServiceTest.xml": {
+      "bytes": 32928,
+      "sha256": "4af3913202ad44c821f9b4eafb1be06b29ac336e2d265d6e6eab18415a37e204"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.TableRowsFxTest.xml": {
+      "bytes": 30890,
+      "sha256": "dcd4d53dbc1f4ca603509ff13a612260c413a643d073bf50344eb8418a0b69eb"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.TableRowsTest.xml": {
+      "bytes": 32197,
+      "sha256": "0c29b1286986d4d572251b7563d32b408bb675910f161dc133b79f76ac39e609"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.TableScrollLoaderTest.xml": {
+      "bytes": 30933,
+      "sha256": "d9a825434f046127a9f9fb4b9e4aa6a5927bbc0d436cc02c63d51943f32f33e8"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.TaskStatusDockTest.xml": {
+      "bytes": 30931,
+      "sha256": "16b3586fcbe9b76528b110989bec8a851853fee3d547c14db90f28a281970731"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.ThemeServiceTest.xml": {
+      "bytes": 32155,
+      "sha256": "8f3bbfa35703e84dd188466e965b515135f903ef3916686564ba01dd9e28ce59"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.ThumbnailLoaderTest.xml": {
+      "bytes": 31290,
+      "sha256": "e4808653dc7f46707885f4c874663355ffe1bc7a61d38add499ff5dde0b6aee4"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.UpdateSnapshotHandoffTest.xml": {
+      "bytes": 31588,
+      "sha256": "19feebad236028ca95ea3e089a43c8cd8629e4a7cb00056cccc465e19be9b113"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.shared.WorkspaceMotionBoundaryTest.xml": {
+      "bytes": 31584,
+      "sha256": "e2ad93dea62a9c647ad52fb2503145ee461d0dc53dabd5354a4dc83288f1c71e"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.testsupport.FinanceTestCleanupTest.xml": {
+      "bytes": 30817,
+      "sha256": "416df1ac62885706efe3696dff530f986560fccc9288853bca39688e8b98887b"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.DarkReferenceScreensTest.xml": {
+      "bytes": 31074,
+      "sha256": "cc9abd97ab610873cedfd6489eb433a96991d475d5d45e059fac58a8a78e1711"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.DocumentDateInputTest.xml": {
+      "bytes": 30900,
+      "sha256": "dbcb5f1cdb8bb831c6cca3b69b7d2365b3b1c48f320fc6fb6d6135ed4ac2e2d4"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.FxmlSmokeTest.xml": {
+      "bytes": 41667,
+      "sha256": "2b9ff542a5e16fb51a2289c6e4143a39ef1021a26329290b64d8c1f777c53cb2"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ReferenceThemeAccessibilityTest.xml": {
+      "bytes": 30809,
+      "sha256": "a0fe257da59fb83cf5d28209513ca15edcb35fda54655a234e5c929cce5c7a7f"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.StartupProgressTest.xml": {
+      "bytes": 31849,
+      "sha256": "2564e44a8fae12cd4816307926b2b8bfcc261098598b8abd67962e6b6e342486"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.WorkspaceWindowBoundsTest.xml": {
+      "bytes": 31068,
+      "sha256": "a0550f2faf33b2aba40c95421eecea6d98332d8e2e9ed401bfa6b27646cd5731"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.catalogsync.CatalogSyncPaneTest.xml": {
+      "bytes": 31576,
+      "sha256": "ea9dff3aaec0d16fc5cb9dd5d9654b47ebcae902002d60444d30f9dea432afd0"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.finance.FinancePenaltyUiTest.xml": {
+      "bytes": 30796,
+      "sha256": "ed92770d9ff4edfb878ce931f21af15150f29f3932051f2ff595d0a205a4b119"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gs1.Gs1PaneTest.xml": {
+      "bytes": 32520,
+      "sha256": "ecb2bed7993cf4de835af2e474076ea8a801c54b57769b8f0e6f39743aaa57b0"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gs1.Gs1PrefixRequestDialogTest.xml": {
+      "bytes": 31912,
+      "sha256": "b05cc154d8fff3a0f3a1b8c5014e323afa65899d326b99f32bfb2a86cf62d93d"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gs1.Gs1SyncReportDialogTest.xml": {
+      "bytes": 30940,
+      "sha256": "c39b19c73033fccaabf3c17a4ef9f34b42126206496442830c18effc9466a547"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gs1.Gs1ZnackHeadingLayoutTest.xml": {
+      "bytes": 30793,
+      "sha256": "139f5ddc00f0662c037238273f5c22d14317c5e22e6316ebd6b344df464f7b7c"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gtinsync.GtinSyncControllerTest.xml": {
+      "bytes": 31709,
+      "sha256": "3310fb805cda0a78a5e1d9bc3e22b4dac5681f081d0f970a1afa9039d9c63470"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gtinsync.GtinSyncHistoryExporterTest.xml": {
+      "bytes": 30926,
+      "sha256": "09f6a278fe4f593794f70faf61f20b51f3d45d4a1046c5089e86469b70c5a2eb"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gtinsync.GtinSyncViewModelTest.xml": {
+      "bytes": 31046,
+      "sha256": "e9a86c403b7a0da77b82e7c08bee3189081e5130ff5512c079c3cb720fca3055"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gtinsync.GtinTranslationTest.xml": {
+      "bytes": 30782,
+      "sha256": "892d4a6bd2bda51fcd3ae28fba307780921c41309484d06be86fad61d18748f5"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.gtinsync.WbGtinPriceConsentTest.xml": {
+      "bytes": 30790,
+      "sha256": "ec8f2232c66992274ae889ea0b4524fb6eb7bed0690c980904234c6d4364e38a"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.kiz.KizImportDialogTest.xml": {
+      "bytes": 30938,
+      "sha256": "bf6c0c61ce36a22ade3f4f68380929d58767e59ea0e8eb50b68ac4c960ad2093"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.kiz.KizPrintPurchaseDialogTest.xml": {
+      "bytes": 31079,
+      "sha256": "f06d3c166e0621b853a26a8697fa96e54c0866ca7e0273c4194752d1a0859cd7"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.kiz.KizWarehousePaneTest.xml": {
+      "bytes": 30948,
+      "sha256": "f3c45d14fa451cdc5f77e7a04d4dd9532c24614fd62c2add3ea142ebaa36e982"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.kiz.Kn3BatchUiTest.xml": {
+      "bytes": 31212,
+      "sha256": "cfb5909ffdbb53a9dd7370f49bff3366aac7e57244c6492db2fcd246de0acfe7"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.kiz.WbShipmentKizPaneTest.xml": {
+      "bytes": 32029,
+      "sha256": "8a4d7853aeb633b05e4b99a8632be82d9568e4e58fd4f82dec230608395015ac"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizMappingEditorTest.xml": {
+      "bytes": 30816,
+      "sha256": "26377204cc08cb68a792bd764523408122792855f8330b7e4e5bb05baf5dd902"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizMappingIssuesDialogTest.xml": {
+      "bytes": 31386,
+      "sha256": "f4fc0ac2b21c29ab5399a36641e7cc46062480dd58b951867360b0200b65ed8f"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.kizmapping.OzonGtinMappingEditorTest.xml": {
+      "bytes": 31114,
+      "sha256": "bfd4abf1ba0b757e6245ad4e32943addadf5cbad8d5794aeff15239365ab3fdc"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.license.LicensePaneTest.xml": {
+      "bytes": 31837,
+      "sha256": "de2de455dca841519cc4fee2a9cb3e449ffb5373406585834f848d9fcdf6ac5f"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.listingcopy.ListingCopyPaneTest.xml": {
+      "bytes": 33102,
+      "sha256": "10498201db1efc264990eb88a50e9e5be0b4d7f57e37cd65a980cac090a72963"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.news.NewsPaneLayoutTest.xml": {
+      "bytes": 30780,
+      "sha256": "efd56ddd4e253ce82ecda6215abd8591e6c80170b25a2901407f49cf28f84f5e"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonAcceptanceRetryTest.xml": {
+      "bytes": 31075,
+      "sha256": "25c6a45c90efe206ddd4af342efd695254762105f5997c6e2aeb5c28581ce86d"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonBulkUiTest.xml": {
+      "bytes": 32812,
+      "sha256": "868c5bb1ad9f392b24273c705966f203609238b0f1fa871720ff4a8c6f9f164f"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonDashboardControllerTest.xml": {
+      "bytes": 31374,
+      "sha256": "90953cdb2ff3cf2ac44f1835187fcb20e70523cf40a443d4206c99b7e588ea7b"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonFbsEnrichmentUiTest.xml": {
+      "bytes": 30953,
+      "sha256": "5d526c8ef5681d09d661077690788ce357ebe23f8895947c31f77a5ec7b87acb"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonFbsUiTest.xml": {
+      "bytes": 31188,
+      "sha256": "64e6db180c52db50ab918a8ed83da58946c4b5e51e9c8f3d386c41ae030eed3d"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonManualSyncUiTest.xml": {
+      "bytes": 30795,
+      "sha256": "828c7af041b4b15efb7be4f54db81ae3364028ca7a84abf5df1bd478bf5c0df9"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonPrintedQueueUiTest.xml": {
+      "bytes": 31720,
+      "sha256": "8648cab88679530355b4d82a4ff4af4c2473e5dc99535876f8de8696a2f64d7c"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest.xml": {
+      "bytes": 30795,
+      "sha256": "01902b8275881cfc51d011d18e800ca81f0982b243db92e70de1ec39e7080d84"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.packing.FbsResponsiveActionsTest.xml": {
+      "bytes": 30798,
+      "sha256": "622e762dfaf514262c3c89ecd51635dc9073c7bf4ae37c41465eaa80ea4520a7"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.packing.PackingDebtStatusVisualTest.xml": {
+      "bytes": 30796,
+      "sha256": "e2177da8cfe44b8a9edad857b171b786a70900d3545c4b757ea5f44bdeece143"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.packing.PackingDebtTabTest.xml": {
+      "bytes": 30799,
+      "sha256": "eb777caaf824ef475cb63dcc9863950767c2b1da44f3b13932ea0bc03861c7dc"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.packing.WbReadbackPendingUiTest.xml": {
+      "bytes": 30816,
+      "sha256": "4f3673f98cd0e1cb08fa041f80c280fdda0ade8ce7737d85380dfc424cf5c294"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.products.ProductBulkDialogTest.xml": {
+      "bytes": 35550,
+      "sha256": "1db00059498262f16ee31f30103b9cfea66397d161665152bacda80100259fb3"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.products.ProductBulkEditPaneTest.xml": {
+      "bytes": 30918,
+      "sha256": "ff2b4342ac4f7c2fd0123ed68808be035c57b6cbd999c0cb98817132ce46d545"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.products.ProductEditInteractionTest.xml": {
+      "bytes": 31402,
+      "sha256": "268cdd4b8f50d04b367c3e130d5eca9947a1f04b28e7bba3aa07f7627bded2bb"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.products.ProductReferenceLayoutTest.xml": {
+      "bytes": 31145,
+      "sha256": "8c02a1a912c6ef250ae1fb2575dec76573dbc30e0852b6b39bae46669e5fed3b"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.products.ProductRefreshUiTest.xml": {
+      "bytes": 30956,
+      "sha256": "68b63b2a6a3c86a742aa3708ba14ad8387e8d3d6d70c408ebcf67c3009c38bf7"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.products.ProductSelectionSmoothnessTest.xml": {
+      "bytes": 30965,
+      "sha256": "7636e32681f64cc761b8493ae4f9288a7b6b8778ce2af9c64ffa5e96831a367a"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.products.ProductSelectionTest.xml": {
+      "bytes": 30900,
+      "sha256": "b91d58a7d97548d1e0af6639f3cb90b0892b7181834794cd0aa7d5a95c51cdb9"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.shop.ShopSellerIsolationDialogTest.xml": {
+      "bytes": 30803,
+      "sha256": "e5fb20c29472c42c634385dd1d99698972d021ed827ffd97dda18616865b82ea"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.supply.SupplyOrderPresentationTest.xml": {
+      "bytes": 30949,
+      "sha256": "666e021efeb487a4f7498f1d45729233e475a7ae7788a175f4bae2b84391c097"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.supply.WbShippingHistoryPaneTest.xml": {
+      "bytes": 30973,
+      "sha256": "e69748b2c1bb68243c3af745841560fb48a0c50439211dbdb7050efe3bee2823"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml": {
+      "bytes": 31097,
+      "sha256": "136e8feb9fb35421c8123a71d30bb928474540da175abe6f9750f05cae8081d8"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.ApprovedWorkspaceAcceptanceTest.xml": {
+      "bytes": 31311,
+      "sha256": "1988b45486f9d9247fd1ce12c16d88f9c1deebee19c90c1a0de30a9c6d7f440b"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.DesktopShellEvidenceTest.xml": {
+      "bytes": 30792,
+      "sha256": "4c0b2a07b2b4e81e2e9b6d48859dc1474ec11632cf45d4ed9cd274a9efcac7f5"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest.xml": {
+      "bytes": 30829,
+      "sha256": "8249234aebeacc26d4495c7fe281850ca37e401c0db62632d3885489e0a1989c"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.JobCenterDialogTest.xml": {
+      "bytes": 30942,
+      "sha256": "db7d25c4391627f7caa017fff24fec8ad11ccc164a93b363b90d7c9bcf08e349"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.NativeGlassEvidenceTest.xml": {
+      "bytes": 30820,
+      "sha256": "df173c5065daff755e25c9586ab6c0ed1712cc0ca7c2dc95439d78bde3775c82"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.SupplyPrintRequestTest.xml": {
+      "bytes": 31061,
+      "sha256": "9099b818a7e26f482ea8ab3a9f57a5c2ba2f61821c6604b5cf18d83ba9ba1a55"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.UpdateHandoffUiTest.xml": {
+      "bytes": 59494,
+      "sha256": "9745cb7daa67e8644885ee7431d8d90af9405783aa7ee806cfb283a4b431af0e"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceChromeUiTest.xml": {
+      "bytes": 31110,
+      "sha256": "a7c4177add162a543875fa67043c8fc27d5ad59f1e891cd6a36143d15ef201b4"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceCommandPaletteTest.xml": {
+      "bytes": 31004,
+      "sha256": "7bebb37a0a3cd672bd0dd75e06881b7491958a4b5ba45612eade27e9228210d0"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceJavaPagesLayoutTest.xml": {
+      "bytes": 30954,
+      "sha256": "7c12c10b6347d722f117d14af632a29e81a83c4cbc1ccb7f2bd244e1d46e9119"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceListAreaTest.xml": {
+      "bytes": 31802,
+      "sha256": "b0cc9e14b6880a289e713a27a48dc89ad87f3d9a9cc502c195ee9a1227670501"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceNavigationContextTest.xml": {
+      "bytes": 30977,
+      "sha256": "428c3125c0c25dabb5a954654a16deef0503530a6f0b9aaea34eb2bb27ca4910"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceNavigationTest.xml": {
+      "bytes": 31237,
+      "sha256": "e5232680c58b9d839e0623ee73accd7799fac76e36a8790cb7728cb294a208e2"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspacePagesLayoutTest.xml": {
+      "bytes": 30975,
+      "sha256": "be76d9ebeffbf3e385fb5f0e3853dd97f6e18f45e9a5554bd9c00d0fb104ec3b"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.workspace.WorkspaceStateTest.xml": {
+      "bytes": 31063,
+      "sha256": "686dbdeff86c31a92103aee75e14d789dbff906e0b947ec78bb1b7cb8e6dc276"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znack.SignatureTestFailureTest.xml": {
+      "bytes": 32274,
+      "sha256": "9be96cb2b8c14cfcbea36052adb603a074bf645df1a52c1089655c97567071d5"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znack.ZnackAutomationControllerTest.xml": {
+      "bytes": 31576,
+      "sha256": "9716b759f7b95bce53d5c968596fe246fbf2708c118dff5044139a3d736d58ef"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znack.ZnackAutomationInformationTest.xml": {
+      "bytes": 31466,
+      "sha256": "ae49fc909b6233790e775e8f89be0dae361027991d6c5d0847cb5cf31139f329"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.CatalogErrorRepairDialogTest.xml": {
+      "bytes": 31689,
+      "sha256": "f835c6a0192f7ff5ffad126a32e5cc1b658a631f5d9b98dbede841522d474c1c"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.ExistingDraftReviewTest.xml": {
+      "bytes": 30997,
+      "sha256": "639f157db95a9c8d6badfe20ea9c5a2728f3906bca9ed7a02c03db046556bf5e"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.FlowAuditDiagnosticsTest.xml": {
+      "bytes": 31315,
+      "sha256": "8001e61bf25ff26973903436238cdc0b1fb9b147b7ca5d45d9937c5fab8d0b3b"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest.xml": {
+      "bytes": 33416,
+      "sha256": "e77d5cde00d8563e1167dd113f26b14a5b5f542083901d7c4c8c391f2e312c2c"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.OzonCatalogVariantLinkDialogTest.xml": {
+      "bytes": 31189,
+      "sha256": "1d3b3f92fb66b2961d389031ddcef803e4ccf0b04c72b70b36116b3569aefad8"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.OzonGtinConflictReviewTest.xml": {
+      "bytes": 31669,
+      "sha256": "c3a86e6736db107214e170c922ac7fcd2ce01525d6c4fbe0c18ea1a235b7e1b3"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest.xml": {
+      "bytes": 37435,
+      "sha256": "5554eee5bf579f146b80c35a3d96407c0e6d7913838ad8ca767b711af2df3dcd"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest.xml": {
+      "bytes": 31943,
+      "sha256": "1c54bf598b96d18fa2a7a468c7ff2c521487ae3d85b3e5ef8987cf7cf08d966e"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationCountryDisplayTest.xml": {
+      "bytes": 31175,
+      "sha256": "00b21f579d10e5522646824d45cc07c880821a9618377eca41de91dc36eb2207"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationDiagnosticsTest.xml": {
+      "bytes": 32929,
+      "sha256": "f7ea4b9cd457991d81769486bad3fd93a09325dd8c33a36345654cfd3fc45330"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationDraftCompletionDialogTest.xml": {
+      "bytes": 32031,
+      "sha256": "59c498519cc2bf3a034ef0708ea44c99184e040a22b7d56244134da5546c1f1b"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest.xml": {
+      "bytes": 31430,
+      "sha256": "94c3a10ea5b8e794e6d366758482a047897c8ab76796c539a52e2f06398853b9"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationPreflightCorrectionsTest.xml": {
+      "bytes": 31368,
+      "sha256": "490d21a6836bd984b8e3317a8535aeffabe077655df01fc06f675bfa2e544d8c"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationProvenanceDialogTest.xml": {
+      "bytes": 30997,
+      "sha256": "dbd717404e9ae08461d1ea90466f046c6dd0f81c3cd489cc0eeb9905bcb5541d"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationRepairHistoryDialogTest.xml": {
+      "bytes": 30995,
+      "sha256": "9ebc4367c990193b69ef598d98430ab61c23826e419849a6443e749de0a38c9c"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationReportDataTest.xml": {
+      "bytes": 31481,
+      "sha256": "c9fdc17ae1ec694b1b691d68523a9aae50cec4c7fb4969fe83f15554629c2bca"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationSigningReviewDialogTest.xml": {
+      "bytes": 31203,
+      "sha256": "cb7e855029b0640881cc954cce7c2bf1b257c894aa77dedd31f22afd854259cf"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest.xml": {
+      "bytes": 32753,
+      "sha256": "d2dbfe139ea866ecf95bda3ecf1c4a592b8c8e6a8f244d6bba3f5b59752bd560"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationTableTextTest.xml": {
+      "bytes": 31977,
+      "sha256": "6b6be08907767b82b902ce1ad39206afc8b261c8d8b01d9a143f62b8761cacbf"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.WbOzonGtinLinkDialogTest.xml": {
+      "bytes": 31016,
+      "sha256": "ac47f50d5b3ad84304b5902bade6164ce8be571ff222a6044e5a88fe02159543"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.WbOzonSellerLoopbackIntegrationTest.xml": {
+      "bytes": 30846,
+      "sha256": "24f08ef0704b04933ea5468c32d5eccc0161449bc69625b72403e890a8e05be5"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.WbRejectedReplacementVisibilityTest.xml": {
+      "bytes": 30845,
+      "sha256": "429f852eda811a50dd17c6a276ac3fe73802f58ab242294c57d30dcb8426ddae"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest.xml": {
+      "bytes": 37903,
+      "sha256": "3708632d32d34639f4c4a06a3afdcccf1ec67185064e3deca42f8236bb665204"
+    },
+    "06-all-fx-ui/surefire-reports/TEST-com.vncode.app.ui.znackregistration.ZnackRegistrationQueryRepositoryTest.xml": {
+      "bytes": 34218,
+      "sha256": "8bed529e5028646996f0871e783752569e0724376abd1c405479a6ee3f1c0f48"
+    },
+    "06-all-fx-ui/pointer-4328-1-state.jsonl": {
+      "bytes": 8522,
+      "sha256": "5d062c37c5b23f6bac3925194b2902fb05628b0ce9efcbd1cf0e235a60f5aad7"
+    },
+    "06-all-fx-ui/pointer-4328-1-events.jsonl": {
+      "bytes": 20898,
+      "sha256": "a9e1e9e789f10ce708bc544934daf127da1531e9dc6194bbd879cd54bc7ab12e"
+    },
+    "06-all-fx-ui/windows-input-7412.jsonl": {
+      "bytes": 2701514,
+      "sha256": "538e1da7d80e1183bd0e64bf3b730c2496510094a1698fbcde4aeb81f2a749e8"
+    },
+    "06-all-fx-ui/observer.jsonl": {
+      "bytes": 211,
+      "sha256": "7091600d0420f477cf4a218a9046b75af64be89c639419d439cd2b2736d2b06a"
+    },
+    "06-all-fx-ui/pointer-4328-1-before-hide.png": {
+      "bytes": 50804,
+      "sha256": "8eea7d74c076b799dc7e9bed38b81f3a38290bb4bc7cefa6ea9e336376b2bf56"
+    },
+    "06-all-fx-ui/pointer-4328-1-shown.png": {
+      "bytes": 85681,
+      "sha256": "4e7a1d6b85cbe2ef17c9a760e7802c8bab7938025df231ad97c5708693cb83be"
+    },
+    "07-native-after/result.json": {
+      "bytes": 227,
+      "sha256": "987ddf1471ded7c30cf1dd5af1ebe43672df5aa57be6376fa30b02f5890bc2e7"
+    },
+    "07-native-after/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml": {
+      "bytes": 24900,
+      "sha256": "8123ca27033b36ba2024ca6d5d676202eb297d251fccb70741b25f07b25d7afe"
+    },
+    "07-native-after/pointer-2384-1-state.jsonl": {
+      "bytes": 20853,
+      "sha256": "57a7c0948fcd48e85eb4bacdabad2982055c0b4b43b92e36d0e7b1e3e3d48ca3"
+    },
+    "07-native-after/pointer-2384-1-events.jsonl": {
+      "bytes": 20995,
+      "sha256": "c53e54e1eaa6bf57537fe792ecf2ad8e5527c5c9512c6142b848c9ab2fd785cd"
+    },
+    "07-native-after/windows-input-6172.jsonl": {
+      "bytes": 27029,
+      "sha256": "d3aa2087d0b7c99efd0f89b2fc9e519b7b58f0d610c195ac219169411b869782"
+    },
+    "07-native-after/observer.jsonl": {
+      "bytes": 208,
+      "sha256": "1c39a3310c092d611f76b5962ec439aaa1f560eaa35a7ac080a2d094a2a1a1ab"
+    },
+    "07-native-after/pointer-2384-1-before-hide.png": {
+      "bytes": 50102,
+      "sha256": "515902c9baf3b27607ec1edf61003b5287006bb4b0aa2dd8b5d584d007cdcbc3"
+    },
+    "07-native-after/pointer-2384-1-shown.png": {
+      "bytes": 11823,
+      "sha256": "ecb4683d0cec7792a5f713f92ab1d2816e95b0400381661de8f715d9a3c821e1"
+    },
+    "08-visible-console-control/result.json": {
+      "bytes": 238,
+      "sha256": "ab4ad593e2b1c0c6d3d1e7a5e3bff4fb31c7a4f8d6c1789b7ac40cc33f0b94d1"
+    },
+    "08-visible-console-control/surefire-reports/TEST-com.vncode.app.ui.tnved.FashionTnvedBrowserTest.xml": {
+      "bytes": 24911,
+      "sha256": "d579e2c3df53673829ab61f95a3ed333c1e6f2bdfe9de55c937dce847c366959"
+    },
+    "08-visible-console-control/pointer-2192-1-state.jsonl": {
+      "bytes": 23941,
+      "sha256": "5964b74db2228ca97d33fbf074890d162bcf4715814f7cc608a1ccafc77c4898"
+    },
+    "08-visible-console-control/pointer-2192-1-events.jsonl": {
+      "bytes": 22406,
+      "sha256": "ba792ad502c0b79d33c969a9cd6c8840899571d225eab8747b6e6341779eb15e"
+    },
+    "08-visible-console-control/observer.jsonl": {
+      "bytes": 211,
+      "sha256": "0183322cdd605c12282cc84bf838d3f844e8fe39d5151deb8fbdb8c1a6c6a291"
+    },
+    "08-visible-console-control/windows-input-1188.jsonl": {
+      "bytes": 26507,
+      "sha256": "126d0028f81ce2418fc3972cfac0dd3c2e8a7aa20245c029798a34205d64e2ba"
+    },
+    "08-visible-console-control/pointer-2192-1-shown.png": {
+      "bytes": 10557,
+      "sha256": "0a5be984560454cee2b1129e416ec1982836e8d1bc6477bd59e1a36d1129f594"
+    },
+    "08-visible-console-control/pointer-2192-1-before-hide.png": {
+      "bytes": 46988,
+      "sha256": "47145bd5ef38049cd2eb9d2873423bfcf9dad09187eddabac4b28f99f2e75daf"
+    }
+  },
+  "diagnosticArtifactSourceFileSha256": "fff13f191196857c077c5a606461588592d634ee1813733f08eede8391667750",
+  "originalFullRunConsoleCauseProven": false,
+  "fullWindowsRun42587222212PassClaimed": false,
+  "fullBuildStatusAssessedByThisReview": false,
+  "installerOrPackageVerified": false,
+  "releasePublishedByThisReview": false,
+  "mavenOrCiRunByThisReview": false,
+  "networkCalls": false,
+  "sellerApiCalls": false,
+  "repositoryEdits": false
+}
