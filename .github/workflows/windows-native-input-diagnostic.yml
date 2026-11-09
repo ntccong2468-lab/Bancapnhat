@@ -1,0 +1,94 @@
+name: Diagnose Windows native pointer delivery
+on:
+  push:
+    branches: [release/vn-code-1.6.7-publication]
+    paths:
+      - .github/workflows/windows-native-input-diagnostic.yml
+      - tools/diagnostics/NativePointerDiagnosticExtension.java
+      - tools/diagnostics/windows-input-observer.ps1
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native-input:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    steps:
+      - name: Configure isolated diagnostic workspace
+        shell: pwsh
+        run: |
+          "LOCALAPPDATA=$env:RUNNER_TEMP\vncode-native-input-${{ github.run_id }}" >> $env:GITHUB_ENV
+          "DIAGNOSTIC_ROOT=$env:RUNNER_TEMP\native-input-${{ github.run_id }}" >> $env:GITHUB_ENV
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: '25'
+          distribution: oracle
+          cache: maven
+      - name: Compile unchanged tests and observational helper
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          New-Item -ItemType Directory -Force $env:DIAGNOSTIC_ROOT | Out-Null
+          git rev-parse HEAD | Set-Content "$env:DIAGNOSTIC_ROOT/source.txt"
+          .\mvnw.cmd -B test-compile dependency:build-classpath '-DincludeScope=test' '-Dmdep.outputFile=target/diagnostic-classpath.txt'
+          if($LASTEXITCODE -ne 0){throw 'Diagnostic compilation failed.'}
+          $deps=(Get-Content target/diagnostic-classpath.txt -Raw).Trim()
+          $classpath="target/test-classes;target/classes;$deps"
+          & javac -encoding UTF-8 -cp $classpath -d target/test-classes tools/diagnostics/NativePointerDiagnosticExtension.java
+          if($LASTEXITCODE -ne 0){throw 'Observational helper compilation failed.'}
+          $service='target/test-classes/META-INF/services/org.junit.jupiter.api.extension.Extension'
+          New-Item -ItemType Directory -Force (Split-Path $service) | Out-Null
+          $provider='com.vncode.app.ui.tnved.NativePointerDiagnosticExtension'
+          $entries=if(Test-Path $service){@(Get-Content $service)}else{@()}
+          if($provider -notin $entries){(@($entries)+@($provider)) | Set-Content $service -Encoding utf8NoBOM}
+      - name: Compare native input before and after shared JavaFX state
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $PSNativeCommandUseErrorActionPreference=$false
+          $repo=(Get-Location).Path
+          $root=Join-Path $repo 'src/test/java'
+          $classes=@(Get-ChildItem $root -Recurse -Filter '*Test.java' -File | Where-Object {
+            $_.FullName -match '[\\/]ui[\\/]' -or [IO.File]::ReadAllText($_.FullName).Contains('javafx')
+          } | ForEach-Object {[IO.Path]::GetRelativePath($root,$_.FullName).Replace('\','.').Replace('/','.').Replace('.java','')} | Sort-Object)
+          if($classes.Count -ne 121){throw "Diagnostic class list changed: $($classes.Count)"}
+          $classes | Set-Content "$env:DIAGNOSTIC_ROOT/selected-classes.txt" -Encoding utf8NoBOM
+          function Invoke-Phase([string]$name,[string]$selection,[string]$awtFirst='false',[string]$uiScale=''){
+            $phase=Join-Path $env:DIAGNOSTIC_ROOT $name
+            New-Item -ItemType Directory -Force $phase | Out-Null
+            $observer=Join-Path $repo 'tools/diagnostics/windows-input-observer.ps1'
+            & $observer -Directory $phase -Mode Snapshot -ParentProcessId $PID | Out-Host
+            $watch=Start-Process pwsh -PassThru -ArgumentList @('-NoProfile','-File',$observer,'-Directory',$phase,'-Mode','Observe','-ParentProcessId',"$PID",'-MaxSeconds','1500')
+            try {
+              if(Test-Path target/surefire-reports){Remove-Item target/surefire-reports -Recurse -Force}
+              $mavenArgs=@('-B',"-Dtest=$selection","-Dvncode.native.pointer.diagnostics=$phase","-Dvncode.native.pointer.awt.first=$awtFirst")
+              if($uiScale){$mavenArgs+="-DargLine=-Dglass.win.uiScale=$uiScale"}
+              .\mvnw.cmd @mavenArgs surefire:test 2>&1 | Tee-Object "$phase/maven.log" | Out-Host
+              $code=$LASTEXITCODE
+              if(Test-Path target/surefire-reports){Copy-Item target/surefire-reports "$phase/surefire-reports" -Recurse}
+              @{phase=$name;exitCode=$code;selectedClasses=$selection;awtFirst=$awtFirst;uiScale=$uiScale;diagnosticOnly=$true;releaseGate=$false} | ConvertTo-Json | Set-Content "$phase/result.json" -Encoding utf8NoBOM
+              return $code
+            } finally {
+              New-Item -ItemType File -Force "$phase/windows-input.stop" | Out-Null
+              $watch.WaitForExit(10000) | Out-Null
+              if(-not $watch.HasExited){Stop-Process -Id $watch.Id -Force}
+            }
+          }
+          $a=Invoke-Phase '01-native-before' 'FashionTnvedBrowserTest'
+          $b=Invoke-Phase '02-graphics-before-fx' 'FashionTnvedBrowserTest' 'graphics'
+          $c=Invoke-Phase '03-toolkit-before-fx' 'FashionTnvedBrowserTest' 'true'
+          $d=Invoke-Phase '04-graphics-scale100' 'FashionTnvedBrowserTest' 'graphics' '100%'
+          $e=Invoke-Phase '05-toolkit-scale100' 'FashionTnvedBrowserTest' 'true' '100%'
+          $f=Invoke-Phase '06-all-fx-ui' ($classes -join ',')
+          # A fresh JVM still runs after the shared-state phase fails; compare evidence.
+          $g=Invoke-Phase '07-native-after' 'FashionTnvedBrowserTest'
+          if($a -ne 0 -or $b -ne 0 -or $c -ne 0 -or $d -ne 0 -or $e -ne 0 -or $f -ne 0 -or $g -ne 0){throw 'Native diagnostic detected a failure; inspect preserved evidence.'}
+      - name: Preserve diagnostic evidence only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-input-diagnostic-${{ github.run_id }}
+          path: ${{ env.DIAGNOSTIC_ROOT }}
+          if-no-files-found: error
+          retention-days: 30
