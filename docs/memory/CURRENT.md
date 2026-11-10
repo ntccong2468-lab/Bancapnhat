@@ -2,6 +2,13 @@
 
 Cập nhật: **10.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 10.11.2026 — người dùng đã yêu cầu phát hành mới1.6.8 lên Latest
+
+- Lệnh mới: “tạo bản mới và đẩy lên latest”. Phạm vi chỉ build/kiểm tra/công bố ứng dụng, không mở lại thử mua KIZ hoặc ghi API seller.
+- Nhánh `release/vn-code-1.6.8`, worktree `/workspace/vncode-168-release`, kế thừa73619d3 gồm runtime3990072/core8fed và toàn bộ1.6.7d023. Bump hai khai báo version trong POM sang1.6.8, không đổi runtime đã kiểm chứng; thêm ghi chú phát hành.
+- Chuẩn bị freeze/push nguồn1.6.8, chạy workflow `publish-vncode-baseline.yml` full Windows và native/install/passive upgrade từ Latest1.6.7. Không dùng502focused để thay full release run. Sau build cần review gói, pin publisher mới cho1.6.8, công bố và kiểm public/updater. Giữ mọi release/tag/asset cũ, không prune hoặc ghi đè1.6.7.
+- Latest hiện vẫn1.6.7 cho tới công bố thành công. Các checkpoint “chưa phát hành” phía dưới mô tả lúc hoàn tất phần sửa, trước lệnh phát hành mới này.
+
 ## 10.11.2026 — nguồn WB300/10.000, KIZ3390 và báo cáo lô lớn đã kiểm chứng tập trung; chưa phát hành
 
 - Nhánh `fix/znack-preflight-bulk-20261110`, worktree `/workspace/vncode-znack-bulk-20261110`, core đã push8fed8f7, nguồn kết hợp đã push **`39900722ab9cf055dfef8bf30c5fac0dcce3daea`**. **Latest vẫn1.6.7**, app `d0231cd6913ce3a1764067bad0901b32c535de41`, không ghi đè tag/asset. Người dùng mới nhất chỉ đạo sửa mã, không cần bổ sung token hoặc thử mua thật tiếp.
