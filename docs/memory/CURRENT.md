@@ -2,6 +2,14 @@
 
 Cập nhật: **09.11.2026 16:46 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 10.11.2026 — sửa nguồn đăng ký300/10.000 đã đạt; đang làm tiếp KIZ3390, chưa phát hành
+
+- Nhánh `fix/znack-preflight-bulk-20261110`, worktree `/workspace/vncode-znack-bulk-20261110`, xuất phát từ95d8942/appd023. **Latest vẫn1.6.7**, không ghi đè tag/asset; yêu cầu hiện tại là kiểm/sửa và đề xuất, chưa có phát hành mới.
+- [Bàn giao Znack](../validation/2026-11-10-znack-bulk-preflight.md), [283 ca/16 lớp đạt](../validation/znack-bulk-20261110/focused-final-receipt.json). WB thật:100 thẻ/511 biến thể mới;3/11 exact-search HTTP200 rỗng. Production source review đọc đủ300/300/60 thẻ,4HTTP/15,696s; người dùng xác nhận khóa WB đúng cửa hàng được báo. Catalog key mới đọc HTTP200/999 thẻ; **0 POST Catalog thật**, không suy là đã tạo/công bố.
+- Đã thêm paging/fallback đọc danh sách mới, lỗi đúng `nmID/chrtID`, xác nhận tập hợp lệ, report đủ lựa chọn, không auto-skip; prepared owner checks vẫn đọc hiện hành.10.000 selection/queue/load kiểm bằng dữ liệu tổng hợp, UI trang300; preflight riêng10phút/128MiB guard. Chưa có durable preflight checkpoint qua restart; xem đề xuất. Không giả dữ liệu, bỏ owner/consent hoặc kích hoạt license.
+- Giữ hai RED mã phát hành, lượt đầu151ca/2 lỗi kỳ vọng fixture đã dừng; lượt sau176đạt, không cộng trùng44controller. API probe đầu503 và reader thuần114,725s được giữ riêng; benchmark source review là15,696s. Windows focused workflow sẽ chạy trên commit được push; chỉ đọc, không installer/Latest.
+- **Việc tiếp theo đang làm theo đúng thứ tự người dùng:** KIZ HTTP400/3390 `EXHAUSTED`. Agent `kiz_exhausted_audit` sửa Coordinator/error helper/code service và test riêng; agent `kiz_buffer_contract` review độc lập. Đừng đánh đồng EXHAUSTED với CLOSED; phục hồi khối mã đã cấp, không mua lại hoặc phát hành order mới. Chưa có OMS/chứng thư trong môi trường để nghiệm thu giao dịch KIZ thật. Sau khi xong cập nhật bàn giao/memory, chạy kiểm chứng liên quan và commit/push nhánh sửa.
+
 ## Latest1.6.7 — đã phát hành và xác minh
 
 - **Release immutable438471378 /tag `v1.6.7`**, nguồn app **`d0231cd6913ce3a1764067bad0901b32c535de41`**, nhánh `release/vn-code-1.6.7`; công bố **09.11.2026 16:38:02 MSK /13:38:02 UTC**. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.7/VN-code-1.6.7-Windows-x64.exe), [bàn giao đầy đủ](../validation/2026-11-09-vncode-167-release-handoff.md), [receipt cuối](../validation/2026-11-09-vncode-167-final-release.json).

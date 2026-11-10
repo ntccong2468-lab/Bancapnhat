@@ -1,0 +1,75 @@
+{
+  "result": "CANCELLED_AFTER_KNOWN_TEST_FIXTURE_FAILURES",
+  "completedSuites": [
+    {
+      "suite": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "448c663b6dedf03330909b51ab275d56a4297263d26b4338a878785ffd43f94b"
+    },
+    {
+      "suite": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "624093500c703fd64d1d156b8687b651f23bce514e7ed69148f91abfcab9d5b2"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "177702be28f997329b2bc6cc869fea191358bf1ce6771ad8fe8e5d632c52872b"
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbListingAdapterTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2edfc944edd9dd2c6ff9eff7a9c66c7bd89b313a208f137f63f8ccbaa791c3f4"
+    },
+    {
+      "suite": "com.vncode.app.shared.CatalogTaskExecutorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "7b17cd99881e3f0260e56c649dd03f940f00dc4c2913dab3fca645ef089a654a"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ba2102c30d46f472fb46109e21af538c233aad98827afe5d1304378ecdb3da5e"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 44,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "f286c30f4ce0e1f651021a7517a26131d02c4ca1735127629dcc6717640da8e1"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationPreflightCorrectionsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ee3105eea8e7e84410cfa79781b0cae6563ed1c1fb6930f549cfcf814cef7472"
+    }
+  ],
+  "completedTests": 151,
+  "failures": 2,
+  "errors": 0,
+  "incompleteSuite": "WbRegistrationSnapshotBatchTest",
+  "acceptancePassed": false,
+  "reason": "Two new UI fixture expectations failed. Restart after correcting unrealized CSS lookup and unchanged no-selection button state. The10k transport fixture will enter the same prepared owner-check scope as production, retaining every network-count/identity/size assertion and10k loop."
+}

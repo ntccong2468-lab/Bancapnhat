@@ -1,0 +1,18 @@
+{
+  "kind": "ACTUAL_PRODUCTION_WB_BULK_READER",
+  "verifiedAtUtc": "2026-11-10T12:04:39.204180251Z",
+  "selectedVariants": 300,
+  "selectedCards": 60,
+  "observedExactVariants": 300,
+  "actualHttpCalls": 4,
+  "transportCalls": 4,
+  "seconds": 114.725238423,
+  "catalogPostCount": 0,
+  "sellerMutationCount": 0,
+  "licenseActivationCount": 0,
+  "storeReportedStoreIdentityVerified": false,
+  "persistedProductSnapshots": 0,
+  "redactions": [
+    "Reported store identifiers generalized; no product/order/credential data copied."
+  ]
+}

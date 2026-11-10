@@ -25,6 +25,9 @@ public final class AppTaskExecutor {
     private static final ScheduledExecutorService CATALOG_TIMEOUT=Executors.newSingleThreadScheduledExecutor(r->{Thread t=new Thread(r,"vncode-catalog-deadline");t.setDaemon(true);return t;});
     /** Catalog reads cannot starve UI tasks. Their wait is bounded, including queue time. */
     public static boolean executeCatalog(Task<?> task,Consumer<Throwable> rejected){return executeCatalog(task,java.time.Duration.ofMinutes(3),rejected);}
+    /** Large source preparation is paginated, read-only and explicitly cancellable.
+     * Keep its bounded allowance separate from ordinary three-minute Catalog reads. */
+    public static boolean executeCatalogPreparation(Task<?> task,Consumer<Throwable> rejected){return executeCatalog(task,java.time.Duration.ofMinutes(10),rejected);}
     static boolean executeCatalog(Task<?> task,java.time.Duration deadline,Consumer<Throwable> rejected){
         if(deadline==null||deadline.isNegative()||deadline.isZero()||deadline.toMillis()>600000)throw new IllegalArgumentException("Catalog deadline is invalid");
         Objects.requireNonNull(task);ACTIVE_TASK_COUNT.incrementAndGet();

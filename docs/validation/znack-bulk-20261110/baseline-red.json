@@ -1,0 +1,32 @@
+{
+  "kind": "EXACT_RELEASED_SOURCE_REGRESSION",
+  "runs": [
+    {
+      "log": "baseline-pagination-correct-red.log",
+      "logSha256": "5dac9b06616ad0562b2b15055df29380c402201cd74a5c3ab8f01dbcaf17e19d",
+      "source": "d0231cd6913ce3a1764067bad0901b32c535de41",
+      "testClass": "WbProductSnapshotPaginationTest",
+      "method": "exactNmIdOnSecondCursorPageIsReadInsteadOfReportedUnavailable",
+      "tests": 1,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0,
+      "error": "java.io.IOException: Complete WB card unavailable",
+      "expectedRed": true
+    },
+    {
+      "log": "baseline-empty-search-red.log",
+      "logSha256": "1c13ba69436957835f002749ac52ac39d49b5acf518cb7e69a77379550986a9c",
+      "source": "d0231cd6913ce3a1764067bad0901b32c535de41",
+      "testClass": "WbProductSnapshotPaginationTest",
+      "method": "emptyExactSearchIsRecoveredFromTheFreshUnfilteredActiveList",
+      "tests": 1,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0,
+      "error": "java.io.IOException: Complete WB card unavailable",
+      "expectedRed": true
+    }
+  ],
+  "misdirectedInitialAttemptExcluded": true
+}

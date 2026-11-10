@@ -21,9 +21,10 @@ final class RegistrationBatchPreflight {
         Finding(String field,ProductKey key,String article,String before,String suggestion,String category){this(field,key,article,before,suggestion,category,null,null,"",List.of());}
         Finding(String field,ProductKey key,String article,String before,String suggestion){this(field,key,article,before,suggestion,"");}
     }
-    record Review(List<Finding> findings,List<ProductKey> selected,RegistrationDynamicPreflight.Review dynamic){
-        Review(List<Finding> findings){this(findings,List.of(),null);}
-        Review{findings=List.copyOf(findings);selected=List.copyOf(selected);}List<ProductKey> keys(String field){return findings.stream().filter(f->f.field().equals(field)).map(Finding::key).distinct().toList();}}
+    record Review(List<Finding> findings,List<ProductKey> selected,RegistrationDynamicPreflight.Review dynamic,List<RegistrationSnapshotReview.Problem> sourceProblems){
+        Review(List<Finding> findings){this(findings,List.of(),null,List.of());}
+        Review(List<Finding> findings,List<ProductKey> selected,RegistrationDynamicPreflight.Review dynamic){this(findings,selected,dynamic,List.of());}
+        Review{findings=List.copyOf(findings);selected=List.copyOf(selected);sourceProblems=List.copyOf(sourceProblems);}List<ProductKey> keys(String field){return findings.stream().filter(f->f.field().equals(field)).map(Finding::key).distinct().toList();}}
     static Map<Finding,String> initialValues(Review review){
         var values=new LinkedHashMap<Finding,String>();
         for(var f:review.findings()){
@@ -36,11 +37,17 @@ final class RegistrationBatchPreflight {
         return values;
     }
     static Review read(Shop owner,List<ProductKey> selected){
+        return read(owner,selected,null);
+    }
+    /** Reuse this operation's fresh facts rather than opening SQLite once per card. */
+    static Review read(Shop owner,List<ProductKey> selected,List<ProductSnapshot> fresh){
+        Map<ProductKey,ProductSnapshot> observed=fresh==null?null:fresh.stream().collect(java.util.stream.Collectors.toMap(ProductSnapshot::key,java.util.function.Function.identity()));
         ListingIdentity.require(owner);var findings=new ArrayList<Finding>();var repo=new ProductRepository();var advisor=new ProductTnvedAdvisor();var cards=new HashSet<String>();
         var sources=new RegistrationSources();boolean sourceReady=sources.check(owner).ready();
         var settings=new com.vncode.app.integration.znack.ZnackRepository(new com.vncode.app.integration.znack.ZnackModels.ShopContext(owner.getId(),owner.getName())).getSettings();
         for(var key:selected){ListingIdentity.require(owner,key);if(!cards.add(key.cardId()))continue;
-            var snapshot=repo.localSnapshot(key).orElse(null);if(snapshot==null)continue;
+            var snapshot=observed==null?repo.localSnapshot(key).orElse(null):observed.get(key);if(snapshot==null){if(observed!=null)throw new SecurityException("SOURCE_PRODUCT_NOT_OBSERVED");continue;}
+            if(observed!=null&&!ListingIdentity.fingerprint(owner).equals(snapshot.metadata().get("owner")))throw new SecurityException("SOURCE_PRODUCT_NOT_OBSERVED");
             if(!ListingIdentity.fingerprint(owner).equals(snapshot.metadata().get("owner"))){if(!sourceReady)continue;sources.requireMember(owner,key.cardId(),key.variantId());}
             if((snapshot.brand()==null||snapshot.brand().isBlank())&&(owner.getMarketplace()!=com.vncode.app.integration.marketplace.Marketplace.OZON||new com.vncode.app.integration.ozon.OzonShopBrand().load(owner).isBlank()))findings.add(new Finding("brand",key,snapshot.vendorArticle(),"","",snapshot.categoryId()));
             var permit=com.vncode.app.integration.znack.registration.ZnackRegistrationDocuments.select(snapshot,settings,java.time.LocalDate.now());
@@ -68,16 +75,18 @@ final class RegistrationBatchPreflight {
 return readComplete(owner,selected,entered,documents,Map.of());
     }
     static Review readComplete(Shop owner,List<ProductKey> selected,Map<ProductKey,Map<Long,RegistrationReviewedValues.Value>> entered,Map<ProductKey,String> documents,Map<ProductKey,Long> categories){
-        try{
-            var snapshots=new RegistrationSnapshotReview().read(owner,selected);
-            var common=read(owner,selected);
-            if(!common.findings().isEmpty()){RegistrationPreflightReport.write(owner,selected,common.findings(),null);return new Review(common.findings(),selected,null);}
+        try(var checks=ListingIdentity.batchChecks(owner)){
+            var available=new RegistrationSnapshotReview().readAvailable(owner,selected);var snapshots=available.snapshots();
+            var verified=snapshots.stream().map(ProductSnapshot::key).toList();
+            if(verified.isEmpty()){RegistrationPreflightReport.write(owner,selected,List.of(),available.problems(),null);return new Review(List.of(),verified,null,available.problems());}
+            var common=read(owner,verified,snapshots);
+            if(!common.findings().isEmpty()){RegistrationPreflightReport.write(owner,selected,common.findings(),available.problems(),null);return new Review(common.findings(),verified,null,available.problems());}
             var dynamic=new RegistrationDynamicPreflight().read(owner,snapshots,entered,documents,categories);var findings=new ArrayList<Finding>();
             for(var missing:dynamic.missing())findings.add(new Finding("catalog:"+missing.attribute().id(),missing.key(),missing.article(),missing.before(),missing.suggestion(),"",missing.attribute(),missing.suggestedType(),missing.reason(),List.of()));
             for(var warning:dynamic.documents())findings.add(new Finding("documents",warning.key(),warning.article(),RegistrationDiagnostics.reason(warning.detail()),"","",null,null,warning.detail(),List.of()));
             for(var block:dynamic.blocked())findings.add(new Finding(block.field(),block.key(),block.article(),RegistrationDiagnostics.reason(block.detail()),"","",null,null,block.detail(),block.categories().stream().map(Object::toString).toList()));
-            RegistrationPreflightReport.write(owner,selected,findings,null);
-            return new Review(findings,selected,dynamic);
+            RegistrationPreflightReport.write(owner,selected,findings,available.problems(),null);
+            return new Review(findings,verified,dynamic,available.problems());
         }catch(Exception failure){try{RegistrationPreflightReport.write(owner,selected,List.of(),failure);}catch(RuntimeException reportFailure){failure.addSuppressed(reportFailure);}if(failure instanceof RuntimeException runtime)throw runtime;throw new IllegalStateException("ZNACK_PREFLIGHT_READ_FAILED",failure);}
     }
     static String fieldLabel(Finding finding){
@@ -113,6 +122,36 @@ return readComplete(owner,selected,entered,documents,Map.of());
         if(!reviewAllFields&&review.findings().isEmpty())return review;
         var editor=new Editor(window,owner,review,reviewAllFields);return editor.show()?editor.review:null;
     }
+    /** Excluding an unread source is an explicit seller choice, never an empty successful read. */
+    static Review available(javafx.stage.Window window,Review review){
+        if(review.sourceProblems().isEmpty())return review;
+        var dialog=sourceProblemsDialog(window,review);
+        if(!dialog.showAndWait().orElse(false))return null;
+        return new Review(review.findings(),review.selected(),review.dynamic());
+    }
+    static void requireSelection(List<ProductKey> requested,Review review){
+        var accounted=new HashSet<ProductKey>();
+        for(var key:review.selected())if(!accounted.add(key))throw new IllegalStateException("ZNACK_SOURCE_REVIEW_REQUIRED");
+        for(var problem:review.sourceProblems())if(!accounted.add(problem.key()))throw new IllegalStateException("ZNACK_SOURCE_REVIEW_REQUIRED");
+        if(!accounted.equals(new HashSet<>(requested)))throw new IllegalStateException("ZNACK_SOURCE_REVIEW_REQUIRED");
+    }
+    static Dialog<Boolean> sourceProblemsDialog(javafx.stage.Window window,Review review){
+        var dialog=new Dialog<Boolean>();if(window!=null)dialog.initOwner(window);AlertService.applyTheme(dialog);
+        dialog.setTitle(tr("znack.registration.preflight.source_problem_title"));
+        dialog.setHeaderText(java.text.MessageFormat.format(tr("znack.registration.preflight.source_problem_counts"),review.selected().size()+review.sourceProblems().size(),review.selected().size(),review.sourceProblems().size()));
+        dialog.getDialogPane().setId("registrationAvailableSubsetDialog");
+        var details=new TextArea(review.sourceProblems().stream().map(problem->"nmID: "+problem.key().cardId()+" · chrtID: "+problem.key().variantId()+" · "+problem.code()+(problem.missingFields().isEmpty()?"":" · "+String.join(", ",problem.missingFields()))).collect(java.util.stream.Collectors.joining("\n")));
+        details.setId("registrationAvailableSubsetDetails");details.setEditable(false);details.setWrapText(true);details.setPrefRowCount(10);
+        var hint=new Label(tr(review.selected().isEmpty()?"znack.registration.preflight.source_problem_none":"znack.registration.preflight.source_problem_hint"));hint.setWrapText(true);
+        var content=new VBox(10,hint,details);VBox.setVgrow(details,Priority.ALWAYS);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(760,430);
+        var proceed=new ButtonType(java.text.MessageFormat.format(tr("znack.registration.preflight.source_problem_continue"),review.selected().size()),ButtonBar.ButtonData.OK_DONE);
+        var cancel=new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE);
+        if(review.selected().isEmpty())dialog.getDialogPane().getButtonTypes().setAll(cancel);else{
+            dialog.getDialogPane().getButtonTypes().setAll(proceed,cancel);dialog.getDialogPane().lookupButton(proceed).setId("registrationAvailableSubsetApply");
+        }
+        dialog.getDialogPane().lookupButton(cancel).setId("registrationAvailableSubsetCancel");
+        dialog.setResultConverter(button->button==proceed&&!review.selected().isEmpty());DialogLayout.install(dialog.getDialogPane());return dialog;
+    }
     static boolean sameFacts(RegistrationDynamicPreflight.Review before,RegistrationDynamicPreflight.Review after){
         if(before.plans().size()!=after.plans().size())return false;var old=new HashMap<ProductKey,RegistrationDynamicPreflight.Plan>();before.plans().forEach(p->old.put(p.snapshot().key(),p));
         for(var plan:after.plans()){var previous=old.get(plan.snapshot().key());if(previous==null||!RegistrationReviewedValues.productRevision(previous.snapshot()).equals(RegistrationReviewedValues.productRevision(plan.snapshot()))||!RegistrationReviewedValues.schemaRevision(previous.schema()).equals(RegistrationReviewedValues.schemaRevision(plan.schema()))||previous.documents()!=null&&plan.documents()!=null&&!RegistrationReviewedValues.permitRevision(previous.documents()).equals(RegistrationReviewedValues.permitRevision(plan.documents())))return false;}return true;
@@ -121,7 +160,7 @@ return readComplete(owner,selected,entered,documents,Map.of());
         var findings=new LinkedHashMap<String,Finding>();current.findings().forEach(f->findings.put(f.key()+"/"+f.field(),f));
         for(var plan:current.dynamic().plans())for(var attribute:RegistrationAttributeRules.required(plan.schema(),plan.draft().attributes()))if(!Set.of(3959L,13933L,23557L,23561L).contains(attribute.id())){var key=plan.snapshot().key();String value=plan.draft().attributes().getOrDefault(attribute.id(),"");var finding=new Finding("catalog:"+attribute.id(),key,plan.snapshot().vendorArticle(),value,value,"",attribute,plan.draft().attributeTypes().get(attribute.id()),"changed",List.of());findings.putIfAbsent(key+"/"+finding.field(),finding);}
         if(findings.isEmpty()&&!current.dynamic().plans().isEmpty()){var plan=current.dynamic().plans().getFirst();var finding=new Finding("catalog_confirmation",plan.snapshot().key(),plan.snapshot().vendorArticle(),plan.draft().goodName(),plan.draft().goodName(),"",null,null,"changed",List.of());findings.put("confirmation",finding);}
-        return new Review(List.copyOf(findings.values()),current.selected(),current.dynamic());
+        return new Review(List.copyOf(findings.values()),current.selected(),current.dynamic(),current.sourceProblems());
     }
     static final class Editor {
         final Shop owner;Review review;final Dialog<Boolean> dialog=new Dialog<>();
@@ -232,14 +271,17 @@ return readComplete(owner,selected,entered,documents,Map.of());
         void freshReview(boolean saveWhenComplete){
             busy=true;table.setDisable(true);dialog.getDialogPane().lookupButton(applyType).setDisable(true);status.setText(tr("znack.registration.preflight.checking_schema"));
             var entered=new LinkedHashMap<ProductKey,Map<Long,RegistrationReviewedValues.Value>>();reviewed.forEach((key,map)->entered.put(key,Map.copyOf(map)));var keys=review.selected();var previous=review.dynamic();var acknowledged=Map.copyOf(approvedDocuments);var categories=Map.copyOf(chosenCategories);boolean requireFullReview=awaitingFullReview;
-            var task=new Task<Review>(){protected Review call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){var checked=reviewReader.read(owner,keys,Map.copyOf(entered),acknowledged,categories);if(requireFullReview&&checked.dynamic()!=null)return forceReview(checked);if(previous!=null&&checked.dynamic()!=null&&!sameFacts(previous,checked.dynamic()))return forceReview(checked);if(isCancelled()||disposed||Thread.currentThread().isInterrupted())throw new InterruptedException("Registration preflight cancelled");if(saveWhenComplete&&checked.findings().isEmpty()&&checked.dynamic()!=null)RegistrationReviewedValues.save(owner,RegistrationDynamicPreflight.approvals(checked.dynamic()));return checked;}}};
-            task.setOnSucceeded(e->{busy=false;if(disposed)return;review=task.getValue();if(requireFullReview&&review.dynamic()!=null)awaitingFullReview=false;if(review.findings().isEmpty()){dialog.setResult(true);dialog.close();return;}values.clear();values.putAll(initialValues(review));types.clear();review.findings().forEach(f->types.put(f,f.attribute()==null?f.suggestedType():RegistrationDraftCompletionDialog.suggestion(f.attribute(),values.get(f),f.suggestedType(),"").type()));table.getItems().setAll(review.findings());table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(tr("znack.registration.preflight.review_next_fields"));loadSuggestions();});
-            java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));executeRead(task,failed);
+            var task=new Task<Review>(){protected Review call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){var checked=reviewReader.read(owner,keys,Map.copyOf(entered),acknowledged,categories);requireSelection(keys,checked);if(requireFullReview&&checked.dynamic()!=null)return forceReview(checked);if(previous!=null&&checked.dynamic()!=null&&!sameFacts(previous,checked.dynamic()))return forceReview(checked);if(isCancelled()||disposed||Thread.currentThread().isInterrupted())throw new InterruptedException("Registration preflight cancelled");if(saveWhenComplete&&checked.sourceProblems().isEmpty()&&checked.findings().isEmpty()&&checked.dynamic()!=null)RegistrationReviewedValues.save(owner,RegistrationDynamicPreflight.approvals(checked.dynamic()));return checked;}}};
+            task.setOnSucceeded(e->{busy=false;if(disposed)return;var checked=task.getValue();var accepted=available(dialog.getDialogPane().getScene()==null?null:dialog.getDialogPane().getScene().getWindow(),checked);if(disposed)return;if(accepted==null){table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(tr("znack.registration.preflight.cancelled"));return;}review=accepted;if(requireFullReview&&review.dynamic()!=null)awaitingFullReview=false;if(review.findings().isEmpty()){if(accepted!=checked&&saveWhenComplete){freshReview(true);return;}dialog.setResult(true);dialog.close();return;}values.clear();values.putAll(initialValues(review));types.clear();review.findings().forEach(f->types.put(f,f.attribute()==null?f.suggestedType():RegistrationDraftCompletionDialog.suggestion(f.attribute(),values.get(f),f.suggestedType(),"").type()));table.getItems().setAll(review.findings());table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(tr("znack.registration.preflight.review_next_fields"));loadSuggestions();});
+            java.util.function.Consumer<Throwable> failed=error->{busy=false;if(disposed)return;table.setDisable(false);dialog.getDialogPane().lookupButton(applyType).setDisable(false);status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));executeRead(task,failed,true);
         }
         void executeRead(Task<?> task,java.util.function.Consumer<Throwable> failed){
+            executeRead(task,failed,false);
+        }
+        void executeRead(Task<?> task,java.util.function.Consumer<Throwable> failed,boolean preparation){
             reads.add(task);task.stateProperty().addListener((observable,previous,current)->{if(current==javafx.concurrent.Worker.State.CANCELLED||current==javafx.concurrent.Worker.State.FAILED||current==javafx.concurrent.Worker.State.SUCCEEDED)reads.remove(task);});
             var notified=new java.util.concurrent.atomic.AtomicBoolean();java.util.function.Consumer<Throwable> once=error->{if(notified.compareAndSet(false,true))failed.accept(error);};
-            task.setOnFailed(e->once.accept(task.getException()));task.setOnCancelled(e->Platform.runLater(()->once.accept(readTimeout())));AppTaskExecutor.executeCatalog(task,once);
+            task.setOnFailed(e->once.accept(task.getException()));task.setOnCancelled(e->Platform.runLater(()->once.accept(readTimeout())));if(preparation)AppTaskExecutor.executeCatalogPreparation(task,once);else AppTaskExecutor.executeCatalog(task,once);
         }
         private static String group(Finding f){return f.field()+"\n"+f.category();}
         interface Work{boolean run()throws Exception;}

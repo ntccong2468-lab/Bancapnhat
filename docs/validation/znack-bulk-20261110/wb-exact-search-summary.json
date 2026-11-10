@@ -1,0 +1,100 @@
+{
+  "kind": "ACTUAL_WB_EXISTING_READER_SEARCH_AUDIT",
+  "readOnly": true,
+  "catalogPostCount": 0,
+  "samples": [
+    {
+      "sample": 1,
+      "http": 200,
+      "returned": 1,
+      "exactMatches": 1,
+      "missingFields": [],
+      "seconds": 1.868
+    },
+    {
+      "sample": 2,
+      "http": 200,
+      "returned": 1,
+      "exactMatches": 1,
+      "missingFields": [],
+      "seconds": 2.266
+    },
+    {
+      "sample": 3,
+      "http": 200,
+      "returned": 1,
+      "exactMatches": 1,
+      "missingFields": [],
+      "seconds": 0.989
+    },
+    {
+      "sample": 4,
+      "http": 200,
+      "returned": 0,
+      "exactMatches": 0,
+      "missingFields": [],
+      "seconds": 8.692
+    },
+    {
+      "sample": 5,
+      "http": 200,
+      "returned": 1,
+      "exactMatches": 1,
+      "missingFields": [],
+      "seconds": 1.001
+    },
+    {
+      "sample": 6,
+      "http": 200,
+      "returned": 1,
+      "exactMatches": 1,
+      "missingFields": [],
+      "seconds": 0.753
+    },
+    {
+      "sample": 7,
+      "http": 200,
+      "returned": 0,
+      "exactMatches": 0,
+      "missingFields": [],
+      "seconds": 2.356
+    },
+    {
+      "sample": 8,
+      "http": 200,
+      "returned": 1,
+      "exactMatches": 1,
+      "missingFields": [],
+      "seconds": 1.078
+    },
+    {
+      "sample": 9,
+      "http": 200,
+      "returned": 1,
+      "exactMatches": 1,
+      "missingFields": [],
+      "seconds": 1.566
+    },
+    {
+      "sample": 10,
+      "http": 200,
+      "returned": 0,
+      "exactMatches": 0,
+      "missingFields": [],
+      "seconds": 3.056
+    },
+    {
+      "sample": 11,
+      "http": 200,
+      "returned": 1,
+      "exactMatches": 1,
+      "missingFields": [],
+      "seconds": 2.58
+    }
+  ],
+  "allExactMatchesFound": false,
+  "sameStoreAsReportedStoreVerified": false,
+  "redactions": [
+    "Reported store identifiers generalized; no product/order/credential data copied."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "kind": "READ_ONLY_WB_API_AUDIT",
+  "http": 200,
+  "seconds": 2.474,
+  "sendsCatalogFeeds": false,
+  "storeNamedByUser": "REPORTED_WB_STORE",
+  "wbCredentialStoreIdentityVerified": false,
+  "cards": 100,
+  "cursorFields": [
+    "nmID",
+    "total",
+    "updatedAt"
+  ],
+  "apiError": false,
+  "missingFields": {
+    "sizes": 0,
+    "characteristics": 0,
+    "dimensions": 0,
+    "subjectID": 0
+  },
+  "uniqueNmIds": 100,
+  "variants": 511,
+  "redactions": [
+    "Reported store identifiers generalized; no product/order/credential data copied."
+  ]
+}

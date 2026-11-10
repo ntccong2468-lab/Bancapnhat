@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## 10.11.2026 MSK — đăng ký lô lớn lỗi nguồn WB trước Catalog; sửa nguồn, chưa phát hành
+
+[Handoff](validation/2026-11-10-znack-bulk-preflight.md), [283 ca tập trung đạt](validation/znack-bulk-20261110/focused-final-receipt.json), nhánh `fix/znack-preflight-bulk-20261110` từ95d8942/appd023. API WB thật tái hiện3/11 tìm kiếm nmID trảHTTP200 rỗng dù có trên trang mới; production source review đã đọc đủ300/300 bằng4HTTP trong15,696s. User xác nhận WB key thuộc cửa hàng báo lỗi. API Catalog key mới đọc999 thẻ, không có Catalog POST thật trong lượt này; log gốc dừng trước batchStarter/POST feed.
+
+Quyết định: đọc paging100 và fallback danh sách mới, giữ owner/variant/revision; lỗi đúng biến thể và explicit subset approval, không auto-skip hoặc dùng cache như bằng chứng mới.10.000 là hàng đợi mục riêng, không phải một HTTP feed10.000; UI trang300, chuẩn bị riêng10phút,128MiB guard. Runtime không đổi giữa hai lượt targeted; hai fixture mới đã sửa đúng kỳ vọng, không hạ timeout hoặc bỏ assertions. Hai RED và lịch sử probe503/114,725s giữ riêng. Chưa thực hiện durable preflight checkpoint; đề xuất chunk100–500, backoff/đối soát và giảm số lần ghi tổng báo cáo. Nếu đo keepalive DB phải theo từng item, đóng trước updater checkpoint, không giữ cả pass hoặc transaction qua HTTP.
+
+Latest vẫn1.6.7 immutable. Đang làm tiếp KIZ3390/EXHAUSTED theo chỉ đạo sau khi hoàn tất Znack; chỉ phục hồi khối đã cấp, không tạo mua lặp. Chưa có OMS/chứng thư cho giao dịch thật; không gửi Gmail/kích hoạt license hoặc triển khai Portal.
+
 ## 09.11.2026 MSK — Latest1.6.7 đã phát hành, tải/kiểm và updater hoàn tất
 
 **Release immutable438471378 /tag v1.6.7**, nguồn app **d0231cd6913ce3a1764067bad0901b32c535de41**, công bố **16:38:02 MSK /13:38:02 UTC**. Windows **42611294387** đạt4.188 ca/547 lớp,4.186 PASS/0 failure/error/2 OS skip đúng danh tính; native/migration/snapshot/DPAPI/cài-gỡ/coexistence/passive upgrade1.6.6 giữ dữ liệu đạt. Publisher **42627047589** trên tooling **b1e5e7774e1ab01d0c1c57ee934900c6927638f7** SUCCESS. [Bàn giao đầy đủ](validation/2026-11-09-vncode-167-release-handoff.md), [receipt cuối](validation/2026-11-09-vncode-167-final-release.json).

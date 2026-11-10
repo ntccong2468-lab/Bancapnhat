@@ -568,6 +568,59 @@ class ZnackCardRegistrationControllerTest {
         fx(()->{assertEquals(300,table().getItems().size());assertEquals(I18nService.getInstance().tr("znack.registration.register_short"),button("registerSelectedButton").getText());button("registerSelectedButton").fire();return null;});
         approveSourceReview();assertTrue(dispatched.await(15,TimeUnit.SECONDS),"Select all and one Register click must start submission, not error repair");assertEquals(304,count.get());awaitTasks();
     }
+    @Test void aThreeHundredVariantPreflightRequiresExplicitSubsetAcceptanceAndConsentsOnlyToTheOther299()throws Exception{
+        var dispatched=new CountDownLatch(1);var sent=new java.util.concurrent.atomic.AtomicReference<java.util.List<Sku>>();var excluded=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.products.ProductKey>();
+        var missing=selectThreeHundredWithOneUnavailable((owner,selection,sign,approval)->{
+            assertNotNull(approval);var expected=selection.stream().map(row->new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()))).collect(java.util.stream.Collectors.toSet());
+            assertEquals(299,selection.size());assertEquals(expected,approval.keys());assertFalse(approval.keys().contains(excluded.get()));sent.set(selection);dispatched.countDown();return "readable-subset";
+        });excluded.set(missing);
+        assertEquals(1,dispatched.getCount(),"No batch can start before the subset confirmation");
+        answerSourceSubset(true,missing);approveSourceReview();assertTrue(dispatched.await(15,TimeUnit.SECONDS));assertEquals(299,sent.get().size());assertFalse(sent.get().stream().anyMatch(row->row.chrtId()==Long.parseLong(missing.variantId())));awaitTasks();
+    }
+    @Test void cancellingTheThreeHundredVariantSubsetWarningStartsNoBatchAndKeepsTheSelectionUsable()throws Exception{
+        var starts=new java.util.concurrent.atomic.AtomicInteger();var missing=selectThreeHundredWithOneUnavailable((owner,selection,sign,approval)->{starts.incrementAndGet();return "must-not-start";});
+        answerSourceSubset(false,missing);awaitTasks();assertEquals(0,starts.get());
+        fx(()->{var controller=(ZnackCardRegistrationController)loader.getController();var preparing=controller.getClass().getDeclaredField("preparing");preparing.setAccessible(true);assertFalse(preparing.getBoolean(controller));assertFalse(button("registerSelectedButton").isDisabled());assertEquals(300,table().getItems().size());assertTrue(java.util.List.copyOf(Window.getWindows()).stream().filter(Window::isShowing).noneMatch(window->window.getScene()!=null&&window.getScene().getRoot().lookup("#registrationSourceReviewDialog")!=null));return null;});
+        try(var c=Database.getConnection();var s=c.createStatement();var rows=s.executeQuery("SELECT COUNT(*) FROM znack_registration_batches")){assertTrue(rows.next());assertEquals(0,rows.getInt(1));}
+    }
+    @Test void anEntirelyUnavailableSelectionHasNoContinueButton(){
+        var key=new com.vncode.app.features.products.ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"101","1");
+        var problem=new com.vncode.app.integration.znack.registration.RegistrationSnapshotReview.Problem(key,"WB_CARD_NOT_FOUND",java.util.List.of());
+        assertDoesNotThrow(()->fx(()->{var dialog=RegistrationBatchPreflight.sourceProblemsDialog(null,new RegistrationBatchPreflight.Review(java.util.List.of(),java.util.List.of(),null,java.util.List.of(problem)));var pane=dialog.getDialogPane();assertEquals(1,pane.getButtonTypes().size());var cancel=pane.getButtonTypes().getFirst();assertEquals(ButtonBar.ButtonData.CANCEL_CLOSE,cancel.getButtonData());var button=pane.lookupButton(cancel);assertNotNull(button);assertEquals("registrationAvailableSubsetCancel",button.getId());assertTrue(pane.getButtonTypes().stream().noneMatch(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE));return null;}));
+    }
+    @Test void moreThanTenThousandVariantsIsRejectedBeforeAnySourceRead()throws Exception{
+        var reads=new java.util.concurrent.atomic.AtomicInteger();var starts=new java.util.concurrent.atomic.AtomicInteger();var disabledBefore=new java.util.concurrent.atomic.AtomicBoolean();var owner=new Shop(1,"Fixture","fixture");
+        var selection=java.util.stream.IntStream.rangeClosed(1,10001).mapToObj(n->new Sku(1000L+n,20000L+n,1,"SKU-"+n,"Category","Brand","Fixture","Blue","XL",java.util.List.of(),"",true,"",null,"",Status.NOT_CREATED,"",false,"52")).toList();
+        var invocation=fx(()->{disabledBefore.set(button("registerSelectedButton").isDisabled());var controller=(ZnackCardRegistrationController)loader.getController();var reader=controller.getClass().getDeclaredField("preflightReader");reader.setAccessible(true);reader.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(shop,keys)->{reads.incrementAndGet();throw new AssertionError("The oversized selection must not read sources");});var starter=controller.getClass().getDeclaredField("batchStarter");starter.setAccessible(true);starter.set(controller,(ZnackCardRegistrationController.BatchStarter)(shop,rows,sign,approval)->{starts.incrementAndGet();return "must-not-start";});var epoch=controller.getClass().getDeclaredField("shopEpoch");epoch.setAccessible(true);var method=controller.getClass().getDeclaredMethod("reviewBeforeRegistration",Shop.class,long.class,java.util.List.class);method.setAccessible(true);return new FutureTask<Void>(()->{method.invoke(controller,owner,epoch.getLong(controller),selection);return null;});});
+        Platform.runLater(invocation);boolean dismissed=false;long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);
+        while(!dismissed&&System.nanoTime()<deadline){dismissed=fx(()->{for(var window:java.util.List.copyOf(Window.getWindows())){if(!window.isShowing()||window.getScene()==null)continue;var found=window.getScene().getRoot().lookup(".dialog-pane");if(found instanceof DialogPane pane&&I18nService.getInstance().tr("znack.registration.batch_too_large").equals(pane.getContentText())){((Button)pane.lookupButton(ButtonType.OK)).fire();return true;}}return false;});if(!dismissed)Thread.sleep(20);}
+        assertTrue(dismissed);invocation.get(10,TimeUnit.SECONDS);assertEquals(0,reads.get());assertEquals(0,starts.get());awaitTasks();fx(()->{assertEquals(disabledBefore.get(),button("registerSelectedButton").isDisabled());var controller=(ZnackCardRegistrationController)loader.getController();var preparing=controller.getClass().getDeclaredField("preparing");preparing.setAccessible(true);assertFalse(preparing.getBoolean(controller));var task=controller.getClass().getDeclaredField("registrationPreflightTask");task.setAccessible(true);assertNull(task.get(controller));return null;});
+    }
+    private com.vncode.app.features.products.ProductKey selectThreeHundredWithOneUnavailable(ZnackCardRegistrationController.BatchStarter starter)throws Exception{
+        try(var c=Database.getConnection();var q=c.createStatement()){
+            q.execute("UPDATE znack_card_registrations SET status='PRE_SUBMIT_ERROR',gtin='00000000000017' WHERE shop_id=1 AND chrt_id=2");
+            for(int id=4;id<=301;id++){
+                q.execute("INSERT INTO wb_product_cards(shop_id,nm_id,vendor_code,title,synced_at) VALUES(1,"+(100+id)+",'SKU-"+id+"','Fixture','fixture')");
+                q.execute("INSERT INTO wb_product_sizes(shop_id,chrt_id,nm_id,tech_size) VALUES(1,"+id+","+(100+id)+",'XL')");
+            }
+        }
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Fixture","fixture"));var missing=new java.util.concurrent.atomic.AtomicReference<com.vncode.app.features.products.ProductKey>();
+        fx(()->{var controller=(ZnackCardRegistrationController)loader.getController();var preflight=controller.getClass().getDeclaredField("preflightReader");preflight.setAccessible(true);
+            preflight.set(controller,(java.util.function.BiFunction<Shop,java.util.List<com.vncode.app.features.products.ProductKey>,RegistrationBatchPreflight.Review>)(owner,keys)->{
+                assertFalse(Platform.isFxApplicationThread());assertEquals(300,keys.size());var unavailable=keys.getLast();missing.set(unavailable);var readable=keys.subList(0,keys.size()-1);var prepared=sourceReviewFixture(owner,readable);
+                return new RegistrationBatchPreflight.Review(prepared.findings(),prepared.selected(),prepared.dynamic(),java.util.List.of(new com.vncode.app.integration.znack.registration.RegistrationSnapshotReview.Problem(unavailable,"WB_CARD_NOT_FOUND",java.util.List.of())));
+            });var field=controller.getClass().getDeclaredField("batchStarter");field.setAccessible(true);field.set(controller,starter);((ComboBox<?>)loader.getNamespace().get("statusFilter")).getSelectionModel().select(1);return null;});awaitTasks();
+        fx(()->{((CheckBox)loader.getNamespace().get("allFilteredCheckBox")).fire();return null;});awaitTasks();fx(()->{assertEquals(300,table().getItems().size());button("registerSelectedButton").fire();return null;});
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(10);while(missing.get()==null&&System.nanoTime()<deadline)Thread.sleep(10);assertNotNull(missing.get());return missing.get();
+    }
+    private static void answerSourceSubset(boolean accept,com.vncode.app.features.products.ProductKey missing)throws Exception{
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(15);
+        while(System.nanoTime()<deadline){boolean answered=fx(()->{for(var window:java.util.List.copyOf(Window.getWindows())){
+            if(!window.isShowing()||window.getScene()==null)continue;var pane=window.getScene().getRoot().lookup("#registrationAvailableSubsetDialog");if(!(pane instanceof DialogPane dialog))continue;
+            assertTrue(dialog.getHeaderText().contains("300"));assertTrue(dialog.getHeaderText().contains("299"));var details=(TextArea)dialog.lookup("#registrationAvailableSubsetDetails");assertNotNull(details);assertTrue(details.getText().contains("nmID: "+missing.cardId()));assertTrue(details.getText().contains("chrtID: "+missing.variantId()));assertTrue(details.getText().contains("WB_CARD_NOT_FOUND"));
+            ((Button)dialog.lookup(accept?"#registrationAvailableSubsetApply":"#registrationAvailableSubsetCancel")).fire();return true;
+        }return false;});if(answered)return;Thread.sleep(20);}fail("Readable subset warning did not appear");
+    }
     @Test void automaticRefreshKeepsFilteredLoadedExtentAndSelection()throws Exception{
         try(var c=Database.getConnection();var q=c.createStatement()){
             for(int id=4;id<=405;id++){

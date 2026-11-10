@@ -21,6 +21,19 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
     /** Complete identity observation without replacing the seller's cached documents. */
     public ProductSnapshot readForIdentityProof(Shop shop,ProductKey key)throws IOException{return read(shop,key,true,false,true);}
     public ProductSnapshot readForSynchronization(Shop shop,ProductKey key)throws IOException{return read(shop,key,false);}
+    /** Fresh complete registration facts; the batch reviewer owns the single guarded persistence. */
+    public ProductSnapshot readForRegistration(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false,true);}
+    /** A card-specific absence is recoverable separately from account, network and identity failures. */
+    public static final class CardReadException extends IOException {
+        private final String code;private final ProductKey key;private final List<String> missingFields;
+        public CardReadException(String code,ProductKey key,List<String> missingFields){
+            super(code+" · nmID="+Objects.requireNonNull(key).cardId()+" · chrtID="+key.variantId()
+                    +(missingFields.isEmpty()?"":" · "+String.join(", ",missingFields)));
+            if(!Set.of("WB_CARD_NOT_FOUND","WB_CARD_INCOMPLETE","WB_VARIANT_NOT_FOUND").contains(code))throw new IllegalArgumentException("Invalid WB card failure");
+            this.code=code;this.key=key;this.missingFields=List.copyOf(missingFields);
+        }
+        public String code(){return code;}public ProductKey key(){return key;}public List<String> missingFields(){return missingFields;}
+    }
     /** The GTIN-only path does not replace the complete product-page snapshot cache. */
     public ProductSnapshot readForGtinSync(Shop shop,ProductKey key)throws IOException{return read(shop,key,false,false,false);}
     private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices)throws IOException{
@@ -31,12 +44,19 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
     }
     private ProductSnapshot read(Shop shop,ProductKey key,boolean includePrices,boolean persist,boolean includeEvidence)throws IOException{
         ListingIdentity.require(shop,key);if(key.marketplace()!=Marketplace.WILDBERRIES)throw new SecurityException("Not a WB card");
-        JsonObject filter=new JsonObject();filter.addProperty("textSearch",key.cardId());filter.addProperty("withPhoto",-1);
-        JsonObject cursor=new JsonObject();cursor.addProperty("limit",100);JsonObject settings=new JsonObject();settings.add("filter",filter);settings.add("cursor",cursor);
-        JsonObject body=new JsonObject();body.add("settings",settings);
-        JsonObject response=object(clients.apply(shop).call("content/v2/get/cards/list",body,false));
-        JsonObject card=null;for(var e:array(response,"cards")){var c=object(e);if(text(c,"nmID").equals(key.cardId())){if(card!=null)throw new IOException("Ambiguous WB identity");card=c;}}
-        if(card==null||!card.has("sizes")||!card.has("characteristics")||!card.has("dimensions")||!card.has("subjectID"))throw new IOException("Complete WB card unavailable");
+        return complete(shop,key,findCard(shop,key),includePrices,persist,includeEvidence);
+    }
+    ProductSnapshot registrationCard(Shop shop,ProductKey key,JsonObject card)throws IOException {
+        return complete(shop,key,card.deepCopy(),false,false,true);
+    }
+    private ProductSnapshot complete(Shop shop,ProductKey key,JsonObject card,boolean includePrices,boolean persist,boolean includeEvidence)throws IOException {
+        ListingIdentity.require(shop,key);checkCancelled();
+        if(key.marketplace()!=Marketplace.WILDBERRIES||!key.cardId().equals(text(card,"nmID")))throw new SecurityException("SOURCE_PRODUCT_NOT_OBSERVED");
+        var missing=new ArrayList<String>();
+        for(String field:List.of("sizes","characteristics"))if(!card.has(field)||!card.get(field).isJsonArray())missing.add(field);
+        if(!card.has("dimensions")||!card.get("dimensions").isJsonObject())missing.add("dimensions");
+        if(!text(card,"subjectID").matches("[1-9][0-9]{0,18}"))missing.add("subjectID");
+        if(!missing.isEmpty())throw new CardReadException("WB_CARD_INCOMPLETE",key,missing);
         // WB can reorder characteristics on every read. Their identity is charcID,
         // whereas photo and value ordering can carry meaning and must be retained.
         var ordered=new java.util.TreeMap<java.math.BigInteger,JsonElement>();
@@ -53,7 +73,7 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
             var v=object(e);String id=text(v,"chrtID");if(id.isBlank()||!variantIds.add(id))throw new IOException("Ambiguous WB variant identity");var skus=strings(array(v,"skus"));var proof=includeEvidence?ListingIdentity.verifiedGtinEvidence(shop,new ProductKey(shop.getId(),shop.getMarketplace(),key.cardId(),id),skus,text(card,"vendorCode"),variantColor,text(v,"techSize"),text(v,"wbSize")):Optional.<ListingIdentity.VerifiedGtin>empty();
             variants.add(new ProductVariant(id,text(card,"vendorCode"),variantColor,text(v,"techSize"),proof.map(ListingIdentity.VerifiedGtin::gtin).orElse(""),proof.isPresent(),text(v,"wbSize"),skus,proof.map(ListingIdentity.VerifiedGtin::evidence).orElse(ProductVariant.GtinEvidence.UNVERIFIED)));
         }
-        if(!key.variantId().isBlank()&&variants.stream().noneMatch(v->v.id().equals(key.variantId())))throw new IOException("WB variant identity changed");
+        if(!key.variantId().isBlank()&&variants.stream().noneMatch(v->v.id().equals(key.variantId())))throw new CardReadException("WB_VARIANT_NOT_FOUND",key,List.of());
         var d=obj(card,"dimensions");var dimensions=new PackageDimensions(decimal(d,"length"),decimal(d,"width"),decimal(d,"height"),decimal(d,"weightBrutto"));
         var now=Instant.now();var docs=new ArrayList<ProductDocument>();for(var e:array(obj(card,"documents"),"items")){
             var doc=object(e);var verdict=obj(doc,"verdict");var end=date(text(doc,"endDate"));DocumentState state=DocumentState.UNVERIFIED;
@@ -75,5 +95,44 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
         // WB can advance updatedAt after an acknowledged earlier write without changing this card's content.
         var content=card.deepCopy();content.remove("updatedAt");String stable=ListingIdentity.canonical(content);var revisionMetadata=new LinkedHashMap<>(inherited);revisionMetadata.put("source.payload",stable);
         var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(stable+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(revisionMetadata))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
+    }
+    private JsonObject findCard(Shop shop,ProductKey key)throws IOException {
+        ListingTransport client=clients.apply(shop);var cursor=new JsonObject();cursor.addProperty("limit",100);var seen=new HashSet<String>();
+        for(int page=0;page<20_000;page++){
+            checkCancelled();ListingIdentity.require(shop,key);
+            var filter=new JsonObject();filter.addProperty("textSearch",key.cardId());filter.addProperty("withPhoto",-1);
+            var settings=new JsonObject();settings.add("filter",filter);settings.add("cursor",cursor);var sort=new JsonObject();sort.addProperty("ascending",true);settings.add("sort",sort);
+            var body=new JsonObject();body.add("settings",settings);
+            var response=page(client.call("content/v2/get/cards/list",body,false));ListingIdentity.require(shop,key);checkCancelled();
+            JsonObject selected=null;var cards=response.getAsJsonArray("cards");
+            for(var raw:cards){var candidate=object(raw);if(key.cardId().equals(text(candidate,"nmID"))){if(selected!=null)throw new IOException("Ambiguous WB identity");selected=candidate;}}
+            if(selected!=null)return selected;
+            if(cards.isEmpty()){
+                WbRegistrationSnapshotBatch.requireCount(response,0);
+                // An exact textSearch may return an empty page for a card that is
+                // present in the same account's active list. Observe that list
+                // fresh before concluding absence; never recover from a cache.
+                try(var batch=new WbRegistrationSnapshotBatch(shop,List.of(key),client)){return batch.observedCard(key);}
+            }
+            cursor=nextCursor(response,cards.size(),seen);
+        }
+        throw new IOException("WB_CATALOG_PAGE_LIMIT");
+    }
+    static JsonObject page(JsonElement raw)throws IOException {
+        if(raw==null||!raw.isJsonObject())throw new IOException("WB_CATALOG_RESPONSE_INVALID");var response=raw.getAsJsonObject();
+        if("true".equals(text(response,"error")))throw new IOException("WB_CATALOG_REJECTED");
+        if(!response.has("cards")||!response.get("cards").isJsonArray()||response.getAsJsonArray("cards").size()>100)throw new IOException("WB_CATALOG_RESPONSE_INVALID");
+        return response;
+    }
+    static JsonObject nextCursor(JsonObject response,int count,Set<String> seen)throws IOException {
+        var next=obj(response,"cursor");var total=next.get("total");
+        try{if(total==null||!total.isJsonPrimitive()||!total.getAsJsonPrimitive().isNumber()||total.getAsBigDecimal().intValueExact()!=count)throw new ArithmeticException();}
+        catch(RuntimeException invalid){throw new IOException("WB_CATALOG_CURSOR_INVALID",invalid);}
+        String updated=text(next,"updatedAt"),id=text(next,"nmID");
+        if(updated.isBlank()||!id.matches("[1-9][0-9]{0,19}")||!seen.add(updated+"/"+id))throw new IOException("WB_CATALOG_CURSOR_INVALID");
+        var cursor=new JsonObject();cursor.addProperty("updatedAt",updated);cursor.addProperty("nmID",new java.math.BigInteger(id));cursor.addProperty("limit",100);return cursor;
+    }
+    static void checkCancelled()throws java.io.InterruptedIOException {
+        if(Thread.currentThread().isInterrupted())throw new java.io.InterruptedIOException("WB registration snapshot cancelled");
     }
 }

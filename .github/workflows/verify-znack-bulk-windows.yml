@@ -1,0 +1,82 @@
+name: Verify Znack bulk preflight on Windows
+on:
+  push:
+    branches: [fix/znack-preflight-bulk-20261110]
+    paths:
+      - .github/workflows/verify-znack-bulk-windows.yml
+      - src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java
+      - src/main/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatch.java
+      - src/main/java/com/vncode/app/integration/znack/registration/RegistrationSnapshotReview.java
+      - src/main/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflight.java
+      - src/main/java/com/vncode/app/ui/znackregistration/RegistrationPreflightReport.java
+      - src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java
+      - src/test/java/com/vncode/app/integration/wb/WbProductSnapshotPaginationTest.java
+      - src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatchTest.java
+      - src/test/java/com/vncode/app/integration/znack/registration/RegistrationLargeBatchDurabilityTest.java
+  workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Exact 40-hex application commit to test; no branch or tag names
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  focused-regression:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      REQUESTED_SOURCE: ${{ github.event_name == 'push' && github.sha || inputs.source_commit }}
+    steps:
+      - name: Validate source input and isolate test evidence
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $root=Join-Path $env:RUNNER_TEMP "vncode-znack-bulk-evidence-$env:GITHUB_RUN_ID"
+          New-Item -ItemType Directory -Force $root | Out-Null
+          "EVIDENCE_ROOT=$root" >> $env:GITHUB_ENV
+          "LOCALAPPDATA=$env:RUNNER_TEMP\vncode-znack-bulk-profile-$env:GITHUB_RUN_ID" >> $env:GITHUB_ENV
+          @{phase='validate-input';runId=[long]$env:GITHUB_RUN_ID;workflowEventCommit=$env:GITHUB_SHA;focusedRegressionOnly=$true;sellerSecretsConfigured=$false;installerBuilt=$false;releasePublished=$false} | ConvertTo-Json | Set-Content "$root/plan.json" -Encoding utf8NoBOM
+          if($env:REQUESTED_SOURCE.Length -ne 40 -or $env:REQUESTED_SOURCE -notmatch '\A[0-9a-fA-F]{40}\z'){throw 'source_commit must be exactly 40 hexadecimal characters.'}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.REQUESTED_SOURCE }}
+          persist-credentials: false
+      - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
+        with:
+          java-version: '25'
+          distribution: oracle
+          cache: maven
+      - name: Verify exact source and run focused synthetic regression
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $PSNativeCommandUseErrorActionPreference=$false
+          $actual=(git rev-parse HEAD).Trim()
+          if($LASTEXITCODE -ne 0 -or $actual -cne $env:REQUESTED_SOURCE.ToLowerInvariant()){throw 'Checked-out HEAD differs from source_commit.'}
+          if(@(git status --porcelain).Count -ne 0){throw 'Application source must start clean.'}
+          @{sourceCommit=$actual;sourceTree=(git rev-parse 'HEAD^{tree}').Trim();workflowEventCommit=$env:GITHUB_SHA;workflowDefinitionCommit=$env:GITHUB_WORKFLOW_SHA;workflowRef=$env:GITHUB_WORKFLOW_REF;runId=[long]$env:GITHUB_RUN_ID;runAttempt=$env:GITHUB_RUN_ATTEMPT;platform='windows-latest';javaDistribution='oracle';javaMajor=25;dataProfile='production default; individual tests use isolated synthetic profiles';focusedRegressionOnly=$true;fullApplicationSuite=$false;installerBuilt=$false;releasePublished=$false;sellerApiCalls=$false;licenseActivation=$false;realSigning=$false} | ConvertTo-Json | Set-Content "$env:EVIDENCE_ROOT/provenance.json" -Encoding utf8NoBOM
+          java -version 2>&1 | Out-File "$env:EVIDENCE_ROOT/java-version.txt" -Encoding utf8NoBOM
+          .\mvnw.cmd -B '-Dtest=WbProductSnapshotPaginationTest,WbRegistrationSnapshotBatchTest,ProductSnapshotReaderTest,RegistrationSnapshotReviewTest,RegistrationBatchPreflightTest,ZnackCardRegistrationControllerTest,RegistrationPreflightCancellationTest,RegistrationSourceConsentTest,RegistrationLargeBatchDurabilityTest,CatalogTaskExecutorTest,WbGtinAdapterTest' test 2>&1 | Tee-Object "$env:EVIDENCE_ROOT/maven.log" | Out-Host
+          $exitCode=$LASTEXITCODE
+          @{sourceCommit=$actual;mavenExitCode=$exitCode;focusedRegressionOnly=$true} | ConvertTo-Json | Set-Content "$env:EVIDENCE_ROOT/maven-exit.json" -Encoding utf8NoBOM
+          if($exitCode -ne 0){throw 'Focused Windows Znack regression failed.'}
+          if((git rev-parse HEAD).Trim() -cne $actual -or @(git status --porcelain).Count -ne 0){throw 'Application source changed during verification.'}
+      - name: Preserve JUnit and profile evidence even on failure
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          if(Test-Path 'target/surefire-reports'){Copy-Item 'target/surefire-reports' "$env:EVIDENCE_ROOT/surefire-reports" -Recurse}
+          if(Test-Path 'target/classes/app.properties'){Copy-Item 'target/classes/app.properties' "$env:EVIDENCE_ROOT/compiled-app.properties"}
+          if(Test-Path '.git'){
+            @{head=(git rev-parse HEAD).Trim();tree=(git rev-parse 'HEAD^{tree}').Trim();trackedChanges=@(git status --porcelain);dataProfileOverrideSupplied=$false;isolatedLocalAppData=$env:LOCALAPPDATA;focusedRegressionOnly=$true;releaseGate=$false} | ConvertTo-Json | Set-Content "$env:EVIDENCE_ROOT/source-after.json" -Encoding utf8NoBOM
+          }
+      - name: Upload focused regression evidence only
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: znack-bulk-windows-${{ github.run_id }}
+          path: ${{ env.EVIDENCE_ROOT }}
+          if-no-files-found: error
+          retention-days: 30

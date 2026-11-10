@@ -1,0 +1,31 @@
+{
+  "kind": "READ_ONLY_CATALOG_API_AUDIT",
+  "credential": "userProvidedCatalogKey",
+  "http": 200,
+  "seconds": 0.969,
+  "sendsCatalogFeeds": false,
+  "writePermissionVerified": false,
+  "rootFields": [
+    "apiversion",
+    "result"
+  ],
+  "resultFields": [
+    "goods",
+    "offset",
+    "limit",
+    "total"
+  ],
+  "goods": 100,
+  "total": 999,
+  "firstGoodFields": [
+    "good_id",
+    "gtin",
+    "good_name",
+    "tnved",
+    "brand_name",
+    "good_status",
+    "good_detailed_status",
+    "updated_date"
+  ],
+  "errorCodes": []
+}

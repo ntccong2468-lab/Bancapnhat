@@ -6,6 +6,8 @@ import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.listing.ListingIdentity;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
@@ -23,6 +25,38 @@ class RegistrationBatchPreflightTest {
         assertEquals(6,run.total());var rows=reports.items(run.id(),0,10);assertEquals(6,rows.size());
         assertTrue(rows.stream().allMatch(row->row.state().equals("NEEDS_ACTION")&&row.evidence().contains("ZNACK_MISSING_PRODUCT_DOCUMENT")&&row.evidence().contains("\"catalogSubmitted\":false")));
         assertEquals(6,rows.stream().map(row->row.variantId()).distinct().count());
+    }
+    @ParameterizedTest @ValueSource(ints={300,10000}) void sourceReadFailureIsReportedOnlyForItsVariantWithoutClaimingCatalogSubmission(int count)throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
+        var keys=java.util.stream.IntStream.range(0,count).mapToObj(n->new ProductKey(shop.getId(),shop.getMarketplace(),Integer.toString(1000+n),Integer.toString(20000+n))).toList();
+        var problem=new com.vncode.app.integration.znack.registration.RegistrationSnapshotReview.Problem(keys.get(149),"WB_CARD_INCOMPLETE",List.of("sizes","subjectID"));
+        RegistrationPreflightReport.write(shop,keys,List.of(),List.of(problem),null);
+        var reports=new com.vncode.app.features.sync.SyncRunRepository();var run=reports.list(shop.getId(),0,10).stream().filter(r->r.kind().equals(RegistrationPreflightReport.KIND)).findFirst().orElseThrow();
+        assertEquals(count,run.total());assertEquals("WB_CARD_READ_REVIEW_REQUIRED",run.error());
+        var rows=new ArrayList<com.vncode.app.features.sync.SyncRunRepository.Item>();for(int offset=0;offset<count;offset+=1000)rows.addAll(reports.items(run.id(),offset,Math.min(1000,count-offset)));
+        assertEquals(count,rows.size());assertEquals(count-1,rows.stream().filter(row->row.state().equals("READY")&&row.error().isBlank()).count());
+        var failed=rows.stream().filter(row->row.state().equals("NEEDS_ACTION")).toList();assertEquals(1,failed.size());assertEquals(problem.key().cardId(),failed.getFirst().productId());assertEquals(problem.key().variantId(),failed.getFirst().variantId());assertEquals(problem.code(),failed.getFirst().error());
+        assertTrue(failed.getFirst().evidence().contains("\"missingFields\":[\"sizes\",\"subjectID\"]"));assertTrue(rows.stream().allMatch(row->row.evidence().contains("\"catalogSubmitted\":false")));
+        try(var c=Database.getConnection();var s=c.createStatement();var result=s.executeQuery("SELECT COUNT(*) FROM znack_card_registrations")){assertTrue(result.next());assertEquals(0,result.getInt(1));}
+    }
+    @Test void sourceReviewRequiresEveryRequestedIdentityToBeEitherAvailableOrExplicitlyReported(){
+        var first=new ProductKey(1,Marketplace.WILDBERRIES,"101","201");var second=new ProductKey(1,Marketplace.WILDBERRIES,"102","202");
+        var problem=new com.vncode.app.integration.znack.registration.RegistrationSnapshotReview.Problem(second,"WB_CARD_NOT_FOUND",List.of());
+        var complete=new RegistrationBatchPreflight.Review(List.of(),List.of(first),null,List.of(problem));
+        assertDoesNotThrow(()->RegistrationBatchPreflight.requireSelection(List.of(first,second),complete));
+        assertThrows(IllegalStateException.class,()->RegistrationBatchPreflight.requireSelection(List.of(first,second),new RegistrationBatchPreflight.Review(List.of(),List.of(first),null)));
+        assertThrows(IllegalStateException.class,()->RegistrationBatchPreflight.requireSelection(List.of(first,second),new RegistrationBatchPreflight.Review(List.of(),List.of(first,second),null,List.of(problem))));
+    }
+    @Test void commonReviewUsesTheFreshOperationFactsWithoutDependingOnTheSnapshotCache()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var key=new ProductKey(shop.getId(),shop.getMarketplace(),"101","201");
+        var snapshot=new ProductSnapshot(key,"live:fresh","Name","","","Article","1",List.of(),List.of(),List.of(new ProductVariant("201","Article","Brown","52","",false)),null,List.of(),Instant.now(),Map.of("owner",ListingIdentity.fingerprint(shop)));
+        var repository=new ProductRepository();assertTrue(repository.localSnapshot(key).isEmpty());var review=RegistrationBatchPreflight.read(shop,List.of(key),List.of(snapshot));
+        assertEquals(Set.of("brand","material","gender","tnved","documents"),review.findings().stream().map(RegistrationBatchPreflight.Finding::field).collect(java.util.stream.Collectors.toSet()));assertTrue(repository.localSnapshot(key).isEmpty(),"Reviewing supplied fresh facts must not need a cached copy or persist new approval");
+    }
+    @Test void suppliedFreshFactsCannotUseAnotherOwnersObservation()throws Exception{
+        System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var key=new ProductKey(shop.getId(),shop.getMarketplace(),"101","201");
+        var snapshot=new ProductSnapshot(key,"live:foreign","Name","","Brand","Article","1",List.of(),List.of(),List.of(new ProductVariant("201","Article","Brown","52","",false)),null,List.of(),Instant.now(),Map.of("owner","foreign"));
+        assertThrows(SecurityException.class,()->RegistrationBatchPreflight.read(shop,List.of(key),List.of(snapshot)));
     }
     @Test void validExistingSuitCodeIsNotReclassifiedMerelyFromTheSportsCategory()throws Exception{
         System.setProperty("vncode.appdata.dir",directory.toString());Database.initDatabase();var shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);var key=new ProductKey(1,shop.getMarketplace(),"101","201");

@@ -1,0 +1,32 @@
+{
+  "wb-first-page-summary.json": {
+    "privateOriginalSha256": "7b6551c3bd1274428b3ff28ddcac45e610664fea5a36449daecd00352ee8432b",
+    "archivedSummarySha256": "979a613f3e3e85ec77fb556d5686b5f7683993d2250c7630aa8bf3ad6ba1290f",
+    "redactedStoreLabelOnly": true
+  },
+  "wb-exact-search-summary.json": {
+    "privateOriginalSha256": "9089098913b8c2e42fafbad17f1a5213172eb9a67bc0157026aa69a8d36a68c6",
+    "archivedSummarySha256": "c799ed731ee92044a02d815e0dc3d6571e3d74e152de70571d1f0a1b16b07d0a",
+    "redactedStoreLabelOnly": true
+  },
+  "wb-live-300-summary.json": {
+    "privateOriginalSha256": "e08d731f062718ec8799acf664ea4606d3457868e0299fba3006c2231bff848e",
+    "archivedSummarySha256": "dd848478a012c138cdbfe382903d6e11e23f54a026dfca181e371c7e6c70b45d",
+    "redactedStoreLabelOnly": true
+  },
+  "wb-live-300-review-summary.json": {
+    "privateOriginalSha256": "2df4a3f0637a9ea9dd88c81650b6acac7e6c8642b716eb08e7e4756a5b8b23f9",
+    "archivedSummarySha256": "a2b6d4518b18f77794ba22a15689cad88124eabc1bf7fdfb6f5673f7503bfaa5",
+    "redactedStoreLabelOnly": true
+  },
+  "wb-store-attestation.json": {
+    "privateOriginalSha256": "d558c508601fb94a55bd856a59e3f199ada25a2d671f310b7b5d0ebab966f5fb",
+    "archivedSummarySha256": "77802447a8bda22e94c223ed5901942ebf53a24701c93dd8dec3ef25b25716bc",
+    "redactedStoreLabelOnly": true
+  },
+  "LiveWbBulkReadProbe.java.txt": {
+    "privateOriginalSha256": "0f90d7e50694c93f8e25d1ea751843a7cf504e383b41e36f37d2309ca7151066",
+    "archivedSourceSha256": "d4fd8c2bd89ba74fe083c9cd93887f79ed781fac32070101979b86fad6a249dd",
+    "change": "Only the diagnostic store label is generalized in this archive; executable reader/review logic is unchanged."
+  }
+}

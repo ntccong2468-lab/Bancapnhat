@@ -1,0 +1,55 @@
+import com.google.gson.*;
+import com.vncode.app.config.Database;
+import com.vncode.app.features.products.ProductKey;
+import com.vncode.app.integration.listing.ListingHttpClient;
+import com.vncode.app.integration.marketplace.Marketplace;
+import com.vncode.app.integration.wb.WbRegistrationSnapshotBatch;
+import com.vncode.app.integration.znack.registration.RegistrationSnapshotReview;
+import com.vncode.app.models.Shop;
+import java.net.URI;
+import java.nio.file.*;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/** An actual read-only WB call, without test fixtures, licenses or Catalog writes. */
+public final class LiveWbBulkReadProbe {
+    public static void main(String[] args)throws Exception {
+        var proxy=System.getenv("HTTPS_PROXY");if(proxy==null||proxy.isBlank())proxy=System.getenv("https_proxy");
+        if(proxy!=null&&!proxy.isBlank()){
+            var uri=URI.create(proxy);System.setProperty("https.proxyHost",uri.getHost());System.setProperty("https.proxyPort",Integer.toString(uri.getPort()));
+            System.setProperty("http.proxyHost",uri.getHost());System.setProperty("http.proxyPort",Integer.toString(uri.getPort()));
+        }
+        Database.initDatabase();String token=Objects.requireNonNull(System.getenv("VNCODE_WB_TEST_API_KEY"));
+        try(var c=Database.getConnection();var p=c.prepareStatement("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Read-only API probe','WILDBERRIES',NULL,?)")){p.setString(1,token);p.executeUpdate();}
+        try{
+            var shop=new Shop(1,"Read-only API probe",Marketplace.WILDBERRIES,null,token);
+            var source=JsonParser.parseString(Files.readString(Path.of(args[0]))).getAsJsonObject().getAsJsonArray("cards");
+            var keys=new LinkedHashSet<ProductKey>();
+            for(int i:new int[]{29,59,89}){var card=source.get(i).getAsJsonObject();add(keys,card,card.getAsJsonArray("sizes").get(0).getAsJsonObject());}
+            outer:for(var entry:source){var card=entry.getAsJsonObject();for(var variant:card.getAsJsonArray("sizes")){add(keys,card,variant.getAsJsonObject());if(keys.size()==300)break outer;}}
+            if(keys.size()!=300)throw new IllegalStateException("Probe selection must contain exactly300 variants");
+            var httpCalls=new AtomicInteger();var transportCalls=new AtomicInteger();
+            var http=new okhttp3.OkHttpClient.Builder().eventListener(new okhttp3.EventListener(){@Override public void callStart(okhttp3.Call call){httpCalls.incrementAndGet();}}).build();
+            var api=new ListingHttpClient(shop,http,okhttp3.HttpUrl.get("https://content-api.wildberries.ru/"));
+            long start=System.nanoTime();int observed=0;
+            try(var batch=new WbRegistrationSnapshotBatch(shop,List.copyOf(keys),(path,body,mutation)->{
+                if(mutation||!path.equals("content/v2/get/cards/list"))throw new java.io.IOException("Only the official WB read is allowed");
+                transportCalls.incrementAndGet();return api.call(path,body,false);
+            })){
+                var reviewed=new RegistrationSnapshotReview((owner,key)->batch.read(key)).readAvailable(shop,List.copyOf(keys));
+                if(!reviewed.problems().isEmpty())throw new IllegalStateException("Selected variants must all be observed");
+                for(var snapshot:reviewed.snapshots()){var key=snapshot.key();if(!keys.contains(key)||snapshot.variants().stream().noneMatch(v->v.id().equals(key.variantId())))throw new IllegalStateException("Exact variant was not observed");observed++;}
+            }
+            var result=new JsonObject();result.addProperty("kind","ACTUAL_PRODUCTION_WB_REGISTRATION_SOURCE_REVIEW");result.addProperty("verifiedAtUtc",Instant.now().toString());
+            result.addProperty("selectedVariants",keys.size());result.addProperty("selectedCards",keys.stream().map(ProductKey::cardId).distinct().count());result.addProperty("observedExactVariants",observed);
+            result.addProperty("actualHttpCalls",httpCalls.get());result.addProperty("transportCalls",transportCalls.get());result.addProperty("seconds",(System.nanoTime()-start)/1_000_000_000d);
+            result.addProperty("catalogPostCount",0);result.addProperty("sellerMutationCount",0);result.addProperty("licenseActivationCount",0);result.addProperty("storeReportedStoreIdentityVerified",false);
+            try(var c=Database.getConnection();var p=c.createStatement();var rows=p.executeQuery("SELECT count(*) FROM product_snapshots")){if(!rows.next())throw new IllegalStateException("Missing snapshot count");result.addProperty("persistedProductSnapshots",rows.getInt(1));}
+            Files.writeString(Path.of(args[1]),new GsonBuilder().setPrettyPrinting().create().toJson(result)+"\n");System.out.println(result);
+        }finally{
+            try(var c=Database.getConnection();var p=c.createStatement()){p.executeUpdate("DELETE FROM product_documents WHERE shop_id=1");p.executeUpdate("DELETE FROM product_snapshots WHERE shop_id=1");p.executeUpdate("DELETE FROM shops WHERE id=1");}
+        }
+    }
+    private static void add(Set<ProductKey> keys,JsonObject card,JsonObject variant){keys.add(new ProductKey(1,Marketplace.WILDBERRIES,card.get("nmID").getAsString(),variant.get("chrtID").getAsString()));}
+}

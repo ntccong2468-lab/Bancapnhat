@@ -430,6 +430,7 @@ public final class ZnackCardRegistrationController {
         reviewBeforeRegistration(owner,epoch,selected);
     }
     private void reviewBeforeRegistration(Shop owner,long epoch,List<Sku> selected){
+        if(selected.stream().map(Sku::chrtId).distinct().count()>10_000){showInfo(tr("znack.registration.batch_too_large"));return;}
         // The selected identities are frozen; browsing/filter changes cannot cancel dispatch.
         preparing=true;lastRegistrationRun="";updateActionState();
         var intent=java.util.UUID.randomUUID();boolean autoSign=autoSignCheckBox.isSelected();boolean existingDraft=selected.stream().anyMatch(this::reviewableDraft);
@@ -441,19 +442,27 @@ public final class ZnackCardRegistrationController {
         RegistrationBatchPreflight.readPill((StackPane)productTable.getParent(),"registrationPreflightStatus",task,()->cancelledBySeller.set(true));
         task.setOnSucceeded(e->{
             if(!isCurrent(owner,epoch))return;registrationPreflightTask=null;
-            var review=RegistrationBatchPreflight.reviewed(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,task.getValue(),existingDraft);
-            if(review==null||!isCurrent(owner,epoch)){preparing=false;updateActionState();return;}
-            if(selected.stream().anyMatch(row->!RegistrationCardIndex.notSubmitted(row)&&!reviewableDraft(row)&&!reviewableReplacement(row))){
+            RegistrationBatchPreflight.Review available;
+            try{RegistrationBatchPreflight.requireSelection(keys,task.getValue());available=RegistrationBatchPreflight.available(productTable.getScene()==null?null:productTable.getScene().getWindow(),task.getValue());}
+            catch(RuntimeException invalid){preparing=false;updateActionState();showError(invalid);return;}
+            if(!isCurrent(owner,epoch))return;
+            if(available==null){preparing=false;updateActionState();return;}
+            var review=RegistrationBatchPreflight.reviewed(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,available,existingDraft);
+            if(!isCurrent(owner,epoch))return;
+            if(review==null){preparing=false;updateActionState();return;}
+            var retainedKeys=new java.util.HashSet<>(review.selected());
+            var retained=selected.stream().filter(row->retainedKeys.contains(new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId())))).toList();
+            if(retained.isEmpty()||retained.size()!=retainedKeys.size()||retainedKeys.size()!=review.selected().size()||!new java.util.HashSet<>(available.selected()).containsAll(retainedKeys)||!review.sourceProblems().isEmpty()||retained.stream().anyMatch(row->!RegistrationCardIndex.notSubmitted(row)&&!reviewableDraft(row)&&!reviewableReplacement(row))){
                 preparing=false;updateActionState();showError(new IllegalStateException("ZNACK_SOURCE_REVIEW_REQUIRED"));return;
             }
             var targets=new java.util.LinkedHashMap<com.vncode.app.features.products.ProductKey,RegistrationSourceConsent.Target>();
-            try { for(int i=0;i<selected.size();i++){var row=selected.get(i);targets.put(keys.get(i),reviewableReplacement(row)
+            try { for(var row:retained){var key=new com.vncode.app.features.products.ProductKey(owner.getId(),owner.getMarketplace(),Long.toString(row.nmId()),Long.toString(row.chrtId()));targets.put(key,reviewableReplacement(row)
                     ?new RegistrationSourceConsent.Target(RegistrationSourceConsent.Action.REPLACE,row.gtin(),row.goodId())
                     :RegistrationSourceConsent.forIdentity(row.gtin(),row.goodId()));} }
             catch(RuntimeException invalid){preparing=false;updateActionState();showError(invalid);return;}
             var approved=RegistrationSourceReviewDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,intent,review.dynamic(),targets);
             if(approved==null||!isCurrent(owner,epoch)){preparing=false;updateActionState();return;}
-            Task<String> start=new Task<>(){protected String call(){return batchStarter.start(owner,selected,autoSign,approved);}};
+            Task<String> start=new Task<>(){protected String call(){return batchStarter.start(owner,retained,autoSign,approved);}};
             start.setOnSucceeded(done->{if(!isCurrent(owner,epoch))return;lastRegistrationRun=start.getValue();preparing=false;
                 registrationPill(tr("znack.registration.batch_start"),true);updateActionState();pollBatchProgress();reload();});
             java.util.function.Consumer<Throwable> failed=error->{if(isCurrent(owner,epoch)){preparing=false;updateActionState();showError(error);}};
@@ -461,7 +470,7 @@ public final class ZnackCardRegistrationController {
         });
         var notified=new java.util.concurrent.atomic.AtomicBoolean();
         java.util.function.Consumer<Throwable> failed=error->{if(!notified.compareAndSet(false,true))return;if(isCurrent(owner,epoch)){registrationPreflightTask=null;preparing=false;updateActionState();operationLabel.setText(FriendlyErrorService.format(error));showError(error);}};
-        task.setOnFailed(e->failed.accept(task.getException()));task.setOnCancelled(e->{if(cancelledBySeller.get()){if(isCurrent(owner,epoch)){registrationPreflightTask=null;preparing=false;updateActionState();operationLabel.setText(tr("znack.registration.preflight.cancelled"));}}else Platform.runLater(()->failed.accept(RegistrationBatchPreflight.readTimeout()));});AppTaskExecutor.executeCatalog(task,failed);
+        task.setOnFailed(e->failed.accept(task.getException()));task.setOnCancelled(e->{if(cancelledBySeller.get()){if(isCurrent(owner,epoch)){registrationPreflightTask=null;preparing=false;updateActionState();operationLabel.setText(tr("znack.registration.preflight.cancelled"));}}else Platform.runLater(()->failed.accept(RegistrationBatchPreflight.readTimeout()));});AppTaskExecutor.executeCatalogPreparation(task,failed);
     }
 
     private void pollBatchProgress(){

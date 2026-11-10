@@ -1,0 +1,28 @@
+{
+  "base": "95d89425b5c97764571a28466b3acc61a2913090",
+  "runtimeUnchangedSinceInitialFocusedAndActualApiProbe": true,
+  "changedTestFixtures": [
+    "src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatchTest.java",
+    "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java"
+  ],
+  "files": {
+    "src/main/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatch.java": "125b632db675466534a611a53541b76a1510903b0b6cd32fcead245fbc5f237b",
+    "src/test/java/com/vncode/app/integration/wb/WbProductSnapshotPaginationTest.java": "9eb3693428ddd10dbb9d06779eba39267cc1d5550f95eb1a3534cb9a0ebefcf6",
+    "src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatchTest.java": "e46d36d6331d8a4fe884a839b8ece7ab22f49f1bcacdafb0a9697db5935a9dd7",
+    "src/test/java/com/vncode/app/integration/znack/registration/RegistrationLargeBatchDurabilityTest.java": "edb47c10b637594ec442f8d9b99aa615ea142567c02675af47016d61663d90ee",
+    "src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java": "a27092b6eb2e1a1dd80fc4e9b7bdbdcaa950d3580dcd61e90016e494654cbbf7",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSnapshotReview.java": "228778f128637b333870f5d687c4079220e066af0e2692b8566f11456cd8e1cc",
+    "src/main/java/com/vncode/app/shared/AppTaskExecutor.java": "4cf78fb3b51f6b8584e21b00973509a363ba6575644a4bcc59b0876690c92cec",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflight.java": "6cbbd5bdc4b689191917e10ca691b32435f1f72d2875ab0eacf82eab0369c13b",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationPreflightReport.java": "7d293147b05f27553df26beb162cabf2989e17f8f726f94f83660c232b462eab",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java": "b49543e8d2cd6fd17e325472c090780bf7587631646a841b251ce02e34268428",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "cddf5348fce27ee94b1ab4ef748319164af183b18a26a7d66b7d4b4f9522e7a3",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "385809c341432eba23a8e090c6722163f1d979d6759eeb728b38d93834e6b6bc",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "9ad85510ffc9ec6316f064c4d5996a3fc2a708db3a47a43f5a3d36b78ff20bf8",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "9f332515c7aa02092023d59ce42f581032c3eb8f11ed350ed2e958bd93c116a1",
+    "src/test/java/com/vncode/app/features/products/ProductSnapshotReaderTest.java": "5cb6cab35a2fea5506d26f27a8118aaec83a24c554c203911f78a5c62a77c847",
+    "src/test/java/com/vncode/app/integration/znack/registration/RegistrationSnapshotReviewTest.java": "61dc6b73724db3a7a35d9d91148fe96d2a281015763e5b296e08a7e8d632a21d",
+    "src/test/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflightTest.java": "8f225caa43496325e3edc994b10de8e667ebf7f7af0bcefc09b21df313845a75",
+    "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java": "cbffbb78bd47176bf58dd1453056bded42a0d818cdcc01d998e24caeb044d629"
+  }
+}

@@ -87,6 +87,12 @@ class ProductSnapshotReaderTest {
         assertEquals("04610689132457",snapshot.variants().getFirst().gtin());assertTrue(snapshot.variants().getFirst().gtinEvidence().source().startsWith("National Catalog@"));assertNotNull(snapshot.variants().getFirst().gtinEvidence().checkedAt());assertEquals("published",snapshot.variants().getFirst().gtinEvidence().catalogStatus());
         assertEquals(snapshot.revision(),reader.read(wb,snapshot.key()).revision());
     }
+    @Test void registrationReadKeepsCurrentEvidenceWithoutReplacingSavedDocumentsOrSnapshot()throws Exception{
+        var key=new ProductKey(1,Marketplace.WILDBERRIES,"123","101");currentProof(wb,key,"Black","M",java.time.Instant.now(),null);
+        var data=new java.util.concurrent.atomic.AtomicReference<>(JsonParser.parseString(WB));var reader=new WbProductSnapshotReader(s->(p,b,m)->data.get());
+        reader.readForSynchronization(wb,key);String before=storedPayload(key);var changed=JsonParser.parseString(WB);changed.getAsJsonObject().getAsJsonArray("cards").get(0).getAsJsonObject().addProperty("title","Fresh registration title");changed.getAsJsonObject().getAsJsonArray("cards").get(0).getAsJsonObject().getAsJsonObject("documents").add("items",new JsonArray());data.set(changed);
+        var actual=reader.readForRegistration(wb,key);assertEquals("Fresh registration title",actual.title());assertTrue(actual.documents().isEmpty());assertTrue(actual.variants().getFirst().gtinVerified());assertEquals("04610689132457",actual.variants().getFirst().gtin());assertEquals(before,storedPayload(key));assertEquals(1,new ProductRepository().localSnapshot(key).orElseThrow().documents().size());
+    }
     @Test void transientWbGtinReadKeepsNativeFactsWithoutProjectingProofOrReplacingTheFullCache()throws Exception{
         var key=new ProductKey(1,Marketplace.WILDBERRIES,"123","101");currentProof(wb,key,"Black","M",java.time.Instant.now(),null);
         var reader=new WbProductSnapshotReader(s->(p,b,m)->JsonParser.parseString(WB));var full=reader.readForSynchronization(wb,key);assertTrue(full.variants().getFirst().gtinVerified());String cached=storedPayload(key);

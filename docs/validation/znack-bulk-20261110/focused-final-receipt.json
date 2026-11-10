@@ -1,0 +1,176 @@
+{
+  "kind": "TARGETED_ZNACK_BULK_SOURCE_ACCEPTANCE",
+  "result": "PASS",
+  "platform": "Linux/Xvfb/JDK25",
+  "suites": [
+    {
+      "suite": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 79.762,
+      "xmlSha256": "448c663b6dedf03330909b51ab275d56a4297263d26b4338a878785ffd43f94b"
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "tests": 51,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 58.647,
+      "xmlSha256": "9b1cbb21d604b74cea006554560fd908338e4665e56291fa1dc8c41ea0e60ad1"
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbListingAdapterTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.1,
+      "xmlSha256": "2edfc944edd9dd2c6ff9eff7a9c66c7bd89b313a208f137f63f8ccbaa791c3f4"
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbProductSnapshotPaginationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.308,
+      "xmlSha256": "4e0340d7fa3e92f24d39b4b68ec33d3ab40050953d9fe8eee06f3a847bb452e3"
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbRegistrationSnapshotBatchTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 50.425,
+      "xmlSha256": "a293cb4bb7ffd88ce1c3be939d3ba0f86637555d50c2504e15ed08b454bacfbe"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 431.23,
+      "xmlSha256": "b3be2f89325627ba7d08a5a3d77b9fb6b2ca85181709cbdb5d53e29b0a219624"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.158,
+      "xmlSha256": "916578ddec3bfdbd09fa0f3d93f4a6946ab034ddbccf4b75269b0dd7ec623fd1"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.649,
+      "xmlSha256": "64a48ee2beb75c5f8754a3b6b7183d85988fc02b3f9692334e3c20b03abed874"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 34.377,
+      "xmlSha256": "a71023499c149ce490aac00e9844fbd6f8f02346924dfd9a332fca9ddd273ac1"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 190.845,
+      "xmlSha256": "354cdba05515fc929f4eb30ebadc480251b8027e97b8dee4f3aac1286e853ec9"
+    },
+    {
+      "suite": "com.vncode.app.shared.CatalogTaskExecutorTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.08,
+      "xmlSha256": "7b17cd99881e3f0260e56c649dd03f940f00dc4c2913dab3fca645ef089a654a"
+    },
+    {
+      "suite": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 117.572,
+      "xmlSha256": "624093500c703fd64d1d156b8687b651f23bce514e7ed69148f91abfcab9d5b2"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 128.036,
+      "xmlSha256": "ba2102c30d46f472fb46109e21af538c233aad98827afe5d1304378ecdb3da5e"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.568,
+      "xmlSha256": "177702be28f997329b2bc6cc869fea191358bf1ce6771ad8fe8e5d632c52872b"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationPreflightCorrectionsTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.068,
+      "xmlSha256": "ee3105eea8e7e84410cfa79781b0cae6563ed1c1fb6930f549cfcf814cef7472"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 54.186,
+      "xmlSha256": "d4e44ea80ea4e1a1e8e9781535c4c47dc90b2bc1fee4f2888592ab1c4677501a"
+    }
+  ],
+  "suiteCount": 16,
+  "tests": 283,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "latestRun": {
+    "tests": 176,
+    "result": "PASS",
+    "log": "focused-final.log",
+    "logSha256": "0e0dca6d020250433d8b163261a32733d7a6b696451bfa4416cf0817706805cb"
+  },
+  "priorUnchangedPassingSuites": 7,
+  "runtimeUnchangedBetweenRuns": true,
+  "sourceManifest": "focused-final-source-manifest.json",
+  "sourceManifestSha256": "df3a149c4a4abd647d3e2a926d1bce9570874abef28924dbd42a3757e6c0210f",
+  "firstPartialAttempt": "focused-attempt1.json",
+  "scope": "16 targeted suites combined without double counting; initial partial run had2newfixture failures and was cancelled. Only corrected Controller suite and previously uncompleted suites reran. Full application/Windows/realCatalog submissions are not inferred.",
+  "realCatalogPostCount": 0,
+  "licenseActivationCount": 0,
+  "commands": {
+    "firstPartial": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dtest=WbProductSnapshotPaginationTest,WbRegistrationSnapshotBatchTest,ProductSnapshotReaderTest,RegistrationSnapshotReviewTest,RegistrationBatchPreflightTest,ZnackCardRegistrationControllerTest,RegistrationPreflightCancellationTest,RegistrationPreflightCorrectionsTest,RegistrationSourceConsentTest,RegistrationLargeBatchDurabilityTest,CatalogTaskExecutorTest,FxmlSmokeTest,ZnackRegistrationBatchHttpIntegrationTest,ZnackRegistrationBatchServiceTest,WbListingAdapterTest,WbGtinAdapterTest test",
+    "final": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dtest=ZnackCardRegistrationControllerTest,WbRegistrationSnapshotBatchTest,WbProductSnapshotPaginationTest,WbGtinAdapterTest,RegistrationSnapshotReviewTest,RegistrationSourceConsentTest,RegistrationLargeBatchDurabilityTest,ZnackRegistrationBatchHttpIntegrationTest,ZnackRegistrationBatchServiceTest test",
+    "baselineRedPagination": "/workspace/toolchains/mvn-vncode -B -Dtest=WbProductSnapshotPaginationTest test",
+    "baselineRedEmpty": "/workspace/toolchains/mvn-vncode -B -Dtest=WbProductSnapshotPaginationTest#emptyExactSearchIsRecoveredFromTheFreshUnfilteredActiveList test"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "kind": "USER_CONFIRMED_CREDENTIAL_STORE",
+  "recordedAtUtc": "2026-11-10T12:15:15.800927+00:00",
+  "recordedAtMoscow": "2026-11-10T15:15:15.800927+03:00",
+  "configuredWbCredential": "VNCODE_WB_TEST_API_KEY",
+  "storeName": "REPORTED_WB_STORE",
+  "source": "User explicitly confirmed that the configured WB key belongs to REPORTED_WB_STORE.",
+  "serverOwnerIdentityIndependentlyVerified": false,
+  "appliesTo": [
+    "wb-first-page-summary.json",
+    "wb-exact-search-summary.json",
+    "wb-live-300-summary.json",
+    "wb-live-300-review-summary.json"
+  ],
+  "scope": "Supplies store attribution for prior actual reads; does not alter their recorded metadata or prove Catalog creation/publication.",
+  "redactions": [
+    "Reported store identifiers generalized; no product/order/credential data copied."
+  ]
+}

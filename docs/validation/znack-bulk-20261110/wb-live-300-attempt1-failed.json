@@ -1,0 +1,11 @@
+{
+  "kind": "ACTUAL_WB_BULK_PROBE_ATTEMPT",
+  "attempt": 1,
+  "result": "FAILED",
+  "exception": "java.io.IOException",
+  "message": "Listing API HTTP 503",
+  "catalogPostCount": 0,
+  "sellerMutationCount": 0,
+  "acceptancePassed": false,
+  "next": "One bounded retry of read-only probe; no seller write or production fallback change."
+}

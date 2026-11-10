@@ -1,0 +1,18 @@
+{
+  "kind": "ACTUAL_PRODUCTION_WB_REGISTRATION_SOURCE_REVIEW",
+  "verifiedAtUtc": "2026-11-10T12:06:49.034036975Z",
+  "selectedVariants": 300,
+  "selectedCards": 60,
+  "observedExactVariants": 300,
+  "actualHttpCalls": 4,
+  "transportCalls": 4,
+  "seconds": 15.696177621,
+  "catalogPostCount": 0,
+  "sellerMutationCount": 0,
+  "licenseActivationCount": 0,
+  "storeReportedStoreIdentityVerified": false,
+  "persistedProductSnapshots": 300,
+  "redactions": [
+    "Reported store identifiers generalized; no product/order/credential data copied."
+  ]
+}
