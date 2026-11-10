@@ -1,0 +1,118 @@
+{
+  "kind": "TARGETED_KIZ_AND_ZNACK_REPORT_SCALE_LINUX",
+  "result": "PASS",
+  "recordedAtUtc": "2026-11-10T13:29:34.157797+00:00",
+  "sourceCommit": "39900722ab9cf055dfef8bf30c5fac0dcce3daea",
+  "sourceTree": "9d50ed170d6b66817efc912531a677f86b71b7f0",
+  "sourceWorkingTreeClean": true,
+  "sourceManifest": "scaled-source-manifest.json",
+  "platform": "Linux/Xvfb/JDK25",
+  "tests": 45,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "suite": "com.vncode.app.features.sync.RegistrationReportScaleTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.637,
+      "xmlSha256": "62e0d059bb97930ec4703b4b34c6e301a5a523652ac5c77e81260472e0d60331"
+    },
+    {
+      "suite": "com.vncode.app.features.sync.RegistrationAttemptReportsTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.855,
+      "xmlSha256": "a04a85c0665726b9cda4e991ecb37cadf7e354e3d78c8903602965ee354a9d7d"
+    },
+    {
+      "suite": "com.vncode.app.features.sync.SyncRunRepositoryConcurrencyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.077,
+      "xmlSha256": "f039348df1c6f3e4a3f102a6302bf4fc53073a1d99bf772ab509b32ea91b9f45"
+    },
+    {
+      "suite": "com.vncode.app.features.sync.SyncRunRepositoryMetricsTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.608,
+      "xmlSha256": "81814e61583f80e1d565d6b637e432f3c69be66924efc02a47a8c8df00e1312d"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 297.961,
+      "xmlSha256": "47137d11cdaaee8d3c4914e8c5f6efe349fee767a91983fda0882f8aa266e5a9"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationBatchConnectionLifetimeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.851,
+      "xmlSha256": "cc6a7e294cc90af16dc98e4c19a5d4caaad74779cff1eed14c23065fa2cd91fe"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.669,
+      "xmlSha256": "cf4a3a21548f8de16d83ca0f9f12d3b27c32efe83df90ff8a933bd85e2ecefde"
+    }
+  ],
+  "scaleCases": [
+    {
+      "suite": "com.vncode.app.features.sync.RegistrationReportScaleTest",
+      "case": "onePendingCardAmongThousandsUsesBoundedIndexWorkInsteadOfCountingTheWholeRun(int)[1]",
+      "seconds": 0.403
+    },
+    {
+      "suite": "com.vncode.app.features.sync.RegistrationReportScaleTest",
+      "case": "onePendingCardAmongThousandsUsesBoundedIndexWorkInsteadOfCountingTheWholeRun(int)[2]",
+      "seconds": 0.701
+    },
+    {
+      "suite": "com.vncode.app.features.sync.RegistrationReportScaleTest",
+      "case": "reopenedProgressPreservesStatePrecedenceAndNewlyAppendedCardsWithoutCounterCaches",
+      "seconds": 4.442
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "case": "tenThousandApprovedVariantsSurvivePageBoundariesAppendAndReopenWithoutDispatchingNetworkWrites",
+      "seconds": 33.05
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "case": "threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart",
+      "seconds": 264.905
+    }
+  ],
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dtest=RegistrationReportScaleTest,RegistrationAttemptReportsTest,SyncRunRepositoryConcurrencyTest,SyncRunRepositoryMetricsTest,RegistrationLargeBatchDurabilityTest,RegistrationBatchConnectionLifetimeTest,ZnackExhaustedBufferRecoveryTest test",
+  "mavenLogSha256": "befa4983585ecaaad1f1145dae10b8f347029f0632fd05e7f60e16000c002a1c",
+  "large300TestSha256": "edb47c10b637594ec442f8d9b99aa615ea142567c02675af47016d61663d90ee",
+  "scope": {
+    "fullApplicationSuite": false,
+    "catalogPosts": "300 to localhost synthetic HTTP server; not real National Catalog",
+    "tenThousand": "Synthetic SQLite queue/consent/append/reopen; zero network",
+    "threeAndTenThousandReporting": "Synthetic SQLite VM instruction budget with old aggregate negative control; not HTTP",
+    "realKizPurchases": 0,
+    "realSigningRequests": 0,
+    "licenseActivations": 0
+  }
+}

@@ -1,6 +1,6 @@
 # KIZ: phục hồi bộ đệm EXHAUSTED — 10.11.2026
 
-**Bản nháp nghiệm thu; lượt hồi quy cuối vẫn PENDING.** Đã tái hiện lỗi 3390 trên mã phát hành 1.6.7, sửa đường phục hồi và review độc lập. Người dùng đã cung cấp thông tin OMS nhưng môi trường chưa có phiên SUZ/chữ ký để xác minh đơn mua KIZ thật. Không coi tài liệu hợp đồng hoặc test tổng hợp là nghiệm thu mua/cấp mã thật.
+**Linux tập trung đạt45/45; Windows kết hợp đạt502/502ca,38lớp.** Đã tái hiện lỗi 3390 trên mã phát hành 1.6.7, sửa đường phục hồi và review độc lập. Người dùng đã cung cấp thông tin OMS nhưng môi trường chưa có phiên SUZ/chữ ký để xác minh đơn mua KIZ thật. Không coi tài liệu hợp đồng hoặc test tổng hợp là nghiệm thu mua/cấp mã thật.
 
 Phạm vi nhánh: `fix/znack-preflight-bulk-20261110`, worktree `/workspace/vncode-znack-bulk-20261110`. Latest vẫn là 1.6.7, nguồn app `d0231cd6913ce3a1764067bad0901b32c535de41`; công việc này chưa tạo bộ cài hoặc phát hành. Phần sửa đăng ký Znack 300/10.000 trước đó được bàn giao riêng tại [Znack bulk preflight](2026-11-10-znack-bulk-preflight.md).
 
@@ -56,7 +56,9 @@ Không có migration/schema mới, sửa luồng license hoặc thay đổi quy 
 | Baseline mã phát hành `d0231cd…` | 1 ca, 1 failure, 0 error/skip; đúng lỗi SUZ tổng hợp 3390/EXHAUSTED. [Receipt](kiz-exhausted-20261110/baseline-red.json). |
 | Focused đầu tiên sau sửa | 247 ca/16 lớp: 2 failure, 0 error/skip. Không phải nghiệm thu cuối. [Receipt đầy đủ](kiz-exhausted-20261110/first-focused-failure.json). |
 | Sửa hai kỳ vọng fixture | Fixture lỗi danh tính vẫn kỳ vọng mã thô từ hàm hiển thị sau khi thông báo đã được dịch; đã tách kiểm tra lỗi lưu thô và thông báo UI. Fixture đồng thời cũ thiếu external order ID đã được chấp nhận; bổ sung ID tổng hợp, giữ kiểm tra khóa/concurrency và ràng buộc đơn. Không nới guard sản xuất để làm test xanh. |
-| Rerun kết hợp sau chỉnh fixture | Dừng có chủ đích sau 108 ca/6 lớp đạt khi trace phát hiện báo cáo vẫn mở/đóng SQLite trước keepalive và đếm toàn lô. Lớp tải300 chưa hoàn tất; không coi lượt dừng là PASS. Bản sửa truy vấn và keepalive theo toàn bộ một item đang chạy lượt mới. |
+| Rerun kết hợp sau chỉnh fixture | Dừng có chủ đích sau 108 ca/6 lớp đạt khi trace phát hiện báo cáo vẫn mở/đóng SQLite trước keepalive và đếm toàn lô. Lớp tải300 chưa hoàn tất; không coi lượt dừng là PASS. Lượt mới sau sửa truy vấn/keepalive đã đạt như hai dòng dưới. |
+| Linux nguồn kết hợp3990072 | **45ca/7lớp đạt**, gồm26ca EXHAUSTED đã sửa kỳ vọng và test báo cáo/hàng đợi300/10.000. [Receipt](znack-bulk-20261110/final-scaled-linux.json). Không cộng247ca lịch sử hoặc502Windows thành số ca khác nhau. |
+| Windows nguồn kết hợp3990072 | **502ca/38lớp đạt,0 failure/error/skip**, gồm toàn bộ16lớp/247ca KIZ tập trung,26ca EXHAUSTED và các kiểm tra license/migration/reconciliation cũ. [Receipt Windows](znack-bulk-20261110/final-windows.json); đây là dữ liệu tổng hợp trên Windows runner, không phải OMS seller. |
 | Review độc lập | [static-review.json](kiz-exhausted-20261110/static-review.json) và [localized-review.json](kiz-exhausted-20261110/localized-review.json) không còn finding chặn trong phạm vi đã đọc. Đây là review mã, không phải test OMS thật hoặc review toàn ứng dụng. |
 
 Lệnh tái hiện baseline đã chạy:
@@ -73,7 +75,9 @@ PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspac
 
 Các test mới bao phủ đường 3390 trên coordinator, trạng thái `EXHAUSTED` trực tiếp, restart, khối lưu thiếu một phần, lỗi ở khối sau, sai danh tính ở danh sách/retry/mã thô/mã đã lưu, tập mã đủ nhưng thuộc GTIN khác, hoàn tất cục bộ không gọi API, cùng việc giữ trạng thái mã đã dùng/lưu thông. Test locale kiểm tra thông báo ở mọi ngôn ngữ app và wrapper riêng tư không xuất hiện.
 
-Manifest ban đầu và review có phạm vi riêng: [source-manifest.json](kiz-exhausted-20261110/source-manifest.json) là ảnh chụp trước chỉnh fixture cuối; [localized-review.json](kiz-exhausted-20261110/localized-review.json) ghi rõ hash thực tế đã review và delta ở fixture. Không dùng ảnh chụp cũ để chứng nhận byte mã/test thay đổi sau đó. Rerun kết hợp phải được đối chiếu manifest/receipt cuối trước khi chốt nghiệm thu.
+Manifest ban đầu và review có phạm vi riêng: [source-manifest.json](kiz-exhausted-20261110/source-manifest.json) là ảnh chụp trước chỉnh fixture cuối; [localized-review.json](kiz-exhausted-20261110/localized-review.json) ghi rõ hash thực tế đã review và delta ở fixture. Không dùng ảnh chụp cũ để chứng nhận byte mã/test thay đổi sau đó. Lượt Linux45ca đã đối chiếu manifest18tệp nguồn/test/resource đóng băng; Windows38suite/502ca đã đối chiếu đúng source3990072, XML/provenance sạch và mọi nhóm đã yêu cầu. [Kết luận và lệnh đầy đủ](znack-bulk-20261110/acceptance-summary.json) không cộng trùng các lượt.
+
+[Build package sạch cùng3990072](znack-bulk-20261110/package-final.json) đã đạt; JAR có coordinator/code-service và runtime đã sửa, không có test support. Đây là compile kiểm chứng, không phải bộ cài hoặc phát hành thay1.6.7.
 
 ## Giới hạn và việc còn phải nghiệm thu
 
@@ -82,6 +86,6 @@ Manifest ban đầu và review có phạm vi riêng: [source-manifest.json](kiz-
 - Chưa chứng minh khả năng phục hồi đơn thực tế của seller; cần đọc đúng trạng thái và lịch sử khối bằng cấu hình của chính đơn mua, không tạo đơn thay thế để thử.
 - Không bảo đảm endpoint retry dùng được cho đơn đã đóng, lần in đầu từ giao diện web, phương thức phát hành/nhóm hàng bị khóa hoặc hết quyền truy cập. Khi SUZ không cho lấy lại, app giữ nguyên đơn/dữ liệu và yêu cầu đối soát; không tự báo đã nhận đủ.
 - Giữ tương thích mã thô cũ không phân tích được GTIN. Trường hợp đó không có bằng chứng từ nội dung mã để xác nhận danh tính hoặc tính hợp pháp; đây là giới hạn rõ ràng, không phải bỏ qua sai GTIN đọc được.
-- Khử trùng hiện có dựa trên chuỗi mã thô nguyên văn. Không tuyên bố mọi cách mã hóa khác nhau của cùng một CIS đã được hợp nhất.
+- Khử trùng lặp hiện có dựa trên chuỗi mã thô nguyên văn. Không tuyên bố mọi cách mã hóa khác nhau của cùng một CIS đã được hợp nhất.
 - Có đủ số lượng mã chỉ chứng minh đã nhận đủ dữ liệu sau các kiểm tra tương ứng. Không tự chứng minh mã đã đưa vào lưu thông hoặc được Ozon/WB chấp nhận; các bước pháp lý, ký và gán mã vẫn giữ kiểm tra cũ.
-- Chưa chạy toàn bộ bộ test ứng dụng hoặc kiểm CryptoPro/OMS trên Windows thật cho phần sửa này. Cần receipt rerun cuối và kiểm nghiệm môi trường thật trong phạm vi được cho phép trước khi xác nhận đầu-cuối.
+- Chưa chạy toàn bộ bộ test ứng dụng hoặc kiểm CryptoPro/OMS seller trên Windows thật cho phần sửa này. Linux45ca và Windows focused run42824401761/502ca đạt. Không gọi hồi quy Windows tổng hợp là giao dịch mua thật.

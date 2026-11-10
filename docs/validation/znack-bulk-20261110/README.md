@@ -7,3 +7,5 @@ Các JSON API là **tóm tắt số liệu thực tế**, không phải response
 [Receipt tập trung283ca](focused-final-receipt.json) kết hợp16lớp theo kết quả mới nhất, không cộng trùng. Lượt đầu151ca có2 lỗi kỳ vọng fixture và bị dừng; lịch sử giữ riêng. [Hai ca RED](baseline-red.json) chạy đúng mã phát hành1.6.7.
 
 [Chi tiết, lệnh và đề xuất](../2026-11-10-znack-bulk-preflight.md). Chưa phải bản phát hành mới; Latest vẫn1.6.7.
+
+Nguồn kết hợp cuối3990072: [Windows502/38đạt](final-windows.json), [Linux45/7đạt](final-scaled-linux.json), [package sạch](package-final.json), [kết luận có lệnh/phạm vi/giới hạn](acceptance-summary.json). Giữ riêng [Windows core lần đầu FAIL](first-windows-failure.json) và [candidate dừng108ca](first-keepalive-candidate-stopped.json); không xóa lịch sử thất bại hoặc dùng chúng làm nghiệm thu cuối. Test300 giữ nguyên toàn file/hash/600s/assertion. Bản sửa KIZ [ở bàn giao riêng](../2026-11-10-kiz-exhausted-recovery.md);16lớp247ca KIZ là tập con của502Windows, không cộng thêm.

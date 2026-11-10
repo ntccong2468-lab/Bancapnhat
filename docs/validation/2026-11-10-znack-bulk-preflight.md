@@ -1,6 +1,6 @@
 # Đăng ký Znack 300–10.000 biến thể: lỗi đọc nguồn WB trước khi gửi Catalog
 
-Nguồn phát hành đối chiếu: VN Code1.6.7, `d0231cd6913ce3a1764067bad0901b32c535de41`. Nhánh sửa `fix/znack-preflight-bulk-20261110` xuất phát từ commit tài liệu `95d89425b5c97764571a28466b3acc61a2913090`, giữ nguyên toàn bộ mã1.6.7. Người dùng báo cửa hàng **cửa hàng WB được xác nhận**, lỗi lúc14:31:06 MSK ngày10.11.2026. Đây là bản sửa nguồn, chưa phải một bản phát hành mới.
+Nguồn phát hành đối chiếu: VN Code1.6.7, `d0231cd6913ce3a1764067bad0901b32c535de41`. Nhánh sửa `fix/znack-preflight-bulk-20261110` xuất phát từ commit tài liệu `95d89425b5c97764571a28466b3acc61a2913090`, lấy mã1.6.7 làm nền trước các thay đổi bên dưới. Người dùng báo lỗi tại **cửa hàng WB được xác nhận**, lỗi lúc14:31:06 MSK ngày10.11.2026. Đây là bản sửa nguồn, chưa phải một bản phát hành mới.
 
 ## Chẩn đoán đã xác minh
 
@@ -36,7 +36,7 @@ flowchart LR
 
 ## Kiểm chứng
 
-[Nghiệm thu tập trung](znack-bulk-20261110/focused-final-receipt.json): **283 ca khác nhau/16 lớp,0 failure,0 error,0 skip**. Bảy lớp đã đạt không thay mã, chín lớp chạy sau cùng176/176 đạt; không cộng trùng44 ca controller. Đây không phải full suite toàn app hoặc10.000 thẻ ghi lên Catalog thật.
+[Nghiệm thu tập trung cho core8fed8f7](znack-bulk-20261110/focused-final-receipt.json): **283 ca khác nhau/16 lớp,0 failure,0 error,0 skip**. Bảy lớp đã đạt không thay mã, chín lớp chạy sau cùng176/176 đạt; không cộng trùng44 ca controller. Đây không phải full suite toàn app hoặc10.000 thẻ ghi lên Catalog thật.
 
 - [Hai lượt RED trên đúng mã phát hành](znack-bulk-20261110/baseline-red.json): test trang tiếp theo và test tìm kiếm rỗng đều thất bại với `Complete WB card unavailable`, mỗi lượt1 ca/1 error/0 skip.
 - GREEN tập trung gồm reader, source review, report300/10.000, UI xác nhận300→299/Hủy/toàn bộ lỗi/10.001, consent, cancellation và hàng đợi HTTP. Lượt cuối176/176 đạt,14phút43giây. Lượt đầu dừng sau151 ca với hai kỳ vọng fixture mới sai; sửa truy cập button map của dialog chưa hiển thị và giữ trạng thái nút khi chưa chọn dòng. Test10.000 dùng cùng prepared-owner-check scope như production; giữ đủ số lượng, mọi assertion và timeout. [Lịch sử](znack-bulk-20261110/focused-attempt1.json).
@@ -46,26 +46,30 @@ flowchart LR
 
 Một lệnh thử ban đầu bị khởi chạy sai thư mục và đã dừng; log đó không được coi là baseline hoặc nghiệm thu. Lượt RED đúng chạy từ worktree `vncode-znack-bulk-red`, các lượt GREEN chạy từ `vncode-znack-bulk-20261110`.
 
-## Hồi quy Windows và xử lý chi phí lô lớn — đang kiểm chứng
+## Hồi quy Windows và xử lý chi phí lô lớn — đã đạt sau sửa
 
-Lượt Windows đầu trên đúng core commit `8fed8f717169aeb888ffa080674df35b66d42c74`, run `42817045823`, **170/171 đạt,1 error,0 skip**. Bài300 timeout600giây ở lần đối soát cuối sau khi các assertion300 POST/300 cấp GTIN đã đi qua; trạng thái cuối vẫn RUNNING. Giữ [bằng chứng thất bại](znack-bulk-20261110/first-windows-failure.json), không tăng timeout hoặc giảm số lượng/assertion. Chưa có thread trace Windows để quy kết chắc chắn một điểm nóng; profile Linux cho thấy nhiều `SQLite.prepare` tại `RegistrationAttemptReports.begin/finish`.
+Lượt Windows đầu trên đúng core commit `8fed8f717169aeb888ffa080674df35b66d42c74`, run `42817045823`, **170/171 đạt,1 error,0 skip**. Bài300 timeout600giây ở lần đối soát cuối sau khi các assertion300 POST localhost/300 lần cấp GTIN giả lập đã đi qua; trạng thái cuối vẫn RUNNING. Giữ [bằng chứng thất bại](znack-bulk-20261110/first-windows-failure.json), không tăng timeout hoặc giảm số lượng/assertion. Chưa có thread trace Windows để quy kết chắc chắn một điểm nóng; profile Linux cho thấy nhiều `SQLite.prepare` tại `RegistrationAttemptReports.begin/finish`.
 
 Candidate keepalive đầu vẫn mở sau `reports.begin`; lượt kết hợp dừng có chủ đích sau108ca/6lớp đạt, trước khi bài300 hoàn tất. [Receipt lượt dừng](znack-bulk-20261110/first-keepalive-candidate-stopped.json) không phải nghiệm thu. Bản sửa tiếp theo bao cả reporting/catch trong keepalive từng item, đóng trước checkpoint; tra report item có sẵn, tránh INSERT/recount mỗi lần bắt đầu; cập nhật trạng thái tổng bằng indexed `EXISTS` trong transaction kiểm owner thay vì quét toàn bộ run ở mỗi chuyển trạng thái. Mỗi receipt/event vẫn lưu ngay; không dùng bộ đếm chỉ trong RAM hoặc giữ transaction qua HTTP.
 
-Test mới dùng3.000 và10.000 dòng tổng hợp, ngân sách lệnh SQLite có negative control bằng aggregate cũ, cùng kiểm precedence, append/reopen/ID/owner; đây không phải3.000/10.000 yêu cầu gửi lên Catalog. [Static review](znack-bulk-20261110/report-scale-static-review.json) và [manifest nguồn](znack-bulk-20261110/scaled-source-manifest.json) ghi phạm vi; lượt thực thi cuối Linux/Windows đang chờ, chưa thay kết luận core283ca bằng một tuyên bố full pass cho mã mới.
+Test mới dùng3.000 và10.000 dòng tổng hợp, ngân sách lệnh SQLite có negative control bằng aggregate cũ, cùng kiểm precedence, append/reopen/ID/owner; đây không phải3.000/10.000 yêu cầu gửi lên Catalog. [Static review](znack-bulk-20261110/report-scale-static-review.json) và [manifest nguồn](znack-bulk-20261110/scaled-source-manifest.json) ghi phạm vi; lượt Linux nguồn kết hợp `39900722ab9cf055dfef8bf30c5fac0dcce3daea` đã đạt **45ca/7lớp,0 failure/error/skip**. [Receipt Linux](znack-bulk-20261110/final-scaled-linux.json) giữ lệnh, hash và từng ca tải. Bài300 giữ nguyên byte/assertion/timeout, đạt264,905s so với410,804s ở lượt Linux core trước; đây là thời gian toàn bài localhost gồm restart/đối soát, không phải tốc độ Catalog thật. Lưu/phục hồi10.000 queue đạt33,05s, không mạng. Ba test SQL scale/precedence đạt, gồm3.000/10.000dòng với aggregate cũ làm negative control. Windows run42824401761 trên đúng source kết hợp **đã đạt502/502ca,38lớp,0 failure/error/skip**. Bài300 từng timeout nay đạt395,626s, vẫn giữ600s và mọi assertion; queue10.000 đạt20,218s. [Receipt Windows](znack-bulk-20261110/final-windows.json) đối chiếu source/event/workflow/tree, source sạch,38XML và hash LF/CRLF. Đây là hồi quy tập trung, không phải full suite toàn app hoặc nghiệm thu seller thật.
+
+[Build package](znack-bulk-20261110/package-final.json) từ checkout sạch3990072 đã đạt bằng `/workspace/toolchains/mvn-vncode -B -DskipTests clean package`: JAR7.637.034bytes,1.994class, launcher thật và đủ runtime đã sửa; không chứa test support. Lệnh package bỏ chạy test vì các lượt test có bằng chứng riêng; không cộng thành ca test. Phiên bản khai báo giữ1.6.7 chỉ để compile nội bộ; không tạo bộ cài/thay binary phát hành cũ.
 
 ## Phương án tối ưu tiếp theo và giới hạn
 
 1. **Checkpoint cả bước chuẩn bị:** chia nhóm100–500, lưu cursor/khóa lựa chọn/owner/config/revision; mở lại app tiếp tục, đọc lại chứng cứ quan trọng trước ghi. Hiện hàng đợi gửi đã bền vững nhưng preflight mới chưa có checkpoint qua khởi động lại.
 2. **Hàng đợi10.000 là10.000 mục**, không phải10.000 thẻ trong một HTTP request. Giữ ưu tiên gửi mục chưa gửi, lưu `feed_id` ngay, theo dõi trạng thái riêng; một thẻ bị từ chối không làm mất các mục đã nhận.
 3. **Giới hạn tốc độ theo dịch vụ:** chia sẻ schema/giấy tờ/danh mục trong phạm vi đọc hiện hành; chờ `Retry-After`, backoff có giới hạn và tiếp tục. Chỉ tăng concurrency khi đã xác minh giới hạn API. Mất mạng sau POST phải đối soát trước khi gửi lại.
-4. **Giảm chi phí báo cáo:** indexed existence/lookup và `Database.openBatchSession()` theo từng item đã triển khai, đang hồi quy như mục trên. Không giữ transaction qua HTTP hoặc giữ DB cả pass. Vẫn có thể tối ưu refresh giao diện và tải chỉ các item đang chờ; không trì hoãn lưu `feed_id`/journal. Vòng đọc lại hiện chưa có checkpoint updater giữa từng item, nên updater có thể phải chờ hết pass đọc lại; đây là giới hạn có sẵn, không dùng test handoff vòng gửi để chứng nhận vòng đọc lại.
+4. **Giảm chi phí báo cáo:** indexed existence/lookup và `Database.openBatchSession()` theo từng item đã triển khai, đã qua hồi quy tập trung như mục trên. Không giữ transaction qua HTTP hoặc giữ DB cả pass. Vẫn có thể tối ưu refresh giao diện và tải chỉ các item đang chờ; không trì hoãn lưu `feed_id`/journal. Vòng đọc lại hiện chưa có checkpoint updater giữa từng item, nên updater có thể phải chờ hết pass đọc lại; đây là giới hạn có sẵn, không dùng test handoff vòng gửi để chứng nhận vòng đọc lại.
 5. **Trạng thái có bằng chứng:** tách chưa gửi, đã nhận `feed_id`, đang kiểm duyệt, bị từ chối và công bố; không dùng HTTP200 hoặc GTIN được cấp làm bằng chứng thẻ đã tồn tại/công bố.
 
 Không thể cam kết không có bất kỳ lỗi bên ngoài nào: API có thể từ chối hồ sơ, thiếu quota, giới hạn tốc độ hoặc mất mạng. Mục tiêu là xác định đúng thẻ/bước lỗi, giữ những gì đã làm và tiếp tục an toàn. Guard128MiB là ước tính dữ liệu serialized, không bảo đảm mọi payload10.000 đều vừa bộ nhớ; thời hạn mười phút vẫn có thể hết với catalog lớn hoặc dịch vụ chậm. Chưa nghiệm thu ghi, ký/công bố10.000 thẻ Catalog thật hoặc Windows seller trong lượt này.
 
 
-Windows: workflow tập trung sẽ chạy lại đúng commit nguồn kết hợp sau push,38suite yêu cầu, thu XML và hash; không tạo installer/Latest. Lượt đầu FAIL đã lưu riêng, không bỏ lịch sử. [Các tệp kiểm chứng và che định danh](znack-bulk-20261110/README.md).
+Windows: workflow tập trung đã SUCCESS trên đúng commit nguồn kết hợp3990072, run42824401761, đủ38suite/502ca; không tạo installer/Latest. Lượt đầu FAIL đã lưu riêng, không bỏ lịch sử. [Các tệp kiểm chứng và che định danh](znack-bulk-20261110/README.md).
 
 
 Lệnh các lượt kiểm chứng được ghi nguyên văn trong trường `commands` của [receipt](znack-bulk-20261110/focused-final-receipt.json). Chỉ chạy lại chín lớp cần thiết sau hai sửa fixture; bảy lớp không đổi mã đã đạt được giữ đúng phạm vi, không gọi đây là một full run toàn app.
+
+[Kết luận nghiệm thu có lệnh và giới hạn](znack-bulk-20261110/acceptance-summary.json):45Linux và502Windows có ca trùng, không cộng thành tổng ca khác nhau. Nguồn runtime cuối3990072; tài liệu bàn giao sau đó không sửa runtime/POM/workflow.

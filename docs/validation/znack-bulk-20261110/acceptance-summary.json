@@ -1,0 +1,68 @@
+{
+  "kind": "FINAL_SCOPED_ZNACK_BULK_AND_KIZ_ACCEPTANCE",
+  "result": "PASS_IN_REPORTED_SCOPE",
+  "recordedAtUtc": "2026-11-10T13:47:19.791782+00:00",
+  "sourceCommit": "39900722ab9cf055dfef8bf30c5fac0dcce3daea",
+  "sourceTree": "9d50ed170d6b66817efc912531a677f86b71b7f0",
+  "sourceFilesUnchangedAfterAcceptance": true,
+  "linux": {
+    "tests": 45,
+    "suites": 7,
+    "result": "PASS",
+    "receipt": "final-scaled-linux.json"
+  },
+  "windows": {
+    "tests": 502,
+    "suites": 38,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "result": "PASS",
+    "runId": 42824401761,
+    "receipt": "final-windows.json"
+  },
+  "package": {
+    "result": "PASS",
+    "receipt": "package-final.json",
+    "installerBuilt": false
+  },
+  "commands": {
+    "linux": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dtest=RegistrationReportScaleTest,RegistrationAttemptReportsTest,SyncRunRepositoryConcurrencyTest,SyncRunRepositoryMetricsTest,RegistrationLargeBatchDurabilityTest,RegistrationBatchConnectionLifetimeTest,ZnackExhaustedBufferRecoveryTest test",
+    "windowsWorkflowInvocation": ".\\mvnw.cmd -B \"-Dtest=$env:FOCUSED_TESTS\" test",
+    "windowsResolvedInvocationDerivedFromFrozenSelectors": "mvnw.cmd -B -Dtest=WbProductSnapshotPaginationTest,WbRegistrationSnapshotBatchTest,ProductSnapshotReaderTest,RegistrationSnapshotReviewTest,RegistrationBatchPreflightTest,ZnackCardRegistrationControllerTest,RegistrationPreflightCancellationTest,RegistrationSourceConsentTest,RegistrationLargeBatchDurabilityTest,CatalogTaskExecutorTest,WbGtinAdapterTest,ZnackExhaustedBufferWorkflowRegressionTest,ZnackExhaustedBufferRecoveryTest,ZnackModuleTest,ZnackKizPurchaseReadbackTest,ZnackPurchaseMigrationSafetyTest,ZnackOrderReconciliationSafetyTest,ZnackMutationTransportTest,ZnackLicenseBoundaryTest,ZnackGtinWorkflowTest,FriendlyErrorCodeTest,ZnackErrorDetailsTest,KizStockReplenisherTest,KizPrintPurchaseSessionTest,KizWarehouseTest,ZnackSigningSessionTest,ZnackPipelineQueueExecutorTest,RegistrationBatchConnectionLifetimeTest,DatabaseBatchSessionTest,RegistrationBackgroundLifetimeTest,UpdateHandoffTest,UpdateSnapshotHandoffTest,ZnackRegistrationBatchServiceTest,ZnackRegistrationBatchHttpIntegrationTest,RegistrationReportScaleTest,RegistrationAttemptReportsTest,SyncRunRepositoryConcurrencyTest,SyncRunRepositoryMetricsTest test",
+    "package": "/workspace/toolchains/mvn-vncode -B -DskipTests clean package",
+    "diffCheck": "git diff --check"
+  },
+  "noDoubleCounting": "45 Linux and502 Windows overlap; do not sum into unique cases.16KIZsuites247cases are a subset of502Windows, not additional.283Linuxcorecases were the prior8fed source, retained separately.",
+  "evidenceSha256": {
+    "final-scaled-linux.json": "728aec432f4a7fa078a4707c9029e8d9986ca9ca45da427e8aedd9c20e30f7dd",
+    "final-windows.json": "f9fa4c6bf659f9e21a0c5c63881329031cf5d7be08fe8bb191e96acb4b3f2882",
+    "package-final.json": "256dc73363c2c9b0d15bf268fbc2499f403d91cc6e071fcf047f61e5a0a57b8a",
+    "first-windows-failure.json": "5629b5f46ce1503bf1adffb1c25c20ef51182680d40b27e843c997c397831552",
+    "first-keepalive-candidate-stopped.json": "1db2d574faf75163faf3c8b4653347c1b0f6b02cfe96b2d95b2023a726f60a21"
+  },
+  "actualSellerApiScope": {
+    "wbRead300SourceVariants": true,
+    "catalogReadOnly": true,
+    "catalogRealPostCount": 0,
+    "suzUnauthenticatedOrderList": "HTTP400/business1090; no order data read",
+    "realKizPurchases": 0,
+    "codeIssuanceRequests": 0,
+    "signingRequests": 0,
+    "licenseActivations": 0
+  },
+  "knownLimits": [
+    "No durable preparation checkpoint before source review/consent;128MiB retained source estimate and10min preparation deadline still apply.",
+    "TenThousand acceptance covers synthetic storage/queue/consent and source reads; not tenThousand realCatalogPOSTs.",
+    "Update handoff tested at send-item boundary; existing second-readback loop has no per-item updater checkpoint.",
+    "RealOMS recovery and paid purchase require authorized SUZ session/CMS signer and remain unverified; user steered to source-code work only.",
+    "EXHAUSTED block retry is subject to SUZ availability/API-first/unclosed-order conditions; preserve originalorder, do not rebuy blindly."
+  ],
+  "releaseState": {
+    "latestUnchanged": "v1.6.7",
+    "releaseId": 438471378,
+    "newInstaller": false,
+    "latestPublished": false,
+    "sourceBranch": "fix/znack-preflight-bulk-20261110"
+  }
+}

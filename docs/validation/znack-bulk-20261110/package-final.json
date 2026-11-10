@@ -1,0 +1,31 @@
+{
+  "kind": "ZNACK_BULK_KIZ_PRODUCTION_JAR_COMPILE",
+  "result": "PASS",
+  "recordedAtUtc": "2026-11-10T13:32:03.019226+00:00",
+  "sourceCommit": "39900722ab9cf055dfef8bf30c5fac0dcce3daea",
+  "sourceTree": "9d50ed170d6b66817efc912531a677f86b71b7f0",
+  "sourceWorkingTreeCleanBeforeAndAfter": true,
+  "command": "/workspace/toolchains/mvn-vncode -B -DskipTests clean package",
+  "testsSkippedForThisPackagingCommand": true,
+  "testEvidence": "final-scaled-linux.json and separate exact-source Windows focused run",
+  "jar": {
+    "name": "VNcode-1.6.7.jar",
+    "bytes": 7637034,
+    "sha256": "a2e04256ff6b49de4902a1673eb03b5b4470118322fc931380539fdeb11dd20d",
+    "classCount": 1994,
+    "requiredChangedRuntimeClassesPresent": true,
+    "testSupportClassesAbsent": true,
+    "mainClass": "com.vncode.app.Launcher",
+    "appProperties": "app.name=VN code\napp.version=1.6.7\napp.update.url=https://github.com/ntccong2468-lab/Bancapnhat\napp.update.public-key=\napp.update.publisher=\n"
+  },
+  "logSha256": "9ae2f49d81ca79db3508fd5b8a92f5e1db8fd3ea95731265108c9fa118ad2b26",
+  "java": [
+    "java version \"25.0.4.1\" 2026-08-18 LTS",
+    "Java(TM) SE Runtime Environment (build 25.0.4.1+1-LTS-5)",
+    "Java HotSpot(TM) 64-Bit Server VM (build 25.0.4.1+1-LTS-5, mixed mode, sharing)"
+  ],
+  "installerBuilt": false,
+  "releasePublished": false,
+  "tagModified": false,
+  "declaredVersionUnchanged": "1.6.7; internal patch compile only, not a replacement release artifact"
+}
