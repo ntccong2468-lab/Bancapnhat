@@ -66,3 +66,9 @@ znack_api/
 
 # Generated Python tool cache
 __pycache__/
+
+# Windows desktop bridge: private connection, tokens, captures and local runtime
+tools/windows-mcp/*.local.json
+tools/windows-mcp/.venv/
+tools/windows-mcp/captures/
+tools/windows-mcp/*.token

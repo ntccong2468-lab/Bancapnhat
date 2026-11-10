@@ -1,0 +1,64 @@
+name: Windows MCP worker validation
+
+on:
+  push:
+    branches: ['tools/windows-mcp-*']
+    paths:
+      - 'tools/windows-mcp/**'
+      - '.github/workflows/windows-mcp-validation.yml'
+  workflow_dispatch:
+    inputs:
+      capture_desktop:
+        description: Require a decodable screenshot from the synthetic hosted-runner desktop
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  worker:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Parse Windows PowerShell scripts
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Get-ChildItem tools/windows-mcp/worker/*.ps1 | ForEach-Object {
+            $tokens = $null; $errors = $null
+            [void][Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors)
+            if ($errors.Count -gt 0) { throw ($errors | Out-String) }
+          }
+      - name: Install pinned worker and prove rerun keeps the protected token
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'vncode-windows-mcp-worker'
+          & ./tools/windows-mcp/worker/Install-WindowsMCP.ps1 -InstallRoot $root
+          $before = (Get-FileHash (Join-Path $root 'private/token.dpapi')).Hash
+          & ./tools/windows-mcp/worker/Install-WindowsMCP.ps1 -InstallRoot $root
+          if ($before -ne (Get-FileHash (Join-Path $root 'private/token.dpapi')).Hash) { throw 'Installer rotated the connection token on rerun.' }
+          & (Join-Path $root 'runtime/venv/Scripts/windows-mcp.exe') --help
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned Windows CLI did not start.' }
+      - name: Validate authenticated local MCP and tool restrictions
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = Join-Path $env:RUNNER_TEMP 'vncode-windows-mcp-worker'
+          $capture = '${{ inputs.capture_desktop }}' -eq 'true'
+          $env:WINDOWS_MCP_SSL_CERTFILE = 'C:\synthetic-invalid-inherited-certificate.pem'
+          & ./tools/windows-mcp/worker/Test-WindowsMCP.ps1 -InstallRoot $root -ReportPath (Join-Path $env:RUNNER_TEMP 'windows-mcp-validation.json') -RequireDesktopImage:$capture
+          if ($env:WINDOWS_MCP_SSL_CERTFILE -ne 'C:\synthetic-invalid-inherited-certificate.pem') { throw 'Worker did not restore the caller environment.' }
+          Remove-Item Env:\WINDOWS_MCP_SSL_CERTFILE
+      - name: Upload sanitized protocol receipt only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: windows-mcp-validation-${{ github.run_id }}
+          path: ${{ runner.temp }}/windows-mcp-validation.json
+          if-no-files-found: warn

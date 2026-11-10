@@ -12,3 +12,4 @@
 - Phân biệt test mô phỏng với kết quả trên WB/Ozon/Catalog và trên Windows thật. Không coi HTTP 200 là xác nhận nghiệp vụ đã hoàn tất.
 - Không tự triển khai, merge hoặc xóa bản phát hành/dữ liệu; làm theo yêu cầu cụ thể của người dùng. Lệnh `tools/baseline-release.mjs prune` xóa các release cũ và không thuộc bước xác minh thông thường.
 - Khi dùng OpenQodex để quét hoặc review, đọc skill `.agents/skills/openqodex/SKILL.md` và báo đúng phạm vi scanner/reviewer.
+- Khi cần thao tác desktop Windows để kiểm VN Code, đọc `.agents/skills/windows-mcp-control/SKILL.md` và `tools/windows-mcp/README.md`. Phân biệt MCP client đã cài, worker Windows đã kết nối và app đã kiểm thật; không coi chúng là cùng một trạng thái.
