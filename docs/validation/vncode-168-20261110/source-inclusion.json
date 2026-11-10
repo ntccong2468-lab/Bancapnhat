@@ -1,0 +1,217 @@
+{
+  "kind": "VN_CODE_1_6_8_SOURCE_INCLUSION_MANIFEST",
+  "createdAtUtc": "2026-11-10T13:54:29.493334+00:00",
+  "basePublished167": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "releaseSource168": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "baseIsAncestor": true,
+  "scope": "Tracked src/main, src/test and pom.xml differences only; hashes use exact Git blob bytes at release source. Unchanged paths inherited via commit ancestry. Deletions have null hash.",
+  "files": [
+    {
+      "path": "pom.xml",
+      "change": "M",
+      "category": "pom",
+      "sha256": "5a1536aadc60babc61b062af3ad8b236c93c36dc36d14326b687c3164b98e973"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "22b4ddd198a5eb7798711f611ac2261fb4e5a0e503e319aab03c2f66ff812c8e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/sync/SyncRunRepository.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "54230e2644e9fd66314e0639cc6cccbdea526821a2384d19b33d1d3a3832ad34"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "a27092b6eb2e1a1dd80fc4e9b7bdbdcaa950d3580dcd61e90016e494654cbbf7"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatch.java",
+      "change": "A",
+      "category": "runtime",
+      "sha256": "125b632db675466534a611a53541b76a1510903b0b6cd32fcead245fbc5f237b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "a883da1f3cb61777b44a2c3b213a4be5c1ac3c06bc98a1713658d77731bf66a4"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "6d6fe02f8e3bf987990f348798a616cdd2bdf2c85f351e433c6384d37b624b3d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSnapshotReview.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "228778f128637b333870f5d687c4079220e066af0e2692b8566f11456cd8e1cc"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "68db1e9a1752159c334e5c6017d159bd84313f2427301d3b558859569bfb441e"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/AppTaskExecutor.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "4cf78fb3b51f6b8584e21b00973509a363ba6575644a4bcc59b0876690c92cec"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "56e6f348f88044b0925eb81c3e7b03f6d8b77c8ef08e45a3c386de757bcf48dd"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflight.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "6cbbd5bdc4b689191917e10ca691b32435f1f72d2875ab0eacf82eab0369c13b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationPreflightReport.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "7d293147b05f27553df26beb162cabf2989e17f8f726f94f83660c232b462eab"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+      "change": "M",
+      "category": "runtime",
+      "sha256": "b49543e8d2cd6fd17e325472c090780bf7587631646a841b251ce02e34268428"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "change": "M",
+      "category": "resource",
+      "sha256": "d2e02800ecb6359bab65f2be97b75acd0d1dddb5caae5a4863055edc6c01cf64"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "change": "M",
+      "category": "resource",
+      "sha256": "2931a822f437121b1fc50fcbee4b2a42c74de3d353feeac53062b045c59c97d4"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "change": "M",
+      "category": "resource",
+      "sha256": "48f6749a94cd7c50cf5467a70e3b5a95038a43c984731ea8af08769ec8de7aab"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "change": "M",
+      "category": "resource",
+      "sha256": "6e1934389cf60e3ae34ae63c99ea86341c0c17efa154221dc43b9e77af67f88a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/products/ProductSnapshotReaderTest.java",
+      "change": "M",
+      "category": "test",
+      "sha256": "5cb6cab35a2fea5506d26f27a8118aaec83a24c554c203911f78a5c62a77c847"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/sync/RegistrationReportScaleTest.java",
+      "change": "A",
+      "category": "test",
+      "sha256": "582ba6e970a613b7fc9407e49c2953127e29e21dd278b2432a589a21b5dab572"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbProductSnapshotPaginationTest.java",
+      "change": "A",
+      "category": "test",
+      "sha256": "9eb3693428ddd10dbb9d06779eba39267cc1d5550f95eb1a3534cb9a0ebefcf6"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatchTest.java",
+      "change": "A",
+      "category": "test",
+      "sha256": "e46d36d6331d8a4fe884a839b8ece7ab22f49f1bcacdafb0a9697db5935a9dd7"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "change": "A",
+      "category": "test",
+      "sha256": "bd472453cef730f63e7260fdb1dfe3d7088c78a37abe837c5b710bc32d7aff69"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+      "change": "A",
+      "category": "test",
+      "sha256": "4ebcd764f8b6b0578834ed39e63d908b8edb63e7b56501f94ef9d2f94af465fb"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "change": "M",
+      "category": "test",
+      "sha256": "a8b8cc82738dfb6020087e6b9d08a46c0089ee701a8f5b12b68b75ae8ce2cc59"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "change": "M",
+      "category": "test",
+      "sha256": "8e5b11ec7f7676998804183bd8b559eb76f1daf1423d46d6511aa4280213b81f"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/RegistrationBatchConnectionLifetimeTest.java",
+      "change": "A",
+      "category": "test",
+      "sha256": "7f46ac155e989f43a0bd72d6b82609317f70314548c18dc9ae9d546eacfa7da1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/RegistrationLargeBatchDurabilityTest.java",
+      "change": "A",
+      "category": "test",
+      "sha256": "edb47c10b637594ec442f8d9b99aa615ea142567c02675af47016d61663d90ee"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/registration/RegistrationSnapshotReviewTest.java",
+      "change": "M",
+      "category": "test",
+      "sha256": "61dc6b73724db3a7a35d9d91148fe96d2a281015763e5b296e08a7e8d632a21d"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/shared/FriendlyErrorCodeTest.java",
+      "change": "M",
+      "category": "test",
+      "sha256": "770b2280f5fc561c4c8a0989a974ff84ba48f3559bd8a4e50212c99efc05d187"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflightTest.java",
+      "change": "M",
+      "category": "test",
+      "sha256": "8f225caa43496325e3edc994b10de8e667ebf7f7af0bcefc09b21df313845a75"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java",
+      "change": "M",
+      "category": "test",
+      "sha256": "cbffbb78bd47176bf58dd1453056bded42a0d818cdcc01d998e24caeb044d629"
+    }
+  ],
+  "counts": {
+    "runtime": 14,
+    "resource": 4,
+    "test": 14,
+    "pom": 1
+  },
+  "excluded": "docs, workflows, tools and unrelated paths; not an artifact or security scan",
+  "sellerApiCalls": false,
+  "licenseOperations": false
+}

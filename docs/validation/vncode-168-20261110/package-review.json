@@ -1,0 +1,150 @@
+{
+  "kind": "VNCODE_168_OFFLINE_CANDIDATE_VERIFICATION",
+  "result": "PASS",
+  "version": "1.6.8",
+  "sourceCommit": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "ciRun": 42828436446,
+  "workflowId": 392732536,
+  "actionArtifactId": 13778000178,
+  "actionArtifactSha256": "d599bd42bf085da27e5790ca368195a9e71ec71878f2376148596941e696d9fd",
+  "time": "2026-11-10T15:30:29.979944+00:00",
+  "source": {
+    "files": 3086,
+    "onlyExactOrUtf8LineEndings": true,
+    "lineEndingDifferences": 2760
+  },
+  "portable": {
+    "path": "VN code/app/VNcode-1.6.8.jar",
+    "sha256": "50debe166d5d09dc31724cf61d48d851abf2e1eb43bb2e3b9828c2462445022a",
+    "classesObserved": 1994,
+    "expectedClassCountHardcoded": false,
+    "runtimeChangesChecked": 18,
+    "classCheckScope": "presence and Java version; exact compiled-byte/source relationship relies on verified build provenance",
+    "dependencies": 74,
+    "testProfilesAndFixturesAbsent": true
+  },
+  "junit": {
+    "totals": {
+      "tests": 4254,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "suites": 554,
+    "skipIdentities": [
+      [
+        "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "privatePermissionsAreAppliedWhereSupported"
+      ],
+      [
+        "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "neverFallsBackToPlaintextOffWindows"
+      ]
+    ],
+    "stress": [
+      {
+        "method": "ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites",
+        "seconds": 1453.958
+      },
+      {
+        "method": "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+        "seconds": 454.871
+      },
+      {
+        "method": "wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay",
+        "seconds": 479.47
+      },
+      {
+        "method": "tenThousandApprovedVariantsSurvivePageBoundariesAppendAndReopenWithoutDispatchingNetworkWrites",
+        "seconds": 14.465
+      },
+      {
+        "method": "threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart",
+        "seconds": 256.316
+      }
+    ],
+    "smokesInnerMatch": true,
+    "scope": "Full JUnit evidence including synthetic 300/10000 tests; not real Catalog writes."
+  },
+  "smokes": {
+    "nativeMigration": "passed",
+    "gs1Dpapi": "passed-by-Windows-smoke",
+    "freshInstallCoexistenceUninstall": "passed",
+    "upgradeFrom": "1.6.7",
+    "passiveExeAndEmbeddedMsi": "bound-to-Windows-extraction-smoke-and-artifact-hashes",
+    "independentEmbeddedMsi": false
+  },
+  "assets": {
+    "VN-code-1.6.8-Windows-x64.exe": {
+      "bytes": 149408256,
+      "sha256": "bce16b0cb2eadc155f89c9bafcecd802cf8463272b02aae6e68bf9f105b90707"
+    },
+    "VN-code-1.6.8-Windows-x64.msi": {
+      "bytes": 148739333,
+      "sha256": "8dbfd5e6eb91c4635a1f535640e77b147254944cb11fe0998a367348f76a41cf"
+    },
+    "VN-code-1.6.8-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "7b4197a11f7fe0bdbd56d2d567300246cd2cd94cd3c165fe7b3f58267b34d92e"
+    },
+    "VN-code-1.6.8-Windows-x64.zip": {
+      "bytes": 148326903,
+      "sha256": "5e4a8ac20439df64a61b847571f9cd8581b817f661749481d29fd6c76126e141"
+    },
+    "VN-code-1.6.8-source.zip": {
+      "bytes": 39200571,
+      "sha256": "5eee1166414163c9ee93d94eb3ee4a1c6d997ec697242e566133bb3d6ba8aa4e"
+    },
+    "VN-code-1.6.8-history.bundle": {
+      "bytes": 46484135,
+      "sha256": "f7e7c72569367c58023abcd4f39e276f1a4122de9744b0d4e72d8f20b14bcb47"
+    },
+    "VN-code-1.6.8-verification.zip": {
+      "bytes": 2889357,
+      "sha256": "d0a9b2a88344a0347ee5ef6e6b95a51e3b86d9b266f2cb104355905bd2228269"
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "860ba7de0272663e2f384127c26749d036ad2309b9a1fe4e9d3b84414a3b6240"
+    },
+    "release-notes.md": {
+      "bytes": 2150,
+      "sha256": "3888602a3cde23da960948f1cc1af6bb451381147c6f114649e7c1887af8d305"
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "802863df8f9fbd8bc476404b112026babaea81a48d40aa6ef3293eb407ef80b2"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "64bc7ac49d499879f43280479ed331f0cf000367bf15ebca31bdbd02c25cc563"
+    },
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "f6d379f5d55af47efcb703ea22be965521814034bf948c915f568ad28bfcbe30"
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "2708f5db39a0013b8b8f931fc54870068af02240920931fd695b34b2c3f547d3"
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "da2255e512fb988b6fc16d2626540b98b0a5cf68b27a9280d111850a30b5115e"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "f9ee7641b9a696a860f9b1bdd77c2128fd879b40cc50eb4ca11267f34083ee08"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "621f58017f16761d11ff26e1543e62e61629e0c38f68ac8a37e129dbc7f30b2d"
+    }
+  },
+  "helperSha256": "f9aa84ff14e11513fcc0079947ca0d884dc3fbabd1152ae30d784887febdeee5",
+  "scope": "Read-only downloaded bytes and recorded CI/smoke metadata; no installer execution, seller API, release mutation, or network.",
+  "limitations": [
+    "Class/source linkage relies on exact source archive and CI provenance; no independent recompilation.",
+    "Embedded MSI is checked via Windows smoke attestation against final hashes unless an independently extracted MSI is supplied.",
+    "No seller machine, actual KIZ purchase or Catalog write verified."
+  ]
+}

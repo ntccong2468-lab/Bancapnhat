@@ -1,0 +1,29 @@
+{
+  "targetSourceCommit": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "sourceNote": "Target frozen source; 1.6.8 not yet asserted by this probe",
+  "binaryUnderTest": {
+    "publicAsset": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.7/VN-code-1.6.7-Windows-x64.zip",
+    "assetSha256": "f88861e190ec4d9f61f441d525fd3575b2b4336c7543d18775a05e807d77fbea",
+    "assetBytes": 148299313,
+    "publishedReleaseDigestSource": "GitHub Releases API tag v1.6.7, 2026-11-10",
+    "appJar": "VNcode-1.6.7.jar",
+    "appJarSha256": "6e888e5402bd3e4b8536fda0e78c423c255fd74f34f6060cf7b21e0fc506c402",
+    "jarCount": 75,
+    "extraction": "original unmodified app and dependency JARs only",
+    "loadedClasspath": "private extraction directory"
+  },
+  "priorProbeSha256": "d7c0d48c0d4417db06ed8277c58d629e01428786f2dd7fe7bd1a633a836dd39b",
+  "adaptedProbeSha256": "348ee21088c264220fd5161baf95c894131d04382ef3eae5be5adcec59675fca",
+  "probeClassSha256": "6977a8aedbbb734cdc16a741a6f9f6c3839dbc8adbc010ea1a29fe34b2fa6db4",
+  "beforeReceiptSha256": "a46fe692401b10e60787c5ad88074d97d61b524d809d303ca93295b0edf3a034",
+  "beforeStatus": "CURRENT",
+  "beforeLatest": "1.6.7",
+  "pinnedManifestPublicKeyConfigured": false,
+  "afterStatus": "PENDING",
+  "limitations": [
+    "Linux Java runtime using published Windows application JAR and dependencies; Windows asset selection simulated only after the network read.",
+    "Cloud proxy may inject repository credentials; anonymous read access is not proven.",
+    "Seller popup, installer invocation, and upgrade of a seller installation were not observed.",
+    "No license activation, signing, seller API request, Gmail or publication in this probe."
+  ]
+}

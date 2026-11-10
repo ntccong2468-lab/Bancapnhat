@@ -1,0 +1,11 @@
+{
+  "verifiedAtUtc": "2026-11-10T14:13:30.120506+00:00",
+  "draftId": 440439895,
+  "source": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "titleMatches": true,
+  "bodyMatchesFrozenSourceReleaseNotes": true,
+  "releaseNotesSha256": "fc39b0bc0f707d3e9dad96b6878d58acd8026340399f9f59b53bacde9c377b71",
+  "draft": true,
+  "assets": 0,
+  "authenticatedTransport": "managed proxy+CA; default platform credentials possible; no explicit client Authorization; no anonymous claim"
+}

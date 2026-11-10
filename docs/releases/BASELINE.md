@@ -1,6 +1,17 @@
 # VNCode consolidated baseline
 
-Latest hiện là **VN Code1.6.7**, tag immutable `v1.6.7`, nguồn **`d0231cd6913ce3a1764067bad0901b32c535de41`**, release **438471378**; công bố **09.11.2026 16:38:02 MSK (13:38:02 UTC)**. [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.7/VN-code-1.6.7-Windows-x64.exe), [ghi chú](VN-code-1.6.7.md), [bàn giao](../validation/2026-11-09-vncode-167-release-handoff.md), [receipt cuối](../validation/2026-11-09-vncode-167-final-release.json).
+Latest hiện là **VN Code1.6.8**, immutable `v1.6.8`, nguồn **38906a2108501029d9609ed1d071ee987c8b2637**, release **440439895**, công bố **10.11.2026 18:34:37MSK/15:34:37UTC**. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.8/VN-code-1.6.8-Windows-x64.exe), [ghi chú](VN-code-1.6.8.md), [bàn giao](../validation/2026-11-10-vncode-168-release-handoff.md), [receipt](../validation/vncode-168-20261110/final-release.json).
+
+FullWindows42828436446SUCCESS4254ca/554lớp,4252đạt/0failure/error/2namedOSskip. Đủ5stress300/10.000, native/migration/DPAPI/install/coexist/uninstall/passiveupgrade167→168. Node166app/174publisher, khôngcộngscope. Publisher1a19377/run42845466246;16publicfiles tải/đối chiếu, sourceZIP3086/JAR1994/18runtime/no fixture. MSI đọc độc lập từEXE khớp148739333bytes/SHA8dbfd5e6eb91c4635a1f535640e77b147254944cb11fe0998a367348f76a41cf.
+
+Giữ17release/274asset/46tag cũ, nay18/290/47; khôngprune/ghiđè. Binary167thật nhậnAVAILABLE168/đúngMSI/hash/size quaCloudproxy/CA, không chứng minhanonymous/popupmáyseller. [Review](../validation/vncode-168-20261110/package-review.json), [preservation](../validation/vncode-168-20261110/public-preservation.json), [updater](../validation/vncode-168-20261110/updater-verification.json).
+
+Giữ đủ1.6.7, thêm WBsourcebulk/fallback/per-keyreview, KIZEXHAUSTEDrecovery/identity/partial/restart/norebuy, report indexed/per-itemWAL. Không đổi schema6/dependency/UpgradeCode; không paid/realCatalog/signing/licenseactivation. Preflight10phút/128MiB/chưa checkpointrestart, secondreadbackupdatergap và điều kiệnSUZ vẫn giữ. JavaCodeQL8old/1highgate/0new/extractionlimited FAIL; khôngallsecuritygreen. Sau nâng cấp Đồng bộZnack một lần, giữprofile/feed/jobs/journal. Source/tag/assets168immutable.
+
+## Bản nền1.6.7 — lịch sử
+
+
+Bản nền trước là **VN Code1.6.7**, tag immutable `v1.6.7`, nguồn **`d0231cd6913ce3a1764067bad0901b32c535de41`**, release **438471378**; công bố **09.11.2026 16:38:02 MSK (13:38:02 UTC)**. [Tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.7/VN-code-1.6.7-Windows-x64.exe), [ghi chú](VN-code-1.6.7.md), [bàn giao](../validation/2026-11-09-vncode-167-release-handoff.md), [receipt cuối](../validation/2026-11-09-vncode-167-final-release.json).
 
 Windows **42611294387 SUCCESS:4.188 ca/547 lớp,4.186 đạt,0 failure/error,2 OS skip đúng danh tính**, đủ ba stress10.000 và các case chứng thư/confirmation. Native launcher, migration3→6/snapshot, DPAPI, cài/gỡ/coexistence và passive EXE upgrade từ1.6.6 giữ dữ liệu đạt. Publisher **42627047589**, tooling `b1e5e7774e1ab01d0c1c57ee934900c6927638f7`, đã phát hành đúng nguồn. [Build](../validation/2026-11-09-vncode-167-build-run.json), [package](../validation/2026-11-09-vncode-167-package.json).
 

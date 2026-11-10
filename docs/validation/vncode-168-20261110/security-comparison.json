@@ -1,0 +1,30 @@
+{
+  "referenceRun": 42611297755,
+  "referenceSource": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "currentRun": 42828869332,
+  "currentSource": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "method": "Count exact normalized records: rule, numeric security severity, all primary physical locations, partial fingerprints, whitespace-normalized messages and code-flow counts; no deduplication. Compare warnings/errors separately.",
+  "referenceSha256": "74b480917ad8634e9f19225b89a134b9941522d03b71c189fef8387b99d2d541",
+  "currentSha256": "54c7da389e3b469bcb52629660e485851acc91f51579dbdbc8763c9e7a22a014",
+  "referenceCount": 8,
+  "currentCount": 8,
+  "referenceBlocked": 1,
+  "currentBlocked": 1,
+  "new": [],
+  "resolved": [],
+  "identicalNormalizedRecords": true,
+  "referenceNotifications": [
+    {
+      "level": "error",
+      "id": "java/diagnostics/extraction-errors",
+      "message": "Extraction incomplete in file: /home/runner/work/Bancapnhat/Bancapnhat/src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+    }
+  ],
+  "currentNotifications": [
+    {
+      "level": "error",
+      "id": "java/diagnostics/extraction-errors",
+      "message": "Extraction incomplete in file: /home/runner/work/Bancapnhat/Bancapnhat/src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+    }
+  ]
+}

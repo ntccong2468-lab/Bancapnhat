@@ -1,0 +1,71 @@
+{
+  "kind": "VN_CODE_168_SECURITY_AND_SOURCE_AUDIT",
+  "createdAtUtc": "2026-11-10T14:02:01.514644+00:00",
+  "security": {
+    "runId": 42828869332,
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332",
+    "headSha": "38906a2108501029d9609ed1d071ee987c8b2637",
+    "event": "workflow_dispatch",
+    "status": "completed",
+    "conclusion": "failure",
+    "jobs": [
+      {
+        "name": "codeql (java-kotlin, manual)",
+        "status": "completed",
+        "conclusion": "failure"
+      },
+      {
+        "name": "lint-and-audit",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "codeql (javascript-typescript, none)",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "name": "changed-dependencies",
+        "status": "completed",
+        "conclusion": "skipped"
+      },
+      {
+        "name": "openqodex-scan",
+        "status": "completed",
+        "conclusion": "skipped"
+      }
+    ],
+    "baselineRun": 42611297755,
+    "javaResults": {
+      "oldCount": 8,
+      "newCount": 8,
+      "oldBlocked": 1,
+      "newBlocked": 1,
+      "newNormalizedFindings": 0,
+      "resolvedNormalizedFindings": 0,
+      "extractionErrors": [
+        {
+          "level": "error",
+          "id": "java/diagnostics/extraction-errors",
+          "message": "Extraction incomplete in file: /home/runner/work/Bancapnhat/Bancapnhat/src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+        }
+      ]
+    },
+    "javascriptResults": {
+      "oldFindings": 0,
+      "currentFindings": 0,
+      "warningsOrErrors": 0
+    },
+    "scope": "workflow_dispatch; OpenQodex and dependency-review skipped. Lint/audit and JS passed; Java gate failed. No seller API, license, signature or release operation."
+  },
+  "files": {
+    "source-inclusion-manifest.json": "41e07cb22e7cd554bef104d705e7809733edb0fa08664f231c7375f975ca931f",
+    "security-comparison.json": "f85bd8d9d974f8a9777fc32174a3b279730730ff58c55f14db983a76538fb35c",
+    "security-run.json": "1950b8c0eb48cb046e7fd18bc6a82988b40481c7abb7991b50e650d108615641",
+    "reference-java/java.sarif": "74b480917ad8634e9f19225b89a134b9941522d03b71c189fef8387b99d2d541",
+    "current-java/java.sarif": "54c7da389e3b469bcb52629660e485851acc91f51579dbdbc8763c9e7a22a014",
+    "reference-js/javascript.sarif": "97ca55635e91f2420d24bb3e3ac4df33ae7a53e66a5bdf5431b70f6206a5c03c",
+    "current-js/javascript.sarif": "b585ce393712bc725c437edffc0f793af79b9d821b9222a3aecb35097fe4670b"
+  },
+  "conclusion": "Java gate failed on one existing high result; unchanged normalized findings do not establish security gate success or complete extraction. Security gate has not been changed or suppressed."
+}

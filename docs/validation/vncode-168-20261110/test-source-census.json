@@ -1,0 +1,40 @@
+{
+  "kind": "STATIC_TEST_SOURCE_CENSUS_NOT_EXECUTION",
+  "base": "d0231cd6913ce3a1764067bad0901b32c535de41",
+  "source": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "addedTestSourceFiles": [
+    {
+      "file": "src/test/java/com/vncode/app/features/sync/RegistrationReportScaleTest.java",
+      "suite": "com.vncode.app.features.sync.RegistrationReportScaleTest"
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/wb/WbProductSnapshotPaginationTest.java",
+      "suite": "com.vncode.app.integration.wb.WbProductSnapshotPaginationTest"
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatchTest.java",
+      "suite": "com.vncode.app.integration.wb.WbRegistrationSnapshotBatchTest"
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest"
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+      "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest"
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/znack/registration/RegistrationBatchConnectionLifetimeTest.java",
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationBatchConnectionLifetimeTest"
+    },
+    {
+      "file": "src/test/java/com/vncode/app/integration/znack/registration/RegistrationLargeBatchDurabilityTest.java",
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest"
+    }
+  ],
+  "deletedTestSourceFiles": [],
+  "baselineSuiteCount": 547,
+  "sourceDeltaTestFiles": 14,
+  "actualNewFullSuiteCount": null,
+  "note": "Use source and full unfiltered Maven command plus XML to review complete execution; do not infer case totals from this census."
+}

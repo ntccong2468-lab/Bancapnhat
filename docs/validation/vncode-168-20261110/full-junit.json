@@ -1,0 +1,29 @@
+{
+  "source": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "runId": 42828436446,
+  "suites": 554,
+  "totals": {
+    "tests": 4254,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "passed": 4252,
+  "skipIdentities": [
+    {
+      "suite": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "case": "privatePermissionsAreAppliedWhereSupported"
+    },
+    {
+      "suite": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "case": "neverFallsBackToPlaintextOffWindows"
+    }
+  ],
+  "allAddedTestClassesPresent": true,
+  "census": {
+    "baseCount": 547,
+    "addedTestClasses": 7,
+    "actualSuiteCount": 554
+  },
+  "scope": "Raw full unfiltered Windows CI XML from verified Actions ZIP; no testexecution bythisparser."
+}

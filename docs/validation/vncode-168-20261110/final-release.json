@@ -1,0 +1,182 @@
+{
+  "kind": "VNCODE_168_FINAL_PUBLISHED_ACCEPTANCE",
+  "version": "1.6.8",
+  "result": "PUBLISHED_AND_VERIFIED_IN_STATED_SCOPE",
+  "recordedAtUtc": "2026-11-10T15:38:44.461304+00:00",
+  "applicationSource": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "publicationToolingSource": "1a193778c1ba1aab22975200282d1062585542c9",
+  "buildRunId": 42828436446,
+  "publisherRunId": 42845466246,
+  "releaseId": 440439895,
+  "tag": "v1.6.8",
+  "immutable": true,
+  "latest": true,
+  "publishedAt": "2026-11-10T15:34:37Z",
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.8",
+  "downloadExe": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.8/VN-code-1.6.8-Windows-x64.exe",
+  "fullJava": {
+    "tests": 4254,
+    "passed": 4252,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "suites": 554
+  },
+  "nodeTooling": {
+    "applicationSourceTests": 166,
+    "publicationToolingTests": 174,
+    "failures": 0,
+    "skipped": 0,
+    "overlapNotSummed": true
+  },
+  "actionArtifact": {
+    "id": 13778000178,
+    "name": "VN-code-1.6.8-complete-baseline",
+    "bytes": 529803075,
+    "digest": "sha256:d599bd42bf085da27e5790ca368195a9e71ec71878f2376148596941e696d9fd",
+    "rawZipSha256": "d599bd42bf085da27e5790ca368195a9e71ec71878f2376148596941e696d9fd"
+  },
+  "publicFilesDownloadedAndHashChecked": 16,
+  "sourceArchiveFiles": 3086,
+  "runtimeJarClasses": 1994,
+  "runtimeChangesIncluded": 18,
+  "dataSchema": 6,
+  "windowsUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+  "smokes": {
+    "nativeMigration": "passed",
+    "gs1Dpapi": "passed-by-Windows-smoke",
+    "freshInstallCoexistenceUninstall": "passed",
+    "upgradeFrom": "1.6.7",
+    "passiveExeAndEmbeddedMsi": "bound-to-Windows-extraction-smoke-and-artifact-hashes",
+    "independentEmbeddedMsi": false
+  },
+  "independentlyExtractedEmbeddedMsiMatches": true,
+  "assets": {
+    "VN-code-1.6.8-Windows-x64.exe": {
+      "bytes": 149408256,
+      "sha256": "bce16b0cb2eadc155f89c9bafcecd802cf8463272b02aae6e68bf9f105b90707"
+    },
+    "VN-code-1.6.8-Windows-x64.msi": {
+      "bytes": 148739333,
+      "sha256": "8dbfd5e6eb91c4635a1f535640e77b147254944cb11fe0998a367348f76a41cf"
+    },
+    "VN-code-1.6.8-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "7b4197a11f7fe0bdbd56d2d567300246cd2cd94cd3c165fe7b3f58267b34d92e"
+    },
+    "VN-code-1.6.8-Windows-x64.zip": {
+      "bytes": 148326903,
+      "sha256": "5e4a8ac20439df64a61b847571f9cd8581b817f661749481d29fd6c76126e141"
+    },
+    "VN-code-1.6.8-source.zip": {
+      "bytes": 39200571,
+      "sha256": "5eee1166414163c9ee93d94eb3ee4a1c6d997ec697242e566133bb3d6ba8aa4e"
+    },
+    "VN-code-1.6.8-history.bundle": {
+      "bytes": 46484135,
+      "sha256": "f7e7c72569367c58023abcd4f39e276f1a4122de9744b0d4e72d8f20b14bcb47"
+    },
+    "VN-code-1.6.8-verification.zip": {
+      "bytes": 2889357,
+      "sha256": "d0a9b2a88344a0347ee5ef6e6b95a51e3b86d9b266f2cb104355905bd2228269"
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "860ba7de0272663e2f384127c26749d036ad2309b9a1fe4e9d3b84414a3b6240"
+    },
+    "release-notes.md": {
+      "bytes": 2150,
+      "sha256": "3888602a3cde23da960948f1cc1af6bb451381147c6f114649e7c1887af8d305"
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "802863df8f9fbd8bc476404b112026babaea81a48d40aa6ef3293eb407ef80b2"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "64bc7ac49d499879f43280479ed331f0cf000367bf15ebca31bdbd02c25cc563"
+    },
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "f6d379f5d55af47efcb703ea22be965521814034bf948c915f568ad28bfcbe30"
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "2708f5db39a0013b8b8f931fc54870068af02240920931fd695b34b2c3f547d3"
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "da2255e512fb988b6fc16d2626540b98b0a5cf68b27a9280d111850a30b5115e"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "f9ee7641b9a696a860f9b1bdd77c2128fd879b40cc50eb4ca11267f34083ee08"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "621f58017f16761d11ff26e1543e62e61629e0c38f68ac8a37e129dbc7f30b2d"
+    }
+  },
+  "updater": {
+    "actualPublishedBinary": "1.6.7",
+    "before": "CURRENT1.6.7",
+    "after": "AVAILABLE1.6.8",
+    "msiSha256": "8dbfd5e6eb91c4635a1f535640e77b147254944cb11fe0998a367348f76a41cf",
+    "msiBytes": 148739333,
+    "sellerPopupObserved": false
+  },
+  "preservedBefore": {
+    "releases": 17,
+    "assets": 274,
+    "tags": 46
+  },
+  "after": {
+    "releases": 18,
+    "assets": 290,
+    "tags": 47
+  },
+  "sellerApiWrites": 0,
+  "paidKizPurchases": 0,
+  "realSigning": 0,
+  "licenseActivations": 0,
+  "security": {
+    "runId": 42828869332,
+    "javaGate": "FAIL unchanged legacy findings",
+    "oldFindings": 8,
+    "newFindings": 0,
+    "gateFindings": 1,
+    "extractionCoverageLimited": true,
+    "javascriptGate": "PASS zero findings",
+    "lintAudit": "PASS",
+    "notAllSecurityGreen": true
+  },
+  "limits": [
+    "Full Windows regression/native/install/upgrade use synthetic fixtures, not seller transactions.",
+    "10kqueue/source/report tests are not10krealCatalogcreates;300wiretest islocalhost.",
+    "Preflight10min/128MiBguard and no durablepreflightrestart checkpoint remain.",
+    "Existing second readbackloop has no per-item updater checkpoint.",
+    "LiveOMS recovery/paidpurchase, sellerCryptoPro and Catalogcreate/sign/publish not verified here.",
+    "Updater test uses original published167JAR onLinux; Windows asset selection only simulated after network, no sellerpopup/install observation.",
+    "Inherited managed proxy/CA may attach repo credentials; anonymous access not independently established.",
+    "Manifest public key unpinned and Authenticode signing absent, unchanged from baseline."
+  ],
+  "evidenceSha256": {
+    "security-comparison.json": "f85bd8d9d974f8a9777fc32174a3b279730730ff58c55f14db983a76538fb35c",
+    "updater-readiness-historical.json": "dfb8ab22140722898065328c981dfa2f8f8791e13c94e9cb02ed8484ac905acf",
+    "updater-jar-manifest.json": "1a8d9da4e8a37f635590681af0f3d3cc8272fed586deaceb05fe7e7d5b0e9d3a",
+    "draft-notes-review.json": "560ea5efb3b04a1f3e8442866183489a5bd8137ff2617108924f8b5f968d6627",
+    "package-review.json": "23af3023745c50eb27ba13f3d536f66c393028ba85b894c00172fac6022f2648",
+    "test-source-census.json": "8b6d51c290d9d8f73d33e5314eabdb85cd715308313672668a44ad2af9482fb8",
+    "source-inclusion.json": "41e07cb22e7cd554bef104d705e7809733edb0fa08664f231c7375f975ca931f",
+    "full-junit.json": "faab8360c7109e0686ce4511419616b4140cb6469ba5c25b2c0e10713ba82d3a",
+    "public-downloads.json": "68369f5bde43b26067ac70d481a498f2771ef86495bae0a020a9aa8604656464",
+    "updater-after.json": "85d18d894798721827fa63828fe8c6ba89a3d33c79e65828ab181e1c66552b4f",
+    "embedded-msi-review.json": "542e7b10aaa7fde94831f7526817945efc369132c9636ca0484d71b87f193013",
+    "build-run.json": "406f0b03f7d76520a3b82109aa38279c8b95f12897ce556c7c54c58a92065624",
+    "security-summary.json": "a47101ecd417993c038e07efb5c2e160a8627abb34e1bb0f4ae4e5d0dca06247",
+    "public-preservation.json": "4eb8b16ddad12609f9b48ff3b59345466002bf5b4fff45a6a4409a627ccca862",
+    "updater-before.json": "a46fe692401b10e60787c5ad88074d97d61b524d809d303ca93295b0edf3a034",
+    "publisher-run.json": "eec450b05f1823dec4932c9c60853cf73de111a40a5030ba9363d9c7a664232d",
+    "updater-verification.json": "d3a2462d9c8f2a58db164a2ec34158ba8746bd5773e5249f9cbc46aabd51b41b"
+  }
+}

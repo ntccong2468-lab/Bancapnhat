@@ -1,0 +1,11 @@
+{
+  "result": "PASS",
+  "source": "independent-static-PE-resource-read",
+  "resourceType": 10,
+  "resourceName": "MSI",
+  "resourceBytes": 148739333,
+  "resourceSha256": "8dbfd5e6eb91c4635a1f535640e77b147254944cb11fe0998a367348f76a41cf",
+  "exeSha256": "bce16b0cb2eadc155f89c9bafcecd802cf8463272b02aae6e68bf9f105b90707",
+  "msiSha256": "8dbfd5e6eb91c4635a1f535640e77b147254944cb11fe0998a367348f76a41cf",
+  "executedInstaller": false
+}

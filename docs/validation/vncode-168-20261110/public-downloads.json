@@ -1,0 +1,11 @@
+{
+  "verifiedAtUtc": "2026-11-10T15:36:58.340935+00:00",
+  "releaseId": 440439895,
+  "source": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "publishedAt": "2026-11-10T15:34:37Z",
+  "publicFilesActuallyDownloaded": 16,
+  "allBytesMatchReviewedArtifacts": true,
+  "releaseCount": 18,
+  "tagCount": 47,
+  "transport": "Default inherited managed proxy/CA; platform may attach repository credentials; no anonymous claim"
+}

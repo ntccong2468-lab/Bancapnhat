@@ -1,0 +1,15 @@
+{
+  "id": 42828436446,
+  "workflow_id": 392732536,
+  "head_sha": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "head_branch": "release/vn-code-1.6.8",
+  "event": "workflow_dispatch",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-11-10T13:51:52Z",
+  "updated_at": "2026-11-10T15:27:24Z",
+  "run_attempt": 1,
+  "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828436446",
+  "sourceMetadata": "Derived projection of actual GitHub API run metadata",
+  "rawMetadataSha256": "357bfa126042621896cc51036e24d97581f61ecedef34efe0f5b8c84ff8cffaf"
+}

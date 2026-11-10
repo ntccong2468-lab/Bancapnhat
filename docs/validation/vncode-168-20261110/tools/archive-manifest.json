@@ -1,0 +1,30 @@
+{
+  "kind": "NON_SECRET_VALIDATION_SOURCE_ARCHIVE",
+  "notRuntimeOrAcceptanceByItself": true,
+  "files": [
+    {
+      "file": "verify-package.py",
+      "sha256": "f9aa84ff14e11513fcc0079947ca0d884dc3fbabd1152ae30d784887febdeee5",
+      "bytes": 21946,
+      "sourceCopyByteIdentical": true
+    },
+    {
+      "file": "check-embedded-msi.py",
+      "sha256": "8bd43077fc232bd882183542e072ffc64a551c2b36001b894ef3c36251336910",
+      "bytes": 2787,
+      "sourceCopyByteIdentical": true
+    },
+    {
+      "file": "verify-public.py",
+      "sha256": "520f5dfe085efbae0b37c933c9cf6e04b42388a4f2c5134f415921249cf65e31",
+      "bytes": 19980,
+      "sourceCopyByteIdentical": true
+    },
+    {
+      "file": "Installed167UpdateProbe.java",
+      "sha256": "348ee21088c264220fd5161baf95c894131d04382ef3eae5be5adcec59675fca",
+      "bytes": 4194,
+      "sourceCopyByteIdentical": true
+    }
+  ]
+}

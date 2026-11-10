@@ -1,5 +1,14 @@
 # Bộ nhớ dự án VNCode
 
+## 10.11.2026 MSK — Latest1.6.8 đã phát hành và kiểm chứng
+
+[Handoff](validation/2026-11-10-vncode-168-release-handoff.md), [finalreceipt](validation/vncode-168-20261110/final-release.json). Nguồn38906a2 từ73619d3 giữ mọi1.6.7 và hai sửa runtime8fed/3990072; publisher1a19377/run42845466246. Immutable440439895/v1.6.8,15:34:37UTC/18:34:37MSK. FullWindows42828436446PASS4254/554,4252đạt/0failure/error/2namedOSskip;5stress, native/DPAPI/install/passiveupgrade167→168 đạt. SourceZIP3086/JAR1994/18runtime/no fixtures; đọc MSI PE củaEXE độc lập khớp SHA. Node166/174ởscopekhác,khôngcộng.
+
+16publicfiles tải/kiểm hash, giữ17release/274asset/46tag cũ; sau18/290/47. Binary167gốc nhậnAVAILABLE168/đúngMSIhash8dbfd5e6...a41cf/148739333bytes, chưapopupmáyseller; Cloudproxy/CA/Windowsassetselection mô phỏng sau network. Source/tag/binary168immutable, docs sau khôngđổiapp. Không paidKIZ/Catalogwrite/signing/licenseactivation/Gmail/portaldeploy. FreshCodeQL giữ8old/1highgate/0new, JavaFAIL/extractionlimited, không allgreen.
+
+Quyếtđịnh: phát hành saufullWindowsfresh+review artifactzip gốc+16payload+native/passiveupgrade+pinsownerrequest168 và public/updater/preservation. Giữstrictidentity vàrecovery đơnKIZcũ; khôngbật mọiFAILED hoặcrebuy.10k làqueue/read/report fixtures; preflight10phút/128MiB/chưa checkpointrestart vàsecondreadbackupdatergap còn. GiữhistoriesRED/fail/stop thayvì sửathànhPASS. Công cụ mới lưu nguồn/hash tại `validation/vncode-168-20261110/tools/`, khônggói tự đủđầuvào.
+
+
 ## 10.11.2026 MSK — KIZ3390/EXHAUSTED và báo cáo lô3.000–10.000; Windows502đạt, chưa phát hành
 
 [Bàn giao KIZ](validation/2026-11-10-kiz-exhausted-recovery.md), [Znack](validation/2026-11-10-znack-bulk-preflight.md). Core8fed Linux283đạt nhưng Windows42817045823 Large300 vượt600s, không nghiệm thu. Candidate đầu dừng có lưu bằng chứng108đạt; giữ Large300 byte-identical/600s, sửa báo cáo tránh đếm toàn lô mỗi trạng thái và per-item WAL bao cả reporting/catch. Nguồn kết hợp3990072 đã push; Linux45/7đạt, bài300 giữ nguyên đạt264,905s và queue10.000/33,05s. SQL VM3.000/10.000+negative control, owner/append/reopen đã đạt; **Windows42824401761 đúng source đã PASS502/502ca/38suite,0 failure/error/skip**, bài300 giữ600s đạt395,626s, queue10.00020,218s. [Kết luận/lệnh/giới hạn](validation/znack-bulk-20261110/acceptance-summary.json), [Windows](validation/znack-bulk-20261110/final-windows.json);45Linux và502Windows có trùng ca, không cộng. Package checkout sạch3990072 PASS; không bộ cài/Latest. Xem [receipt Linux](validation/znack-bulk-20261110/final-scaled-linux.json).
