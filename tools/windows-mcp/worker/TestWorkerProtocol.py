@@ -11,10 +11,15 @@ import time
 import urllib.error
 import urllib.request
 
-URL = "http://127.0.0.1:18765/mcp/"
+URL = "http://127.0.0.1:18765/mcp"
 # The worker test is deliberately fixed to this computer's loopback interface.
 # Do not let Windows system proxy discovery forward its bearer to a remote proxy.
-LOCAL_HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+LOCAL_HTTP = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
 EXPECTED_TOOLS = set("App,Snapshot,Screenshot,Click,Type,Scroll,Move,Shortcut,Wait,WaitFor,ControlStatus".split(","))
 
 
@@ -71,24 +76,29 @@ def validate(require_image: bool, report: dict) -> None:
     token = os.environ.get("WINDOWS_MCP_AUTH_KEY", "")
     check(bool(token), "MCP_TEST_TOKEN_MISSING")
     initialize = rpc(1, "initialize", {"protocolVersion": "2025-06-18", "capabilities": {}, "clientInfo": {"name": "vncode-worker-validation", "version": "1.0"}})
+    report["stage"] = "unauthenticated_initialize"
     deadline = time.monotonic() + 90
     while True:
         try:
             request(initialize, None)
             raise ProtocolFailure("MCP_ACCEPTED_UNAUTHENTICATED_REQUEST")
         except urllib.error.HTTPError as error:
+            report["missingTokenHttpStatus"] = error.code
             check(error.code == 401, "MCP_UNAUTHENTICATED_STATUS_NOT_401")
             break
         except urllib.error.URLError:
             check(time.monotonic() < deadline, "MCP_WORKER_STARTUP_TIMEOUT")
             time.sleep(0.25)
     report["missingTokenRejected"] = True
+    report["stage"] = "incorrect_token_initialize"
     try:
         request(initialize, "incorrect-local-validation-token")
         raise ProtocolFailure("MCP_ACCEPTED_INCORRECT_TOKEN")
     except urllib.error.HTTPError as error:
+        report["incorrectTokenHttpStatus"] = error.code
         check(error.code == 401, "MCP_INCORRECT_TOKEN_STATUS_NOT_401")
     report["incorrectTokenRejected"] = True
+    report["stage"] = "authenticated_initialize"
     _, session, message = request(initialize, token)
     check(isinstance(message, dict) and "result" in message and "error" not in message, "MCP_INITIALIZE_FAILED")
     server = message["result"].get("serverInfo", {})
@@ -96,12 +106,15 @@ def validate(require_image: bool, report: dict) -> None:
     report["server"] = server
     protocol = message["result"]["protocolVersion"]
     report["protocolVersion"] = protocol
+    report["stage"] = "notifications_initialized"
     request({"jsonrpc": "2.0", "method": "notifications/initialized"}, token, session, protocol)
+    report["stage"] = "tools_list"
     _, _, message = request(rpc(2, "tools/list"), token, session, protocol)
     check(isinstance(message, dict) and "result" in message, "MCP_TOOLS_LIST_FAILED")
     names = {tool["name"] for tool in message["result"].get("tools", [])}
     check(names == EXPECTED_TOOLS, "MCP_UI_TOOL_ALLOWLIST_MISMATCH")
     report["tools"] = sorted(names)
+    report["stage"] = "control_status"
     _, _, message = request(rpc(3, "tools/call", {"name": "ControlStatus", "arguments": {}}), token, session, protocol)
     check(isinstance(message, dict) and "result" in message and not message["result"].get("isError"), "MCP_CONTROL_STATUS_FAILED")
     result = message["result"]
@@ -113,6 +126,7 @@ def validate(require_image: bool, report: dict) -> None:
     report["controlPolicy"] = "balanced"
     report["desktopImageChecked"] = False
     if require_image:
+        report["stage"] = "desktop_screenshot"
         _, _, message = request(rpc(4, "tools/call", {"name": "Screenshot", "arguments": {"use_annotation": False}}), token, session, protocol)
         check(isinstance(message, dict) and "result" in message, "MCP_SCREENSHOT_CALL_FAILED")
         result = message["result"]
@@ -126,6 +140,7 @@ def validate(require_image: bool, report: dict) -> None:
         check(width > 0 and height > 0, "MCP_SCREENSHOT_DIMENSIONS_INVALID")
         report["desktopImageChecked"] = True
         report["screenshot"] = {"width": width, "height": height, "mimeType": images[0]["mimeType"]}
+    report["stage"] = "complete"
 
 
 def main() -> int:
@@ -139,6 +154,9 @@ def main() -> int:
         report["status"] = "PASS"
     except ProtocolFailure as error:
         report["errorCode"] = str(error)
+    except urllib.error.HTTPError as error:
+        report["errorCode"] = "MCP_PROTOCOL_HTTP_" + str(error.code)
+        report["httpStatus"] = error.code
     except Exception as error:
         # Do not print request objects, headers, the token, or arbitrary remote response content.
         report["errorCode"] = "MCP_PROTOCOL_TEST_" + type(error).__name__.upper()

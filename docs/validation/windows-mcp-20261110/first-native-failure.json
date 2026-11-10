@@ -1,0 +1,53 @@
+{
+  "runId": 42882348806,
+  "sourceCommit": "9a2a8ad7a5d6d55a2d0c5ab4c12f173cf3214c08",
+  "status": "completed",
+  "conclusion": "failure",
+  "htmlUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42882348806",
+  "jobs": [
+    {
+      "id": 130061619151,
+      "conclusion": "failure",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "conclusion": "success"
+        },
+        {
+          "name": "Parse Windows PowerShell scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned worker and prove rerun keeps the protected token",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate authenticated local MCP and tool restrictions",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Upload sanitized protocol receipt only",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "failure": {
+    "missingTokenRejected": true,
+    "incorrectTokenRejected": true,
+    "errorCode": "MCP_PROTOCOL_TEST_HTTPERROR"
+  },
+  "scope": "Actual Windows hosted runner: installation/rerun/CLI passed; authenticated initialize has not passed. No seller app, real computer connection or paid/API operations."
+}

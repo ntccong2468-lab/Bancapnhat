@@ -1,18 +1,18 @@
 {
   "artifact": "windows-setup.zip",
-  "sha256": "3351da38392a3c00957a2fbe4d4f3d3871a8175a4d53d9b52ea7e6089ddb2714",
-  "bytes": 12433,
+  "sha256": "50e6d7c921fea17bdaa48dc0880f1bd923d4b9d76fc37e504af2b0195382b6dc",
+  "bytes": 12634,
   "files": {
     "Export-ConnectionToken.cmd": "326d3f969ac37c96fcb9c5df189f957a50b65089f99fd9b941ca0dc4318ae2ad",
     "Export-ConnectionToken.ps1": "33102769814e13c3e8b2b9385a373b0ade9fe021d6966931fa1f339ccdc0b45b",
     "Install-WindowsMCP.cmd": "8a5952c242674c188daffa47f5422a35fc126efe29fa4243c43f48c55042c795",
     "Install-WindowsMCP.ps1": "546e7d9ecc043eaa8c7f0d560259ce36aa00cd510fcca3b4181af70ef607c3d5",
     "Start-WindowsMCP.cmd": "eb3107e863e748529e4cf04ab54754ad22102816bcb21c504575f2925877d7fc",
-    "Start-WindowsMCP.ps1": "2fe4d948235cfcf6c0bfea02af88b6ff5a3c7e9f0c424d3eb7ebfc21be066200",
+    "Start-WindowsMCP.ps1": "b91e0fd64213eee142063a7e7ca567d33db803be7bc0af233753247a6beaa621",
     "Test-WindowsMCP.ps1": "bd9ab2b4e6d9c667807298c47e70c390662e9912a0e2551c51b2474fbc2094bd",
-    "TestWorkerProtocol.py": "42628ae92b95d2b5275c33dc91e38bc7c3279ff71d1e10f6a2c02311bc0bdb5d",
-    "WindowsMCP.Common.ps1": "a42b1e39fe5af8a8dd54a99fb8d1de8a6dc37802731c2ae8817d01ddd675db99",
-    "README-VI.txt": "85122ff266f6effcd15c6057a67f498f2e1451c1e3225db4de800a9fc3ae47f9"
+    "TestWorkerProtocol.py": "638dd5efa1effcb78345a50093d39f8dc347482a0ca428dde21b0c04cdd2fb9f",
+    "WindowsMCP.Common.ps1": "134ade520c8c141f519784fe045c3858349b18ad234b0c2a9de6b2022d120aae",
+    "README-VI.txt": "7cb2cfd967a0b1208a04a2db36f2dc1911928343d70a67b1910848d295ba8f2c"
   },
-  "scope": "Windows worker setup scripts only; no token, source vendor archive, interpreter, seller data or app binary bundled."
+  "scope": "Setup scripts only; no token, vendor archive, runtime, seller data or app binary."
 }

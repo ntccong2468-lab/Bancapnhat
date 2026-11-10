@@ -21,13 +21,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Start-WindowsMCP.ps1
 
 Cài vào `%LOCALAPPDATA%\VNCode\WindowsMCP`, không sửa dữ liệu app/cửa hàng, không thêm service, tác vụ tự khởi động hoặc firewall. ZIP nguồn và uv được kiểm SHA-256; source giữ manifest để phát hiện thay đổi. Token ngẫu nhiên lưu bằng DPAPI CurrentUser trong thư mục chỉ user và SYSTEM có quyền. Chạy cài lại giữ token cũ. Telemetry tắt; desktop control/nhường quyền cho người dùng bật. Chỉ mở các công cụ UI cùng `ControlStatus`; App vẫn có thể mở EXE nên đây không phải sandbox hệ điều hành.
 
-Worker chỉ nghe **`http://127.0.0.1:18765/mcp/`**, có bearer authentication. Địa chỉ này chưa đủ để Codex cloud kết nối. Cần đường HTTPS/tunnel/VPN từ Codex tới máy Windows; bộ này không tự công khai desktop ra Internet. Tunnel phải giữ `Authorization`, hỗ trợ MCP Streamable HTTP và đổi Host gửi về origin thành `127.0.0.1`/`localhost` để qua kiểm tra Host của upstream. Không tắt TLS hoặc dùng cờ bỏ xác thực remote.
+Worker chỉ nghe **`http://127.0.0.1:18765/mcp`**, có bearer authentication. Địa chỉ này chưa đủ để Codex cloud kết nối. Cần đường HTTPS/tunnel/VPN từ Codex tới máy Windows; bộ này không tự công khai desktop ra Internet. Tunnel phải giữ `Authorization`, hỗ trợ MCP Streamable HTTP và đổi Host gửi về origin thành `127.0.0.1`/`localhost` để qua kiểm tra Host của upstream. Không tắt TLS hoặc dùng cờ bỏ xác thực remote.
 
 ## Kết nối từ Codex
 
 Khi đã có địa chỉ HTTPS thực:
 
-- Cấu hình biến `VNCODE_WINDOWS_MCP_URL` bằng endpoint `/mcp/` thực.
+- Cấu hình biến `VNCODE_WINDOWS_MCP_URL` bằng endpoint `/mcp` thực.
 - Chạy `Export-ConnectionToken.cmd` trên Windows để chủ động sao chép token; dán vào **Secrets của môi trường Codex** tên `VNCODE_WINDOWS_MCP_TOKEN`, giới hạn đích đúng hostname HTTPS. Không gửi token trong chat. Xóa clipboard sau khi dán.
 - Copy `connection.example.json` thành `connection.local.json` (đã gitignore) và điền `app_executable` đúng file app đang cài. Không chọn file bộ cài. Helper launch chỉ nhận `VN code.exe`/`VNcode.exe` trên ổ đĩa Windows cục bộ, không truyền thêm đối số.
 

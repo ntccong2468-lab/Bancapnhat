@@ -142,6 +142,7 @@ function Set-WindowsWorkerEnvironment([string]$Root) {
         WINDOWS_MCP_CONTROL_IDLE_TIMEOUT = $null
         WINDOWS_MCP_DEBUG = $null
         WINDOWS_MCP_WATCHDOG = 'false'
+        FASTMCP_STREAMABLE_HTTP_PATH = '/mcp'
     }
     foreach ($key in $values.Keys) {
         $before[$key] = [Environment]::GetEnvironmentVariable($key, 'Process')

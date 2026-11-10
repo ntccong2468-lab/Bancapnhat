@@ -1,0 +1,37 @@
+{
+  "result": "PASS",
+  "recordedAtUtc": "2026-11-10T19:03:47.905050+00:00",
+  "tests": 16,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "command": "/workspace/windows-mcp-runtime/.venv/bin/python -m unittest discover -s tools/windows-mcp -p test_client.py -v",
+  "cwd": "/workspace/vncode-windows-mcp-20261110",
+  "scope": "Linux CLI and actual MCP v2 Streamable HTTP transport with authenticated synthetic localhost MCPServer fixture. No Windows desktop, actual VN Code app, seller data or seller API operations.",
+  "testCases": [
+    "test_allowed_click_is_sent_with_exact_arguments",
+    "test_capture_refuses_existing_shared_output_directory",
+    "test_capture_rejects_malformed_image_data",
+    "test_capture_saves_actual_image_privately_without_printing_base64",
+    "test_capture_text_error_is_not_success_even_when_is_error_is_false",
+    "test_capture_timeout_is_bounded_and_does_not_save_fake_image",
+    "test_dangerous_generic_tools_are_blocked_before_network",
+    "test_launch_uses_only_configured_executable_with_separate_empty_arguments",
+    "test_missing_bearer_is_rejected_before_network",
+    "test_other_executables_unc_and_traversal_cannot_be_launched",
+    "test_probe_negotiates_mcp_and_lists_tools_without_calling_desktop_tools",
+    "test_probe_redacts_credential_even_when_reflected_in_server_metadata",
+    "test_snapshot_returns_saved_ui_text_and_requests_no_image",
+    "test_tool_error_flag_is_failure_and_reflected_bearer_is_redacted",
+    "test_unsafe_urls_fail_before_connection_and_do_not_print_embedded_credentials",
+    "test_wrong_bearer_cannot_negotiate_or_leak_credential"
+  ],
+  "logSha256": "950e6067fa297119588b8139055bd66ff93d72ab7a3e905169416da4255a8d93",
+  "sourceSha256": {
+    "tools/windows-mcp/client.py": "7e9b924addfc2418e61497da3bc54360f877982209cafe919a2ecd3c7a08f818",
+    "tools/windows-mcp/test_client.py": "50ace93738eee521f1de9d371fea6f76cd8fa9912d23738abd14033db0ef9f94",
+    "tools/windows-mcp/fixture_server.py": "191fde653ec3fd146024c1cf9647ab950f9745ff4cd406ff929cfc9d1e95a98c",
+    "tools/windows-mcp/requirements.in": "b2a3a41cb92969a57ba10746218731ed453fe6528322ddda667df989ac494035",
+    "tools/windows-mcp/requirements.lock": "248d372907d2f039239c621f9d637c60688cb2a78d637f24ba68bc1838bbff61"
+  }
+}
