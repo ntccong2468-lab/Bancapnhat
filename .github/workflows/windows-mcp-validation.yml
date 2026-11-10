@@ -6,6 +6,7 @@ on:
     paths:
       - 'tools/windows-mcp/**'
       - '.github/workflows/windows-mcp-validation.yml'
+      - '.gitattributes'
   workflow_dispatch:
     inputs:
       capture_desktop:

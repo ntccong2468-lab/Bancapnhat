@@ -1,0 +1,3 @@
+# Keep the reviewed Windows setup ZIP and its source hashes identical on every checkout.
+tools/windows-mcp/** text eol=lf
+tools/windows-mcp/*.zip binary

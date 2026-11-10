@@ -1,0 +1,47 @@
+{
+  "runId": 42883195117,
+  "sourceCommit": "4d2407333f9c98dea7cd2eec147ed2dfb7ffc5d0",
+  "conclusion": "failure",
+  "htmlUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42883195117",
+  "jobs": [
+    {
+      "id": 130064597324,
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "conclusion": "success"
+        },
+        {
+          "name": "Parse Windows PowerShell scripts",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Install pinned worker and prove rerun keeps the protected token",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Validate authenticated local MCP and tool restrictions",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Upload sanitized protocol receipt only",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "failure": "Setup ZIP source-manifest assertion fails after Windows Git checkout converts LF to CRLF. Install and canonical-route protocol steps did not run.",
+  "fix": "Scoped .gitattributes pins only tools/windows-mcp text to LF and ZIP to binary; keep byte-for-byte assertions."
+}
