@@ -1,0 +1,72 @@
+{
+  "kind": "RELEASE_168_IN_PROGRESS_NOT_ACCEPTANCE",
+  "recordedAtUtc": "2026-11-10T14:42:38.741590+00:00",
+  "ownerRequestedPublication": true,
+  "ownerInstruction": "tạo bản mới và đẩy lên latest",
+  "version": "1.6.8",
+  "sourceCommit": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "sourceBranch": "release/vn-code-1.6.8",
+  "buildRunId": 42828436446,
+  "buildWorkflowId": 392732536,
+  "observedBuildStatus": "in_progress",
+  "observedBuildConclusion": null,
+  "observedStep": [
+    "Verify whole Java application and package"
+  ],
+  "draftReleaseId": 440439895,
+  "draftPublished": false,
+  "before": {
+    "releases": 17,
+    "assets": 274,
+    "tags": 46,
+    "releasesSha256": "67fd095fe3442806192b7a2ed472f45b8a67e8df5fd70768e47f30ca036f3368",
+    "tagsSha256": "933fe02cb4d4b3352b09af72e7f7f89f6d05af838a64508bb561fd8b98ec8f01"
+  },
+  "previousLatest": {
+    "version": "1.6.7",
+    "source": "d0231cd6913ce3a1764067bad0901b32c535de41",
+    "releaseId": 438471378
+  },
+  "nodeBeforeBuild": {
+    "tests": 166,
+    "passed": 166,
+    "failures": 0,
+    "skipped": 0
+  },
+  "focusedTestsRetainedAsPriorScope": {
+    "windows": 502,
+    "linux": 45,
+    "fullReleaseAcceptance": false
+  },
+  "security": {
+    "runId": 42828869332,
+    "conclusion": "failure",
+    "javaCodeqlFindings": 8,
+    "javaGateFindings": 1,
+    "newFindingsComparedTo167": 0,
+    "javascriptCodeql": "pass, zero findings",
+    "lintAudit": "pass",
+    "extractionCoverageLimited": true
+  },
+  "fullJavaCounts": null,
+  "artifactReviewPassed": false,
+  "installerReady": false,
+  "updaterBefore": {
+    "actualPublishedBinary": "1.6.7",
+    "result": "CURRENT",
+    "sellerPopupObserved": false
+  },
+  "latestPublicationDone": false,
+  "sellerApiWrites": 0,
+  "realKizPurchases": 0,
+  "realSigning": 0,
+  "licenseActivations": 0,
+  "pending": [
+    "Await exact-source full Windows success and16-asset artifact.",
+    "Verify raw Actions ZIP/digest plus source/runtime/fullJUnit/native/DPAPI/passive upgrade.",
+    "Fill actual publisher pins; run tooling tests and independent review.",
+    "Publish new immutable168Latest, preserve17releases/274assets/46tags.",
+    "Verify all publicbytes and actual167updaterAVAILABLE168; finalize memory/handoff."
+  ],
+  "transportScope": "Default HTTP through inherited managed proxy/CA; platform may attach repository credentials; do not claim anonymous access. No credentials archived."
+}

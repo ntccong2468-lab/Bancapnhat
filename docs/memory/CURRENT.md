@@ -7,6 +7,7 @@ Cập nhật: **10.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước
 - Lệnh mới: “tạo bản mới và đẩy lên latest”. Phạm vi chỉ build/kiểm tra/công bố ứng dụng, không mở lại thử mua KIZ hoặc ghi API seller.
 - Nhánh `release/vn-code-1.6.8`, worktree `/workspace/vncode-168-release`, kế thừa73619d3 gồm runtime3990072/core8fed và toàn bộ1.6.7d023. Bump hai khai báo version trong POM sang1.6.8, không đổi runtime đã kiểm chứng; thêm ghi chú phát hành.
 - Chuẩn bị freeze/push nguồn1.6.8, chạy workflow `publish-vncode-baseline.yml` full Windows và native/install/passive upgrade từ Latest1.6.7. Không dùng502focused để thay full release run. Sau build cần review gói, pin publisher mới cho1.6.8, công bố và kiểm public/updater. Giữ mọi release/tag/asset cũ, không prune hoặc ghi đè1.6.7.
+- [Checkpoint đang chạy](../validation/2026-11-10-vncode-168-release-progress.json): nguồn1.6.8 **38906a2108501029d9609ed1d071ee987c8b2637**, full Windows **42828436446**, draft **440439895** chưa công bố/0asset. Node166đạt; full Java còn chạy, chưa có số ca nghiệm thu/bộ cài. Security42828869332 giữ8finding Java cũ/1gate/0mới; JS và lint đạt, có giới hạn extraction. Binary1.6.7 thật đã thử CURRENT trước công bố. Không dùng checkpoint này làm PASS hoặc tự tạo thêm draft.
 - Latest hiện vẫn1.6.7 cho tới công bố thành công. Các checkpoint “chưa phát hành” phía dưới mô tả lúc hoàn tất phần sửa, trước lệnh phát hành mới này.
 
 ## 10.11.2026 — nguồn WB300/10.000, KIZ3390 và báo cáo lô lớn đã kiểm chứng tập trung; chưa phát hành
