@@ -1,5 +1,11 @@
 # Bộ nhớ dự án VNCode
 
+## 10.11.2026 MSK — KIZ3390/EXHAUSTED và báo cáo lô3.000–10.000; hồi quy cuối đang chạy
+
+[Bàn giao KIZ](validation/2026-11-10-kiz-exhausted-recovery.md), [Znack](validation/2026-11-10-znack-bulk-preflight.md). Core8fed Linux283đạt nhưng Windows42817045823 Large300 vượt600s, không nghiệm thu. Candidate đầu dừng có lưu bằng chứng108đạt; giữ Large300 byte-identical/600s, sửa báo cáo tránh đếm toàn lô mỗi trạng thái và per-item WAL bao cả reporting/catch. Test SQL VM3.000/10.000+negative control, owner/append/reopen đã thêm; chờ lượt cuối Linux/Windows đúng source.
+
+KIZ khôi phục blocks/retry khi EXHAUSTED, không mua lại hoặc gọi lại cấp thường, kiểm order/GTIN/OMS/khối và mã đã lưu, bảo toàn trạng thái mã; không tự bật FAILED. Official SUZ5.03/API3.0.40 đã đối chiếu. Người dùng cung cấp thông tin OMS rồi chỉ đạo sửa mã; auth/key thật200, order/list chưa xác thực400/1090, không có phiên/chữ ký. Không mua/cấp mã/ký/activate license thật, không lưu secret. Latest vẫn1.6.7; chưa build/publish patch này.
+
 ## 10.11.2026 MSK — đăng ký lô lớn lỗi nguồn WB trước Catalog; sửa nguồn, chưa phát hành
 
 [Handoff](validation/2026-11-10-znack-bulk-preflight.md), [283 ca tập trung đạt](validation/znack-bulk-20261110/focused-final-receipt.json), nhánh `fix/znack-preflight-bulk-20261110` từ95d8942/appd023. API WB thật tái hiện3/11 tìm kiếm nmID trảHTTP200 rỗng dù có trên trang mới; production source review đã đọc đủ300/300 bằng4HTTP trong15,696s. User xác nhận WB key thuộc cửa hàng báo lỗi. API Catalog key mới đọc999 thẻ, không có Catalog POST thật trong lượt này; log gốc dừng trước batchStarter/POST feed.

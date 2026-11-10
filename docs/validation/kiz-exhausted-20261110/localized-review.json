@@ -1,0 +1,88 @@
+{
+  "review": "KIZ EXHAUSTED localized diagnostics readonly peer review",
+  "reviewer": "/root/kiz_buffer_contract",
+  "reviewedAtUtc": "2026-11-10T12:59:46.365518+00:00",
+  "worktree": "/workspace/vncode-znack-bulk-20261110",
+  "baseCommit": "8fed8f717169aeb888ffa080674df35b66d42c74",
+  "headCommit": "8fed8f717169aeb888ffa080674df35b66d42c74",
+  "scope": "Static review of 12 frozen KIZ source/test/resource files, concentrating on added FriendlyErrorService identity handling, ZnackErrorMessages display, four translations, and FriendlyErrorCodeTest; underlying six-file recovery review preserved separately.",
+  "filesSha256": {
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java": "bd472453cef730f63e7260fdb1dfe3d7088c78a37abe837c5b710bc32d7aff69",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java": "4ebcd764f8b6b0578834ed39e63d908b8edb63e7b56501f94ef9d2f94af465fb",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "a883da1f3cb61777b44a2c3b213a4be5c1ac3c06bc98a1713658d77731bf66a4",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "6d6fe02f8e3bf987990f348798a616cdd2bdf2c85f351e433c6384d37b624b3d",
+    "src/main/java/com/vncode/app/shared/FriendlyErrorService.java": "56e6f348f88044b0925eb81c3e7b03f6d8b77c8ef08e45a3c386de757bcf48dd",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "d2e02800ecb6359bab65f2be97b75acd0d1dddb5caae5a4863055edc6c01cf64",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "2931a822f437121b1fc50fcbee4b2a42c74de3d353feeac53062b045c59c97d4",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "48f6749a94cd7c50cf5467a70e3b5a95038a43c984731ea8af08769ec8de7aab",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "6e1934389cf60e3ae34ae63c99ea86341c0c17efa154221dc43b9e77af67f88a",
+    "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java": "8e5b11ec7f7676998804183bd8b559eb76f1daf1423d46d6511aa4280213b81f",
+    "src/test/java/com/vncode/app/shared/FriendlyErrorCodeTest.java": "770b2280f5fc561c4c8a0989a974ff84ba48f3559bd8a4e50212c99efc05d187"
+  },
+  "frozenManifest": "/tmp/vncode-znack-bulk-audit/kiz-final-source-manifest.json",
+  "frozenManifestSha256": "ce57e8346f584c3d3803d0b4449380ac677598c5198e97702c81611216d8c786",
+  "allFilesMatchFrozenManifest": false,
+  "historicalSixFileReview": {
+    "path": "/tmp/kiz-exhausted-final-review.json",
+    "sha256": "72664c43a217bb49c0e5e0938921b025c6a492914fccae74b5cf35fb2bbbfb00",
+    "scopeLimit": "Does not cover later FriendlyErrorService, translations or FriendlyErrorCodeTest additions."
+  },
+  "result": "NO_ACTIONABLE_BLOCKING_FINDING_IN_REVIEWED_LOCALIZED_DIFF",
+  "checks": [
+    {
+      "check": "Identity conflict remains visible",
+      "evidence": "The exact identity literal contains no pending, exhausted, closed, auth, readiness or document-wait marker; displayForPipeline reaches display and returns its localized text."
+    },
+    {
+      "check": "Private wrapper is not included",
+      "evidence": "FriendlyErrorService.format and formatDetail traverse up to eight causes and match the exact identity literal; formatDetail returns only the static translation, and format adds the stable bracketed identity code. The newly added test wraps the literal in a synthetic private OMS/token message and compares exact output."
+    },
+    {
+      "check": "All locales define the key once",
+      "evidence": "en, ru, vi and zh each define znack.error.suz_code_block_recovery_identity_invalid exactly once, with nonempty static text and no interpolation placeholders."
+    },
+    {
+      "check": "User text states preservation and reconciliation",
+      "evidence": "All four translations describe mismatch with saved order/OMS/GTIN and retention of original order/codes; none claims recovery success, legal circulation or a new purchase."
+    },
+    {
+      "check": "Underlying identity producers remain literal",
+      "evidence": "ZnackKizCodeService.RecoveryIdentityException and Coordinator consistentRecoveryOrder produce the exact stable code handled by the new branches."
+    },
+    {
+      "check": "Earlier recovery guard findings remain closed",
+      "evidence": "Current code hashes for Coordinator and CodeService match the historical six-file final review; stored metadata/parseable raw GTIN checks precede completion counts after durable EXHAUSTED checkpoint."
+    }
+  ],
+  "limits": [
+    "No Maven, tests, API calls, live OMS, real purchase, signing or license activation were executed by this reviewer.",
+    "No source, tests, resources, seller data, release, tags or repository history were modified by this reviewer.",
+    "Source matching for nested Friendly errors follows the existing eight-cause traversal boundary; the current recovery producer emits the exact stable literal.",
+    "The original 12-file frozen manifest changed only in the recovery test assertion during this review. The correction was re-read and is bound by the actual current filesSha256 values; a stale original manifest is explicitly indicated by deltaFromFrozenManifest. No test execution result is inferred."
+  ],
+  "repoEditsByReviewer": false,
+  "testCommandsByReviewer": [],
+  "apiCallsByReviewer": [],
+  "deltaFromFrozenManifest": [
+    {
+      "file": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "frozenSha256": "e04c00aa3333ea064d03cf46ed591e2941a3e6c2d2089daf71b1b87d1d2a3dac",
+      "reviewedSha256": "bd472453cef730f63e7260fdb1dfe3d7088c78a37abe837c5b710bc32d7aff69"
+    }
+  ],
+  "closedFindings": [
+    {
+      "id": "LOCALIZED_PIPELINE_ASSERTION_STALE",
+      "severity": "test failure",
+      "status": "closed by parent assertion correction during readonly review",
+      "file": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "line": 106,
+      "evidence": "identityFailureRemainsVisibleAndStillRetainsExhaustedCheckpointAcrossRestart expects the literal SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID from displayForPipeline, but the new exact-literal branch in ZnackErrorMessages.display returns the localized message.",
+      "recommendedChange": "Keep raw stored-error assertion separately if desired; compare displayForPipeline against I18nService.tr(znack.error.suz_code_block_recovery_identity_invalid). No production behavior change required.",
+      "validation": "Source inspection only; reviewer did not execute Maven or tests.",
+      "resolution": "Re-read the corrected line106: it separately asserts the literal persisted waiting.errorMessage and compares displayForPipeline with the localized I18nService.tr value. Current test SHA256 is recorded in filesSha256."
+    }
+  ],
+  "findings": []
+}

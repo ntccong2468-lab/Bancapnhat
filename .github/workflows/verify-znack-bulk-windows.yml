@@ -1,9 +1,12 @@
-name: Verify Znack bulk preflight on Windows
+name: Verify Znack bulk, KIZ and worker handoff on Windows
 on:
   push:
     branches: [fix/znack-preflight-bulk-20261110]
     paths:
       - .github/workflows/verify-znack-bulk-windows.yml
+      - src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java
+      - src/main/java/com/vncode/app/features/sync/SyncRunRepository.java
+      - src/test/java/com/vncode/app/features/sync/RegistrationReportScaleTest.java
       - src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java
       - src/main/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatch.java
       - src/main/java/com/vncode/app/integration/znack/registration/RegistrationSnapshotReview.java
@@ -13,6 +16,28 @@ on:
       - src/test/java/com/vncode/app/integration/wb/WbProductSnapshotPaginationTest.java
       - src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatchTest.java
       - src/test/java/com/vncode/app/integration/znack/registration/RegistrationLargeBatchDurabilityTest.java
+      - src/main/java/com/vncode/app/integration/znack/**
+      - src/main/java/com/vncode/app/features/kiz/**
+      - src/main/java/com/vncode/app/shared/AppTaskExecutor.java
+      - src/main/java/com/vncode/app/shared/FriendlyErrorService.java
+      - src/main/java/com/vncode/app/shared/UpdateHandoff.java
+      - src/main/java/com/vncode/app/shared/RegistrationBackgroundLifetime.java
+      - src/main/java/com/vncode/app/config/Database.java
+      - src/main/java/com/vncode/app/config/SqliteWriteTransaction.java
+      - src/main/resources/com/vncode/app/i18n/messages_*.properties
+      - src/test/java/com/vncode/app/integration/znack/**
+      - src/test/java/com/vncode/app/features/kiz/**
+      - src/test/java/com/vncode/app/features/products/ProductSnapshotReaderTest.java
+      - src/test/java/com/vncode/app/config/DatabaseBatchSessionTest.java
+      - src/test/java/com/vncode/app/shared/*Handoff*Test.java
+      - src/test/java/com/vncode/app/shared/FriendlyErrorCodeTest.java
+      - src/test/java/com/vncode/app/shared/RegistrationBackgroundLifetimeTest.java
+      - src/test/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflightTest.java
+      - src/test/java/com/vncode/app/ui/znackregistration/RegistrationPreflightCancellationTest.java
+      - src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java
+      - pom.xml
+      - mvnw.cmd
+      - .mvn/wrapper/**
   workflow_dispatch:
     inputs:
       source_commit:
@@ -27,6 +52,7 @@ jobs:
     timeout-minutes: 30
     env:
       REQUESTED_SOURCE: ${{ github.event_name == 'push' && github.sha || inputs.source_commit }}
+      FOCUSED_TESTS: WbProductSnapshotPaginationTest,WbRegistrationSnapshotBatchTest,ProductSnapshotReaderTest,RegistrationSnapshotReviewTest,RegistrationBatchPreflightTest,ZnackCardRegistrationControllerTest,RegistrationPreflightCancellationTest,RegistrationSourceConsentTest,RegistrationLargeBatchDurabilityTest,CatalogTaskExecutorTest,WbGtinAdapterTest,ZnackExhaustedBufferWorkflowRegressionTest,ZnackExhaustedBufferRecoveryTest,ZnackModuleTest,ZnackKizPurchaseReadbackTest,ZnackPurchaseMigrationSafetyTest,ZnackOrderReconciliationSafetyTest,ZnackMutationTransportTest,ZnackLicenseBoundaryTest,ZnackGtinWorkflowTest,FriendlyErrorCodeTest,ZnackErrorDetailsTest,KizStockReplenisherTest,KizPrintPurchaseSessionTest,KizWarehouseTest,ZnackSigningSessionTest,ZnackPipelineQueueExecutorTest,RegistrationBatchConnectionLifetimeTest,DatabaseBatchSessionTest,RegistrationBackgroundLifetimeTest,UpdateHandoffTest,UpdateSnapshotHandoffTest,ZnackRegistrationBatchServiceTest,ZnackRegistrationBatchHttpIntegrationTest,RegistrationReportScaleTest,RegistrationAttemptReportsTest,SyncRunRepositoryConcurrencyTest,SyncRunRepositoryMetricsTest
     steps:
       - name: Validate source input and isolate test evidence
         shell: pwsh
@@ -55,12 +81,25 @@ jobs:
           $actual=(git rev-parse HEAD).Trim()
           if($LASTEXITCODE -ne 0 -or $actual -cne $env:REQUESTED_SOURCE.ToLowerInvariant()){throw 'Checked-out HEAD differs from source_commit.'}
           if(@(git status --porcelain).Count -ne 0){throw 'Application source must start clean.'}
-          @{sourceCommit=$actual;sourceTree=(git rev-parse 'HEAD^{tree}').Trim();workflowEventCommit=$env:GITHUB_SHA;workflowDefinitionCommit=$env:GITHUB_WORKFLOW_SHA;workflowRef=$env:GITHUB_WORKFLOW_REF;runId=[long]$env:GITHUB_RUN_ID;runAttempt=$env:GITHUB_RUN_ATTEMPT;platform='windows-latest';javaDistribution='oracle';javaMajor=25;dataProfile='production default; individual tests use isolated synthetic profiles';focusedRegressionOnly=$true;fullApplicationSuite=$false;installerBuilt=$false;releasePublished=$false;sellerApiCalls=$false;licenseActivation=$false;realSigning=$false} | ConvertTo-Json | Set-Content "$env:EVIDENCE_ROOT/provenance.json" -Encoding utf8NoBOM
+          @{sourceCommit=$actual;sourceTree=(git rev-parse 'HEAD^{tree}').Trim();workflowEventCommit=$env:GITHUB_SHA;workflowDefinitionCommit=$env:GITHUB_WORKFLOW_SHA;workflowRef=$env:GITHUB_WORKFLOW_REF;runId=[long]$env:GITHUB_RUN_ID;runAttempt=$env:GITHUB_RUN_ATTEMPT;platform='windows-latest';javaDistribution='oracle';javaMajor=25;dataProfile='production default; individual tests use isolated synthetic profiles';focusedRegressionOnly=$true;fullApplicationSuite=$false;installerBuilt=$false;releasePublished=$false;sellerApiCalls=$false;licenseActivation=$false;realSigning=$false;testSelectors=$env:FOCUSED_TESTS.Split(',');workerSourceSha256=(Get-FileHash 'src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java' -Algorithm SHA256).Hash.ToLowerInvariant();largeBatchTestSha256=(Get-FileHash 'src/test/java/com/vncode/app/integration/znack/registration/RegistrationLargeBatchDurabilityTest.java' -Algorithm SHA256).Hash.ToLowerInvariant()} | ConvertTo-Json | Set-Content "$env:EVIDENCE_ROOT/provenance.json" -Encoding utf8NoBOM
           java -version 2>&1 | Out-File "$env:EVIDENCE_ROOT/java-version.txt" -Encoding utf8NoBOM
-          .\mvnw.cmd -B '-Dtest=WbProductSnapshotPaginationTest,WbRegistrationSnapshotBatchTest,ProductSnapshotReaderTest,RegistrationSnapshotReviewTest,RegistrationBatchPreflightTest,ZnackCardRegistrationControllerTest,RegistrationPreflightCancellationTest,RegistrationSourceConsentTest,RegistrationLargeBatchDurabilityTest,CatalogTaskExecutorTest,WbGtinAdapterTest' test 2>&1 | Tee-Object "$env:EVIDENCE_ROOT/maven.log" | Out-Host
+          .\mvnw.cmd -B "-Dtest=$env:FOCUSED_TESTS" test 2>&1 | Tee-Object "$env:EVIDENCE_ROOT/maven.log" | Out-Host
           $exitCode=$LASTEXITCODE
           @{sourceCommit=$actual;mavenExitCode=$exitCode;focusedRegressionOnly=$true} | ConvertTo-Json | Set-Content "$env:EVIDENCE_ROOT/maven-exit.json" -Encoding utf8NoBOM
+          $observed=@();$tests=0;$failures=0;$errors=0;$skipped=0
+          foreach($report in @(Get-ChildItem 'target/surefire-reports/TEST-*.xml' -ErrorAction SilentlyContinue)){
+            [xml]$xml=[IO.File]::ReadAllText($report.FullName)
+            $suite=$xml.testsuite;$shortName=([string]$suite.name).Split('.')[-1]
+            $observed+=@{suite=[string]$suite.name;shortName=$shortName;tests=[int]$suite.tests;failures=[int]$suite.failures;errors=[int]$suite.errors;skipped=[int]$suite.skipped;seconds=[double]$suite.time;xmlSha256=(Get-FileHash $report.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}
+            $tests+=[int]$suite.tests;$failures+=[int]$suite.failures;$errors+=[int]$suite.errors;$skipped+=[int]$suite.skipped
+          }
+          $requested=@($env:FOCUSED_TESTS.Split(','));$actualNames=@($observed | ForEach-Object {$_.shortName})
+          $missing=@($requested | Where-Object {$_ -notin $actualNames})
+          $unexpected=@($actualNames | Where-Object {$_ -notin $requested})
+          $complete=$observed.Count -eq $requested.Count -and $missing.Count -eq 0 -and $unexpected.Count -eq 0 -and @($observed | Where-Object {$_.tests -lt 1}).Count -eq 0
+          @{sourceCommit=$actual;requestedSuites=$requested;observedSuites=$observed;coverageComplete=$complete;missingSuites=$missing;unexpectedSuites=$unexpected;tests=$tests;failures=$failures;errors=$errors;skipped=$skipped;passed=($tests-$failures-$errors-$skipped);mavenExitCode=$exitCode;focusedRegressionOnly=$true;fullApplicationSuite=$false} | ConvertTo-Json -Depth 6 | Set-Content "$env:EVIDENCE_ROOT/junit-summary.json" -Encoding utf8NoBOM
           if($exitCode -ne 0){throw 'Focused Windows Znack regression failed.'}
+          if(-not $complete -or $failures -ne 0 -or $errors -ne 0){throw 'Requested focused JUnit evidence is incomplete or failed.'}
           if((git rev-parse HEAD).Trim() -cne $actual -or @(git status --porcelain).Count -ne 0){throw 'Application source changed during verification.'}
       - name: Preserve JUnit and profile evidence even on failure
         if: always()

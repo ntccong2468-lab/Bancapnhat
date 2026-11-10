@@ -77,7 +77,8 @@ public final class RegistrationAttemptReports {
     }
     public synchronized Attempt begin(Sku sku){
         queue();
-        var item=reports.add(owner,run,Long.toString(sku.nmId()),Long.toString(sku.chrtId()),"",text(sku.vendorCode()),text(sku.color()),text(sku.size()),"","RUNNING","","{}");
+        var item=reports.registrationItem(owner,run,Long.toString(sku.nmId()),Long.toString(sku.chrtId()))
+                .orElseGet(()->reports.add(owner,run,Long.toString(sku.nmId()),Long.toString(sku.chrtId()),"",text(sku.vendorCode()),text(sku.color()),text(sku.size()),"","RUNNING","","{}"));
         reports.update(owner,item,"RUNNING","PREFLIGHT","",null);
         reports.stage(owner,run,"RUNNING","PREFLIGHT","");
         return new Attempt(sku,item);
@@ -115,9 +116,6 @@ public final class RegistrationAttemptReports {
         default -> "RUNNING";
     };}
     private static void finish(Shop owner,SyncRunRepository reports,String run,String step){
-        var counts=reports.counts(run);
-        String state=counts.getOrDefault("RUNNING",0L)+counts.getOrDefault("QUEUED",0L)>0?"RUNNING":counts.getOrDefault("WAITING_REMOTE",0L)>0?"WAITING_REMOTE"
-                :counts.getOrDefault("NEEDS_ACTION",0L)>0?"PARTIAL":counts.getOrDefault("CANCELLED",0L)>0?"CANCELLED":"SUCCEEDED";
-        reports.stage(owner,run,state,step,state.equals("PARTIAL")?"ZNACK_REGISTRATION_NEEDS_ACTION":"");
+        reports.registrationStage(owner,run,step);
     }
 }

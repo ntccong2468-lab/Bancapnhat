@@ -1168,6 +1168,7 @@ class ZnackGtinWorkflowTest {
     @Test void samePipelineCannotAdvanceConcurrently() throws Exception {
         Settings settings = testedSettings();
         long order = repository.createDraft(A, 1);
+        repository.updateOrder(order,"accepted-concurrent-order","PENDING",OrderStatus.WAITING_CODES,null);
         long pipeline = repository.createPipeline(A, 1);
         repository.updatePipeline(pipeline, order, PurchaseStage.POLLING_ORDER, null);
         AtomicInteger refreshes = new AtomicInteger();

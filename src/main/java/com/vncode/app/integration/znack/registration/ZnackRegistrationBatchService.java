@@ -182,6 +182,8 @@ public final class ZnackRegistrationBatchService {
             com.vncode.app.shared.UpdateHandoff.checkpoint();
             if(!active(store.get(shop,run).state()))return;
             if(Set.of("SUBMITTED","NEEDS_ACTION","CANCELLED").contains(item.state()))continue;
+            // Include reporting and failure writes, but release before the next updater checkpoint.
+            try(var databaseSession=com.vncode.app.config.Database.openBatchSession()) {
             assertScope(shop,batch);LicenseRuntime.require(Permission.GTIN);
             var attempt=reports.begin(item.sku());
             try {
@@ -307,6 +309,7 @@ public final class ZnackRegistrationBatchService {
                 }
                 store.item(shop,item,"NEEDS_ACTION",ZnackSanitizer.error(error),null,"");attempt.failed(error);
             }
+            }
         }
         // Imports may become visible only after the later POSTs finish. Read each still-pending
         // receipt once more now, without allocating, submitting, correcting or signing anything.
@@ -315,6 +318,7 @@ public final class ZnackRegistrationBatchService {
             if(!"WAITING_REMOTE".equals(item.state()))continue;
             var current=registrations.find(shop.getId(),item.sku().chrtId());
             if(current==null||!current.hasFeed())continue;
+            try(var databaseSession=com.vncode.app.config.Database.openBatchSession()){
             assertScope(shop,batch);assertNativeScope(shop,current,batch);
             var attempt=reports.begin(item.sku());
             try{
@@ -329,6 +333,7 @@ public final class ZnackRegistrationBatchService {
                 store.item(shop,item,"WAITING_REMOTE",readbackDetail,null,current.feedId());attempt.waiting(error);
                 // Stop this read pass at a service limit; the saved queue resumes later.
                 if(CatalogFeedback.rateLimited(error))break;
+            }
             }
         }
         var progress=latest(shop);

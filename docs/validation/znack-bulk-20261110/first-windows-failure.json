@@ -1,0 +1,231 @@
+{
+  "kind": "VNCODE_FIRST_FRESH_WINDOWS_BULK_FAILURE",
+  "recordedAtUtc": "2026-11-10T13:02:05.497590+00:00",
+  "result": "FAILED_NOT_RELEASE_ELIGIBLE",
+  "runId": 42817045823,
+  "jobId": 129832653114,
+  "sourceCommit": "8fed8f717169aeb888ffa080674df35b66d42c74",
+  "sourceTree": "f1dc2bd48306b6b2e6b11f8ff84328ff78d7da3e",
+  "workflowDefinitionCommit": "8fed8f717169aeb888ffa080674df35b66d42c74",
+  "workflowEventCommit": "8fed8f717169aeb888ffa080674df35b66d42c74",
+  "event": "push",
+  "headBranch": "fix/znack-preflight-bulk-20261110",
+  "createdAt": "2026-11-10T12:35:24Z",
+  "updatedAt": "2026-11-10T12:50:27Z",
+  "platform": "windows-latest",
+  "java": [
+    "java version \"25.0.5.0.3\" 2026-10-25 LTS",
+    "Java(TM) SE Runtime Environment (build 25.0.5.0.3+1-LTS-2)",
+    "Java HotSpot(TM) 64-Bit Server VM (build 25.0.5.0.3+1-LTS-2, mixed mode, sharing)"
+  ],
+  "actualCounts": {
+    "tests": 171,
+    "failures": 0,
+    "errors": 1,
+    "skipped": 0,
+    "passed": 170,
+    "suites": 11
+  },
+  "suites": [
+    {
+      "suite": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "seconds": 7.909,
+      "xmlSha256": "c27a5343afdd1720483f0fa2b01c9627757ed4ec5c454182b546c13141d871b2",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbGtinAdapterTest",
+      "seconds": 40.574,
+      "xmlSha256": "fc7da8864621939deb008632b26c30183c18d1672902839c42f0530fcdf755c0",
+      "tests": 51,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbProductSnapshotPaginationTest",
+      "seconds": 0.684,
+      "xmlSha256": "c9c80c463a92ee137ac003a37bce645b1642b3aa01cbb7156e832e74d988759e",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbRegistrationSnapshotBatchTest",
+      "seconds": 30.674,
+      "xmlSha256": "f57f5c2b2d9089b890ebcf3a9099b39f7e3883563ff24fcc61d27d702c20a30c",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "seconds": 620.215,
+      "xmlSha256": "b05066e111423f987369c148c0b7ef549b9bfda397d229c02dca8f372c16da4e",
+      "tests": 2,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest",
+      "seconds": 6.932,
+      "xmlSha256": "f9fb22db8924e6d5b54a9e0e2e53a3097fe5323c28bf5ab11d32c6a4e953164d",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest",
+      "seconds": 3.41,
+      "xmlSha256": "494766de62dc3dd6c731b635c4c2716c1a724c0276700750d572d822c385935a",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.shared.CatalogTaskExecutorTest",
+      "seconds": 2.267,
+      "xmlSha256": "0df72e32a20f9ac94dcc9f906ec83d460a79ba71278ee0737dc8db7f101e9c6d",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest",
+      "seconds": 38.045,
+      "xmlSha256": "10d0fdd091a327459c753bcdf40ec8c46478ccef34af491bf232e6c09c025b86",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest",
+      "seconds": 3.676,
+      "xmlSha256": "6865f8b1cb3215725006502da47eca3d5cc97b5593586dc181f5df228095fa9c",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "seconds": 62.086,
+      "xmlSha256": "bce905e6c77fc0fcab4bee10053d138785ce5082c8f3687ec3ebb2a5fb9ae5ec",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "failedCases": [
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "case": "threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart",
+      "kind": "error",
+      "type": "java.util.concurrent.TimeoutException",
+      "message": "threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart() timed out after 600 seconds",
+      "seconds": 600.837,
+      "stack": "java.util.concurrent.TimeoutException: threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart() timed out after 600 seconds\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tSuppressed: org.opentest4j.AssertionFailedError: expected: <NEEDS_ACTION> but was: <RUNNING>\n\t\tat org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)\n\t\tat org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)\n\t\tat org.junit.jupiter.api.AssertEquals.failNotEqual(AssertEquals.java:197)\n\t\tat org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:182)\n\t\tat org.junit.jupiter.api.AssertEquals.assertEquals(AssertEquals.java:177)\n\t\tat org.junit.jupiter.api.Assertions.assertEquals(Assertions.java:1145)\n\t\tat com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest.threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart(RegistrationLargeBatchDurabilityTest.java:112)\n\t\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\t\t... 2 more\n",
+      "xmlSha256": "b05066e111423f987369c148c0b7ef549b9bfda397d229c02dca8f372c16da4e"
+    }
+  ],
+  "sourceAfterClean": true,
+  "artifact": {
+    "id": 13764419790,
+    "name": "znack-bulk-windows-42817045823",
+    "size_in_bytes": 70191,
+    "digest": "sha256:919decb2773f787f70d5917cb85f21e3dc1f4e9a6c74d1be15f7d85aa30a8cfb",
+    "expired": false,
+    "created_at": "2026-11-10T12:50:23Z",
+    "expires_at": "2026-12-10T12:50:22Z"
+  },
+  "confirmedFailureStage": {
+    "phase": "Final readback after cardsVisible=true and second resumePending",
+    "assertionLine": 112,
+    "expectedState": "NEEDS_ACTION",
+    "actualState": "RUNNING",
+    "priorAssertionsReached": [
+      "All300 localhost POSTs and300 allocations asserted",
+      "299 accepted feed IDs and298 remaining asserted",
+      "Previously allocated GTIN/feed checkpoints unchanged after service reopen asserted"
+    ],
+    "notConfirmed": [
+      "Final per-row reconciliation counts at timeout",
+      "Exact blocking or expensive method at600seconds",
+      "WAL close/checkpoint churn as measured root cause"
+    ]
+  },
+  "otherGroups": {
+    "wbBatchIncludingPrivateSpill": "13/13 PASS",
+    "wbPaginationRecovery": "2/2 PASS",
+    "tenThousandQueueStorage": "PASS19.369seconds",
+    "uiAndCancellation": "All focused UI/cancellation cases PASS"
+  },
+  "linuxComparison": {
+    "kind": "Saved same-source synthetic XML read-only comparison",
+    "threeHundredSeconds": 410.804,
+    "tenThousandSeconds": 20.414,
+    "scope": "Not a new test run and not Windows acceptance."
+  },
+  "hypothesisAndPlan": {
+    "candidate": "ZnackRegistrationBatchService lacks an autocommit Database.BatchSession anchor used by other bounded workers; per-item last-connection WAL close/reopen costs are plausible.",
+    "evidence": "Existing Database.openBatchSession documentation explicitly describes the WAL close/checkpoint mechanism; worker has many independent repository transactions and no anchor. No first-run thread or database capture proves this hypothesis.",
+    "minimalSafeCandidate": "Keep one autocommit BatchSession open for a bounded worker pass under its SyncDataScope; keep all individual commits, ownership checks, deadline600,300 requests and assertions. Never hold a transaction/SQL lock across HTTP.",
+    "verification": "Compare unchanged300 test and resource lifetime/owner/cancel guards, then fresh exact-SHA Windows run; retain this failed proof. Add phase/stack capture if slowdown remains."
+  },
+  "scope": {
+    "sellerApiCalls": false,
+    "realCatalogSubmissions": false,
+    "installerBuilt": false,
+    "releasePublished": false,
+    "licenseActivation": false,
+    "realSigning": false,
+    "newTestsRunByThisAudit": false,
+    "sourceFilesEditedByThisAudit": false
+  },
+  "savedEvidenceSha256": {
+    "artifacts.json": "f23659bd8f437974a10eb2988399216ce3ded320a85b5adcf2c5173862b41669",
+    "evidence/compiled-app.properties": "875e325f92364fc9e989d23e9f1f6d10500764276fa8223f5266351662a760e7",
+    "evidence/java-version.txt": "90734ab43e04a951d1278c29dfa8b9e1a61dc0caf91060d08425a284cb3091dd",
+    "evidence/maven-exit.json": "b9689e6120b5eab7fe6b50a1f955b6e936d4240eff4476bbb9506b5f2ad91364",
+    "evidence/maven.log": "d9f588ea9e654511a74ba246a2209d4055436c2b8d64b9430c5f0865d34c1e9a",
+    "evidence/plan.json": "85f39ae8b44a91ef0ffc515eef035d7e5c7e444991dc37d28c552ae18cffb556",
+    "evidence/provenance.json": "c3a90876197c6f123a48ca5759f75bc24d8d351a2c2d4c65e50b0b46e523ba10",
+    "evidence/source-after.json": "28be05091930afb59d77a260b2e866b0ee3d8f059c684944082fed447825e015",
+    "evidence/surefire-reports/2026-11-10T12-36-43_330.dumpstream": "30c5050e4706682d921477c227085d13ac54ee89f7c52801ab67f683bbd3b33a",
+    "evidence/surefire-reports/TEST-com.vncode.app.features.products.ProductSnapshotReaderTest.xml": "c27a5343afdd1720483f0fa2b01c9627757ed4ec5c454182b546c13141d871b2",
+    "evidence/surefire-reports/TEST-com.vncode.app.integration.wb.WbGtinAdapterTest.xml": "fc7da8864621939deb008632b26c30183c18d1672902839c42f0530fcdf755c0",
+    "evidence/surefire-reports/TEST-com.vncode.app.integration.wb.WbProductSnapshotPaginationTest.xml": "c9c80c463a92ee137ac003a37bce645b1642b3aa01cbb7156e832e74d988759e",
+    "evidence/surefire-reports/TEST-com.vncode.app.integration.wb.WbRegistrationSnapshotBatchTest.xml": "f57f5c2b2d9089b890ebcf3a9099b39f7e3883563ff24fcc61d27d702c20a30c",
+    "evidence/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest.xml": "b05066e111423f987369c148c0b7ef549b9bfda397d229c02dca8f372c16da4e",
+    "evidence/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest.xml": "f9fb22db8924e6d5b54a9e0e2e53a3097fe5323c28bf5ab11d32c6a4e953164d",
+    "evidence/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest.xml": "494766de62dc3dd6c731b635c4c2716c1a724c0276700750d572d822c385935a",
+    "evidence/surefire-reports/TEST-com.vncode.app.shared.CatalogTaskExecutorTest.xml": "0df72e32a20f9ac94dcc9f906ec83d460a79ba71278ee0737dc8db7f101e9c6d",
+    "evidence/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest.xml": "10d0fdd091a327459c753bcdf40ec8c46478ccef34af491bf232e6c09c025b86",
+    "evidence/surefire-reports/TEST-com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest.xml": "6865f8b1cb3215725006502da47eca3d5cc97b5593586dc181f5df228095fa9c",
+    "evidence/surefire-reports/TEST-com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest.xml": "bce905e6c77fc0fcab4bee10053d138785ce5082c8f3687ec3ebb2a5fb9ae5ec",
+    "evidence/surefire-reports/com.vncode.app.features.products.ProductSnapshotReaderTest.txt": "b089428c0e308a0410aff69d6d0e1fe5a93c64487512a845e079a83822b51dd6",
+    "evidence/surefire-reports/com.vncode.app.integration.wb.WbGtinAdapterTest.txt": "3771ed4df9a9ced1bcbb24bb87edb5413c8dd6ef73708b5e10a4aa6bd005d53f",
+    "evidence/surefire-reports/com.vncode.app.integration.wb.WbProductSnapshotPaginationTest.txt": "dab8818881bd9118ac4617777198c1ec176b7793712fe7d910747b1ebaa3a9b9",
+    "evidence/surefire-reports/com.vncode.app.integration.wb.WbRegistrationSnapshotBatchTest.txt": "c2c0f0a2753b6d1715d1b6c22857202e417cdc249e5a7a0576431c8b17b7c975",
+    "evidence/surefire-reports/com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest.txt": "0eea2311221165330e52f54d9313901ec1817223b2e3483c56f9ba5f9b515e2b",
+    "evidence/surefire-reports/com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest.txt": "bac7d7492f4122bb74b004131ba9bbdc9c18e17094814dd3357b1e73adb48580",
+    "evidence/surefire-reports/com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest.txt": "b94890ae909ac9ce8850a70f9c7891339f8be1490d254766da806fded4459457",
+    "evidence/surefire-reports/com.vncode.app.shared.CatalogTaskExecutorTest.txt": "db8974459c593c81a9c21083cf989d886e85869f9315999c49d87c455239ab13",
+    "evidence/surefire-reports/com.vncode.app.ui.znackregistration.RegistrationBatchPreflightTest.txt": "fb76c2329f23fd07c718e8885e17620809d2e417526613bd4cd7b1f1862d324a",
+    "evidence/surefire-reports/com.vncode.app.ui.znackregistration.RegistrationPreflightCancellationTest.txt": "c4d5711c9fdc608bb02d2161117250833da685db4c97dfee7165b722d6efaf58",
+    "evidence/surefire-reports/com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest.txt": "1129743b403c01bbdcc42348fe5f351e43485ee06023a7e2eb6dc31c91d0a205",
+    "run.json": "0b2f876ed066f0941dfbc73a7a63c6870c53309621ba4aaf685536182ab83f79",
+    "run.log": "a10f0319ab022bd11a9051a868b08e755666c833cb060e98f44c69ee4ba610bc"
+  }
+}

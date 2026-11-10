@@ -1,0 +1,18 @@
+{
+  "baseCommit": "8fed8f717169aeb888ffa080674df35b66d42c74",
+  "files": {
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java": "e04c00aa3333ea064d03cf46ed591e2941a3e6c2d2089daf71b1b87d1d2a3dac",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java": "4ebcd764f8b6b0578834ed39e63d908b8edb63e7b56501f94ef9d2f94af465fb",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "a883da1f3cb61777b44a2c3b213a4be5c1ac3c06bc98a1713658d77731bf66a4",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "6d6fe02f8e3bf987990f348798a616cdd2bdf2c85f351e433c6384d37b624b3d",
+    "src/main/java/com/vncode/app/shared/FriendlyErrorService.java": "56e6f348f88044b0925eb81c3e7b03f6d8b77c8ef08e45a3c386de757bcf48dd",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "d2e02800ecb6359bab65f2be97b75acd0d1dddb5caae5a4863055edc6c01cf64",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "2931a822f437121b1fc50fcbee4b2a42c74de3d353feeac53062b045c59c97d4",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "48f6749a94cd7c50cf5467a70e3b5a95038a43c984731ea8af08769ec8de7aab",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "6e1934389cf60e3ae34ae63c99ea86341c0c17efa154221dc43b9e77af67f88a",
+    "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java": "8e5b11ec7f7676998804183bd8b559eb76f1daf1423d46d6511aa4280213b81f",
+    "src/test/java/com/vncode/app/shared/FriendlyErrorCodeTest.java": "770b2280f5fc561c4c8a0989a974ff84ba48f3559bd8a4e50212c99efc05d187"
+  },
+  "scope": "KIZ recovery plus safe localized identity diagnostic; no schema, licensing, creation or release changes."
+}

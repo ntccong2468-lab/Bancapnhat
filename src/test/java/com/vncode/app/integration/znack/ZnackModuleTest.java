@@ -774,7 +774,7 @@ class ZnackModuleTest {
         } finally { server.stop(0); }
     }
 
-    @Test void issuedBlockRecoverySkipsPersistedBlocksAndIsIdempotent() throws Exception {
+    @Test void issuedBlockRecoveryReplaysUnprovenBlocksAndIsIdempotent() throws Exception {
         AtomicInteger retryCalls=new AtomicInteger();
         AtomicReference<String> retryPath=new AtomicReference<>();
         HttpServer server=HttpServer.create(new InetSocketAddress(0),0);
@@ -783,7 +783,9 @@ class ZnackModuleTest {
         server.createContext("/api/v3/order/codes/retry",exchange->{
             retryCalls.incrementAndGet();
             retryPath.set(exchange.getRequestURI().toString());
-            respond(exchange,"{\"blockId\":\"missing\",\"codes\":[\"recovered-1\",\"recovered-2\"]}");
+            respond(exchange,exchange.getRequestURI().getQuery().contains("blockId=saved")
+                    ?"{\"blockId\":\"saved\",\"codes\":[\"already-saved\"]}"
+                    :"{\"blockId\":\"missing\",\"codes\":[\"recovered-1\",\"recovered-2\"]}");
         });
         server.start();
         try {
@@ -803,7 +805,7 @@ class ZnackModuleTest {
             assertEquals(2,service.recoverIssuedBlocks(settings,order));
             assertEquals(0,service.recoverIssuedBlocks(settings,order));
             assertEquals(3,repository.findCodes(order).size());
-            assertEquals(1,retryCalls.get());
+            assertEquals(2,retryCalls.get(),"One saved code does not prove that its issued block was complete");
             assertEquals("/api/v3/order/codes/retry?omsId=oms&blockId=missing",retryPath.get());
         } finally { server.stop(0); }
     }

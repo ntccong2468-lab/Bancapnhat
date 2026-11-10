@@ -5,6 +5,16 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.*;
 class FriendlyErrorCodeTest {
+ @Test void aMismatchedIssuedKizBlockExplainsReconciliationWithoutExposingThePrivateWrapper(){
+  var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+  try{for(var language:AppLanguage.values()){
+   i18n.setLanguage(language);String code="SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID",key="znack.error.suz_code_block_recovery_identity_invalid",message=i18n.tr(key);
+   assertNotEquals(key,message);assertFalse(message.isBlank());
+   var wrapped=new IllegalStateException("private OMS token=secret-value",new java.io.IOException(code));
+   assertEquals(message+"\n["+code+"]",FriendlyErrorService.format(wrapped));
+   assertEquals(message,com.vncode.app.integration.znack.ZnackErrorMessages.displayForPipeline("DOWNLOADING_CODES",code));
+  }}finally{i18n.setLanguage(previous);}
+ }
  @Test void crossMarketplaceResumeExplainsTheCorrectScreenAcrossLocales(){
   var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
   try{for(var language:AppLanguage.values()){

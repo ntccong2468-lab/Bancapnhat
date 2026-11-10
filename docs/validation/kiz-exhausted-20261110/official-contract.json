@@ -1,0 +1,134 @@
+{
+  "kind": "OFFICIAL_SUZ_EXHAUSTED_RECOVERY_CONTRACT",
+  "retrievedAtUtc": "2026-11-10T12:39:01.788532+00:00",
+  "result": "DOCUMENTATION_VERIFIED_NO_LIVE_OMS",
+  "manual": {
+    "title": "СУЗ-ОБЛАКО 5.0. Руководство программиста",
+    "version": "5.03",
+    "apiVersion": "3.0.40",
+    "edition": 67,
+    "approved": "2026-09-24",
+    "pages": 761
+  },
+  "sources": [
+    {
+      "file": "suz-api-ru.pdf",
+      "url": "https://docs.crpt.ru/gismt/files/pdf/API_%D0%A1%D0%A3%D0%97_3.0.pdf",
+      "http": 200,
+      "bytes": 4578785,
+      "sha256": "0a019c4208f8a781aa431a6a3dad60c537e33f268529e24a0678721022fe1313"
+    },
+    {
+      "file": "suz-api-en.pdf",
+      "url": "https://docs.crpt.ru/gismt/files/pdf/API_%D0%A1%D0%A3%D0%97_3.0_en.pdf",
+      "http": 200,
+      "bytes": 4488693,
+      "sha256": "e974404fd79ee81ed31c6392f85d58faf3f310036425c63ea916e346de5670f5"
+    },
+    {
+      "file": "suz-errors.html",
+      "url": "https://docs.crpt.ru/gismt/%D0%98%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BA%D1%86%D0%B8%D1%8F_%D0%BF%D0%BE_%D0%B2%D0%BE%D0%B7%D0%BD%D0%B8%D0%BA%D0%B0%D1%8E%D1%89%D0%B8%D0%BC_%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B0%D0%BC_%D0%A1%D0%A3%D0%97/",
+      "http": 200,
+      "bytes": 569340,
+      "sha256": "6800d0f472d71bce0e240aa82b87819d4aefb2df0519cd516f36fcddb5b0ef41"
+    }
+  ],
+  "error3390": {
+    "officialHtmlText": "3390 Проверка статуса буфера Буфер не активный. Текущий статус буфера: <значение_0>. OrderId: <значение_1>. Gtin: <значение_2>. OmsId: <значение_3> Возвращается в случае, если значение параметра «bufferStatus» (Статус буфера) отличен от «ACTIVE» (Буфер создан)",
+    "meaning": "The buffer status is other than ACTIVE;3390 alone is not a transient-PENDING classification."
+  },
+  "bufferStates": {
+    "section": "5.3.1.6",
+    "table": 267,
+    "ruPdfPage": 456,
+    "EXHAUSTED": "Буфер и пулы РЭ не содержат больше кодов",
+    "CLOSED": "Буфер закрыт",
+    "scope": "Buffer state is separate from order status, usage and circulation."
+  },
+  "blockList": {
+    "section": "4.4.5",
+    "ruPdfPages": [
+      177,
+      178,
+      179,
+      180
+    ],
+    "method": "GET",
+    "path": "/api/v3/order/codes/blocks",
+    "query": [
+      "omsId",
+      "orderId",
+      "gtin"
+    ],
+    "meaning": "Lists identifiers of code packages already issued from this order and GTIN.",
+    "restrictions": [
+      "Marking-code suborder has not been closed.",
+      "First print request was performed through API."
+    ],
+    "requiredResponseFields": [
+      "omsId",
+      "orderId",
+      "gtin",
+      "blocks"
+    ],
+    "requiredBlockFields": [
+      "blockId",
+      "blockDateTime",
+      "quantity"
+    ]
+  },
+  "blockRetry": {
+    "section": "4.4.6",
+    "ruPdfPages": [
+      181,
+      182,
+      183
+    ],
+    "method": "GET",
+    "path": "/api/v3/order/codes/retry",
+    "query": [
+      "omsId",
+      "blockId"
+    ],
+    "meaning": "Re-obtains already emitted codes after communication failure; does not create an order.",
+    "restrictions": [
+      "Codes were previously requested through API.",
+      "Marking-code order has not been closed.",
+      "Release method or FEACN/TN VED group has not been closed or blocked."
+    ],
+    "requiredResponseFields": [
+      "omsId",
+      "codes",
+      "blockId"
+    ]
+  },
+  "normalCodes": {
+    "section": "4.4.4",
+    "ruPdfPages": [
+      174,
+      175,
+      176
+    ],
+    "path": "/api/v3/codes",
+    "meaning": "Obtain marking codes from an order; existing application correctly treats this GET as a consuming issuance operation and disables automatic replay.",
+    "requiredResponseFields": [
+      "omsId",
+      "codes",
+      "blockId"
+    ]
+  },
+  "reviewConclusions": [
+    "Recognize only exact3390+EXHAUSTED as recovery progress, not all3390errors.",
+    "Preserve remoteEXHAUSTED instead of assertingCLOSED.",
+    "Reconcile both directstatusEXHAUSTED and HTTPerrorEXHAUSTED and persistedactiveerror afterrestart.",
+    "Replay previously issued packages while localorderreceipt is incomplete; any existingcode in a block is not proof the wholeblock was stored.",
+    "Preserve originalorder,requestkey,settings,shop/OMS/GTIN and inventory/legalstatus; never create a replacement paidorder.",
+    "Validate response identity before fetching/inserting codes; official current responsefields and legacy omissions must be distinguished.",
+    "Closed/UI-first/blocked orders may not permit retry; do not promise guaranteed recovery or mark missingcodes ascomplete."
+  ],
+  "withdrawnFinding": "An earlierquickread incorrectly claimed currentDOWNLOADING_CODES3390 becomesFAILED. Precedingadvancecatch463–467 retains activePOLLING_ORDER/DOWNLOADING_CODESstage+error. NoFAILEDproducer proven; do notbroadenfailedmigration.",
+  "liveOmsCalls": 0,
+  "sellerMutations": 0,
+  "testsRun": false,
+  "repoFilesChanged": false
+}

@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| KIZ3390/EXHAUSTED: phục hồi khối đã cấp, giữ danh tính, không mua lại; hồi quy cuối đang chạy, chưa phát hành | [Bàn giao](../validation/2026-11-10-kiz-exhausted-recovery.md), [hợp đồng](../validation/kiz-exhausted-20261110/official-contract.json), [API preflight thật](../validation/kiz-exhausted-20261110/suz-live-access-preflight.json) |
 | Đăng ký WB300/10.000: false absence, explicit subset,283 ca và API đọc thật; chưa phát hành | [Bàn giao](../validation/2026-11-10-znack-bulk-preflight.md), [receipt](../validation/znack-bulk-20261110/focused-final-receipt.json) |
 | **Latest1.6.7 đã công bố và xác minh**:4.188 ca Windows,16 public files, updater1.6.6→1.6.7; toàn bộ sửa trước và chứng thư/confirmation | [Bàn giao](../validation/2026-11-09-vncode-167-release-handoff.md), [receipt cuối](../validation/2026-11-09-vncode-167-final-release.json), [public preservation](../validation/2026-11-09-vncode-167-public-preservation.json), [updater](../validation/2026-11-09-vncode-167-updater.json) |
 | Chứng thư CryptoPro/token và xác nhận đổi người ký — đã vào1.6.7;200/14 Linux và full Windows cuối | [Bàn giao](../validation/2026-11-09-cryptopro-certificate-discovery-handoff.md), [manifest](../validation/2026-11-09-cryptopro-certificate-discovery.json), [inclusion115](../validation/2026-11-08-vncode-167-source-inclusion.json) |

@@ -42,6 +42,41 @@ public final class SyncRunRepository {
         }); }catch(SQLException e){throw storage(e);}
         try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? AND product_id=? AND variant_id=?")){p.setString(1,run);p.setString(2,product);p.setString(3,variant);try(var r=p.executeQuery()){if(!r.next())throw new SQLException("Missing item");return readItem(r,run);}}catch(SQLException e){throw storage(e);}
     }
+    /** Exact durable registration item lookup; an existing queue must not be recounted per attempt. */
+    public Optional<Item> registrationItem(Shop shop,String run,String product,String variant){
+        try(var c=Database.getConnection()){
+            require(c,shop,run);
+            try(var p=c.prepareStatement("SELECT * FROM sync_run_items WHERE run_id=? AND product_id=? AND variant_id=?")){
+                p.setString(1,run);p.setString(2,product);p.setString(3,variant);
+                try(var r=p.executeQuery()){return r.next()?Optional.of(readItem(r,run)):Optional.empty();}
+            }
+        }catch(SQLException e){throw storage(e);}
+    }
+    /** Preserve report-state precedence with indexed existence probes, not a full count per event.
+     * Re-evaluate inside the update transaction so append/readback changes cannot stale an in-memory counter. */
+    public void registrationStage(Shop shop,String run,String step){
+        try{SqliteWriteTransaction.run(c->{
+            require(c,shop,run);String state=registrationState(c,run),now=Instant.now().toString();
+            String error=state.equals("PARTIAL")?"ZNACK_REGISTRATION_NEEDS_ACTION":"";
+            try(var p=c.prepareStatement("UPDATE sync_runs SET state=?,step=?,error_code=?,updated_at=?,finished_at=CASE WHEN ? IN ('SUCCEEDED','FAILED','PARTIAL','CANCELLED') THEN ? ELSE NULL END WHERE id=?")){
+                p.setString(1,state);p.setString(2,step);p.setString(3,error);p.setString(4,now);p.setString(5,state);p.setString(6,now);p.setString(7,run);p.executeUpdate();
+            }
+            event(c,run,null,step,state,error);return null;
+        });}catch(SQLException e){throw storage(e);}
+    }
+    static String registrationState(Connection c,String run)throws SQLException{
+        try(var p=c.prepareStatement("""
+            SELECT CASE
+              WHEN EXISTS(SELECT 1 FROM sync_run_items WHERE run_id=? AND state IN ('RUNNING','QUEUED')) THEN 'RUNNING'
+              WHEN EXISTS(SELECT 1 FROM sync_run_items WHERE run_id=? AND state='WAITING_REMOTE') THEN 'WAITING_REMOTE'
+              WHEN EXISTS(SELECT 1 FROM sync_run_items WHERE run_id=? AND state='NEEDS_ACTION') THEN 'PARTIAL'
+              WHEN EXISTS(SELECT 1 FROM sync_run_items WHERE run_id=? AND state='CANCELLED') THEN 'CANCELLED'
+              ELSE 'SUCCEEDED' END
+            """)){
+            for(int i=1;i<=4;i++)p.setString(i,run);
+            try(var r=p.executeQuery()){if(!r.next())throw new SQLException("Missing registration progress");return r.getString(1);}
+        }
+    }
     /** Persist a Catalog snapshot report in one bounded transaction, not a connection per GTIN. */
     public void addBatch(Shop shop,String run,List<Item> items){
         if(items.size()>100000)throw new IllegalArgumentException("SYNC_REPORT_LIMIT");

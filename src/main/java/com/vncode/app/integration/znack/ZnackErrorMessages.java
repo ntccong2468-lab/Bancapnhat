@@ -16,6 +16,8 @@ import java.util.regex.Pattern;
  * so the audit log keeps everything; the panes should only show the human part of the payload.
  */
 public final class ZnackErrorMessages {
+    /** Persisted recovery marker when SUZ's status read confirms an exhausted paid buffer. */
+    public static final String EXHAUSTED_KIZ_BUFFER = "SUZ_KIZ_BUFFER_EXHAUSTED";
     private static final String WAITING_INTRODUCTION_READINESS = "WAITING_INTRODUCTION_READINESS";
     private static final String WAITING_INTRODUCTION_DOCUMENTS = "WAITING_INTRODUCTION_DOCUMENTS";
     private static final String POLLING_INTRODUCTION = "POLLING_INTRODUCTION";
@@ -29,6 +31,7 @@ public final class ZnackErrorMessages {
             "(?i)(?:HTTP\\s*400\\)?\\s*:\\s*|(?:error[_\\s-]?code|code)\"?\\s*[:=]\\s*\"?)3055(?!\\d)");
     private static final Pattern PENDING_BUFFER_CODE = Pattern.compile(
             "(?i)(?:HTTP\\s*400\\)?\\s*:\\s*|(?:error[_\\s-]?code|code)\"?\\s*[:=]\\s*\"?)3390(?!\\d)");
+    private static final Pattern EXHAUSTED_BUFFER_STATUS = Pattern.compile("(?i)(?<![A-Z0-9_])EXHAUSTED(?![A-Z0-9_])");
     private static final Pattern UOT_CREDENTIAL_ERROR_CODE = Pattern.compile(
             "(?i)(?:HTTP\\s*400\\)?\\s*:\\s*|(?:error[_\\s-]?code|code)\"?\\s*[:=]\\s*\"?)1090(?!\\d)");
     private static final Pattern CLOSED_ORDER_CODE = Pattern.compile(
@@ -68,6 +71,7 @@ public final class ZnackErrorMessages {
     /** Human-readable form of a stored error; falls back to the raw text when nothing better is found. */
     public static String display(String raw) {
         if (raw == null || raw.isBlank()) return "";
+        if("SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID".equals(raw.trim()))return com.vncode.app.shared.I18nService.getInstance().tr("znack.error.suz_code_block_recovery_identity_invalid");
         String bufferIssue = kizOrderBufferIssueCode(raw);
         if (!bufferIssue.isBlank()) {
             String key = switch (bufferIssue) {
@@ -124,7 +128,7 @@ public final class ZnackErrorMessages {
     public static String displayForPipeline(String stage, String raw) {
         if (isExpectedReadinessProgress(stage, raw) || isMissingDocumentsWait(stage, raw)
                 || isPendingKizBuffer(raw) || isSuzAuthError(raw)
-                || isClosedKizOrder(raw) || isDocumentVisibilityDelay(stage, raw)) return "";
+                || isClosedKizOrder(raw) || isExhaustedKizBuffer(raw) || isDocumentVisibilityDelay(stage, raw)) return "";
         return display(raw);
     }
 
@@ -197,6 +201,17 @@ public final class ZnackErrorMessages {
         if (raw == null || raw.isBlank() || !PENDING_BUFFER_CODE.matcher(raw).find()) return false;
         String normalized = raw.toUpperCase(java.util.Locale.ROOT);
         return normalized.contains("PENDING") && (normalized.contains("BUFFER") || normalized.contains("БУФЕР"));
+    }
+
+    /** Exhausted means already-issued blocks must be reconciled, never another /codes issue. */
+    public static boolean isExhaustedKizBuffer(String raw) {
+        if(raw==null||raw.isBlank())return false;
+        if(EXHAUSTED_KIZ_BUFFER.equals(raw.strip()))return true;
+        if(!PENDING_BUFFER_CODE.matcher(raw).find())return false;
+        String normalized=raw.toUpperCase(java.util.Locale.ROOT);
+        if(Pattern.compile("(?<![A-Z0-9_])NOT\\s+EXHAUSTED(?![A-Z0-9_])").matcher(normalized).find())return false;
+        return EXHAUSTED_BUFFER_STATUS.matcher(normalized).find()
+                &&(normalized.contains("BUFFER")||normalized.contains("БУФЕР"));
     }
 
     /**

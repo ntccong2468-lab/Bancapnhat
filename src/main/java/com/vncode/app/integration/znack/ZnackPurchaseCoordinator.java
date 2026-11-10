@@ -603,8 +603,13 @@ public class ZnackPurchaseCoordinator {
     }
 
     private void pollOrder(Settings settings, ZnackPurchasePipelineState pipeline) throws Exception {
-        KizOrder order = orders.refresh(settings, requiredOrderId(pipeline));
-        if (order.localStatus() == OrderStatus.CODES_READY || order.localStatus() == OrderStatus.CODES_DOWNLOADED) {
+        KizOrder order = orders.refresh(settings, consistentRecoveryOrder(pipeline).id());
+        if("EXHAUSTED".equalsIgnoreCase(order.remoteStatus())){
+            repository.updatePipeline(pipeline.id(),order.id(),PurchaseStage.DOWNLOADING_CODES,
+                    ZnackErrorMessages.EXHAUSTED_KIZ_BUFFER);
+            recoverInactiveOrder(settings,repository.findPipeline(pipeline.id()).orElseThrow(),
+                    ZnackErrorMessages.EXHAUSTED_KIZ_BUFFER,"EXHAUSTED");
+        } else if (order.localStatus() == OrderStatus.CODES_READY || order.localStatus() == OrderStatus.CODES_DOWNLOADED) {
             repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.DOWNLOADING_CODES, null);
             downloadCodes(settings, repository.findPipeline(pipeline.id()).orElseThrow());
         } else if (order.localStatus() == OrderStatus.FAILED || order.localStatus() == OrderStatus.CANCELLED) {
@@ -615,9 +620,16 @@ public class ZnackPurchaseCoordinator {
     }
 
     private void downloadCodes(Settings settings, ZnackPurchasePipelineState pipeline) throws Exception {
-        long orderId = requiredOrderId(pipeline);
-        if (ZnackErrorMessages.isClosedKizOrder(pipeline.errorMessage())) {
+        KizOrder local=consistentRecoveryOrder(pipeline);
+        long orderId = local.id();
+        if (ZnackErrorMessages.isClosedKizOrder(pipeline.errorMessage())||"CLOSED".equalsIgnoreCase(local.remoteStatus())) {
             recoverClosedOrder(settings, pipeline, pipeline.errorMessage());
+            return;
+        }
+        if(ZnackErrorMessages.isExhaustedKizBuffer(pipeline.errorMessage())
+                ||"EXHAUSTED".equalsIgnoreCase(local.remoteStatus())){
+            recoverInactiveOrder(settings,pipeline,ZnackErrorMessages.isExhaustedKizBuffer(pipeline.errorMessage())
+                    ?pipeline.errorMessage():ZnackErrorMessages.EXHAUSTED_KIZ_BUFFER,"EXHAUSTED");
             return;
         }
         try {
@@ -632,6 +644,10 @@ public class ZnackPurchaseCoordinator {
             }
             if (ZnackErrorMessages.isClosedKizOrder(error.responseBody())) {
                 recoverClosedOrder(settings, pipeline, error.getMessage());
+                return;
+            }
+            if(ZnackErrorMessages.isExhaustedKizBuffer(error.responseBody())){
+                recoverInactiveOrder(settings,pipeline,error.getMessage(),"EXHAUSTED");
                 return;
             }
             throw error;
@@ -650,29 +666,52 @@ public class ZnackPurchaseCoordinator {
 
     private void recoverClosedOrder(Settings settings, ZnackPurchasePipelineState pipeline,
                                     String closedDiagnostic) throws Exception {
-        long orderId = requiredOrderId(pipeline);
-        KizOrder order = repository.findOrder(orderId).orElseThrow();
-        if (repository.findCodes(orderId).size() < order.quantity()) {
+        recoverInactiveOrder(settings,pipeline,closedDiagnostic,"CLOSED");
+    }
+
+    private void recoverInactiveOrder(Settings settings,ZnackPurchasePipelineState pipeline,
+                                      String diagnostic,String remoteStatus)throws Exception {
+        KizOrder order=consistentRecoveryOrder(pipeline);
+        long orderId=order.id();
+        // A failed block lookup must never erase the already-observed inactive delivery state.
+        // Persist it before external reads so a restart cannot consume another ordinary block.
+        repository.updateOrder(orderId,null,remoteStatus,OrderStatus.WAITING_CODES,null);
+        repository.updatePipeline(pipeline.id(),orderId,PurchaseStage.DOWNLOADING_CODES,diagnostic);
+        var existingCodes=repository.findCodes(orderId);
+        ZnackKizCodeService.requireStoredCodeIdentity(order,existingCodes);
+        if (existingCodes.size() < order.quantity()) {
             try {
                 codes.recoverIssuedBlocks(settings, orderId);
             } catch (ZnackSigningSession.SigningDeferredException deferred) {
                 throw deferred;
+            } catch (ZnackKizCodeService.RecoveryIdentityException identity) {
+                throw identity;
             } catch (java.io.IOException recoveryUnavailable) {
-                // Some SUZ installations do not expose issued blocks after an order has closed.
-                // Retain the original 2090 diagnostic solely as an internal retry marker; the UI
-                // filters it and the scheduler retries reconciliation without buying another order.
+                if(recoveryUnavailable instanceof ZnackApiClient.ZnackApiException response
+                        &&(response.statusCode()==401||response.statusCode()==403))throw recoveryUnavailable;
+                // Issued blocks can be unavailable after closure or when the first issue was
+                // outside the API. Retain the inactive-state retry marker, never buy again.
                 repository.log("RECOVER_CODE_BLOCKS", pipeline.gtin(), "WARN",
-                        "CLOSED_ORDER_BLOCK_RECOVERY_PENDING", httpStatus(recoveryUnavailable));
+                        remoteStatus+"_ORDER_BLOCK_RECOVERY_PENDING", httpStatus(recoveryUnavailable));
             }
         }
         int downloaded = repository.findCodes(orderId).size();
         if (downloaded < order.quantity()) {
-            repository.updateOrder(orderId, null, "CLOSED", OrderStatus.WAITING_CODES, null);
-            repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.DOWNLOADING_CODES, closedDiagnostic);
+            repository.updateOrder(orderId, null, remoteStatus, OrderStatus.WAITING_CODES, null);
+            repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.DOWNLOADING_CODES, diagnostic);
             return;
         }
-        repository.updateOrder(orderId, null, "CLOSED", OrderStatus.CODES_DOWNLOADED, null);
+        repository.updateOrder(orderId, null, remoteStatus, OrderStatus.CODES_DOWNLOADED, null);
         completeDownloadedCodes(settings, pipeline, orderId);
+    }
+
+    private KizOrder consistentRecoveryOrder(ZnackPurchasePipelineState pipeline)throws java.io.IOException{
+        var order=repository.findOrder(requiredOrderId(pipeline)).orElseThrow(()->new java.io.IOException("SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID"));
+        try{
+            if(order.externalOrderId()==null||order.externalOrderId().isBlank()||order.quantity()!=pipeline.quantity()
+                    ||!GtinNormalizer.normalize(order.gtin()).equals(GtinNormalizer.normalize(pipeline.gtin())))throw new IllegalArgumentException();
+        }catch(IllegalArgumentException invalid){throw new java.io.IOException("SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID");}
+        return order;
     }
 
     private void completeDownloadedCodes(Settings settings, ZnackPurchasePipelineState pipeline,
@@ -814,7 +853,7 @@ public class ZnackPurchaseCoordinator {
         if (!SCHEDULED.add(key)) return;
         long delaySeconds = pipeline.stage() == PurchaseStage.WAITING_INTRODUCTION_READINESS
                 || pipeline.stage() == PurchaseStage.RECONCILING_ORDER
-                ? 30 : ZnackErrorMessages.isClosedKizOrder(pipeline.errorMessage())
+                ? 30 : inactiveDelivery(pipeline)
                 ? 300 : pipeline.errorMessage() == null || pipeline.errorMessage().isBlank() ? 5 : 30;
         PENDING_POLLS.removeIf(java.util.concurrent.Future::isDone);
         NEXT_CHECKS.put(key,Instant.now().plusSeconds(delaySeconds));
@@ -830,6 +869,12 @@ public class ZnackPurchaseCoordinator {
                 schedule(pipelineId);
             }
         }, delaySeconds, TimeUnit.SECONDS));
+    }
+
+    private boolean inactiveDelivery(ZnackPurchasePipelineState pipeline){
+        if(ZnackErrorMessages.isClosedKizOrder(pipeline.errorMessage())||ZnackErrorMessages.isExhaustedKizBuffer(pipeline.errorMessage()))return true;
+        return pipeline.orderId()!=null&&repository.findOrder(pipeline.orderId()).map(order->
+                "EXHAUSTED".equalsIgnoreCase(order.remoteStatus())||"CLOSED".equalsIgnoreCase(order.remoteStatus())).orElse(false);
     }
 
     private void activateNextQueued(String gtin) {

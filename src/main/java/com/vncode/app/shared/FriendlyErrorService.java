@@ -54,6 +54,7 @@ public final class FriendlyErrorService {
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
             if("WB_OZON_RESUME_FROM_LINK_WORKFLOW".equals(cause.getMessage())){code="WB_OZON_RESUME_FROM_LINK_WORKFLOW";break;}
             if("SUZ_ORDER_RECONCILIATION_INVALID".equals(cause.getMessage())){code="SUZ_ORDER_RECONCILIATION_INVALID";break;}
+            if("SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID".equals(cause.getMessage())){code="SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID";break;}
             if(OZON_FLOW_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
             if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage())){code="PRODUCT_PROPOSAL_CHANGED";break;}
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage())){code=cause.getMessage();break;}
@@ -84,6 +85,7 @@ public final class FriendlyErrorService {
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
             if("WB_OZON_RESUME_FROM_LINK_WORKFLOW".equals(cause.getMessage()))return I18nService.getInstance().tr("catalogsync.issue.WB_OZON_RESUME_FROM_LINK_WORKFLOW");
             if("SUZ_ORDER_RECONCILIATION_INVALID".equals(cause.getMessage()))return I18nService.getInstance().tr("znack.error.suz_order_reconciliation_invalid");
+            if("SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID".equals(cause.getMessage()))return I18nService.getInstance().tr("znack.error.suz_code_block_recovery_identity_invalid");
             if(OZON_FLOW_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))return I18nService.getInstance().tr("ozon.flow."+cause.getMessage());
             if("PRODUCT_PROPOSAL_CHANGED".equals(cause.getMessage()))return I18nService.getInstance().tr("bulk.proposal.changed");
             if(REGISTRATION_MODEL_ERRORS.contains(cause.getMessage()==null?"":cause.getMessage()))

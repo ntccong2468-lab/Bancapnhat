@@ -1,0 +1,48 @@
+{
+  "kind": "SUZ_READ_ONLY_ACCESS_PREFLIGHT",
+  "observedDate": "2026-11-10",
+  "networkObservations": [
+    {
+      "purpose": "Earlier candidate endpoint without credentials",
+      "endpoint": "/auth/cert/key",
+      "httpStatus": 404,
+      "note": "Superseded; this is not the authentication route used by the production client."
+    },
+    {
+      "purpose": "Fetch True API signing challenge without credentials",
+      "endpoint": "/api/v3/true-api/auth/key",
+      "httpStatus": 200,
+      "challengePresent": true,
+      "responseFieldNames": [
+        "data",
+        "uuid"
+      ]
+    },
+    {
+      "purpose": "Request SUZ order list without clientToken",
+      "endpoint": "/api/v3/order/list",
+      "httpStatus": 400,
+      "businessErrorCodes": [
+        "1090"
+      ],
+      "interpretation": "SUZ rejected the unauthenticated read; this is not a result for the seller order."
+    }
+  ],
+  "clientImplementationEvidence": {
+    "omsConnectionRole": "Path component during certificate challenge sign-in; not directly substituted for the returned clientToken by VNCode.",
+    "suzAuthenticationHeader": "clientToken obtained after signing the challenge and authenticating.",
+    "scope": "Static source inspection; this preflight did not test all alternative authentication methods."
+  },
+  "mutationCounts": {
+    "createOrderPosts": 0,
+    "codeIssuanceRequests": 0,
+    "signingRequests": 0,
+    "licenseActivations": 0
+  },
+  "limitations": [
+    "No valid SUZ session or seller signing key was available to this probe.",
+    "No authenticated seller order status or block list was read.",
+    "No real purchase, issuance, or circulation was performed.",
+    "The preflight does not establish the cause or current state of the reported order."
+  ]
+}

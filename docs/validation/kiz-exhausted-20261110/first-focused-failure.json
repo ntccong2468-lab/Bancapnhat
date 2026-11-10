@@ -1,0 +1,154 @@
+{
+  "result": "FAILED_TWO_FIXTURE_EXPECTATIONS",
+  "tests": 247,
+  "failures": 2,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.338,
+      "xmlSha256": "c7ef53404511025ea2f63aa84f7bdc57265de653ea6cd91e3981dff23902e495"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest",
+      "tests": 26,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6.544,
+      "xmlSha256": "dfd251099a6ce2664982e8a86914442eb941560a33542e5647a28ee91ba1c037"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackModuleTest",
+      "tests": 76,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 12.735,
+      "xmlSha256": "24af2566ffddac2da8256a58cdf3ed331eb4499d3f66d2bb23c60cbc614ad9e9"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.441,
+      "xmlSha256": "574e43d39aa299965b201062a77b9ad70cb626bdf4cba6f3877f23a00527ead6"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackPurchaseMigrationSafetyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.742,
+      "xmlSha256": "87e71db02b193d6d49ac361f6194bcebb6b20ce3c804b57eee51da6ae89d80dd"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackOrderReconciliationSafetyTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.859,
+      "xmlSha256": "4494c559f7f9f016ececa5d3522341477d89dc29ba535d67ddab2afb2ff3baff"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackMutationTransportTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.072,
+      "xmlSha256": "a418704b82f93726101ddf501006c6c8e9f57013722349f5f1be2670f6b30ca4"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackLicenseBoundaryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.108,
+      "xmlSha256": "263f34f8643ad3a20614fa43a8b94721e2ad87db1b47e91f47c7388d4dcb8807"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackGtinWorkflowTest",
+      "tests": 53,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 17.908,
+      "xmlSha256": "750fde6a7f937eafbdb11db00e3801866a2c5f80095409e10430a15284e429f9"
+    },
+    {
+      "suite": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.517,
+      "xmlSha256": "f3c86f702390c8c90daef4afe003e5ebfbad1d004376d09220c8bff4d7bf2cdd"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackErrorDetailsTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.173,
+      "xmlSha256": "870139725334c4093defd33f5a3ad4b0578059afe5d2f5152d3209650729043e"
+    },
+    {
+      "suite": "com.vncode.app.features.kiz.KizStockReplenisherTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.602,
+      "xmlSha256": "4408d4fc672c37ebbbf9b93cc6f52eb82ad645b0e73cb8e246380aa0aa766602"
+    },
+    {
+      "suite": "com.vncode.app.features.kiz.KizPrintPurchaseSessionTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.935,
+      "xmlSha256": "3c4fd7ac1bcc503b6a36a0cf1e700be360dc35d2b2ce29e05a416eb8cb2f4f45"
+    },
+    {
+      "suite": "com.vncode.app.features.kiz.KizWarehouseTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.908,
+      "xmlSha256": "e38398a59c5e950107a82a79b84ef8154c18c70abdd2705f3dd87a78072f0979"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.264,
+      "xmlSha256": "84463e4aa9c3e099952c97580e7d9636bb1c5ceedc6d34c4943db728545f9199"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackPipelineQueueExecutorTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.807,
+      "xmlSha256": "7c840022caa2d7397a7c8f94f53622eb5bd21c0cd53a45c0bc634ef2f98d1500"
+    }
+  ],
+  "scope": "Not final acceptance. New diagnostic is localized; old concurrency fixture has no accepted external order ID. Keep order guards, latches, concurrency and all identity assertions."
+}

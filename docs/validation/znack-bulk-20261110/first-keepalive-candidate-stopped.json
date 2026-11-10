@@ -1,0 +1,68 @@
+{
+  "result": "STOPPED_AFTER_SCALE_BOTTLENECK_IDENTIFIED_NOT_ACCEPTANCE",
+  "recordedAtUtc": "2026-11-10T13:20:54.653802+00:00",
+  "completedSuites": [
+    {
+      "suite": "com.vncode.app.config.DatabaseBatchSessionTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.091,
+      "xmlSha256": "4255e8f68ae2eff6812fc8b0227be594df013c3f7079ae0594816d9fb5fd9013"
+    },
+    {
+      "suite": "com.vncode.app.shared.RegistrationBackgroundLifetimeTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.023,
+      "xmlSha256": "2bf6fbfeb5b5790c98165905d0b403cd66fc2652c82fecc5692db8d8710905aa"
+    },
+    {
+      "suite": "com.vncode.app.shared.UpdateSnapshotHandoffTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.676,
+      "xmlSha256": "9efbd5c350b3567f548dd777c9a414805745cb8585b117bc76ad2d5dee811c42"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackGtinWorkflowTest",
+      "tests": 53,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 13.943,
+      "xmlSha256": "32714b427a0991e93abdf466cd9228f1ca24d6e35f00bd708ced59c8f1246150"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationBatchConnectionLifetimeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.987,
+      "xmlSha256": "435d6e6fa5bf36bfe53a578f08ec09a708c723306f52be0bda928c568d199d45"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 525.041,
+      "xmlSha256": "6ce46a42e83a3c2fe33fe6fc6dd837093e91b9753ae1f433d14bfb3c585cebf3"
+    }
+  ],
+  "completedTests": 108,
+  "unfinished": [
+    "RegistrationLargeBatchDurabilityTest",
+    "ZnackRegistrationBatchHttpIntegrationTest",
+    "ZnackExhaustedBufferRecoveryTest"
+  ],
+  "reason": "Candidate per-item keepalive began after reporting; trace still in SQLite prepare at reports.begin. Report-state aggregation also scans full run per transition. Stop own candidate to apply bounded-query and wider-per-item fix; preserve exact Large300 test/600s criteria.",
+  "noFinalPassClaim": true
+}

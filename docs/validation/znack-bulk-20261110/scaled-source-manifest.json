@@ -1,0 +1,25 @@
+{
+  "baseCommit": "8fed8f717169aeb888ffa080674df35b66d42c74",
+  "files": {
+    "src/test/java/com/vncode/app/features/sync/RegistrationReportScaleTest.java": "582ba6e970a613b7fc9407e49c2953127e29e21dd278b2432a589a21b5dab572",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java": "bd472453cef730f63e7260fdb1dfe3d7088c78a37abe837c5b710bc32d7aff69",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java": "4ebcd764f8b6b0578834ed39e63d908b8edb63e7b56501f94ef9d2f94af465fb",
+    "src/test/java/com/vncode/app/integration/znack/registration/RegistrationBatchConnectionLifetimeTest.java": "7f46ac155e989f43a0bd72d6b82609317f70314548c18dc9ae9d546eacfa7da1",
+    "src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java": "22b4ddd198a5eb7798711f611ac2261fb4e5a0e503e319aab03c2f66ff812c8e",
+    "src/main/java/com/vncode/app/features/sync/SyncRunRepository.java": "54230e2644e9fd66314e0639cc6cccbdea526821a2384d19b33d1d3a3832ad34",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "a883da1f3cb61777b44a2c3b213a4be5c1ac3c06bc98a1713658d77731bf66a4",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "6d6fe02f8e3bf987990f348798a616cdd2bdf2c85f351e433c6384d37b624b3d",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java": "68db1e9a1752159c334e5c6017d159bd84313f2427301d3b558859569bfb441e",
+    "src/main/java/com/vncode/app/shared/FriendlyErrorService.java": "56e6f348f88044b0925eb81c3e7b03f6d8b77c8ef08e45a3c386de757bcf48dd",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "d2e02800ecb6359bab65f2be97b75acd0d1dddb5caae5a4863055edc6c01cf64",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "2931a822f437121b1fc50fcbee4b2a42c74de3d353feeac53062b045c59c97d4",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "48f6749a94cd7c50cf5467a70e3b5a95038a43c984731ea8af08769ec8de7aab",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "6e1934389cf60e3ae34ae63c99ea86341c0c17efa154221dc43b9e77af67f88a",
+    "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java": "a8b8cc82738dfb6020087e6b9d08a46c0089ee701a8f5b12b68b75ae8ce2cc59",
+    "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java": "8e5b11ec7f7676998804183bd8b559eb76f1daf1423d46d6511aa4280213b81f",
+    "src/test/java/com/vncode/app/shared/FriendlyErrorCodeTest.java": "770b2280f5fc561c4c8a0989a974ff84ba48f3559bd8a4e50212c99efc05d187"
+  },
+  "large300TestSha256": "edb47c10b637594ec442f8d9b99aa615ea142567c02675af47016d61663d90ee",
+  "scope": "EXHAUSTED recovery plus per-card full reporting keepalive and indexed 3000/10000 reporting"
+}

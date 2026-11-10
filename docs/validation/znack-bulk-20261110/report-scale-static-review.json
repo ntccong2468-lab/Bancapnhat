@@ -1,0 +1,30 @@
+{
+  "kind": "VNCODE_REGISTRATION_REPORT_SCALE_STATIC_REVIEW",
+  "reviewedAtUtc": "2026-11-10T13:24:13.408847+00:00",
+  "baseCommit": "8fed8f717169aeb888ffa080674df35b66d42c74",
+  "scope": "Only the five candidate file snapshots identified by SHA-256, their called repository methods and the existing database/update-handoff contracts. Working tree is uncommitted.",
+  "candidateFilesSha256": {
+    "src/main/java/com/vncode/app/features/sync/SyncRunRepository.java": "54230e2644e9fd66314e0639cc6cccbdea526821a2384d19b33d1d3a3832ad34",
+    "src/main/java/com/vncode/app/features/sync/RegistrationAttemptReports.java": "22b4ddd198a5eb7798711f611ac2261fb4e5a0e503e319aab03c2f66ff812c8e",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java": "68db1e9a1752159c334e5c6017d159bd84313f2427301d3b558859569bfb441e",
+    "src/test/java/com/vncode/app/features/sync/RegistrationReportScaleTest.java": "582ba6e970a613b7fc9407e49c2953127e29e21dd278b2432a589a21b5dab572",
+    "src/test/java/com/vncode/app/integration/znack/registration/RegistrationBatchConnectionLifetimeTest.java": "7f46ac155e989f43a0bd72d6b82609317f70314548c18dc9ae9d546eacfa7da1"
+  },
+  "result": "STATIC_REVIEW_NO_NEW_BLOCKER_IDENTIFIED",
+  "evidence": {
+    "owner": "registrationItem calls require before looking up the exact durable identity; registrationStage requires owner in the same write transaction. Fallback add rechecks owner, enforces unique identity and ignores conflicts.",
+    "atomicStateAndAppend": "registrationStage calculates existence-based precedence and updates state/error/event inside one SQLite write transaction; actual batch append writes selected items, consent and report RUNNING/total in its own same write transaction, preserving state in either transaction order.",
+    "legacyAndPrecedence": "State precedence matches prior full counts: RUNNING or QUEUED; WAITING_REMOTE; NEEDS_ACTION to PARTIAL; CANCELLED; otherwise SUCCEEDED. Existing item IDs and contents are reused. A legacy report with an already-wrong total is not re-counted on existing-item begin as it was before; no evidence reviewed establishes such stale historical data.",
+    "keepaliveAndHandoff": "Each card session opens before reporting and closes after its try/catch, before the next send-loop UpdateHandoff checkpoint; connection is separate and autocommit, no write transaction is held for remote HTTP. Existing second readback loop has no per-item UpdateHandoff checkpoint; unchanged.",
+    "testCoverage": "Scale test contains 3000/10000 synthetic items with SQLite VM instruction budget and old full aggregate negative control; it checks owner denial, state precedence, appended item and reopen. Lifetime test checks synthetic first-card pause, receipt and GTIN persistence, independent writer, and exclusive journal-mode change after idle. Tests do not measure real Catalog, live licenses, real signatures, installer, or 300-card Windows duration.",
+    "execution": "No tests, builds, network calls, writes to production systems or installer actions performed as part of this review. Concurrent Maven run belongs to the coordinating agent and is not represented as passed here."
+  },
+  "limits": [
+    "No newly executed tests claimed by this review.",
+    "First Windows 300-card run documented separately as failed; this review does not replace a fresh Windows regression or production acceptance.",
+    "Appended-item/finish serialization was reasoned from transactions; the scale test exercises append and state transitions sequentially, not a forced simultaneous interleaving.",
+    "Pre-existing readback loop does not checkpoint between items, so an updater can wait for a complete readback pass.",
+    "No fixture with a historically inconsistent sync_runs.total was examined."
+  ],
+  "releaseEligible": false
+}
