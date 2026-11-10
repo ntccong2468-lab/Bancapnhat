@@ -485,7 +485,7 @@ public class ZnackAutomationController {
             return;
         }
         try {
-            repository.saveSettings(settings);
+            settings = repository.saveConnectionSettings(settings);
             repository.log("SETTINGS_SAVE", null, "INFO", "SAVED", null);
             loaded = settings;
             settingsDrafts.remove(draftScope());

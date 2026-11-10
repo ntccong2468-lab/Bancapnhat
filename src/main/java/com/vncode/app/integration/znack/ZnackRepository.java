@@ -50,6 +50,31 @@ public final class ZnackRepository {
         catch(SQLException e){throw new RuntimeException(e);}
     }
 
+    /** Merge the reviewed permit with the connection that is current inside the write transaction. */
+    public Settings saveDefaultGoodsDocument(String type, String number, String date, String expiryDate) {
+        try {
+            return com.vncode.app.config.SqliteWriteTransaction.run(c -> {
+                Settings merged = getSettings(c).withDefaultGoodsDocument(type, number, date, expiryDate);
+                saveSettings(c, merged);
+                return merged;
+            });
+        } catch (SQLException e) { throw new RuntimeException(e); }
+    }
+
+    /** Save the connection while retaining the current, independently edited permit. */
+    public Settings saveConnectionSettings(Settings connectionSettings) {
+        Objects.requireNonNull(connectionSettings, "connectionSettings");
+        try {
+            return com.vncode.app.config.SqliteWriteTransaction.run(c -> {
+                Settings current = getSettings(c);
+                Settings merged = connectionSettings.withDefaultGoodsDocument(current.documentType(),
+                        current.documentNumber(), current.documentDate(), current.documentExpiryDate());
+                saveSettings(c, merged);
+                return merged;
+            });
+        } catch (SQLException e) { throw new RuntimeException(e); }
+    }
+
     /**
      * Persists a successfully tested selector and its audit entry in one optimistic transaction.
      * A different signing identity owns a different Znack catalog, so its predecessor is retired and

@@ -133,11 +133,18 @@ public final class ZnackModels {
 
         public Settings withDefaultGoodsDocument(String type, String number, String date) {
             number = com.vncode.app.shared.PermitDocumentNumber.normalize(number);
+            return withDefaultGoodsDocument(type, number, date,
+                    defaultGoodsDocument().equals(new GoodsDocument(type,number,date))?documentExpiryDate:"");
+        }
+
+        /** Save an explicitly reviewed expiry together with its permit; unrelated settings stay intact. */
+        public Settings withDefaultGoodsDocument(String type, String number, String date, String expiryDate) {
+            number = com.vncode.app.shared.PermitDocumentNumber.normalize(number);
             return new Settings(trueApiBaseUrl, suzBaseUrl, omsId, omsConnection, participantInn, producerInn,
                     ownerInn, signerExecutable, signerCertificate, signerArgumentsJson, number, date, pdfFolder,
                     autoIntroduction, certificateListExecutable, certificateListArgumentsJson,
                     certificateMetadataJson, signerTestedAt, certmgrPath, cryptcpPath, csptestPath,
-                    cryptoProTimeoutSeconds, defaultGoodsDocument().equals(new GoodsDocument(type,number,date))?documentExpiryDate:"", type);
+                    cryptoProTimeoutSeconds, expiryDate==null?"":expiryDate.strip(), type);
         }
 
         public Settings withAutoIntroduction(boolean enabled) {
