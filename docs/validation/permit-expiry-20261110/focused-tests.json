@@ -1,0 +1,163 @@
+{
+  "result": "PASS",
+  "sourceBase": "202e58ab6b9c87d6568beb8a1120d71c8b958324",
+  "totals": {
+    "tests": 230,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationDocumentConfigDialogTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "539fedd4d5fa2dc1bb8345db1f7e077f17eb18cb3ba35739acde685fd8ba1871"
+    },
+    {
+      "suite": "com.vncode.app.ui.znackregistration.RegistrationDraftCompletionDialogTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "e01c4afa01a8c42abe651d434bb73646a5a9ca036f1cc57f2019a780cf8b6500"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "07eb0eb8144bd6d76c1ef272a36ebeb15bde1f3ebb18c82170c8978b19eb2001"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackModuleTest",
+      "tests": 76,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "88fa3b6fba8a0769930a0fbf81174189d1ca8b7d8ad4ab92ef4df5fdb3c916d5"
+    },
+    {
+      "suite": "com.vncode.app.features.products.ConfiguredProductDeclarationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0b684b5ae2e1094aa712023262c4d5811d9c028e1540285f4b18f230f9e85c8a"
+    },
+    {
+      "suite": "com.vncode.app.ui.products.ProductBulkDialogTest",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8a78cc35c7c0bb5c5dff078fd136b4071d77417010912219bb9788b53698cd84"
+    },
+    {
+      "suite": "com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "395b86891712ae2f60eee136009de330b8b692cff2cefe7038a53d089b09dd3d"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "511414fed4018aa2e5201b9606a24e70b31358bdf52156a46f03545b635e8d5b"
+    },
+    {
+      "suite": "com.vncode.app.features.catalogsync.CatalogPermitEvidenceTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0d428e2d119fdf1f704a5968b6448defd6b9e930d1e8a4859a0b6bea3b4999ef"
+    },
+    {
+      "suite": "com.vncode.app.ui.DocumentDateInputTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "28fc905ab9e545bde4a7cf5ff2dc078c1b4098f29e17c86efc858a33b7e49447"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackSettingsAreaRepositoryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "89fbace1e2c71b33b00fb4aa4518c916f2b8da159b90ac04093d7a8e050990dc"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2eaebf79e140d37c69f8c0360e9946e6b398406e4050d08c76ec87b3b51ad924"
+    },
+    {
+      "suite": "com.vncode.app.ui.znack.ZnackAutomationControllerTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "dc9a3b1d7a720b647a33e83acc226d4df4d4786e5c8eb801ee9bc6b69901ac46"
+    },
+    {
+      "suite": "com.vncode.app.ui.znack.ZnackAutomationInformationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8d87df20667c45f8a16cd7c4fc4d1b15001eff8898cd810ddbd9556c1e716049"
+    },
+    {
+      "suite": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "bf9684f2339da402cb251f36e23197d869f1eb01ef623984df4ea8da1d32d6c4"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackPurchaseMigrationSafetyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "bd433b6a8f73916fe6c58d76532575582e5d97bb62bcda5b07524d7422d5a0fb"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackConnectionReuseTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "9ead98bcb1a5c71b206b921020e9b5bd50f07b839fe2a380096b05992e5888ff"
+    }
+  ],
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackModels.java": "ede78033c39b2d8fbd2d83836891652409a208e24a907bd5db3a9a895acbe975",
+    "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java": "cde37a67a300a5f099d3bf0399f587429f031f8f86be3c7eda32030e3abf55b9",
+    "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java": "017c5daf5fb1ad5919c71951c8b647f710e74f4d032a02003a00f7eec8274198",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDocumentConfigDialog.java": "c6cad0fd3576db5d47cb35418263650af9f50c2887cc5349fff8e22d66807e7c",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "ab19c43eb6963cebc548584ae5bf0e8be244b64bc04b5e0a3db20035715c0349",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "e68643162d60677aca746c548d83e510e4d6075c9cf3b8fa0295dc6481e7b64d",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "e840591b927161ba1df718781f1c438415b53e74fcb0264703753b04a29c805d",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "40c725a1f16359ef00c6ff2689ac1bb346bb89cdfeb5117f7d2afb08353dcf4c",
+    "src/test/java/com/vncode/app/integration/znack/ZnackSettingsAreaRepositoryTest.java": "132dff1237709ab45c54a9a58ec2db99158bb86db06ab5c7dfbfc176ca582f6a",
+    "src/test/java/com/vncode/app/ui/znackregistration/RegistrationDocumentConfigDialogTest.java": "d525e8258c69df22f073891945da6138808a73d5e883a554db941cc1f65cab75"
+  },
+  "greenLogSha256": "55b2c2129f119a738875fdc915c64cab8b5071b61e2dafadb9995b1d548731ce",
+  "redLogSha256": "e1fd112001b1feee989472156bd419e6844854e1d3a04756cd1f921aaaa72c33",
+  "scope": "17 focused suites, real JavaFX dialog with temp SQLite; synthetic fixtures only. No real seller writes, no signing, no full suite."
+}

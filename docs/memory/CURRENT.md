@@ -2,6 +2,12 @@
 
 Cập nhật: **10.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## Sau1.6.8 — thêm ngày hết hạn giấy tờ, chưa phát hành
+
+- Người dùng báo mua KIZ cần hạn nhưng cửa sổ cấu hình chỉ có ngày hiệu lực. Nguồn **`80e9324c24e1d1fdee1dbbdbc56854b1e8f0149f`**, nhánh `fix/permit-expiry-20261110`, từ202e58. Thêm ô hạn vào cửa sổ dùng chung WB/Ozon/sản phẩm, đọc/lưu cột có sẵn; strictISO/dd.MM, không nhận hạn trước ngày cấp. Giữ bản nháp theo đúng giấy tờ, blank là chưa biết. Merge giấy tờ/kết nối trong giao dịch SQLite để tránh ghi đè qua lại; giữ pipeline snapshot, signer/CAS, không migration.
+- [Bàn giao/lệnh](../validation/2026-11-10-permit-expiry-config-handoff.md), [230ca/17lớp đạt](../validation/permit-expiry-20261110/focused-tests.json), [JAR build đạt](../validation/permit-expiry-20261110/local-package.json). JavaFX thật/SQLite tạm/Linux, 0failure/error/skip, không phải fullWindows/mua thật. Hạn nhập tay không thay proof Catalog/registry, không bỏ guard mua KIZ.
+- [Latest kiểm lại](../validation/permit-expiry-20261110/latest-read.json) vẫn immutable1.6.8/440439895. **Chưa tạo bộ cài hoặc phát hành phần sửa này**, không đổi POM/tag/assets. Lượt mới không sellerAPIwrite, mua/ký, licenseactivation/Gmail.
+
 ## Latest1.6.8 — đã công bố và kiểm chứng10.11.2026
 
 - Người dùng yêu cầu “tạo bản mới và đẩy lên latest”; **immutable release440439895/tag v1.6.8**, công bố **10.11.2026 18:34:37MSK/15:34:37UTC**. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.8/VN-code-1.6.8-Windows-x64.exe), [bàn giao](../validation/2026-11-10-vncode-168-release-handoff.md), [receipt cuối](../validation/vncode-168-20261110/final-release.json).

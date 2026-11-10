@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| Cấu hình giấy tờ thêm ngày hết hạn, lưu riêng với kết nối; sửa sau 1.6.8, **chưa phát hành** | [Bàn giao](../validation/2026-11-10-permit-expiry-config-handoff.md) |
 | **Latest1.6.8**: full4254/554,16publicfiles,167→168updater/upgrade, Znack/KIZ/report mới và mọi167 | [Handoff](../validation/2026-11-10-vncode-168-release-handoff.md), [receipt](../validation/vncode-168-20261110/final-release.json), [preservation](../validation/vncode-168-20261110/public-preservation.json) |
 | KIZ3390/EXHAUSTED: phục hồi khối đã cấp, giữ danh tính, không mua lại; Windows502đạt ở checkpoint trước, đã vào1.6.8 | [Bàn giao](../validation/2026-11-10-kiz-exhausted-recovery.md), [hợp đồng](../validation/kiz-exhausted-20261110/official-contract.json), [API preflight thật](../validation/kiz-exhausted-20261110/suz-live-access-preflight.json) |
 | Đăng ký WB300/10.000: false absence, explicit subset, core283ca/API đọc thật + Windows kết hợp502đạt; đã vào1.6.8 | [Bàn giao](../validation/2026-11-10-znack-bulk-preflight.md), [receipt](../validation/znack-bulk-20261110/focused-final-receipt.json) |

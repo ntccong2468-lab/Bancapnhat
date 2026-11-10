@@ -1,0 +1,12 @@
+{
+  "result": "PASS",
+  "artifact": "target/VNcode-1.6.8.jar",
+  "sha256": "de77489fea9c90ec273a6f5686ac850e1e10dcfc8d26420bc3e94a827866d93a",
+  "bytes": 7641455,
+  "changedSourceClassEntriesCompared": 53,
+  "localesCompared": 4,
+  "newExpiryFieldPresent": true,
+  "testClassesIncluded": false,
+  "packageLogSha256": "2b69c94b02c4deb006331be309a88a311cb3ca5fa18a024da23540b12c0bfae6",
+  "scope": "Local Maven package only; version label retained from base. This is not a Windows installer or a published 1.6.8 update."
+}

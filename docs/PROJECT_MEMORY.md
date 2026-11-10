@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## 10.11.2026 MSK — ô ngày hết hạn giấy tờ sau1.6.8, chưa phát hành
+
+Nguồn `80e9324c24e1d1fdee1dbbdbc56854b1e8f0149f`, nhánh `fix/permit-expiry-20261110`, từ202e58. [Bàn giao](validation/2026-11-10-permit-expiry-config-handoff.md), [kiểm chứng](validation/permit-expiry-20261110/verification.json). DB đã có expiry nhưng hội thoại cấu hình chỉ trả loại/số/ngày cấp. Thêm ô hạn dùng chung WB/Ozon/sản phẩm, strictISO/dd.MM và chặn hạn trước ngày cấp; lưu cả4trường. Giữ bản nháp expiry theo normalizedidentity kể cả seller chủ động xóa; không sao hạn giấy tờ khác. Lưu giấy tờ/kết nối merge trong cùng SQLite transaction, giữ snapshot pipeline/CAS chứng thư cũ, không migration.
+
+Baseline1ca lỗi thiếufield, final230ca/17lớp PASS/0failure/error/skip trên LinuxXvfb+SQLite tạm; packagePASS và kiểm byte53class/4locale. Không cộng lượt cũ hoặc nhận là fullWindows. Hạn cấu hình vẫnUNVERIFIED, không nâng thành registryproof để bỏ guard paidpurchase. Không mua/ghiAPI/ký/licenseactivation/Gmail thật. Latest đọc lại vẫn v1.6.8/440439895; chưa tạo bộ cài/publish/bumpversion cho sửa mới.
+
+Kinh nghiệm: thêm field không đủ nếu kết quả dialog chưa mang giá trị và save kết nối dùng snapshot cũ; cần giữ dữ liệu hai khu vực ở transaction. Identitylistener phải xét cả quá trình gõ chứ không chỉ `setText` nguyên chuỗi. Thiếu hạn khác giấy tờ vô thời hạn; dữ liệu cấu hình khác bằng chứng Catalog cho đúngGTIN.
+
 ## 10.11.2026 MSK — Latest1.6.8 đã phát hành và kiểm chứng
 
 [Handoff](validation/2026-11-10-vncode-168-release-handoff.md), [finalreceipt](validation/vncode-168-20261110/final-release.json). Nguồn38906a2 từ73619d3 giữ mọi1.6.7 và hai sửa runtime8fed/3990072; publisher1a19377/run42845466246. Immutable440439895/v1.6.8,15:34:37UTC/18:34:37MSK. FullWindows42828436446PASS4254/554,4252đạt/0failure/error/2namedOSskip;5stress, native/DPAPI/install/passiveupgrade167→168 đạt. SourceZIP3086/JAR1994/18runtime/no fixtures; đọc MSI PE củaEXE độc lập khớp SHA. Node166/174ởscopekhác,khôngcộng.

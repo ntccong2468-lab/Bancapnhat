@@ -1,0 +1,59 @@
+{
+  "sourceCommit": "80e9324c24e1d1fdee1dbbdbc56854b1e8f0149f",
+  "branch": "fix/permit-expiry-20261110",
+  "baseCommit": "202e58ab6b9c87d6568beb8a1120d71c8b958324",
+  "recordedAtUtc": "2026-11-10T18:24:54.807589+00:00",
+  "diagnosis": "Settings/SQLite already contain document_expiry_date, but the shared configuration dialog did not expose it or return it on Apply.",
+  "baselineRed": {
+    "tests": 1,
+    "failures": 0,
+    "errors": 1,
+    "skipped": 0,
+    "scope": "Before runtime fix; real JavaFX dialog and temporary SQLite with synthetic fixtures.",
+    "rawLogSha256": "e1fd112001b1feee989472156bd419e6844854e1d3a04756cd1f921aaaa72c33",
+    "derivedLogExcerpt": [
+      "[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 4.744 s <<< FAILURE! -- in com.vncode.app.ui.znackregistration.RegistrationDocumentConfigDialogTest",
+      "[ERROR]   RegistrationDocumentConfigDialogTest.expiryFieldExistsAndPrefillsStoredValue:31 » Execution org.opentest4j.AssertionFailedError: The seller must be able to see and edit document expiry ==> expected: not <null>",
+      "[ERROR] Tests run: 1, Failures: 0, Errors: 1, Skipped: 0"
+    ]
+  },
+  "finalTests": {
+    "result": "PASS",
+    "suites": 17,
+    "tests": 230,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "receipt": "focused-tests.json",
+    "platform": "Linux / JDK25 / Xvfb / temporary SQLite",
+    "scope": "Targeted regressions, not full app or Windows seller acceptance."
+  },
+  "build": {
+    "result": "PASS",
+    "receipt": "local-package.json",
+    "installerCreated": false,
+    "published": false
+  },
+  "review": "Independent code review found transient-input expiry loss and stale full-settings overwrite; final identity drafts and transactional area merges reviewed with no remaining blocker in bounded static review.",
+  "unchangedGuards": [
+    "Shop identity check before configuration write",
+    "Certificate verification and signer-change CAS/reset policy",
+    "Existing pipeline connection snapshots",
+    "Catalog/registry proof for exact GTIN and owner before paid purchase",
+    "Unknown expiry is not endless; configured data remains UNVERIFIED"
+  ],
+  "notRun": [
+    "Real paid KIZ purchase",
+    "Seller API/Catalog mutation",
+    "Cryptographic signing or real license activation",
+    "Full Windows suite or installer release"
+  ],
+  "latestRead": "latest-read.json",
+  "commands": {
+    "cwd": "/workspace/vncode-permit-expiry-20261110",
+    "tests": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dtest=RegistrationDocumentConfigDialogTest,RegistrationDraftCompletionDialogTest,ZnackRegistrationDocumentsTest,ZnackModuleTest,ConfiguredProductDeclarationTest,ProductBulkDialogTest,KizPurchasePermitEvidenceTest,RegistrationPermitValidatorTest,CatalogPermitEvidenceTest,DocumentDateInputTest,ZnackSettingsAreaRepositoryTest,ZnackCertificateSettingsRepositoryTest,ZnackAutomationControllerTest,ZnackAutomationInformationTest,ZnackCertificateDiscoveryUiTest,ZnackPurchaseMigrationSafetyTest,ZnackConnectionReuseTest test",
+    "build": "/workspace/toolchains/mvn-vncode -B -DskipTests package",
+    "diff": "git diff --check"
+  },
+  "sourceManifest": "focused-tests.json#sourceSha256"
+}
