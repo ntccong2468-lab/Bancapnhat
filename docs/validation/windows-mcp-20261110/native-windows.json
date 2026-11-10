@@ -1,0 +1,49 @@
+{
+  "runId": 42883495032,
+  "sourceCommit": "def8e8ff0467a4141fc2399ecd68372ebe1b42f9",
+  "conclusion": "success",
+  "htmlUrl": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42883495032",
+  "artifactId": 13794888289,
+  "artifactZipSha256": "a4539e24a0098c07f643ec0104832a370adea346c8ece007538303d7855d0adf",
+  "jobs": [
+    {
+      "id": 130065646340,
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "conclusion": "success"
+        },
+        {
+          "name": "Parse Windows PowerShell scripts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install pinned worker and prove rerun keeps the protected token",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate authenticated local MCP and tool restrictions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload sanitized protocol receipt only",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "protocolReceipt": "native-protocol.json",
+  "scope": "Actual Windows CI installation, rerun protected token, CLI, authenticated MCP and control-status verification; no image requested, no seller machine or VN Code acceptance."
+}

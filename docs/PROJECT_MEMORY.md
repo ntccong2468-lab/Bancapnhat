@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## 10.11.2026 MSK — cài Windows-MCP cho Codex Web, cần nối máy Windows người dùng
+
+Người dùng chọn Windows-MCP sau nghiên cứu repo, đồng ý cài và chọn máy Windows đang chạy VN Code. [Bàn giao](validation/2026-11-10-windows-mcp-setup.md), nhánh `tools/windows-mcp-20261110`, nguồn def8e8ff0467a4141fc2399ecd68372ebe1b42f9 từ1afba07/giữ80e9324. Cài cloudclientSDK2.3.0/28gói hash-locked, wrappers và skillrepo; upstream59e3b19/0.8.8 ngoài runtime app. WorkerZIP scripts bootstrapuv0.13.7/Python3.14/sourcepin, DPAPIuser/ACL, loopback18765, telemetryoff, takeover/consent, UIallowlist; không tự tạo publictunnel/firewall/service. Không ghi token/cert/sellerdata vào Git hoặc ZIP.
+
+Linux16ca client/actualMCPtransport với fixture tổng hợp đạt; **nativeWindows42883495032SUCCESS** cài/rerun giữtoken/parse/CLI/401/init/toolset/controlpolicy, khôngScreenshot/App/VNCode. HaiFAIL giữ riêng: /mcp/307→canonical/mcp; ZIPchecker gặpWindowsautocrlf→scopedgitattributesLF, giữ so byte. ZIP12.634bytes hash50e6d7c921fea17bdaa48dc0880f1bd923d4b9d76fc37e504af2b0195382b6dc đã tải từ publicpinnedcommit và sohash. ServerInfo4.1.3 làFastMCP, khôngversionapp/packageWindows-MCP. Chưa máy seller kết nối: đã gửi ZIP/yêu cầu chạy Install rồiStart; cần endpointHTTPS/tunnel/VPN+SecretMCPđúnghostname, không tokenchat. AppLatest168 vàhotfixexpiry chưa phát hành giữ nguyên, khôngsellerwrite/mua/ký/licenseactivation/Gmail.
+
+Kinh nghiệm: cài skill/clone trên Linux không điều khiển được máy Windows. Phân biệt clientinstalled, WindowsworkerCIpass, userworkerinstalled và appacceptance. NativeWindowsbắt được redirect/EOL mà Linuxprotocolfixture không thấy. MCP input timeout làkếtquảkhôngrõ, đọc/capturetrướckhiretry; toolallowlist khôngOSsandbox. Khi userhoànthànhcài, kiểmstatusvàđườngkếtnốirồi xácminhảnhappthật; khôngtựcoiđãkếtnốitừbiênnhậncàiđặt.
+
 ## 10.11.2026 MSK — ô ngày hết hạn giấy tờ sau1.6.8, chưa phát hành
 
 Nguồn `80e9324c24e1d1fdee1dbbdbc56854b1e8f0149f`, nhánh `fix/permit-expiry-20261110`, từ202e58. [Bàn giao](validation/2026-11-10-permit-expiry-config-handoff.md), [kiểm chứng](validation/permit-expiry-20261110/verification.json). DB đã có expiry nhưng hội thoại cấu hình chỉ trả loại/số/ngày cấp. Thêm ô hạn dùng chung WB/Ozon/sản phẩm, strictISO/dd.MM và chặn hạn trước ngày cấp; lưu cả4trường. Giữ bản nháp expiry theo normalizedidentity kể cả seller chủ động xóa; không sao hạn giấy tờ khác. Lưu giấy tờ/kết nối merge trong cùng SQLite transaction, giữ snapshot pipeline/CAS chứng thư cũ, không migration.

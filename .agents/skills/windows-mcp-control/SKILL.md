@@ -43,6 +43,10 @@ Read `tools/windows-mcp/README.md` and current memory before setup or use.
    new build on Windows. Do not claim all bugs found or a seller action succeeded
    merely because a tool call returned or HTTP status was 200.
 
+If a launch/input call times out or disconnects, its outcome may be unknown.
+Read/capture the current state before repeating it; do not assume the action
+failed or blindly repeat a button press that could submit data.
+
 The tool allowlist and fixed launch helper are not an OS sandbox: mouse/keyboard
 actions can operate other programs. Stay within the authorized app and workflow.
 Never auto-publish app builds as a side effect of connecting the desktop.

@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "scope": "Pinned Windows worker installation and local MCP auth/protocol, synthetic CI desktop only. No VN Code/seller acceptance, no app launch, no seller API writes.",
+  "stage": "complete",
+  "missingTokenHttpStatus": 401,
+  "missingTokenRejected": true,
+  "incorrectTokenHttpStatus": 401,
+  "incorrectTokenRejected": true,
+  "server": {
+    "name": "windows-mcp",
+    "version": "4.1.3"
+  },
+  "protocolVersion": "2025-06-18",
+  "tools": [
+    "App",
+    "Click",
+    "ControlStatus",
+    "Move",
+    "Screenshot",
+    "Scroll",
+    "Shortcut",
+    "Snapshot",
+    "Type",
+    "Wait",
+    "WaitFor"
+  ],
+  "controlEnabled": true,
+  "controlPolicy": "balanced",
+  "desktopImageChecked": false
+}

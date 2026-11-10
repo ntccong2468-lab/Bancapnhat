@@ -1,0 +1,9 @@
+{
+  "checkedAtUtc": "2026-11-10T19:16:57.452639+00:00",
+  "sourceCommit": "def8e8ff0467a4141fc2399ecd68372ebe1b42f9",
+  "url": "https://raw.githubusercontent.com/ntccong2468-lab/Bancapnhat/def8e8ff0467a4141fc2399ecd68372ebe1b42f9/tools/windows-mcp/windows-setup.zip",
+  "sha256": "50e6d7c921fea17bdaa48dc0880f1bd923d4b9d76fc37e504af2b0195382b6dc",
+  "bytes": 12634,
+  "matchesReviewedLocalZip": true,
+  "scope": "Read-only download from public GitHub source. This does not install anything on the user Windows computer."
+}

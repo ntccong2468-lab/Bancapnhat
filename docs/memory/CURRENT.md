@@ -2,6 +2,13 @@
 
 Cập nhật: **10.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## Windows-MCP — client đã cài; máy Windows người dùng chưa kết nối
+
+- Người dùng đồng ý Windows-MCP và chọn máy Windows đang cài VN Code. Nhánh `tools/windows-mcp-20261110`, nguồn **def8e8ff0467a4141fc2399ecd68372ebe1b42f9**, từ1afba07/giữ hotfix80e9324. Upstream pin59e3b19/0.8.8, uv0.13.7, cloudSDK2.3.0/28gói hash-locked; clientvenv `/workspace/windows-mcp-runtime/.venv`, vendor `/workspace/vendor/Windows-MCP`. Shell client dùng được từ Codex, không khẳng định đã có native MCP tool trong danh mục host.
+- [Bàn giao](../validation/2026-11-10-windows-mcp-setup.md), [client16/16đạt](../validation/windows-mcp-20261110/client-tests.json), **Windows42883495032SUCCESS** đúng source: cài/rerun/DPAPI/CLI/401/init/tools/control. [Native receipt](../validation/windows-mcp-20261110/native-windows.json). Giữ2lượtFAIL và nguyên nhân redirect307/EOL, không hạ assertion. Chưa capture desktop CI hoặc thử VN Code thật.
+- [ZIP public đã tải/kiểm hash](../validation/windows-mcp-20261110/distribution.json) gồm9helper+README, không token/runtime/sellerdata. User cần giải nén/chạy Install-WindowsMCP.cmd rồi Start-WindowsMCP.cmd trên Windows đang đăng nhập. Worker loopback18765/auth/DPAPI/takeover/telemetryoff; không firewall/service/publictunnel. Còn thiếu endpointHTTPS/tunnel/VPN và Secret `VNCODE_WINDOWS_MCP_TOKEN` đúng đích; không xin token trong chat. Đã hỏi trạng thái cài, chưa có xác nhận/endpoint tại checkpoint.
+- Đọc `.agents/skills/windows-mcp-control/SKILL.md` trước thao tác. Native protocol/HTTP200/PID không phải nghiệm thu app. Không sellerAPIwrite/mua/ký/licenseactivation/Gmail hoặc apprelease trong setup. Latest vẫn1.6.8; hotfix ngày hết hạn dưới đây chưa phát hành.
+
 ## Sau1.6.8 — thêm ngày hết hạn giấy tờ, chưa phát hành
 
 - Người dùng báo mua KIZ cần hạn nhưng cửa sổ cấu hình chỉ có ngày hiệu lực. Nguồn **`80e9324c24e1d1fdee1dbbdbc56854b1e8f0149f`**, nhánh `fix/permit-expiry-20261110`, từ202e58. Thêm ô hạn vào cửa sổ dùng chung WB/Ozon/sản phẩm, đọc/lưu cột có sẵn; strictISO/dd.MM, không nhận hạn trước ngày cấp. Giữ bản nháp theo đúng giấy tờ, blank là chưa biết. Merge giấy tờ/kết nối trong giao dịch SQLite để tránh ghi đè qua lại; giữ pipeline snapshot, signer/CAS, không migration.

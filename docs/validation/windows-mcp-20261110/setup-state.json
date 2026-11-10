@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "def8e8ff0467a4141fc2399ecd68372ebe1b42f9",
+  "baseCommit": "1afba0728da2e0ed902d7e3590ab197fbe1d6b70",
+  "recordedAtUtc": "2026-11-10T19:21:09.737372+00:00",
+  "branch": "tools/windows-mcp-20261110",
+  "clientInstalled": true,
+  "clientVenv": "/workspace/windows-mcp-runtime/.venv",
+  "clientSdkVersion": "2.3.0",
+  "cloudClientTests": "client-tests.json",
+  "nativeWindowsTests": "native-windows.json",
+  "distribution": "distribution.json",
+  "windowsUserMachine": "PENDING_USER_INSTALLATION_CONFIRMATION_AND_REMOTE_ROUTE",
+  "urlEnvironmentPresent": false,
+  "tokenEnvironmentPresent": false,
+  "nativeHostMcpToolsRegistered": false,
+  "integrationMode": "Installed SDK client invoked through existing Codex shell tool; repository skill explains use. Not an automatically registered native host/plugin tool.",
+  "windowsUserDesktopVerified": false,
+  "vnCodeOnUserMachineTested": false,
+  "appReleasePerformed": false,
+  "sellerApiWritesPerformed": false,
+  "paidOrSigningOperationsPerformed": false,
+  "blockedBy": "This cloud shell has no Windows host address/session. User needs to run worker on selected computer and provide a reachable authenticated HTTPS/tunnel/VPN connection; token through Secrets, not chat."
+}

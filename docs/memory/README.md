@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| Windows-MCP/Codex Web: cloudclient16ca đạt, nativeWindowsCI cài/auth/protocol đạt; máy người dùng chưa nối/không apprelease | [Bàn giao](../validation/2026-11-10-windows-mcp-setup.md), [Windows](../validation/windows-mcp-20261110/native-windows.json), [ZIP](../validation/windows-mcp-20261110/distribution.json) |
 | Cấu hình giấy tờ thêm ngày hết hạn, lưu riêng với kết nối; sửa sau 1.6.8, **chưa phát hành** | [Bàn giao](../validation/2026-11-10-permit-expiry-config-handoff.md) |
 | **Latest1.6.8**: full4254/554,16publicfiles,167→168updater/upgrade, Znack/KIZ/report mới và mọi167 | [Handoff](../validation/2026-11-10-vncode-168-release-handoff.md), [receipt](../validation/vncode-168-20261110/final-release.json), [preservation](../validation/vncode-168-20261110/public-preservation.json) |
 | KIZ3390/EXHAUSTED: phục hồi khối đã cấp, giữ danh tính, không mua lại; Windows502đạt ở checkpoint trước, đã vào1.6.8 | [Bàn giao](../validation/2026-11-10-kiz-exhausted-recovery.md), [hợp đồng](../validation/kiz-exhausted-20261110/official-contract.json), [API preflight thật](../validation/kiz-exhausted-20261110/suz-live-access-preflight.json) |
