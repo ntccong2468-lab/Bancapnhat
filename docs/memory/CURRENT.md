@@ -2,6 +2,10 @@
 
 Cập nhật: **11.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## Checkpoint trước điều tra đồng bộ sản phẩm/giấy tờ
+
+Đã lưu riêng [toàn bộ phần mới sau 1.6.8](POST-1.6.8.md): hạn giấy tờ, KIZ luôn đối soát/không tùy chọn, chống mua/gửi trùng, thứ tự đọc CIS và công cụ Windows-MCP. Nhánh mới `fix/product-sync-permits-20261111` từ 911a3b0 giữ toàn bộ mã d8a4859/80e9324/4fa9. Việc mới là WB/Ozon thiếu dữ liệu sản phẩm và giấy tờ hợp lệ nhưng chưa xác minh; chưa coi bộ đếm 195/132 của tổng 327 là bằng chứng mất sản phẩm. Không phát hành trong checkpoint này.
+
 ## Mua KIZ luôn theo dõi lưu thông — chưa phát hành
 
 - Nhánh `fix/kiz-circulation-20261111`, nguồn **`d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5`**, kế thừa 4fa9/80e9324 bên dưới. [Bàn giao và sơ đồ](../validation/2026-11-11-kiz-circulation-audit.md), [kiểm thử](../validation/kiz-circulation-20261111/focused-tests.json), [build cục bộ](../validation/kiz-circulation-20261111/local-package.json). Người dùng bác phương án tùy chọn: không đưa checkbox/menu bật tắt vào app; mọi enqueue mua thực lưu ý định lưu thông riêng trong job, không ghi đè kết nối dùng chung.

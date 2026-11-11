@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| Sổ gộp toàn bộ sửa sau 1.6.8, chưa phát hành; checkpoint trước điều tra đồng bộ sản phẩm/giấy tờ | [POST-1.6.8](POST-1.6.8.md) |
 | Mua KIZ bắt buộc theo dõi lưu thông, đối soát lô cũ/5xx không mua hay gửi trùng; đối chiếu WBCode 1.3.24 — chưa phát hành | [Bàn giao và sơ đồ](../validation/2026-11-11-kiz-circulation-audit.md), [kiểm thử](../validation/kiz-circulation-20261111/focused-tests.json), [đối chiếu](../validation/kiz-circulation-20261111/wbcode-comparison.json) |
 | Windows-MCP/Codex Web: cloudclient16ca đạt, nativeWindowsCI cài/auth/protocol đạt; máy người dùng chưa nối/không apprelease | [Bàn giao](../validation/2026-11-10-windows-mcp-setup.md), [Windows](../validation/windows-mcp-20261110/native-windows.json), [ZIP](../validation/windows-mcp-20261110/distribution.json) |
 | Cấu hình giấy tờ thêm ngày hết hạn, lưu riêng với kết nối; sửa sau 1.6.8, **chưa phát hành** | [Bàn giao](../validation/2026-11-10-permit-expiry-config-handoff.md) |

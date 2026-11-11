@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 11.11.2026 MSK — lưu trọn phần sau 1.6.8 trước sửa tiếp đồng bộ
+
+Theo yêu cầu người dùng, tạo [sổ gộp sau 1.6.8](memory/POST-1.6.8.md) trước thay đổi runtime tiếp: giữ nguồn KIZ d8a4859, hạn giấy tờ 80e9324, công cụ Windows-MCP def8/4fa9 và bàn giao 911a3b0. Phân biệt mã/JAR kiểm build với app phát hành; Latest gần nhất vẫn immutable 1.6.8. Không cộng chồng 421 và 230 test hoặc coi công cụ MCP đã điều khiển máy seller. Nhánh điều tra mới `fix/product-sync-permits-20261111`; cần truy sản phẩm còn thiếu, paging/checkpoint và nguồn bằng chứng giấy tờ. Chưa kết luận nguyên nhân từ ảnh 327/195/132, chưa thay dữ liệu seller hoặc phát hành.
+
 ## 11.11.2026 MSK — mua KIZ luôn đối soát lưu thông, chưa phát hành
 
 Nguồn **`d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5`**, nhánh `fix/kiz-circulation-20261111`, từ 4fa9; giữ hotfix hạn giấy tờ 80e9324 và công cụ Windows-MCP. [Bàn giao](validation/2026-11-11-kiz-circulation-audit.md), [receipt](validation/kiz-circulation-20261111/focused-tests.json). “Hoàn tất” trước đây chỉ là tải đủ mã khi snapshot auto=false, không phải bằng chứng lưu thông; tồn kho vẫn cần AVAILABLE và IN_CIRCULATION. Đã đối chiếu WBCode mới nhất 1.3.24 bằng EXE/JAR/bytecode, nguồn gốc đang giữ 1.1.32/8f7c3d1 và tài liệu SUZ/True API. Không chạy WBCode hoặc suy rằng thiếu POST utilisation thủ công là lỗi: nhóm công nghiệp nhẹ có báo cáo tự động phía SUZ.
