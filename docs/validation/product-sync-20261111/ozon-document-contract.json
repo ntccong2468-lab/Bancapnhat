@@ -1,0 +1,104 @@
+{
+  "checkedAtUtc": "2026-11-11T20:27:59.418338+00:00",
+  "mode": "Read-only public schema research; no seller calls or source changes",
+  "result": "CORROBORATED_ENUM_EXAMPLES_FROM_TWO_PINNED_OPENAPI_MIRRORS",
+  "sources": [
+    {
+      "repository": "vispar-tech/ozon-seller-api-schema",
+      "commit": "fdd380bf944add9a0948abdf2ed40e1fbfcdca33",
+      "url": "https://raw.githubusercontent.com/vispar-tech/ozon-seller-api-schema/fdd380bf944add9a0948abdf2ed40e1fbfcdca33/schemas/ozon-seller-api-openapi.json",
+      "sha256": "61cf1c77a548b377f7618110144d0904657c336c194c854145290d2890f3afb7",
+      "readmeUrl": "https://raw.githubusercontent.com/vispar-tech/ozon-seller-api-schema/fdd380bf944add9a0948abdf2ed40e1fbfcdca33/README.md",
+      "claimedOfficialOrigin": "https://docs.ozon.ru/api/seller/swagger.json",
+      "claimedSnapshotDate": "2026-11-11 04:03 UTC per README",
+      "x-source": null,
+      "statusResponseExample": {
+        "result": [
+          {
+            "code": "approved",
+            "name": "Одобрены"
+          },
+          {
+            "code": "awaiting_verification",
+            "name": "Ожидают проверки"
+          },
+          {
+            "code": "declined",
+            "name": "Отклонены"
+          },
+          {
+            "code": "verification",
+            "name": "На проверке"
+          }
+        ]
+      },
+      "certificateStatusField": {
+        "description": "Статус.",
+        "type": "string"
+      },
+      "sourceType": "Public third-party mirror of an official OpenAPI document, not independently downloaded from Ozon in this task."
+    },
+    {
+      "repository": "MissiaL/ozon-api",
+      "commit": "2f240188c7a6fec4d4c185eb2b6bc935c2c7983b",
+      "url": "https://raw.githubusercontent.com/MissiaL/ozon-api/2f240188c7a6fec4d4c185eb2b6bc935c2c7983b/references/ozon-seller-openapi.json",
+      "sha256": "a49dc6568ef52113d77035602b91f1e4b7d2fb77fbc8a9cd0e45a0b72abfc358",
+      "readmeUrl": "https://raw.githubusercontent.com/MissiaL/ozon-api/2f240188c7a6fec4d4c185eb2b6bc935c2c7983b/README.md",
+      "claimedOfficialOrigin": "https://docs.ozon.ru/api/seller/swagger.json",
+      "claimedSnapshotDate": "2026-10-18 per README",
+      "x-source": {
+        "url": "https://docs.ozon.ru/api/seller/swagger.json",
+        "checked_at": "2026-10-18",
+        "sha256": "ef61016684019c711e701955c34b2640695f2fdfd0adcf6eb079a6897edf7ab1"
+      },
+      "statusResponseExample": {
+        "result": [
+          {
+            "code": "approved",
+            "name": "Одобрены"
+          },
+          {
+            "code": "awaiting_verification",
+            "name": "Ожидают проверки"
+          },
+          {
+            "code": "declined",
+            "name": "Отклонены"
+          },
+          {
+            "code": "verification",
+            "name": "На проверке"
+          }
+        ]
+      },
+      "certificateStatusField": {
+        "type": "string",
+        "description": "Статус."
+      },
+      "sourceType": "Public third-party mirror of an official OpenAPI document, not independently downloaded from Ozon in this task."
+    }
+  ],
+  "knownStatuses": {
+    "approved": "Одобрены (approved)",
+    "awaiting_verification": "Ожидают проверки (awaiting verification)",
+    "declined": "Отклонены (declined)",
+    "verification": "На проверке (under verification)"
+  },
+  "safeInterpretation": [
+    "Only exact approved may support VALID with current date and actual product-certificate association evidence.",
+    "Exact declined may be REJECTED; awaiting_verification and verification are PENDING.",
+    "Unknown codes remain UNVERIFIED. Do not invent rejected/deleted/expired status aliases. Expiry is derived from actual expire_date.",
+    "Certificate approval is not proof it is bound to the requested product; verify association separately."
+  ],
+  "limits": [
+    "Official direct documentation returned redirect loops in the parent task.",
+    "Parent live certificate-status enumeration returned HTTP403/code7, so no live enum or current seller certificate was verified.",
+    "The OpenAPI field is string rather than an enum; these are documented examples, not proof the set is exhaustive.",
+    "The a-ulianov SDK mock uses ACTIVE, demonstrating that synthetic SDK tests alone are not reliable enum proof."
+  ],
+  "associationFilterSchema": {
+    "description": "Идентификатор товара в системе продавца — артикул, привязанный к сертификату. Передайте параметр, если нужны сертификаты, к которым привязаны определённые товары.",
+    "type": "string"
+  },
+  "associationLimit": "The documented offer_id filter establishes which product certificates are requested; product-level binding processing (product_status_code) is a separate result, and approval does not prove all other product requirements."
+}

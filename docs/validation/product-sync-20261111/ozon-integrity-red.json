@@ -1,0 +1,129 @@
+{
+  "recordedAtUtc": "2026-11-11T20:46:26.067303+00:00",
+  "result": "EXPECTED_RED",
+  "totals": {
+    "tests": 30,
+    "failures": 22,
+    "errors": 0,
+    "skipped": 0
+  },
+  "failedCases": [
+    {
+      "name": "malformedOrOutOfRangePageCountCannotTruncateAndReplaceTheSavedDocumentSet(String)[1]",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "malformedOrOutOfRangePageCountCannotTruncateAndReplaceTheSavedDocumentSet(String)[2]",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "malformedOrOutOfRangePageCountCannotTruncateAndReplaceTheSavedDocumentSet(String)[4]",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.UnsupportedOperationException>"
+    },
+    {
+      "name": "malformedOrOutOfRangePageCountCannotTruncateAndReplaceTheSavedDocumentSet(String)[5]",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "malformedOrOutOfRangePageCountCannotTruncateAndReplaceTheSavedDocumentSet(String)[6]",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.NumberFormatException>"
+    },
+    {
+      "name": "malformedOrOutOfRangePageCountCannotTruncateAndReplaceTheSavedDocumentSet(String)[7]",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.UnsupportedOperationException>"
+    },
+    {
+      "name": "malformedCertificateCollectionCannotEraseThePreviousVerifiedSnapshot(String)[1]",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "malformedCertificateCollectionCannotEraseThePreviousVerifiedSnapshot(String)[2]",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "malformedCertificateCollectionCannotEraseThePreviousVerifiedSnapshot(String)[3]",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "malformedCertificateCollectionCannotEraseThePreviousVerifiedSnapshot(String)[4]",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "repeatedCertificateIdsAcrossPagesCannotBeMergedAsACompleteObservation",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.IllegalArgumentException>"
+    },
+    {
+      "name": "changingPageCountCannotMakeAnIncompleteObservationReplaceThePreviousSet",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "nonObjectCertificateCannotAbortRefreshOutsideItsRecoverableReadFailure(String)[1]",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.IllegalArgumentException>"
+    },
+    {
+      "name": "nonObjectCertificateCannotAbortRefreshOutsideItsRecoverableReadFailure(String)[2]",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.IllegalArgumentException>"
+    },
+    {
+      "name": "nonObjectCertificateCannotAbortRefreshOutsideItsRecoverableReadFailure(String)[3]",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.IllegalArgumentException>"
+    },
+    {
+      "name": "nonObjectCertificateCannotAbortRefreshOutsideItsRecoverableReadFailure(String)[4]",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.IllegalArgumentException>"
+    },
+    {
+      "name": "repeatedCertificateIdsWithinOnePageCannotReplaceThePreviousDocumentSet",
+      "kind": "failure",
+      "message": "Unexpected exception type thrown, expected: <java.io.IOException> but was: <java.lang.IllegalArgumentException>"
+    },
+    {
+      "name": "validDatePrefixWithGarbageSuffixCannotGrantApproval(String)[1]",
+      "kind": "failure",
+      "message": "expected: <UNVERIFIED> but was: <VALID>"
+    },
+    {
+      "name": "validDatePrefixWithGarbageSuffixCannotGrantApproval(String)[2]",
+      "kind": "failure",
+      "message": "expected: <UNVERIFIED> but was: <VALID>"
+    },
+    {
+      "name": "zeroPageCountWithCertificatesCannotBeTreatedAsOneSuccessfulPage",
+      "kind": "failure",
+      "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+    },
+    {
+      "name": "validDateTimePrefixWithGarbageSuffixCannotGrantApproval(String)[1]",
+      "kind": "failure",
+      "message": "expected: <UNVERIFIED> but was: <VALID>"
+    },
+    {
+      "name": "validDateTimePrefixWithGarbageSuffixCannotGrantApproval(String)[2]",
+      "kind": "failure",
+      "message": "expected: <UNVERIFIED> but was: <VALID>"
+    }
+  ],
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductSnapshotReader.java": "3dc3f84f79137a35e562a28f039010a65cae78862329656145d1acd469dc7764",
+    "src/test/java/com/vncode/app/features/products/OzonDocumentReadbackIntegrityTest.java": "121078328a08ce4ae37136783afee55614a5307033f38eb852ba197986d7bd05"
+  },
+  "xmlSha256": "bc9a344c725fdcae34abe7633d8c6a5f64fd35a34b7e9420e49159bbaa6b766c",
+  "logSha256": "27f996588432b94798ebf31f058fac81bfacb9e638fd8b5a3bde3655a3e791b9",
+  "scope": "Local response-shape/date contract fixtures; prior approved snapshot must survive incomplete read. No real Ozon API calls."
+}

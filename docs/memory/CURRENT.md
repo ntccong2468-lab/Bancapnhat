@@ -2,6 +2,14 @@
 
 Cập nhật: **11.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## Đồng bộ sản phẩm và xác minh giấy tờ — chưa phát hành
+
+- Nhánh `fix/product-sync-permits-20261111`, nguồn **`0cd111c9931bb9993b47c2c787d3944d0ec564d6`**, từ checkpoint bộ nhớ 5c650dc/911a3b0; giữ toàn bộ KIZ d8a4859, hạn giấy tờ 80e9324 và công cụ Windows-MCP. [Bàn giao](../validation/2026-11-11-product-sync-permit-audit.md), [sổ sau 1.6.8](POST-1.6.8.md).
+- Ảnh 327/195/132 là tổng sản phẩm / snapshot đọc được / đọc chi tiết thất bại, không phải mất 132 bài. WB dùng batch fresh scan thay tìm từng bài và chỉ lưu một lần; lỗi riêng được báo an toàn, lỗi quyền/hủy/toàn lượt được giữ đúng loại. WB/GTIN không dừng vì trang ngắn; Ozon đọc tổng/cursor đúng, giữ count và chặn trùng/kết thúc thiếu.
+- Giấy tờ WB dùng verdict đúng kiểu/trạng thái, ngày hiệu lực, và overall approval chỉ hỗ trợ khi đã có giấy tờ hợp lệ riêng trong snapshot đúng owner. Ozon đọc bốn mã trạng thái có căn cứ, giữ mã lạ chưa xác minh, chặn `declined` trước bind. Response giấy tờ sai kiểu/số trang/ID/ngày không được thay cache hợp lệ bằng rỗng.
+- WB thật: 388 bài/1.982 biến thể; production batch đọc/lưu **388/388, 4 HTTP, 23,208 giây**, 338 bài giấy tờ VALID/50 MISSING, profile tạm đã xóa. Không chứng minh đúng cache/cửa hàng trong ảnh hoặc app Windows. Ozon thật bị chặn **403/code 7**; enum đối chiếu hai OpenAPI mirror được ghim, không gọi đó là nghiệm thu seller.
+- Kiểm thử cuối/build: **`510 ca/30 lớp đạt, 0 failure/error/skip; JAR build đạt, so byte 47 class/resource`**. Latest đọc lại vẫn immutable 1.6.8/440439895; không bump version/tạo bộ cài/publish. Giữ cả lịch sử RED và lỗi candidate SQL đã sửa, không cộng chồng lượt kiểm thử.
+
 ## Checkpoint trước điều tra đồng bộ sản phẩm/giấy tờ
 
 Đã lưu riêng [toàn bộ phần mới sau 1.6.8](POST-1.6.8.md): hạn giấy tờ, KIZ luôn đối soát/không tùy chọn, chống mua/gửi trùng, thứ tự đọc CIS và công cụ Windows-MCP. Nhánh mới `fix/product-sync-permits-20261111` từ 911a3b0 giữ toàn bộ mã d8a4859/80e9324/4fa9. Việc mới là WB/Ozon thiếu dữ liệu sản phẩm và giấy tờ hợp lệ nhưng chưa xác minh; chưa coi bộ đếm 195/132 của tổng 327 là bằng chứng mất sản phẩm. Không phát hành trong checkpoint này.

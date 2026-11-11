@@ -1,0 +1,11 @@
+{
+  "checkedAtUtc": "2026-11-11T20:18:36.770327+00:00",
+  "operation": "Read-only certificate status enumeration",
+  "http": 403,
+  "topKeys": [
+    "code",
+    "message"
+  ],
+  "businessCode": 7,
+  "enum": null
+}

@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## 11.11.2026 MSK — đồng bộ sản phẩm/giấy tờ sau checkpoint bộ nhớ
+
+Nguồn **`0cd111c9931bb9993b47c2c787d3944d0ec564d6`**, nhánh `fix/product-sync-permits-20261111`, kế thừa đầy đủ 911a/d8/80e/4fa; trước sửa runtime đã lưu và push [sổ sau 1.6.8](memory/POST-1.6.8.md) bằng 5c650dc. [Bàn giao](validation/2026-11-11-product-sync-permit-audit.md). Ảnh 327/195/132 đếm danh sách/snapshot thành công/đọc chi tiết lỗi, không phải bằng chứng mất 132 bài. Sửa WB incremental/recovery/GTIN reader dừng trang ngắn, Ozon total_items/tổng/cursor/trùng/điểm tiếp tục; WB refresh dùng batch raw mới, giữ parser đầy đủ, lưu một lần và báo lỗi từng sản phẩm an toàn.
+
+WB verdict và ngày được đọc đúng; overall status1/fullychecked chỉ hỗ trợ tổng khi có giấy tờ hợp lệ riêng đúng owner/current snapshot, không giả hợp lệ từ cấu hình. Ozon bốn mã trạng thái đối chiếu hai OpenAPI mirror có provenance; `declined` bị chặn trước gán. Kiểm response giấy tờ và số trang/ID/ngày để lỗi đọc không thay cache hợp lệ bằng rỗng. WB API thật: 388 bài/1.982 biến thể; production batch 388/388 snapshot/4HTTP/23,208s, 338VALID+50MISSING, profile tạm đã dọn. Không suy đúng store/cache trong ảnh hoặc app Windows từ số này; Ozon môi trường trả403/code7, chưa có nghiệm thu thật.
+
+Kiểm thử/build cuối **`510 ca/30 lớp đạt, 0 failure/error/skip; JAR build đạt, so byte 47 class/resource`**. Giữ baseline27/19failure/2error nghiệp vụ, candidate166/6OzonRED/53SQLerror do tham chiếu cột không tồn tại đã sửa bằng payload.validFrom, cùng RED bảo toàn cache Ozon. Không đổi schema/dependency/version hoặc publish; Latest đọc lại vẫn immutable1.6.8. Kinh nghiệm: đếm sản phẩm khác đếm snapshot, trang ngắn không tự chứng minh hết danh mục; registry/config hợp lệ khác xác nhận giấy tờ đã gắn trên sàn. Tolerant JSON không được biến response thiếu/sai thành giấy tờ rỗng rồi xóa bằng chứng cũ.
+
 ## 11.11.2026 MSK — lưu trọn phần sau 1.6.8 trước sửa tiếp đồng bộ
 
 Theo yêu cầu người dùng, tạo [sổ gộp sau 1.6.8](memory/POST-1.6.8.md) trước thay đổi runtime tiếp: giữ nguồn KIZ d8a4859, hạn giấy tờ 80e9324, công cụ Windows-MCP def8/4fa9 và bàn giao 911a3b0. Phân biệt mã/JAR kiểm build với app phát hành; Latest gần nhất vẫn immutable 1.6.8. Không cộng chồng 421 và 230 test hoặc coi công cụ MCP đã điều khiển máy seller. Nhánh điều tra mới `fix/product-sync-permits-20261111`; cần truy sản phẩm còn thiếu, paging/checkpoint và nguồn bằng chứng giấy tờ. Chưa kết luận nguyên nhân từ ảnh 327/195/132, chưa thay dữ liệu seller hoặc phát hành.

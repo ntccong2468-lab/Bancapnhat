@@ -1,0 +1,202 @@
+{
+  "recordedAtUtc": "2026-11-11T20:53:55.002003+00:00",
+  "result": "PASS",
+  "sourceCommit": "0cd111c9931bb9993b47c2c787d3944d0ec564d6",
+  "command": "/workspace/toolchains/mvn-vncode -B -DskipTests package",
+  "artifact": "target/VNcode-1.6.8.jar",
+  "sha256": "0cd9ac48f6eaf5cb6d614b32857852b3480bc8fbb1b3cc61732e7ae2b0ab52d7",
+  "bytes": 7664061,
+  "productionClassCount": 2000,
+  "verifiedChangedClassesAndResources": [
+    {
+      "path": "com/vncode/app/features/products/ProductRefreshService$1.class",
+      "sha256": "0610f282a0f918ad6172267f409e52fcfbf7195a896740197df4d1a6cf3a8da4"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRefreshService$Failure.class",
+      "sha256": "c2169ce0315c08d9960560704782459718d76b70dab696876dacb8e230600a99"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRefreshService.class",
+      "sha256": "1daf9868019d6bfc87b5651f5f50d26e4d11d4d755776b07994fd62f025aa377"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRefreshService$Report.class",
+      "sha256": "a6573a8c9f232a31ab5bf0939d9607c0a158a74751da114fca37ab6e84e70368"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRefreshService$Progress.class",
+      "sha256": "5bd6d7f6ad5522d9ff6de0acc80ac98d51503fdfa03a2588a1de19532119ff3b"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRefreshService$CatalogRefresher.class",
+      "sha256": "b91884b04a2a4f6022c421aeca04f6f77e3fd6a549d47a17d55928ab98b30254"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRepository.class",
+      "sha256": "dfc0cf69aceefa2e733e978d83a2269394348128589f5307e431f7260f4cb2b9"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRepository$Cursor.class",
+      "sha256": "c916a7cac5085cd2fbcf83b8749c1bd217f5bf17ae1e7bc2c6afade5ef6e8db4"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRepository$5.class",
+      "sha256": "28a35a46458541c52c33d73828e0a392ad9c60d8510fbd2c0a45df3be901b921"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRepository$1.class",
+      "sha256": "1322726aa75daa9bc9a36d139d8c5b23b66a1715a3e7e0dbb4fc5cc287912df5"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRepository$2.class",
+      "sha256": "d653e010df3e2dbe04ffc19050a15320624d68a5b94d32b126b81eb8d5afd785"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRepository$4.class",
+      "sha256": "913a404d5ec44bbb7be55864bab259fe24a141318a8b99118472d3e90ffebb81"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRepository$6.class",
+      "sha256": "148d01453f9242ca82f25100118e66ff1bc5cb8741a6c45eaa4dcdb91899247a"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductRepository$3.class",
+      "sha256": "0ba52b113eeebbe78b4936cbc6a71641ed4df76ee68a0dde39610a9f26ca5852"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductSnapshotReader.class",
+      "sha256": "e52732eee3eb1a436d1e4f9a00524d130dccf1f6c7fe5ac515abe9ab43144971"
+    },
+    {
+      "path": "com/vncode/app/features/products/ProductSnapshotReader$Batch.class",
+      "sha256": "0e1fa9b9bb40b2436ccdd8c8ed99b3eb23e1bf73939a4b549d45c46d6d28ac7c"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonCatalogSyncService.class",
+      "sha256": "89e31fe7550822a6b386f12c7b59c20374755ce06e96d97d8605857a0bd52994"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonJson$ProductPage.class",
+      "sha256": "aed616fb5436a79c7b3e6d67ffaf7be4b0753ceb27bc5aca028c7491e9536ca1"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonJson$PostingPage.class",
+      "sha256": "4869a7b70a840b1ef05cad5454efee1a8882cc407b87ac154c7fd64f6be4e138"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonJson.class",
+      "sha256": "a1f226c57fa49e35d769489f8d56ac35be8e5a6715674964031557d34b956a4c"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonJson$ProductReference.class",
+      "sha256": "844d235b3944fadf45a7a1a7e1e585dcd58ca3e324e153069c11979fd11e0291"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonListingAdapter.class",
+      "sha256": "c98041336e054d38eee1f2aa6c70ee5d6896e683d584ad8546273852addf6a3d"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonListingAdapter$CertificateBinding.class",
+      "sha256": "031b3352e3ed202ddb9aabae3d71ddde64f44732bd0e779423ec7f0219ad445c"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonProductSnapshotReader$ExplicitSize.class",
+      "sha256": "01fa20cd3fcfa1da30edf88bbae829e9e74184847065505df8bd982ac914ca58"
+    },
+    {
+      "path": "com/vncode/app/integration/ozon/OzonProductSnapshotReader.class",
+      "sha256": "4b786c3919f14b0f4ed100e7266c78d537d124ca1d63d6cdbd3417b067914728"
+    },
+    {
+      "path": "com/vncode/app/integration/wb/WbGtinProductReader.class",
+      "sha256": "b8829e7df17f9735815a3770a7e7463dce37a9ed0b31cb320421b31f48ecb7af"
+    },
+    {
+      "path": "com/vncode/app/integration/wb/WbProductSnapshotReader$1.class",
+      "sha256": "224095e75d04c28fad7ca6b29e477dca34d3edfc1d5f6b5cf71e29b05f341262"
+    },
+    {
+      "path": "com/vncode/app/integration/wb/WbProductSnapshotReader$CardReadException.class",
+      "sha256": "7b4494d8e0f52c6532b35856e43ada0ab694d19bcd9771c87eea3a4a926f0304"
+    },
+    {
+      "path": "com/vncode/app/integration/wb/WbProductSnapshotReader.class",
+      "sha256": "8a9b46b951159afd44a66d0aaefed6f45208ff14034d76dfe62dcb4c380627f7"
+    },
+    {
+      "path": "com/vncode/app/integration/wb/WbProductSyncService.class",
+      "sha256": "4f9bde1263df74be9b0d68f904df08d0ecf6cac722430a26538bab4edcc45d3b"
+    },
+    {
+      "path": "com/vncode/app/integration/wb/WbRegistrationSnapshotBatch$RawCards$Entry.class",
+      "sha256": "7ac1cadb2a085b2e20b617d9c484a3f9577321bc2bb3499e4532cbac5241ec68"
+    },
+    {
+      "path": "com/vncode/app/integration/wb/WbRegistrationSnapshotBatch$RawCards.class",
+      "sha256": "58c1f76314059ce7cce8bce4dc880e9743afaa6a8835d59d0d8aba27af281c29"
+    },
+    {
+      "path": "com/vncode/app/integration/wb/WbRegistrationSnapshotBatch.class",
+      "sha256": "1ae7753fca5a714e16631d7f683b121827a91efced20487900e116233a1c2dd5"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$5.class",
+      "sha256": "2b66514344222e4b3507509c163d8839b2b42b992a871c93f3b332fe29adf3cd"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$ProductCell.class",
+      "sha256": "0a471b2ed69329794298b0ea98ab700b329e5735692e78d21e38d602176d9efe"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$4.class",
+      "sha256": "de0be763ca7014da51b6f70079cc608d132c27d6a875b61ac1152df6e42d1752"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$7.class",
+      "sha256": "3f0fd8163ece2f43f7fb52b4af2b740ac1606011afc5e295f7525224c5920c6d"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$1.class",
+      "sha256": "7f9450565ab27100e83a6b7dcc3665a60275e4e93a70d9f3f093379ff4dae95d"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$6.class",
+      "sha256": "af6f4c1699544bafac5aab058e3b376c0543cc698acedb17262f9015b55993b4"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$2.class",
+      "sha256": "e8b262449592434f7c177a335d2017ea584ec5a0e982ba657e4455d8bb08c81a"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$ProductActionBar.class",
+      "sha256": "923c63e6db41b48ac1da0921e19353cc46779fa3943e8bab616be2d9a0ed8aca"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane$3.class",
+      "sha256": "40b5bae816404327e95f6c4187efa85442caf03e6b9c68830053b166bf4b3933"
+    },
+    {
+      "path": "com/vncode/app/ui/products/ProductsPane.class",
+      "sha256": "dd41e9284d75135055d09dc7c2c9240785f6c9500e03a668dc665d8a5ee6f39f"
+    },
+    {
+      "path": "com/vncode/app/i18n/messages_en.properties",
+      "sha256": "0b5c808f53101a10a8607c0f05beb4c095e0c75b6afc5dc9dee54b26e8e1b547"
+    },
+    {
+      "path": "com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "7ac6193c8d9ffd9ecc4cf6cf15f59b91799ebd8f9a722664676a746cdc0dd798"
+    },
+    {
+      "path": "com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "44330426ba8841144b1f13a26cd41e3a1ff3d534f303026072e19b4591d55377"
+    },
+    {
+      "path": "com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "97693d415611a86afbce193967d2225113f48d4678fc266399c639eaf74fa8f2"
+    }
+  ],
+  "buildLogSha256": "2f2d43eaeb1d6597f33059160a523e64d2b3862d0a523fb639c6bbe47d5d926b",
+  "scope": "Local JAR compile/package only; POM still1.6.8, not the immutable published binary or Windows installer. No release/version/tag/assets modified."
+}

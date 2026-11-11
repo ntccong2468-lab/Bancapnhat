@@ -1,0 +1,16 @@
+{
+  "recordedAtUtc": "2026-11-11T20:43:32.981155+00:00",
+  "scope": "Runtime paths used by the live WB read; future Ozon-only changes must not be used to claim real Ozon acceptance",
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java": "ce31379209bc5a7b01ba602f74016e265caf83257ce5ae3b06fa3629e6878110",
+    "src/main/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatch.java": "382762f55882aa03a46971e314b801f3eb09889b8f476e61b0cf5a992b43b341",
+    "src/main/java/com/vncode/app/features/products/ProductRepository.java": "49be0f23e5de3d90f24a7243dd1a9a63d534d5eb71c0d8138c82388d354d764f",
+    "src/main/java/com/vncode/app/features/products/ProductSnapshotReader.java": "1f8c411de12c4c24ec712605323fda8f337c639f7ef7071bb6ac8d31618cc9bd",
+    "src/main/java/com/vncode/app/integration/listing/ListingHttpClient.java": "251187dc1e9dfa47aa0b6880fdee15bb0b1fb647e32086b5948200aa5c63f190",
+    "src/main/java/com/vncode/app/integration/listing/ListingIdentity.java": "ca2fa7ec15f8b4a902b8f40cf160a58347eaf11bce7a8a3bba041a41e35d36d3"
+  },
+  "harnessSha256": "6cb89b3ff63bd8e72ffe3fd62562b8b1f830cac7b3133cb00cd8d242753c3b42",
+  "matchedFinalSourceCommit": "0cd111c9931bb9993b47c2c787d3944d0ec564d6",
+  "matchVerifiedAtUtc": "2026-11-11T20:54:39.873233+00:00",
+  "matchScope": "WB runtime source paths used by the live read are unchanged and match final commit. Ozon was not live-tested."
+}

@@ -10,6 +10,7 @@
 | Lô cũ và gửi không rõ kết quả | Đối soát bằng hồ sơ gốc, đúng order/GTIN/số lượng/CIS/owner; thiếu profile không mượn cấu hình mới. Timeout/5xx không cấp quyền mua hoặc gửi chứng từ trùng. Lô cũ opt-out chỉ được quan sát, không tự ký mới. | Cùng nguồn d8a4859; [review giới hạn](../validation/kiz-circulation-20261111/source-review.json). |
 | Thứ tự xác minh lưu thông | Đọc CIS trước Catalog/TN VED dành cho chứng từ mới; đã INTRODUCED không bị chặn bởi thiếu TN VED/lỗi đọc thẻ. APPLIED thiếu TN VED tiếp tục đối soát, chưa được gửi chứng từ. | [RED/GREEN thứ tự](../validation/kiz-circulation-20261111/ordering-focused-tests.json); không bỏ giấy tờ hoặc đổi nghiệp vụ pháp lý. |
 | Công cụ Windows-MCP | Cài cloud client, bộ bootstrap Windows có DPAPI/auth, pin/hash, skill và kiểm giao thức; sửa canonical route/EOL. Đây là công cụ phát triển, không thêm vào runtime app. | `def8e8ff0467a4141fc2399ecd68372ebe1b42f9` và `4fa9ba08977a9c29e51845d3c25d9527cd9a2069`; [bàn giao](../validation/2026-11-10-windows-mcp-setup.md). |
+| Đồng bộ sản phẩm/giấy tờ | Bổ sung sau checkpoint: đọc đủ trang WB/Ozon, batch snapshot WB, báo lỗi từng sản phẩm và trạng thái giấy tờ đúng nguồn; response giấy tờ thiếu/sai không xóa cache hợp lệ. | `0cd111c9931bb9993b47c2c787d3944d0ec564d6`; [bàn giao](../validation/2026-11-11-product-sync-permit-audit.md), vẫn chưa phát hành. |
 
 ## Trạng thái nghiệm thu và phát hành
 
@@ -21,3 +22,5 @@
 ## Việc mới sau checkpoint này
 
 Người dùng yêu cầu kiểm tra cửa hàng WB/Ozon đồng bộ thiếu sản phẩm và giấy tờ hợp lệ nhưng app vẫn báo chưa xác minh. Ảnh mới hiển thị 327 sản phẩm, kiểm tra 195, còn 132 chưa lấy được; phải truy ý nghĩa bộ đếm trước khi kết luận thiếu danh sách hay thiếu hồ sơ. Nhánh `fix/product-sync-permits-20261111` xuất phát từ 911a3b0. Đây là yêu cầu đang điều tra, chưa có kết luận hoặc nghiệm thu tại checkpoint này. Không lưu API key hoặc danh tính sản phẩm seller vào bộ nhớ.
+
+Kết quả sau điều tra: nguồn `0cd111c9931bb9993b47c2c787d3944d0ec564d6` đã sửa phân trang, đọc batch và trạng thái/bảo toàn giấy tờ; 510/510 ca cuối đạt, JAR build đạt. Đọc WB thật 388/388 snapshot trong 4 HTTP; Ozon test key 403/code7 nên chưa nghiệm thu thật. Xem bàn giao nêu trên. Phần sửa tiếp này vẫn chưa phát hành.

@@ -1,0 +1,189 @@
+{
+  "result": "EXPECTED_RED",
+  "recordedAtUtc": "2026-11-11T20:24:09.156465+00:00",
+  "baseCommit": "5c650dc3b6a81751a04c9344b9540e9e065d47be",
+  "mainSourceUnchanged": true,
+  "totals": {
+    "tests": 27,
+    "failures": 19,
+    "errors": 2,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "com.vncode.app.features.products.ProductDocumentVerificationReadbackTest",
+      "tests": 10,
+      "failures": 5,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "8b307e5ba62dafb8eab7048d13a4b8dedb40333eed5b17d3607f6abf7f9a1d66",
+      "failedCases": [
+        {
+          "name": "wbApprovedListingWithValidRequiredAndRejectedAdditionalDocumentProjectsValid",
+          "kind": "failure",
+          "message": "expected: <VALID> but was: <REJECTED>"
+        },
+        {
+          "name": "wbDocumentWithoutVerdictMeansValidationIsPending",
+          "kind": "failure",
+          "message": "expected: <PENDING> but was: <UNVERIFIED>"
+        },
+        {
+          "name": "wbApprovedListingWithValidRequiredAndPendingAdditionalDocumentProjectsValid",
+          "kind": "failure",
+          "message": "WB confirms the listing and its required valid document despite an additional document still awaiting validation ==> expected: <VALID> but was: <UNVERIFIED>"
+        },
+        {
+          "name": "wbApprovedListingWithValidRequiredAndExpiredAdditionalDocumentProjectsValid",
+          "kind": "failure",
+          "message": "expected: <VALID> but was: <EXPIRED>"
+        },
+        {
+          "name": "wbUnknownVerifiedStatusCannotBeInventedAsRejection",
+          "kind": "failure",
+          "message": "expected: <UNVERIFIED> but was: <REJECTED>"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.features.products.ProductRefreshBatchRegressionTest",
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "2ca6cf8c04798982f21e6d746ecb2eba3dc7857d0767bedb2d349ed2cb4a5b62",
+      "failedCases": [
+        {
+          "name": "interruptionIsNotCountedAsAnOrdinaryUnreadProduct",
+          "kind": "failure",
+          "message": "Expected java.io.InterruptedIOException to be thrown, but nothing was thrown."
+        },
+        {
+          "name": "complete327ProductDetailsUseFourListRequestsInsteadOf327Searches",
+          "kind": "failure",
+          "message": "Explicit catalog refresh must reuse the fresh full listing rather than search every card again ==> expected: <0> but was: <327>"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.integration.ozon.OzonCatalogPaginationTest",
+      "tests": 9,
+      "failures": 8,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "297b3ac74a841f25ea802866d2ed9179f88c9b9720689e7c73b99e5b4a0694ec",
+      "failedCases": [
+        {
+          "name": "unknownTotalMustReadTheEmptyTailRatherThanTreatingAShortPageAsComplete",
+          "kind": "failure",
+          "message": "expected: <2> but was: <1>"
+        },
+        {
+          "name": "invalidOrConflictingTotalsFailBeforeCommittingThePage(String)[1]",
+          "kind": "failure",
+          "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+        },
+        {
+          "name": "invalidOrConflictingTotalsFailBeforeCommittingThePage(String)[2]",
+          "kind": "failure",
+          "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+        },
+        {
+          "name": "invalidOrConflictingTotalsFailBeforeCommittingThePage(String)[3]",
+          "kind": "failure",
+          "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+        },
+        {
+          "name": "invalidOrConflictingTotalsFailBeforeCommittingThePage(String)[4]",
+          "kind": "failure",
+          "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+        },
+        {
+          "name": "aRepeatedCursorWithUnknownTotalCannotBeMarkedAsACompletedCatalog",
+          "kind": "failure",
+          "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+        },
+        {
+          "name": "totalItemsKeepsReadingShortPagesUntilAllProductsAreStored",
+          "kind": "failure",
+          "message": "expected: <2> but was: <1>"
+        },
+        {
+          "name": "anEmptyTailCannotHideProductsStillPromisedByTotalItems",
+          "kind": "failure",
+          "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "tests": 2,
+      "failures": 2,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "fb14a282977633c43fcc66a1f7bba93f88084a9bf73d1c422cc565989f49a068",
+      "failedCases": [
+        {
+          "name": "aShortGtinSourcePageDoesNotHideTheFollowingProductsAndVariants",
+          "kind": "failure",
+          "message": "expected: <50> but was: <20>"
+        },
+        {
+          "name": "aFailureAfterAShortGtinPageCannotReturnAPartialCatalogAsComplete",
+          "kind": "failure",
+          "message": "Expected java.io.IOException to be thrown, but nothing was thrown."
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbRegistrationSnapshotTest",
+      "tests": 3,
+      "failures": 2,
+      "errors": 1,
+      "skipped": 0,
+      "sha256": "6a70b1e229a2cbe3597834f92e2af4ca247d247a3a9a505d2be9f609a359ecf2",
+      "failedCases": [
+        {
+          "name": "aFailureAfterAShortPageKeepsItsCheckpointWithoutMarkingTheCatalogComplete",
+          "kind": "failure",
+          "message": "Expected com.vncode.app.integration.wb.WbApiException to be thrown, but nothing was thrown."
+        },
+        {
+          "name": "recoveryFindsTheRequestedProductAfterAValidShortPage",
+          "kind": "error",
+          "message": "Sản phẩm không tồn tại trên WB: nmId 225. Vui lòng kiểm tra lại thùng rác."
+        },
+        {
+          "name": "initialIncrementalCatalogContinuesPastAValidShortPageUntilAnEmptyPage",
+          "kind": "failure",
+          "message": "expected: <50> but was: <20>"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.ui.products.ProductRefreshUiTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0,
+      "sha256": "7d70f9e3e5194bb4d04b9fe94b613810c1b013586e18c6a46c7be0a1759887ad",
+      "failedCases": [
+        {
+          "name": "syncSummarySeparatesMarketplaceProductsFromUnreadDetails",
+          "kind": "error",
+          "message": "org.opentest4j.AssertionFailedError: The summary must retain the full marketplace product count: Проверено товаров: 2; недоступно: 1. ==> expected: <true> but was: <false>"
+        }
+      ]
+    }
+  ],
+  "changedTestsSha256": {
+    "src/test/java/com/vncode/app/features/products/ProductDocumentVerificationReadbackTest.java": "345d6f6f7e1d756a1b1b5dbf4dfdbbd0a58d273e75a7998937812bf1d36d8052",
+    "src/test/java/com/vncode/app/features/products/ProductRefreshBatchRegressionTest.java": "724f5f1a98ee8f6de349761276092df276d8ecb3bcbf8e83244483f80a63f0f5",
+    "src/test/java/com/vncode/app/integration/ozon/OzonCatalogPaginationTest.java": "210b6be27f6ce6d5b3ca20ea6d264df998867b8af2cc51b49f778b3759100774",
+    "src/test/java/com/vncode/app/integration/wb/WbGtinProductReaderTest.java": "9e6e8a7d237f243a7d2e3c4aa296dee617eb584aef94e1379457cc574def594d",
+    "src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotTest.java": "23566583f24321f1f51f29ee6555d11bc5edee9b92db54d131b530441d5d25c7",
+    "src/test/java/com/vncode/app/ui/products/ProductRefreshUiTest.java": "9a6fdaa566a0ab4510b10f0e0ffcc8f138e71a4356a6dfbd8b9a98763d9d1453"
+  },
+  "logSha256": "8fc062ab16bfd1f03446135842a29944737c29600aec52aa6f0103dfca97a0f5",
+  "scope": "Synthetic HTTP/local database/real JavaFX fixtures. Two errors are the reproduced missing WB recovery item and an assertion wrapped by FX Future, not compilation errors. No seller mutations."
+}

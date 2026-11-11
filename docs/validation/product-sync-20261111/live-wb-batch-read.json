@@ -1,0 +1,23 @@
+{
+  "checkedAtUtc": "2026-11-11T20:38:58.474057436Z",
+  "sourceCommit": "WORKTREE_FROZEN_BEFORE_SOURCE_COMMIT",
+  "mode": "Live WB read-only transport, production batch/parser/repository in temporary isolated profile; no license fixture or seller mutation",
+  "requestedCards": 388,
+  "observedCardsInFreshPages": 388,
+  "readOnlyRequests": 4,
+  "snapshotsSaved": 388,
+  "failures": {},
+  "documentStates": {
+    "VALID": 338
+  },
+  "projectedProductStates": {
+    "MISSING": 50,
+    "VALID": 338
+  },
+  "localProductCount": 388,
+  "seconds": 23.207748947,
+  "scope": "Selection observed by earlier fresh list with configured WB key; not proof of exact screenshot store/cache, Ozon or Windows UI",
+  "temporaryProfileDeleted": true,
+  "matchedFinalSourceCommit": "0cd111c9931bb9993b47c2c787d3944d0ec564d6",
+  "matchEvidence": "live-wb-source-manifest.json"
+}

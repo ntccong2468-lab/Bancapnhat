@@ -1,0 +1,441 @@
+{
+  "recordedAtUtc": "2026-11-11T20:33:15.079256+00:00",
+  "result": "FAIL_NOT_ACCEPTANCE",
+  "totals": {
+    "tests": 166,
+    "failures": 6,
+    "errors": 53,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "com.vncode.app.features.products.ProductDocumentVerificationReadbackTest",
+      "tests": 35,
+      "failures": 6,
+      "errors": 29,
+      "skipped": 0,
+      "sha256": "f9419a7cbf8f2ec8b779d32be243e7587c942c502c8d78271ca4e69f6da0fb51",
+      "failedCases": [
+        {
+          "name": "wbVerifiedApprovalAndRejectionStayDistinct",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "wbOverallApprovalCannotUseOnlyFutureOrExpiredValidDocument",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "wbApprovedListingWithValidRequiredAndRejectedAdditionalDocumentProjectsValid",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonMalformedStatusTypesCannotBeInterpretedAsApproval(String)[1]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonMalformedStatusTypesCannotBeInterpretedAsApproval(String)[2]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonMalformedStatusTypesCannotBeInterpretedAsApproval(String)[3]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonMalformedStatusTypesCannotBeInterpretedAsApproval(String)[4]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "wbDocumentWithoutVerdictMeansValidationIsPending",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "wbApprovedListingWithValidRequiredAndPendingAdditionalDocumentProjectsValid",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "expiredDatesOverrideOzonApproval",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "unknownOzonApprovalIsNeverInferredFromDatesOrDocumentNumber(String)[1]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "unknownOzonApprovalIsNeverInferredFromDatesOrDocumentNumber(String)[2]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "unknownOzonApprovalIsNeverInferredFromDatesOrDocumentNumber(String)[3]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "unknownOzonApprovalIsNeverInferredFromDatesOrDocumentNumber(String)[4]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "wbPendingOrRejectedOverallCannotHideRejectedAdditionalDocument",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonExplicitUnboundOrMalformedProductCountCannotProveApprovedAttachment(String)[1]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonExplicitUnboundOrMalformedProductCountCannotProveApprovedAttachment(String)[2]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonExplicitUnboundOrMalformedProductCountCannotProveApprovedAttachment(String)[3]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonExplicitUnboundOrMalformedProductCountCannotProveApprovedAttachment(String)[4]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonExplicitUnboundOrMalformedProductCountCannotProveApprovedAttachment(String)[5]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonExplicitUnboundOrMalformedProductCountCannotProveApprovedAttachment(String)[6]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonExplicitUnboundOrMalformedProductCountCannotProveApprovedAttachment(String)[7]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonExplicitUnboundOrMalformedProductCountCannotProveApprovedAttachment(String)[8]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonMissingOptionalCountStillUsesExactOfferAssociationFilter",
+          "kind": "failure",
+          "message": "expected: <VALID> but was: <UNVERIFIED>"
+        },
+        {
+          "name": "wbHistoricalOrForeignOverallCannotPromoteDocumentProjection",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "approvedOzonDocumentNotYetEffectiveRemainsPending",
+          "kind": "failure",
+          "message": "expected: <PENDING> but was: <UNVERIFIED>"
+        },
+        {
+          "name": "wbOverallApprovalWithoutIndividuallyVerifiedCurrentDocumentCannotProveDocumentsValid",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "wbApprovedListingWithValidRequiredAndExpiredAdditionalDocumentProjectsValid",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonDocumentedStatusIsPreservedThroughSnapshotAndProjection(String, DocumentState)[1]",
+          "kind": "failure",
+          "message": "expected: <VALID> but was: <UNVERIFIED>"
+        },
+        {
+          "name": "ozonDocumentedStatusIsPreservedThroughSnapshotAndProjection(String, DocumentState)[2]",
+          "kind": "failure",
+          "message": "expected: <PENDING> but was: <UNVERIFIED>"
+        },
+        {
+          "name": "ozonDocumentedStatusIsPreservedThroughSnapshotAndProjection(String, DocumentState)[3]",
+          "kind": "failure",
+          "message": "expected: <PENDING> but was: <UNVERIFIED>"
+        },
+        {
+          "name": "ozonDocumentedStatusIsPreservedThroughSnapshotAndProjection(String, DocumentState)[4]",
+          "kind": "failure",
+          "message": "expected: <REJECTED> but was: <UNVERIFIED>"
+        },
+        {
+          "name": "wbUnknownVerifiedStatusCannotBeInventedAsRejection",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonMalformedExplicitDateCannotProveCurrentValidity(String)[1]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonMalformedExplicitDateCannotProveCurrentValidity(String)[2]",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.features.products.ProductRefreshBatchRegressionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 3,
+      "skipped": 0,
+      "sha256": "6447a9bff0dc7ee9c2e3db490cfbe5a20a2a6bdeb560e3609f2ef2d05e44c983",
+      "failedCases": [
+        {
+          "name": "accountPermissionFailureStopsWithoutMisreportingEveryProductAsMissing",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "complete327ProductDetailsUseFourListRequestsInsteadOf327Searches",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "aMalformedCardDoesNotDiscardOtherFreshCardsAndRetainsItsSpecificReason",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.features.products.ProductRefreshServiceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 2,
+      "skipped": 0,
+      "sha256": "19a96c24f26260d7b3b37768ecea63db9108ae5f6c42588514f9a1d5cfeb0cd1",
+      "failedCases": [
+        {
+          "name": "manyVariantsDoNotLimitEnrichmentToTwentyCardsAndAllRequestedFieldsSurvive",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "explicitRefreshEnrichesEveryCardRegardlessOfVisibleFilterAndPageLimit",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.features.products.ProductRepositoryTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 16,
+      "skipped": 0,
+      "sha256": "9ca8cfee632c4a3345c6df4142af278c62db6e6381774bc00ac6cdee0da44174",
+      "failedCases": [
+        {
+          "name": "verifiedWbReadbackUpdatesEverySizeAndSurvivesStaleBackgroundCards",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "unicodeSearchAndLiteralWildcards",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonRowsRemainOwnedByOzonAndHaveTrueCount",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "wrongAssignedBarcodeIsStillMissingVerifiedGtin",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "gtinPreservesLeadingZeroAndDoesNotTreatBarcodeAsProof",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "migration4ToCurrentPreservesRows",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "issueFilterAndFrozenSelectionAgreeAndCannotReuseAnotherCursor",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "scalarWbColorRemainsAvailableForCatalogMatching",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "cardWithoutVariantsRemainsVisible",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "indexedLargeCatalogKeepsBoundedFirstPage",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "groupedCardsWithoutBarcodesOrSizesStillDisplayAndRemainEditable",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "productViewGroupsWbSizesButVariantSourcesRemainUnchanged",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "rotatingOwnerCredentialsMakesOldValidDocumentsUnverifiedWithoutDeletingThem",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "wbProjectionRetainsEveryColorInsteadOfAuthorizingOnlyTheFirst",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "searchAndPagingAreShopScoped",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        },
+        {
+          "name": "ozonVerifiedSnapshotProjectsAttributesButCredentialRotationHidesIt",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.features.products.ProductSnapshotReaderTest",
+      "tests": 19,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0,
+      "sha256": "0d79fdc637e42d9e21058edcfe79ebf68bcd916dd2d3eab263313414a7556b29",
+      "failedCases": [
+        {
+          "name": "realSnapshotReadPopulatesLocalDetailsAndDocumentFilter",
+          "kind": "error",
+          "message": "Unable to read or save product data"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.integration.ozon.OzonCatalogPaginationTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "0daf7df55b1119509a9323567dbfc3819fd46d310a38c44e50ac7f8fe727d752",
+      "failedCases": []
+    },
+    {
+      "suite": "com.vncode.app.integration.ozon.OzonRegistrationResumeTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "494af06c2314eb5f88aef7e782f0345910a5b7e9d3944b741c678f947efd991b",
+      "failedCases": []
+    },
+    {
+      "suite": "com.vncode.app.integration.ozon.OzonSyncServiceTest",
+      "tests": 33,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "ac4c7572899b5dda9ad51a9fe3bc8a299a68128ecbabe0f6ee03f4b78d4a69ca",
+      "failedCases": []
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbGtinProductReaderTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "86535ff8b1fb5e9beacfcff0c0eb5d7fe195b85f53be018e9d79f9be892e6aa3",
+      "failedCases": []
+    },
+    {
+      "suite": "com.vncode.app.integration.wb.WbRegistrationSnapshotTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "sha256": "265e896c7f6f252a9e7ba2e113effd98c0a5fe158232a2f116d84bbf3de5d2ae",
+      "failedCases": []
+    },
+    {
+      "suite": "com.vncode.app.ui.products.ProductRefreshUiTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 2,
+      "skipped": 0,
+      "sha256": "111925795ade01f5a600c8ffbd32bfae25630095b34f486e5d09c437076fe2ed",
+      "failedCases": [
+        {
+          "name": "syncSummarySeparatesMarketplaceProductsFromUnreadDetails",
+          "kind": "error",
+          "message": "org.opentest4j.AssertionFailedError: The summary must retain the full marketplace product count: Не удалось прочитать данные. Повторите попытку. ==> expected: <true> but was: <false>"
+        },
+        {
+          "name": "syncButtonUsesBackgroundRefreshAndOldOwnerCompletionDoesNotReplaceNewShop",
+          "kind": "error",
+          "message": "org.opentest4j.AssertionFailedError: expected: <> but was: <Не удалось прочитать данные. Повторите попытку.>"
+        }
+      ]
+    }
+  ],
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/features/products/ProductRefreshService.java": "9cc047dbc03131e59e6e7bca34ff2e248d490293ff7528bb5db56c87695b58ce",
+    "src/main/java/com/vncode/app/features/products/ProductRepository.java": "1ee0570381885cad2c090db0af17a9452ce9d40b4a4fa7244389cc20a2c319a3",
+    "src/main/java/com/vncode/app/features/products/ProductSnapshotReader.java": "1f8c411de12c4c24ec712605323fda8f337c639f7ef7071bb6ac8d31618cc9bd",
+    "src/main/java/com/vncode/app/integration/ozon/OzonCatalogSyncService.java": "6745ab1ef712326a27cee255e60a3847e5c0430c475168d6f334b0649f41e3c2",
+    "src/main/java/com/vncode/app/integration/ozon/OzonJson.java": "43193fe982da9d7d7d09a3f77160550ddba21bc9380d99eed74c311efafe5c2e",
+    "src/main/java/com/vncode/app/integration/wb/WbGtinProductReader.java": "ec646f0b85e6080bb3aebb07befac9ce343f1ec8db10ae90d4cf6429061e5818",
+    "src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java": "acecba10b15f3a760beb1f6d349428d19b6222536b7fec8aa265f83f78bfa656",
+    "src/main/java/com/vncode/app/integration/wb/WbProductSyncService.java": "95c9d2cb1e2ebb7409b54b994c3f1b159299cba5ff2bcf5c01b80aa0b3fff481",
+    "src/main/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatch.java": "382762f55882aa03a46971e314b801f3eb09889b8f476e61b0cf5a992b43b341",
+    "src/main/java/com/vncode/app/ui/products/ProductsPane.java": "8ebc05ea45fc7837b297e73b6d17f32a6cff2dd6076bb3992d118409f2b512b5",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "0b5c808f53101a10a8607c0f05beb4c095e0c75b6afc5dc9dee54b26e8e1b547",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "7ac6193c8d9ffd9ecc4cf6cf15f59b91799ebd8f9a722664676a746cdc0dd798",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "44330426ba8841144b1f13a26cd41e3a1ff3d534f303026072e19b4591d55377",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "97693d415611a86afbce193967d2225113f48d4678fc266399c639eaf74fa8f2",
+    "src/test/java/com/vncode/app/features/products/ProductDocumentVerificationReadbackTest.java": "fb05a95793a1a1bbc9d17fa0d93e369ee40448f67b2d14c56c97bb85fa459da0",
+    "src/test/java/com/vncode/app/features/products/ProductRefreshBatchRegressionTest.java": "fd7dba896ccb0f400d8fa8d1b8e4be10684933ed2147cc3974d95326ccf974d9",
+    "src/test/java/com/vncode/app/integration/ozon/OzonCatalogPaginationTest.java": "e51e4ad5893b2c0b0adea0d03fe6c436e3efc6343e2ae6af11012339a07521fa",
+    "src/test/java/com/vncode/app/integration/ozon/OzonSyncServiceTest.java": "f0d3e94bbd99b7edf25a037028448d1a8ac127da064ae7a3cb1311c1ac17dff0",
+    "src/test/java/com/vncode/app/integration/wb/WbGtinProductReaderTest.java": "6dc56787b475b341a3e309377b482ac0c4d2e8ff06b323cf051265ff8992c540",
+    "src/test/java/com/vncode/app/integration/wb/WbRegistrationSnapshotTest.java": "23566583f24321f1f51f29ee6555d11bc5edee9b92db54d131b530441d5d25c7",
+    "src/test/java/com/vncode/app/ui/products/ProductRefreshUiTest.java": "c923e09450c645eefe06eedeede70d70e04f9d83f3cc210d8ba87de747e7b038"
+  },
+  "logSha256": "f28cee40cc680d90a7f54cfc07e549a72a9d7f083e9cdd5cfb84d9e79232c394",
+  "causes": [
+    "Expected Ozon status classification RED before changing its parser: six failures.",
+    "Implementation regression: projection referenced nonexistent product_documents.valid_from column; first focused run exposed cascading SQL/UI errors. Repair uses existing payload.validFrom, no schema change."
+  ],
+  "scope": "Local SQLite/HTTP/JavaFX fixtures, no real seller writes."
+}

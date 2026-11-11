@@ -1,0 +1,25 @@
+{
+  "recordedAtUtc": "2026-11-11T20:51:44.212778+00:00",
+  "sourceCommit": "0cd111c9931bb9993b47c2c787d3944d0ec564d6",
+  "result": "NO_NEW_BLOCKER_IN_BOUNDED_FINAL_REVIEW",
+  "method": "Code Doctor evidence-first diagnosis; independent WB/Ozon source review; Taste app-screen and Impeccable Operate/native review of existing JavaFX status/report surface. Not a full security/application audit.",
+  "checks": [
+    "WB incremental, recovery and GTIN source scans do not terminate on short nonempty pages.",
+    "Ozon totals/cursors/membership are validated; missing totals require empty-tail proof, exact known final totals permit a blank final cursor.",
+    "WB full detail refresh uses one bounded fresh selected-card scan, isolates card-specific errors, propagates cancellation/account/global scan failures, and persists successful snapshots once.",
+    "UI separates product-list count from detail success/failure; safe localized failure records avoid raw exceptions and stale owner results.",
+    "WB overall approval cannot manufacture a verified document; current owned live snapshot plus an individually valid current document is required.",
+    "WB verdict types and known codes are strict; Ozon four status examples have pinned mirror provenance and unknown codes never grant approval.",
+    "Ozon fresh declined status is checked before document binding.",
+    "Ozon malformed paper collections, entries, IDs, page counts and contradictory dates throw before persistence; previous valid snapshots survive.",
+    "Ozon full ISO date/date-time parsing rejects suffix garbage; no broad catch swallows owner/security changes.",
+    "No schema/dependency/version/production credentials or publication changes."
+  ],
+  "limits": [
+    "Live Ozon read blocked by configured test credential HTTP403/code7; contract mirrors are not a seller acceptance test.",
+    "Live WB isolated read does not prove the exact cached profile or store in the screenshot, nor Windows seller UI.",
+    "Normal Ozon non-registration resume still uses existing cache membership when no persisted scan count exists; explicit refresh starts from the beginning.",
+    "UI tested at720px in current fixture locale; not all themes/locales/NVDA/Windows DPI were visually exercised.",
+    "Impeccable context reports unsupported JavaFX platform classification/stale sidecar/update available; these unrelated artifacts were not changed."
+  ]
+}

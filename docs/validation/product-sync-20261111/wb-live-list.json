@@ -1,0 +1,164 @@
+{
+  "checkedAtUtc": "2026-11-11T20:18:09.158596+00:00",
+  "mode": "Read-only WB list; no product edits or other seller mutation",
+  "pages": [
+    {
+      "http": 200,
+      "count": 100,
+      "reported_page_count": 100
+    },
+    {
+      "http": 200,
+      "count": 100,
+      "reported_page_count": 100
+    },
+    {
+      "http": 200,
+      "count": 100,
+      "reported_page_count": 100
+    },
+    {
+      "http": 200,
+      "count": 88,
+      "reported_page_count": 88
+    },
+    {
+      "http": 200,
+      "count": 0,
+      "reported_page_count": 0
+    }
+  ],
+  "cards": 388,
+  "unique_cards": 388,
+  "variants": 1982,
+  "missing_complete_snapshot_fields": {},
+  "document_container_shapes": {
+    "dict": 388
+  },
+  "document_verdict_patterns": [
+    {
+      "fields": {
+        "status": {
+          "type": "int",
+          "value": 1
+        },
+        "verified": {
+          "type": "bool",
+          "value": true
+        }
+      },
+      "count": 338
+    }
+  ],
+  "overall_verdict_patterns": [
+    {
+      "fields": {
+        "status": {
+          "type": "int",
+          "value": 2
+        }
+      },
+      "count": 71
+    },
+    {
+      "fields": {},
+      "count": 1
+    },
+    {
+      "fields": {
+        "status": {
+          "type": "int",
+          "value": 1
+        }
+      },
+      "count": 316
+    }
+  ],
+  "sanitized_document_shapes": [
+    {
+      "document_keys": [
+        "createdAt",
+        "endDate",
+        "id",
+        "number",
+        "startDate",
+        "type",
+        "verdict"
+      ],
+      "verdict": {
+        "verified": {
+          "type": "bool",
+          "value": true
+        },
+        "status": {
+          "type": "int",
+          "value": 1
+        }
+      },
+      "overall": {
+        "status": {
+          "type": "int",
+          "value": 2
+        }
+      }
+    },
+    {
+      "document_keys": [
+        "createdAt",
+        "endDate",
+        "id",
+        "number",
+        "startDate",
+        "type",
+        "verdict"
+      ],
+      "verdict": {
+        "verified": {
+          "type": "bool",
+          "value": true
+        },
+        "status": {
+          "type": "int",
+          "value": 1
+        }
+      },
+      "overall": {
+        "status": {
+          "type": "int",
+          "value": 1
+        }
+      }
+    },
+    {
+      "document_keys": [
+        "createdAt",
+        "endDate",
+        "id",
+        "isEndless",
+        "number",
+        "startDate",
+        "type",
+        "verdict"
+      ],
+      "verdict": {
+        "verified": {
+          "type": "bool",
+          "value": true
+        },
+        "status": {
+          "type": "int",
+          "value": 1
+        }
+      },
+      "overall": {
+        "status": {
+          "type": "int",
+          "value": 1
+        }
+      }
+    }
+  ],
+  "error": null,
+  "private_payloads_not_committed": true,
+  "scope": "Current configured WB key; does not establish the exact app cache or original screenshot selection."
+}

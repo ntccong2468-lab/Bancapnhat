@@ -1,0 +1,26 @@
+{
+  "checkedAtUtc": "2026-11-11T20:23:34.234468+00:00",
+  "url": "https://dev.wildberries.ru/api/swagger/yaml/en/02-items.yaml",
+  "sha256": "3095b2cd0169f8b74bdecaaaa6b84a5b7d4107493ccd139fa20f64d801dff019",
+  "bytes": 394458,
+  "httpStatus": 200,
+  "facts": [
+    {
+      "lines": "2220-2227",
+      "fact": "Missing per-document verdict means validation is not completed; validation is asynchronous and can take up to three days. A changed validation result updates card updatedAt."
+    },
+    {
+      "lines": "2542-2560",
+      "fact": "verified is boolean: true means validated, false not validated. Only documented verdict status1passed and2failed are known; unknown codes are not rejection evidence."
+    },
+    {
+      "lines": "2571-2590",
+      "fact": "overallVerdict covers the whole listing, including facts beyond documents. A listing can pass with its required valid document and a failed optional document; individual document and overall states must not be conflated."
+    }
+  ],
+  "limits": [
+    "Official Ozon Seller docs and three alternate schema URLs returned HTTP307 redirect loops; public api-seller openapi.json returned404.",
+    "Root Ozon certificate/status/list read returned403/code7; approved/rejected enum is not verified in this task.",
+    "No business API writes or real registry/attachment mutations performed."
+  ]
+}

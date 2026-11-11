@@ -1,0 +1,30 @@
+{
+  "intermediatePassedRuns": [
+    {
+      "log": "/tmp/vncode-product-sync-audit/focused-green.log",
+      "sha256": "3f9afd130c620c548d269a6954205389dbd1b2c3f7c4782ce864a4e8928723dc",
+      "tests": 211,
+      "suites": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "scope": "Intermediate before final Ozon integrity guard; superseded by fresh510 final run."
+    },
+    {
+      "log": "/tmp/vncode-product-sync-audit/related-green.log",
+      "sha256": "90d387dd31962f825ec4d2b5187b1867130ab7c2d095df89dfbbceab5348370a",
+      "tests": 268,
+      "suites": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "scope": "Intermediate before final Ozon integrity guard; superseded by fresh510 final run."
+    }
+  ],
+  "failures": [
+    "baseline-red.json",
+    "first-focused-failure.json",
+    "ozon-integrity-red.json"
+  ],
+  "finalRun": "focused-tests.json"
+}
