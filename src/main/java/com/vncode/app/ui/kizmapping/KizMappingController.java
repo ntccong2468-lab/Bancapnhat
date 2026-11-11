@@ -73,7 +73,7 @@ public class KizMappingController {
         pipelineColumn.setCellValueFactory(v -> new SimpleStringProperty(localizeStatus(first(
                 v.getValue().latestPipelineStage(), v.getValue().latestOrderStatus()))));
         mappingColumn.setCellFactory(column -> statusCell("badge-green", "badge-gray"));
-        pipelineColumn.setCellFactory(column -> statusCell("badge-warning", "badge-gray"));
+        pipelineColumn.setCellFactory(this::pipelineStatusCell);
         errorColumn.setCellValueFactory(v -> {
             ZnackGtinInventorySummary summary = v.getValue();
             String status = first(summary.latestPipelineStage(), summary.latestOrderStatus());
@@ -474,6 +474,42 @@ public class KizMappingController {
                 }
                 chip.setText(item);
                 chip.getStyleClass().setAll("badge", item.equals(tr("kiz_mapping.status.unmapped")) ? emptyClass : activeClass);
+                setGraphic(chip);
+            }
+        };
+    }
+
+    private TableCell<ZnackGtinInventorySummary, String> pipelineStatusCell(
+            TableColumn<ZnackGtinInventorySummary, String> column) {
+        return new TableCell<>() {
+            private final Label chip = new Label();
+            private final Tooltip details = new Tooltip();
+            {
+                chip.setWrapText(true);
+                chip.setMinWidth(0);
+                chip.maxWidthProperty().bind(javafx.beans.binding.Bindings.max(1, column.widthProperty().subtract(16)));
+                chip.setTooltip(details);
+            }
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isBlank()) {
+                    setGraphic(null);
+                    setTooltip(null);
+                    return;
+                }
+                var rows = getTableView() == null ? null : getTableView().getItems();
+                var row = rows != null && getIndex() >= 0 && getIndex() < rows.size() ? rows.get(getIndex()) : null;
+                String status = row == null ? "" : value(first(row.latestPipelineStage(), row.latestOrderStatus()));
+                String badge = switch (status.toUpperCase(java.util.Locale.ROOT)) {
+                    case "INTRODUCED" -> "badge-green";
+                    case "FAILED", "INTRODUCTION_FAILED" -> "badge-red";
+                    case "" -> "badge-gray";
+                    default -> "badge-warning";
+                };
+                chip.setText(item);
+                chip.getStyleClass().setAll("badge", badge);
+                details.setText(item);
+                setTooltip(details);
                 setGraphic(chip);
             }
         };

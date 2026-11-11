@@ -96,6 +96,7 @@ public class ZnackAutomationController {
     @FXML private TextField productSearchField, deletedSearchField;
     @FXML private ComboBox<CryptoProCertificateInfo> signatureCertificateCombo;
     @FXML private CheckBox autoIntroductionCheck;
+    @FXML private Label autoIntroductionScopeLabel;
     @FXML private Button saveButton, testSignatureButton, deleteSelectedButton;
     @FXML private ProgressIndicator productBusyIndicator;
     @FXML private MenuButton productCategoryFilterButton, deletedCategoryFilterButton;
@@ -201,7 +202,7 @@ public class ZnackAutomationController {
         for(var tab:List.of(productsTab,logsTab)){
             var entry=new MenuItem();entry.textProperty().bind(tab.textProperty());entry.setOnAction(e->{if(!tabs.getTabs().contains(tab))tabs.getTabs().add(tab);tab.setClosable(true);tabs.getSelectionModel().select(tab);});extraPages.getItems().add(entry);
         }
-        var introduction=new CheckMenuItem();introduction.textProperty().bind(autoIntroductionCheck.textProperty());introduction.selectedProperty().bindBidirectional(autoIntroductionCheck.selectedProperty());extraPages.getItems().addAll(new SeparatorMenuItem(),introduction);titleLabel.setContextMenu(extraPages);
+        var introduction=new CheckMenuItem();introduction.textProperty().bind(autoIntroductionCheck.textProperty());introduction.selectedProperty().bindBidirectional(autoIntroductionCheck.selectedProperty());introduction.disableProperty().bind(autoIntroductionCheck.disableProperty());extraPages.getItems().addAll(new SeparatorMenuItem(),introduction);titleLabel.setContextMenu(extraPages);
         warehouseTab.selectedProperty().addListener((o,a,b)->{if(b)warehousePane.reload();});
         connectionPanels.widthProperty().addListener((ignored,old,width)->arrangeConnectionPanels(width.doubleValue()));
         arrangeConnectionPanels(0);
@@ -401,6 +402,7 @@ public class ZnackAutomationController {
         testSignatureButton.setText(tr("znack.signature.test"));
         testSignatureButton.setTooltip(new Tooltip(tr("znack.signature.help")));
         autoIntroductionCheck.setText(tr("znack.auto_introduction"));
+        autoIntroductionScopeLabel.setText(tr("znack.auto_introduction_scope"));
         saveButton.setText(tr("znack.save"));
         productGtinColumn.setText(tr("znack.field.gtin"));
         productNameColumn.setText(tr("znack.field.name"));
