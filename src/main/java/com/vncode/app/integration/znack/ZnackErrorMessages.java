@@ -71,6 +71,16 @@ public final class ZnackErrorMessages {
     /** Human-readable form of a stored error; falls back to the raw text when nothing better is found. */
     public static String display(String raw) {
         if (raw == null || raw.isBlank()) return "";
+        String circulationKey = switch (raw.trim()) {
+            case "KIZ_CIRCULATION_ORIGINAL_PROFILE_MISSING" -> "original_profile_missing";
+            case "KIZ_CIRCULATION_CODES_INCOMPLETE" -> "codes_incomplete";
+            case "KIZ_CIRCULATION_IDENTITY_UNVERIFIED" -> "identity_unverified";
+            case "KIZ_CIRCULATION_OWNER_UNVERIFIED" -> "owner_unverified";
+            case "KIZ_CIRCULATION_STATUS_UNVERIFIED" -> "status_unverified";
+            default -> null;
+        };
+        if (circulationKey != null) return com.vncode.app.shared.I18nService.getInstance()
+                .tr("znack.error.circulation." + circulationKey);
         if("SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID".equals(raw.trim()))return com.vncode.app.shared.I18nService.getInstance().tr("znack.error.suz_code_block_recovery_identity_invalid");
         String bufferIssue = kizOrderBufferIssueCode(raw);
         if (!bufferIssue.isBlank()) {

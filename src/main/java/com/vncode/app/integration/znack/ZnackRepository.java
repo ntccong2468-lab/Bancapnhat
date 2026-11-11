@@ -298,7 +298,7 @@ public final class ZnackRepository {
     /** Same local settings security boundary as znack_settings; never contains Catalog/API tokens. */
     private void bindPipelineConnections(Connection c,Settings original)throws SQLException {
         try(var p=c.createStatement()){p.execute("CREATE TABLE IF NOT EXISTS znack_pipeline_connections(pipeline_id INTEGER PRIMARY KEY REFERENCES znack_purchase_pipelines(id) ON DELETE CASCADE,shop_id INTEGER NOT NULL REFERENCES shops(id) ON DELETE CASCADE,settings_json TEXT NOT NULL)");}
-        try(var p=c.prepareStatement("INSERT OR IGNORE INTO znack_pipeline_connections SELECT id,shop_id,? FROM znack_purchase_pipelines WHERE shop_id=?")){
+        try(var p=c.prepareStatement("INSERT OR IGNORE INTO znack_pipeline_connections SELECT id,shop_id,? FROM znack_purchase_pipelines WHERE shop_id=? AND stage NOT IN ('COMPLETED','FAILED','INTRODUCTION_FAILED')")){
             p.setString(1,com.vncode.app.features.products.ProductJson.GSON.toJson(original));p.setInt(2,shop.shopId());p.executeUpdate();
         }
     }
@@ -312,6 +312,126 @@ public final class ZnackRepository {
                 }
             }
         });}catch(SQLException error){throw new IllegalStateException("PURCHASE_CONNECTION_STORAGE",error);}
+    }
+
+    /** Reads an existing original connection; unlike pipelineSettings, never invents a legacy binding. */
+    public Optional<Settings> boundPipelineSettings(long pipelineId){
+        try(Connection connection=Database.getConnection()){return boundPipelineSettings(connection,pipelineId);}
+        catch(SQLException error){throw new IllegalStateException("PURCHASE_CONNECTION_STORAGE",error);}
+    }
+
+    private Optional<Settings> boundPipelineSettings(Connection connection,long pipelineId)throws SQLException{
+        try(var table=connection.prepareStatement("SELECT 1 FROM sqlite_master WHERE type='table' AND name='znack_pipeline_connections'");var rows=table.executeQuery()){
+            if(!rows.next())return Optional.empty();
+        }
+        try(var statement=connection.prepareStatement("SELECT settings_json FROM znack_pipeline_connections WHERE shop_id=? AND pipeline_id=?")){
+            statement.setInt(1,shop.shopId());statement.setLong(2,pipelineId);
+            try(var row=statement.executeQuery()){
+                if(!row.next())return Optional.empty();
+                try{return Optional.ofNullable(com.vncode.app.features.products.ProductJson.GSON.fromJson(row.getString(1),Settings.class));}
+                catch(JsonParseException|IllegalArgumentException invalid){return Optional.empty();}
+            }
+        }
+    }
+
+    /** Reopens owned legacy downloads and ambiguous submitted introductions for read-only observation. */
+    public Map<Long,Settings> resumeCompletedCirculationChecks(){
+        var ids=new ArrayList<Long>();
+        try(var connection=Database.getConnection();var statement=connection.prepareStatement("""
+                SELECT p.id FROM znack_purchase_pipelines p WHERE p.shop_id=? AND (
+                  p.stage='COMPLETED' OR (p.stage IN ('FAILED','INTRODUCTION_FAILED') AND EXISTS (
+                    SELECT 1 FROM znack_documents d WHERE d.shop_id=p.shop_id AND d.order_id=p.order_id
+                      AND d.status IN ('FAILED','REJECTED')
+                      AND d.id=(SELECT MAX(latest.id) FROM znack_documents latest WHERE latest.shop_id=p.shop_id AND latest.order_id=p.order_id)
+                  ))) ORDER BY p.id
+                """)){
+            statement.setInt(1,shop.shopId());try(var rows=statement.executeQuery()){while(rows.next())ids.add(rows.getLong(1));}
+        }catch(SQLException error){throw new IllegalStateException("PURCHASE_CONNECTION_STORAGE",error);}
+        var resumed=new LinkedHashMap<Long,Settings>();
+        for(long id:ids)try{
+            Settings original=com.vncode.app.config.SqliteWriteTransaction.run(connection->resumeCompletedCirculationCheck(connection,id));
+            if(original!=null)resumed.put(id,original);
+        }catch(SQLException error){throw new IllegalStateException("PURCHASE_CONNECTION_STORAGE",error);}
+        return Map.copyOf(resumed);
+    }
+
+    private Settings resumeCompletedCirculationCheck(Connection connection,long id)throws SQLException{
+        ZnackPurchasePipelineState saved;
+        try(var statement=connection.prepareStatement("SELECT * FROM znack_purchase_pipelines WHERE shop_id=? AND id=? AND stage IN ('COMPLETED','FAILED','INTRODUCTION_FAILED')")){
+            statement.setInt(1,shop.shopId());statement.setLong(2,id);
+            try(var row=statement.executeQuery()){if(!row.next())return null;saved=pipeline(row);}
+        }catch(IllegalArgumentException|java.time.DateTimeException malformed){
+            completedObservationProblem(connection,id,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");return null;
+        }
+        if("KIZ_CIRCULATION_ORIGINAL_PROFILE_MISSING".equals(saved.errorMessage()))return null;
+        boolean legacyDownload=saved.stage()==PurchaseStage.COMPLETED;
+        if(!legacyDownload){
+            Document document=null;
+            try(var statement=connection.prepareStatement("SELECT id,order_id,payload_json,external_document_id,status,error_message FROM znack_documents WHERE shop_id=? AND order_id=? ORDER BY id DESC LIMIT 1")){
+                statement.setInt(1,shop.shopId());if(saved.orderId()==null)statement.setNull(2,Types.BIGINT);else statement.setLong(2,saved.orderId());
+                try(var row=statement.executeQuery()){if(row.next())document=new Document(row.getLong(1),row.getLong(2),row.getString(3),row.getString(4),row.getString(5),row.getString(6));}
+            }
+            if(!ZnackPurchaseCoordinator.requiresCirculationReadback(document))return null;
+            if("REJECTED".equals(document.status()))try(var quarantine=connection.prepareStatement("UPDATE znack_documents SET status='FAILED' WHERE shop_id=? AND id=? AND status='REJECTED'")){
+                quarantine.setInt(1,shop.shopId());quarantine.setLong(2,document.id());quarantine.executeUpdate();
+            }
+        }
+        Settings original=boundPipelineSettings(connection,id).orElse(null);
+        try{
+            ZnackSafety.requireSigned(original,true);
+            if(original.omsId()==null||original.omsId().isBlank())throw new IllegalStateException();
+        }catch(IllegalStateException missing){
+            completedObservationProblem(connection,id,"KIZ_CIRCULATION_ORIGINAL_PROFILE_MISSING");return null;
+        }
+        // COMPLETED was produced only by the legacy opt-out. An inconsistent active-introduction
+        // profile must not be silently turned into new legal-document consent by this recovery.
+        if(legacyDownload&&original.autoIntroduction()||saved.orderId()==null){
+            completedObservationProblem(connection,id,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");return null;
+        }
+        try(var active=connection.prepareStatement("SELECT 1 FROM znack_products WHERE shop_id=? AND gtin=? AND deleted_at IS NULL AND identity_archived_at IS NULL AND COALESCE(card_status,'') NOT IN ('pending_registration','imported','imported_unverified')")){
+            active.setInt(1,shop.shopId());active.setString(2,saved.gtin());
+            try(var row=active.executeQuery()){if(!row.next()){completedObservationProblem(connection,id,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");return null;}}
+        }
+        KizOrder order;
+        try(var statement=connection.prepareStatement("SELECT * FROM kiz_orders WHERE shop_id=? AND id=?")){
+            statement.setInt(1,shop.shopId());statement.setLong(2,saved.orderId());
+            try(var row=statement.executeQuery()){
+                if(!row.next()){completedObservationProblem(connection,id,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");return null;}order=order(row);
+            }
+        }catch(IllegalArgumentException|java.time.DateTimeException malformed){
+            completedObservationProblem(connection,id,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");return null;
+        }
+        if(order.externalOrderId()==null||order.externalOrderId().isBlank()||saved.quantity()<=0||saved.quantity()!=order.quantity()
+                ||!sameObservationGtin(saved.gtin(),order.gtin())){
+            completedObservationProblem(connection,id,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");return null;
+        }
+        var codes=new ArrayList<KizCode>();
+        try(var statement=connection.prepareStatement("SELECT * FROM kiz_codes WHERE shop_id=? AND order_id=? ORDER BY id")){
+            statement.setInt(1,shop.shopId());statement.setLong(2,order.id());
+            try(var rows=statement.executeQuery()){while(rows.next())codes.add(code(rows));}
+        }catch(IllegalArgumentException malformed){completedObservationProblem(connection,id,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");return null;}
+        if(codes.size()!=order.quantity()){
+            completedObservationProblem(connection,id,"KIZ_CIRCULATION_CODES_INCOMPLETE");return null;
+        }
+        if(!ZnackCisReadback.validRequests(codes,order.gtin(),order.id())){
+            completedObservationProblem(connection,id,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");return null;
+        }
+        try(var update=connection.prepareStatement("UPDATE znack_purchase_pipelines SET stage='WAITING_INTRODUCTION_READINESS',error_message=NULL,updated_at=? WHERE shop_id=? AND id=? AND stage=?")){
+            update.setString(1,Instant.now().toString());update.setInt(2,shop.shopId());update.setLong(3,id);
+            update.setString(4,saved.stage().name());
+            return update.executeUpdate()==1?original:null;
+        }
+    }
+
+    private void completedObservationProblem(Connection connection,long id,String problem)throws SQLException{
+        try(var statement=connection.prepareStatement("UPDATE znack_purchase_pipelines SET error_message=?,updated_at=? WHERE shop_id=? AND id=? AND stage IN ('COMPLETED','FAILED','INTRODUCTION_FAILED') AND COALESCE(error_message,'')<>?")){
+            statement.setString(1,problem);statement.setString(2,Instant.now().toString());statement.setInt(3,shop.shopId());statement.setLong(4,id);statement.setString(5,problem);statement.executeUpdate();
+        }
+    }
+
+    private static boolean sameObservationGtin(String left,String right){
+        try{return GtinNormalizer.normalize(left).equals(GtinNormalizer.normalize(right));}
+        catch(IllegalArgumentException invalid){return false;}
     }
 
     public static final class SettingsConflictException extends RuntimeException {
@@ -579,7 +699,7 @@ public final class ZnackRepository {
             }
         });}catch(SQLException error){throw new RuntimeException(error);}
     }
-    public void updateOrder(long id,String external,String remote,OrderStatus status,String error){execute("UPDATE kiz_orders SET external_order_id=COALESCE(?,external_order_id),remote_status=?,local_status=?,error_message=?,updated_at=? WHERE shop_id=? AND id=?",ps->{ps.setString(1,external);ps.setString(2,remote);ps.setString(3,status.name());ps.setString(4,ZnackSanitizer.message(error));ps.setString(5,Instant.now().toString());ps.setInt(6,shop.shopId());ps.setLong(7,id);});}
+    public void updateOrder(long id,String external,String remote,OrderStatus status,String error){execute("UPDATE kiz_orders SET external_order_id=COALESCE(?,external_order_id),remote_status=COALESCE(?,remote_status),local_status=?,error_message=?,updated_at=? WHERE shop_id=? AND id=?",ps->{ps.setString(1,external);ps.setString(2,remote);ps.setString(3,status.name());ps.setString(4,ZnackSanitizer.message(error));ps.setString(5,Instant.now().toString());ps.setInt(6,shop.shopId());ps.setLong(7,id);});}
     public Optional<KizOrder> findOrder(long id){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM kiz_orders WHERE shop_id=? AND id=?")){ps.setInt(1,shop.shopId());ps.setLong(2,id);try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(order(r)):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
     public List<KizOrder> findOrders(){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM kiz_orders WHERE shop_id=? ORDER BY id DESC")){ps.setInt(1,shop.shopId());try(ResultSet r=ps.executeQuery()){List<KizOrder> o=new ArrayList<>();while(r.next())o.add(order(r));return o;}}catch(SQLException e){throw new RuntimeException(e);}}
 
@@ -610,6 +730,10 @@ public final class ZnackRepository {
     public long enqueuePipeline(String gtin,int quantity,String requestKey){return enqueuePipeline(gtin,quantity,requestKey,null);}
     /** Print consent includes introduction; keep it in this pipeline without changing shop preferences. */
     public long enqueuePrintPipeline(String gtin,int quantity,String requestKey,Settings expected){
+        return enqueueCirculationPipeline(gtin,quantity,requestKey,expected);
+    }
+    /** Purchase consent includes circulation; freeze it per job without changing shop preferences. */
+    public long enqueueCirculationPipeline(String gtin,int quantity,String requestKey,Settings expected){
         return enqueuePipeline(gtin,quantity,requestKey,java.util.Objects.requireNonNull(expected));
     }
     private long enqueuePipeline(String gtin,int quantity,String requestKey,Settings expected){
@@ -784,7 +908,7 @@ public final class ZnackRepository {
     public long createDocument(long orderId,String payload){String now=Instant.now().toString();try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("INSERT INTO znack_documents(shop_id,order_id,document_type,payload_json,status,created_at,updated_at) VALUES(?,?,'LP_INTRODUCE_GOODS',?,'DRAFT',?,?)",Statement.RETURN_GENERATED_KEYS)){ps.setInt(1,shop.shopId());ps.setLong(2,orderId);ps.setString(3,payload);ps.setString(4,now);ps.setString(5,now);ps.executeUpdate();try(ResultSet r=ps.getGeneratedKeys()){r.next();return r.getLong(1);}}catch(SQLException e){throw new RuntimeException(e);}}
     public void updateDocument(long id,String external,String status,String error){execute("UPDATE znack_documents SET external_document_id=COALESCE(?,external_document_id),status=?,error_message=?,updated_at=? WHERE shop_id=? AND id=?",ps->{ps.setString(1,external);ps.setString(2,status);ps.setString(3,ZnackSanitizer.message(error));ps.setString(4,Instant.now().toString());ps.setInt(5,shop.shopId());ps.setLong(6,id);});}
     public Optional<Document> findLatestDocument(long orderId){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT id,order_id,payload_json,external_document_id,status,error_message FROM znack_documents WHERE shop_id=? AND order_id=? ORDER BY id DESC LIMIT 1")){ps.setInt(1,shop.shopId());ps.setLong(2,orderId);try(ResultSet r=ps.executeQuery()){return r.next()?Optional.of(new Document(r.getLong(1),r.getLong(2),r.getString(3),r.getString(4),r.getString(5),r.getString(6))):Optional.empty();}}catch(SQLException e){throw new RuntimeException(e);}}
-    public boolean latestDocumentIsLegacyHttpRejection(long orderId){String sql="SELECT 1 FROM znack_documents WHERE shop_id=? AND order_id=? AND external_document_id IS NULL AND status='FAILED' AND error_message LIKE '%HTTP 422%' AND id=(SELECT MAX(id) FROM znack_documents WHERE shop_id=? AND order_id=?)";try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement(sql)){ps.setInt(1,shop.shopId());ps.setLong(2,orderId);ps.setInt(3,shop.shopId());ps.setLong(4,orderId);try(ResultSet r=ps.executeQuery()){return r.next();}}catch(SQLException e){throw new RuntimeException(e);}}
+    public boolean latestDocumentIsLegacyHttpRejection(long orderId){return findLatestDocument(orderId).filter(document->"FAILED".equals(document.status())&&ZnackIntroductionService.isDefinitivelyRejectedSubmission(document)).isPresent();}
 
     public void log(String action,String entity,String severity,String message,Integer httpStatus){execute("INSERT INTO znack_operation_logs(shop_id,shop_name,action,entity_reference,severity,message,http_status,created_at) VALUES(?,?,?,?,?,?,?,?)",ps->{ps.setInt(1,shop.shopId());ps.setString(2,shop.shopName());ps.setString(3,action);ps.setString(4,entity);ps.setString(5,severity);ps.setString(6,ZnackSanitizer.message(message));if(httpStatus==null)ps.setNull(7,Types.INTEGER);else ps.setInt(7,httpStatus);ps.setString(8,Instant.now().toString());});}
     public List<OperationLog> findLogs(){try(Connection c=Database.getConnection();PreparedStatement ps=c.prepareStatement("SELECT * FROM znack_operation_logs WHERE shop_id=? ORDER BY id DESC")){ps.setInt(1,shop.shopId());try(ResultSet r=ps.executeQuery()){List<OperationLog> o=new ArrayList<>();while(r.next()){int h=r.getInt("http_status");o.add(new OperationLog(r.getLong("id"),r.getInt("shop_id"),r.getString("shop_name"),r.getString("action"),r.getString("entity_reference"),r.getString("severity"),r.getString("message"),r.wasNull()?null:h,Instant.parse(r.getString("created_at"))));}return o;}}catch(SQLException e){throw new RuntimeException(e);}}

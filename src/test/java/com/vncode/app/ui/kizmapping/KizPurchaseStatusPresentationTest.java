@@ -44,9 +44,9 @@ class KizPurchaseStatusPresentationTest {
 
     @ParameterizedTest @EnumSource(AppLanguage.class)
     void downloadedCodesAreNotPresentedAsConfirmedCirculationAndOnlyLegalStockIsAvailable(AppLanguage language)throws Exception{
-        String complete="04600000000011",introduced="04600000000028",failed="04600000000035",introFailed="04600000000042";
-        product(1,complete);product(1,introduced);product(1,failed);product(1,introFailed);product(2,introduced);
-        pipeline(complete,"COMPLETED");pipeline(introduced,"INTRODUCED");pipeline(failed,"FAILED");pipeline(introFailed,"INTRODUCTION_FAILED");
+        String complete="04600000000011",introduced="04600000000028",failed="04600000000035",introFailed="04600000000042",reconciling="04600000000059";
+        product(1,complete);product(1,introduced);product(1,failed);product(1,introFailed);product(1,reconciling);product(2,introduced);
+        pipeline(complete,"COMPLETED");pipeline(introduced,"INTRODUCED");pipeline(failed,"FAILED");pipeline(introFailed,"INTRODUCTION_FAILED");pipeline(reconciling,"WAITING_INTRODUCTION_READINESS");
         code(1,complete,"downloaded","AVAILABLE","RECEIVED");
         code(1,introduced,"available","AVAILABLE","IN_CIRCULATION");
         code(1,introduced,"reserved","RESERVED","IN_CIRCULATION");
@@ -68,13 +68,14 @@ class KizPurchaseStatusPresentationTest {
             assertTrue(downloaded.getMaxWidth()>0&&downloaded.getMaxWidth()<=column.getWidth());
             var confirmed=chip(table,column,index(summaries,introduced));assertEquals(I18nService.getInstance().tr("znack.status_value.introduced"),confirmed.getText());
             assertTrue(confirmed.getStyleClass().contains("badge-green"));assertFalse(confirmed.getStyleClass().contains("badge-warning"));
+            var checking=chip(table,column,index(summaries,reconciling));assertEquals(reconcilingLabel(language),checking.getText());assertTrue(checking.getStyleClass().contains("badge-warning"));
             for(String gtin:List.of(failed,introFailed))assertTrue(chip(table,column,index(summaries,gtin)).getStyleClass().contains("badge-red"));
             stage.hide();return null;
         });
     }
 
     @ParameterizedTest @ValueSource(booleans={false,true})
-    void savedAutoIntroductionChoiceIsVisibleAndLoadingOrEditingDoesNotSaveConsent(boolean enabled)throws Exception{
+    void legacyStoredFlagIsNotAPurchaseChoiceAndLoadingOrEditingDoesNotRewriteIt(boolean enabled)throws Exception{
         var repository=new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture"));repository.saveSettings(ZnackModels.Settings.empty().withAutoIntroduction(enabled));
         sql("UPDATE znack_settings SET updated_at='2020-01-01T00:00:00Z' WHERE shop_id=1");
         var before=repository.getSettings();
@@ -84,20 +85,19 @@ class KizPurchaseStatusPresentationTest {
             var settings=(Tab)loader.getNamespace().get("settingsTab");settings.getTabPane().getSelectionModel().select(settings);
             var checkbox=(CheckBox)loader.getNamespace().get("autoIntroductionCheck");
             var menu=((Label)loader.getNamespace().get("titleLabel")).getContextMenu();
-            var menuChoice=menu.getItems().stream().filter(CheckMenuItem.class::isInstance).map(CheckMenuItem.class::cast).findFirst().orElseThrow();
-            assertTrue(checkbox.isVisible(),"The seller must not need a hidden title context menu to find circulation settings");assertTrue(checkbox.isManaged());
-            assertEquals(enabled,checkbox.isSelected(),"Loading must preserve the saved choice instead of enabling circulation");assertTrue(checkbox.isDisabled());
-            assertTrue(menuChoice.isDisable(),"The old menu entry must follow the same read-only mode as the visible checkbox");assertEquals(enabled,menuChoice.isSelected());
-            var scope=(Label)loader.getNamespace().get("autoIntroductionScopeLabel");
+            assertTrue(menu.getItems().stream().noneMatch(CheckMenuItem.class::isInstance),"Purchases must not depend on a title-menu mode switch");
+            assertFalse(checkbox.isVisible());assertFalse(checkbox.isManaged());
+            assertEquals(enabled,checkbox.isSelected(),"The hidden legacy field must retain its stored value without rewriting preferences");
+            assertFalse(loader.getNamespace().containsKey("autoIntroductionScopeLabel"));
             for(var language:List.of(AppLanguage.VI,AppLanguage.EN,AppLanguage.VI)){
                 I18nService.getInstance().setLanguage(language);controller.applyTranslations();
-                assertEquals(I18nService.getInstance().tr("znack.auto_introduction_scope"),scope.getText());
-                assertEquals(enabled,checkbox.isSelected());assertEquals(enabled,menuChoice.isSelected());assertTrue(menuChoice.isDisable());
-                assertEquals(before,repository.getSettings(),"Changing display language must not change saved consent");
+                assertEquals(enabled,checkbox.isSelected());assertFalse(checkbox.isVisible());assertFalse(checkbox.isManaged());
+                assertTrue(menu.getItems().stream().noneMatch(CheckMenuItem.class::isInstance));
+                assertEquals(before,repository.getSettings(),"Changing display language must not rewrite legacy preferences");
             }
-            ((Button)loader.getNamespace().get("editSettingsButton")).fire();assertFalse(checkbox.isDisabled());assertFalse(menuChoice.isDisable());checkbox.fire();assertEquals(!enabled,checkbox.isSelected());assertEquals(!enabled,menuChoice.isSelected());
-            assertEquals(before,repository.getSettings(),"Editing the choice must not submit or save it automatically");
-            ((Button)loader.getNamespace().get("editSettingsButton")).fire();assertEquals(enabled,checkbox.isSelected());assertTrue(menuChoice.isDisable());assertEquals(enabled,menuChoice.isSelected());
+            ((Button)loader.getNamespace().get("editSettingsButton")).fire();assertFalse(checkbox.isVisible());assertFalse(checkbox.isManaged());assertEquals(enabled,checkbox.isSelected());
+            assertEquals(before,repository.getSettings(),"Opening settings for editing must not save or change the hidden legacy flag");
+            ((Button)loader.getNamespace().get("editSettingsButton")).fire();assertEquals(enabled,checkbox.isSelected());
             assertEquals(before,repository.getSettings());controller.setShop(null);return null;
         });
         try(var c=Database.getConnection();var p=c.createStatement();var r=p.executeQuery("SELECT updated_at FROM znack_settings WHERE shop_id=1")){
@@ -106,6 +106,7 @@ class KizPurchaseStatusPresentationTest {
     }
 
     private static String completedLabel(AppLanguage language){return switch(language){case VI->"Đã tải mã · chưa xác nhận lưu thông";case EN->"Codes downloaded · circulation not confirmed";case RU->"Коды загружены · ввод в оборот не подтверждён";case ZH->"已下载码 · 尚未确认流通";};}
+    private static String reconcilingLabel(AppLanguage language){return switch(language){case VI->"Đang đối soát lưu thông";case EN->"Reconciling circulation status";case RU->"Сверка статуса ввода в оборот";case ZH->"正在核对流通状态";};}
     private static int index(List<ZnackGtinInventorySummary> rows,String gtin){for(int n=0;n<rows.size();n++)if(rows.get(n).gtin().equals(gtin))return n;throw new AssertionError(gtin);}
     private static Label chip(TableView<?> table,TableColumn<?,?> column,int index){
         return table.lookupAll(".table-cell").stream().filter(TableCell.class::isInstance).map(TableCell.class::cast)

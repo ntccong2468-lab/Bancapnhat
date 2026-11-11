@@ -16,7 +16,7 @@ public final class FboPurchaseService {
             var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));
             var settings=repository.getSettings();var coordinator=ZnackPurchaseCoordinator.create(repository);
             // Validate the complete batch before creating the first purchase checkpoint.
-            for(var entry:fresh.toBuy().entrySet())coordinator.validatePrerequisites(settings,entry.getKey(),entry.getValue());
+            for(var entry:fresh.toBuy().entrySet())coordinator.validatePrerequisites(settings.withAutoIntroduction(true),entry.getKey(),entry.getValue());
             String request=UUID.randomUUID().toString();
             for(var entry:fresh.toBuy().entrySet()) {
                 ListingIdentity.require(shop);

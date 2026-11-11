@@ -127,8 +127,7 @@
         <Label fx:id="signatureSummaryLabel" styleClass="text-muted" wrapText="true"/>
        </VBox>
       </GridPane>
-      <CheckBox fx:id="autoIntroductionCheck" text="%znack.auto_introduction" wrapText="true" disable="${!omsIdField.editable}"/>
-      <Label fx:id="autoIntroductionScopeLabel" text="%znack.auto_introduction_scope" styleClass="text-muted" wrapText="true" maxWidth="Infinity"/>
+      <CheckBox fx:id="autoIntroductionCheck" text="%znack.auto_introduction" visible="false" managed="false"/>
       <HBox fx:id="settingsSaveBar" spacing="8" alignment="CENTER_RIGHT" visible="false" managed="false" styleClass="selection-action-bar,workspace-batch-footer">
        <Button text="%common.cancel" onAction="#editSettings"/>
        <Button fx:id="saveButton" defaultButton="true" onAction="#save" styleClass="btn-primary" text="%znack.save"/>

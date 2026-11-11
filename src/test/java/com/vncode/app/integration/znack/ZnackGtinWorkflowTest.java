@@ -382,13 +382,13 @@ class ZnackGtinWorkflowTest {
         resumed.resume(settings);
         assertEquals(PurchaseStage.POLLING_ORDER, repository.findPipeline(queued).orElseThrow().stage());
         resumed.resume(settings);
-        assertEquals(PurchaseStage.COMPLETED, repository.findPipeline(pipeline).orElseThrow().stage());
-        assertEquals(PurchaseStage.COMPLETED, repository.findPipeline(queued).orElseThrow().stage());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(pipeline).orElseThrow().stage());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(queued).orElseThrow().stage());
         assertEquals(2, buys.get());
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
     }
 
-    @Test void closedOrderRecoversIssuedBlocksAndCompletesWithoutSurfacing2090() throws Exception {
+    @Test void closedOrderRecoversIssuedBlocksAndWaitsForCirculationWithoutSurfacing2090() throws Exception {
         Settings settings = testedSettings();
         long order = repository.createDraft(A, 2);
         repository.updateOrder(order, "closed-order", "READY", OrderStatus.CODES_READY, null);
@@ -411,8 +411,8 @@ class ZnackGtinWorkflowTest {
         new ZnackPurchaseCoordinator(repository, null, codeService, null).advance(settings, pipeline);
 
         ZnackPurchasePipelineState completed = repository.findPipeline(pipeline).orElseThrow();
-        assertEquals(PurchaseStage.COMPLETED, completed.stage());
-        assertTrue(completed.errorMessage() == null || completed.errorMessage().isBlank());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, completed.stage());
+        assertEquals("KIZ_CIRCULATION_STATUS_UNVERIFIED",completed.errorMessage());
         assertEquals(2, repository.findCodes(order).size());
         assertEquals(1, recoveryCalls.get());
         assertEquals("CLOSED", repository.findOrder(order).orElseThrow().remoteStatus());
@@ -485,7 +485,7 @@ class ZnackGtinWorkflowTest {
         long first = coordinator.start(settings, A, 1, requestKey);
         assertEquals(first, coordinator.start(settings, A, 1, requestKey));
         coordinator.resume(settings);
-        assertEquals(PurchaseStage.COMPLETED, repository.findPipeline(first).orElseThrow().stage());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(first).orElseThrow().stage());
         assertEquals(first, new ZnackPurchaseCoordinator(repository, orderService, codeService, null)
                 .start(settings, A, 1, requestKey));
         assertEquals(1, buys.get());
@@ -547,7 +547,7 @@ class ZnackGtinWorkflowTest {
         long persisted = repository.findActivePipeline(A).orElseThrow().id();
         coordinator.resume(settings);
 
-        assertEquals(PurchaseStage.COMPLETED, repository.findPipeline(persisted).orElseThrow().stage());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(persisted).orElseThrow().stage());
         assertEquals("recovered-order", repository.findOrder(
                 repository.findPipeline(persisted).orElseThrow().orderId()).orElseThrow().externalOrderId());
         assertEquals(1, buys.get());
@@ -599,7 +599,7 @@ class ZnackGtinWorkflowTest {
         assertEquals(PurchaseStage.POLLING_ORDER, repository.findPipeline(queuedPipeline).orElseThrow().stage());
         coordinator.resume(settings);
 
-        assertEquals(PurchaseStage.COMPLETED, repository.findPipeline(queuedPipeline).orElseThrow().stage());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(queuedPipeline).orElseThrow().stage());
         assertEquals(2, buys.get());
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
     }
@@ -648,16 +648,19 @@ class ZnackGtinWorkflowTest {
         ZnackKizCodeService codeService = new ZnackKizCodeService(null,null,repository) {
             @Override public int download(Settings ignored, long id) {
                 KizOrder order = repository.findOrder(id).orElseThrow();
-                return repository.insertCodes(id, order.gtin(), new DownloadedCodes(List.of("available-after-skip"), "b"));
+                return repository.insertCodes(id, order.gtin(), new DownloadedCodes(
+                        List.of("01" + order.gtin() + "21" + "1234567890123" + "\u001d91ABCD\u001d92fixture"), "b"));
             }
         };
         ZnackPurchaseCoordinator coordinator = new ZnackPurchaseCoordinator(repository, orderService, codeService, null);
         long pipeline = coordinator.start(auto, A, 1);
         coordinator.resume(auto);
-        assertEquals(PurchaseStage.INTRODUCTION_SKIPPED_MISSING_METADATA,
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS,
                 repository.findPipeline(pipeline).orElseThrow().stage());
+        assertEquals("Missing TN VED.", repository.findPipeline(pipeline).orElseThrow().errorMessage());
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
         assertEquals(1, repository.findCodes(repository.findPipeline(pipeline).orElseThrow().orderId()).size());
+        assertTrue(repository.findLatestDocument(repository.findPipeline(pipeline).orElseThrow().orderId()).isEmpty());
     }
 
     @Test void skippedIntroductionResumesAfterDocumentsAndMetadataBecomeAvailable() throws Exception {
@@ -671,6 +674,8 @@ class ZnackGtinWorkflowTest {
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, "21.06.2024"));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "20.06.2024")));
+        // Persist this purchase's own verified profile before its pipeline is created.
+        repository.saveSettings(auto);
         long order = repository.createDraft(A, 1);
         repository.insertCodes(order, A, new DownloadedCodes(List.of("resume-introduction"), "block"));
         long pipeline = repository.createPipeline(A, 1);
@@ -706,6 +711,8 @@ class ZnackGtinWorkflowTest {
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, "21.06.2024"));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "20.06.2024")));
+        // Persist this purchase's own verified profile before its pipeline is created.
+        repository.saveSettings(auto);
         long order = repository.createDraft(A, 1);
         repository.insertCodes(order, A, new DownloadedCodes(List.of("retry-introduction"), "block"));
         long pipeline = repository.createPipeline(A, 1);
@@ -739,6 +746,8 @@ class ZnackGtinWorkflowTest {
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DECL-STALE", "01.09.2026")));
+        // Persist this purchase's own verified profile before its pipeline is created.
+        repository.saveSettings(auto);
         long order = repository.createDraft(A, 1);
         repository.insertCodes(order, A, new DownloadedCodes(List.of("legacy-http-422"), "block"));
         long pipeline = repository.createPipeline(A, 1);
@@ -774,6 +783,8 @@ class ZnackGtinWorkflowTest {
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "", "CONFORMITY_DECLARATION");
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
+        // Persist this purchase's own verified profile before its pipeline is created.
+        repository.saveSettings(auto);
         long order = repository.createDraft(A, 1);
         repository.insertCodes(order, A, new DownloadedCodes(List.of("legacy-primitive-response"), "block"));
         long pipeline = repository.createPipeline(A, 1);
@@ -814,6 +825,8 @@ class ZnackGtinWorkflowTest {
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "", "CONFORMITY_DECLARATION");
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
+        // Persist this purchase's own verified profile before its pipeline is created.
+        repository.saveSettings(auto);
         long order = repository.createDraft(A, 1);
         repository.insertCodes(order, A, new DownloadedCodes(List.of("network-retry-code"), "block"));
         long pipeline = repository.createPipeline(A, 1);
@@ -1027,6 +1040,8 @@ class ZnackGtinWorkflowTest {
     @Test void parkedIntroductionResumesWithExistingCodesAfterDocumentsAreSynced() throws Exception {
         Settings auto = withAutoIntroduction(testedSettings());
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
+        // Persist this purchase's own verified profile before its pipeline is created.
+        repository.saveSettings(auto);
         long order = repository.createDraft(A, 1);
         repository.insertCodes(order, A, new DownloadedCodes(List.of("parked-code"), "block"));
         long pipeline = repository.createPipeline(A, 1);
@@ -1121,7 +1136,7 @@ class ZnackGtinWorkflowTest {
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
 
         coordinator.resume(settings);
-        assertEquals(PurchaseStage.COMPLETED, repository.findPipeline(pipeline).orElseThrow().stage());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(pipeline).orElseThrow().stage());
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
     }
 
@@ -1161,7 +1176,7 @@ class ZnackGtinWorkflowTest {
                 "PURCHASE_PIPELINE".equals(log.action()) && "ERROR".equals(log.severity())));
 
         coordinator.resume(settings);
-        assertEquals(PurchaseStage.COMPLETED, repository.findPipeline(pipeline).orElseThrow().stage());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(pipeline).orElseThrow().stage());
         assertEquals(2, downloads.get());
     }
 
@@ -1296,7 +1311,7 @@ class ZnackGtinWorkflowTest {
 
         coordinator.retryIntroduction(testedSettings(), firstPipeline);
 
-        assertEquals(PurchaseStage.COMPLETED, repository.findPipeline(firstPipeline).orElseThrow().stage());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(firstPipeline).orElseThrow().stage());
         assertEquals(PurchaseStage.INTRODUCTION_FAILED,
                 repository.findPipeline(newerPipeline).orElseThrow().stage());
     }

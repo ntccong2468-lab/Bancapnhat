@@ -50,14 +50,14 @@ class ZnackExhaustedBufferRecoveryTest {
         };
         repository.updatePipeline(pipeline,order,PurchaseStage.POLLING_ORDER,null);
         new ZnackPurchaseCoordinator(repository,orders,codes,null).advance(settings,pipeline);
-        assertEquals(0,api.ordinary);assertEquals(1,api.lists);assertEquals(List.of("issued"),api.retries);assertComplete();
+        assertEquals(0,api.ordinary);assertEquals(1,api.lists);assertEquals(List.of("issued"),api.retries);assertDownloadedAwaitingCirculation();
     }
 
     @Test void aPartialBlockIsReplayedAndAlreadyConsumedCodeIsNotResurrected()throws Exception{
         repository.insertCodes(order,GTIN,new DownloadedCodes(List.of(OLD),"issued"));consumeOld();
         api.blocks=blocks(block("issued",2));api.replies.put("issued",reply("issued",OLD,NEW));
         new ZnackPurchaseCoordinator(repository,null,codes,null).advance(settings,pipeline);
-        assertEquals(1,api.ordinary);assertEquals(List.of("issued"),api.retries);assertComplete();assertOldConsumed();
+        assertEquals(1,api.ordinary);assertEquals(List.of("issued"),api.retries);assertDownloadedAwaitingCirculation();assertOldConsumed();
         assertEquals(1,repository.findOrders().size());
     }
 
@@ -70,14 +70,14 @@ class ZnackExhaustedBufferRecoveryTest {
         assertEquals("",ZnackErrorMessages.displayForPipeline(waiting.stage().name(),waiting.errorMessage()));
         new ZnackPurchaseCoordinator(repository,null,service(api),null).advance(settings,pipeline);
         assertEquals(1,api.ordinary,"Restart cannot issue another consumptive /codes request");
-        assertEquals(List.of("first","second","second"),api.retries,"Only the complete first block has positive quantity proof and can be skipped");assertComplete();
+        assertEquals(List.of("first","second","second"),api.retries,"Only the complete first block has positive quantity proof and can be skipped");assertDownloadedAwaitingCirculation();
     }
 
     @Test void completeLocalOrderSkipsAllSuzCallsAndKeepsConsumedStock()throws Exception{
         repository.insertCodes(order,GTIN,new DownloadedCodes(List.of(OLD,NEW),"issued"));consumeOld();
         repository.updateOrder(order,null,"EXHAUSTED",OrderStatus.WAITING_CODES,null);
         new ZnackPurchaseCoordinator(repository,null,codes,null).advance(settings,pipeline);
-        assertEquals(0,api.ordinary);assertEquals(0,api.lists);assertTrue(api.retries.isEmpty());assertComplete();assertOldConsumed();
+        assertEquals(0,api.ordinary);assertEquals(0,api.lists);assertTrue(api.retries.isEmpty());assertDownloadedAwaitingCirculation();assertOldConsumed();
     }
 
     @ParameterizedTest @ValueSource(strings={"gtin","quantity","external"})
@@ -167,7 +167,7 @@ class ZnackExhaustedBufferRecoveryTest {
     private static JsonObject reply(String id,String... values){var result=new JsonObject();result.addProperty("blockId",id);result.add("codes",new Gson().toJsonTree(List.of(values)));return result;}
     private void consumeOld()throws Exception{try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE kiz_codes SET status='CONSUMED',legal_status='IN_CIRCULATION' WHERE shop_id=1 AND raw_code=?")){p.setString(1,OLD);assertEquals(1,p.executeUpdate());}}
     private void assertOldConsumed(){var saved=repository.findCodes(order).stream().filter(code->OLD.equals(code.rawCode())).findFirst().orElseThrow();assertEquals(KizInventoryStatus.CONSUMED,saved.inventoryStatus());assertEquals(KizLegalStatus.IN_CIRCULATION,saved.legalStatus());}
-    private void assertComplete(){assertEquals(2,repository.findCodes(order).size());assertEquals("EXHAUSTED",repository.findOrder(order).orElseThrow().remoteStatus());assertEquals(OrderStatus.CODES_DOWNLOADED,repository.findOrder(order).orElseThrow().localStatus());assertEquals(PurchaseStage.COMPLETED,repository.findPipeline(pipeline).orElseThrow().stage());}
+    private void assertDownloadedAwaitingCirculation(){assertEquals(2,repository.findCodes(order).size());assertEquals("EXHAUSTED",repository.findOrder(order).orElseThrow().remoteStatus());assertEquals(OrderStatus.WAITING_INTRODUCTION_READINESS,repository.findOrder(order).orElseThrow().localStatus());assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS,repository.findPipeline(pipeline).orElseThrow().stage());}
 
     final class FakeApi extends ZnackApiClient{
         int ordinary,lists;final List<String> retries=new ArrayList<>();JsonElement blocks;final Map<String,JsonElement> replies=new HashMap<>();Exception listFailure;String failRetryOnce;

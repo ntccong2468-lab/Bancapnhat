@@ -36,8 +36,8 @@ class ZnackExhaustedBufferWorkflowRegressionTest {
         assertDoesNotThrow(()->new ZnackPurchaseCoordinator(repository,null,codes,null).advance(settings,pipeline));
         assertEquals(1,ordinary.get());assertEquals(1,recoveries.get());assertEquals(2,repository.findCodes(order).size());
         assertEquals("EXHAUSTED",repository.findOrder(order).orElseThrow().remoteStatus());
-        assertEquals(OrderStatus.CODES_DOWNLOADED,repository.findOrder(order).orElseThrow().localStatus());
-        assertEquals(PurchaseStage.COMPLETED,repository.findPipeline(pipeline).orElseThrow().stage());
+        assertEquals(OrderStatus.WAITING_INTRODUCTION_READINESS,repository.findOrder(order).orElseThrow().localStatus());
+        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS,repository.findPipeline(pipeline).orElseThrow().stage());
         assertEquals(1,repository.findOrders().size(),"Recovery must not create another paid order");
     }
 }

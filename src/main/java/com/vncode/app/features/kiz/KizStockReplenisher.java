@@ -14,9 +14,9 @@ public final class KizStockReplenisher {
     private static final Object[] LOCKS=new Object[64];static{Arrays.setAll(LOCKS,i->new Object());}
     interface Purchases {void validate(String gtin,int quantity)throws Exception;void enqueue(String gtin,int quantity,String key)throws Exception;void resume();}
     private final java.util.function.Function<Shop,Purchases> purchases;
-    public KizStockReplenisher(){this(shop->{var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));var original=repository.getSettings();boolean print=KizPrintPurchaseSession.active();var settings=print?original.withAutoIntroduction(true):original;var coordinator=ZnackPurchaseCoordinator.create(repository);return new Purchases(){
+    public KizStockReplenisher(){this(shop->{var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));var original=repository.getSettings();boolean print=KizPrintPurchaseSession.active();var settings=original.withAutoIntroduction(true);var coordinator=ZnackPurchaseCoordinator.create(repository);return new Purchases(){
         public void validate(String gtin,int quantity)throws Exception{coordinator.validatePrerequisites(settings,gtin,quantity);}
-        public void enqueue(String gtin,int quantity,String key)throws Exception{if(print)coordinator.enqueueForPrint(original,gtin,quantity,key);else coordinator.enqueue(settings,gtin,quantity,key);}
+        public void enqueue(String gtin,int quantity,String key)throws Exception{if(print)coordinator.enqueueForPrint(original,gtin,quantity,key);else coordinator.enqueueForCirculation(original,gtin,quantity,key);}
         public void resume(){coordinator.resumeAsync(settings);}
     };});}
     KizStockReplenisher(java.util.function.Function<Shop,Purchases> purchases){this.purchases=purchases;}

@@ -139,9 +139,12 @@ public class ZnackPurchaseCoordinator {
 
     /** Persists an idempotent purchase before any remote mutation, then advances it asynchronously. */
     public long enqueue(Settings settings, String gtin, int quantity, String requestKey) throws Exception {
-        return enqueue(settings,gtin,quantity,requestKey,null);
+        return enqueueForCirculation(settings,gtin,quantity,requestKey);
     }
     public long enqueueForPrint(Settings original,String gtin,int quantity,String requestKey)throws Exception {
+        return enqueueForCirculation(original,gtin,quantity,requestKey);
+    }
+    public long enqueueForCirculation(Settings original,String gtin,int quantity,String requestKey)throws Exception {
         return enqueue(original.withAutoIntroduction(true),gtin,quantity,requestKey,original);
     }
     private long enqueue(Settings settings, String gtin, int quantity, String requestKey,Settings printOriginal) throws Exception {
@@ -163,7 +166,7 @@ public class ZnackPurchaseCoordinator {
                 return replay.id();
             }
             LicenseRuntime.require(Permission.KIZ);
-            pipelineId = printOriginal==null?repository.enqueuePipeline(gtin, quantity, requestKey):repository.enqueuePrintPipeline(gtin,quantity,requestKey,printOriginal);
+            pipelineId = printOriginal==null?repository.enqueuePipeline(gtin, quantity, requestKey):repository.enqueueCirculationPipeline(gtin,quantity,requestKey,printOriginal);
         }
         ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipelineId);
         ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), gtin, () -> advanceEnqueued(pipelineId));
@@ -274,10 +277,11 @@ public class ZnackPurchaseCoordinator {
     }
 
     public void resume(Settings settings) {
+        var recoveredProfiles=repository.resumeCompletedCirculationChecks();
         for (ZnackPurchasePipelineState pipeline : repository.findActivePipelines()) {
             if(licensePaused(pipeline))continue;
             try {
-                advance(settings, pipeline.id());
+                advance(recoveredProfiles.getOrDefault(pipeline.id(),settings), pipeline.id());
             } catch (Exception e) {
                 if (!(e instanceof ZnackSigningSession.SigningDeferredException) && !(e instanceof LicenseDeniedException)) {
                     repository.log("PURCHASE_PIPELINE_RESUME", pipeline.gtin(), "ERROR", e.getMessage(), null);
@@ -289,12 +293,13 @@ public class ZnackPurchaseCoordinator {
     }
 
     public void resumeAsync(Settings settings) {
+        var recoveredProfiles=repository.resumeCompletedCirculationChecks();
         for (ZnackPurchasePipelineState pipeline : repository.findActivePipelines()) {
             if(licensePaused(pipeline))continue;
             ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(), () -> {
                 if(repository.findPipeline(pipeline.id()).map(ZnackPurchaseCoordinator::licensePaused).orElse(true))return;
                 try {
-                    advance(settings, pipeline.id());
+                    advance(recoveredProfiles.getOrDefault(pipeline.id(),settings), pipeline.id());
                 } catch (Exception e) {
                     if (!(e instanceof ZnackSigningSession.SigningDeferredException) && !(e instanceof LicenseDeniedException)) {
                         repository.log("PURCHASE_PIPELINE_RESUME", pipeline.gtin(), "ERROR", e.getMessage(), null);
@@ -307,19 +312,13 @@ public class ZnackPurchaseCoordinator {
     }
 
     public void resumeEligibleIntroductions(Settings settings) {
-        if (settings == null || !settings.autoIntroduction()) return;
-        try {
-            ZnackSafety.requireSigned(settings, true);
-            CryptoProSignatureProvider.requireAvailable(settings.cryptcpPath(),
-                    Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
-        } catch (Exception unavailable) {
-            return;
-        }
         List<ZnackPurchasePipelineState> candidates = new java.util.ArrayList<>(repository.findSkippedIntroductionPipelines());
         candidates.addAll(repository.findLegacyRejectedIntroductionPipelines());
         candidates.addAll(repository.findLegacyPrimitiveDocumentResponsePipelines());
         candidates.addAll(repository.findWaitingIntroductionDocumentPipelines());
         for (ZnackPurchasePipelineState pipeline : candidates) {
+            Settings original=introductionSettings(pipeline);
+            if(original==null)continue;
             Product product = repository.findProduct(pipeline.gtin()).orElse(null);
             if (product == null || pipeline.orderId() == null || repository.findCodes(pipeline.orderId()).isEmpty()
                     || product.tnVed() == null || product.tnVed().isBlank()
@@ -334,7 +333,7 @@ public class ZnackPurchaseCoordinator {
                 repository.updatePipeline(pipeline.id(), pipeline.orderId(), PurchaseStage.WAITING_INTRODUCTION_READINESS, null);
             }
             try {
-                advance(settings, pipeline.id());
+                advance(original, pipeline.id());
             } catch (Exception e) {
                 PurchaseStage current = repository.findPipeline(pipeline.id())
                         .map(ZnackPurchasePipelineState::stage).orElse(pipeline.stage());
@@ -352,19 +351,13 @@ public class ZnackPurchaseCoordinator {
     }
 
     public void resumeEligibleIntroductionsAsync(Settings settings) {
-        if (settings == null || !settings.autoIntroduction()) return;
-        try {
-            ZnackSafety.requireSigned(settings, true);
-            CryptoProSignatureProvider.requireAvailable(settings.cryptcpPath(),
-                    Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
-        } catch (Exception unavailable) {
-            return;
-        }
         List<ZnackPurchasePipelineState> candidates = new java.util.ArrayList<>(repository.findSkippedIntroductionPipelines());
         candidates.addAll(repository.findLegacyRejectedIntroductionPipelines());
         candidates.addAll(repository.findLegacyPrimitiveDocumentResponsePipelines());
         candidates.addAll(repository.findWaitingIntroductionDocumentPipelines());
         for (ZnackPurchasePipelineState pipeline : candidates) {
+            Settings original=introductionSettings(pipeline);
+            if(original==null)continue;
             Product product = repository.findProduct(pipeline.gtin()).orElse(null);
             if (product == null || pipeline.orderId() == null || repository.findCodes(pipeline.orderId()).isEmpty()
                     || product.tnVed() == null || product.tnVed().isBlank()
@@ -380,7 +373,7 @@ public class ZnackPurchaseCoordinator {
                     repository.updatePipeline(pipeline.id(), pipeline.orderId(), PurchaseStage.WAITING_INTRODUCTION_READINESS, null);
                 }
                 try {
-                    advance(settings, pipeline.id());
+                    advance(original, pipeline.id());
                 } catch (Exception e) {
                     PurchaseStage current = repository.findPipeline(pipeline.id())
                             .map(ZnackPurchasePipelineState::stage).orElse(pipeline.stage());
@@ -398,10 +391,22 @@ public class ZnackPurchaseCoordinator {
         }
     }
 
+    private Settings introductionSettings(ZnackPurchasePipelineState pipeline){
+        Settings original=repository.boundPipelineSettings(pipeline.id()).orElse(null);
+        if(original==null||!original.autoIntroduction())return null;
+        try{
+            ZnackSafety.requireSigned(original,true);
+            CryptoProSignatureProvider.requireAvailable(original.cryptcpPath(),Duration.ofSeconds(original.resolvedCryptoProTimeoutSeconds()));
+            return original;
+        }catch(Exception unavailable){return null;}
+    }
+
     public void advance(Settings settings, long pipelineId) throws Exception {
         if(serviceSettings!=null){
             var original=repository.pipelineSettings(pipelineId);
-            if(!serviceSettings.equals(original)){create(repository,original).advance(original,pipelineId);return;}
+            // A per-purchase circulation intent does not change signer/OMS/token identity.
+            // Reuse those services only when every other persisted setting still matches.
+            if(!serviceSettings.withAutoIntroduction(original.autoIntroduction()).equals(original)){create(repository,original).advance(original,pipelineId);return;}
             settings=original;
         }
         String key = pipelineKey(pipelineId);
@@ -481,9 +486,12 @@ public class ZnackPurchaseCoordinator {
                         repository.updatePipeline(pipelineId, orderId,
                                 waitingStage, e.getMessage());
                     } else {
-                        // Codes are already bought; keep a definitive local/signature failure available
-                        // for an explicit retry without risking a duplicate introduction document.
-                        repository.updatePipeline(pipelineId, null, PurchaseStage.INTRODUCTION_FAILED, e.getMessage());
+                        var orderId=repository.findPipeline(pipelineId).map(ZnackPurchasePipelineState::orderId).orElse(null);
+                        var document=orderId==null?null:repository.findLatestDocument(orderId).orElse(null);
+                        // A lost/5xx response may have been accepted. Observe the saved codes;
+                        // never authorize a duplicate legal document from this uncertainty.
+                        repository.updatePipeline(pipelineId,null,requiresCirculationReadback(document)
+                                ?PurchaseStage.WAITING_INTRODUCTION_READINESS:PurchaseStage.INTRODUCTION_FAILED,e.getMessage());
                     }
                 } else if (current == PurchaseStage.CREATING_ORDER
                         && !(e instanceof ZnackOrderCreationAmbiguousException)) {
@@ -716,18 +724,6 @@ public class ZnackPurchaseCoordinator {
 
     private void completeDownloadedCodes(Settings settings, ZnackPurchasePipelineState pipeline,
                                          long orderId) throws Exception {
-        if (!settings.autoIntroduction()) {
-            repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.COMPLETED, null);
-            return;
-        }
-        Product product = product(pipeline.gtin());
-        if (product.tnVed() == null || product.tnVed().isBlank()) {
-            String error = "Missing TN VED.";
-            repository.updateOrder(orderId, null, null, OrderStatus.INTRODUCTION_SKIPPED_MISSING_METADATA, error);
-            repository.updatePipeline(pipeline.id(), orderId,
-                    PurchaseStage.INTRODUCTION_SKIPPED_MISSING_METADATA, error);
-            return;
-        }
         repository.updateOrder(orderId, null, null, OrderStatus.WAITING_INTRODUCTION_READINESS, null);
         repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.WAITING_INTRODUCTION_READINESS, null);
         checkIntroductionReadiness(settings, repository.findPipeline(pipeline.id()).orElseThrow());
@@ -735,24 +731,44 @@ public class ZnackPurchaseCoordinator {
 
     private void checkIntroductionReadiness(Settings settings, ZnackPurchasePipelineState pipeline) throws Exception {
         long orderId = requiredOrderId(pipeline);
-        if (!settings.autoIntroduction()) {
-            repository.updateOrder(orderId, null, null, OrderStatus.CODES_DOWNLOADED, null);
-            repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.COMPLETED, null);
+        KizOrder order=repository.findOrder(orderId).orElse(null);
+        List<ZnackModels.KizCode> downloadedCodes = repository.findCodes(orderId);
+        if(order==null||pipeline.quantity()<=0||order.quantity()!=pipeline.quantity()
+                ||downloadedCodes.size()!=order.quantity()||!sameGtin(order.gtin(),pipeline.gtin())
+                ||!ZnackCisReadback.validRequests(downloadedCodes,pipeline.gtin(),orderId)){
+            repository.updatePipeline(pipeline.id(),orderId,PurchaseStage.WAITING_INTRODUCTION_READINESS,"KIZ_CIRCULATION_IDENTITY_UNVERIFIED");
             return;
         }
-        List<ZnackModels.KizCode> downloadedCodes = repository.findCodes(orderId);
+        boolean observerOnly=!settings.autoIntroduction()||requiresCirculationReadback(repository.findLatestDocument(orderId).orElse(null));
         ZnackIntroductionReadinessService.Readiness result = readiness == null
-                ? ZnackIntroductionReadinessService.Readiness.ready(null)
-                : readiness.check(settings, product(pipeline.gtin()), downloadedCodes);
+                ? !observerOnly?ZnackIntroductionReadinessService.Readiness.ready(null)
+                    :ZnackIntroductionReadinessService.Readiness.waiting("KIZ_CIRCULATION_STATUS_UNVERIFIED")
+                : !observerOnly?readiness.check(settings, product(pipeline.gtin()), downloadedCodes)
+                    :readiness.checkCirculation(settings,product(pipeline.gtin()),downloadedCodes);
         if (result.allIntroduced()) {
             repository.markCodes(orderId, ZnackModels.KizLegalStatus.IN_CIRCULATION, null, null);
             repository.updateOrder(orderId, null, null, OrderStatus.INTRODUCED, null);
             repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.INTRODUCED, null);
             return;
         }
+        if(observerOnly){
+            String message=result.message()==null||result.message().isBlank()?"KIZ_CIRCULATION_STATUS_UNVERIFIED":result.message();
+            repository.updateOrder(orderId,null,null,OrderStatus.WAITING_INTRODUCTION_READINESS,message);
+            repository.updatePipeline(pipeline.id(),orderId,PurchaseStage.WAITING_INTRODUCTION_READINESS,message);
+            return;
+        }
         if (!result.ready()) {
             repository.updateOrder(orderId, null, null, OrderStatus.WAITING_INTRODUCTION_READINESS, result.message());
             repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.WAITING_INTRODUCTION_READINESS, result.message());
+            return;
+        }
+        Product product = product(pipeline.gtin());
+        if (product.tnVed() == null || product.tnVed().isBlank()) {
+            // Metadata is required to submit a new legal document, not to observe an
+            // already introduced code. Keep polling so external circulation is mirrored.
+            String error = "Missing TN VED.";
+            repository.updateOrder(orderId, null, null, OrderStatus.WAITING_INTRODUCTION_READINESS, error);
+            repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.WAITING_INTRODUCTION_READINESS, error);
             return;
         }
         if (result.message() != null && !result.message().isBlank()) {
@@ -767,12 +783,15 @@ public class ZnackPurchaseCoordinator {
         KizOrder order = repository.findOrder(requiredOrderId(pipeline)).orElseThrow();
         Product product = product(pipeline.gtin());
         ZnackModels.Document existing = repository.findLatestDocument(order.id()).orElse(null);
-        if (existing != null
-                && ("CHECKED_NOT_OK".equals(existing.status()) || "REJECTED".equals(existing.status())
-                || "NOT_SUBMITTED".equals(existing.status()))) {
+        if(existing!=null&&requiresCirculationReadback(existing)){
+            if("REJECTED".equals(existing.status()))repository.updateDocument(existing.id(),null,"FAILED",existing.errorMessage());
+            repository.updatePipeline(pipeline.id(),order.id(),PurchaseStage.WAITING_INTRODUCTION_READINESS,existing.errorMessage());
+            return;
+        }
+        if (existing != null && ZnackIntroductionService.isDefinitivelyRejectedSubmission(existing)) {
             // CHECKED_NOT_OK: Znack definitively processed the previous document with errors.
-            // REJECTED: the True API answered the submission with an HTTP error, so no document
-            // was created. Either way a fresh submission cannot double-introduce the codes.
+            // REJECTED: a definitive client rejection confirms no document was created. Network,
+            // 5xx and other ambiguous failures remain blocked until reconciled, never blindly resent.
             existing = null;
         }
         if (existing != null) {
@@ -789,9 +808,6 @@ public class ZnackPurchaseCoordinator {
                 LOGGER.info("Recovered Znack document ID {} from a legacy primitive response for order {}.",
                         recoveredDocumentId, order.id());
                 return;
-            }
-            if ("FAILED".equals(existing.status()) && repository.latestDocumentIsLegacyHttpRejection(order.id())) {
-                existing = null;
             }
         }
         if (existing != null) {
@@ -842,6 +858,18 @@ public class ZnackPurchaseCoordinator {
     private long requiredOrderId(ZnackPurchasePipelineState pipeline) {
         if (pipeline.orderId() == null) throw new IllegalStateException("Purchase pipeline has no order.");
         return pipeline.orderId();
+    }
+
+    private static boolean sameGtin(String left,String right){
+        try{return GtinNormalizer.normalize(left).equals(GtinNormalizer.normalize(right));}
+        catch(IllegalArgumentException invalid){return false;}
+    }
+
+    static boolean requiresCirculationReadback(ZnackModels.Document document){
+        return document!=null&&(document.externalDocumentId()==null||document.externalDocumentId().isBlank())
+                &&("FAILED".equals(document.status())||"REJECTED".equals(document.status()))
+                &&!ZnackIntroductionService.isDefinitivelyRejectedSubmission(document)
+                &&legacyDocumentId(document.errorMessage()).isBlank();
     }
 
     void schedule(long pipelineId) {
@@ -929,7 +957,7 @@ public class ZnackPurchaseCoordinator {
         return error instanceof ZnackApiClient.ZnackApiException apiError ? apiError.statusCode() : null;
     }
 
-    private String legacyDocumentId(String error) {
+    private static String legacyDocumentId(String error) {
         if (error == null || error.isBlank()) return "";
         Matcher matcher = LEGACY_DOCUMENT_ID.matcher(error);
         return matcher.find() ? matcher.group(1) : "";

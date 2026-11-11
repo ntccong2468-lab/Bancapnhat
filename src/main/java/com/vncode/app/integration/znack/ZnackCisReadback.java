@@ -61,6 +61,29 @@ final class ZnackCisReadback {
         return new Result(applied,introduced,pending,missingName,reason);
     }
 
+    static Result inspectOwned(JsonElement response,List<KizCode> requested,String gtin,String expectedOwner){
+        if(expectedOwner==null||!expectedOwner.matches("[0-9]{10}|[0-9]{12}"))return unknownOwner(requested.size());
+        JsonArray entries=new JsonArray();
+        if(response!=null&&response.isJsonArray())response.getAsJsonArray().forEach(entries::add);
+        else if(response!=null&&response.isJsonObject())entries.add(response);
+        else return unknown(requested.size());
+        for(var element:entries){
+            if(!element.isJsonObject())return unknown(requested.size());
+            var entry=element.getAsJsonObject();
+            if(entry.has("cisInfo")&&!entry.get("cisInfo").isJsonObject())return unknown(requested.size());
+            var info=entry.has("cisInfo")?entry.getAsJsonObject("cisInfo"):entry;
+            var owner=info.get("ownerInn");
+            if(owner==null||!owner.isJsonPrimitive()||!owner.getAsJsonPrimitive().isString()
+                    ||!expectedOwner.equals(owner.getAsString()))return unknownOwner(requested.size());
+            var outer=entry.get("ownerInn");
+            if(info!=entry&&outer!=null&&(!outer.isJsonPrimitive()||!outer.getAsJsonPrimitive().isString()
+                    ||!expectedOwner.equals(outer.getAsString())))return unknownOwner(requested.size());
+        }
+        return inspect(response,requested,gtin);
+    }
+
+    private static Result unknownOwner(int total){return new Result(0,0,total,false,"KIZ_CIRCULATION_OWNER_UNVERIFIED");}
+
     private static String pendingStatus(String status,String extra){
         String remote=status.matches("[A-Z][A-Z0-9_]{0,60}")?status:"";
         if(extra.matches("[A-Z][A-Z0-9_]{0,60}")&&!"EMPTY".equals(extra))remote+=(remote.isBlank()?"":" / ")+extra;

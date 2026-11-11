@@ -92,7 +92,7 @@ class ZnackLicenseBoundaryTest {
             try {
                 coordinator.advance(Settings.empty(),pipeline);
                 assertEquals(1,reads.get());assertEquals(1,repository.findCodes(orderId).size());
-                assertEquals(PurchaseStage.COMPLETED,repository.findPipeline(pipeline).orElseThrow().stage());
+                assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS,repository.findPipeline(pipeline).orElseThrow().stage());
                 assertEquals("accepted-order",repository.findOrder(orderId).orElseThrow().externalOrderId());
             }finally{LicenseRuntime.install(prior);}
         }

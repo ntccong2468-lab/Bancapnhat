@@ -13,6 +13,7 @@ import java.util.Base64;
 import java.util.List;
 
 public class ZnackIntroductionService {
+    private static final java.util.regex.Pattern HTTP_STATUS=java.util.regex.Pattern.compile("(?i)\\bHTTP\\s+(\\d{3})(?!\\d)");
     private final ZnackApiClient api;private final ZnackAuthService auth;private final ZnackSignatureProvider signer;private final ZnackRepository repository;
     public ZnackIntroductionService(ZnackApiClient api,ZnackAuthService auth,ZnackSignatureProvider signer,ZnackRepository repository){this.api=api;this.auth=auth;this.signer=signer;this.repository=repository;}
     public long submit(Settings s,KizOrder order,Product product,List<KizCode> codes)throws Exception{
@@ -56,7 +57,38 @@ public class ZnackIntroductionService {
         catch(LicenseDeniedException denied){repository.updateDocument(documentId,null,"NOT_SUBMITTED",denied.getMessage());throw denied;}
         try{String external=required(api.createDocument(s.resolvedTrueApiBaseUrl(),token,request),"Znack document response did not contain a document ID.");
             repository.updateDocument(documentId,external,"SUBMITTED",null);repository.markCodes(order.id(),KizLegalStatus.INTRO_SENT,null,documentId);repository.updateOrder(order.id(),null,null,OrderStatus.INTRO_SENT,null);return documentId;
-        }catch(Exception e){repository.updateDocument(documentId,null,e instanceof ZnackApiClient.ZnackApiException?"REJECTED":"FAILED",e.getMessage());throw e;}
+        }catch(Exception e){
+            // A timeout, gateway failure or conflict can arrive after the remote document was
+            // accepted. Keep that outcome ambiguous so the coordinator cannot submit it twice.
+            boolean rejected=e instanceof ZnackApiClient.ZnackApiException response
+                    &&definitiveRejection(response.statusCode());
+            String diagnostic=e instanceof ZnackApiClient.ZnackApiException response
+                    ?"HTTP "+response.statusCode()+": "+e.getMessage():e.getMessage();
+            repository.updateDocument(documentId,null,rejected?"REJECTED":"FAILED",diagnostic);throw e;
+        }
+    }
+    private static boolean definitiveRejection(int status){
+        return switch(status){
+            case 400,401,403,404,405,406,410,411,413,414,415,422,429->true;
+            default->false;
+        };
+    }
+    /** A stored legacy label alone is not evidence that a remote POST was rejected. */
+    static boolean isDefinitivelyRejectedSubmission(Document document){
+        if(document==null)return false;
+        if("CHECKED_NOT_OK".equals(document.status()))return true;
+        if(document.externalDocumentId()!=null&&!document.externalDocumentId().isBlank())return false;
+        if("NOT_SUBMITTED".equals(document.status()))return true;
+        boolean rejected="REJECTED".equals(document.status()),legacy="FAILED".equals(document.status());
+        if(!rejected&&!legacy)return false;
+        var matcher=HTTP_STATUS.matcher(document.errorMessage()==null?"":document.errorMessage());
+        boolean observed=false;
+        while(matcher.find()){
+            int status=Integer.parseInt(matcher.group(1));
+            if(!definitiveRejection(status)||legacy&&status!=422)return false;
+            observed=true;
+        }
+        return observed;
     }
     public static final class PermitDocumentsUnavailableException extends Exception{
         private final boolean confirmedMissing;

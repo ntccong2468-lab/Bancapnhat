@@ -1933,7 +1933,7 @@ class ZnackModuleTest {
                 ResourceBundle.getBundle("com.vncode.app.i18n.messages",Locale.forLanguageTag("ru")).getString("znack.oms_connection_help"));
         assertEquals("Không tìm thấy chữ ký điện tử. Vui lòng cắm USB token, kiểm tra CryptoPro rồi thử lại.",
                 ResourceBundle.getBundle("com.vncode.app.i18n.messages",Locale.forLanguageTag("vi")).getString("znack.signature.not_found"));
-        assertEquals("Đang chờ lưu thông",
+        assertEquals("Đang đối soát lưu thông",
                 ResourceBundle.getBundle("com.vncode.app.i18n.messages", Locale.forLanguageTag("vi"))
                         .getString("znack.status_value.waiting_introduction_readiness"));
     }

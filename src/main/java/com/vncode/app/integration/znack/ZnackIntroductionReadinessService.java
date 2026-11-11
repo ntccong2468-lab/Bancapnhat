@@ -22,10 +22,27 @@ public class ZnackIntroductionReadinessService {
         this.repository = repository;
     }
 
+    public Readiness checkCirculation(Settings settings, Product current, List<KizCode> codes) throws Exception {
+        if(current==null||!ZnackCisReadback.validRequests(codes,current.gtin(),null))return Readiness.waiting("KIZ_CIRCULATION_IDENTITY_UNVERIFIED");
+        // Authentication uses this purchase's original signer. Never take ownership from the
+        // current shop configuration when observing a saved legacy purchase.
+        String token=auth.trueApiToken(settings);
+        String owner=settings.ownerInn()==null||settings.ownerInn().isBlank()?auth.resolvedParticipantInn(settings):settings.ownerInn();
+        if(owner==null||!owner.matches("[0-9]{10}|[0-9]{12}"))return Readiness.waiting("KIZ_CIRCULATION_OWNER_UNVERIFIED");
+        int introduced=0;String reason=null;
+        for(int start=0;start<codes.size();start+=ZnackApiClient.CISES_MAX_CODES_PER_REQUEST){
+            var batch=codes.subList(start,Math.min(start+ZnackApiClient.CISES_MAX_CODES_PER_REQUEST,codes.size()));
+            var request=new JsonArray();batch.forEach(code->request.add(ZnackCisNormalizer.forTrueApi(code.rawCode())));
+            var result=ZnackCisReadback.inspectOwned(api.cisesInfo(settings.resolvedTrueApiBaseUrl(),token,request),batch,current.gtin(),owner);
+            introduced+=result.introduced();if(reason==null&&result.reason()!=null)reason=result.reason();
+        }
+        if(introduced==codes.size())return Readiness.introduced();
+        return Readiness.waiting("Đã xác minh "+introduced+"/"+codes.size()+" mã đã lưu thông. "
+                +(reason==null?"Честный знак chưa xác nhận toàn bộ mã đã lưu thông.":reason));
+    }
+
     public Readiness check(Settings settings, Product current, List<KizCode> codes) throws Exception {
         String token = auth.trueApiToken(settings);
-        Product product = refreshProductCard(settings, token, current);
-        if(product!=null)repository.updateProductReadiness(product);
         if (codes == null || codes.isEmpty()) {
             return Readiness.waiting("No downloaded KIZ codes are available for introduction.");
         }
@@ -56,6 +73,10 @@ public class ZnackIntroductionReadinessService {
         if (pending > 0 || applied + introduced != codes.size() || introduced > 0) {
             return Readiness.waiting(progressMessage(codes.size(), applied, introduced, pending, pendingReason));
         }
+        // The code's authoritative circulation status is sufficient on its own.
+        // Catalog readiness is needed only before submitting a new introduction.
+        Product product = refreshProductCard(settings, token, current);
+        if(product!=null)repository.updateProductReadiness(product);
         if(product==null)return Readiness.waiting("Chưa xác minh được trạng thái thẻ sản phẩm hiện tại; giữ nguyên dữ liệu đã lưu và chờ đối chiếu.");
         if (!product.cardReadyForIntroduction()) {
             String missing = java.util.stream.Stream.of(

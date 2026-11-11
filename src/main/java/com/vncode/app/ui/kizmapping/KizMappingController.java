@@ -335,7 +335,7 @@ public class KizMappingController {
                 ZnackPurchaseCoordinator currentCoordinator = ZnackPurchaseCoordinator.create(currentRepository);
                 Settings currentSettings = currentRepository.getSettings();
                 runTask(() -> {
-                    currentCoordinator.enqueue(currentSettings, summary.gtin(), quantity,
+                    currentCoordinator.enqueueForCirculation(currentSettings, summary.gtin(), quantity,
                             java.util.UUID.randomUUID().toString());
                     return null;
                 });
