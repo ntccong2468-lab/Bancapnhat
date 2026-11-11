@@ -1,0 +1,33 @@
+{
+  "result": "EXPECTED_RED",
+  "recordedAtUtc": "2026-11-11T19:35:52.781599+00:00",
+  "sourceBase": "8c229ee244669488945dfc7e9095dd2c8de6a133",
+  "scope": "Three new ordering regressions on current post-policy code before TN/Catalog ordering fix; synthetic fixtures only, no real network/signing/paid operations.",
+  "totals": {
+    "tests": 3,
+    "failures": 3,
+    "errors": 0,
+    "skipped": 0
+  },
+  "failedCases": [
+    {
+      "name": "alreadyIntroducedPurchaseConfirmsWhenTheCatalogCardEndpointIsUnavailable",
+      "message": "Unexpected exception thrown: java.io.IOException: Synthetic catalog endpoint unavailable"
+    },
+    {
+      "name": "alreadyIntroducedPurchaseConfirmsWithoutTnVedOrCatalogReadback",
+      "message": "expected: <INTRODUCED> but was: <INTRODUCTION_SKIPPED_MISSING_METADATA>"
+    },
+    {
+      "name": "appliedCodesWithMissingTnVedAreReadButNeverSubmittedOrMarkedCirculating",
+      "message": "Authoritative code status must be read before metadata can block a new introduction ==> expected: <1> but was: <0>"
+    }
+  ],
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "97d48f2812d685842e7b37d76106ab0a6122a72969c2e141b5f69993c1ed0618",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "afabf4694cb4e494af2dfa3cb3a066fc5756913c8feb58d7dd23361f492e8d2e",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java": "46df40c24ad375a0d0b26117e2c287d0394817d3c3bae8c261b5bb4a54184c55"
+  },
+  "xmlSha256": "a0e91aceb97153584a4636a29160e2a5230399bc1473c121417a21d7360a957f",
+  "logSha256": "ecbc9b53489492845adf5ac4899f80842dba9cbeca3f5420280af1d030675fb7"
+}

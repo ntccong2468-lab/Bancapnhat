@@ -1,0 +1,232 @@
+{
+  "result": "EXPECTED_RED",
+  "recordedAtUtc": "2026-11-11T19:10:55.235234+00:00",
+  "sourceBase": "8c229ee244669488945dfc7e9095dd2c8de6a133",
+  "scope": "Current worktree on8c229ee plus user-steering UI edits and API-only stubs enqueueForCirculation/checkCirculation/inspectOwned; old policy retained. Not byte-identical public1.6.8. Synthetic fixtures only, no live API/paid/signing operations.",
+  "totals": {
+    "tests": 60,
+    "failures": 42,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackCirculationPolicyTest",
+      "tests": 12,
+      "failures": 12,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "41203f65a78141832625d52b91272173437a763280de81c07ae2f0f8797de070",
+      "failedCases": [
+        {
+          "name": "incompleteLegacySetIsDiagnosedWithoutNetworkOrFakeAvailability",
+          "message": "expected: <KIZ_CIRCULATION_CODES_INCOMPLETE> but was: <>"
+        },
+        {
+          "name": "quantityMismatchCannotBePromotedEvenIfTheInjectedReadinessClaimsSuccess",
+          "message": "Local quantity/identity must be checked before trusting a remote result ==> expected: <0> but was: <1>"
+        },
+        {
+          "name": "completedLegacyCodesWithMissingOrForeignLiveOwnerNeverBecomeAvailable(String)[1]",
+          "message": "expected: <WAITING_INTRODUCTION_READINESS> but was: <COMPLETED>"
+        },
+        {
+          "name": "completedLegacyCodesWithMissingOrForeignLiveOwnerNeverBecomeAvailable(String)[2]",
+          "message": "expected: <WAITING_INTRODUCTION_READINESS> but was: <COMPLETED>"
+        },
+        {
+          "name": "legacyDownloadContinuesReadOnlyChecksWithoutClaimingCirculationOrSubmitting(String)[1]",
+          "message": "expected: <1> but was: <0>"
+        },
+        {
+          "name": "legacyDownloadContinuesReadOnlyChecksWithoutClaimingCirculationOrSubmitting(String)[2]",
+          "message": "expected: <1> but was: <0>"
+        },
+        {
+          "name": "missingOriginalProfileIsDiagnosedWithoutInventingTheCurrentProfileOrPolling",
+          "message": "expected: <KIZ_CIRCULATION_ORIGINAL_PROFILE_MISSING> but was: <>"
+        },
+        {
+          "name": "downloadWithoutTheOldOptionStillReadsAndConfirmsActualCirculation",
+          "message": "expected: <1> but was: <0>"
+        },
+        {
+          "name": "persistedCompletedPurchaseResumesWithItsOriginalProfileWithoutRebuyOrNewDocument",
+          "message": "expected: <INTRODUCED> but was: <COMPLETED>"
+        },
+        {
+          "name": "malformedLocalCodeIdentityNeverStartsAReadOnlyPoll",
+          "message": "expected: <KIZ_CIRCULATION_IDENTITY_UNVERIFIED> but was: <>"
+        },
+        {
+          "name": "everyNewPurchasePinsCirculationWithoutChangingTheGlobalPreference(boolean)[1]",
+          "message": "Preflight must validate the same mandatory-circulation intent that is persisted ==> expected: <true> but was: <false>"
+        },
+        {
+          "name": "everyNewPurchasePinsCirculationWithoutChangingTheGlobalPreference(boolean)[2]",
+          "message": "Preflight must validate the same mandatory-circulation intent that is persisted ==> expected: <true> but was: <false>"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackOwnedCisReadbackTest",
+      "tests": 26,
+      "failures": 22,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "106eeecacf947b5b54c79341aa5337d7fe1d5d270e7d14139ee60f2d28ff4a07",
+      "failedCases": [
+        {
+          "name": "allForeignOrMixedOwnersCannotAuthorizeLocalStock",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[1]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[2]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[3]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[4]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[5]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[6]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[7]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[8]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[9]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "missingOrMalformedExpectedIdentityCannotBeUsedAsOwnershipProof(String)[10]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "legacyStatusInspectionStillAcceptsExactCodesWithoutOptionalOwnerMetadata",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[1]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[2]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[3]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[4]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[5]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[6]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[7]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[8]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[9]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        },
+        {
+          "name": "oneCodeWithoutExactStringOwnerBlocksWholeBatchConfirmation(String, JsonElement)[10]",
+          "message": "Unknown or foreign ownership cannot confirm any purchased codes ==> expected: <0> but was: <2>"
+        }
+      ]
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackIntroductionSubmissionOutcomeTest",
+      "tests": 22,
+      "failures": 8,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "6d293a904ff4baae4b1e1f3a37d0d3bf31dcdf5c60012bba266cc2cda44d2c78",
+      "failedCases": [
+        {
+          "name": "ambiguousResponsesCannotAuthorizeFreshSubmission(int)[1]",
+          "message": "Uncertain delivery must not be labelled a definitive rejection ==> expected: <FAILED> but was: <REJECTED>"
+        },
+        {
+          "name": "ambiguousResponsesCannotAuthorizeFreshSubmission(int)[2]",
+          "message": "Uncertain delivery must not be labelled a definitive rejection ==> expected: <FAILED> but was: <REJECTED>"
+        },
+        {
+          "name": "ambiguousResponsesCannotAuthorizeFreshSubmission(int)[3]",
+          "message": "Uncertain delivery must not be labelled a definitive rejection ==> expected: <FAILED> but was: <REJECTED>"
+        },
+        {
+          "name": "ambiguousResponsesCannotAuthorizeFreshSubmission(int)[4]",
+          "message": "Uncertain delivery must not be labelled a definitive rejection ==> expected: <FAILED> but was: <REJECTED>"
+        },
+        {
+          "name": "ambiguousResponsesCannotAuthorizeFreshSubmission(int)[5]",
+          "message": "Uncertain delivery must not be labelled a definitive rejection ==> expected: <FAILED> but was: <REJECTED>"
+        },
+        {
+          "name": "ambiguousResponsesCannotAuthorizeFreshSubmission(int)[6]",
+          "message": "Uncertain delivery must not be labelled a definitive rejection ==> expected: <FAILED> but was: <REJECTED>"
+        },
+        {
+          "name": "ambiguousResponsesCannotAuthorizeFreshSubmission(int)[7]",
+          "message": "Uncertain delivery must not be labelled a definitive rejection ==> expected: <FAILED> but was: <REJECTED>"
+        },
+        {
+          "name": "ambiguousResponsesCannotAuthorizeFreshSubmission(int)[8]",
+          "message": "Uncertain delivery must not be labelled a definitive rejection ==> expected: <FAILED> but was: <REJECTED>"
+        }
+      ]
+    }
+  ],
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackCisReadback.java": "e61557b0efe3a6ba1e490afbe906cd16b9ce654d3ce582fd2f31422f522c8ce8",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "53f9114153c0ddd318893eaff946ef8f1c3b2bb78287c134adcf2bfc9611fb7c",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java": "7b8eda51fe8fefdcc802f864354015e11927b5b8a943023e882bde9753e22ed7",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "25f767ba2e8007e4efcccbc7408ca178176e6c1884d08d13c985c3dbbdf7d701",
+    "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java": "cde37a67a300a5f099d3bf0399f587429f031f8f86be3c7eda32030e3abf55b9",
+    "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java": "374d0853a3ad170a928b3cb65386275f299ae25687d80b439e7960ff73220679",
+    "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java": "ef4f9611c051cfdc3a2f7f3a9652681dca459d17ae7276321f2ddabe058ca5b4",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "defb48b0529d4fe1bcefb886ef70cb4d69599daf20d683f992ef12f12490ed39",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "c867e82163ca639e8a28ddfbdbb86bc09c7aa646eade63d968299e530c60bf6f",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "e95fb0d48fcec49e7057f43baee700c2fe1b5670b63102b57118992c547b348d",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "4e286fe726de18daa7e754b16bd55248c715527d3d31253a0c1fd4ec742c33a3",
+    "src/main/resources/com/vncode/app/ui/znack/znack-automation-view.fxml": "d5bd2b2e657caa810649942f30c5b731aea9583f086e6b7ea5730e2f9236b466",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java": "84ee61e0e2e9904c743c4e239ae4949554957c1d1bb8ab21af919c010a998e4d",
+    "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionSubmissionOutcomeTest.java": "157168af555340ddc3f5dbb76b2f01b74efe60ac00909c52a7ae8c0b0d48c56b",
+    "src/test/java/com/vncode/app/integration/znack/ZnackOwnedCisReadbackTest.java": "eef825c6634ed731cb7ea984ab5e768a12c6736498fa85f3eb1deab6f225bd37",
+    "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java": "02ff559dfdfed4b042c279e235aeafab38b88b2f6bdc396f94b5a5a20c58a99b"
+  },
+  "logSha256": "e2ca1415af97cf6c92893091ff4bfe0845dbd0d97a914d8144a7a0a71b6aca1b",
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dtest=ZnackCirculationPolicyTest,ZnackOwnedCisReadbackTest,ZnackIntroductionSubmissionOutcomeTest test"
+}

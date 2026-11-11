@@ -1,0 +1,160 @@
+{
+  "checkedAtUtc": "2026-11-11T18:44:51.378137+00:00",
+  "wbcodeLatest": {
+    "repository": "rupphi/relatest-wcode",
+    "tag": "v1.3.24",
+    "releaseId": 441445892,
+    "publishedAtUtc": "2026-11-11T09:46:05Z",
+    "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.24",
+    "asset": "WCode.exe",
+    "assetBytes": 149638144,
+    "assetSha256": "58d97a9c98fd42ee52c5239a98c9e1e4a820661f61aa65e06dd9033f55561d78",
+    "githubDigestMatched": true,
+    "officialChecksumsFileMatched": true,
+    "extractedFile": "file7a71e8e98e7b3826a1a75eac56ae1b67",
+    "appJarBytes": 5602148,
+    "appJarSha256": "7294c9116d98d00f86ec0268952b04bdfd6ee5cdedd09eef0d616e8adb9f1ae8",
+    "classes": 1379,
+    "coordinatorClass": "com/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator.class",
+    "selectedClassSha256": {
+      "integration/znack/ZnackPurchaseCoordinator": "bccaaf6919a66f9197f6a40489251f5050fddd106a60afe754d18d4903464eb9",
+      "integration/znack/ZnackPurchasePipelineState": "6c6f8178004cd55934bdbdce2bf8f1c3491c80f578a73c315dd056fa7dba3d4c",
+      "integration/znack/ZnackIntroductionReadinessService": "a8b8eead5b40b89a059ad62662e04bedeab1653d37a2c2c833379c2ab39e75b9",
+      "integration/znack/ZnackIntroductionService": "ea4742bdc7278729db91ebb59eaea203e4daa73abde734cc4694c718ce6d8927",
+      "integration/znack/ZnackApiClient": "f381d4332aa736cc7a0591acf8579d824820561e0db9273ed22ab1c4ee451032",
+      "integration/znack/ZnackRepository": "172af26d6d7ac43e9409306f9adfc38f05ed19e14f366ca608a6c159992d09d5",
+      "integration/znack/ZnackModels$Settings": "876da6c4ce7115bd0eb984710b55aff8be874fbb41b0ec06e758d19a853b4618",
+      "integration/znack/ZnackModels$KizPurchaseMethod": "da99e6b0a3bf58dfad8e3da95c79a38566e5723a5f00f12d25244b8f08cb371d",
+      "ui/znack/ZnackAutomationController": "4160151ada21746075b0c545d4d5ba57cb4d0223e1e0d07e9c14cdae8248bc3f",
+      "ui/kizmapping/KizMappingController": "63e00873574f223ea31eca4b011c58b7bb5ce3fed3355e34e56022fe483000fe",
+      "features/kizmapping/KizMappingRepository": "39397e5d3574cb350a0ffd135e2bef7cbbc8c608957fa8cfcc3342be2b5bf309"
+    }
+  },
+  "originalSnapshot": {
+    "path": "/workspace/references/vncode-source-audit/test-wcode",
+    "repo": "https://github.com/rupphi/test-wcode",
+    "commit": "8f7c3d1ac8598158029b8d037e2d3c128e240727",
+    "version": "1.1.32",
+    "commitAuthoredAt": "2026-09-09T12:38:38+07:00",
+    "worktreeClean": true,
+    "shallow": true,
+    "sourceSha256": {
+      "pom.xml": "1ca7dda4e98a4a99d2542c6a76312027f78aa945f3071e3402047cc11a4aaf90",
+      "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackModels.java": "158cf04d56732f34fcf0d3b2a3aa1ac4864a75e44658a9896933f54103e47c66",
+      "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator.java": "d8f9ba5d93ce5a9a2aed0eafef93e626a5e03cc4d4cd3e0d927ffdb0dc5e4ac7",
+      "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackIntroductionReadinessService.java": "4fa476ef61b6efb7244f0fac0da01b6ba4b9056acb15e144be1665b55a5be0ff",
+      "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackIntroductionService.java": "9e5974507690862f1e47bb21ac00fc0ee8a13ee2e79e563ea61e53505be873fd",
+      "src/main/java/com/tuandev/fbsbarcode/ui/znack/ZnackAutomationController.java": "5671a7f322cc2f588358d75af1412c42b8c24490e0f67b985a30ef75b0e69f8d",
+      "src/main/resources/com/tuandev/fbsbarcode/ui/znack/znack-automation-view.fxml": "3cc1bd7d445381ea392556341897f62cc5052dfb46570ace6dc5b27c1b9f37c7",
+      "src/main/resources/com/tuandev/fbsbarcode/i18n/messages_vi.properties": "fee0997c26bab782983d6d1e78c98335130be58d804cb5bfdbbc7fbcfce5bf26"
+    },
+    "scope": "Original public source snapshot already retained in this workspace. Not represented as the first ever historical Git commit or source of WBCode 1.3.24."
+  },
+  "observations": [
+    {
+      "id": "COMPLETION_NOT_CIRCULATION",
+      "firstSnapshot": "autoIntroduction=false after downloaded codes -> PurchaseStage.COMPLETED; readiness stage also stops there if disabled.",
+      "wbcodeLatest": "Same condition in completeDownloadedCodes and checkIntroductionReadiness. COMPLETED is terminal in pipeline active().",
+      "confidence": "HIGH_STATIC",
+      "evidence": [
+        "original coordinator lines612-615,631-635",
+        "latest decompiled coordinator743-747,759-766",
+        "latest PurchasePipelineState.active"
+      ]
+    },
+    {
+      "id": "DEFAULT_FLAG_DIFFERS",
+      "firstSnapshot": "Settings.empty autoIntroduction=false; source checkbox visible; controller settings() stores user-selected checkbox.",
+      "wbcodeLatest": "Settings.empty autoIntroduction=true; controller settings() passes literal true; no autoIntroductionCheck in its FXML.",
+      "confidence": "HIGH_STATIC_WITH_JAVAP",
+      "evidence": [
+        "original Models116-118; controller824; FXML52",
+        "latest Models146-147; controller1447-1448; javap empty iconst_1 byte30 and settings iconst_1 byte92",
+        "latest FXML SHA256 cdfa2f0db7851f540741847829bc7acdd1bea8c3b10f391f9bce7025fdea10ba"
+      ]
+    },
+    {
+      "id": "CONFIRMED_CIRCULATION",
+      "firstSnapshot": "Readiness allows already-INTRODUCED all codes; otherwise APPLIED readiness then signed LP_INTRODUCE_GOODS, document CHECKED_OK and every CIS INTRODUCED before mark IN_CIRCULATION.",
+      "wbcodeLatest": "Same production readiness/confirmation concept; cisesInfo requests groups1000. Additional COMMISSION method uses LK_INDI_COMMISSIONING.",
+      "confidence": "HIGH_STATIC",
+      "evidence": [
+        "original IntroductionService.confirm lines64-91",
+        "latest IntroductionService.confirm199-229",
+        "latest IntroductionReadinessService.check and inspectCises",
+        "latest Models.KizPurchaseMethod"
+      ]
+    },
+    {
+      "id": "STATE_TEXT_INHERITED",
+      "firstSnapshot": "COMPLETED -> Hoàn tất; INTRODUCED -> Đã lưu thông; CODES_DOWNLOADED -> Đã tải mã.",
+      "wbcodeLatest": "Same three Vietnamese translations and status-column chooses latest pipeline stage before order status.",
+      "confidence": "HIGH_STATIC",
+      "evidence": [
+        "original messages_vi lines638,643,670",
+        "latest messages_vi lines796,801,828",
+        "latest KizMappingController.initialize223-226"
+      ]
+    },
+    {
+      "id": "NO_EXPLICIT_MANUAL_USAGE_REPORT_OBSERVED",
+      "firstSnapshot": "No utilisation/utilization or usage-report endpoint/service found in inspected Znack source; readiness waits APPLIED/INTRODUCED.",
+      "wbcodeLatest": "No these literals in all1379 class bodies; inspected API client and advanceLocked bytecode dispatch contain order/create,poll,download,readiness,introduction/poll and recovery, not a manual usage-report stage.",
+      "confidence": "BOUNDED_STATIC_NEGATIVE",
+      "evidence": [
+        "wbcode-class-term-scan.json",
+        "javap-ZnackPurchaseCoordinator.txt:advanceLocked",
+        "latest ZnackApiClient selected decompiled methods"
+      ],
+      "limit": "Absence of a manual call is NOT a defect or proof that seller must manually submit a report; root official-contract check confirms SUZ auto forms usage reports for light industry/shoes/perfume."
+    },
+    {
+      "id": "RECOVERY_DIFFERENCE",
+      "firstSnapshot": "Skipped/missing document, legacy rejected/primitive response and waiting-document candidates resumed only when autoIntroduction true.",
+      "wbcodeLatest": "Also considers introduction-failed pipelines and schedules explicit introduction retry30seconds under latest autoIntroduction.",
+      "confidence": "HIGH_STATIC",
+      "evidence": [
+        "original coordinator282-365",
+        "latest coordinator435-493,956-985"
+      ],
+      "limit": "Not a recommendation to copy retry policy without checking VN Code identity, owner and ambiguity guards."
+    },
+    {
+      "id": "ZERO_AVAILABLE_STOCK_NOT_ZERO_DOWNLOADED",
+      "firstSnapshot": "available_count requires inventory status AVAILABLE and legal status IN_CIRCULATION; downloaded RECEIVED codes do not count.",
+      "wbcodeLatest": "Same legal/inventory test; additionally excludes KIZ already attached in ozon_exemplars. Pipeline status column is separate.",
+      "confidence": "HIGH_STATIC_WITH_JAVAP",
+      "evidence": [
+        "original KizMappingRepository.java57-60",
+        "latest javap-v-KizMappingRepository bootstrap SQL recipes",
+        "latest KizMappingController.initialize availableColumn/pipelineColumn"
+      ],
+      "limit": "Zero stock in the screenshot cannot establish zero downloaded codes, auto-introduction disabled, or failed real circulation without order/CIS evidence."
+    }
+  ],
+  "method": {
+    "kind": "STATIC_REFERENCE_COMPARISON",
+    "tools": [
+      "7-Zip25.01 PE/MSI/CAB extraction without installer execution",
+      "CFR0.152 selected classes",
+      "JDK25 javap -p -c to corroborate defaults/settings/query and dispatch when CFR failed"
+    ],
+    "wbcodeExecuted": false,
+    "licenseActivatedOrBypassed": false,
+    "sellerApiCalled": false,
+    "paidPurchasePerformed": false,
+    "proprietarySourceCopiedIntoVnCode": false
+  },
+  "limitations": [
+    "Cannot establish real seller autoIntroduction flag, stored order/CIS/document state from screenshot alone.",
+    "Original reference is WCode1.1.32 public source snapshot, not latest release source; user may mean another original archive.",
+    "Some CFR methods failed. Relevant failed dispatch/SQL queries were additionally checked by javap, not treated as missing implementation.",
+    "No local changes made to VN Code source or live seller settings."
+  ],
+  "bytecodeCorroboration": {
+    "latestSettingsDefaultAutoIntroduction": "javap-ZnackSettings.txt: Settings.empty iconst_1 byte30",
+    "latestUiSettingsAutoIntroduction": "javap-ZnackAutomationController.txt: settings iconst_1 byte92 immediately after pdfFolder",
+    "latestSkippedResumeCandidates": "javap-ZnackRepository.txt: skipped query includes only INTRODUCTION_SKIPPED_MISSING_DOCUMENTS and INTRODUCTION_SKIPPED_MISSING_METADATA, not COMPLETED",
+    "latestAdvanceDispatch": "javap-ZnackPurchaseCoordinator.txt: advanceLocked invokes validate,createOrder,pollOrder,downloadCodes,checkIntroductionReadiness,submitIntroduction,pollIntroduction,reconcileOrder. CFR failed for this method, so read bytecode."
+  }
+}

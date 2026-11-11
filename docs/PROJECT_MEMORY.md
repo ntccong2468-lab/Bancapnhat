@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## 11.11.2026 MSK — mua KIZ luôn đối soát lưu thông, chưa phát hành
+
+Nguồn **`d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5`**, nhánh `fix/kiz-circulation-20261111`, từ 4fa9; giữ hotfix hạn giấy tờ 80e9324 và công cụ Windows-MCP. [Bàn giao](validation/2026-11-11-kiz-circulation-audit.md), [receipt](validation/kiz-circulation-20261111/focused-tests.json). “Hoàn tất” trước đây chỉ là tải đủ mã khi snapshot auto=false, không phải bằng chứng lưu thông; tồn kho vẫn cần AVAILABLE và IN_CIRCULATION. Đã đối chiếu WBCode mới nhất 1.3.24 bằng EXE/JAR/bytecode, nguồn gốc đang giữ 1.1.32/8f7c3d1 và tài liệu SUZ/True API. Không chạy WBCode hoặc suy rằng thiếu POST utilisation thủ công là lỗi: nhóm công nghiệp nhẹ có báo cáo tự động phía SUZ.
+
+Quyết định cuối của người dùng: **không có tùy chọn bật/tắt**. Mua thực qua mapping, WB/Ozon, FBO và bù thiếu đều đóng băng ý định lưu thông theo job trong giao dịch SQLite/CAS; không đổi global settings để cấp quyền cho job cũ. Các lô COMPLETED cũ hoặc gửi mơ hồ được đối soát bằng hồ sơ gốc/đúng đơn/đủ CIS/đúng owner; không mua hoặc tự gửi chứng từ lại. Thiếu profile không được backfill từ cấu hình mới. 5xx/timeout không phải từ chối chắc chắn. Giữ trạng thái SUZ EXHAUSTED/CLOSED, inventory đã dùng/giữ chỗ/archive và gate pháp lý. Đọc CIS trước metadata để mã đã INTRODUCED không bị chặn vì thiếu TN VED/không đọc được Catalog; thiếu metadata vẫn chặn chứng từ mới.
+
+Kinh nghiệm: tách tải mã khỏi bằng chứng lưu thông; cờ global không được chặn job đã có ý định riêng. Lưu kết quả HTTP có kiểu để phục hồi không gửi trùng, kiểm cả tập mã thay vì số đếm. `updateOrder(null remote)` là chuyển trạng thái cục bộ, phải giữ quan sát SUZ trước đó. Kiểm lại với dữ liệu cũ, bảng/profile thiếu, kết quả đến muộn và restart; giữ biên nhận RED/lượt thất bại, không cộng các lần kiểm trùng. Chưa có SUZ/CryptoPro seller hay Windows-MCP thực để nghiệm thu mua/ký đầu-cuối. Latest vẫn immutable 1.6.8/440439895; không bump version/tạo bộ cài/publish trong tác vụ này.
+
 ## 10.11.2026 MSK — cài Windows-MCP cho Codex Web, cần nối máy Windows người dùng
 
 Người dùng chọn Windows-MCP sau nghiên cứu repo, đồng ý cài và chọn máy Windows đang chạy VN Code. [Bàn giao](validation/2026-11-10-windows-mcp-setup.md), nhánh `tools/windows-mcp-20261110`, nguồn def8e8ff0467a4141fc2399ecd68372ebe1b42f9 từ1afba07/giữ80e9324. Cài cloudclientSDK2.3.0/28gói hash-locked, wrappers và skillrepo; upstream59e3b19/0.8.8 ngoài runtime app. WorkerZIP scripts bootstrapuv0.13.7/Python3.14/sourcepin, DPAPIuser/ACL, loopback18765, telemetryoff, takeover/consent, UIallowlist; không tự tạo publictunnel/firewall/service. Không ghi token/cert/sellerdata vào Git hoặc ZIP.

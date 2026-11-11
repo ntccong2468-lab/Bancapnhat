@@ -1,0 +1,290 @@
+{
+  "recordedAtUtc": "2026-11-11T19:42:16.010519+00:00",
+  "result": "PASS",
+  "sourceCommit": "d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5",
+  "command": "/workspace/toolchains/mvn-vncode -B -DskipTests package",
+  "artifact": "target/VNcode-1.6.8.jar",
+  "sha256": "09f48e84a40a5c60c2b8fcadcd6e31bd2307c4911696596dafd6747a4b39ba87",
+  "bytes": 7650947,
+  "productionClassCount": 1996,
+  "verifiedChangedClassesAndResources": [
+    {
+      "path": "com/vncode/app/features/fbo/FboPurchaseService.class",
+      "sha256": "c6606b7fa69771c3b687c6aff402f557737a0342197b53f10c1aed5d3822b1f1"
+    },
+    {
+      "path": "com/vncode/app/features/kiz/KizStockReplenisher$1.class",
+      "sha256": "eddb9492b687908550b409c2b05177fef5b149775bbdd9209a38a7d4ddbe5384"
+    },
+    {
+      "path": "com/vncode/app/features/kiz/KizStockReplenisher.class",
+      "sha256": "3fae26688e887f808c2fae73208ff5772aa503632be7821af75dcdb7319ab9af"
+    },
+    {
+      "path": "com/vncode/app/features/kiz/KizStockReplenisher$Result.class",
+      "sha256": "1ad1e40134af92ca99b9447faa21476b8572ffca6de8228339db6c497691d200"
+    },
+    {
+      "path": "com/vncode/app/features/kiz/KizStockReplenisher$Purchases.class",
+      "sha256": "9c2cb3111563c08745d9a75bab3c98dd940d50daf4162f8d861f6f6599d6afd6"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackCisReadback$Result.class",
+      "sha256": "9b1814626a5a8bbcb3e9425d23a698b85e3cf165d5210a6d8cfd8d0a6fdbd166"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackCisReadback.class",
+      "sha256": "b57ee36347886e906350545e71b2ef08d7e6fd0e1f5e1e7fb687ed742449fe4e"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackErrorMessages.class",
+      "sha256": "6d3be2b30a8d91a40acd7af8c2d0bcda841251496e9d2072324b9c42ddf4f40c"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackIntroductionReadinessService.class",
+      "sha256": "21f213299eb3a0d96f8645ef4282bd00cfe080e0fec02ea0d8937c7a1c3997da"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackIntroductionReadinessService$Readiness.class",
+      "sha256": "498115390d65d7aac0f3e6d2a31f7105c74e17e19fd38f929e2683246b27257c"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackIntroductionService$ConfirmResult.class",
+      "sha256": "17f69e544476388af8934f5de272b2df681395d4dc303d3202bc1905110ec414"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackIntroductionService$ConfirmStatus.class",
+      "sha256": "e2ca7d6aa86349d7568396935abb4909192a5a0ad7efa575221d151976cce79e"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackIntroductionService$PermitDocumentsUnavailableException.class",
+      "sha256": "5867daced7f0694db9cf2e8bcd8fbba64efb4e4a252dd2aa7ee9e39e350379e0"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackIntroductionService.class",
+      "sha256": "7e3ba8a8b716b5ef4079252eddcc19ac3e3c355c21a4215ecd96ed9b96ab7e87"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackPurchaseCoordinator.class",
+      "sha256": "5b83dd3e6c6bde37f5e5bbd6114691164ffb044c3d9cefdf3e8b546a7f7a2278"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackPurchaseCoordinator$1.class",
+      "sha256": "27382364efc39b333d41de586af191cd83319b28104a5a1c9b0a2f5875109044"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackRepository$SettingsConflictException.class",
+      "sha256": "f5a169a010bcd67a059c61399bddb1e6ea06157f81c610bd4a084a90a6eb2e3f"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackRepository.class",
+      "sha256": "458d57e4e2e71f4a1f48e0445a8d343a3e4f39ac12d0f8090971b3b45d27b6f2"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackRepository$SqlBinder.class",
+      "sha256": "1de6aabf496af30dfa9162520743e5ecf7b057ede0601c55e1da1fbdc70bfe56"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackRepository$CertificateVerificationResult.class",
+      "sha256": "0d64de00ebe1699a8fca13df69c828fd959d0f71d9c48d29b417685528fd8169"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackRepository$SignerChangeBlockedException.class",
+      "sha256": "0e245e68a2fe0e8a76b0bbb48bba12f70d4a417ec07e049be4b879b1d3000b5b"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackRepository$CatalogMetadata.class",
+      "sha256": "fbd482b7fb70426566115ce9f4c2ab55c531f35e5ad8614e88e1d2a4ef3d3de6"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackRepository$CatalogReset.class",
+      "sha256": "8899f28e83175233df3d6853e8e1134061dfe9d15bc084fd2754048cc932a4a8"
+    },
+    {
+      "path": "com/vncode/app/integration/znack/ZnackRepository$StaleSignerException.class",
+      "sha256": "b3e7356ac41ff0ead8e21babe7155d6651ec7ae0664b19df172edf9a66bc036f"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$MappingReport.class",
+      "sha256": "a106d1b31379c1d36e1188c64ff8c6212cc0d7248d70193dca23a2d653524b76"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$5.class",
+      "sha256": "72ae128126cc92c1e276539f8ee02e6467a430a60752ba82fa65ac46d1585a9d"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$6.class",
+      "sha256": "f415cbde506f94ec19877f064145ffb5f7dcd61c9153a6ea68ae1c1e04cb2ead"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$7.class",
+      "sha256": "16b2675deaf3b9736c96dea9fe80aa5d977a6948263ddc85c771e3808fe79e4c"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$ThrowingSupplier.class",
+      "sha256": "eaf2e05b7ad6b4bb89b7e7b2774804176484477fa6d4bdb52c9c4ed4a6d17d5b"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$ActionsCell.class",
+      "sha256": "a2e133aff4074922383be0fc163a9c7157c37f72de4a06af3d157a2c08ed54c8"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$4.class",
+      "sha256": "e8ae69ef7e103307dbb57e5a7b961268d13c455c4e26787b8e2c476bb58628b6"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$3.class",
+      "sha256": "a08d81715a170af01c10f77051606e52fbd6db7d46db28f4fc4ff8bcf15bd49e"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$2.class",
+      "sha256": "8ebe0642d53676497b5ebf84a5f1a38a3bdf0b0c094ff1e3b4b7518dbc0c7021"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$Synced.class",
+      "sha256": "7be07cc84e53a40e9f6bd4ce968fa2602c501a7450087c87a90e6a7b250fea78"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$MappingIssue.class",
+      "sha256": "dde47a9614176e6f84d83ff91f89ebc2352a408c24fbd2f8c3bfc07037e2e294"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$9.class",
+      "sha256": "f2dc79227ff4f7793b6da1e52b2a65ce4d58b900e4a7a87c33bfca23d0dde96f"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$8.class",
+      "sha256": "1e0b16607c3a16716c5a2f85943dbdfeeb868c0d81ab4500f7e24fb6aa5f1321"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController.class",
+      "sha256": "419e0e63aa5b4ae30d08b6baf3081200230444e09e4b6365ab27093d90aac2c2"
+    },
+    {
+      "path": "com/vncode/app/ui/kizmapping/KizMappingController$1.class",
+      "sha256": "947e3d6fb7ee33c5a0d8e79b33d3857b37c76affcac74e7d88aadf924c1233e3"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$2.class",
+      "sha256": "b82f4a2cdf2d67c91242186a764e1f0efd7f2038ac0564e1aa5d8e04198f65c5"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$13.class",
+      "sha256": "d7ae76f8ffaf395a6acc1e62817a625cb6cc3b09bcab4ba289ed77ed10333128"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController.class",
+      "sha256": "6d9a7642b19ed9087d34a63b9a7ba04972a76af224b7dae7de901d40bc1a0c44"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$7.class",
+      "sha256": "7ea9790cfefa983ff0528865b7c89f0cd0a4ad0694ed00919e52a9f4cceb8a34"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$11.class",
+      "sha256": "62340d29b076edbb0d4217a9b9e47150b0b32f411856bab39786dab4526479c7"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$AccountRefresh.class",
+      "sha256": "9e9a45a97f553f4f73cff072581c99b9c775f449d522d1a51ba7864da7c69a58"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$12.class",
+      "sha256": "246cd47db93a0aec336bfdb1e8de40cf4ad19073b12887f36ae7784824d17583"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$DeletedProductActionsCell.class",
+      "sha256": "7796a2453ce40601fce0f50775ba46ef0a28573a46b5759993754c886aa46a27"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$SettingsDraft.class",
+      "sha256": "11d256afd2cd0d5f748fc8a1fcb6a87f5489597af441c5bbaee7fca442b52635"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$3.class",
+      "sha256": "4ceb8a489da6f364c4615d07ee825e62366d03cac68ed870e251ab11efb11245"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$9.class",
+      "sha256": "1b1e741ea3d75c56bf79dd9e07c217185557dbf7ba093da5cee47864a6827be4"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$SignatureTaskSubmitter.class",
+      "sha256": "d29321779720520743200bd4d72e10663816f02c64f188c37d2ff37dad354d96"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$10.class",
+      "sha256": "ff28b82aaca441192bbeebc46979388c3125ddbed6b493c84ae3278460a9ebcf"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$6.class",
+      "sha256": "c42ec39cfdbd1bf4f2732f84deb493791eb5d8937e35afeba5190690e9688956"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$1.class",
+      "sha256": "53d00e3cf6d62c36ee26294cca9fd71447014e6777e7196a1fb80b4eaf508ef4"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$CertificateReader.class",
+      "sha256": "1bdd84ba37468f382e4b7806322db0621a1d2f5a0b10f5c9ec9796b3e56d57a7"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$8.class",
+      "sha256": "037cc573b3a6e5de20ea318ac73671b3c1a5e989e830b52b496aafc0aea22ac1"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$4.class",
+      "sha256": "84c8161bcb49d3b52b5386e90161e7959caa76f3295b8e52be3e0709bfb2f28d"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$5.class",
+      "sha256": "decd738538d3c85b958abd66737e3955aa8c478f6c2c5bb50032e2d86b83b4c2"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$15.class",
+      "sha256": "946954da19ea1b9849354fb223942be13fabda7aab8e1e6e3cad34082f8e373c"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$AccountReader.class",
+      "sha256": "1a3f53ce7846921724b686b02a516ee418170d85f586b7b9efd75930c9204445"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$ProductActionsCell.class",
+      "sha256": "6bd085f150bb86224a1cc831f4299c1467368df5c9cf3a6538373950de5e7495"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$ProductSelectCell.class",
+      "sha256": "70de80cd3b10538d90d96be76f369bc54cb0a7eff417aadb06032c3e7ab88a74"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$SignatureVerification.class",
+      "sha256": "305ef5168a878fdbd1ac7c03720c7da7752339ccfc76c9035d07c7120fd28314"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/ZnackAutomationController$14.class",
+      "sha256": "287b49bafb75a9cb2a32f9b6081476cafe3135e47fbc153a3a9d24160fcafe0a"
+    },
+    {
+      "path": "com/vncode/app/i18n/messages_en.properties",
+      "sha256": "b2a0e343b3fe00fed810ec319fedc2fc2681f6ec9634c851499f914f1a2ae269"
+    },
+    {
+      "path": "com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "4fdea3a3034f55597fd55615e47a3a6eb41eb9dcf2e59d011848ca29f2ce14b1"
+    },
+    {
+      "path": "com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "78a78f90e9044c7d477d9f3adc1945ad2b64f2f064737125c60a0b6dd50a32df"
+    },
+    {
+      "path": "com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "ec74fb59108fbdf33d776848a61d9913e5200517204d128fd6e48e409686abc8"
+    },
+    {
+      "path": "com/vncode/app/ui/znack/znack-automation-view.fxml",
+      "sha256": "d5bd2b2e657caa810649942f30c5b731aea9583f086e6b7ea5730e2f9236b466"
+    }
+  ],
+  "buildLogSha256": "70617f8d29cd1cb03cb2a4ed02e2ef1a72ed6eb40498b9bea7b264100de0b028",
+  "scope": "Local Java JAR build only. POM remains 1.6.8 for development; this is not the published 1.6.8 binary, Windows installer or release. No release/tag/assets changed."
+}

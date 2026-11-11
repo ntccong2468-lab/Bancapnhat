@@ -1,0 +1,36 @@
+{
+  "recorded_at_utc": "2026-11-11T19:32:41.902383+00:00",
+  "scope": "Synthetic/local SQLite and HTTP fixtures plus real JavaFX on Linux/Xvfb; not seller purchase acceptance",
+  "runs": [
+    {
+      "log": "/tmp/vncode-kiz-circulation-audit/policy-first-green.log",
+      "sha256": "66526dd48c7bc56065f1292e18df4d746fec0792b45f319555812e4e6c1f5a44",
+      "tests": 172,
+      "failures": 7,
+      "errors": 0,
+      "skipped": 0,
+      "outcome": "FAIL",
+      "reason": "5 EXHAUSTED cases exposed remote_status erased by local transitions; closed-order and ambiguous-submission fixtures still expected old terminal states."
+    },
+    {
+      "log": "/tmp/vncode-kiz-circulation-audit/policy-broader-green.log",
+      "sha256": "f26f5a2c8c32decc7776b14be83bc844d227b9081ace8fe51615526a769bd04a",
+      "tests": 418,
+      "failures": 1,
+      "errors": 0,
+      "skipped": 0,
+      "outcome": "FAIL",
+      "reason": "Only ZnackModuleTest.znackTranslationsIncludeRequiredWorkflowKeys expected the previous Vietnamese waiting label; runtime and all other assertions passed."
+    },
+    {
+      "log": "/tmp/vncode-kiz-circulation-audit/policy-final-green.log",
+      "sha256": "8727813574be2243b04773398cade0924f5afd61ebe43b31e47460957c2f5c57",
+      "tests": 418,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "outcome": "PASS",
+      "scope": "Intermediate policy implementation before CIS-before-metadata ordering fix; not final-source acceptance."
+    }
+  ]
+}

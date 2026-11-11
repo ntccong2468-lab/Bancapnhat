@@ -1,0 +1,264 @@
+{
+  "recordedAtUtc": "2026-11-11T19:41:50.591819+00:00",
+  "result": "PASS",
+  "sourceCommit": "d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5",
+  "baseCommit": "4fa9ba08977a9c29e51845d3c25d9527cd9a2069",
+  "platform": "Linux/JDK25/Xvfb/temporary SQLite and synthetic HTTP/signature/license fixtures",
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -B -Dtest=ZnackCirculationPolicyTest,ZnackOwnedCisReadbackTest,ZnackIntroductionSubmissionOutcomeTest,KizPurchaseStatusPresentationTest,ZnackCirculationMessagesTest,ZnackGtinWorkflowTest,ZnackExhaustedBufferRecoveryTest,ZnackExhaustedBufferWorkflowRegressionTest,ZnackLicenseBoundaryTest,ZnackModuleTest,ZnackPurchaseMigrationSafetyTest,ZnackKizPurchaseReadbackTest,KizStockReplenisherTest,KizPrintPurchaseSessionTest,KizAttachmentCoordinatorTest,FboPurchaseServiceTest,KizPrintPurchaseDialogTest,KizMappingRepositoryTest,ZnackIntroductionIdentityTest,ZnackSigningSessionTest,ZnackAutomationInformationTest,ZnackAutomationControllerTest,FxmlSmokeTest,ZnackGtinInventoryBulkTest test",
+  "totals": {
+    "tests": 421,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suiteCount": 24,
+  "suites": [
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackCirculationPolicyTest",
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.36,
+      "xmlSha256": "af39a0137e3245f64fba8a7f1cbdb832fe62629b401aa3438678812102b924af"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackOwnedCisReadbackTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.02,
+      "xmlSha256": "02e530bc6c14e2424b112ff5a9e029f5ba22e4284a8ccd5c63353e6ed25ca79a"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackIntroductionSubmissionOutcomeTest",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.612,
+      "xmlSha256": "f63e4cb801584d6cc65a42264b5838baf47de344bad0dcd495066c693555942e"
+    },
+    {
+      "suite": "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.143,
+      "xmlSha256": "13d96f97362c5fabde9c062eba9f47fbb5d7a3dc652f8269651f914313e0f0d1"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackCirculationMessagesTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.223,
+      "xmlSha256": "4c2254d4ff53def7da895426de51b3e38864c738ef865e90a7b8ff8478f22902"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackGtinWorkflowTest",
+      "tests": 53,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.929,
+      "xmlSha256": "13a2efa323debacf895b4c65ac7553d475edd3e990b1b64f677cfe419ee4a6b6"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.199,
+      "xmlSha256": "da7adedf734f849a52789a3e70600cb04f23af18e130871beb8b08624717e31a"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.122,
+      "xmlSha256": "c015d31b8701b09c9a3ea52e981a66e42891ac152dcee6cf5226c601c8d09cfd"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackLicenseBoundaryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.284,
+      "xmlSha256": "5729f80995629a34d59d214e019636ad51097624e64a963f3b2e7605732c2935"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackModuleTest",
+      "tests": 76,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6.869,
+      "xmlSha256": "31c8d0de65c69f1027b4d033535981b0d54feef300730097253ab04eae328494"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackPurchaseMigrationSafetyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.366,
+      "xmlSha256": "fd7343ea29811d0c8621defe9a0cae0df54d63e52fdf8d602adc5ff490f3c32f"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.574,
+      "xmlSha256": "fccc34d904916c2a8d59101ead9586ee9350ee18fe155894ca50d7a23fee134e"
+    },
+    {
+      "suite": "com.vncode.app.features.kiz.KizStockReplenisherTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.909,
+      "xmlSha256": "5007208a0377d35c91234def039be22ef01d70b5e6cd99dc7eff376471b09c82"
+    },
+    {
+      "suite": "com.vncode.app.features.kiz.KizPrintPurchaseSessionTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.402,
+      "xmlSha256": "57ef37ce91d9c57dda7bad0f7fa4a4fefae9f99ab0c2388c71c9852e2c43e60c"
+    },
+    {
+      "suite": "com.vncode.app.features.print.KizAttachmentCoordinatorTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.611,
+      "xmlSha256": "5bfc2c2a091b139c7b773e10ad291adf3e1ed0f4c86d99e9ade6bff93502f412"
+    },
+    {
+      "suite": "com.vncode.app.features.fbo.FboPurchaseServiceTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.004,
+      "xmlSha256": "17a7110f62b5c84a42293140c0c8ebf6a9e4fe3fe3485a56eb64a6eff81de0c3"
+    },
+    {
+      "suite": "com.vncode.app.ui.kiz.KizPrintPurchaseDialogTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.631,
+      "xmlSha256": "429e81ecb5b7ec3a61fa57765c1cecbf7562df22a9bfe8f11a6bd05ef7979cbc"
+    },
+    {
+      "suite": "com.vncode.app.features.kizmapping.KizMappingRepositoryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.634,
+      "xmlSha256": "a020cd809b0fff448093cc705dd23c328d17b9cbe9549b0d5b8b5aa1f9dea486"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackIntroductionIdentityTest",
+      "tests": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.483,
+      "xmlSha256": "625251720f8c20e1db38e277e41f32af45e7d19f2931b850605b734425439aaa"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.227,
+      "xmlSha256": "186f4e1dc9df3ed51dfe7340cc19eeca0f92c6cec4af5379571ba4d03a3b5773"
+    },
+    {
+      "suite": "com.vncode.app.ui.znack.ZnackAutomationInformationTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.717,
+      "xmlSha256": "64d6f1fe0a94558b91f44e86bc8e19a25c0a7f6895dfab6c36999f2360a54842"
+    },
+    {
+      "suite": "com.vncode.app.ui.znack.ZnackAutomationControllerTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.006,
+      "xmlSha256": "f5f3a13b3d21d3970535fb848e11d240602a9e447d30964096a8d826f43ebacd"
+    },
+    {
+      "suite": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 23.248,
+      "xmlSha256": "1826c52e75cea81e1bd00736cc0dedc19d9439b3755a8f0f0bd48bee90c4c459"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackGtinInventoryBulkTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.369,
+      "xmlSha256": "038ae371ad327d3334410e2d279178367048f7d109595028f302a7254d7a51aa"
+    }
+  ],
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/features/fbo/FboPurchaseService.java": "bdcf8c82ccbcac64d87e9511ac7c74d24a95d6ddd55976c92e2b73fa78a911d6",
+    "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java": "4dc19ba93093b3f8d4b479fc80c8c147d9523db025c6d919b4cdd8072c6d8dee",
+    "src/main/java/com/vncode/app/integration/znack/ZnackCisReadback.java": "e3d3b75886332b7eb819f1ba093219264ad1adf88e4c4089fcfb3a7965f8bff6",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "4b401dd6a27ddd297d58fa393a1ee1e2c4727a60bd14db83f00153bee9618d09",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "00bea932ab007778fdc7ffc9be06d07bea199b895aeb0b08c42da02a92dff38b",
+    "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37",
+    "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java": "374d0853a3ad170a928b3cb65386275f299ae25687d80b439e7960ff73220679",
+    "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java": "ef4f9611c051cfdc3a2f7f3a9652681dca459d17ae7276321f2ddabe058ca5b4",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "b2a0e343b3fe00fed810ec319fedc2fc2681f6ec9634c851499f914f1a2ae269",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "4fdea3a3034f55597fd55615e47a3a6eb41eb9dcf2e59d011848ca29f2ce14b1",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "78a78f90e9044c7d477d9f3adc1945ad2b64f2f064737125c60a0b6dd50a32df",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "ec74fb59108fbdf33d776848a61d9913e5200517204d128fd6e48e409686abc8",
+    "src/main/resources/com/vncode/app/ui/znack/znack-automation-view.fxml": "d5bd2b2e657caa810649942f30c5b731aea9583f086e6b7ea5730e2f9236b466",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationMessagesTest.java": "b413ae5d36e5ec0c05313f8708a169c155e286b3a800217cead2f5790d8a9115",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java": "471ac9c8a44c3f194699760453d6420506518a6446f0cc6b6f3d806390b553c0",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java": "92973f7bcba066d88f285435d15b96f8142f98f56af461dffcd2314a625a888a",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java": "73f40cd2e0f8a454a2d0b860969ff5700b1c400fcfcebc6c9a6e54360ec10d61",
+    "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java": "ae733467cdeda95f2ba06a5060d3f572c53c2b3d8bf6a953cd163cfcbd3be11e",
+    "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionSubmissionOutcomeTest.java": "764341a52955f4c1508489f847ee6f303b766b34a95081ae1bd4833400b84126",
+    "src/test/java/com/vncode/app/integration/znack/ZnackLicenseBoundaryTest.java": "81b61f9fa700c40ab3af0187bd9634aa8481448ec67816331689062ce583b5fe",
+    "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java": "4afc675150c1b2a8a53ffc59cca7fa682beb9557efc2772824fc8abc0339d112",
+    "src/test/java/com/vncode/app/integration/znack/ZnackOwnedCisReadbackTest.java": "eef825c6634ed731cb7ea984ab5e768a12c6736498fa85f3eb1deab6f225bd37",
+    "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java": "02ff559dfdfed4b042c279e235aeafab38b88b2f6bdc396f94b5a5a20c58a99b"
+  },
+  "finalLog": "/tmp/vncode-kiz-circulation-audit/policy-accepted-green.log",
+  "finalLogSha256": "9a39e8c9c69d7fd221ed2de50155fe4b57aaad690e1df23af631605d69be3721",
+  "scope": "Final requested mandatory circulation policy; no overlap counts added. Real JavaFX FXML on Linux and disposable database. Not Windows seller acceptance or a real SUZ purchase/signing/API write.",
+  "history": "verification-history.json; policy-baseline-red.json; ordering-baseline-red.json; ordering-focused-tests.json"
+}

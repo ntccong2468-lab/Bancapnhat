@@ -1,6 +1,13 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **10.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **11.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+
+## Mua KIZ luôn theo dõi lưu thông — chưa phát hành
+
+- Nhánh `fix/kiz-circulation-20261111`, nguồn **`d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5`**, kế thừa 4fa9/80e9324 bên dưới. [Bàn giao và sơ đồ](../validation/2026-11-11-kiz-circulation-audit.md), [kiểm thử](../validation/kiz-circulation-20261111/focused-tests.json), [build cục bộ](../validation/kiz-circulation-20261111/local-package.json). Người dùng bác phương án tùy chọn: không đưa checkbox/menu bật tắt vào app; mọi enqueue mua thực lưu ý định lưu thông riêng trong job, không ghi đè kết nối dùng chung.
+- Không coi `COMPLETED` là đã lưu thông: đổi nhãn thành đã tải mã/chưa xác nhận; giữ đối soát nền và làm mới danh sách. Lô cũ chỉ dùng snapshot gốc, đúng đơn/GTIN/đủ CIS/đúng chủ sở hữu; thiếu profile phải báo rõ, không mượn cấu hình mới hoặc mua lại. Phản hồi gửi mơ hồ/5xx chỉ quan sát, không gửi lại chứng từ; giữ `EXHAUSTED/CLOSED` qua chuyển trạng thái cục bộ và giữ inventory đã dùng/giữ chỗ/archive.
+- Đọc CIS trước metadata dùng để gửi chứng từ mới; mã đã `INTRODUCED` vẫn được nhận diện khi thiếu TN VED hoặc Catalog card endpoint không đọc được. Thiếu TN VED không cho gửi chứng từ mới. Không bỏ gate quyền, chứng thư, chủ thể, giấy tờ hay pháp lý.
+- Đối chiếu tĩnh **WBCode 1.3.24** và snapshot gốc **1.1.32/8f7c3d1**, tài liệu SUZ/True API; không gọi snapshot là commit đầu tiên. 421 ca/24 lớp đạt, 0 failure/error/skip; build JAR cục bộ đạt và so byte 69 class/resource. Linux/Xvfb/SQLite/HTTP tổng hợp, không phải mua/ký thật hoặc nghiệm thu Windows seller. Thiếu phiên SUZ/chứng thư và kết nối Windows-MCP. [Latest đọc lại](../validation/kiz-circulation-20261111/latest-read.json) vẫn immutable **1.6.8/440439895**; chưa đổi version/tạo bộ cài/phát hành.
 
 ## Windows-MCP — client đã cài; máy Windows người dùng chưa kết nối
 

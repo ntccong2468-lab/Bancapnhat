@@ -1,0 +1,69 @@
+{
+  "checkedAtUtc": "2026-11-11T18:53:07.634192+00:00",
+  "method": "Read-only official documentation and static code tracing; no SUZ or TrueAPI seller requests.",
+  "documents": [
+    {
+      "name": "SUZ API3.0.40,Cloud5.0,revised24.09.2026",
+      "url": "https://docs.crpt.ru/gismt/files/pdf/API_%D0%A1%D0%A3%D0%97_3.0.pdf",
+      "sha256": "0a019c4208f8a781aa431a6a3dad60c537e33f268529e24a0678721022fe1313"
+    },
+    {
+      "name": "TrueAPIv755.0,11.11.2026",
+      "url": "https://docs.crpt.ru/gismt/True_API/",
+      "sha256": "71e449db5004f52031be67eeab835c3537c2cb709f466870198e674c1c9a6488"
+    }
+  ],
+  "findings": [
+    {
+      "id": "LIGHT_INDUSTRY_AUTOMATIC_APPLICATION_REPORT",
+      "sections": [
+        "SUZ4.4.11 PDF238-239",
+        "SUZ4.4.20 PDF401-402"
+      ],
+      "conclusion": "For light industry and listed groups SUZ automatically creates an application/usage report when codes are issued. Absence of a manual utilisation POST is not proof of a missing step for this shop product group.",
+      "limit": "Role/service-provider exceptions exist. Automatic processing is asynchronous and does not prove circulation."
+    },
+    {
+      "id": "ISSUANCE_RECEIPT_IS_NOT_CIRCULATION",
+      "sections": [
+        "SUZ10.1.6 PDF655-660"
+      ],
+      "conclusion": "GET_CODES_RESULT/SUCCESS concerns issuance; automatic report events GET_CODES_GENERATED_REPORT and RNMS_GIS_ROUTED/PROCESSED are separate. Do not translate issuance success into introduced status."
+    },
+    {
+      "id": "READBACK_CAN_DIAGNOSE_APPLICATION_WAIT",
+      "sections": [
+        "SUZ4.4.18 PDF391-392",
+        "SUZ4.4.19 PDF395"
+      ],
+      "methods": [
+        "GET /api/v3/receipts/receipt?omsId&resultDocId",
+        "POST /api/v3/receipts/receipt/search?omsId"
+      ],
+      "conclusion": "Receipt2.0 reads can reconcile order/report/code-block identifiers, with auth and documented paging. Search POST is a read operation, not a manual report submission.",
+      "limit": "No authenticated seller receipt was read in this task; do not invent block identifiers or infer success from empty results."
+    },
+    {
+      "id": "LEGAL_STATES_ARE_DISTINCT",
+      "sections": [
+        "TrueAPI5.1.2 and CIS status dictionary"
+      ],
+      "conclusion": "EMITTED,APPLIED,INTRODUCED are distinct. cises/info uses normalized codes and at most1000 per request; verify the full intended code set and ownership."
+    },
+    {
+      "id": "INTRODUCTION_REQUIRES_CORRECT_BUSINESS_PATH",
+      "sections": [
+        "TrueAPI2.2.5",
+        "TrueAPI4.1.4.1",
+        "TrueAPI4.1.4.7-4.1.4.8"
+      ],
+      "conclusion": "LP_INTRODUCE_GOODS/OWN_PRODUCTION concerns Russian production; import and contract/commission flows have distinct conditions/documents. A returned document id is a receipt, not final circulation proof.",
+      "limit": "Current VN Code order and introduction writers use PRODUCTION/OWN_PRODUCTION. No automatic change to a different legal process is authorized or performed here."
+    }
+  ],
+  "notVerified": [
+    "Actual settings/pipeline snapshot of the seller screenshot",
+    "Current legal state of the purchased codes",
+    "Signed application/introduction on the seller account"
+  ]
+}

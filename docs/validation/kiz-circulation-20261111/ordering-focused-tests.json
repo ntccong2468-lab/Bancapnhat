@@ -1,0 +1,31 @@
+{
+  "recordedAtUTC": "2026-11-11T19:39:50.802409+00:00",
+  "head": "8c229ee244669488945dfc7e9095dd2c8de6a133",
+  "exitCode": 0,
+  "totalTests": 4,
+  "suites": [
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCirculationPolicyTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.822"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackGtinWorkflowTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.3"
+    }
+  ],
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "00bea932ab007778fdc7ffc9be06d07bea199b895aeb0b08c42da02a92dff38b",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java": "471ac9c8a44c3f194699760453d6420506518a6446f0cc6b6f3d806390b553c0",
+    "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java": "ae733467cdeda95f2ba06a5060d3f572c53c2b3d8bf6a953cd163cfcbd3be11e"
+  },
+  "scope": "Synthetic regression only; no remote paid, signing or seller API write performed."
+}
