@@ -34,7 +34,12 @@ public final class ProductRepository {
                     ),'[]')) color,
           CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('material',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('material',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END material,
           CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('tnved',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('tnved',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END tnved,
-          CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('gender',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('gender',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END gender,1 attributes_loaded
+          CASE WHEN ps.payload IS NULL THEN COALESCE((SELECT COALESCE(json_extract(ch.value_json,'$[0]'),json_extract(ch.value_json,'$')) FROM wb_product_characteristics ch WHERE ch.shop_id=c.shop_id AND ch.nm_id=c.nm_id AND vn_field_match('gender',ch.name)=1 LIMIT 1),'') ELSE COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a JOIN json_each(a.value,'$.values') v WHERE vn_field_match('gender',json_extract(a.value,'$.name'))=1 AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') END gender,1 attributes_loaded,
+          CASE WHEN json_valid(json_extract(ps.payload,'$.metadata."source.payload"')) THEN
+            CASE WHEN json_type(json_extract(ps.payload,'$.metadata."source.payload"'),'$.documents.overallVerdict.isFullyChecked')='true'
+              AND json_type(json_extract(ps.payload,'$.metadata."source.payload"'),'$.documents.overallVerdict.status')='integer'
+              AND json_extract(json_extract(ps.payload,'$.metadata."source.payload"'),'$.documents.overallVerdict.status')=1
+              THEN 1 ELSE 0 END ELSE 0 END documents_approved
         FROM wb_product_cards c LEFT JOIN wb_product_sizes v ON v.shop_id=c.shop_id AND v.nm_id=c.nm_id
         LEFT JOIN product_snapshots ps ON ps.rowid=(SELECT own.rowid FROM product_snapshots own
           WHERE own.shop_id=c.shop_id AND own.marketplace='WILDBERRIES' AND own.card_id=CAST(c.nm_id AS TEXT)
@@ -59,7 +64,7 @@ public final class ProductRepository {
           COALESCE((SELECT group_concat(v.value,', ') FROM json_each(ps.payload,'$.attributes') a
             JOIN json_each(a.value,'$.values') v WHERE vn_field_match('gender',json_extract(a.value,'$.name'))=1
             AND COALESCE(json_extract(a.value,'$.complexId'),'0') IN ('','0')),'') gender,
-          CASE WHEN ps.payload IS NULL THEN 0 ELSE 1 END attributes_loaded
+          CASE WHEN ps.payload IS NULL THEN 0 ELSE 1 END attributes_loaded,0 documents_approved
         FROM ozon_products p LEFT JOIN product_snapshots ps ON ps.shop_id=p.shop_id AND ps.marketplace='OZON'
           AND ps.card_id=p.product_id AND ps.variant_id=COALESCE(p.offer_id,'')
           AND json_extract(ps.payload,'$.metadata.owner')=? AND json_extract(ps.payload,'$.revision') LIKE 'live:%'
@@ -156,10 +161,19 @@ public final class ProductRepository {
                   WHEN count(*)=0 THEN 'MISSING'
                   WHEN NOT EXISTS(SELECT 1 FROM product_snapshots own WHERE own.shop_id=d.shop_id AND own.marketplace=d.marketplace
                     AND own.card_id=b.card_id AND json_extract(own.payload,'$.metadata.owner')=? AND json_extract(own.payload,'$.revision') LIKE 'live:%') THEN 'UNVERIFIED'
-                  WHEN sum(CASE WHEN d.state='EXPIRED' OR (d.valid_until IS NOT NULL AND d.valid_until<date('now')) THEN 1 ELSE 0 END)>0 THEN 'EXPIRED'
+                  WHEN b.documents_approved=1 AND EXISTS(SELECT 1 FROM product_documents approved
+                    WHERE approved.shop_id=d.shop_id AND approved.marketplace=d.marketplace AND approved.card_id=b.card_id
+                      AND approved.state='VALID' AND approved.source='https://content-api.wildberries.ru/content/v2/get/cards/list'
+                      AND approved.verified_at IS NOT NULL
+                      AND (json_extract(approved.payload,'$.validFrom') IS NULL
+                           OR date(json_extract(approved.payload,'$.validFrom'))<=date('now','localtime'))
+                      AND (approved.valid_until IS NULL OR approved.valid_until>=date('now','localtime'))) THEN 'VALID'
+                  WHEN sum(CASE WHEN d.state='EXPIRED' OR (d.valid_until IS NOT NULL AND d.valid_until<date('now','localtime')) THEN 1 ELSE 0 END)>0 THEN 'EXPIRED'
                   WHEN sum(CASE WHEN d.state='REJECTED' THEN 1 ELSE 0 END)>0 THEN 'REJECTED'
                   WHEN sum(CASE WHEN d.state='PENDING' THEN 1 ELSE 0 END)>0 THEN 'PENDING'
-                  WHEN min(CASE WHEN d.state='VALID' AND d.source LIKE 'https://%' AND d.verified_at IS NOT NULL THEN 1 ELSE 0 END)=1 THEN 'VALID'
+                  WHEN min(CASE WHEN d.state='VALID' AND d.source LIKE 'https://%' AND d.verified_at IS NOT NULL
+                    AND (json_extract(d.payload,'$.validFrom') IS NULL
+                         OR date(json_extract(d.payload,'$.validFrom'))<=date('now','localtime')) THEN 1 ELSE 0 END)=1 THEN 'VALID'
                   ELSE 'UNVERIFIED' END FROM product_documents d
                 WHERE d.shop_id=? AND d.marketplace=? AND d.card_id=b.card_id),'MISSING') document_state
             FROM (

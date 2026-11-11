@@ -55,14 +55,24 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
         size=sizeConflict?"":manufacturerSize.value();russianSize=sizeConflict?"":marketplaceRussianSize.value();
         var proof=includeEvidence?ListingIdentity.verifiedGtinEvidence(shop,new ProductKey(shop.getId(),shop.getMarketplace(),key.cardId(),text(attr,"offer_id")),codes,text(attr,"offer_id"),color,size,russianSize):Optional.<ListingIdentity.VerifiedGtin>empty();
         var variants=List.of(new ProductVariant(text(attr,"offer_id"),text(attr,"offer_id"),color,size,proof.map(ListingIdentity.VerifiedGtin::gtin).orElse(""),proof.isPresent(),russianSize,codes,proof.map(ListingIdentity.VerifiedGtin::evidence).orElse(ProductVariant.GtinEvidence.UNVERIFIED)));
-        var docs=new ArrayList<ProductDocument>();var now=Instant.now();int pages=1;
+        var docs=new ArrayList<ProductDocument>();var now=Instant.now();int pages=1;Integer declaredPages=null;var documentIds=new HashSet<String>();
         for(int page=1;includeDocuments&&page<=pages;page++){
             b=new JsonObject();b.addProperty("offer_id",text(attr,"offer_id"));b.addProperty("page",page);b.addProperty("page_size",100);
             var result=obj(object(client.call("v1/product/certificate/list",b,false)),"result");
-            if(!result.has("certificates"))throw new IOException("Ozon document metadata unavailable");
-            pages=Math.max(1,result.has("page_count")?result.get("page_count").getAsInt():1);if(pages>10)throw new IOException("Too many Ozon certificate pages");
-            for(var e:array(result,"certificates")){var doc=object(e);var end=date(text(doc,"expire_date"));var state=end!=null&&end.isBefore(LocalDate.now())?DocumentState.EXPIRED:DocumentState.UNVERIFIED;
-                docs.add(new ProductDocument(text(doc,"certificate_id"),text(doc,"type_code"),text(doc,"certificate_number"),date(text(doc,"issue_date")),end,"","",null,Marketplace.OZON,state,"https://api-seller.ozon.ru/v1/product/certificate/list",now,metadata(doc)));
+            var collection=result.get("certificates");
+            if(collection==null||!collection.isJsonArray())throw new IOException("Ozon document metadata unavailable");
+            var certificates=collection.getAsJsonArray();int observedPages=certificatePageCount(result,certificates.size());
+            if(declaredPages!=null&&declaredPages!=observedPages)throw new IOException("Ozon certificate pagination changed during readback");
+            declaredPages=observedPages;pages=Math.max(1,observedPages);
+            for(var e:certificates){
+                if(!e.isJsonObject())throw new IOException("Ozon certificate entry unavailable");
+                var doc=e.getAsJsonObject();var rawId=doc.get("certificate_id");
+                if(rawId==null||!rawId.isJsonPrimitive()||rawId.getAsJsonPrimitive().isBoolean())throw new IOException("Ozon certificate identity unavailable");
+                String documentId=text(doc,"certificate_id");
+                if(documentId.isBlank()||!documentIds.add(documentId))throw new IOException("Ozon certificate identity unavailable or repeated");
+                var start=documentDate(doc,"issue_date");var end=documentDate(doc,"expire_date");
+                if(start!=null&&end!=null&&end.isBefore(start))throw new IOException("Ozon certificate dates are inconsistent");
+                docs.add(new ProductDocument(documentId,text(doc,"type_code"),text(doc,"certificate_number"),start,end,"","",null,Marketplace.OZON,documentState(doc,start,end),"https://api-seller.ozon.ru/v1/product/certificate/list",now,metadata(doc)));
             }
         }
         var inherited=new LinkedHashMap<String,String>();if(sizeConflict)inherited.put("source.size.conflict","true");
@@ -83,6 +93,50 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
         inherited.putAll(Map.of("source.payload",payload,"owner",ListingIdentity.fingerprint(shop),"sku",text(info,"sku"),"complex.ambiguous",Boolean.toString(groups.values().stream().anyMatch(v->v>1))));
         var revisionMetadata=new LinkedHashMap<>(inherited);revisionMetadata.remove("source.payload");
         var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(revisionPayload(raw)+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(revisionMetadata))),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
+    }
+    private static int certificatePageCount(JsonObject result,int certificateCount)throws IOException{
+        var raw=result.get("page_count");if(raw==null)return 1;
+        if(!raw.isJsonPrimitive()||!raw.getAsJsonPrimitive().isNumber())throw new IOException("Ozon certificate page count unavailable");
+        try{
+            int count=raw.getAsBigDecimal().intValueExact();
+            if(count<0||count>10||count==0&&certificateCount!=0)throw new IOException("Ozon certificate page count unavailable");
+            return count;
+        }catch(ArithmeticException|NumberFormatException invalid){throw new IOException("Ozon certificate page count unavailable",invalid);}
+    }
+    private static LocalDate documentDate(JsonObject document,String field){
+        var raw=document.get(field);
+        if(raw==null||!raw.isJsonPrimitive()||!raw.getAsJsonPrimitive().isString())return null;
+        String value=raw.getAsString();
+        try{return LocalDate.parse(value);}
+        catch(DateTimeException notDate){
+            try{return LocalDate.from(java.time.format.DateTimeFormatter.ISO_DATE_TIME.parse(value));}
+            catch(DateTimeException invalid){return null;}
+        }
+    }
+    private static DocumentState documentState(JsonObject document,LocalDate start,LocalDate end){
+        if(end!=null&&end.isBefore(LocalDate.now()))return DocumentState.EXPIRED;
+        var code=document.get("status_code");
+        if(code==null||!code.isJsonPrimitive()||!code.getAsJsonPrimitive().isString())return DocumentState.UNVERIFIED;
+        return switch(code.getAsString()){
+            case "declined"->DocumentState.REJECTED;
+            case "awaiting_verification","verification"->DocumentState.PENDING;
+            case "approved"->{
+                if(!validOptionalDate(document,"issue_date",start)||!validOptionalDate(document,"expire_date",end)||!positiveAssociationIfPresent(document))yield DocumentState.UNVERIFIED;
+                yield start!=null&&start.isAfter(LocalDate.now())?DocumentState.PENDING:DocumentState.VALID;
+            }
+            default->DocumentState.UNVERIFIED;
+        };
+    }
+    private static boolean validOptionalDate(JsonObject document,String field,LocalDate parsed){
+        var raw=document.get(field);
+        return raw==null||raw.isJsonNull()||raw.isJsonPrimitive()&&raw.getAsJsonPrimitive().isString()
+                &&(raw.getAsString().isBlank()||parsed!=null);
+    }
+    private static boolean positiveAssociationIfPresent(JsonObject document){
+        var raw=document.get("products_count");if(raw==null)return true;
+        if(!raw.isJsonPrimitive()||!raw.getAsJsonPrimitive().isNumber())return false;
+        try{return raw.getAsBigDecimal().toBigIntegerExact().signum()>0;}
+        catch(ArithmeticException|NumberFormatException invalid){return false;}
     }
     /** Simple attributes are keyed by id; Ozon may return them in a new order after moderation. */
     private static List<JsonElement> orderedSimpleAttributes(JsonObject attributes){

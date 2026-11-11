@@ -57,9 +57,7 @@ public final class OzonCatalogSyncService {
             if(saved.pages()>0){
                 LicenseRuntime.require(SELLER_API);api.requireSyncOwner(shopId);
                 JsonObject head=api.listProducts("",PAGE_SIZE);api.requireSyncOwner(shopId);
-                if(head==null||!head.has("result")||!head.get("result").isJsonObject()||!head.getAsJsonObject("result").has("items")||!head.getAsJsonObject("result").get("items").isJsonArray())throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
-                var observed=OzonJson.parseProductPage(head);
-                if(observed.items().size()!=head.getAsJsonObject("result").getAsJsonArray("items").size()||observed.items().size()>PAGE_SIZE||observed.items().stream().map(OzonJson.ProductReference::productId).distinct().count()!=observed.items().size()||observed.items().stream().anyMatch(row->row.offerId().isBlank()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+                var observed=requireProductPage(head);
                 if(!checkpoint.headMatches(saved,observed)){checkpoint.clear();saved=checkpoint.open();}
             }
             checkpoint.replay(saved,page);
@@ -83,8 +81,10 @@ public final class OzonCatalogSyncService {
         api.requireSyncOwner(shopId);
         String cursor = initialCursor;
         int synced = 0,listed=saved==null?0:saved.count(),supersededReads=0;
+        Integer knownTotal=saved!=null&&saved.total()>0?saved.total():null;
         var checkpointState=saved;
         var cursors=new java.util.HashSet<String>();
+        var storedProducts=new java.util.HashSet<String>();
         if(initialCursor!=null&&!initialCursor.isBlank())cursors.add(initialCursor);
         Map<OzonProductCardAttributeParser.CategoryKey, Map<String, String>> definitionCache = new LinkedHashMap<>();
         Map<OzonProductCardAttributeParser.CategoryKey, String> categoryNames = null;
@@ -94,22 +94,43 @@ public final class OzonCatalogSyncService {
                 LicenseRuntime.require(SELLER_API);
                 JsonObject response = api.listProducts(cursor, PAGE_SIZE);
                 api.requireSyncOwner(shopId);
-                if(response==null || !response.has("result") || !response.get("result").isJsonObject() || !response.getAsJsonObject("result").has("items") || !response.getAsJsonObject("result").get("items").isJsonArray())throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
-                OzonJson.ProductPage page = OzonJson.parseProductPage(response);
-                if(page.items().size()!=response.getAsJsonObject("result").getAsJsonArray("items").size() || page.items().size()>PAGE_SIZE || page.items().stream().map(OzonJson.ProductReference::productId).distinct().count()!=page.items().size() || page.items().stream().anyMatch(row->row.offerId().isBlank()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+                OzonJson.ProductPage page = requireProductPage(response);
+                if(page.items().stream().anyMatch(row->storedProducts.contains(row.productId()))){
+                    if(checkpoint!=null)throw new OzonRegistrationCheckpoint.Invalidated();
+                    throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+                }
+                JsonObject rawPage=response.getAsJsonObject("result");
+                if(rawPage.has("total")||rawPage.has("total_items")){
+                    if(knownTotal!=null&&knownTotal!=page.total()){
+                        if(checkpoint!=null)throw new OzonRegistrationCheckpoint.Invalidated();
+                        throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+                    }
+                    knownTotal=page.total();
+                }
+                // A short page is not proof of completion when the API has not supplied
+                // a total. Keep the last declared total even if an empty tail omits it.
+                int effectiveTotal=knownTotal==null?0:knownTotal;
+                if(knownTotal!=null&&listed+page.items().size()>knownTotal){
+                    if(checkpoint!=null)throw new OzonRegistrationCheckpoint.Invalidated();
+                    throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+                }
                 if (page.items().isEmpty()) {
                     long observed=listed;
                     if(checkpoint==null&&initialCursor!=null&&!initialCursor.isBlank())try(var c=com.vncode.app.config.Database.getConnection();var p=c.prepareStatement("SELECT count(*) FROM ozon_products WHERE shop_id=?")){
                         p.setInt(1,shopId);try(var r=p.executeQuery()){if(!r.next())throw new IOException("OZON_CATALOG_STORAGE");observed=r.getLong(1);}
                     }catch(java.sql.SQLException failure){throw new IOException("OZON_CATALOG_STORAGE",failure);}
-                    if(checkpoint!=null)checkpoint.validate(checkpointState,List.of(),page.total());
-                    if(page.total()>observed){if(checkpoint!=null)throw new OzonRegistrationCheckpoint.Invalidated();throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");}
+                    if(checkpoint!=null)checkpoint.validate(checkpointState,List.of(),effectiveTotal);
+                    if(effectiveTotal>observed){if(checkpoint!=null)throw new OzonRegistrationCheckpoint.Invalidated();throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");}
                     products.upsertPage(shopId, List.of(), cursor,true,java.time.Instant.now(),api.syncOwnerFingerprint(shopId),Map.of());
-                    if(checkpoint!=null)checkpointState=checkpoint.append(checkpointState,List.of(),cursor,true,page.total());
+                    if(checkpoint!=null)checkpointState=checkpoint.append(checkpointState,List.of(),cursor,true,effectiveTotal);
                     return synced;
                 }
+                boolean finished=knownTotal!=null&&listed+page.items().size()==knownTotal;
                 String next = page.lastId();
-                if (next == null || next.isBlank() || !cursors.add(next)) {
+                if(next==null||next.isBlank()){
+                    if(!finished)throw new IOException("OZON_REPEATED_PRODUCT_CURSOR");
+                    next="";
+                } else if (!cursors.add(next)) {
                     throw new IOException("OZON_REPEATED_PRODUCT_CURSOR");
                 }
                 List<String> ids = page.items().stream().map(OzonJson.ProductReference::productId).toList();
@@ -166,8 +187,7 @@ public final class OzonCatalogSyncService {
                     complete.add(product);
                 }
                 api.requireSyncOwner(shopId);
-                boolean finished=page.items().size()<PAGE_SIZE&&(page.total()==0||listed+page.items().size()>=page.total());
-                if(checkpoint!=null)checkpoint.validate(checkpointState,complete,page.total());
+                if(checkpoint!=null)checkpoint.validate(checkpointState,complete,effectiveTotal);
                 try {
                     synced += products.upsertPage(shopId, complete, next,finished,barcodeReadStarted,owner,barcodeReadTokens);
                 } catch(OzonCatalogRepository.BarcodeSuperseded superseded){
@@ -177,7 +197,8 @@ public final class OzonCatalogSyncService {
                     cursors.remove(next);continue;
                 }
                 supersededReads=0;
-                if(checkpoint!=null)checkpointState=checkpoint.append(checkpointState,complete,next,finished,page.total());
+                page.items().forEach(row->storedProducts.add(row.productId()));
+                if(checkpoint!=null)checkpointState=checkpoint.append(checkpointState,complete,next,finished,effectiveTotal);
                 observer.accept(List.copyOf(complete));
                 listed+=page.items().size();
                 if (finished) return synced;
@@ -199,6 +220,22 @@ public final class OzonCatalogSyncService {
     }
     private void reportFailure(String code,Exception failure){
         try{state.recordSafeError(shopId,code);}catch(RuntimeException reporting){failure.addSuppressed(reporting);}
+    }
+    private static OzonJson.ProductPage requireProductPage(JsonObject response)throws IOException {
+        if(response==null||!response.has("result")||!response.get("result").isJsonObject())throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+        JsonObject raw=response.getAsJsonObject("result");
+        if(!raw.has("items")||!raw.get("items").isJsonArray())throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+        var page=OzonJson.parseProductPage(response);
+        if(page.items().size()!=raw.getAsJsonArray("items").size()||page.items().size()>PAGE_SIZE
+                ||page.items().stream().map(OzonJson.ProductReference::productId).distinct().count()!=page.items().size()
+                ||page.items().stream().anyMatch(row->row.offerId().isBlank()))throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+        if(raw.has("total")||raw.has("total_items")){
+            long total;
+            try{total=OzonGtinProductReader.declaredTotal(raw);}
+            catch(IOException invalid){throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE",invalid);}
+            if(total>Integer.MAX_VALUE||total<page.items().size()||total!=page.total())throw new IOException("OZON_INCOMPLETE_PRODUCT_PAGE");
+        }
+        return page;
     }
     /** A missing/invalid barcode field is unknown, not proof of an empty barcode list. */
     private static void requireBarcodeObservations(JsonObject details)throws IOException {

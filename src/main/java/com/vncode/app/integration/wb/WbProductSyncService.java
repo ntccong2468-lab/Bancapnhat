@@ -78,14 +78,8 @@ public class WbProductSyncService {
                 }
 
                 syncStateRepository.saveProductsCheckpoint(shop.getId(), cursorUpdatedAt, cursorNmId);
-                Integer total = response.getCursor() == null ? null : response.getCursor().getTotal();
-                // Explicit full scans probe the next cursor even after a short page.
-                // A transient/server-capped 20-row response must not truncate either tab.
-                if (!complete && (total == null || total < PAGE_LIMIT)) {
-                    syncStateRepository.updateProductsCursor(shop.getId(), cursorUpdatedAt, cursorNmId, Instant.now().toString());
-                    syncRunRepository.finishSyncRun(runId, true, read, written, null, null);
-                    return written;
-                }
+                // Initial/incremental reads also probe the next valid cursor: a short
+                // server-capped page does not establish that the catalog is complete.
             }
         } catch (LicenseDeniedException paused) {
             reportFailure(shop,runId,read,written,"license_required",paused);throw paused;
@@ -166,10 +160,7 @@ public class WbProductSyncService {
                     cursorUpdatedAt = response.getCursor().getUpdatedAt();
                     cursorNmId = response.getCursor().getNmID();
                 }
-                Integer total = response.getCursor() == null ? null : response.getCursor().getTotal();
-                if (total == null || total < PAGE_LIMIT) {
-                    break;
-                }
+                // Only an empty page can establish that a requested product is absent.
             }
 
             String missing = String.join(", ", remaining.stream().map(String::valueOf).toList());

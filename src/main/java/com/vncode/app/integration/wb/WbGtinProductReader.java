@@ -28,7 +28,8 @@ public final class WbGtinProductReader {
                     catch(IllegalArgumentException invalid){throw new IOException("invalid_wb_variant",invalid);}
                 }
             }
-            if(response.getCards().size()<100)return List.copyOf(result);
+            // A short page can be capped by the server; follow its cursor until empty.
+            if(response.getCards().isEmpty())return List.copyOf(result);
             if(cursor.getUpdatedAt()==null || cursor.getUpdatedAt().isBlank() || cursor.getNmID()==null || cursor.getNmID()<=0 || !cursors.add(cursor.getUpdatedAt()+":"+cursor.getNmID()))throw new IOException("invalid_wb_cursor");
             updated=cursor.getUpdatedAt();nm=cursor.getNmID();
         }

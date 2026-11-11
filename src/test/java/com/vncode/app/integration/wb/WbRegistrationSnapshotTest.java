@@ -74,6 +74,37 @@ class WbRegistrationSnapshotTest {
         assertEquals(50,emitted.size());assertEquals(List.of("FIRST","short-page","short-page"),seen);
         assertEquals("1/50/50",latestRun());
     }
+    @Test void initialIncrementalCatalogContinuesPastAValidShortPageUntilAnEmptyPage()throws Exception {
+        assertEquals(50,service(List.of(shortPage(20,20,101),shortPage(30,30,201))).sync(shop));
+        assertEquals(List.of("FIRST","short-page","short-page"),seen);
+        assertEquals("1/50/50",latestRun());
+        var state=new WbSyncStateRepository().getShopSyncState(1);
+        assertEquals(230L,state.productsCursorNmId());assertNotNull(state.productsLastSyncedAt());
+        try(var c=Database.getConnection();var s=c.createStatement();var rows=s.executeQuery("SELECT COUNT(*) FROM wb_product_cards WHERE shop_id=1")){
+            assertTrue(rows.next());assertEquals(50,rows.getInt(1));
+        }
+    }
+    @Test void recoveryFindsTheRequestedProductAfterAValidShortPage()throws Exception {
+        assertEquals(1,service(List.of(shortPage(20,20,101),shortPage(30,30,201))).recoverProductsByNmIds(shop,List.of(225L)));
+        assertEquals(List.of("FIRST","short-page"),seen);assertEquals("1/50/1",latestRun());
+        try(var c=Database.getConnection();var s=c.createStatement();var rows=s.executeQuery("SELECT nm_id FROM wb_product_cards WHERE shop_id=1")){
+            assertTrue(rows.next());assertEquals(225L,rows.getLong(1));assertFalse(rows.next());
+        }
+    }
+    @Test void aFailureAfterAShortPageKeepsItsCheckpointWithoutMarkingTheCatalogComplete()throws Exception {
+        var states=new WbSyncStateRepository();states.updateProductsCursor(1,"before",99L,"previous-success");
+        var sync=new WbProductSyncService(new WbApiClient(){int calls;
+            @Override public WbProductCardsResponse getProductCards(String key,String locale,String updated,Long nm,int limit)throws java.io.IOException{
+                seen.add(updated==null?"FIRST":updated);
+                if(calls++==0)return shortPage(20,20,101);
+                throw new WbApiException("Synthetic later-page rate limit",429,"");
+            }
+        },new WbProductRepository(),states,new WbSyncRunRepository());
+        assertEquals(429,assertThrows(WbApiException.class,()->sync.sync(shop)).getStatusCode());
+        var state=states.getShopSyncState(1);assertEquals("short-page",state.productsCursorUpdatedAt());
+        assertEquals(120L,state.productsCursorNmId());assertEquals("previous-success",state.productsLastSyncedAt());
+        assertEquals(List.of("before","short-page"),seen);assertEquals("0/20/20",latestRun());
+    }
     @Test void nullCardsAndAnActualParserFailureLeaveThePreviousSnapshotIntact()throws Exception {
         seedKnownProduct();var malformed=page("{\"cards\":[null],\"cursor\":{\"total\":1,\"updatedAt\":\"next\",\"nmID\":101}}");
         assertThrows(java.io.IOException.class,()->service(List.of(malformed)).syncFromStart(shop,p->fail("Unknown rows must not be emitted")));

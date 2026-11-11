@@ -63,7 +63,8 @@ public final class ProductsPane extends BorderPane {
     private Map<ProductIssueFilter,Long> issueCounts=Map.of();
     private final CheckBox missing=new CheckBox(),pageSelection=new CheckBox();
     private final Label title=new Label(),count=new Label(),status=new Label(),selected=new Label(),needsFix=new Label();
-    private final Button reload=new Button(),more=new Button(),all=new Button(),copy=new Button(),clear=new Button("×");
+    private final Button reload=new Button(),more=new Button(),all=new Button(),copy=new Button(),clear=new Button("×"),syncDetails=new Button();
+    private Dialog<Void> syncFailureDialog;
     private final FlowPane bulkActions=new FlowPane(8,6),issueBar=new FlowPane(8,6);
     private final Region bulk=new ProductActionBar(selected,bulkActions,clear);
     private final Map<ProductIssueFilter,ToggleButton> issueChips=new EnumMap<>(ProductIssueFilter.class);
@@ -108,8 +109,10 @@ public final class ProductsPane extends BorderPane {
         for(var kind:List.of(ProductIssueFilter.INVALID_TNVED,ProductIssueFilter.MISSING_BRAND,ProductIssueFilter.MISSING_MATERIAL)){
             var chip=new ToggleButton();chip.setId("productIssue_"+kind.name());chip.getStyleClass().add("product-issue-chip");chip.setOnAction(e->issue.setValue(issue.getValue()==kind?ProductIssueFilter.ALL:kind));issueChips.put(kind,chip);issueBar.getChildren().add(chip);
         }
-        status.setWrapText(true);status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());
-        var top=new VBox(6,heading,filters,issueBar,status);top.setPadding(new Insets(0,0,6,0));setTop(top);setCenter(listing);
+        status.setWrapText(true);status.setMinWidth(0);status.setMaxWidth(Double.MAX_VALUE);status.setMaxHeight(Region.USE_PREF_SIZE);status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());
+        syncDetails.setId("productSyncDetails");syncDetails.setMinWidth(Region.USE_PREF_SIZE);syncDetails.managedProperty().bind(syncDetails.visibleProperty());syncDetails.setOnAction(e->showSyncFailures());
+        var syncStatusRow=new HBox(10,status,syncDetails);syncStatusRow.setId("productSyncStatusRow");syncStatusRow.setAlignment(Pos.TOP_LEFT);syncStatusRow.setMinWidth(0);syncStatusRow.setMaxHeight(Region.USE_PREF_SIZE);HBox.setHgrow(status,Priority.ALWAYS);syncStatusRow.managedProperty().bind(status.managedProperty().or(syncDetails.visibleProperty()));syncStatusRow.visibleProperty().bind(syncStatusRow.managedProperty());
+        var top=new VBox(6,heading,filters,issueBar,syncStatusRow);top.setPadding(new Insets(0,0,6,0));setTop(top);setCenter(listing);
         bulk.setId("productBulkActions");bulk.getStyleClass().add("products-bulk");
         selected.getStyleClass().add("text-bold");selected.setMinWidth(Region.USE_PREF_SIZE);bulkActions.setMinWidth(0);bulkActions.setAlignment(Pos.CENTER_LEFT);
         for(String field:List.of("brand","material","gender","tnved","documents")) {
@@ -149,23 +152,24 @@ public final class ProductsPane extends BorderPane {
         String scope=value==null?"":com.vncode.app.integration.listing.ListingIdentity.fingerprint(value);
         boolean changed=shop==null||value==null||!scope.equals(shopScope);
         if(!changed)return;
+        if(syncFailureDialog!=null)syncFailureDialog.close();
         detailDrawer.clear();generation++;syncTicket++;syncing=false;loading=false;selecting=false;searchDirty=false;lastSync=null;issueCounts=Map.of();shopScope=scope;shop=value;debounce.stop();selection.clear();selection.switchShop(value==null?0:value.getId(),value==null?null:value.getMarketplace());
         updating=true;search.clear();category.getItems().clear();category.getItems().add(null);category.setValue(null);document.setValue(null);issue.setValue(ProductIssueFilter.ALL);missing.setSelected(false);updating=false;
-        rows.getItems().clear();displayedTotal=0;count.setText(java.text.MessageFormat.format(tr("products.total"),0));cursor="";installProgress(backgroundEdits.get(shopScope));updateSelection();refresh();
+        rows.getItems().clear();displayedTotal=0;count.setText(java.text.MessageFormat.format(tr("products.total"),0));cursor="";installProgress(backgroundEdits.get(shopScope));updateSelection();updateSyncDetails();refresh();
     }
     private void filterChanged(){debounce.stop();searchDirty=false;selection.clear();updateSelection();refresh();}
     public void refresh(){if(disposed)return;selecting=false;generation++;cursor="";displayedQuery=null;all.setDisable(true);load(false);}
     private void synchronize(){
         if(disposed||shop==null||syncing)return;
         var selected=shop;var owner=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
-        var q=displayedQuery==null?query(""):displayedQuery;long ticket=++syncTicket;syncing=true;updateButtons();reload.setDisable(true);status.setText(tr("products.loading"));
+        var q=displayedQuery==null?query(""):displayedQuery;long ticket=++syncTicket;syncing=true;lastSync=null;updateSyncDetails();updateButtons();reload.setDisable(true);status.setText(tr("products.loading"));
         reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-sync",q.toString()),true,()->refreshService.refresh(owner,q,p->Platform.runLater(()->{
             if(!disposed&&ticket==syncTicket&&shop!=null&&com.vncode.app.integration.listing.ListingIdentity.fingerprint(shop).equals(com.vncode.app.integration.listing.ListingIdentity.fingerprint(owner)))status.setText(tr("products.loading")+" "+p.completed()+"/"+p.total());
         }))).whenComplete((report,error)->Platform.runLater(()->{
             if(disposed||ticket!=syncTicket||shop==null||shop.getId()!=owner.getId()||shop.getMarketplace()!=owner.getMarketplace()||!Objects.equals(shop.getApiKey(),owner.getApiKey())||!Objects.equals(shop.getClientId(),owner.getClientId()))return;
             syncing=false;updateButtons();reload.setDisable(false);
             if(error!=null){status.setText(tr("products.read_failed"));return;}
-            lastSync=report;refresh();
+            lastSync=report;updateSyncDetails();refresh();
         }));
     }
     private ProductQuery query(String next){return new ProductQuery(shop.getId(),shop.getMarketplace(),search.getText(),category.getValue()==null?List.of():List.of(category.getValue()),document.getValue(),missing.isSelected(),next,100,issue.getValue());}
@@ -263,7 +267,31 @@ public final class ProductsPane extends BorderPane {
         label.setAccessibleText(label.getText());
     }
     private String tr(String key){return i18n.tr(key);}
-    private String syncStatus(){return lastSync==null?"":java.text.MessageFormat.format(tr("products.sync_summary"),lastSync.snapshots(),lastSync.failed());}
+    private String syncStatus(){return lastSync==null?"":java.text.MessageFormat.format(tr("products.sync_summary"),lastSync.products(),lastSync.snapshots(),lastSync.snapshots()+lastSync.failed(),lastSync.failed());}
+    private void updateSyncDetails(){syncDetails.setVisible(lastSync!=null&&!syncing&&!lastSync.failures().isEmpty());}
+    private void showSyncFailures(){
+        if(shop==null||lastSync==null||lastSync.failures().isEmpty()||syncing)return;
+        if(syncFailureDialog!=null&&syncFailureDialog.isShowing())return;
+        var text=new StringBuilder();int shown=0;
+        for(var failure:lastSync.failures()){
+            if(failure.key().shopId()!=shop.getId()||failure.key().marketplace()!=shop.getMarketplace())continue;
+            if(shown>=1000||text.length()>180_000)break;
+            if(shown++>0)text.append("\n\n");
+            text.append(java.text.MessageFormat.format(tr("products.sync_details_product"),detailValue(failure.key().cardId()),detailValue(failure.key().variantId()))).append('\n');
+            String code=switch(failure.code()){
+                case "WB_CARD_NOT_FOUND","WB_CARD_INCOMPLETE","WB_VARIANT_NOT_FOUND","PRODUCT_DETAILS_RATE_LIMIT","PRODUCT_DETAILS_AUTH_REQUIRED","PRODUCT_DETAILS_HTTP_ERROR","PRODUCT_DETAILS_TIMEOUT"->failure.code();
+                default->"PRODUCT_DETAILS_UNAVAILABLE";
+            };
+            text.append(tr("products.sync_failure."+code));
+            if(failure.httpStatus()>0)text.append(" · HTTP ").append(failure.httpStatus());
+            if(!failure.missingFields().isEmpty())text.append('\n').append(java.text.MessageFormat.format(tr("products.sync_details_fields"),String.join(", ",failure.missingFields().stream().limit(16).map(ProductsPane::detailValue).toList())));
+        }
+        if(shown<lastSync.failures().size())text.append("\n\n").append(java.text.MessageFormat.format(tr("products.sync_details_shown"),shown,lastSync.failures().size()));
+        var area=new TextArea(text.toString());area.setId("productSyncFailureDetails");area.setEditable(false);area.setWrapText(true);area.setPrefColumnCount(72);area.setPrefRowCount(18);
+        var dialog=new Dialog<Void>();if(getScene()!=null&&getScene().getWindow()!=null)dialog.initOwner(getScene().getWindow());dialog.setTitle(tr("products.sync_details"));dialog.setHeaderText(tr("products.sync_details_header"));dialog.getDialogPane().setContent(area);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);DialogLayout.install(dialog.getDialogPane());AlertService.applyTheme(dialog);
+        syncFailureDialog=dialog;dialog.setOnHidden(e->{if(syncFailureDialog==dialog)syncFailureDialog=null;});dialog.show();
+    }
+    private static String detailValue(String value){if(value==null||value.isBlank())return "—";return value.codePoints().limit(256).collect(StringBuilder::new,(b,c)->b.appendCodePoint(Character.isISOControl(c)?' ':c),StringBuilder::append).toString();}
     private String doc(DocumentState state){return tr("products.document."+state.name().toLowerCase(Locale.ROOT));}
     private ListCell<ProductIssueFilter> issueCell() {
         return new ListCell<>() {
@@ -279,6 +307,6 @@ public final class ProductsPane extends BorderPane {
         };
     }
     private void refreshIssueCells(){issue.setCellFactory(list->issueCell());issue.setButtonCell(issueCell());issueChips.forEach((kind,chip)->{chip.setText(tr("products.issue."+kind.name())+" ("+(issueCounts.containsKey(kind)?issueCounts.get(kind):"—")+")");chip.setSelected(issue.getValue()==kind);});}
-    public void applyTranslations(){needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));search.setAccessibleText(tr("products.search"));category.setAccessibleText(tr("products.categories"));document.setAccessibleText(tr("products.documents_all"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
-    public void dispose(){if(disposed)return;detailDrawer.clear();disposed=true;generation++;syncTicket++;progressDismiss.stop();debounce.stop();thumbnails.close();}
+    public void applyTranslations(){syncDetails.setText(tr("products.sync_details"));syncDetails.setAccessibleText(tr("products.sync_details_header"));syncDetails.setTooltip(new Tooltip(tr("products.sync_details_header")));updateSyncDetails();if(shop!=null&&!syncing&&lastSync!=null)status.setText(syncStatus());needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));search.setAccessibleText(tr("products.search"));category.setAccessibleText(tr("products.categories"));document.setAccessibleText(tr("products.documents_all"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
+    public void dispose(){if(disposed)return;if(syncFailureDialog!=null)syncFailureDialog.close();detailDrawer.clear();disposed=true;generation++;syncTicket++;progressDismiss.stop();debounce.stop();thumbnails.close();}
 }

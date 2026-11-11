@@ -43,6 +43,11 @@ public final class WbRegistrationSnapshotBatch implements AutoCloseable {
     public ProductSnapshot read(ProductKey key)throws IOException {
         var result=reader.registrationCard(shop,key,observedCard(key));ListingIdentity.require(shop,key);return result;
     }
+    /** Complete the shared scan before classifying any per-card parsing failures. */
+    public void prepare()throws IOException {
+        requireOpen();ListingIdentity.require(shop);WbProductSnapshotReader.checkCancelled();
+        if(!scanned)scan();
+    }
     /** Raw fresh lookup also recovers WB's occasionally empty exact-nmID search. */
     JsonObject observedCard(ProductKey key)throws IOException {
         requireOpen();if(!selected.contains(key))throw new SecurityException("WB_REGISTRATION_UNSELECTED_PRODUCT");

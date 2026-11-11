@@ -61,12 +61,35 @@ class WbGtinProductReaderTest {
             assertEquals("invalid_wb_catalog",assertThrows(IOException.class,()->new WbGtinProductReader(shop,api).list()).getMessage());
         }
     }
+    @Test void aShortGtinSourcePageDoesNotHideTheFollowingProductsAndVariants()throws Exception{
+        var reads=new java.util.concurrent.atomic.AtomicInteger();
+        var api=new WbApiClient(){@Override public WbProductCardsResponse getProductCards(String token,String locale,String cursor,Long nm,int limit){
+            reads.incrementAndGet();
+            if(cursor==null)return page(java.util.stream.IntStream.rangeClosed(1,20).mapToObj(n->card(n,n)).toList(),"first",20L);
+            if("first".equals(cursor)){assertEquals(20L,nm);return page(java.util.stream.IntStream.rangeClosed(21,50).mapToObj(n->card(n,n)).toList(),"second",50L);}
+            assertEquals("second",cursor);assertEquals(50L,nm);return page(List.of(),"end",50L);
+        }};
+        var rows=new WbGtinProductReader(shop,api).list();assertEquals(50,rows.size());assertEquals(3,reads.get());
+        assertEquals("50",rows.getLast().key().productId());assertEquals("50",rows.getLast().key().variantId());
+        assertEquals(List.of("seller-50"),rows.getLast().barcodes());
+    }
+    @Test void aFailureAfterAShortGtinPageCannotReturnAPartialCatalogAsComplete(){
+        var reads=new java.util.concurrent.atomic.AtomicInteger();
+        var api=new WbApiClient(){@Override public WbProductCardsResponse getProductCards(String token,String locale,String cursor,Long nm,int limit)throws IOException{
+            if(reads.incrementAndGet()>1)throw new IOException("Synthetic later-page failure");
+            return page(java.util.stream.IntStream.rangeClosed(1,20).mapToObj(n->card(n,n)).toList(),"first",20L);
+        }};
+        assertThrows(IOException.class,()->new WbGtinProductReader(shop,api).list());assertEquals(2,reads.get());
+    }
     @Test void aCompleteMultiPageReadRetainsEveryExactVariantAndBarcode()throws Exception{
         var reads=new java.util.concurrent.atomic.AtomicInteger();
         var api=new WbApiClient(){@Override public WbProductCardsResponse getProductCards(String token,String locale,String cursor,Long nm,int limit){
-            reads.incrementAndGet();return cursor==null?page(java.util.stream.IntStream.rangeClosed(1,100).mapToObj(n->card(n,n)).toList(),"first",100L):page(List.of(card(101,101)),"second",101L);
+            reads.incrementAndGet();
+            if(cursor==null)return page(java.util.stream.IntStream.rangeClosed(1,100).mapToObj(n->card(n,n)).toList(),"first",100L);
+            if("first".equals(cursor))return page(List.of(card(101,101)),"second",101L);
+            return page(List.of(),"end",101L);
         }};
-        var rows=new WbGtinProductReader(shop,api).list();assertEquals(101,rows.size());assertEquals(2,reads.get());
+        var rows=new WbGtinProductReader(shop,api).list();assertEquals(101,rows.size());assertEquals(3,reads.get());
         assertEquals("101",rows.getLast().key().productId());assertEquals("101",rows.getLast().key().variantId());assertEquals(List.of("seller-101"),rows.getLast().barcodes());
     }
     private static JsonObject card(long product,long variant){return JsonParser.parseString("{\"nmID\":"+product+",\"vendorCode\":\"Fixture\",\"sizes\":[{\"chrtID\":"+variant+",\"techSize\":\"XL\",\"skus\":[\"seller-"+variant+"\"]}]}").getAsJsonObject();}

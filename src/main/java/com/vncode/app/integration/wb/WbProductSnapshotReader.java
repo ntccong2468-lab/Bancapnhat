@@ -17,6 +17,18 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
     public WbProductSnapshotReader(){this(ListingHttpClient::new,s->new ListingHttpClient(s,new okhttp3.OkHttpClient(),okhttp3.HttpUrl.parse("https://discounts-prices-api.wildberries.ru/")));}
     public WbProductSnapshotReader(Function<Shop,ListingTransport> clients){this(clients,clients);}
     public WbProductSnapshotReader(Function<Shop,ListingTransport> clients,Function<Shop,ListingTransport> prices){this.clients=clients;this.prices=prices;}
+    @Override public ProductSnapshotReader.Batch openBatch(Shop shop,List<ProductKey> keys)throws IOException {
+        var batch=new WbRegistrationSnapshotBatch(shop,keys,clients.apply(shop));
+        try{batch.prepare();}
+        catch(IOException|RuntimeException failure){
+            try{batch.close();}catch(IOException cleanup){failure.addSuppressed(cleanup);}
+            throw failure;
+        }
+        return new ProductSnapshotReader.Batch(){
+            public ProductSnapshot read(ProductKey key)throws IOException{return batch.read(key);}
+            public void close()throws IOException{batch.close();}
+        };
+    }
     public ProductSnapshot read(Shop shop,ProductKey key)throws IOException{return read(shop,key,true);}
     /** Complete identity observation without replacing the seller's cached documents. */
     public ProductSnapshot readForIdentityProof(Shop shop,ProductKey key)throws IOException{return read(shop,key,true,false,true);}
@@ -76,11 +88,8 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
         if(!key.variantId().isBlank()&&variants.stream().noneMatch(v->v.id().equals(key.variantId())))throw new CardReadException("WB_VARIANT_NOT_FOUND",key,List.of());
         var d=obj(card,"dimensions");var dimensions=new PackageDimensions(decimal(d,"length"),decimal(d,"width"),decimal(d,"height"),decimal(d,"weightBrutto"));
         var now=Instant.now();var docs=new ArrayList<ProductDocument>();for(var e:array(obj(card,"documents"),"items")){
-            var doc=object(e);var verdict=obj(doc,"verdict");var end=date(text(doc,"endDate"));DocumentState state=DocumentState.UNVERIFIED;
-            if(end!=null&&end.isBefore(LocalDate.now()))state=DocumentState.EXPIRED;
-            else if("true".equals(text(verdict,"verified")))state="1".equals(text(verdict,"status"))?DocumentState.VALID:DocumentState.REJECTED;
-            else if(doc.has("verdict"))state=DocumentState.PENDING;
-            docs.add(new ProductDocument(text(doc,"id"),text(doc,"type"),text(doc,"number"),date(text(doc,"startDate")),end,text(doc,"applicant"),text(doc,"productNumber"),null,Marketplace.WILDBERRIES,state,"https://content-api.wildberries.ru/content/v2/get/cards/list",now,metadata(doc)));
+            var doc=object(e);var start=date(text(doc,"startDate"));var end=date(text(doc,"endDate"));
+            docs.add(new ProductDocument(text(doc,"id"),text(doc,"type"),text(doc,"number"),start,end,text(doc,"applicant"),text(doc,"productNumber"),null,Marketplace.WILDBERRIES,documentState(doc,start,end),"https://content-api.wildberries.ru/content/v2/get/cards/list",now,metadata(doc)));
         }
         var inherited=new LinkedHashMap<String,String>();inherited.put("source.category.name",text(card,"subjectName"));
         if(includePrices)try{
@@ -95,6 +104,22 @@ public final class WbProductSnapshotReader implements ProductSnapshotReader {
         // WB can advance updatedAt after an acknowledged earlier write without changing this card's content.
         var content=card.deepCopy();content.remove("updatedAt");String stable=ListingIdentity.canonical(content);var revisionMetadata=new LinkedHashMap<>(inherited);revisionMetadata.put("source.payload",stable);
         var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(stable+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(revisionMetadata))),text(card,"title"),text(card,"description"),text(card,"brand"),text(card,"vendorCode"),text(card,"subjectID"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
+    }
+    private static DocumentState documentState(JsonObject document,LocalDate start,LocalDate end){
+        if(end!=null&&end.isBefore(LocalDate.now()))return DocumentState.EXPIRED;
+        var raw=document.get("verdict");
+        if(raw==null||raw.isJsonNull())return DocumentState.PENDING;
+        if(!raw.isJsonObject())return DocumentState.UNVERIFIED;
+        var verdict=raw.getAsJsonObject();var verified=verdict.get("verified");
+        if(verified==null||!verified.isJsonPrimitive()||!verified.getAsJsonPrimitive().isBoolean())return DocumentState.UNVERIFIED;
+        if(!verified.getAsBoolean())return DocumentState.PENDING;
+        var status=verdict.get("status");
+        if(status==null||!status.isJsonPrimitive()||!status.getAsJsonPrimitive().isNumber())return DocumentState.UNVERIFIED;
+        try{return switch(status.getAsBigDecimal().intValueExact()){
+            case 1->start!=null&&start.isAfter(LocalDate.now())?DocumentState.PENDING:DocumentState.VALID;
+            case 2->DocumentState.REJECTED;
+            default->DocumentState.UNVERIFIED;
+        };}catch(ArithmeticException|NumberFormatException invalid){return DocumentState.UNVERIFIED;}
     }
     private JsonObject findCard(Shop shop,ProductKey key)throws IOException {
         ListingTransport client=clients.apply(shop);var cursor=new JsonObject();cursor.addProperty("limit",100);var seen=new HashSet<String>();

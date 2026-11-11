@@ -165,10 +165,10 @@ class ProductEditBatchIntegrationTest {
         assertTrue(service.reconcile(shop,preview.id()).items().stream().allMatch(i->i.state()==CopyState.RECONCILED));
         service.apply(shop,preview.id(),true);service.reconcile(shop,preview.id());assertEquals(2,remote.binds);assertEquals(0,api.writes);
     }
-    @ParameterizedTest @ValueSource(strings={"rejected","expired","id","number","type","date"})
+    @ParameterizedTest @ValueSource(strings={"rejected","declined","expired","id","number","type","date"})
     void ozonCertificateInvalidOrChangedBeforeApplyCannotBind(String mismatch)throws Exception{
         var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();
-        switch(mismatch){case "rejected","expired"->remote.certificate.addProperty("status_code",mismatch);case "id"->remote.certificate.addProperty("certificate_id",78);case "number"->remote.certificate.addProperty("certificate_number","OTHER");case "type"->remote.certificate.addProperty("type_code","certificate");case "date"->remote.certificate.addProperty("expire_date","2029-01-01T00:00:00Z");default->throw new AssertionError();}
+        switch(mismatch){case "rejected","declined","expired"->remote.certificate.addProperty("status_code",mismatch);case "id"->remote.certificate.addProperty("certificate_id",78);case "number"->remote.certificate.addProperty("certificate_number","OTHER");case "type"->remote.certificate.addProperty("type_code","certificate");case "date"->remote.certificate.addProperty("expire_date","2029-01-01T00:00:00Z");default->throw new AssertionError();}
         var preview=certificatePreview(keys,remote);assertFalse(preview.publishable());assertThrows(IllegalStateException.class,()->service.apply(shop,preview.id(),true));assertEquals(0,remote.binds);assertEquals(0,api.writes);
     }
     @Test void ozonExplicitCertificateBindRejectionIsFinal()throws Exception{
@@ -190,6 +190,10 @@ class ProductEditBatchIntegrationTest {
     @Test void ozonCertificateChangedAfterPreviewIsBlockedBeforeBinding()throws Exception{
         var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();var preview=certificatePreview(keys,remote);assertTrue(preview.publishable());remote.certificate.addProperty("status_code","rejected");
         assertThrows(IllegalStateException.class,()->service.apply(shop,preview.id(),true));assertEquals(0,remote.binds);
+    }
+    @Test void ozonDeclinedCertificateAfterPreviewIsBlockedBeforeBinding()throws Exception{
+        var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();var preview=certificatePreview(keys,remote);assertTrue(preview.publishable());remote.certificate.addProperty("status_code","declined");
+        assertThrows(IllegalStateException.class,()->service.apply(shop,preview.id(),true));assertEquals(0,remote.binds);assertEquals(0,remote.creates);assertEquals(0,api.writes);
     }
     @Test void ozonCertificateRejectedDuringReadbackIsFailedWithoutRebinding()throws Exception{
         var keys=configure(Marketplace.OZON,2);var remote=new CertificateFixture();var preview=certificatePreview(keys,remote);service.apply(shop,preview.id(),true);service.reconcile(shop,preview.id());remote.certificate.addProperty("status_code","rejected");

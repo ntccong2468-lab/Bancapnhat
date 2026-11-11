@@ -126,7 +126,7 @@ public final class OzonListingAdapter extends AbstractListingAdapter implements 
         return params;
     }
     private JsonObject readCertificate(Shop shop,String number)throws IOException{var request=new JsonObject();request.addProperty("certificate_number",number);return obj(call(shop,"v1/product/certificate/info",request,false),"result");}
-    private static boolean invalidCertificate(JsonObject certificate){var end=date(text(certificate,"expire_date"));return Set.of("rejected","expired","deleted").contains(text(certificate,"status_code").toLowerCase(Locale.ROOT))||end!=null&&end.isBefore(java.time.LocalDate.now());}
+    private static boolean invalidCertificate(JsonObject certificate){var end=date(text(certificate,"expire_date"));return Set.of("declined","rejected","expired","deleted").contains(text(certificate,"status_code").toLowerCase(Locale.ROOT))||end!=null&&end.isBefore(java.time.LocalDate.now());}
     private static JsonObject certificateReference(JsonObject certificate){
         var reference=new JsonObject();reference.addProperty("certificate_id",new BigInteger(text(certificate,"certificate_id")));reference.addProperty("number",text(certificate,"certificate_number"));reference.addProperty("type_code",text(certificate,"type_code"));
         for(String field:List.of("issue_date","expire_date")){var value=date(text(certificate,field));if(value!=null)reference.addProperty(field,value.toString());}return reference;

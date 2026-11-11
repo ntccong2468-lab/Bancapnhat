@@ -28,7 +28,8 @@ public final class OzonJson {
             if (productId.isBlank()) continue;
             references.add(new ProductReference(productId, text(item, "offer_id")));
         }
-        return new ProductPage(List.copyOf(references), text(result, "last_id"), integer(result, "total", 0));
+        return new ProductPage(List.copyOf(references), text(result, "last_id"),
+                integer(result, "total", integer(result, "total_items", 0)));
     }
 
     public static List<OzonProductDto> parseProductInfo(JsonObject response) {

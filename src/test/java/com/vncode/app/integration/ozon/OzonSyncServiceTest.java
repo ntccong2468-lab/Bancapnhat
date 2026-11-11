@@ -369,6 +369,9 @@ class OzonSyncServiceTest {
                 + "{\"id\":4295,\"name\":\"Российский размер\"},{\"id\":9533,\"name\":\"Размер производителя\"},"
                 + "{\"id\":9163,\"name\":\"Пол\"},"
                 + "{\"id\":9024,\"name\":\"Код продавца\"}]}"));
+        // This legacy fixture intentionally has no declared total. Only its empty
+        // tail can prove that the short first page was the complete catalog.
+        server.enqueue(json("{\"result\":{\"items\":[],\"last_id\":\"cursor-2\"}}"));
 
         assertEquals(1, new OzonCatalogSyncService(1, api).sync());
 
@@ -389,6 +392,10 @@ class OzonSyncServiceTest {
                 .endsWith("/v1/description-category/tree"));
         assertTrue(server.takeRequest(1, TimeUnit.SECONDS).getPath()
                 .endsWith("/v1/description-category/attribute"));
+        var tail = server.takeRequest(1, TimeUnit.SECONDS);
+        assertTrue(tail.getPath().endsWith("/v3/product/list"));
+        assertEquals("cursor-2", com.google.gson.JsonParser.parseString(tail.getBody().readUtf8())
+                .getAsJsonObject().get("last_id").getAsString());
     }
 
     @Test
