@@ -1,0 +1,217 @@
+{
+  "total_count": 1,
+  "jobs": [
+    {
+      "id": 130894820018,
+      "run_id": 43131000128,
+      "workflow_name": "Build complete VNCode baseline",
+      "head_branch": "release/vn-code-1.6.9",
+      "run_url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/runs/43131000128",
+      "run_attempt": 1,
+      "node_id": "CR_kwDOVBq00s8AAAAeefBysg",
+      "head_sha": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/jobs/130894820018",
+      "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/43131000128/job/130894820018",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-12T00:56:51Z",
+      "started_at": "2026-11-12T00:56:53Z",
+      "completed_at": "2026-11-12T03:30:04Z",
+      "name": "baseline",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1,
+          "started_at": "2026-11-12T00:56:54Z",
+          "completed_at": "2026-11-12T00:56:56Z"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2,
+          "started_at": "2026-11-12T00:56:56Z",
+          "completed_at": "2026-11-12T00:57:03Z"
+        },
+        {
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3,
+          "started_at": "2026-11-12T00:57:03Z",
+          "completed_at": "2026-11-12T00:57:08Z"
+        },
+        {
+          "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4,
+          "started_at": "2026-11-12T00:57:08Z",
+          "completed_at": "2026-11-12T00:57:14Z"
+        },
+        {
+          "name": "Pin exact source and currently published baseline",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5,
+          "started_at": "2026-11-12T00:57:14Z",
+          "completed_at": "2026-11-12T00:57:19Z"
+        },
+        {
+          "name": "Verify release tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6,
+          "started_at": "2026-11-12T00:57:19Z",
+          "completed_at": "2026-11-12T00:57:24Z"
+        },
+        {
+          "name": "Verify Windows UI, purchase circulation, product documents and Catalog fixtures",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7,
+          "started_at": "2026-11-12T00:57:24Z",
+          "completed_at": "2026-11-12T01:03:14Z"
+        },
+        {
+          "name": "Verify whole Java application and package",
+          "status": "in_progress",
+          "conclusion": null,
+          "number": 8,
+          "started_at": "2026-11-12T01:03:14Z",
+          "completed_at": null
+        },
+        {
+          "name": "Build final EXE from verified Java",
+          "status": "pending",
+          "conclusion": null,
+          "number": 9,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Restore pinned baseline after installer packaging",
+          "status": "pending",
+          "conclusion": null,
+          "number": 10,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Verify native migration and startup",
+          "status": "pending",
+          "conclusion": null,
+          "number": 11,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Verify actual Windows data protection",
+          "status": "pending",
+          "conclusion": null,
+          "number": 12,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Verify fresh install, coexistence and uninstall",
+          "status": "pending",
+          "conclusion": null,
+          "number": 13,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Verify passive upgrade from pinned current Latest",
+          "status": "pending",
+          "conclusion": null,
+          "number": 14,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Record same-version rebuild scope",
+          "status": "pending",
+          "conclusion": null,
+          "number": 15,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Preserve final MSI before building portable runtime",
+          "status": "pending",
+          "conclusion": null,
+          "number": 16,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Build complete portable runtime from same verified Java",
+          "status": "pending",
+          "conclusion": null,
+          "number": 17,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Package all source, Git history, runtime and verification",
+          "status": "pending",
+          "conclusion": null,
+          "number": 18,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Preserve installer and all rebuild inputs",
+          "status": "pending",
+          "conclusion": null,
+          "number": 19,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Preserve failed verification reports",
+          "status": "pending",
+          "conclusion": null,
+          "number": 20,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+          "status": "pending",
+          "conclusion": null,
+          "number": 38,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "status": "pending",
+          "conclusion": null,
+          "number": 39,
+          "started_at": null,
+          "completed_at": null
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "status": "pending",
+          "conclusion": null,
+          "number": 40,
+          "started_at": null,
+          "completed_at": null
+        }
+      ],
+      "check_run_url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/check-runs/130894820018",
+      "labels": [
+        "windows-2022"
+      ],
+      "runner_id": 1000001141,
+      "runner_name": "GitHub Actions 1000001141",
+      "runner_group_id": 0,
+      "runner_group_name": "GitHub Actions"
+    }
+  ]
+}

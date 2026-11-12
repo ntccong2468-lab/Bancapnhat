@@ -1,0 +1,19 @@
+{
+  "dataPreserved": true,
+  "baselineInstallerSha256": "bce16b0cb2eadc155f89c9bafcecd802cf8463272b02aae6e68bf9f105b90707",
+  "singleRegistration": true,
+  "windowTitle": "VN code v1.6.9",
+  "passiveExeHandoffVerified": true,
+  "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+  "passiveExeInstallerSha256": "b516a2bfb2182a9f0e5f82821cb7f299798258e1764eb0897a410be1985060d1",
+  "liveMarketplaceMutations": false,
+  "fingerprint": "cca5dbbd6fb2f859f3fbf6284d43683063b2cc8ee40408ce681088f675f55f76",
+  "result": "passed",
+  "appName": "VN code",
+  "baselineTag": "v1.6.8",
+  "singleShortcutPerLocation": true,
+  "fromVersion": "1.6.8",
+  "baselineInstallerBytes": 149408256,
+  "version": "1.6.9",
+  "passiveExeEmbeddedMsiSha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4"
+}

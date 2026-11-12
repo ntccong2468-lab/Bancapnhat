@@ -1,0 +1,40 @@
+{
+  "result": "PASS",
+  "readAt": "2026-11-12T05:49:18Z",
+  "publisherRun": {
+    "id": 43163588699,
+    "status": "completed",
+    "conclusion": "success",
+    "headSha": "b9635f80f0b125ad33830f71430088358ccc671e",
+    "workflowId": 384766397,
+    "attempt": 1
+  },
+  "artifact": {
+    "id": 13919480275,
+    "name": "VN-code-1.6.9-publication",
+    "bytes": 1383,
+    "digest": "sha256:9554e78216f5e4a10c99f6ca43ac2bf594cf4f33ff5b0e0f0070259470d4b752",
+    "rawZipSizeAndDigestVerified": true
+  },
+  "receipt": {
+    "path": "/tmp/vncode-169-release-audit/publication-1.6.9.json",
+    "bytes": 2830,
+    "sha256": "5438bfc9b96dcf8b6ec6fd21cabb466e69c9696be60cc075b03edc8c8e3f4bf7",
+    "sourceCommit": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+    "buildRun": 43131000128,
+    "releaseId": 442540592,
+    "assets": 16,
+    "allAssetBytesAndHashesMatchIndependentReview": true,
+    "reviewedArtifact": {
+      "id": 13918353316,
+      "digest": "sha256:6c9144d982b1faad81204304ffbb0795bf70754301838e4c36ace9d46fa64221"
+    },
+    "preservation": {
+      "publishedReleases": 18,
+      "tags": 47,
+      "allUnchanged": true
+    },
+    "publishedAt": "2026-11-12T05:47:19Z"
+  },
+  "repositoryMutations": false
+}

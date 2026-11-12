@@ -1,0 +1,7 @@
+{
+  "kind": "VN_CODE_169_ARCHIVED_TOOLCHAIN",
+  "recordedAtUtc": "2026-11-12T05:52:42.186107+00:00",
+  "packageVerifierSha256": "14a790dc658ffdb3f4cdf30259e2b8ef15898b2abd89d7d107f3f6054a1c66b9",
+  "publicVerifierSha256": "98da641b5298bfd9208460e276492687b2cf02c49ba0c35684a018a122c94efd",
+  "scope": "Frozen actual verification helper bytes; preparation self-tests are not release acceptance. Full production evidence is in final-release.json."
+}

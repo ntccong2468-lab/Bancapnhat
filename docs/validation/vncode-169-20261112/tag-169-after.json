@@ -1,0 +1,10 @@
+{
+  "ref": "refs/tags/v1.6.9",
+  "node_id": "REF_kwDOVBq00rByZWZzL3RhZ3MvdjEuNi45",
+  "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/git/refs/tags/v1.6.9",
+  "object": {
+    "sha": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+    "type": "commit",
+    "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/git/commits/4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b"
+  }
+}

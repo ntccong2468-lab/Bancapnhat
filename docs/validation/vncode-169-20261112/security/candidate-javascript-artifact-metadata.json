@@ -1,0 +1,16 @@
+{
+  "side": "candidate",
+  "artifactId": 13905347186,
+  "artifactName": "codeql-javascript-typescript",
+  "archiveBytes": 131589,
+  "archiveSha256": "af51182f7935db5d660575fa8cd80067d25d479cb412c4bdabe84a692b3ded93",
+  "apiDigestMatches": true,
+  "sarif": [
+    {
+      "archiveMember": "javascript.sarif",
+      "path": "/tmp/vncode-169-release-audit/security-evidence/candidate/codeql-javascript-typescript/javascript.sarif",
+      "bytes": 1342653,
+      "sha256": "5fc9c4bf04ff295efc6c01feb17f19f4eea66df959ba52ecc961db2342780e01"
+    }
+  ]
+}

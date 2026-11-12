@@ -1,0 +1,161 @@
+{
+  "run_id": 42828436446,
+  "command_at": "2026-11-10T13:56:23.398067+00:00",
+  "build_success_at": "2026-11-10T15:24:54.517429+00:00",
+  "wall_seconds": 5311.119362,
+  "class_count": 554,
+  "junit_totals": {
+    "tests": 4254,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "seconds": 5258.872
+  },
+  "first_test": {
+    "line": 2543,
+    "at": "2026-11-10T13:56:54.298462+00:00",
+    "class": "com.vncode.app.BuildConfigTest"
+  },
+  "last_test": {
+    "line": 8845,
+    "at": "2026-11-10T15:24:32.157071+00:00",
+    "class": "WindowsUpgradeDataProbeTest"
+  },
+  "last_test_result": {
+    "line": 8846,
+    "finished_at": "2026-11-10T15:24:33.907093+00:00",
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 1.752,
+    "class": "WindowsUpgradeDataProbeTest"
+  },
+  "top_5_classes": [
+    {
+      "line": 2889,
+      "finished_at": "2026-11-10T14:46:16.344864+00:00",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2480.0,
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest"
+    },
+    {
+      "line": 5435,
+      "finished_at": "2026-11-10T15:09:09.964914+00:00",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 270.8,
+      "class": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest"
+    },
+    {
+      "line": 5519,
+      "finished_at": "2026-11-10T15:15:28.545646+00:00",
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 169.6,
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest"
+    },
+    {
+      "line": 3032,
+      "finished_at": "2026-11-10T14:54:42.768002+00:00",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 141.5,
+      "class": "com.vncode.app.integration.ozon.OzonLargeShopReservationTest"
+    },
+    {
+      "line": 2861,
+      "finished_at": "2026-11-10T14:04:03.024760+00:00",
+      "tests": 39,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 112.5,
+      "class": "com.vncode.app.features.products.ProductEditBatchIntegrationTest"
+    }
+  ],
+  "test_elapsed_share_percent": 99.016,
+  "test_output_wall_seconds": 5259.608631,
+  "before_first_test_seconds": 30.900395,
+  "after_last_test_seconds": 20.610336,
+  "first_maven_info": "2026-11-10T13:56:28.3496998Z [INFO] Scanning for projects...",
+  "download_pairs": 291,
+  "download_unmatched_ends": 0,
+  "download_unmatched_starts": 0,
+  "download_interval_union_seconds": 19.955173,
+  "download_transfer_duration_sum_seconds": 24.342051,
+  "download_first": "2026-11-10T13:56:28.613083+00:00",
+  "download_last": "2026-11-10T15:24:54.189736+00:00",
+  "top_5_gaps": [
+    {
+      "seconds": 2480.311492,
+      "before_line": 2888,
+      "after_line": 2889,
+      "before": "[INFO] Running com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "after": "[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2480 s -- in com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "before_at": "2026-11-10T14:04:56.033372+00:00",
+      "after_at": "2026-11-10T14:46:16.344864+00:00"
+    },
+    {
+      "seconds": 270.782804,
+      "before_line": 5434,
+      "after_line": 5435,
+      "before": "[INFO] Running com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "after": "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 270.8 s -- in com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "before_at": "2026-11-10T15:04:39.182110+00:00",
+      "after_at": "2026-11-10T15:09:09.964914+00:00"
+    },
+    {
+      "seconds": 169.651664,
+      "before_line": 5518,
+      "after_line": 5519,
+      "before": "[INFO] Running com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "after": "[INFO] Tests run: 36, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 169.6 s -- in com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "before_at": "2026-11-10T15:12:38.893982+00:00",
+      "after_at": "2026-11-10T15:15:28.545646+00:00"
+    },
+    {
+      "seconds": 125.295949,
+      "before_line": 3031,
+      "after_line": 3032,
+      "before": "OZON_FBS_SOURCE_BATCH synthetic=true orders=1000 local_reservation_ms=10235.4462 remote_api=false",
+      "after": "[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 141.5 s -- in com.vncode.app.integration.ozon.OzonLargeShopReservationTest",
+      "before_at": "2026-11-10T14:52:37.472053+00:00",
+      "after_at": "2026-11-10T14:54:42.768002+00:00"
+    },
+    {
+      "seconds": 112.471318,
+      "before_line": 2860,
+      "after_line": 2861,
+      "before": "[INFO] Running com.vncode.app.features.products.ProductEditBatchIntegrationTest",
+      "after": "[INFO] Tests run: 39, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 112.5 s -- in com.vncode.app.features.products.ProductEditBatchIntegrationTest",
+      "before_at": "2026-11-10T14:02:10.553442+00:00",
+      "after_at": "2026-11-10T14:04:03.024760+00:00"
+    }
+  ],
+  "conclusion": "The old 1.6.8 full Java stage was dominated by test execution; the longest no-output gap is a test class with matching reported elapsed time. Maven dependency downloads were brief and occurred outside the test span. This does not establish the current runner state or predict its completion.",
+  "download_output_clusters": [
+    {
+      "first_at": "2026-11-10T13:56:28.613083+00:00",
+      "last_at": "2026-11-10T13:56:30.868034+00:00",
+      "event_count": 34,
+      "span_seconds": 2.254951
+    },
+    {
+      "first_at": "2026-11-10T15:24:34.409957+00:00",
+      "last_at": "2026-11-10T15:24:54.189736+00:00",
+      "event_count": 548,
+      "span_seconds": 19.779779
+    }
+  ],
+  "first_maven_info_to_success_seconds": 5306.16773
+}

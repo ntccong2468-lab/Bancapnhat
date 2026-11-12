@@ -1,0 +1,847 @@
+{
+  "generatedAt": "2026-11-12T01:06:16.475486+00:00",
+  "referenceRelease": "v1.6.8",
+  "referenceRun": 42828869332,
+  "referenceSource": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "currentReleaseCandidate": "v1.6.9",
+  "currentRun": 43131225703,
+  "currentSource": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "workflowId": 403818652,
+  "method": "Download actual raw SARIF archives from both workflow runs, verify each archive against the GitHub API SHA-256 digest, then compare canonical normalized record multisets without deduplication. Finding records retain resolved rule ID, numeric security severity, level/kind, all primary and related physical/logical locations with exact regions, both fingerprint maps, whitespace-normalized text/markdown messages, complete codeFlows, thread-flow counts and stacks. Resolve artifact and query-pack rule references. Compare warning/error execution and configuration notifications separately. Preserve line movement as a record change.",
+  "referenceSha256": "54c7da389e3b469bcb52629660e485851acc91f51579dbdbc8763c9e7a22a014",
+  "currentSha256": "9681297ec1387212eb9b476d8d2d2e988f673352ec9afb975b11326b3ef006ea",
+  "referenceCount": 8,
+  "currentCount": 8,
+  "referenceBlocked": 1,
+  "currentBlocked": 1,
+  "new": [],
+  "resolved": [],
+  "newFindingCount": 0,
+  "resolvedFindingCount": 0,
+  "identicalNormalizedRecords": true,
+  "rawResultArraysEqualByLanguage": {
+    "java-kotlin": true,
+    "javascript-typescript": true
+  },
+  "identicalNormalizedWarningErrorNotifications": true,
+  "referenceNotifications": [
+    {
+      "language": "java-kotlin",
+      "kind": "toolExecutionNotifications",
+      "level": "error",
+      "id": "java/diagnostics/extraction-errors",
+      "message": "Extraction incomplete in file: /home/runner/work/Bancapnhat/Bancapnhat/src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+    }
+  ],
+  "currentNotifications": [
+    {
+      "language": "java-kotlin",
+      "kind": "toolExecutionNotifications",
+      "level": "error",
+      "id": "java/diagnostics/extraction-errors",
+      "message": "Extraction incomplete in file: /home/runner/work/Bancapnhat/Bancapnhat/src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+    }
+  ],
+  "languages": {
+    "java-kotlin": {
+      "reference": {
+        "blocked": 1,
+        "bytes": 1892025,
+        "count": 8,
+        "gateConclusion": "failure",
+        "invocations": [
+          {
+            "executionSuccessful": true
+          }
+        ],
+        "notificationCounts": {
+          "error": 1
+        },
+        "path": "/tmp/vncode-169-release-audit/security-evidence/reference/codeql-java-kotlin/java.sarif",
+        "rules": {
+          "java/local-temp-file-or-directory-information-disclosure": 3,
+          "java/potentially-weak-cryptographic-algorithm": 1,
+          "java/relative-path-command": 2,
+          "java/unreleased-lock": 2
+        },
+        "severityCounts": {
+          "5": 2,
+          "5.4": 2,
+          "6.5": 3,
+          "7.5": 1
+        },
+        "sha256": "54c7da389e3b469bcb52629660e485851acc91f51579dbdbc8763c9e7a22a014",
+        "tools": [
+          {
+            "name": "CodeQL",
+            "semanticVersion": "2.27.3"
+          }
+        ]
+      },
+      "candidate": {
+        "blocked": 1,
+        "bytes": 1902615,
+        "count": 8,
+        "gateConclusion": "failure",
+        "invocations": [
+          {
+            "executionSuccessful": true
+          }
+        ],
+        "notificationCounts": {
+          "error": 1
+        },
+        "path": "/tmp/vncode-169-release-audit/security-evidence/candidate/codeql-java-kotlin/java.sarif",
+        "rules": {
+          "java/local-temp-file-or-directory-information-disclosure": 3,
+          "java/potentially-weak-cryptographic-algorithm": 1,
+          "java/relative-path-command": 2,
+          "java/unreleased-lock": 2
+        },
+        "severityCounts": {
+          "5": 2,
+          "5.4": 2,
+          "6.5": 3,
+          "7.5": 1
+        },
+        "sha256": "9681297ec1387212eb9b476d8d2d2e988f673352ec9afb975b11326b3ef006ea",
+        "tools": [
+          {
+            "name": "CodeQL",
+            "semanticVersion": "2.27.3"
+          }
+        ]
+      },
+      "findings": {
+        "identical": true,
+        "new": [],
+        "newCount": 0,
+        "resolved": [],
+        "resolvedCount": 0,
+        "unchangedCount": 8
+      },
+      "notifications": {
+        "identical": true,
+        "new": [],
+        "newCount": 0,
+        "resolved": [],
+        "resolvedCount": 0,
+        "unchangedCount": 1
+      }
+    },
+    "javascript-typescript": {
+      "reference": {
+        "blocked": 0,
+        "bytes": 1331027,
+        "count": 0,
+        "gateConclusion": "success",
+        "invocations": [
+          {
+            "executionSuccessful": true
+          }
+        ],
+        "notificationCounts": {},
+        "path": "/tmp/vncode-169-release-audit/security-evidence/reference/codeql-javascript-typescript/javascript.sarif",
+        "rules": {},
+        "severityCounts": {},
+        "sha256": "b585ce393712bc725c437edffc0f793af79b9d821b9222a3aecb35097fe4670b",
+        "tools": [
+          {
+            "name": "CodeQL",
+            "semanticVersion": "2.27.3"
+          }
+        ]
+      },
+      "candidate": {
+        "blocked": 0,
+        "bytes": 1342653,
+        "count": 0,
+        "gateConclusion": "success",
+        "invocations": [
+          {
+            "executionSuccessful": true
+          }
+        ],
+        "notificationCounts": {},
+        "path": "/tmp/vncode-169-release-audit/security-evidence/candidate/codeql-javascript-typescript/javascript.sarif",
+        "rules": {},
+        "severityCounts": {},
+        "sha256": "5fc9c4bf04ff295efc6c01feb17f19f4eea66df959ba52ecc961db2342780e01",
+        "tools": [
+          {
+            "name": "CodeQL",
+            "semanticVersion": "2.27.3"
+          }
+        ]
+      },
+      "findings": {
+        "identical": true,
+        "new": [],
+        "newCount": 0,
+        "resolved": [],
+        "resolvedCount": 0,
+        "unchangedCount": 0
+      },
+      "notifications": {
+        "identical": true,
+        "new": [],
+        "newCount": 0,
+        "resolved": [],
+        "resolvedCount": 0,
+        "unchangedCount": 0
+      }
+    }
+  },
+  "blockedFinding": {
+    "rule": "java/potentially-weak-cryptographic-algorithm",
+    "securitySeverity": 7.5,
+    "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+    "line": 71,
+    "status": "Unchanged legacy finding in both actual SARIF reports"
+  },
+  "workflowConclusions": {
+    "reference": {
+      "id": 42828869332,
+      "workflow_id": 403818652,
+      "name": "Security and workflow checks",
+      "event": "workflow_dispatch",
+      "run_attempt": 1,
+      "head_sha": "38906a2108501029d9609ed1d071ee987c8b2637",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-10T13:54:40Z",
+      "run_started_at": "2026-11-10T13:54:40Z",
+      "updated_at": "2026-11-10T13:59:07Z",
+      "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332",
+      "jobs": [
+        {
+          "id": 129873302165,
+          "name": "codeql (java-kotlin, manual)",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-11-10T13:54:43Z",
+          "completed_at": "2026-11-10T13:59:06Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873302165",
+          "steps": [
+            {
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+              "number": 3,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Initialize CodeQL",
+              "number": 4,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Compile Java for analysis",
+              "number": 5,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Analyze without write permissions",
+              "number": 6,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Gate on high, critical or unclassified security findings",
+              "number": 7,
+              "status": "completed",
+              "conclusion": "failure"
+            },
+            {
+              "name": "Preserve CodeQL findings for review",
+              "number": 8,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Analyze without write permissions",
+              "number": 13,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Initialize CodeQL",
+              "number": 14,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+              "number": 15,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 16,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "number": 17,
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 129873302367,
+          "name": "lint-and-audit",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-10T13:54:43Z",
+          "completed_at": "2026-11-10T13:55:02Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873302367",
+          "steps": [
+            {
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 3,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check workflow syntax and expressions",
+              "number": 4,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check portal JavaScript syntax",
+              "number": 5,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install portal dependencies without lifecycle scripts",
+              "number": 6,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test portal",
+              "number": 7,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test release and security tools",
+              "number": 8,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit the portal lockfile, including development dependencies",
+              "number": 9,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 17,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 18,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "number": 19,
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 129873302404,
+          "name": "codeql (javascript-typescript, none)",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-10T13:54:43Z",
+          "completed_at": "2026-11-10T13:57:22Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873302404",
+          "steps": [
+            {
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+              "number": 3,
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Initialize CodeQL",
+              "number": 4,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Compile Java for analysis",
+              "number": 5,
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Analyze without write permissions",
+              "number": 6,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Gate on high, critical or unclassified security findings",
+              "number": 7,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve CodeQL findings for review",
+              "number": 8,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Analyze without write permissions",
+              "number": 14,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Initialize CodeQL",
+              "number": 15,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 16,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "number": 17,
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 129873304233,
+          "name": "changed-dependencies",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-11-10T13:54:42Z",
+          "completed_at": "2026-11-10T13:54:41Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873304233",
+          "steps": []
+        },
+        {
+          "id": 129873306115,
+          "name": "openqodex-scan",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-11-10T13:54:42Z",
+          "completed_at": "2026-11-10T13:54:41Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873306115",
+          "steps": []
+        }
+      ]
+    },
+    "candidate": {
+      "id": 43131225703,
+      "workflow_id": 403818652,
+      "name": "Security and workflow checks",
+      "event": "workflow_dispatch",
+      "run_attempt": 1,
+      "head_sha": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+      "status": "completed",
+      "conclusion": "failure",
+      "created_at": "2026-11-12T00:58:49Z",
+      "run_started_at": "2026-11-12T00:58:49Z",
+      "updated_at": "2026-11-12T01:04:03Z",
+      "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/43131225703",
+      "jobs": [
+        {
+          "id": 130895581483,
+          "name": "lint-and-audit",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-12T00:58:52Z",
+          "completed_at": "2026-11-12T00:59:10Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/43131225703/job/130895581483",
+          "steps": [
+            {
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 3,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check workflow syntax and expressions",
+              "number": 4,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check portal JavaScript syntax",
+              "number": 5,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Install portal dependencies without lifecycle scripts",
+              "number": 6,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test portal",
+              "number": 7,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test release and security tools",
+              "number": 8,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit the portal lockfile, including development dependencies",
+              "number": 9,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+              "number": 17,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 18,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "number": 19,
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 130895581848,
+          "name": "codeql (javascript-typescript, none)",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-12T00:58:52Z",
+          "completed_at": "2026-11-12T01:01:46Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/43131225703/job/130895581848",
+          "steps": [
+            {
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+              "number": 3,
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Initialize CodeQL",
+              "number": 4,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Compile Java for analysis",
+              "number": 5,
+              "status": "completed",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Analyze without write permissions",
+              "number": 6,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Gate on high, critical or unclassified security findings",
+              "number": 7,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Preserve CodeQL findings for review",
+              "number": 8,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Analyze without write permissions",
+              "number": 14,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Initialize CodeQL",
+              "number": 15,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 16,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "number": 17,
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 130895581859,
+          "name": "codeql (java-kotlin, manual)",
+          "status": "completed",
+          "conclusion": "failure",
+          "started_at": "2026-11-12T00:58:52Z",
+          "completed_at": "2026-11-12T01:04:02Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/43131225703/job/130895581859",
+          "steps": [
+            {
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 2,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+              "number": 3,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Initialize CodeQL",
+              "number": 4,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Compile Java for analysis",
+              "number": 5,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Analyze without write permissions",
+              "number": 6,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Gate on high, critical or unclassified security findings",
+              "number": 7,
+              "status": "completed",
+              "conclusion": "failure"
+            },
+            {
+              "name": "Preserve CodeQL findings for review",
+              "number": 8,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Analyze without write permissions",
+              "number": 13,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Initialize CodeQL",
+              "number": 14,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+              "number": 15,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+              "number": 16,
+              "status": "completed",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "number": 17,
+              "status": "completed",
+              "conclusion": "success"
+            }
+          ]
+        },
+        {
+          "id": 130895583231,
+          "name": "openqodex-scan",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-11-12T00:58:50Z",
+          "completed_at": "2026-11-12T00:58:50Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/43131225703/job/130895583231",
+          "steps": []
+        },
+        {
+          "id": 130895583459,
+          "name": "changed-dependencies",
+          "status": "completed",
+          "conclusion": "skipped",
+          "started_at": "2026-11-12T00:58:50Z",
+          "completed_at": "2026-11-12T00:58:50Z",
+          "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/43131225703/job/130895583459",
+          "steps": []
+        }
+      ]
+    }
+  },
+  "gatePolicy": {
+    "description": "Count each result; block numeric security-severity >= 7 or missing, nonfinite or out-of-range severity; malformed or ambiguous rule references fail closed. Notifications do not enter finding/gate counts.",
+    "localVerification": {
+      "reference": {
+        "java-kotlin": {
+          "total": 8,
+          "blocked": 1
+        },
+        "javascript-typescript": {
+          "total": 0,
+          "blocked": 0
+        }
+      },
+      "candidate": {
+        "java-kotlin": {
+          "total": 8,
+          "blocked": 1
+        },
+        "javascript-typescript": {
+          "total": 0,
+          "blocked": 0
+        }
+      }
+    },
+    "policyHashes": {
+      "reference": {
+        ".github/workflows/security-ci.yml": {
+          "sha256": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+          "bytes": 6188
+        },
+        "tools/codeql-sarif-gate.mjs": {
+          "sha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+          "bytes": 4562
+        }
+      },
+      "candidate": {
+        ".github/workflows/security-ci.yml": {
+          "sha256": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+          "bytes": 6188
+        },
+        "tools/codeql-sarif-gate.mjs": {
+          "sha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+          "bytes": 4562
+        }
+      }
+    },
+    "unchangedBetweenReferenceAndCandidate": true
+  },
+  "scope": {
+    "codeql": "CodeQL 2.27.3 security-extended; Java/Kotlin manual compile on Oracle Java 25 and JavaScript/TypeScript without build; SARIF upload disabled by workflow.",
+    "coverageLimitation": "Both Java reports retain one java/diagnostics/extraction-errors error for Gs1SignatureInk.java. No assertion of complete Java extraction coverage.",
+    "manualDispatchSkips": "OpenQodex and changed-dependencies jobs were skipped by workflow_dispatch conditions; neither contributes scan coverage in these runs.",
+    "conclusion": "No new or resolved findings or warning/error notifications versus the published v1.6.8 source. Security workflow and Java gate remain failed; this is not an all-security-green result."
+  },
+  "evidence": {
+    "artifactManifest": "/tmp/vncode-169-release-audit/security-artifact-manifest.json",
+    "workflowMetadata": "/tmp/vncode-169-release-audit/security-workflow-final.json",
+    "comparisonDetails": "/tmp/vncode-169-release-audit/security-evidence/comparison-details.json",
+    "normalizationScript": "/tmp/vncode-169-release-audit/security-evidence/compare_sarif.py",
+    "normalizedRecordsLocalOnly": "/tmp/vncode-169-release-audit/security-evidence/normalized-records.json"
+  }
+}

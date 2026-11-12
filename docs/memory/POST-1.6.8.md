@@ -1,4 +1,6 @@
-# Các thay đổi sau bản 1.6.8 — chưa phát hành
+# Các thay đổi sau bản 1.6.8 — đã vào 1.6.9
+
+**Cập nhật 12.11.2026:** các nhóm hạn giấy tờ `80e9324`, KIZ `d8a4859` và đồng bộ sản phẩm/giấy tờ `0cd111c` đã có trong nguồn phát hành 1.6.9 `4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b`, release immutable **442540592** công bố 08:47:19 MSK. Xem [bàn giao](../validation/2026-11-12-vncode-169-release-handoff.md) và [receipt cuối](../validation/vncode-169-20261112/final-release.json). Kiểm kê 28 tệp runtime (24 Java/4 locale); Windows-MCP là công cụ phát triển, không thuộc runtime; prototype credential/DPAPI chưa tích hợp. Các câu “chưa phát hành”, mốc Latest 1.6.8 và việc mới bên dưới là **lịch sử tại thời điểm checkpoint**, không phải trạng thái hiện tại; giữ nguyên làm bằng chứng.
 
 Đóng sổ ngày 11.11.2026 MSK trước khi sửa tiếp đồng bộ sản phẩm/giấy tờ. Mã gộp hiện có: `d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5`; bàn giao `911a3b065e11403e39c8a4bd967e4893655dc382`. Giữ toàn bộ nguồn phát hành 1.6.8 `38906a2108501029d9609ed1d071ee987c8b2637` và các thay đổi dưới đây. Không coi commit mã hoặc JAR kiểm build là bộ cài đã phát hành.
 

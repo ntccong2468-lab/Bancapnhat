@@ -1,0 +1,59 @@
+{
+  "kind": "VNCODE_169_PUBLIC_VERIFIER_PREPARATION_NOT_ACCEPTANCE",
+  "result": "PREPARED",
+  "recordedAtUtc": "2026-11-12T01:14:54.044745+00:00",
+  "helper": "verify-public.py",
+  "helperBytes": 26834,
+  "helperSha256": "98da641b5298bfd9208460e276492687b2cf02c49ba0c35684a018a122c94efd",
+  "archiveUnchanged": true,
+  "archiveSha256": "520f5dfe085efbae0b37c933c9cf6e04b42388a4f2c5134f415921249cf65e31",
+  "syntheticSelfTests": {
+    "result": "PASS",
+    "syntheticPositive": true,
+    "negativeControlsPassed": 23,
+    "downloadCounterIgnored": true,
+    "actualReleaseVerified": false
+  },
+  "independentReadOnlyReview": {
+    "result": "PASS",
+    "materialIssues": 0,
+    "helperSha256": "98da641b5298bfd9208460e276492687b2cf02c49ba0c35684a018a122c94efd",
+    "scope": "Pins, recursive75JARlayout, original168evidence, mandatorypositiveCLIreleaseID, preservation counts, all16bytecomparison and timestamps."
+  },
+  "mandatoryReleaseIdCliChecks": {
+    "omittedRejected": true,
+    "zeroRejected": true,
+    "negativeRejected": true,
+    "nonIntegerRejectedByIndependentReview": true,
+    "noReleaseIdInferredFromInput": true
+  },
+  "frozenPins": {
+    "version": "1.6.9",
+    "source": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+    "ciRun": 43131000128,
+    "workflowId": 392732536,
+    "candidateReviewHelperSha256": "14a790dc658ffdb3f4cdf30259e2b8ef15898b2abd89d7d107f3f6054a1c66b9",
+    "oldReleasesSnapshotSha256": "0aaa3523e42be7a1d0708b83b9c35c1f9590bf7b2de5c069b9a76afc1db18788",
+    "oldRawRefsSnapshotSha256": "677d9dc518f676ad40bc59761e6a2551017fb6d1b0583866d35928f64fc10293",
+    "beforeUpdaterSha256": "cd449c3611587fa1ebcbb0bd91b41343f9db3cb254e5f4d2ca91838c78bb4fb3",
+    "original168JarManifestSha256": "bfedb457aca9c010204841f044fafdc2d0862f154d8d265bd164df928a679cac"
+  },
+  "requiredCounts": {
+    "beforeReleases": 18,
+    "beforeAssets": 290,
+    "beforeRawTagRefs": 47,
+    "afterReleases": 19,
+    "afterAssets": 306,
+    "afterRawTagRefs": 48,
+    "newAssets": 16
+  },
+  "pendingActualInputs": [
+    "Actual positive169releaseID CLIargument",
+    "Completed169candidate reviewreceipt and16reviewedfiles",
+    "PublishedLatest/release/raw-tag-ref snapshots",
+    "16publicdownloadedfiles",
+    "Frozen original168updater afterreceipt and afterintegrity"
+  ],
+  "networkWritesOrPublicationPerformed": false,
+  "actualPublicationAccepted": false
+}

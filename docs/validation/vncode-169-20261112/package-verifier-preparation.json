@@ -1,0 +1,47 @@
+{
+  "recordedAtUtc": "2026-11-12T01:06:39.974020+00:00",
+  "kind": "VERIFIER_PREPARATION_NOT_CANDIDATE_ACCEPTANCE",
+  "result": "PREPARED",
+  "verifierSha256": "14a790dc658ffdb3f4cdf30259e2b8ef15898b2abd89d7d107f3f6054a1c66b9",
+  "unitTestsSourceSha256": "228ad371a2d316f47184ee26f5f2d75d37891a837900f9440b60d6074b0361fd",
+  "selfTests": {
+    "tests": 11,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "scope": "Synthetic PE/ZIP/JUnit/metadata negative controls, never candidate install/build acceptance."
+  },
+  "sourceOnlyCheck": {
+    "files": 28,
+    "java": 24,
+    "resources": 4,
+    "allConsolidatedRuntimeBytesPreserved": true,
+    "manifestSha256": "083ab74d8e53650aae0df721995aecef0cadb50522ec8379d3894d5042f3cbdc",
+    "developmentWindowsMcpNotAppRuntime": true,
+    "credentialPrototypeExcluded": true
+  },
+  "tamperedSourceManifestRejected": true,
+  "archivesUnchanged": {
+    "docs/validation/vncode-168-20261110/tools/verify-package.py": true,
+    "docs/validation/vncode-168-20261110/tools/check-embedded-msi.py": true
+  },
+  "frozenPins": {
+    "version": "1.6.9",
+    "source": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+    "run": 43131000128,
+    "workflow": 392732536,
+    "baseline": "1.6.8",
+    "baselineExeSha256": "bce16b0cb2eadc155f89c9bafcecd802cf8463272b02aae6e68bf9f105b90707",
+    "baselineExeBytes": 149408256,
+    "classCount": 2000
+  },
+  "pendingActualInputs": [
+    "completed success run metadata including run_attempt/repository/head_repository/event/branch",
+    "uploaded complete-baseline artifact id + API metadata digest/size/workflow_run",
+    "downloaded raw Actions artifact ZIP and16unmodified payload files",
+    "actual unfiltered XML test andsuite counts supplied explicitly byroot",
+    "optional additional independently extracted MSI; staticPEverification isalready mandatory"
+  ],
+  "noArtifactDownloadedOrExecuted": true,
+  "noPublicationPerformed": true
+}

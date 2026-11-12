@@ -1,0 +1,28 @@
+{
+  "version": "1.6.9",
+  "sourceCommit": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "runId": 43131000128,
+  "runAttempt": 2,
+  "workflow": "publish-vncode-baseline.yml",
+  "installer": {
+    "sha256": "b516a2bfb2182a9f0e5f82821cb7f299798258e1764eb0897a410be1985060d1",
+    "name": "VN-code-1.6.9-Windows-x64.exe",
+    "bytes": 149432832
+  },
+  "verification": {
+    "baselineUpgradeRun": true,
+    "nativeSmokeRun": true,
+    "java": {
+      "tests": 4464,
+      "passed": 4462,
+      "failures": 0,
+      "skipped": 2,
+      "errors": 0
+    },
+    "paidKizPurchaseVerified": false,
+    "liveCatalogWriteVerified": false,
+    "fullJavaSuiteRun": true,
+    "liveMarketplaceWriteVerified": false,
+    "legacyUpgradeMatrixRun": false
+  }
+}

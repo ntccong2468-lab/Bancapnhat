@@ -1,0 +1,11 @@
+{
+  "appName": "VN code",
+  "version": "1.6.9",
+  "result": "passed",
+  "dpapiRoundTrip": true,
+  "protectedPasswordPersistence": true,
+  "unverifiedInvoiceBlocked": true,
+  "liveGS1Mutations": false,
+  "catalogKeyDpapiRoundTrip": true,
+  "catalogKeyPurposeIsolated": true
+}

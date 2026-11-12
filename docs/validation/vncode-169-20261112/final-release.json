@@ -1,0 +1,170 @@
+{
+  "kind": "VNCODE_169_FINAL_RELEASE",
+  "result": "PASS",
+  "verifiedAtUtc": "2026-11-12T05:50:49.713827+00:00",
+  "version": "1.6.9",
+  "sourceCommit": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "releaseId": 442540592,
+  "tag": "v1.6.9",
+  "latest": true,
+  "immutable": true,
+  "publishedAtUtc": "2026-11-12T05:47:19Z",
+  "publishedAtMsk": "12.11.2026 08:47:19 MSK",
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.9",
+  "publisher": {
+    "commit": "b9635f80f0b125ad33830f71430088358ccc671e",
+    "runId": 43163588699,
+    "result": "success",
+    "nodeTests": 185
+  },
+  "build": {
+    "runId": 43131000128,
+    "attempt": 2,
+    "workflowId": 392732536,
+    "result": "success",
+    "tests": 4464,
+    "suites": 565,
+    "passed": 4462,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "nativeInstallUpgradePassed": true,
+    "artifactId": 13918353316,
+    "artifactSha256": "6c9144d982b1faad81204304ffbb0795bf70754301838e4c36ace9d46fa64221",
+    "artifactBytes": 530320968
+  },
+  "firstAttempt": {
+    "result": "failure",
+    "reason": "Hosted runner lost communication with server",
+    "underlyingCause": "Unknown CPU/memory/network or runner failure; no Java assertion outcome",
+    "logZipBytes": 22,
+    "artifacts": 0,
+    "retained": true
+  },
+  "sourceInclusion": {
+    "runtimeFiles": 28,
+    "javaFiles": 24,
+    "locales": 4,
+    "newFeatures": [
+      "permit expiry configuration",
+      "mandatory KIZ circulation readback and recovery",
+      "complete product pagination and document verification"
+    ],
+    "windowsMcp": "Development tooling only",
+    "credentialDpapiPrototype": "Not integrated into application runtime"
+  },
+  "package": {
+    "productionClasses": 2000,
+    "dependencyJars": 74,
+    "all16PublicPayloadsMatchReviewedBytes": true,
+    "embeddedMsiMatchesPublishedMsi": true,
+    "assets": {
+      "VN-code-1.6.9-Windows-x64.exe": {
+        "bytes": 149432832,
+        "sha256": "b516a2bfb2182a9f0e5f82821cb7f299798258e1764eb0897a410be1985060d1"
+      },
+      "VN-code-1.6.9-Windows-x64.msi": {
+        "bytes": 148763909,
+        "sha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4"
+      },
+      "VN-code-1.6.9-Windows-x64.sha256": {
+        "bytes": 97,
+        "sha256": "028627f5f7eff2213a8a46ae87bd2b2982b7d5901dab5921e17dca21238249b3"
+      },
+      "VN-code-1.6.9-Windows-x64.zip": {
+        "bytes": 148353662,
+        "sha256": "a43e26199f27458d5264bd86a2c63f2976783cc0ccfc56be92d5bb61961bea58"
+      },
+      "VN-code-1.6.9-source.zip": {
+        "bytes": 39468081,
+        "sha256": "b573a4892c72699ed5e9dffbfd5a5e29f1316a9018466ab5d8ea21211602b793"
+      },
+      "VN-code-1.6.9-history.bundle": {
+        "bytes": 46609912,
+        "sha256": "3baedcb176d4a32cf4c1c729d6b8556221c943bf19e340572dff0715a83dee5a"
+      },
+      "VN-code-1.6.9-verification.zip": {
+        "bytes": 3028623,
+        "sha256": "ea3f44e862d08a52e5e8b68a2aaca3bfee3ffdc34744780d0f1456dbcff6c9e2"
+      },
+      "build-info.json": {
+        "bytes": 769,
+        "sha256": "81ab34282479eb404dfaecad3e344716bf722f573c5da0193fca12e5cbf7d10a"
+      },
+      "release-notes.md": {
+        "bytes": 2561,
+        "sha256": "38d90314510761a7fc525c26aeb93099d77b8d0ac5eeb396120e8bb9de82c4b6"
+      },
+      "native-smoke.json": {
+        "bytes": 286,
+        "sha256": "62a73e43f6eeec321eb6ffe72d4c6689b5de9c8cd77afd6cdd3b461a956e63ee"
+      },
+      "upgrade-baseline-smoke.json": {
+        "bytes": 831,
+        "sha256": "272446d7de03dc62c4987e4714c211f6b4c04fd9add553d2cc31d500592af093"
+      },
+      "asset-manifest.json": {
+        "bytes": 1747,
+        "sha256": "f1e42bd0702b79b26e152596780fd85add1d5fe65543b1c0d45b94ba63caccbd"
+      },
+      "SHA256SUMS": {
+        "bytes": 1099,
+        "sha256": "08b5e139561c230629a546516564224472383bfe68c414dc47f90addbe261267"
+      },
+      "gs1-smoke.json": {
+        "bytes": 286,
+        "sha256": "1bf3756b9f1e1fc0b1f2d626dfe2871ed3d750ee690c25d80debfd3b08a05c74"
+      },
+      "side-by-side-smoke.json": {
+        "bytes": 409,
+        "sha256": "9f2cbe11278cc186afe6d1ccdddc796e9dcdd6ee97a7a3d2c5421c642342fb65"
+      },
+      "previous-baseline.json": {
+        "bytes": 282,
+        "sha256": "d4fbf48b863c98d06dfa952ecad4ff7fc9e891e881f4a9e2f3edecdee621578c"
+      }
+    }
+  },
+  "preservation": {
+    "oldPublishedReleases": 18,
+    "oldAssets": 290,
+    "oldRawTags": 47,
+    "afterPublishedReleases": 19,
+    "afterAssets": 306,
+    "afterRawTags": 48,
+    "allOldUnchanged": true
+  },
+  "updater": {
+    "originalVersion": "1.6.8",
+    "result": "AVAILABLE",
+    "availableVersion": "1.6.9",
+    "originalJars": 75,
+    "allOriginalJarsUnchanged": true,
+    "msiSha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4",
+    "msiBytes": 148763909,
+    "scope": "Original published binary on Linux; verified live network before Windows asset selection. No seller popup/installation observed."
+  },
+  "security": {
+    "runId": 43131225703,
+    "workflowResult": "failure",
+    "javaFindings": 8,
+    "javaBlocked": 1,
+    "newFindings": 0,
+    "resolvedFindings": 0,
+    "javascriptFindings": 0,
+    "inheritedGs1ExtractionError": true,
+    "allSecurityGreen": false
+  },
+  "scopeLimits": [
+    "No paid KIZ purchase, Catalog mutation/signing, seller marketplace write, license activation, Gmail or portal deployment during this release.",
+    "Ozon live API remained 403/code 7 in the prior functional audit; no new seller end-to-end proof claimed.",
+    "Windows CI and exact old updater verification do not prove a popup or installation on the seller computer."
+  ],
+  "proofSha256": {
+    "package-review.json": "a7a16838a673eed05fe2b69fd10a13231d8831933fda7b6deefc960bc1111b3d",
+    "public-preservation-verified.json": "6092e1b2ceaf7f11fe0ae53785201d878cc73b70c1f1c72d76baa7c349076124",
+    "updater-verification.json": "0aca73d8befdf42f41978b4504f6db933318df3ecb5b558e05608756fcfdb85e",
+    "publication-1.6.9.json": "5438bfc9b96dcf8b6ec6fd21cabb466e69c9696be60cc075b03edc8c8e3f4bf7"
+  },
+  "documentation": "Archived after publication in a docs-only commit; use Git history for the documentation commit, not as replacement for frozen application source."
+}

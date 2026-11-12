@@ -1,0 +1,40 @@
+{
+  "suites": 565,
+  "tests": 4464,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "sumSuiteSeconds": 7072.586,
+  "skipIdentities": [
+    {
+      "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "test": "privatePermissionsAreAppliedWhereSupported"
+    },
+    {
+      "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "test": "neverFallsBackToPlaintextOffWindows"
+    }
+  ],
+  "slowest": [
+    {
+      "class": "com.vncode.app.features.sync.GtinBulkPipelineTest",
+      "seconds": 3404.738
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "seconds": 363.207
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "seconds": 213.859
+    },
+    {
+      "class": "com.vncode.app.integration.ozon.OzonLargeShopReservationTest",
+      "seconds": 183.272
+    },
+    {
+      "class": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+      "seconds": 155.57
+    }
+  ]
+}

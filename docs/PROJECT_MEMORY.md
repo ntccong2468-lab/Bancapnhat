@@ -1,5 +1,17 @@
 # Bộ nhớ dự án VNCode
 
+## 12.11.2026 MSK — VN Code 1.6.9 đã phát hành Latest
+
+Release immutable **442540592 / `v1.6.9`**, công bố **05:47:19 UTC / 08:47:19 MSK**. Nguồn app **`4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b`**, publisher **`b9635f80f0b125ad33830f71430088358ccc671e`**, run **43163588699 SUCCESS**. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.exe), [bàn giao](validation/2026-11-12-vncode-169-release-handoff.md), [receipt cuối](validation/vncode-169-20261112/final-release.json).
+
+Gộp hạn giấy tờ `80e9324`, mua và đối soát lưu thông KIZ `d8a4859`, đồng bộ sản phẩm/giấy tờ WB/Ozon `0cd111c`; 28 tệp runtime so với 1.6.8 gồm 24 Java/4 locale. Windows-MCP là công cụ phát triển; prototype credential/DPAPI không tích hợp runtime. Giữ owner/consent, chứng cứ giấy tờ, snapshot giao dịch và lịch sử checkpoint.
+
+Windows **43131000128 attempt 2 SUCCESS**, full Java **4.464 ca/565 lớp, 4.462 đạt, 0 failure/error, 2 OS skip có danh tính**; native migration/DPAPI, cài mới/cùng tồn tại/gỡ, passive EXE upgrade từ 1.6.8 đạt trên CI. Attempt 1 FAIL vì runner mất liên lạc, chưa biết nguyên nhân sâu hơn, không có assertion/JUnit; bảo toàn chứng cứ. Node source 174 và publisher 185 ở phạm vi khác nhau. [Package review](validation/vncode-169-20261112/package-review.json).
+
+Đã tải đủ **16 tệp public**, so byte với artifact đã review; giữ **18 release/290 asset/47 tag** cũ, sau là **19/306/48**. [Preservation](validation/vncode-169-20261112/public-preservation-verified.json). [Updater 1.6.8 gốc](validation/vncode-169-20261112/updater-after.json) báo AVAILABLE 1.6.9 và đúng MSI SHA `df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4`/148.763.909 byte. Probe qua proxy/CA Cloud trên Linux, chọn asset Windows sau mạng; không chứng minh popup/cài máy seller hay truy cập anonymous.
+
+Security `43131225703` còn **8 finding Java cũ, 0 mới/0 giải quyết, Java gate FAIL với một mức cao**, GS1 extraction error hạn chế phạm vi; JS 0 finding. WB thật một snapshot 388/388 bài, 4 HTTP/23,208 giây; Ozon 403/code 7, chưa nghiệm thu seller. Không seller API write, mua KIZ có phí, ký thật, license activation, Gmail hay Portal deploy trong đợt phát hành. Những mục “chưa phát hành” bên dưới là trạng thái lịch sử; không sửa nguồn/tag/asset đã immutable.
+
 ## 11.11.2026 MSK — đồng bộ sản phẩm/giấy tờ sau checkpoint bộ nhớ
 
 Nguồn **`0cd111c9931bb9993b47c2c787d3944d0ec564d6`**, nhánh `fix/product-sync-permits-20261111`, kế thừa đầy đủ 911a/d8/80e/4fa; trước sửa runtime đã lưu và push [sổ sau 1.6.8](memory/POST-1.6.8.md) bằng 5c650dc. [Bàn giao](validation/2026-11-11-product-sync-permit-audit.md). Ảnh 327/195/132 đếm danh sách/snapshot thành công/đọc chi tiết lỗi, không phải bằng chứng mất 132 bài. Sửa WB incremental/recovery/GTIN reader dừng trang ngắn, Ozon total_items/tổng/cursor/trùng/điểm tiếp tục; WB refresh dùng batch raw mới, giữ parser đầy đủ, lưu một lần và báo lỗi từng sản phẩm an toàn.

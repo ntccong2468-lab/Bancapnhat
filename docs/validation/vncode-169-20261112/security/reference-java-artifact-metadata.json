@@ -1,0 +1,16 @@
+{
+  "side": "reference",
+  "artifactId": 13769704365,
+  "artifactName": "codeql-java-kotlin",
+  "archiveBytes": 169721,
+  "archiveSha256": "8a4957712fc759364433730d644d4d4bb3f8eec8dcde1f003e125c44bcca7617",
+  "apiDigestMatches": true,
+  "sarif": [
+    {
+      "archiveMember": "java.sarif",
+      "path": "/tmp/vncode-169-release-audit/security-evidence/reference/codeql-java-kotlin/java.sarif",
+      "bytes": 1892025,
+      "sha256": "54c7da389e3b469bcb52629660e485851acc91f51579dbdbc8763c9e7a22a014"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "reference": {
+    ".github/workflows/security-ci.yml": {
+      "sha256": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+      "bytes": 6188
+    },
+    "tools/codeql-sarif-gate.mjs": {
+      "sha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+      "bytes": 4562
+    }
+  },
+  "candidate": {
+    ".github/workflows/security-ci.yml": {
+      "sha256": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+      "bytes": 6188
+    },
+    "tools/codeql-sarif-gate.mjs": {
+      "sha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+      "bytes": 4562
+    }
+  }
+}

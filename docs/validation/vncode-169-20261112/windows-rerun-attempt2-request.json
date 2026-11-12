@@ -1,0 +1,9 @@
+{
+  "requestedAtUtc": "2026-11-12T03:31:27.636537+00:00",
+  "status": 201,
+  "operation": "rerun-failed-jobs",
+  "runId": 43131000128,
+  "source": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "fullJobRetained": true,
+  "reason": "Hosted Windows runner lost communication with the server; no JUnit or artifact available from attempt 1."
+}

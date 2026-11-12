@@ -1,0 +1,280 @@
+{
+  "identicalNormalizedFindingRecords": true,
+  "identicalNormalizedWarningErrorNotifications": true,
+  "languages": {
+    "java-kotlin": {
+      "candidate": {
+        "blocked": 1,
+        "bytes": 1902615,
+        "count": 8,
+        "gateConclusion": "failure",
+        "invocations": [
+          {
+            "executionSuccessful": true
+          }
+        ],
+        "notificationCounts": {
+          "error": 1
+        },
+        "path": "/tmp/vncode-169-release-audit/security-evidence/candidate/codeql-java-kotlin/java.sarif",
+        "rules": {
+          "java/local-temp-file-or-directory-information-disclosure": 3,
+          "java/potentially-weak-cryptographic-algorithm": 1,
+          "java/relative-path-command": 2,
+          "java/unreleased-lock": 2
+        },
+        "severityCounts": {
+          "5": 2,
+          "5.4": 2,
+          "6.5": 3,
+          "7.5": 1
+        },
+        "sha256": "9681297ec1387212eb9b476d8d2d2e988f673352ec9afb975b11326b3ef006ea",
+        "tools": [
+          {
+            "name": "CodeQL",
+            "semanticVersion": "2.27.3"
+          }
+        ]
+      },
+      "candidateBlockedRecords": [
+        {
+          "codeFlowCount": 0,
+          "codeFlows": [],
+          "fingerprints": {},
+          "kind": "fail",
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 75,
+                  "startColumn": 41,
+                  "startLine": 71
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Cryptographic algorithm [SHA-1](1) may not be secure. Consider using a different algorithm."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "f18fb515f996423:1",
+            "primaryLocationStartColumnFingerprint": "32"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "SHA-1"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 74,
+                  "startColumn": 67,
+                  "startLine": 71
+                }
+              }
+            }
+          ],
+          "rule": "java/potentially-weak-cryptographic-algorithm",
+          "securitySeverity": 7.5,
+          "stacks": [],
+          "threadFlowCount": 0,
+          "threadFlowLocationCount": 0
+        }
+      ],
+      "findings": {
+        "identical": true,
+        "new": [],
+        "newCount": 0,
+        "resolved": [],
+        "resolvedCount": 0,
+        "unchangedCount": 8
+      },
+      "notifications": {
+        "identical": true,
+        "new": [],
+        "newCount": 0,
+        "resolved": [],
+        "resolvedCount": 0,
+        "unchangedCount": 1
+      },
+      "reference": {
+        "blocked": 1,
+        "bytes": 1892025,
+        "count": 8,
+        "gateConclusion": "failure",
+        "invocations": [
+          {
+            "executionSuccessful": true
+          }
+        ],
+        "notificationCounts": {
+          "error": 1
+        },
+        "path": "/tmp/vncode-169-release-audit/security-evidence/reference/codeql-java-kotlin/java.sarif",
+        "rules": {
+          "java/local-temp-file-or-directory-information-disclosure": 3,
+          "java/potentially-weak-cryptographic-algorithm": 1,
+          "java/relative-path-command": 2,
+          "java/unreleased-lock": 2
+        },
+        "severityCounts": {
+          "5": 2,
+          "5.4": 2,
+          "6.5": 3,
+          "7.5": 1
+        },
+        "sha256": "54c7da389e3b469bcb52629660e485851acc91f51579dbdbc8763c9e7a22a014",
+        "tools": [
+          {
+            "name": "CodeQL",
+            "semanticVersion": "2.27.3"
+          }
+        ]
+      },
+      "referenceBlockedRecords": [
+        {
+          "codeFlowCount": 0,
+          "codeFlows": [],
+          "fingerprints": {},
+          "kind": "fail",
+          "level": "warning",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 75,
+                  "startColumn": 41,
+                  "startLine": 71
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "Cryptographic algorithm [SHA-1](1) may not be secure. Consider using a different algorithm."
+          },
+          "partialFingerprints": {
+            "primaryLocationLineHash": "f18fb515f996423:1",
+            "primaryLocationStartColumnFingerprint": "32"
+          },
+          "relatedLocations": [
+            {
+              "id": 1,
+              "message": {
+                "text": "SHA-1"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "endColumn": 74,
+                  "startColumn": 67,
+                  "startLine": 71
+                }
+              }
+            }
+          ],
+          "rule": "java/potentially-weak-cryptographic-algorithm",
+          "securitySeverity": 7.5,
+          "stacks": [],
+          "threadFlowCount": 0,
+          "threadFlowLocationCount": 0
+        }
+      ]
+    },
+    "javascript-typescript": {
+      "candidate": {
+        "blocked": 0,
+        "bytes": 1342653,
+        "count": 0,
+        "gateConclusion": "success",
+        "invocations": [
+          {
+            "executionSuccessful": true
+          }
+        ],
+        "notificationCounts": {},
+        "path": "/tmp/vncode-169-release-audit/security-evidence/candidate/codeql-javascript-typescript/javascript.sarif",
+        "rules": {},
+        "severityCounts": {},
+        "sha256": "5fc9c4bf04ff295efc6c01feb17f19f4eea66df959ba52ecc961db2342780e01",
+        "tools": [
+          {
+            "name": "CodeQL",
+            "semanticVersion": "2.27.3"
+          }
+        ]
+      },
+      "candidateBlockedRecords": [],
+      "findings": {
+        "identical": true,
+        "new": [],
+        "newCount": 0,
+        "resolved": [],
+        "resolvedCount": 0,
+        "unchangedCount": 0
+      },
+      "notifications": {
+        "identical": true,
+        "new": [],
+        "newCount": 0,
+        "resolved": [],
+        "resolvedCount": 0,
+        "unchangedCount": 0
+      },
+      "reference": {
+        "blocked": 0,
+        "bytes": 1331027,
+        "count": 0,
+        "gateConclusion": "success",
+        "invocations": [
+          {
+            "executionSuccessful": true
+          }
+        ],
+        "notificationCounts": {},
+        "path": "/tmp/vncode-169-release-audit/security-evidence/reference/codeql-javascript-typescript/javascript.sarif",
+        "rules": {},
+        "severityCounts": {},
+        "sha256": "b585ce393712bc725c437edffc0f793af79b9d821b9222a3aecb35097fe4670b",
+        "tools": [
+          {
+            "name": "CodeQL",
+            "semanticVersion": "2.27.3"
+          }
+        ]
+      },
+      "referenceBlockedRecords": []
+    }
+  },
+  "newFindingCount": 0,
+  "resolvedFindingCount": 0,
+  "totals": {
+    "candidate": {
+      "blocked": 1,
+      "findings": 8,
+      "warningErrorNotifications": 1
+    },
+    "reference": {
+      "blocked": 1,
+      "findings": 8,
+      "warningErrorNotifications": 1
+    }
+  }
+}

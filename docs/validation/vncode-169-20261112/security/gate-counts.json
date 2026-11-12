@@ -1,0 +1,22 @@
+{
+  "reference": {
+    "java-kotlin": {
+      "total": 8,
+      "blocked": 1
+    },
+    "javascript-typescript": {
+      "total": 0,
+      "blocked": 0
+    }
+  },
+  "candidate": {
+    "java-kotlin": {
+      "total": 8,
+      "blocked": 1
+    },
+    "javascript-typescript": {
+      "total": 0,
+      "blocked": 0
+    }
+  }
+}

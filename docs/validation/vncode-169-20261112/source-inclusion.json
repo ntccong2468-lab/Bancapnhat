@@ -1,0 +1,283 @@
+{
+  "recordedAtUtc": "2026-11-12T00:57:15.660612+00:00",
+  "result": "PASS",
+  "scope": "Read-only source inclusion inventory, not a build/native/updater or seller API acceptance. Candidate commit observation may precede final release commit; bind final source via unchanged file hashes.",
+  "candidateWorktree": "/workspace/vncode-169-release",
+  "candidateCommitAtObservation": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "candidateVersions": {
+    "project": "1.6.9",
+    "app.version": "1.6.9"
+  },
+  "published168Source": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "consolidatedSource": "c0c8e0fbbb3c8994489f77f9fde9a56f8d5c734e",
+  "ancestors": {
+    "38906a2108501029d9609ed1d071ee987c8b2637": true,
+    "80e9324c24e1d1fdee1dbbdbc56854b1e8f0149f": true,
+    "d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5": true,
+    "0cd111c9931bb9993b47c2c787d3944d0ec564d6": true,
+    "4fa9ba08977a9c29e51845d3c25d9527cd9a2069": true
+  },
+  "runtimeCount": 28,
+  "javaCount": 24,
+  "resourceCount": 4,
+  "runtimeFiles": [
+    {
+      "path": "src/main/java/com/vncode/app/features/fbo/FboPurchaseService.java",
+      "published168Sha256": "41453bfc58f4bcdcc038eef6b935c44f9c8a918b3d178010f4bfb857a626f2ec",
+      "consolidatedSha256": "bdcf8c82ccbcac64d87e9511ac7c74d24a95d6ddd55976c92e2b73fa78a911d6",
+      "candidateSha256": "bdcf8c82ccbcac64d87e9511ac7c74d24a95d6ddd55976c92e2b73fa78a911d6",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+      "published168Sha256": "f7f602658a07fcb8a0ddc24896bdbe7bb6e63e7b661af03f71af103a50743cdd",
+      "consolidatedSha256": "4dc19ba93093b3f8d4b479fc80c8c147d9523db025c6d919b4cdd8072c6d8dee",
+      "candidateSha256": "4dc19ba93093b3f8d4b479fc80c8c147d9523db025c6d919b4cdd8072c6d8dee",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/products/ProductRefreshService.java",
+      "published168Sha256": "c899d96184249c43872bdfed8ddd6669231a760fc85fcdbef3cb925eefd6e032",
+      "consolidatedSha256": "9cc047dbc03131e59e6e7bca34ff2e248d490293ff7528bb5db56c87695b58ce",
+      "candidateSha256": "9cc047dbc03131e59e6e7bca34ff2e248d490293ff7528bb5db56c87695b58ce",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/products/ProductRepository.java",
+      "published168Sha256": "83a1659591782d557f2f9ad8ec8e70a5df055a5d3b8c4ed7fdd9aa93763a83b8",
+      "consolidatedSha256": "49be0f23e5de3d90f24a7243dd1a9a63d534d5eb71c0d8138c82388d354d764f",
+      "candidateSha256": "49be0f23e5de3d90f24a7243dd1a9a63d534d5eb71c0d8138c82388d354d764f",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/products/ProductSnapshotReader.java",
+      "published168Sha256": "06a46153e938b6caa421c5c9c34799c869e971b224e9ce667176d26876141b76",
+      "consolidatedSha256": "1f8c411de12c4c24ec712605323fda8f337c639f7ef7071bb6ac8d31618cc9bd",
+      "candidateSha256": "1f8c411de12c4c24ec712605323fda8f337c639f7ef7071bb6ac8d31618cc9bd",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonCatalogSyncService.java",
+      "published168Sha256": "85dddc5ff8a294c6a1d7b610684257597a838807820cad11abe32c87dd4e096a",
+      "consolidatedSha256": "6745ab1ef712326a27cee255e60a3847e5c0430c475168d6f334b0649f41e3c2",
+      "candidateSha256": "6745ab1ef712326a27cee255e60a3847e5c0430c475168d6f334b0649f41e3c2",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonJson.java",
+      "published168Sha256": "51de53997026f80dbcc3ed316b953295d8ec08d2c3c39679b17609f5b6d654b5",
+      "consolidatedSha256": "43193fe982da9d7d7d09a3f77160550ddba21bc9380d99eed74c311efafe5c2e",
+      "candidateSha256": "43193fe982da9d7d7d09a3f77160550ddba21bc9380d99eed74c311efafe5c2e",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonListingAdapter.java",
+      "published168Sha256": "bc8ddd32a6f806c7b1574522844144f7433969658ae5d958920b59d8962f22ce",
+      "consolidatedSha256": "f81ffaac2bb8f2a45a89bae7f8477d9c18e7a4e630ea4710ca162ad984317d8a",
+      "candidateSha256": "f81ffaac2bb8f2a45a89bae7f8477d9c18e7a4e630ea4710ca162ad984317d8a",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonProductSnapshotReader.java",
+      "published168Sha256": "60c419d990c06011accf7fcc2daececeac0542102a1ffcf70155405f2a3f0eb9",
+      "consolidatedSha256": "4a74196219221fa9c710da6b57be318bec31f80a133e9627687374fa4db9b2de",
+      "candidateSha256": "4a74196219221fa9c710da6b57be318bec31f80a133e9627687374fa4db9b2de",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbGtinProductReader.java",
+      "published168Sha256": "92731af003aa556942eca2cc48fd3c6cf20bc29f813bc5413cd5fae91c90ab7e",
+      "consolidatedSha256": "ec646f0b85e6080bb3aebb07befac9ce343f1ec8db10ae90d4cf6429061e5818",
+      "candidateSha256": "ec646f0b85e6080bb3aebb07befac9ce343f1ec8db10ae90d4cf6429061e5818",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbProductSnapshotReader.java",
+      "published168Sha256": "a27092b6eb2e1a1dd80fc4e9b7bdbdcaa950d3580dcd61e90016e494654cbbf7",
+      "consolidatedSha256": "ce31379209bc5a7b01ba602f74016e265caf83257ce5ae3b06fa3629e6878110",
+      "candidateSha256": "ce31379209bc5a7b01ba602f74016e265caf83257ce5ae3b06fa3629e6878110",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbProductSyncService.java",
+      "published168Sha256": "69d78318ab006f9ebbe5cd65a4aff5f52b3e33c1a76b748caf1b96935710b7f8",
+      "consolidatedSha256": "95c9d2cb1e2ebb7409b54b994c3f1b159299cba5ff2bcf5c01b80aa0b3fff481",
+      "candidateSha256": "95c9d2cb1e2ebb7409b54b994c3f1b159299cba5ff2bcf5c01b80aa0b3fff481",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/wb/WbRegistrationSnapshotBatch.java",
+      "published168Sha256": "125b632db675466534a611a53541b76a1510903b0b6cd32fcead245fbc5f237b",
+      "consolidatedSha256": "382762f55882aa03a46971e314b801f3eb09889b8f476e61b0cf5a992b43b341",
+      "candidateSha256": "382762f55882aa03a46971e314b801f3eb09889b8f476e61b0cf5a992b43b341",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackCisReadback.java",
+      "published168Sha256": "3879831c312c1a6b6b03e3686229a8e227ab5573fd5b950503e9ca943388b2ec",
+      "consolidatedSha256": "e3d3b75886332b7eb819f1ba093219264ad1adf88e4c4089fcfb3a7965f8bff6",
+      "candidateSha256": "e3d3b75886332b7eb819f1ba093219264ad1adf88e4c4089fcfb3a7965f8bff6",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+      "published168Sha256": "a883da1f3cb61777b44a2c3b213a4be5c1ac3c06bc98a1713658d77731bf66a4",
+      "consolidatedSha256": "4b401dd6a27ddd297d58fa393a1ee1e2c4727a60bd14db83f00153bee9618d09",
+      "candidateSha256": "4b401dd6a27ddd297d58fa393a1ee1e2c4727a60bd14db83f00153bee9618d09",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+      "published168Sha256": "fab96da5dae0745026d686e6c66020131703c8c6e213734e5719dee78a37397f",
+      "consolidatedSha256": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+      "candidateSha256": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+      "published168Sha256": "7b8eda51fe8fefdcc802f864354015e11927b5b8a943023e882bde9753e22ed7",
+      "consolidatedSha256": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+      "candidateSha256": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackModels.java",
+      "published168Sha256": "83b4dd8c03ccc464e1dbc767e75618336bd024c4aa9d505422a07238c1873fe3",
+      "consolidatedSha256": "ede78033c39b2d8fbd2d83836891652409a208e24a907bd5db3a9a895acbe975",
+      "candidateSha256": "ede78033c39b2d8fbd2d83836891652409a208e24a907bd5db3a9a895acbe975",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "published168Sha256": "6d6fe02f8e3bf987990f348798a616cdd2bdf2c85f351e433c6384d37b624b3d",
+      "consolidatedSha256": "00bea932ab007778fdc7ffc9be06d07bea199b895aeb0b08c42da02a92dff38b",
+      "candidateSha256": "00bea932ab007778fdc7ffc9be06d07bea199b895aeb0b08c42da02a92dff38b",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+      "published168Sha256": "b739d436080593c83f8b094180c89400c2ec7e4eb3d7f496a441d86bec8e9344",
+      "consolidatedSha256": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37",
+      "candidateSha256": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+      "published168Sha256": "40506c990e0e008509816b623f9e44fd73b43de1451defedd700686593b57b1a",
+      "consolidatedSha256": "374d0853a3ad170a928b3cb65386275f299ae25687d80b439e7960ff73220679",
+      "candidateSha256": "374d0853a3ad170a928b3cb65386275f299ae25687d80b439e7960ff73220679",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+      "published168Sha256": "249b4c2aaed8e75c0746c8a77f51391bc994ff90ebbdcf791629d8501e1e5d88",
+      "consolidatedSha256": "8ebc05ea45fc7837b297e73b6d17f32a6cff2dd6076bb3992d118409f2b512b5",
+      "candidateSha256": "8ebc05ea45fc7837b297e73b6d17f32a6cff2dd6076bb3992d118409f2b512b5",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+      "published168Sha256": "71cfff7d751e25c883f1690589359f666ae244cf0e977255fecaf61bbe32701a",
+      "consolidatedSha256": "ef4f9611c051cfdc3a2f7f3a9652681dca459d17ae7276321f2ddabe058ca5b4",
+      "candidateSha256": "ef4f9611c051cfdc3a2f7f3a9652681dca459d17ae7276321f2ddabe058ca5b4",
+      "preserved": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDocumentConfigDialog.java",
+      "published168Sha256": "6bbdcb68fbc7b95bf6d8f9bc6e50f271360a6e74c16ad4cdbd7e1e234e8d2f8b",
+      "consolidatedSha256": "c6cad0fd3576db5d47cb35418263650af9f50c2887cc5349fff8e22d66807e7c",
+      "candidateSha256": "c6cad0fd3576db5d47cb35418263650af9f50c2887cc5349fff8e22d66807e7c",
+      "preserved": true
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "published168Sha256": "d2e02800ecb6359bab65f2be97b75acd0d1dddb5caae5a4863055edc6c01cf64",
+      "consolidatedSha256": "0b5c808f53101a10a8607c0f05beb4c095e0c75b6afc5dc9dee54b26e8e1b547",
+      "candidateSha256": "0b5c808f53101a10a8607c0f05beb4c095e0c75b6afc5dc9dee54b26e8e1b547",
+      "preserved": true
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "published168Sha256": "2931a822f437121b1fc50fcbee4b2a42c74de3d353feeac53062b045c59c97d4",
+      "consolidatedSha256": "7ac6193c8d9ffd9ecc4cf6cf15f59b91799ebd8f9a722664676a746cdc0dd798",
+      "candidateSha256": "7ac6193c8d9ffd9ecc4cf6cf15f59b91799ebd8f9a722664676a746cdc0dd798",
+      "preserved": true
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "published168Sha256": "48f6749a94cd7c50cf5467a70e3b5a95038a43c984731ea8af08769ec8de7aab",
+      "consolidatedSha256": "44330426ba8841144b1f13a26cd41e3a1ff3d534f303026072e19b4591d55377",
+      "candidateSha256": "44330426ba8841144b1f13a26cd41e3a1ff3d534f303026072e19b4591d55377",
+      "preserved": true
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "published168Sha256": "6e1934389cf60e3ae34ae63c99ea86341c0c17efa154221dc43b9e77af67f88a",
+      "consolidatedSha256": "97693d415611a86afbce193967d2225113f48d4678fc266399c639eaf74fa8f2",
+      "candidateSha256": "97693d415611a86afbce193967d2225113f48d4678fc266399c639eaf74fa8f2",
+      "preserved": true
+    }
+  ],
+  "newRuntimeFilenames": [],
+  "candidateRuntimeDiffVsConsolidated": [],
+  "prototypeRuntimeMatches": [],
+  "exclusions": [
+    {
+      "item": "Windows-MCP bridge/client/worker",
+      "reason": "Development tools/skill/CI under tools/windows-mcp and .agents, not application Maven/runtime. Existing toolkit source may remain in source ZIP; do not activate desktop server from installer."
+    },
+    {
+      "item": "Credential DPAPI migration prototype",
+      "reason": "PR-only archival .java.txt outside compiled sources; handoff explicitly prohibits shipping experimental hooks or applying to real credentials. Not part of this release runtime."
+    }
+  ],
+  "localAndCachedRemoteRefsInspected": 68,
+  "nonAncestorHistoricalRefs": [
+    {
+      "ref": "chore/install-find-reverse-engineered-skill-20261021",
+      "runtimeCommitsOutsideConsolidated": []
+    },
+    {
+      "ref": "ci/vn-code-1.6.0-windows-2022",
+      "runtimeCommitsOutsideConsolidated": []
+    },
+    {
+      "ref": "upgrade/znack-source-audit-20261021",
+      "runtimeCommitsOutsideConsolidated": []
+    }
+  ],
+  "otherWorktreeRuntimeStatusCheck": "All existing registered worktrees had clean src/main at observation; no uncommitted runtime edits to gather. No fetch/network performed by this inventory.",
+  "forecastFullWindows": {
+    "tests": 4464,
+    "suites": 565,
+    "expectedPassIfOnlyNamedTwoSkips": 4462,
+    "expectedNamedOsSkips": 2,
+    "basis": "1.6.8 Windows4254/554 +11new suites/202observed cases +7new plain tests +1additional ValueSource declined case",
+    "status": "FORECAST_ONLY_REQUIRES_ACTUAL_FRESH_WINDOWS_RUN"
+  },
+  "hashRecipe": {
+    "git": "git diff --name-only 38906a2108501029d9609ed1d071ee987c8b2637 c0c8e0fbbb3c8994489f77f9fde9a56f8d5c734e -- src/main",
+    "hash": "SHA-256 of Git blob at consolidated source versus candidate working file; all28 expected byte-identical before packaging."
+  },
+  "limits": [
+    "Real Ozon acceptance remains blocked403/code7 in preceding audit.",
+    "Real SUZ/CryptoPro purchase/signing and seller Windows desktop were not accepted by this inventory.",
+    "Previous focused230/421/510 overlap and do not replace fresh full Windows verification.",
+    "Retain schema6, UpgradeCode, dependency/license/owner guards and immutable1.6.8 assets."
+  ],
+  "candidateAncestorChecks": {
+    "c0c8e0fbbb3c8994489f77f9fde9a56f8d5c734e": true,
+    "38906a2108501029d9609ed1d071ee987c8b2637": true,
+    "80e9324c24e1d1fdee1dbbdbc56854b1e8f0149f": true,
+    "d8a48594e46d3298bf3eed0ac7cbf6d989afb5b5": true,
+    "0cd111c9931bb9993b47c2c787d3944d0ec564d6": true,
+    "4fa9ba08977a9c29e51845d3c25d9527cd9a2069": true
+  },
+  "priorLocalJarReference": {
+    "sourceCommit": "0cd111c9931bb9993b47c2c787d3944d0ec564d6",
+    "productionClassCount": 2000,
+    "versionAtBuild": "1.6.8 local only",
+    "notReleaseBinary": true,
+    "scope": "Expected class-set/count sanity reference, not native CI artifact hash equivalence."
+  }
+}

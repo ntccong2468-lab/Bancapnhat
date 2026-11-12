@@ -1,6 +1,16 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **11.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **12.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+
+## Latest 1.6.9 — đã phát hành và kiểm chứng ngày 12.11.2026
+
+- Release immutable **442540592 / `v1.6.9`**, công bố **08:47:19 MSK / 05:47:19 UTC**; [tải EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.exe), [bàn giao](../validation/2026-11-12-vncode-169-release-handoff.md), [receipt cuối](../validation/vncode-169-20261112/final-release.json). Nguồn app **`4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b`**, nhánh `release/vn-code-1.6.9`; publisher **`b9635f80f0b125ad33830f71430088358ccc671e`**, run **43163588699 SUCCESS**. Tài liệu bổ sung sau công bố không đổi mã runtime, tag hay asset.
+- Gộp ba nhóm sau 1.6.8: hạn giấy tờ `80e9324`, đối soát mua/lưu thông KIZ `d8a4859`, đồng bộ sản phẩm/giấy tờ `0cd111c`. Kiểm kê nguồn có **28 tệp runtime** khác 1.6.8: 24 Java và 4 locale. Windows-MCP là công cụ phát triển; prototype mã hóa credential/DPAPI không tích hợp runtime.
+- Windows build **43131000128 attempt 2 SUCCESS: 4.464 ca/565 lớp, 4.462 đạt, 0 failure/error, 2 OS skip có danh tính**; native migration, DPAPI, cài mới/cùng tồn tại/gỡ và nâng cấp thụ động từ 1.6.8 đạt trên CI. Node source 174 và publisher 185 là các phạm vi riêng, không cộng thành tổng ca app. [Package review](../validation/vncode-169-20261112/package-review.json). Attempt 1 thất bại do runner mất liên lạc; không có JUnit/khẳng định lỗi assertion, nguyên nhân hạ tầng sâu hơn chưa rõ.
+- Đã tải/so byte cả **16 tệp public** với artifact review, giữ **18 release/290 asset/47 tag** cũ; sau phát hành là **19/306/48**. [Preservation](../validation/vncode-169-20261112/public-preservation-verified.json). Updater gốc 1.6.8 báo **AVAILABLE 1.6.9**, chọn đúng MSI **148.763.909 byte**, SHA-256 `df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4`; [receipt](../validation/vncode-169-20261112/updater-after.json). Probe dùng proxy/CA Cloud trên Linux rồi chọn asset Windows, không chứng minh popup hay cài trên máy seller/anonymous.
+- Security `43131225703` giữ 8 finding Java cũ, 0 mới/0 giải quyết, một finding mức cao khiến **Java gate FAIL**; lỗi trích xuất GS1 còn, phạm vi quét hạn chế; JavaScript 0 finding. WB thật một snapshot **388/388 bài, 4 HTTP, 23,208 giây**; Ozon trả **403/code 7**, chưa nghiệm thu seller. Không seller API write, mua KIZ có phí, ký thật, license activation, Gmail hay Portal deploy trong đợt phát hành; không suy từ thử tổng hợp rằng đã nghiệm thu giao dịch thật.
+
+**Các mục “chưa phát hành” bên dưới là checkpoint lịch sử được giữ nguyên; ba nhóm sửa đã vào 1.6.9.**
 
 ## Đồng bộ sản phẩm và xác minh giấy tờ — chưa phát hành
 

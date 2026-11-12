@@ -1,0 +1,453 @@
+{
+  "kind": "VN_CODE_169_FINAL_DOCS_INDEPENDENT_REVIEW",
+  "result": "PASS",
+  "recordedAtUtc": "2026-11-12T05:57:25.614734+00:00",
+  "sourceCommit": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "releaseId": 442540592,
+  "archiveRoot": "/workspace/vncode-169-release/docs/validation/vncode-169-20261112",
+  "archiveFilesIncludingManifest": 87,
+  "manifestPayloadFiles": 86,
+  "manifestSha256": "bfb5d5ffa3d4c3561fa3d120ebbba592da86f8be9fd34bfbcf711d7d3c5b8c5b",
+  "originalSamePathReceiptsCompared": 40,
+  "changedDocsFilesAtReview": 91,
+  "newRelativeLinksChecked": 46,
+  "newExternalLinksMatchedToCapturedMetadata": 4,
+  "independentAgentFullDocRelativeLinksChecked": 301,
+  "checks": [
+    {
+      "check": "Exact evidence manifest member set",
+      "result": "PASS"
+    },
+    {
+      "check": "All 86 archived payload size/hash entries",
+      "result": "PASS"
+    },
+    {
+      "check": "Frozen package verifier helper hash",
+      "result": "PASS"
+    },
+    {
+      "check": "Frozen public verifier helper hash",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: actual-ci-timing-comparison.md",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: artifact-metadata.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: final-release.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: latest-after.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: latest-before.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: node-source-tests.log",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: package-review.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: public-downloads.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: public-preservation-verified.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: public-verifier-preparation.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: publication-1.6.9.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: publication-artifact-download.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: publication-artifact-metadata.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: publisher-dispatch-payload.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: publisher-dispatch-receipt.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: publisher-jobs-current.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: publisher-run-final.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: releases-after.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: releases-before.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: security-artifact-manifest.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: security-comparison.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: security-summary.md",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: security-workflow-final.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: source-inclusion.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: tag-169-after.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: tag-refs-after.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: tag-refs-before.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: updater-after-integrity.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: updater-after.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: updater-before-integrity.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: updater-before.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: updater-verification.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: windows-actual-junit-summary.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: windows-artifacts-failed-attempt1.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: windows-failure-annotations-attempt1.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: windows-jobs-failed-attempt1.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: windows-jobs-final.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: windows-rerun-attempt2-request.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: windows-run-failed-attempt1.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Original receipt preserved: windows-run-final.json",
+      "result": "PASS"
+    },
+    {
+      "check": "Docs-only working changes; no runtime/POM/workflow changes",
+      "result": "PASS"
+    },
+    {
+      "check": "Frozen source/latest release identity",
+      "result": "PASS"
+    },
+    {
+      "check": "Captured live Latest/tag publication identity",
+      "result": "PASS"
+    },
+    {
+      "check": "Publisher final source/run identity",
+      "result": "PASS"
+    },
+    {
+      "check": "3193 source files / 2000 production classes / 28 runtime files",
+      "result": "PASS"
+    },
+    {
+      "check": "Actual Windows 4464 tests / 565 suites / zero failures and errors / two skips",
+      "result": "PASS"
+    },
+    {
+      "check": "Exact two named OS skips",
+      "result": "PASS"
+    },
+    {
+      "check": "Native / fresh install / coexist / uninstall / upgrade smoke facts",
+      "result": "PASS"
+    },
+    {
+      "check": "All 16 public asset names consistent",
+      "result": "PASS"
+    },
+    {
+      "check": "All 16 public byte/hash facts consistent",
+      "result": "PASS"
+    },
+    {
+      "check": "Retention counts 18/290/47 -> 19/306/48",
+      "result": "PASS"
+    },
+    {
+      "check": "Original 1.6.8 updater preserves 75 JARs and selects exact 1.6.9 MSI",
+      "result": "PASS"
+    },
+    {
+      "check": "Failed attempt 1 retained without invented assertion outcome",
+      "result": "PASS"
+    },
+    {
+      "check": "Inherited 8 Java findings / one high gate failure / zero new / GS1 limitation preserved",
+      "result": "PASS"
+    },
+    {
+      "check": "Final receipt linked proof hashes",
+      "result": "PASS"
+    },
+    {
+      "check": "Failure and security evidence retained",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/final-release.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/source-inclusion.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/windows-actual-junit-summary.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/package-review.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/windows-failure-annotations-attempt1.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/windows-run-failed-attempt1.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/package-review.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/public-preservation-verified.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/updater-after.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:vncode-169-20261112/security-comparison.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:../PROJECT_MEMORY.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/2026-11-12-vncode-169-release-handoff.md:../memory/POST-1.6.8.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:final-release.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:../2026-11-12-vncode-169-release-handoff.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:source-inclusion.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:package-review.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:windows-actual-junit-summary.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:publication-1.6.9.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:publication-artifact-download.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:public-downloads.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:public-preservation-verified.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:updater-verification.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:security-summary.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:security-comparison.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:actual-ci-timing-comparison.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:tools/README.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/README.md:evidence-manifest.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/tools/README.md:../toolchain.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/tools/README.md:../evidence-manifest.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/tools/README.md:../package-review.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/tools/README.md:../public-preservation-verified.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/validation/vncode-169-20261112/tools/README.md:../updater-verification.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/PROJECT_MEMORY.md:validation/2026-11-12-vncode-169-release-handoff.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/PROJECT_MEMORY.md:validation/vncode-169-20261112/final-release.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/PROJECT_MEMORY.md:validation/vncode-169-20261112/package-review.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/PROJECT_MEMORY.md:validation/vncode-169-20261112/public-preservation-verified.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/PROJECT_MEMORY.md:validation/vncode-169-20261112/updater-after.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/CURRENT.md:README.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/CURRENT.md:CURRENT-history-through-2026-11-09.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/CURRENT.md:../validation/2026-11-12-vncode-169-release-handoff.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/CURRENT.md:../validation/vncode-169-20261112/final-release.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/CURRENT.md:../validation/vncode-169-20261112/package-review.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/CURRENT.md:../validation/vncode-169-20261112/public-preservation-verified.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/CURRENT.md:../validation/vncode-169-20261112/updater-after.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/POST-1.6.8.md:../validation/2026-11-12-vncode-169-release-handoff.md",
+      "result": "PASS"
+    },
+    {
+      "check": "New relative link: docs/memory/POST-1.6.8.md:../validation/vncode-169-20261112/final-release.json",
+      "result": "PASS"
+    },
+    {
+      "check": "New external release/download links match captured public metadata",
+      "result": "PASS"
+    },
+    {
+      "check": "Finite secret-pattern scan accurately scoped; no comprehensive assurance",
+      "result": "PASS"
+    }
+  ],
+  "issues": [],
+  "issueCount": 0,
+  "scope": "Read-only existing source, docs, offline receipts and captured metadata; wrote only this review receipt. No installer, network, probe, app retest, repository mutation or archive rewrite. Generic secret-pattern evidence is finite and not comprehensive assurance."
+}

@@ -1,0 +1,70 @@
+{
+  "kind": "VNCODE_169_ACTUAL_ORIGINAL_168_UPDATER_VERIFICATION",
+  "result": "PASS",
+  "recordedAtUtc": "2026-11-12T05:49:46.343099+00:00",
+  "targetSourceCommit": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "releaseId": 442540592,
+  "binaryUnderTest": {
+    "publicAsset": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.8/VN-code-1.6.8-Windows-x64.zip",
+    "assetBytes": 148326903,
+    "assetSha256": "5e4a8ac20439df64a61b847571f9cd8581b817f661749481d29fd6c76126e141",
+    "appJar": "VNcode-1.6.8.jar",
+    "appJarBytes": 7638569,
+    "appJarSha256": "50debe166d5d09dc31724cf61d48d851abf2e1eb43bb2e3b9828c2462445022a",
+    "jarCount": 75,
+    "extraction": "Original unmodified app and dependency JARs only; original application classes loaded from published JAR",
+    "loadedClasspath": "Private extraction directory plus only the separate pinned probe class"
+  },
+  "all75JarHashesStillMatch": true,
+  "originalJarManifestSha256": "bfedb457aca9c010204841f044fafdc2d0862f154d8d265bd164df928a679cac",
+  "afterJarManifestSha256": "bfedb457aca9c010204841f044fafdc2d0862f154d8d265bd164df928a679cac",
+  "probeSourceSha256": "bd4f7c0e2843f6bae841eaaed26cdcb0db26bd1e0f1ae9b2d2994b7dca96e5dc",
+  "probeClassSha256": "da96e2c79c9f23e70e5e00253f10c8f045f5c68855359eea52a2a05c006feae6",
+  "probeRunnerSha256": "4ab378c93c3b084d7b9578432f83efd1f63f3a4390ec7fdb2c96216549dff1ca",
+  "beforeStatus": "CURRENT",
+  "beforeLatest": "1.6.8",
+  "beforeAtUtc": "2026-11-12T01:00:27.017102964Z",
+  "publicationAtUtc": "2026-11-12T05:47:19Z",
+  "afterStatus": "AVAILABLE",
+  "afterLatest": "1.6.9",
+  "afterAtUtc": "2026-11-12T05:48:37.455279595Z",
+  "selectedMsiUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.msi",
+  "selectedMsiSha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4",
+  "selectedMsiBytes": 148763909,
+  "pinnedManifestPublicKeyConfigured": false,
+  "afterNetworkReads": [
+    {
+      "method": "GET",
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+      "status": 200,
+      "tlsVersion": "TLSv1.3"
+    }
+  ],
+  "windowsAssetSelectionOnlyAfterNetwork": true,
+  "beforeReceipt": {
+    "bytes": 1410,
+    "sha256": "cd449c3611587fa1ebcbb0bd91b41343f9db3cb254e5f4d2ca91838c78bb4fb3"
+  },
+  "beforeIntegrityReceipt": {
+    "bytes": 1937,
+    "sha256": "4609cbded8634ded1ee1926768f21cea152e396a52499a8466a7906a18ffe9ae"
+  },
+  "afterReceipt": {
+    "bytes": 1279,
+    "sha256": "f27efeda95fb4e26553f82ec459a9ae4c0ac6069aa5d4a6610d7b813005e0987"
+  },
+  "afterIntegrityReceipt": {
+    "bytes": 1938,
+    "sha256": "6f98623d382b687a7852eb0d98fa8a5049ae319827734a178404ea0f62a6953e"
+  },
+  "publicPreservationReceipt": {
+    "bytes": 3776,
+    "sha256": "6092e1b2ceaf7f11fe0ae53785201d878cc73b70c1f1c72d76baa7c349076124"
+  },
+  "publicVerifierHelperSha256": "98da641b5298bfd9208460e276492687b2cf02c49ba0c35684a018a122c94efd",
+  "limits": [
+    "Linux runtime with Windows asset selection after actual network reads; no seller popup or installer execution.",
+    "Inherited Cloud proxy and configured trusted CA; repository credentials may be attached by proxy; anonymous access not independently proven.",
+    "No app version override, license activation, signing, seller API requests, Gmail, or publication."
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "result": "PASS",
+  "releaseId": 442540592,
+  "source": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "files": {
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "f1e42bd0702b79b26e152596780fd85add1d5fe65543b1c0d45b94ba63caccbd",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/asset-manifest.json",
+      "assetId": 738249016,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:56.706459+00:00"
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "81ab34282479eb404dfaecad3e344716bf722f573c5da0193fca12e5cbf7d10a",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/build-info.json",
+      "assetId": 738248869,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:56.764640+00:00"
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "1bf3756b9f1e1fc0b1f2d626dfe2871ed3d750ee690c25d80debfd3b08a05c74",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/gs1-smoke.json",
+      "assetId": 738249104,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:56.777945+00:00"
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "62a73e43f6eeec321eb6ffe72d4c6689b5de9c8cd77afd6cdd3b461a956e63ee",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/native-smoke.json",
+      "assetId": 738248934,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:56.695972+00:00"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "d4fbf48b863c98d06dfa952ecad4ff7fc9e891e881f4a9e2f3edecdee621578c",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/previous-baseline.json",
+      "assetId": 738249174,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:57.047549+00:00"
+    },
+    "release-notes.md": {
+      "bytes": 2561,
+      "sha256": "38d90314510761a7fc525c26aeb93099d77b8d0ac5eeb396120e8bb9de82c4b6",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/release-notes.md",
+      "assetId": 738248898,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:57.041084+00:00"
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "08b5e139561c230629a546516564224472383bfe68c414dc47f90addbe261267",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/SHA256SUMS",
+      "assetId": 738249056,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:57.150906+00:00"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "9f2cbe11278cc186afe6d1ccdddc796e9dcdd6ee97a7a3d2c5421c642342fb65",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/side-by-side-smoke.json",
+      "assetId": 738249135,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:57.166071+00:00"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "272446d7de03dc62c4987e4714c211f6b4c04fd9add553d2cc31d500592af093",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/upgrade-baseline-smoke.json",
+      "assetId": 738248979,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:57.413653+00:00"
+    },
+    "VN-code-1.6.9-history.bundle": {
+      "bytes": 46609912,
+      "sha256": "3baedcb176d4a32cf4c1c729d6b8556221c943bf19e340572dff0715a83dee5a",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-history.bundle",
+      "assetId": 738248751,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:48:01.199929+00:00"
+    },
+    "VN-code-1.6.9-source.zip": {
+      "bytes": 39468081,
+      "sha256": "b573a4892c72699ed5e9dffbfd5a5e29f1316a9018466ab5d8ea21211602b793",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-source.zip",
+      "assetId": 738248659,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:59.971790+00:00"
+    },
+    "VN-code-1.6.9-verification.zip": {
+      "bytes": 3028623,
+      "sha256": "ea3f44e862d08a52e5e8b68a2aaca3bfee3ffdc34744780d0f1456dbcff6c9e2",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-verification.zip",
+      "assetId": 738248829,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:47:57.755270+00:00"
+    },
+    "VN-code-1.6.9-Windows-x64.exe": {
+      "bytes": 149432832,
+      "sha256": "b516a2bfb2182a9f0e5f82821cb7f299798258e1764eb0897a410be1985060d1",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.exe",
+      "assetId": 738247908,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:48:04.042521+00:00"
+    },
+    "VN-code-1.6.9-Windows-x64.msi": {
+      "bytes": 148763909,
+      "sha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.msi",
+      "assetId": 738248104,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:48:04.969938+00:00"
+    },
+    "VN-code-1.6.9-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "028627f5f7eff2213a8a46ae87bd2b2982b7d5901dab5921e17dca21238249b3",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.sha256",
+      "assetId": 738248411,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:48:00.385304+00:00"
+    },
+    "VN-code-1.6.9-Windows-x64.zip": {
+      "bytes": 148353662,
+      "sha256": "a43e26199f27458d5264bd86a2c63f2976783cc0ccfc56be92d5bb61961bea58",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.zip",
+      "assetId": 738248459,
+      "reusedExistingPublicDownload": false,
+      "verifiedAtUtc": "2026-11-12T05:48:06.399470+00:00"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "observedAtUtc": "2026-11-12T01:00:58.104976+00:00",
+  "preserveArchives": true,
+  "files": {
+    "docs/validation/vncode-168-20261110/tools/verify-package.py": "f9aa84ff14e11513fcc0079947ca0d884dc3fbabd1152ae30d784887febdeee5",
+    "docs/validation/vncode-168-20261110/tools/check-embedded-msi.py": "8bd43077fc232bd882183542e072ffc64a551c2b36001b894ef3c36251336910"
+  }
+}

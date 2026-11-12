@@ -1,0 +1,63 @@
+{
+  "kind": "VNCODE_169_FINALIZED_PUBLISHER_VALIDATION",
+  "result": "PASS",
+  "time": "2026-11-12T05:45:29.656Z",
+  "candidate": {
+    "pinsFinalized": true,
+    "version": "1.6.9",
+    "source": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+    "build": 43131000128,
+    "workflow": 392732536,
+    "baseline": "1.6.8",
+    "repo": "ntccong2468-lab/Bancapnhat",
+    "releaseId": 442540592,
+    "artifactId": 13918353316,
+    "artifactDigest": "sha256:6c9144d982b1faad81204304ffbb0795bf70754301838e4c36ace9d46fa64221",
+    "java": {
+      "forecast": false,
+      "tests": 4464,
+      "passed": 4462,
+      "skipped": 2
+    },
+    "baselineReleaseId": 440439895,
+    "baselineSource": "38906a2108501029d9609ed1d071ee987c8b2637",
+    "baselineInstallerSha256": "bce16b0cb2eadc155f89c9bafcecd802cf8463272b02aae6e68bf9f105b90707",
+    "baselineInstallerBytes": 149408256
+  },
+  "fullWindows": {
+    "runId": 43131000128,
+    "attempt": 2,
+    "status": "completed",
+    "conclusion": "success",
+    "java": {
+      "tests": 4464,
+      "passed": 4462,
+      "failures": 0,
+      "skipped": 2,
+      "errors": 0
+    }
+  },
+  "review": {
+    "sha256": "a7a16838a673eed05fe2b69fd10a13231d8831933fda7b6deefc960bc1111b3d",
+    "result": "PASS"
+  },
+  "expectedPublicAssets": 16,
+  "node": {
+    "tests": 185,
+    "passed": 185,
+    "failures": 0,
+    "skipped": 0
+  },
+  "diffCheck": "PASS",
+  "onlyThreePublisherFilesChanged": true,
+  "firstAttempt": {
+    "conclusion": "failure",
+    "reason": "Hosted runner lost communication; no Java assertion outcome, artifacts or acceptance evidence"
+  },
+  "publicationPerformed": false,
+  "publisherCommit": "b9635f80f0b125ad33830f71430088358ccc671e",
+  "publisherBranch": "release/vn-code-1.6.9-publication",
+  "remoteCommit": "b9635f80f0b125ad33830f71430088358ccc671e",
+  "worktreeClean": true,
+  "commitPushed": true
+}

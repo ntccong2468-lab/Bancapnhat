@@ -1,0 +1,71 @@
+{
+  "reference": [
+    {
+      "side": "reference",
+      "artifactId": 13769704365,
+      "artifactName": "codeql-java-kotlin",
+      "archiveBytes": 169721,
+      "archiveSha256": "8a4957712fc759364433730d644d4d4bb3f8eec8dcde1f003e125c44bcca7617",
+      "apiDigestMatches": true,
+      "sarif": [
+        {
+          "archiveMember": "java.sarif",
+          "path": "/tmp/vncode-169-release-audit/security-evidence/reference/codeql-java-kotlin/java.sarif",
+          "bytes": 1892025,
+          "sha256": "54c7da389e3b469bcb52629660e485851acc91f51579dbdbc8763c9e7a22a014"
+        }
+      ]
+    },
+    {
+      "side": "reference",
+      "artifactId": 13769649112,
+      "artifactName": "codeql-javascript-typescript",
+      "archiveBytes": 130571,
+      "archiveSha256": "cc7e4c0a042dd09b5e08b56b0b040eb15fe486002c7a4095f43ebe5a59c83a02",
+      "apiDigestMatches": true,
+      "sarif": [
+        {
+          "archiveMember": "javascript.sarif",
+          "path": "/tmp/vncode-169-release-audit/security-evidence/reference/codeql-javascript-typescript/javascript.sarif",
+          "bytes": 1331027,
+          "sha256": "b585ce393712bc725c437edffc0f793af79b9d821b9222a3aecb35097fe4670b"
+        }
+      ]
+    }
+  ],
+  "candidate": [
+    {
+      "side": "candidate",
+      "artifactId": 13905581883,
+      "artifactName": "codeql-java-kotlin",
+      "downloadedAt": "2026-11-12T01:04:30.735595+00:00",
+      "archiveBytes": 170664,
+      "archiveSha256": "24c81790625b3b39bd5c54496deaf9d8fca06780f2fbf9558b288a822d08b2b0",
+      "apiDigestMatches": true,
+      "sarif": [
+        {
+          "archiveMember": "java.sarif",
+          "path": "/tmp/vncode-169-release-audit/security-evidence/candidate/codeql-java-kotlin/java.sarif",
+          "bytes": 1902615,
+          "sha256": "9681297ec1387212eb9b476d8d2d2e988f673352ec9afb975b11326b3ef006ea"
+        }
+      ]
+    },
+    {
+      "side": "candidate",
+      "artifactId": 13905347186,
+      "artifactName": "codeql-javascript-typescript",
+      "archiveBytes": 131589,
+      "archiveSha256": "af51182f7935db5d660575fa8cd80067d25d479cb412c4bdabe84a692b3ded93",
+      "apiDigestMatches": true,
+      "sarif": [
+        {
+          "archiveMember": "javascript.sarif",
+          "path": "/tmp/vncode-169-release-audit/security-evidence/candidate/codeql-javascript-typescript/javascript.sarif",
+          "bytes": 1342653,
+          "sha256": "5fc9c4bf04ff295efc6c01feb17f19f4eea66df959ba52ecc961db2342780e01"
+        }
+      ]
+    }
+  ]
+}

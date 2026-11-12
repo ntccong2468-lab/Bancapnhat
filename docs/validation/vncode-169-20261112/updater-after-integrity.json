@@ -1,0 +1,49 @@
+{
+  "kind": "VNCODE_ORIGINAL_PUBLIC_168_UPDATER_INTEGRITY",
+  "verifiedAtUtc": "2026-11-12T05:48:37.545110+00:00",
+  "stage": "after",
+  "installedBinaryVersion": "1.6.8",
+  "all75OriginalJarHashesUnchanged": true,
+  "originalJarManifest": {
+    "bytes": 12836,
+    "sha256": "bfedb457aca9c010204841f044fafdc2d0862f154d8d265bd164df928a679cac"
+  },
+  "afterJarManifest": {
+    "bytes": 12836,
+    "sha256": "bfedb457aca9c010204841f044fafdc2d0862f154d8d265bd164df928a679cac"
+  },
+  "originalPublicZip": {
+    "bytes": 148326903,
+    "sha256": "5e4a8ac20439df64a61b847571f9cd8581b817f661749481d29fd6c76126e141"
+  },
+  "originalAppJar": {
+    "bytes": 7638569,
+    "sha256": "50debe166d5d09dc31724cf61d48d851abf2e1eb43bb2e3b9828c2462445022a"
+  },
+  "probeSource": {
+    "bytes": 6190,
+    "sha256": "bd4f7c0e2843f6bae841eaaed26cdcb0db26bd1e0f1ae9b2d2994b7dca96e5dc"
+  },
+  "probeClass": {
+    "bytes": 10661,
+    "sha256": "da96e2c79c9f23e70e5e00253f10c8f045f5c68855359eea52a2a05c006feae6"
+  },
+  "probeRunner": {
+    "bytes": 4530,
+    "sha256": "4ab378c93c3b084d7b9578432f83efd1f63f3a4390ec7fdb2c96216549dff1ca"
+  },
+  "updaterReceipt": {
+    "bytes": 1279,
+    "sha256": "f27efeda95fb4e26553f82ec459a9ae4c0ac6069aa5d4a6610d7b813005e0987"
+  },
+  "status": "AVAILABLE",
+  "latestVersion": "1.6.9",
+  "selectedMsiUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.msi",
+  "selectedMsiSha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4",
+  "selectedMsiBytes": 148763909,
+  "limitations": [
+    "Linux runtime with Windows asset selection after actual network reads; no seller popup or installer execution.",
+    "Inherited Cloud proxy and configured trusted CA; repository credentials may be attached by proxy; anonymous access not independently proven.",
+    "No app version override, license activation, signing, seller API requests, Gmail, or publication."
+  ]
+}

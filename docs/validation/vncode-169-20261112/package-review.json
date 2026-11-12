@@ -1,0 +1,171 @@
+{
+  "kind": "VNCODE_169_OFFLINE_CANDIDATE_VERIFICATION",
+  "result": "PASS",
+  "version": "1.6.9",
+  "sourceCommit": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "ciRun": 43131000128,
+  "workflowId": 392732536,
+  "actionArtifactId": 13918353316,
+  "actionArtifactSha256": "6c9144d982b1faad81204304ffbb0795bf70754301838e4c36ace9d46fa64221",
+  "time": "2026-11-12T05:42:41.299833+00:00",
+  "source": {
+    "files": 3193,
+    "onlyExactOrUtf8LineEndings": true,
+    "lineEndingDifferences": 2846
+  },
+  "runtimeInclusion": {
+    "files": 28,
+    "java": 24,
+    "resources": 4,
+    "allConsolidatedRuntimeBytesPreserved": true,
+    "manifestSha256": "083ab74d8e53650aae0df721995aecef0cadb50522ec8379d3894d5042f3cbdc",
+    "developmentWindowsMcpNotAppRuntime": true,
+    "credentialPrototypeExcluded": true
+  },
+  "portable": {
+    "path": "VN code/app/VNcode-1.6.9.jar",
+    "sha256": "da4bf48b8ed32e29f8fb786b344e219a1479e981d3f3219939de9564c111637f",
+    "classesObserved": 2000,
+    "expectedClassCount": 2000,
+    "runtimeChangesChecked": 28,
+    "classCheckScope": "presence, exact2000class count and Java version; exact compiled-byte/source relationship relies on verified build provenance",
+    "dependencies": 74,
+    "testProfilesAndFixturesAbsent": true
+  },
+  "junit": {
+    "totals": {
+      "tests": 4464,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "suites": 565,
+    "skipIdentities": [
+      [
+        "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "privatePermissionsAreAppliedWhereSupported"
+      ],
+      [
+        "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "neverFallsBackToPlaintextOffWindows"
+      ]
+    ],
+    "stress": [
+      {
+        "method": "ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites",
+        "seconds": 2000.651
+      },
+      {
+        "method": "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+        "seconds": 616.892
+      },
+      {
+        "method": "wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay",
+        "seconds": 663.406
+      },
+      {
+        "method": "tenThousandApprovedVariantsSurvivePageBoundariesAppendAndReopenWithoutDispatchingNetworkWrites",
+        "seconds": 17.928
+      },
+      {
+        "method": "threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart",
+        "seconds": 345.277
+      }
+    ],
+    "smokesInnerMatch": true,
+    "scope": "Full JUnit evidence including synthetic 300/10000 tests; not real Catalog writes."
+  },
+  "smokes": {
+    "nativeMigration": "passed",
+    "gs1Dpapi": "passed-by-Windows-smoke",
+    "freshInstallCoexistenceUninstall": "passed",
+    "upgradeFrom": "1.6.8",
+    "baselineExeBytes": 149408256,
+    "baselineExeSha256": "bce16b0cb2eadc155f89c9bafcecd802cf8463272b02aae6e68bf9f105b90707",
+    "passiveExeAndEmbeddedMsi": "bound-to-Windows-extraction-smoke-and-artifact-hashes",
+    "additionalExtractedMsiSupplied": false
+  },
+  "embeddedMsi": {
+    "result": "PASS",
+    "source": "independent-static-PE-resource-read",
+    "resourceType": 10,
+    "resourceName": "MSI",
+    "resourceBytes": 148763909,
+    "resourceSha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4",
+    "exeSha256": "b516a2bfb2182a9f0e5f82821cb7f299798258e1764eb0897a410be1985060d1",
+    "executedInstaller": false
+  },
+  "assets": {
+    "VN-code-1.6.9-Windows-x64.exe": {
+      "bytes": 149432832,
+      "sha256": "b516a2bfb2182a9f0e5f82821cb7f299798258e1764eb0897a410be1985060d1"
+    },
+    "VN-code-1.6.9-Windows-x64.msi": {
+      "bytes": 148763909,
+      "sha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4"
+    },
+    "VN-code-1.6.9-Windows-x64.sha256": {
+      "bytes": 97,
+      "sha256": "028627f5f7eff2213a8a46ae87bd2b2982b7d5901dab5921e17dca21238249b3"
+    },
+    "VN-code-1.6.9-Windows-x64.zip": {
+      "bytes": 148353662,
+      "sha256": "a43e26199f27458d5264bd86a2c63f2976783cc0ccfc56be92d5bb61961bea58"
+    },
+    "VN-code-1.6.9-source.zip": {
+      "bytes": 39468081,
+      "sha256": "b573a4892c72699ed5e9dffbfd5a5e29f1316a9018466ab5d8ea21211602b793"
+    },
+    "VN-code-1.6.9-history.bundle": {
+      "bytes": 46609912,
+      "sha256": "3baedcb176d4a32cf4c1c729d6b8556221c943bf19e340572dff0715a83dee5a"
+    },
+    "VN-code-1.6.9-verification.zip": {
+      "bytes": 3028623,
+      "sha256": "ea3f44e862d08a52e5e8b68a2aaca3bfee3ffdc34744780d0f1456dbcff6c9e2"
+    },
+    "build-info.json": {
+      "bytes": 769,
+      "sha256": "81ab34282479eb404dfaecad3e344716bf722f573c5da0193fca12e5cbf7d10a"
+    },
+    "release-notes.md": {
+      "bytes": 2561,
+      "sha256": "38d90314510761a7fc525c26aeb93099d77b8d0ac5eeb396120e8bb9de82c4b6"
+    },
+    "native-smoke.json": {
+      "bytes": 286,
+      "sha256": "62a73e43f6eeec321eb6ffe72d4c6689b5de9c8cd77afd6cdd3b461a956e63ee"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 831,
+      "sha256": "272446d7de03dc62c4987e4714c211f6b4c04fd9add553d2cc31d500592af093"
+    },
+    "asset-manifest.json": {
+      "bytes": 1747,
+      "sha256": "f1e42bd0702b79b26e152596780fd85add1d5fe65543b1c0d45b94ba63caccbd"
+    },
+    "SHA256SUMS": {
+      "bytes": 1099,
+      "sha256": "08b5e139561c230629a546516564224472383bfe68c414dc47f90addbe261267"
+    },
+    "gs1-smoke.json": {
+      "bytes": 286,
+      "sha256": "1bf3756b9f1e1fc0b1f2d626dfe2871ed3d750ee690c25d80debfd3b08a05c74"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 409,
+      "sha256": "9f2cbe11278cc186afe6d1ccdddc796e9dcdd6ee97a7a3d2c5421c642342fb65"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "d4fbf48b863c98d06dfa952ecad4ff7fc9e891e881f4a9e2f3edecdee621578c"
+    }
+  },
+  "helperSha256": "14a790dc658ffdb3f4cdf30259e2b8ef15898b2abd89d7d107f3f6054a1c66b9",
+  "scope": "Read-only downloaded bytes and recorded CI/smoke metadata; no installer execution, seller API, release mutation, or network.",
+  "limitations": [
+    "Class/source linkage relies on exact source archive and CI provenance; no independent recompilation.",
+    "Native installation/upgrade behavior is attested by CI; this verifier independently reads EXE MSI resource bytes without executing them.",
+    "No seller machine, actual KIZ purchase or Catalog write verified."
+  ]
+}

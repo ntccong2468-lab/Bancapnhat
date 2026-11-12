@@ -1,0 +1,291 @@
+{
+  "id": 42828869332,
+  "workflow_id": 403818652,
+  "name": "Security and workflow checks",
+  "event": "workflow_dispatch",
+  "run_attempt": 1,
+  "head_sha": "38906a2108501029d9609ed1d071ee987c8b2637",
+  "status": "completed",
+  "conclusion": "failure",
+  "created_at": "2026-11-10T13:54:40Z",
+  "run_started_at": "2026-11-10T13:54:40Z",
+  "updated_at": "2026-11-10T13:59:07Z",
+  "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332",
+  "jobs": [
+    {
+      "id": 129873302165,
+      "name": "codeql (java-kotlin, manual)",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-11-10T13:54:43Z",
+      "completed_at": "2026-11-10T13:59:06Z",
+      "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873302165",
+      "steps": [
+        {
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+          "number": 3,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize CodeQL",
+          "number": 4,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Compile Java for analysis",
+          "number": 5,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Analyze without write permissions",
+          "number": 6,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Gate on high, critical or unclassified security findings",
+          "number": 7,
+          "status": "completed",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Preserve CodeQL findings for review",
+          "number": 8,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Analyze without write permissions",
+          "number": 13,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Initialize CodeQL",
+          "number": 14,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+          "number": 15,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 16,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "number": 17,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 129873302367,
+      "name": "lint-and-audit",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-10T13:54:43Z",
+      "completed_at": "2026-11-10T13:55:02Z",
+      "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873302367",
+      "steps": [
+        {
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 3,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check workflow syntax and expressions",
+          "number": 4,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check portal JavaScript syntax",
+          "number": 5,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install portal dependencies without lifecycle scripts",
+          "number": 6,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test portal",
+          "number": 7,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test release and security tools",
+          "number": 8,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Audit the portal lockfile, including development dependencies",
+          "number": 9,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+          "number": 17,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 18,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "number": 19,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 129873302404,
+      "name": "codeql (javascript-typescript, none)",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-10T13:54:43Z",
+      "completed_at": "2026-11-10T13:57:22Z",
+      "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873302404",
+      "steps": [
+        {
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 2,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95",
+          "number": 3,
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Initialize CodeQL",
+          "number": 4,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Compile Java for analysis",
+          "number": 5,
+          "status": "completed",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Analyze without write permissions",
+          "number": 6,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Gate on high, critical or unclassified security findings",
+          "number": 7,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Preserve CodeQL findings for review",
+          "number": 8,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Analyze without write permissions",
+          "number": 14,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Initialize CodeQL",
+          "number": 15,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+          "number": 16,
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "number": 17,
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 129873304233,
+      "name": "changed-dependencies",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-11-10T13:54:42Z",
+      "completed_at": "2026-11-10T13:54:41Z",
+      "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873304233",
+      "steps": []
+    },
+    {
+      "id": 129873306115,
+      "name": "openqodex-scan",
+      "status": "completed",
+      "conclusion": "skipped",
+      "started_at": "2026-11-10T13:54:42Z",
+      "completed_at": "2026-11-10T13:54:41Z",
+      "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/42828869332/job/129873306115",
+      "steps": []
+    }
+  ]
+}

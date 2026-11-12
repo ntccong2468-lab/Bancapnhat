@@ -1,0 +1,16 @@
+{
+  "status": 204,
+  "dispatchedAtUtc": "2026-11-12T05:46:20.536979+00:00",
+  "workflowId": 384766397,
+  "publisherCommit": "b9635f80f0b125ad33830f71430088358ccc671e",
+  "releaseId": 442540592,
+  "payload": {
+    "ref": "release/vn-code-1.6.9-publication",
+    "inputs": {
+      "release_source_ref": "b9635f80f0b125ad33830f71430088358ccc671e",
+      "build_run_id": "43131000128",
+      "build_source_commit": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+      "mode": "owner-requested-169"
+    }
+  }
+}
