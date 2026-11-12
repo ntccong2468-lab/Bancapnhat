@@ -61,12 +61,12 @@ jobs:
           "BASELINE_UPGRADE_REQUIRED=$((-not $baseline.skipUpgrade).ToString().ToLowerInvariant())" >> $env:GITHUB_ENV
       - name: Verify release tools
         run: node --test tools/*.test.mjs
-      - name: Verify Windows UI, Ozon label ordering, wrapper and Catalog cooldown fixtures
+      - name: Verify Windows UI, purchase circulation, product documents and Catalog fixtures
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-baseline-preflight-${{ github.run_id }}
         run: |
-          .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,OzonLabelServiceTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest,FashionTnvedBrowserTest,ZnackCardRegistrationControllerTest,CryptoProCertificateDiscoveryServiceTest,ZnackCertificateDiscoveryUiTest,CryptoProCertificateRoutingTest' test
+          .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,OzonLabelServiceTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest,FashionTnvedBrowserTest,ZnackCardRegistrationControllerTest,CryptoProCertificateDiscoveryServiceTest,ZnackCertificateDiscoveryUiTest,CryptoProCertificateRoutingTest,RegistrationDocumentConfigDialogTest,ZnackSettingsAreaRepositoryTest,ZnackCirculationPolicyTest,ZnackOwnedCisReadbackTest,ZnackIntroductionSubmissionOutcomeTest,ZnackCirculationMessagesTest,KizPurchaseStatusPresentationTest,ProductRefreshBatchRegressionTest,ProductDocumentVerificationReadbackTest,OzonDocumentReadbackIntegrityTest,OzonCatalogPaginationTest,ProductRefreshUiTest' test
           if($LASTEXITCODE -ne 0){throw 'Windows fixture preflight failed.'}
           # A fresh JavaFX process inherits the desktop pointer left by preflight.
           # Exercise that boundary before starting the long, unfiltered full suite.
