@@ -1,0 +1,10 @@
+{
+  "baselineCode": "a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3",
+  "baselineProductsClassSha256": "dd41e9284d75135055d09dc7c2c9240785f6c9500e03a668dc665d8a5ee6f39f",
+  "testSourceSha256": "8f41963c3aad7b9128ff94801a77ba8e841daa96ddb1132a5c155d96a388a456",
+  "compileExitCode": 0,
+  "testExitCode": 1,
+  "logSha256": "11a1a39c5182e72c6569a729d9a98717b6d283406a266d218b745a41e13846e8",
+  "noMaven": true,
+  "noSellerApiOrProductionStartup": true
+}

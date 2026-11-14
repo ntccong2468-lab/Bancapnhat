@@ -1,0 +1,134 @@
+{
+  "baselineOtherClasses": "c605bdd89eb48b908065fca2633f0dbeea4081ad",
+  "scope": "Isolated current ProductsPane and unchanged original regressions; rest C605 classes/CSS",
+  "compileExit": 0,
+  "testExit": 0,
+  "noMaven": true,
+  "testExtensionAsConfiguredInPom": true,
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/ui/products/ProductsPane.java": "91fb0e2442b1a1ce92200379c20d6fb78d7b44fde780b33e689b31b9fbf96fa7",
+    "src/test/java/com/vncode/app/ui/products/ProductColumnHierarchyTest.java": "8f41963c3aad7b9128ff94801a77ba8e841daa96ddb1132a5c155d96a388a456"
+  },
+  "logSha256": "892a5397f579b8e79818e9715d641c205e4f03ac1cc70700ea540915e4335607",
+  "actualTests": {
+    "found": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "aborted": 0
+  },
+  "actualElapsedMs": 14998,
+  "areas": [
+    {
+      "page": "wb-fbs",
+      "viewportWidth": 940,
+      "viewportHeight": 650,
+      "listWidth": 899,
+      "listHeight": 440
+    },
+    {
+      "page": "products",
+      "viewportWidth": 940,
+      "viewportHeight": 650,
+      "listWidth": 899,
+      "listHeight": 387
+    },
+    {
+      "page": "wb-registration",
+      "viewportWidth": 940,
+      "viewportHeight": 650,
+      "listWidth": 899,
+      "listHeight": 389
+    },
+    {
+      "page": "ozon-registration",
+      "viewportWidth": 940,
+      "viewportHeight": 650,
+      "listWidth": 899,
+      "listHeight": 382
+    },
+    {
+      "page": "ozon-fbs",
+      "viewportWidth": 940,
+      "viewportHeight": 650,
+      "listWidth": 899,
+      "listHeight": 412
+    },
+    {
+      "page": "wb-fbs",
+      "viewportWidth": 1200,
+      "viewportHeight": 720,
+      "listWidth": 1159,
+      "listHeight": 510
+    },
+    {
+      "page": "products",
+      "viewportWidth": 1200,
+      "viewportHeight": 720,
+      "listWidth": 1159,
+      "listHeight": 471
+    },
+    {
+      "page": "wb-registration",
+      "viewportWidth": 1200,
+      "viewportHeight": 720,
+      "listWidth": 1159,
+      "listHeight": 467
+    },
+    {
+      "page": "ozon-registration",
+      "viewportWidth": 1200,
+      "viewportHeight": 720,
+      "listWidth": 1159,
+      "listHeight": 481
+    },
+    {
+      "page": "ozon-fbs",
+      "viewportWidth": 1200,
+      "viewportHeight": 720,
+      "listWidth": 1159,
+      "listHeight": 466
+    },
+    {
+      "page": "wb-fbs",
+      "viewportWidth": 1480,
+      "viewportHeight": 900,
+      "listWidth": 1439,
+      "listHeight": 690
+    },
+    {
+      "page": "products",
+      "viewportWidth": 1480,
+      "viewportHeight": 900,
+      "listWidth": 1439,
+      "listHeight": 651
+    },
+    {
+      "page": "wb-registration",
+      "viewportWidth": 1480,
+      "viewportHeight": 900,
+      "listWidth": 1439,
+      "listHeight": 647
+    },
+    {
+      "page": "ozon-registration",
+      "viewportWidth": 1480,
+      "viewportHeight": 900,
+      "listWidth": 1439,
+      "listHeight": 661
+    },
+    {
+      "page": "ozon-fbs",
+      "viewportWidth": 1480,
+      "viewportHeight": 900,
+      "listWidth": 1439,
+      "listHeight": 646
+    }
+  ],
+  "unchangedTestsComparedWithC605": [
+    "ProductBulkDialogTest.java",
+    "WorkspaceListAreaTest.java",
+    "ProductReferenceLayoutTest.java",
+    "ProductColumnHierarchyTest.java"
+  ]
+}

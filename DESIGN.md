@@ -1,6 +1,6 @@
 ---
 name: VN Code — Native Liquid Glass Workbench
-description: Native JavaFX workbench with bounded navigation material, opaque work sheets and clear store ownership.
+description: Native JavaFX workbench with floating glass throughout internal surfaces and clear store ownership.
 colors:
   bg-primary: '#17181b'
   nav-surface: '#292a2e'
@@ -275,20 +275,20 @@ components:
 
 **Creative North Star: "Liquid Glass Workbench"**
 
-Liquid Glass Workbench is VN Code’s user-approved Apple-inspired direction adapted to its Java 25 / JavaFX Windows application. Pearl and charcoal grounds support floating navigation and a compact toolbar; opaque work sheets keep order, product and registration data as the visual center. Bundled Inter, one blue action family, fine rules and the supplied black VN logo retain the product’s identity without proprietary Apple assets.
+Liquid Glass Workbench is VN Code’s user-approved Apple-inspired direction adapted to its Java 25 / JavaFX Windows application. Pearl and charcoal grounds support floating navigation and a compact toolbar; large floating glass work sheets keep order, product and registration data as the visual center. Bundled Inter, one blue action family, fine rules and the supplied black VN logo retain the product’s identity without proprietary Apple assets.
 
-Material is bounded JavaFX background paint with inset highlights and small chrome shadows. It does not sample or blur the operating-system backdrop. Light and dark themes share geometry; the saved material amount changes chrome and eligible overlays without fading text, table rows or the window. Contextual, interruptible native motion connects an action to its result while preserving the underlying working context.
+Material now combines bounded JavaFX paints with a shared app wallpaper and background-only blur, inset highlights and small chrome shadows. It samples the data-free app wallpaper, never seller content or the operating-system backdrop. Light and dark themes share geometry; the saved material amount changes chrome and internal panels, fields, buttons, working controls and overlays without fading text or the window. Contextual, interruptible native motion connects an action to its result while preserving the underlying working context.
 
 This root record merges the approved 2026-11-08 visual direction with the incumbent product and ownership constraints. [PRODUCT.md](PRODUCT.md) remains the product authority: existing handlers, licensing, confirmations, shop scope, label output and remote-readback requirements remain binding. The earlier [native direction record](docs/design/2026-11-04-native-implementation.md), [preview design](docs/design/previews/2026-11-04/DESIGN.md) and [native capture archive](docs/design/native/2026-11-04/README.md) remain historical evidence for the preceding implementation.
 
 The approved external proposal is recorded in [DESIGN_ARCHITECTURE.md](../vncode-apple-preview-20261108/proposal/docs/DESIGN_ARCHITECTURE.md), [MOTION.md](../vncode-apple-preview-20261108/proposal/docs/MOTION.md) and its [direction contract](../vncode-apple-preview-20261108/reports/direction-contract.md). The contract was captured after initial preview code; its approval-pending language describes that historical preview stage. The Apple direction was user-pinned, not chosen by a random seed. The preview’s recorded seed (`a04f3def2f017b05`) describes that exploration only; the older seed (`4d76fcce170bad27`) remains attached to the older approved direction with its original provenance limitation.
 
-The current token source is [theme.css](src/main/resources/com/vncode/app/styles/theme.css), then [workspace-controls.css](src/main/resources/com/vncode/app/styles/workspace-controls.css), then the material paints installed by [ThemeService](src/main/java/com/vncode/app/shared/ThemeService.java). Native geometry and behavior come from FXML and the workspace controllers. The external HTML preview, its videos and these documentation swatches do not certify current JavaFX behavior. Current native capture and interaction validation is pending at [the native evidence workspace](../vncode-native-glass-20261108/); no Windows performance, installer or marketplace acceptance claim follows from this source snapshot.
+The current token source is [theme.css](src/main/resources/com/vncode/app/styles/theme.css), then [workspace-controls.css](src/main/resources/com/vncode/app/styles/workspace-controls.css), then the material paints installed by [ThemeService](src/main/java/com/vncode/app/shared/ThemeService.java) and cached wallpaper samples from [WorkspaceBackdropMaterial](src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java). Native geometry and behavior come from FXML and the workspace controllers. The external HTML preview and these documentation swatches do not certify current JavaFX behavior. Current native capture and interaction validation is recorded in [the source handoff](docs/validation/ios-motion-20261114/REPORT.md); no Windows performance, installer or marketplace acceptance claim follows from this source snapshot.
 
 **Key Characteristics:**
 
 - Pearl and charcoal grounds, blue action and focus, and written semantic states.
-- Floating navigation and toolbar around large opaque, virtualized work sheets.
+- Floating navigation, toolbar and large glass work sheets with virtualized data.
 - Bundled Inter, shared line icons and stable control bounds in both themes.
 - Visible store identity, Add inside Manage, and the existing named delete confirmation.
 - Native settings with Light, Dark and System, material control and reduced motion.
@@ -298,7 +298,7 @@ The current token source is [theme.css](src/main/resources/com/vncode/app/styles
 
 Pearl and white working surfaces pair with charcoal and pale ink in the dark theme. Blue identifies action, focus and selection; semantic green, amber and red accompany written operational states.
 
-The frontmatter is normative. Unprefixed names record dark-theme looked-up paints without their JavaFX leading hyphen; `light-` names record differences in the light theme. Shared colors keep the unprefixed value. Component tokens describe the dark variant; light controls substitute the corresponding light paint. The material colors record the effective runtime default amount (55), not the stylesheet-only fallback.
+The frontmatter records the shared base palette and component geometry. Solid `ui-*` and sheet swatches are fallback paints; enabled glass adds wallpaper samples and the dedicated translucent tints supplied by ThemeService. The current runtime CSS, ThemeService and latest all-surface contract below are authoritative for those variants. Unprefixed names describe dark-theme paints without their JavaFX leading hyphen; `light-` names record light-theme differences. Material swatches describe the saved default amount (55).
 
 ### Primary
 
@@ -316,20 +316,20 @@ The frontmatter is normative. Unprefixed names record dark-theme looked-up paint
 | --- | --- | --- |
 | Charcoal / Pearl Ground | `bg-primary` | Ground behind the floating shell. |
 | Opaque Navigation | `nav-surface` | Solid fallback when material is disabled. |
-| Charcoal Sheet / White Sheet | `bg-secondary`, `ui-panel`, `ui-field`, `ui-table-header` | Opaque data, fields, cards and detail content. |
+| Charcoal Sheet / White Sheet | `bg-secondary`, `ui-panel`, `ui-field`, `ui-table-header` | Readable translucent data, fields, cards and detail content; solid fallback when glass is disabled. |
 | Quiet Control | `ui-control`, `ui-control-hover`, `ui-control-pressed` | Stable ordinary action states. |
 | Pale Ink / Carbon Ink | `text-primary` | Main labels and working content. |
 | Secondary / Muted Ink | `text-secondary`, `text-muted` | Supporting text, metadata and prompts. |
 | Fine Rule / Strong Boundary | `border-color`, `border-color-hover`, `row-rule`, `ui-input-border` | Dividers, row rules and interactive boundaries. |
-| Navigation Material | `glass-surface`, `glass-elevated`, `glass-highlight` | Background paints and inset highlights for chrome and eligible overlays. |
+| Floating Material | `glass-surface`, `glass-elevated`, `glass-highlight` | Cached app-background blur beneath alpha paints and inset highlights throughout internal surfaces. |
 
 Success, danger and warning retain their named text/surface pairs. Filled variants use separate fills and contrasting `on-semantic` or `on-warning` ink. Selection combines fill, written state and native control state rather than color alone.
 
-`ThemeService` preserves existing `app_theme`, `glass_transparency` and `ui_reduced_motion` preferences and adds the saved `glass_enabled` switch. The amount is bounded from zero to one hundred. Both themes apply it to consumed material paints only; fields, lists, tables, dialogs and drawer content retain opaque semantic paints. Turning material off uses solid navigation and overlay surfaces with the same geometry. This is a paint fallback, not native OS backdrop blur. Exact formulas and stylesheet fallback values live in the sidecar.
+`ThemeService` preserves existing `app_theme`, `glass_transparency` and `ui_reduced_motion` preferences and adds the saved `glass_enabled` switch. The amount is bounded from zero to one hundred. Both themes apply it to consumed material paints; fields, lists, tables, dialogs and drawer surfaces use dedicated readable translucent tints; foreground text and semantic state colours remain solid. Turning material off uses solid surfaces with the same geometry. Enabled material samples the cached app wallpaper below the final alpha tint; it is not native OS desktop capture or UIKit optical refraction. Four shared 960×600 rasters hold the two themes and their preblurred variants (8.79 MiB raw pixels; not total process memory). Content, field, control and header tint formulas were updated for the latest all-surface brief; the navigation formula is unchanged.
 
 **The Shared Palette Rule.** Use the active theme’s semantic paints for common controls and data states; marketplace identity does not introduce a competing page palette.
 
-**The Text Stays Solid Rule.** Apply material preference to chrome and eligible overlay background paints only. Text, working rows, control boundaries, selection and the application window retain their own paints and opacity.
+**The Text Stays Solid Rule.** Apply material preference to background paints. Text, control boundaries, selection and the application window retain their own paints and opacity. Normal data rows are transparent over a single shared material surface.
 
 ## Typography
 
@@ -358,15 +358,15 @@ The desktop shell has outer inset (8px), a sidebar-to-content gap (10px) and hea
 
 The floating header is (52px) with inset (7px / 12px). Below header content width (800px), the store selector changes preferred width from (220px) to (180px), Manage and Find Action show their named icons, and secondary diagnostics remain in overflow. The theme shortcut stays accessible in the header. Manage sits beside the store name and contains Edit and Add; the small delete action remains separate and confirmed. Add is not a sidebar destination.
 
-The recurring work sheet uses the shared sheet inset (20px), with shared cards at the smaller inset (16px). The final workspace stylesheet supplies the effective sheet treatment over older constructor/FXML defaults. Heading/filter groups are compact and the list takes available height. Ordinary navigation has minimum/preferred height (36px); buttons have minimum height (34px), shared fields (36px) and header icons (34 × 34px). Hover, press and focus do not change bounds.
+The recurring work sheet uses the shared sheet inset (20px), with shared cards at the smaller inset (16px). The final workspace stylesheet supplies the effective sheet treatment over older constructor/FXML defaults. Heading/filter groups are compact and the list takes available height. Ordinary navigation has minimum/preferred height (36px); buttons have minimum height (34px), shared fields (36px) and header icons (34 × 34px). Hover, press and focus do not change allocated layout bounds; transient visual transforms remain within their motion context.
 
-Dense list CSS establishes a minimum row height (70px), while source-owned content sizing remains authoritative: product cells are fixed (76px), Ozon rows use (76px) plus (68px) for each additional item, and registration rows may retain their existing content calculation. Do not compress a multi-item order to the minimum. Shared table headers request (36px); domain-specific layouts may need their own widths. Virtualized lists keep internal scrolling. The shared viewport can scroll the whole page in a short window while retaining room for list content and actions.
+Dense list CSS establishes a minimum row height (70px), while source-owned content sizing remains authoritative: current product cells are fixed (72px), Ozon rows use (76px) plus (68px) for each additional item, and registration rows may retain their existing content calculation. Do not compress a multi-item order to the minimum. Shared table headers request (36px); domain-specific layouts may need their own widths. Virtualized lists keep internal scrolling. The shared viewport can scroll the whole page in a short window while retaining room for list content and actions.
 
 Batch controls use their own footer space below the list, with a fine top rule and shared minimum height (52px); action groups wrap instead of covering the last row. The overview retains task links/news and the removal of its old three-counter band.
 
 ## Elevation & Depth
 
-Navigation material floats above the ground through layered paints, an inset highlight and a small downward shadow. Opaque work sheets, rows, ordinary controls and read-only content remain flat, separated by tone and fine rules. This bounded native treatment is the implementation of the approved glass direction; JavaFX has no Chromium `backdrop-filter`, and no OS backdrop capture, transparent-window effect or JNI/FFM dependency is implied.
+Navigation material floats above the ground through layered paints, an inset highlight and a small downward shadow. Working sheets, controls and read-only surfaces now share the floating glass material. Normal rows are transparent over one cached table/list backdrop; selection, focus and semantic states remain distinct. The updated native treatment supplies an unblurred wallpaper ground and samples genuinely blurred wallpaper pixels under chrome/dialog/popup materials using rounded BackgroundFill ImagePatterns. It never wraps the scene root, adds decorative children, blurs foreground text or alters window opacity. Sampling tracks owner geometry and is coalesced on layout/resize/theme events, not animation frames. JavaFX has no Chromium `backdrop-filter`; no OS desktop capture or JNI/FFM dependency is introduced.
 
 | Native effect | Purpose |
 | --- | --- |
@@ -374,11 +374,11 @@ Navigation material floats above the ground through layered paints, an inset hig
 | `dropshadow(gaussian, rgba(0,0,0,.06), 8, 0, 0, 2)` | Toolbar chrome. |
 | `dropshadow(gaussian, rgba(0,0,0,.14), 18, 0, 0, 5)` | Menu, choice and date popup. |
 | `dropshadow(gaussian, rgba(0,0,0,.12), 10, 0, 0, 3)` | Tooltip. |
-| `innershadow(gaussian,-focus,1,1,0,0)` | Input keyboard focus boundary. |
+| Theme focus border with the ordinary field shadow retained | Input keyboard focus boundary; no InnerShadow that floods a translucent field during material refresh. |
 
-Material-disabled chrome removes its highlight/shadow treatment and keeps solid surfaces. Popup and dialog contents use the current theme; no per-row blur or effect is part of the shared system.
+Material-disabled chrome removes its wallpaper samples and highlight/shadow treatment and keeps solid surfaces. Popup and dialog contents use the current theme; no per-row blur or effect is part of the shared system.
 
-**The Bordered Sheet Rule.** Keep opaque working sheets flat and separate them with tone and fine rules. Use the bounded native shadows for floating chrome and temporary popups.
+**The Floating Sheet Rule.** Use a shared rounded glass background, fine rules and bounded elevation for working sheets and temporary popups. Avoid a second square enclosing wrapper. Virtualized row controls use rounded containment; the surrounding sheet supplies their shadow.
 
 ## Shapes
 
@@ -400,11 +400,11 @@ Product repair filters use warning surface/text and a compact corner. Selected r
 
 ### Cards / Containers
 
-An opaque, inset work sheet is the recurring container. Shared cards use the same sheet fill and fine border with their smaller internal inset (16px). Overview task entries/news keep their existing divider-led presentation. Hover uses the quieter row paint; selection uses its own fill and native state; keyboard focus remains visible. Material belongs to surrounding chrome and eligible overlays, not the scrolling data.
+A floating, inset glass work sheet is the recurring container. Shared cards use the same material and fine border with their smaller internal inset (16px). Overview task entries/news keep their existing divider-led presentation. Hover uses the quieter row paint; selection uses its own fill and native state; keyboard focus remains visible. Scrolling data shares one backdrop beneath transparent normal rows, without per-row blur or image copies.
 
 ### Inputs / Fields
 
-Fields, combo boxes and choices use a solid field paint, strong boundary and the control corner. Prompt text is muted. Focus adds the theme boundary and inner focus effect; errors use a danger boundary. Checked and mixed checkbox states use action fill and `on-accent` mark, including dark-theme dark ink. Choice/date popups inherit current theme paints and native keyboard behavior.
+Fields, combo boxes and choices use a readable glass field paint, strong boundary and the control corner, with solid fallback when glass is disabled. Prompt text is muted. Focus uses the theme boundary while retaining the ordinary field shadow; errors use a danger boundary. Checked and mixed checkbox states use action fill and `on-accent` mark, including dark-theme dark ink. Choice/date popups inherit current theme paints and native keyboard behavior.
 
 ### Navigation
 
@@ -420,19 +420,21 @@ Find Action opens the native palette, also available with Ctrl+K on Windows. It 
 
 ### Read-only detail drawer
 
-The solid rounded drawer overlays the right edge of a retained list with preferred width (420px), bounded by the smaller of (480px) or ninety percent of its host, and inset (18px). The heading/close action stay above a vertically scrolling body of labelled, wrapping values. Copy actions retain full supplied identifiers. Opening focuses Close; Escape closes; closing restores the earlier focus owner if still in the same scene. Product editing remains a protected modal; no separate product-detail route or shared-image transition is claimed.
+The rounded glass drawer overlays the right edge of a retained list with preferred width (420px), bounded by the smaller of (480px) or ninety percent of its host, and inset (18px). The heading/close action stay above a vertically scrolling body of labelled, wrapping values. Copy actions retain full supplied identifiers. Opening focuses Close; Escape closes; closing restores the earlier focus owner if still in the same scene. Product editing remains a protected modal; no separate product-detail route or shared-image transition is claimed.
 
 ### Motion and draft feedback
 
-[WorkspaceMotionTokens](src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java), [WorkspaceMotion](src/main/java/com/vncode/app/shared/WorkspaceMotion.java) and native navigation boundaries implement relationship-based motion. Independent route content enters with a small vertical offset (6px) over (200ms); shared header/sidebar remain in place. Native tabs/selected-count feedback use (150ms). Opening a WB supply for printing uses Forward and returning from its detail uses Back, with offsets (22px / -18px) over (260ms). Other independent destinations use Sibling; product editing remains modal. The sidebar indicator and manual-collapse content adjustment use (220ms).
+[WorkspaceMotionTokens](src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java), [WorkspaceMotion](src/main/java/com/vncode/app/shared/WorkspaceMotion.java), [MotionBoundary](src/main/java/com/vncode/app/shared/MotionBoundary.java) and [WorkspaceInteractionMotion](src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java) are the current native contract. Independent routes use Sibling (240ms, 6px entry offset); Forward/Back use 300ms with 22px/−18px offsets; tabs use 180ms. A bounded bitmap of the departing viewport can exit while the new page is already live. Rapid navigation retains at most one departure per boundary; no old controller or business completion is retained. Shared header/sidebar remain in place.
 
-Dialogs enter with local scale (.96 → 1) and fade over (240ms); popups use (.97 → 1) over (170ms), with a bounded local pivot. Drawers enter from (30px) over (220ms), close over (130ms), and restore focus. Draft feedback enters from (8px) over (180ms). These use the native arrival spline `(.16, 1, .3, 1)`. Closing native dialogs is not recorded as the preview’s separate close animation.
+Dialogs and popups use contextual scale with a bounded local pivot. Modal open/close tokens are 240/150ms and popover open/close tokens 170/120ms. Drawer open/close is 220/130ms; draft feedback is 180ms. Transform springs are bounded for their context; whole-window roots use a critically damped envelope that never scales beyond the viewport. Foreground/window opacity is preserved. Native close, result and cleanup are immediate; only an input-transparent visual ghost can perform the exit effect.
 
-The system reduced-motion preference or saved manual preference removes spatial movement and scale; the shared helper retains a short opacity response (.85 → 1 over 40ms). Sidebar movement updates directly. The helper cancels previous motion, restores original transforms/opacity and cleans up when detached or hidden. No animation snapshots the table, adds row entrances, delays API work or proves a remote save. Settings drafts remain bound to complete store identity, and signing/destructive operations retain their guarded dialogs.
+A report with text input, passwords, canvas or WebView uses a silhouette for exit, preserving entered content from snapshots. Read-only reports may use a bounded snapshot. Store changes invalidate old report pixels. Local press/release and keyboard feedback do not consume, refire, delay or duplicate business actions; text entry, scrollbar and canvas geometry remain unchanged.
+
+System or saved reduced-motion preference removes spatial movement and scale; eligible state feedback may retain the 40ms opacity response. Cancellation restores owned transforms and removes temporary layers. No per-row entrance, blur or artificial API delay is introduced. A bounded viewport departure snapshot can include visible rendered rows, but does not retain the old controller. Newly mounted logical ScrollPane/Tab content keeps its material attachment listener until its native skin joins the Scene; reduced motion needs no theme toggle to receive glass.
 
 **The Continuity Rule.** Keep the selected record, list and store identity intact through local feedback. Reduced motion completes the same state and focus updates without spatial movement.
 
-The [.impeccable/design.json](.impeccable/design.json) sidecar holds effects, motion, layout thresholds, material behavior and self-contained HTML/CSS translations for documentation. Its color ramps are generated display aids, not additional runtime paints. Current native/Windows validation remains pending; preview measurements are not native performance results.
+The [.impeccable/design.json](.impeccable/design.json) sidecar holds effects, motion, layout thresholds, material behavior and self-contained HTML/CSS translations for documentation. Its color ramps are generated display aids, not additional runtime paints. The current source handoff records the final 43b native capture and focused tests. Windows build/release and seller acceptance are separate; preview measurements are not native performance results.
 
 ## Do's and Don'ts
 
@@ -453,3 +455,22 @@ The [.impeccable/design.json](.impeccable/design.json) sidecar holds effects, mo
 - **Don’t** add per-row entrances, artificial task delays or decorative animation to the working lists.
 - **Don’t** promise OS backdrop blur, shared-product-image routing or browser View Transitions from this native implementation.
 - **Don’t** treat synthetic screenshots, HTML swatches or source inspection as marketplace readback, Windows performance or installer verification.
+
+
+### Historical material follow-up — 2026-11-14
+
+The user rejected the flat ground/paint-only appearance and the square wrappers around rounded report content. This request supersedes the earlier paint-fallback limit, while retaining opaque work lists and all product behavior. Source/test checkpoint `b00d577a85bc82720fa40f93151ccfcc66622f56` adds the cached app-background blur and removes app-owned square DialogPane content backgrounds and standalone table-header corner overpaint. Native OS captions remain native. [Current implementation/evidence](docs/validation/ios-motion-20261114/REPORT.md) distinguishes this source from the earlier audit and 1ed video checkpoint; it does not claim pixel-identical iOS or Windows seller acceptance.
+
+
+### All internal surfaces and app-dialog frames — latest user steering
+
+The user then explicitly required floating glass inside every page, table, field, button, menu, Settings group and report; keeping working areas opaque is no longer the approved appearance contract. Foreground opacity, contrast thresholds, data, actions and virtualization remain binding. The shared content/field/control/header alpha at amount55 is .719/.779/.699/.779, with solid fallback when glass is disabled. Four cached wallpaper rasters are still shared; no per-row captures or blur/effects are added. Table/List/Tree controls get caller-safe rounded containment; their floating sheet/dialog supplies elevation because a whole-Control clip also clips that Control's shadow.
+
+Owned Dialogs explicitly opt into transparent rounded presentation before first show; the original DialogPane remains the Scene root and retains header, content, buttons, results, close veto, owner and modality. A small unmanaged titlebar supplies close/drag/conditional resize; ordinary app Stages and native OS pickers/signature windows keep their existing window policy. Settings loses the full opaque enclosing card and uses padded floating sections. Print-designer outer workspace is glass while the white printable paper subtree stays byte-identical. UI hint copy now describes the full scope in all four locales. Earlier opaque-table test expectations are archived and superseded explicitly rather than treated as business failures. Source and final validation are recorded in the current handoff; the older b00 gallery is a historical checkpoint rejected for incomplete internal coverage.
+
+
+### Final 43b verification and lifecycle corrections
+
+Current source is `43b82cca683b29e783a33df995afd675a76aa0dd`. The [handoff](docs/validation/ios-motion-20261114/REPORT.md) records 197 focused cases in 20 suites and final native evidence: 25 routes mounted without a theme toggle, 50 page PNGs, 15 original video keyframes and six transparent report windows. The final static barrier checks every eligible logical material target and actual native wallpaper pixels after post-Scene synchronization; Pattern presence or a fixed pre-CSS pulse count alone is not acceptance. Earlier 1ed/b00/3c/3ce and pre-paint 43b captures remain historical.
+
+Two verified corrections preserve the design contract: a focused field keeps its border and ordinary shadow without the InnerShadow that briefly washed its translucent fill blue; logical content that has not yet joined a Scene retains attachment listeners instead of losing material until a theme rebuild. True logical removal and foreign-Scene cleanup retain their previous behavior. Native evidence uses synthetic Linux JavaFX components, not Windows driver, live seller, signing or paid-purchase acceptance. The separately requested 1.6.10 publication still requires its release checks.

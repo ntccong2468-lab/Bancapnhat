@@ -1,0 +1,35 @@
+{
+  "status": "PASS_FOCUS_REFRESH_CONTRAST",
+  "atUtc": "2026-11-14T17:57:10.833937+00:00",
+  "runtimeBaseline": "3c4783187a383f612f9a3668dc262188a51bc860",
+  "productionDiff": "Only remove shared focused-field InnerShadow; existing focus border and normal field DropShadow retained.",
+  "red": {
+    "tests": 5,
+    "failed": 1,
+    "refreshContrast": {
+      "dark": 2.246565079767013,
+      "light": 3.0571285449735637
+    }
+  },
+  "green": {
+    "tests": 5,
+    "failed": 0,
+    "skipped": 0,
+    "firstFrameContrastMinimum": 4.5,
+    "focusBoundaryContrastMinimum": 3
+  },
+  "scopeNote": "Old steady frames can recover after actual pulses. This fixes the low-contrast initial/material-refresh frame, not a permanently bad steady state. Pattern-ready does not by itself certify paint-ready.",
+  "mavenRun": false,
+  "targetWrites": false,
+  "apiCalls": false,
+  "sourceHashes": {
+    "src/main/resources/com/vncode/app/styles/workspace-controls.css": "26e31d66000f44d8846dfd9253a4a93b7f1ef5d2cc5ebb53334be97df597b33d",
+    "src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java": "8364034b6122c2aee42649dcddec8e4c723939ce708c72ca910df4fe02e7e204"
+  },
+  "logs": {
+    "red.log": "fc9c111ec9eedfb2f1d4fd4bf7d2f691fdff8e67ee30f43e9064343443e0c856",
+    "green.log": "f3f4c5229448a0d3e69ad98b8ee5c1544bdff0f390c4a83bcb4c432da3322cb8",
+    "test-red.log": "c5627a5b22e78730ad6238ee24bd96c7deafdf85bb41de8de8ea560ca2cc2588",
+    "test-green.log": "13c9b8a9d20e49741c6b29528123c7b7b977cadf8fc02f616d6f574c25b369de"
+  }
+}

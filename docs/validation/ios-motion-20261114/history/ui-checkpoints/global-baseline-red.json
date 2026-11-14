@@ -1,0 +1,11 @@
+{
+  "baselineCode": "a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3",
+  "baselineThemeClassSha256": "942ec4e314367f42a1e6e3c065fe0842e96d4d287efb6110682b448474d07034",
+  "testSourceSha256": "30b6bf50c724e5cb6d6be708b77571bece03fe38f294ec8e95a3f371815ba566",
+  "testClass": "WorkspaceGlobalMotionContractTest",
+  "compileExitCode": 0,
+  "testExitCode": 1,
+  "logSha256": "7c7006be1f2bcc6e0c7062dc12951f344238f5085201396fc62a593dc2d170db",
+  "noMaven": true,
+  "noSellerApiOrProductionStartup": true
+}

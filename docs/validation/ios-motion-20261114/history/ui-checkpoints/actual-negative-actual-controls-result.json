@@ -1,0 +1,31 @@
+{
+  "kind": "ARCHIVE_GUARD_ACTUAL_NEGATIVE_CONTROLS",
+  "status": "PASS",
+  "sourceCommit": "1ed22b58de3162c5e0563245d925bbbd9700717e",
+  "createdAtUtc": "2026-11-14T15:58:10.076933+00:00",
+  "controls": [
+    {
+      "control": "tampered-matcher",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+      "receipt": "actual-negative-tampered-matcher-receipt.json"
+    },
+    {
+      "control": "untracked-file",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP contains a file that is not tracked at the final commit",
+      "receipt": "actual-negative-untracked-file-receipt.json"
+    },
+    {
+      "control": "missing-baseline",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP is missing one or more final-commit tracked source files",
+      "receipt": "actual-negative-missing-baseline-receipt.json"
+    }
+  ],
+  "notFinalSourceZipAcceptance": true,
+  "noMavenAppOrRemoteExecution": true
+}

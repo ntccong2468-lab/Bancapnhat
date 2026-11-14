@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "tests": 42,
+  "sourceCode": "1ed22b58de3162c5e0563245d925bbbd9700717e",
+  "selfControlsExitCode": 0,
+  "logSha256": "9cbe839a97d4dd221c09c303302fdddc6bab2d01296806a6b5bff39867f62b90",
+  "helperSha256": "f3a321a74f30b655fb2aabcb977e5c491f246dc78cfa8b50a5fc90f94d436368",
+  "notFinalArchiveAcceptance": true,
+  "executedAtUtc": "2026-11-14T15:57:46.410258+00:00"
+}

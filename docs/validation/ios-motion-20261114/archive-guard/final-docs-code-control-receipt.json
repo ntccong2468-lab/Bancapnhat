@@ -1,0 +1,20 @@
+{
+  "kind": "VN_CODE_1610_FINAL_DOCS_ONLY_DIFF_GATE",
+  "status": "PASS",
+  "sourceCommit": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "finalCommit": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "checkedAtUtc": "2026-11-14T18:20:45.588230+00:00",
+  "allowedRootDocumentationPaths": [
+    "DESIGN.md",
+    "PRODUCT.md",
+    "SOURCE-1.6.10.md"
+  ],
+  "allowedDirectory": "docs/",
+  "changedPaths": [],
+  "changedPathCount": 0,
+  "removed": [],
+  "allSourceTestsBuildToolsWorkflowsWebsiteOutsideDocsByteExact": true,
+  "noChangedModesOrNewExecutableSymlinkGitlink": true,
+  "scope": "Read-only final Git tree diff. Separate actual ZIP verification and functional receipts are required.",
+  "helperSha256": "d329ee1aef8cbf906ee196a630a10cd4ede9d1a8f9aa298501fd01c73d5bdf8b"
+}

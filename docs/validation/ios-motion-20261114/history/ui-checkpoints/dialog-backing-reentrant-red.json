@@ -1,0 +1,9 @@
+{
+  "scope": "Direct one-case reentrant ownership RED against candidate d35 ThemeService in prior temp classes, not the older c605 implementation",
+  "compileExitCode": 0,
+  "runExitCode": 1,
+  "candidateThemeSourceSha256": "d35d3d1bab430a9e0114a8aad14e9b9752a54d82448a51fe8b7aae0ccdff2071",
+  "testSourceSha256": "effda2343c90c6adb9b421f57ea6d28a75099cbd2e78d47b044e17bcc84ad8b0",
+  "mavenRun": false,
+  "targetWrites": false
+}

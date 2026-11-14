@@ -1,0 +1,13 @@
+{
+  "scope": "Direct 10-case Scene/pixel backing regression, candidate ThemeService in TMP before frozen c605 runtime; not combined app certification",
+  "compileExitCode": 0,
+  "runExitCode": 0,
+  "candidateThemeSourceSha256": "2a22f86f70781c900608e9b841c25ed938f02bf456442182ddbb11d9f77bb18d",
+  "candidateThemeClassSha256": "c7be7db5e4b15cc3a2a6470c014ae83691698590b040e807a4133a72cdf9f086",
+  "candidateBackingClassSha256": "dde6992b3a76b3c0f2b96c58599f80a24b5c1be0770aad371ed6caff2b038822",
+  "testSourceSha256": "effda2343c90c6adb9b421f57ea6d28a75099cbd2e78d47b044e17bcc84ad8b0",
+  "mavenRun": false,
+  "targetWrites": false,
+  "remoteOrPaidApiCalls": false,
+  "runLogSha256": "6404ad252d10b7bc34a7a063b3e8cb1d25fb702427aff2f64e4eee8d78765b55"
+}

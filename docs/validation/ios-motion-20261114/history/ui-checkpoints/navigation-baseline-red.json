@@ -1,0 +1,11 @@
+{
+  "baselineCode": "a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3",
+  "baselineHomeClassSha256": "0483f55dd627921e39d71a0295408ae448b2a1f1742b86f6aafe5cec8cb0e283",
+  "testSourceSha256": "450ab50febd4519e7505418ec246d103f1f0c75cb488f7c2bb20ada112530b12",
+  "testClass": "HomeControllerPageTransitionTest",
+  "compileExitCode": 0,
+  "testExitCode": 1,
+  "logSha256": "a9153a35831d35074c67875de6a85892f00a1bc3e8dc9c42e95c5c93aa3bcb55",
+  "noMaven": true,
+  "noSellerApiOrProductionStartup": true
+}

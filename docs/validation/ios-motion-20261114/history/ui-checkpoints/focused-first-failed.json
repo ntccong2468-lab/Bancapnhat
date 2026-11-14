@@ -1,0 +1,64 @@
+{
+  "checkpoint": "First combined UI implementation before opaque-window fix; mutable source, not final certification",
+  "baselineCommit": "68f95dfeab1ba487f7063aed424840a6427b2ff5",
+  "actualExitCode": 1,
+  "counts": {
+    "tests": 110,
+    "failures": 0,
+    "errors": 7,
+    "skipped": 0
+  },
+  "suites": 13,
+  "problems": [
+    {
+      "suite": "com.vncode.app.shared.ThemeServiceTest",
+      "case": "contentStaysOpaqueAndReadableWhileGlassChangesOnlyChrome",
+      "kind": "error",
+      "message": "org.opentest4j.AssertionFailedError: DARK glass=0 ==> expected: <1.0> but was: <0.8>"
+    },
+    {
+      "suite": "com.vncode.app.shared.ThemeServiceTest",
+      "case": "disablingGlassChangesChromeWithoutFadingTheWorkspaceAndStartupSceneIsUntouched",
+      "kind": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <1.0> but was: <0.8>"
+    },
+    {
+      "suite": "com.vncode.app.shared.WorkspaceMaterialRenderingTest",
+      "case": "floatingChromeHasDirectionalLightWhileWorkingDataStaysOpaque",
+      "kind": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <1.0> but was: <0.85>"
+    },
+    {
+      "suite": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "case": "rapidRoutesKeepOneOutgoingVisualAndReleaseItWhenCancelled",
+      "kind": "error",
+      "message": "java.util.NoSuchElementException: No value present"
+    },
+    {
+      "suite": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "case": "aResetDiscardsThePreviousOwnerVisualBeforeAnotherRouteIsMounted",
+      "kind": "error",
+      "message": "java.util.NoSuchElementException: No value present"
+    },
+    {
+      "suite": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "case": "hidingTheHostWindowReleasesTheDepartureFramebufferImmediately",
+      "kind": "error",
+      "message": "java.util.NoSuchElementException: No value present"
+    },
+    {
+      "suite": "com.vncode.app.ui.ReferenceThemeAccessibilityTest",
+      "case": "primaryHoverKeyboardFocusAndMetadataStayReadableInBothApprovedThemes",
+      "kind": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <1.0> but was: <0.8>"
+    }
+  ],
+  "compiledUiClassSha256": {
+    "MotionBoundary": "7b8af253ac4e722da437222077647ca199ea9d62d1071b66b8b1a75ef616a0a6",
+    "WorkspaceMotion": "903a6350e1ca912c449025833309d1c167e298930143a0433790c9d45b1e09ca",
+    "WorkspaceMotionTokens": "256887b0e6e4ae64525ffccc81ec525b759cba59eb3469161e263fd26439b231",
+    "WorkspaceInteractionMotion": "4b932c1a8af8cd2044b4cf1d1a4b2bd2b8cdc3b85fc317bf5f02b42e5e2af1b9",
+    "ThemeService": "82cc00e7b64b2ea4dc77e92556088fbdb4a4997f702169fc7d89ebcda7a24197"
+  },
+  "logSha256": "63b15deb93520cee1c4392e7df0367789c8116573f8ac6ffd4a35d7b9ce0816f"
+}

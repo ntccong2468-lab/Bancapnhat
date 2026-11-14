@@ -1,0 +1,41 @@
+{
+  "verifiedAtUtc": "2026-11-14T18:17:13.365596626Z",
+  "kind": "ORIGINAL169_SYNTHETIC_PATCH10_COMPATIBILITY",
+  "result": "PASS",
+  "syntheticOnly": true,
+  "networkRequests": 0,
+  "installedBinaryVersion": "1.6.9",
+  "comparisons": [
+    {
+      "left": "1.6.10",
+      "right": "1.6.9",
+      "sign": 1
+    },
+    {
+      "left": "1.6.9",
+      "right": "1.6.10",
+      "sign": -1
+    },
+    {
+      "left": "1.6.10",
+      "right": "1.6.10",
+      "sign": 0
+    },
+    {
+      "left": "1.6.100",
+      "right": "1.6.99",
+      "sign": 1
+    },
+    {
+      "left": "1.10.0",
+      "right": "1.9.99",
+      "sign": 1
+    }
+  ],
+  "originalParserVersion": "1.6.10",
+  "originalServiceSyntheticStatus": "AVAILABLE",
+  "syntheticWindowsSelection": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.10/VN-code-1.6.10-Windows-x64.msi",
+  "originalClassesLoadedFromPublishedJar": true,
+  "realAfterPublicationCheckStillPending": true,
+  "scope": "Original169 comparator/parser/service and Windows selection against clearly synthetic metadata; no network, MainApplication, profile, license, seller API or installation; not proof of a published1.6.10 release."
+}

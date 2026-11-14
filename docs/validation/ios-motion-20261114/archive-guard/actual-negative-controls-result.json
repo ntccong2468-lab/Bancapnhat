@@ -1,0 +1,80 @@
+{
+  "kind": "ARCHIVE_GUARD_ACTUAL_NEGATIVE_CONTROLS",
+  "status": "PASS",
+  "sourceCommit": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "createdAtUtc": "2026-11-14T18:21:34.408051+00:00",
+  "controls": [
+    {
+      "control": "tampered-motion",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+      "receipt": "actual-negative-tampered-motion-receipt.json"
+    },
+    {
+      "control": "tampered-backdrop",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+      "receipt": "actual-negative-tampered-backdrop-receipt.json"
+    },
+    {
+      "control": "tampered-chrome",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/main/java/com/vncode/app/shared/WorkspaceDialogChrome.java",
+      "receipt": "actual-negative-tampered-chrome-receipt.json"
+    },
+    {
+      "control": "tampered-clip",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/main/java/com/vncode/app/shared/WorkspaceRoundedControlClip.java",
+      "receipt": "actual-negative-tampered-clip-receipt.json"
+    },
+    {
+      "control": "tampered-focus-css",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/main/resources/com/vncode/app/styles/workspace-controls.css",
+      "receipt": "actual-negative-tampered-focus-css-receipt.json"
+    },
+    {
+      "control": "tampered-dynamic-test",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/test/java/com/vncode/app/shared/WorkspaceAllSurfaceGlassTest.java",
+      "receipt": "actual-negative-tampered-dynamic-test-receipt.json"
+    },
+    {
+      "control": "tampered-focus-test",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java",
+      "receipt": "actual-negative-tampered-focus-test-receipt.json"
+    },
+    {
+      "control": "tampered-corrected-test",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/test/java/com/vncode/app/shared/WorkspaceRoundedControlClipTest.java",
+      "receipt": "actual-negative-tampered-corrected-test-receipt.json"
+    },
+    {
+      "control": "untracked-file",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP contains a file that is not tracked at the final commit",
+      "receipt": "actual-negative-untracked-file-receipt.json"
+    },
+    {
+      "control": "missing-baseline",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP is missing one or more final-commit tracked source files",
+      "receipt": "actual-negative-missing-baseline-receipt.json"
+    }
+  ],
+  "notFinalSourceZipAcceptance": true,
+  "noMavenAppOrRemoteExecution": true
+}

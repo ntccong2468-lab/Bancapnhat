@@ -1,0 +1,55 @@
+{
+  "sourceCommit": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "status": "PASS_BOUNDED_NATIVE_VISUAL_EVIDENCE",
+  "manualKeyframeReviewCount": 15,
+  "manualKeyframes": [
+    "appearance-settings.png",
+    "context-drawer-light.png",
+    "controls16-dark.png",
+    "controls16-light.png",
+    "controls16-resized.png",
+    "error-dark.png",
+    "error-light.png",
+    "gs1-dark.png",
+    "gs1-light.png",
+    "manage-popover-dark.png",
+    "products-dark.png",
+    "products-light.png",
+    "reduced-motion-ozon.png",
+    "registration-dark.png",
+    "registration-light.png"
+  ],
+  "keyframeReviewer": "/root/ui_ios_audit",
+  "keyframeFindings": "Six report windows have rounded transparent outer geometry, glass fields/tables and readable labels; Settings outer wrapper is transparent;16-control probe and management popup are materialized. Products-dark frame4.0s is settled with correct navigation indicator and actual checkbox selection. Video uses H264/software rendering and is not an applicationFPS benchmark; sharp static Robot PNGs are primary page-layout evidence.",
+  "publicPagesByteEqualToNativePixelReceipt": true,
+  "staticCaptureFolder": "/tmp/vncode-ios-floating-20261114/captures/43b82cca683b29e783a33df995afd675a76aa0dd/all-pages-native-pixel",
+  "staticNativePixelGate": {
+    "all50Pages": true,
+    "all50WorkingSurfacesMaterialReady": true,
+    "all25DynamicMountsMaterialReadyWithoutThemeToggle": true,
+    "all50NativeWallpaperPixelsMatched": true,
+    "zeroLicenseCalls": true,
+    "temporaryOverlay": null
+  },
+  "nativeWallpaperDeltaRange": [
+    0.0,
+    0.0
+  ],
+  "windowsSellerVerified": false,
+  "packetLevelNetworkAudit": false,
+  "manualPageReviewCount": 50,
+  "manualPageReviewRoutes": 25,
+  "manualPageReviewThemes": [
+    "dark",
+    "light"
+  ],
+  "manualPageReviewers": {
+    "primary": 32,
+    "delegated": 18
+  },
+  "manualUniqueFinalImageCount": 65,
+  "reviewedPageHashesEqualCaptureReceipt": true,
+  "pageReviewReport": "visual-audit.md",
+  "findings": "Consistent visible app-owned blue material across50 corrected page captures; readable selected store text; no concrete enclosing-wrapper/material/layout blocker. Six report windows and15 original video keyframes reviewed separately. Source-defined scrolling/truncation, white print paper and blank fixture thumbnails are distinguished in the visual audit.",
+  "scope": "Native Linux/Xvfb/software/compositor with synthetic data; not Windows/seller/API acceptance or every hidden dialog/control state."
+}

@@ -1,0 +1,43 @@
+{
+  "recordedAtUtc": "2026-11-14T15:59:01.527061+00:00",
+  "javaExitCode": 0,
+  "ffmpegExitCode": 0,
+  "videoBytes": 1745786,
+  "videoSha256": "7034926fb7065f22f62fe401c3a44bc928968be5cf3382dd27b6e2572998872a",
+  "mode": "Actual native JavaFX production components / synthetic SQLite / Linux Xvfb software capture",
+  "mainApplicationLaunched": false,
+  "htmlPrototypeUsed": false,
+  "businessActionsSubmitted": false,
+  "windowsSellerVerified": false,
+  "applicationFpsBenchmark": false,
+  "compositorRequested": "xfwm4 --compositor=on --vblank=off",
+  "compositorAliveAtEnd": true,
+  "gitHead": "1ed22b58de3162c5e0563245d925bbbd9700717e",
+  "compiledRuntimeSnapshot": "/tmp/vncode-ios-motion-20261114/captures/1ed22b58de3162c5e0563245d925bbbd9700717e/runtime",
+  "frozenRuntimeProvenanceSha256": "cb23cbb553bc68908c0ff547dcc4cad69078bbef007a328d243c1ac5729a4f03",
+  "compiledClassSha256": {
+    "MotionBoundary.class": "7b8af253ac4e722da437222077647ca199ea9d62d1071b66b8b1a75ef616a0a6",
+    "WorkspaceMotion.class": "76cc701dfb640318cea91f66108b7257fe700413b14bcf6365c832220c66f822",
+    "WorkspaceMotionTokens.class": "4579afa08486af72bfac4e1dd51e658610f0c3ff0d52938a701a40277426cac4",
+    "WorkspaceInteractionMotion.class": "37836c17606978942f35c3996e4082e51030b7cc16ac20ebb71a2900359df6ac",
+    "ThemeService.class": "0978f935444f236e9287ae4bf3d5fd30ec683c363e696a531ee177d5058329ba"
+  },
+  "runtimeSourceSha256": {
+    "src/main/java/com/vncode/app/shared/MotionBoundary.java": "f940770d60161d92b756b4470033484360e0e175af6a9719572ea3e753cea81c",
+    "src/main/java/com/vncode/app/shared/WorkspaceMotion.java": "32871dad246b4e0947b409f389a2674f58f608df3fc7bcdfc15a486956311315",
+    "src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java": "ae60fdad73e180432303963d0bfed9ad6745461704651986d0063360fa7bc74a",
+    "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java": "3769f7bea8006d76117b75e0a9b8cc2094365c6a58009a41a01bbe4832576f10",
+    "src/main/java/com/vncode/app/shared/ThemeService.java": "2a22f86f70781c900608e9b841c25ed938f02bf456442182ddbb11d9f77bb18d",
+    "src/main/java/com/vncode/app/ui/products/ProductsPane.java": "91fb0e2442b1a1ce92200379c20d6fb78d7b44fde780b33e689b31b9fbf96fa7",
+    "src/main/resources/com/vncode/app/styles/workspace-controls.css": "a277204f0d77b79749e2ff5b79632c9f770e68b70beee33c11369c3de2e0cf27",
+    "src/main/resources/com/vncode/app/styles/theme.css": "7235e5706b761c963b1b35ef1c0f2c015aa830dc4a7033432e37ce7d60640d37"
+  },
+  "traceChecks": {
+    "doneMarker": true,
+    "noFailedAction": true,
+    "zeroLicenseCalls": true,
+    "reducedMotionObserved": true,
+    "registrationSilhouetteObserved": true,
+    "readonlySnapshotObserved": true
+  }
+}

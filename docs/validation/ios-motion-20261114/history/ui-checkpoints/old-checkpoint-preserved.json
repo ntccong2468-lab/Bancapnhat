@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "readOnly": true,
+  "oldZip": "/workspace/artifacts/VN-code-1.6.10-source-20261114.zip",
+  "bytes": 41509481,
+  "sha256": "1630458672f9be335c09f8f3a624c5ec844139ce1cdc4510fccbb304877d5e4c",
+  "checkedAtUtc": "2026-11-14T15:56:46.726266+00:00",
+  "templatesFinalPinsNotYetSet": true
+}

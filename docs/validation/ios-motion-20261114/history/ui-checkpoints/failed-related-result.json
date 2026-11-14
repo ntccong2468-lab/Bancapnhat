@@ -1,0 +1,27 @@
+{
+  "sourceCommit": "c605bdd89eb48b908065fca2633f0dbeea4081ad",
+  "actualExitCode": 1,
+  "counts": {
+    "tests": 1347,
+    "failures": 1,
+    "errors": 1,
+    "skipped": 1
+  },
+  "suites": 183,
+  "problems": [
+    {
+      "suite": "com.vncode.app.ui.products.ProductBulkDialogTest",
+      "case": "applyingClosesPickerAndShowsRealProgressBelowProductList",
+      "kind": "error",
+      "message": "org.opentest4j.AssertionFailedError: Progress has its own footer and never covers a product row ==> expected: <true> but was: <false>",
+      "text": "java.util.concurrent.ExecutionException: org.opentest4j.AssertionFailedError: Progress has its own footer and never covers a product row ==> expected: <true> but was: <false>\n\tat java.base/java.util.concurrent.FutureTask.report(FutureTask.java:124)\n\tat java.base/java.util.concurrent.FutureTask.get(FutureTask.java:207)\n\tat com.vncode.app.ui.products.ProductBulkDialogTest.fx(ProductBulkDialogTest.java:26)\n\tat com.vncode.app.ui.products.ProductBulkDialogTest.applyingClosesPickerAndShowsRealProgressBelowProductList(ProductBulkDialogTest.java:163)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\nCaused by: org.opentest4j.AssertionFailedError: Progress has its own footer and never covers a product row ==> expected: <true> but was: <false>\n\tat org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)\n\tat org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)\n\tat org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)\n\tat org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)\n\tat org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)\n\tat com.vncode.app.ui.products.ProductBulkDialogTest.lambda$applyingClosesPickerAndShowsRealProgressBelowProductList$6(ProductBulkDialogTest.java:163)\n\tat java.base/java.util.concurrent.FutureTask.run(FutureTask.java:328)\n\tat com.sun.javafx.application.PlatformImpl.lambda$runLater$0(PlatformImpl.java:424)\n\tat com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)\n\tat com.sun.glass.ui.gtk.GtkApplication._runLoop(Native Method)\n\tat com.sun.glass.ui.gtk.GtkApplication.lambda$runLoop$0(GtkApplication.java:242)\n\tat java.base/java.lang.Thread.run(Thread.java:1474)\n"
+    },
+    {
+      "suite": "com.vncode.app.ui.workspace.WorkspaceListAreaTest",
+      "case": "listsUseTheWbFbsWorkAreaAndGrowWithTheWindow",
+      "kind": "failure",
+      "message": "products wastes working height compared with WB FBS: Area[width=1158.8296966552734, height=438.9354705810547] versus Area[width=1158.9014415740967, height=509.9566345214844] ==> expected: <true> but was: <false>",
+      "text": "org.opentest4j.AssertionFailedError: products wastes working height compared with WB FBS: Area[width=1158.8296966552734, height=438.9354705810547] versus Area[width=1158.9014415740967, height=509.9566345214844] ==> expected: <true> but was: <false>\n\tat org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:151)\n\tat org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)\n\tat org.junit.jupiter.api.AssertTrue.failNotTrue(AssertTrue.java:63)\n\tat org.junit.jupiter.api.AssertTrue.assertTrue(AssertTrue.java:36)\n\tat org.junit.jupiter.api.Assertions.assertTrue(Assertions.java:214)\n\tat com.vncode.app.ui.workspace.WorkspaceListAreaTest.listsUseTheWbFbsWorkAreaAndGrowWithTheWindow(WorkspaceListAreaTest.java:77)\n\tat java.base/java.lang.reflect.Method.invoke(Method.java:565)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n\tat java.base/java.util.ArrayList.forEach(ArrayList.java:1604)\n"
+    }
+  ]
+}

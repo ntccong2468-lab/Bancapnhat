@@ -1,0 +1,12 @@
+{
+  "kind": "STRICT_SOURCE_ZIP_HELPER_SELF_CONTROLS",
+  "status": "PASS",
+  "tests": 58,
+  "sourceCommit": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "helperSha256": "34014891377287253006f68d51ffec4deda2e0d7cef540524cd36bab236fff1f",
+  "prior50ControlsRetained": true,
+  "newLogicalAttachmentControls": 8,
+  "logSha256": "8605f156caf05f06399b9aed8db8f3953ca94559612693aab53754f0d1fde16a",
+  "notFinalSourceZipAcceptance": true,
+  "checkedAtUtc": "2026-11-14T18:21:43.420295+00:00"
+}

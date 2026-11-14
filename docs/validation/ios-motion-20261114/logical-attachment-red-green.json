@@ -1,0 +1,32 @@
+{
+  "baseline": "3ce0a0ab35089078da480f93a4dddf3adc880da6",
+  "cause": "Logical native-control content scanned before Scene attachment was disposed by refresh while remaining observed; Scene listener lost until theme rebuild.",
+  "fix": "Retain null-Scene logical surfaces/listeners without painting; existing owned-Scene rendering, foreign-nonnull-Scene disposal, logical detach rebuild and caller paint/binding guards unchanged.",
+  "sourceFiles": {
+    "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java": "6d305574494342cbd36c17c3b828b3b12c3e485b0d645bbec601572b330cda78",
+    "src/test/java/com/vncode/app/shared/WorkspaceAllSurfaceGlassTest.java": "7da9da7facb693438ce3e340f642aff65064df37703694eb78dc0d134c0a2576"
+  },
+  "originalFiveTestsBytePreserved": true,
+  "nativeRed": {
+    "tests": 2,
+    "failures": 2,
+    "log": "red.log",
+    "fixture": "actual reduced MotionBoundary→WorkspaceViewport plus delayed real ScrollPaneSkin"
+  },
+  "nativeGreen": {
+    "tests": 2,
+    "failures": 0,
+    "log": "green.log"
+  },
+  "integratedGreen": {
+    "tests": 19,
+    "failures": 0,
+    "log": "integrated-green.log",
+    "classes": [
+      "WorkspaceBackdropMaterialTest",
+      "WorkspaceAllSurfaceGlassTest"
+    ]
+  },
+  "worktreeEdits": "Only the two files above; no Git/Maven/target mutation by this agent. Parent owns commit/serial build.",
+  "independentNativeRecheck": "/tmp/vncode-ios-floating-20261114/dynamic-gap-native-green-probe; actual Products/packing/Settings 3/3 mounts and6 PNGs reported green before theme change."
+}

@@ -1,0 +1,22 @@
+{
+  "checkpoint": "Second combined UI implementation before bounded-window-scale fix; mutable source, not final certification",
+  "actualExitCode": 1,
+  "counts": {
+    "tests": 112,
+    "failures": 0,
+    "errors": 1,
+    "skipped": 0
+  },
+  "suites": 13,
+  "problems": [
+    {
+      "suite": "com.vncode.app.ui.products.ProductReferenceLayoutTest",
+      "case": "allFilteredProductsIncludingUnloadedRowsReachEveryBatchActionAndClear",
+      "kind": "error",
+      "message": "org.opentest4j.AssertionFailedError: The shared divider may touch, but the batch footer must not cover product rows: footer=BoundingBox [minX:20.987852096557617, minY:703.005615234375, minZ:0.0, width:1199.0226459503174, height:84.0015869140625, depth:0.0, maxX:1220.010498046875, maxY:787.0072021484375, maxZ:0.0] rows=BoundingBox [minX:20.987852096557617, minY:178.99575805664062, minZ:0.0, width:1289.0243549346924, height:525.0099182128906, depth:0.0, maxX:1310.01220703125, maxY:704.0056762695312, maxZ:0.0] ==> expected: <true> but was: <false>"
+    }
+  ],
+  "compiledWorkspaceMotionSha256": "cbbc128057fd77afa807dd20abfa5f418367643315744bf8368e0417149f499f",
+  "compiledInteractionSha256": "4b932c1a8af8cd2044b4cf1d1a4b2bd2b8cdc3b85fc317bf5f02b42e5e2af1b9",
+  "logSha256": "be283371e426587a418a32faad32345458c289e80d6d80a58c1783293f5ff8e3"
+}

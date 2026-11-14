@@ -1,0 +1,193 @@
+{
+  "kind": "VN_CODE_1610_FINAL_43B_SECURITY_COMPARISON",
+  "comparisonStatus": "PASS_EXACT_SEMANTIC_RECORD_COMPARISON",
+  "securityGateStatus": "JAVA_FAIL_UNCHANGED_LEGACY_FINDING_JS_PASS",
+  "generatedAtUtc": "2026-11-14T18:29:49.629919+00:00",
+  "candidateSource": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "candidateRun": 43625751805,
+  "candidateWorkflowId": 403818652,
+  "candidateWorkflowConclusion": "failure",
+  "referenceRelease": "v1.6.9",
+  "referenceSource": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "referenceRun": 43131225703,
+  "additionalReferenceSource": "5373f230b36bab763aaaf313d31762e406fc5ac4",
+  "additionalReferenceRun": 43624256009,
+  "totals": {
+    "candidate": {
+      "blocked": 1,
+      "findings": 8,
+      "warningErrorNotifications": 1
+    },
+    "reference": {
+      "blocked": 1,
+      "findings": 8,
+      "warningErrorNotifications": 1
+    }
+  },
+  "newFindingCount": 0,
+  "resolvedFindingCount": 0,
+  "identicalNormalizedFindingRecords": true,
+  "identicalNormalizedWarningErrorNotifications": true,
+  "rawResultArraysEqualByReferenceAndLanguage": {
+    "published169": {
+      "java-kotlin": true,
+      "javascript-typescript": true
+    },
+    "superseded5373": {
+      "java-kotlin": true,
+      "javascript-typescript": true
+    }
+  },
+  "comparisonVs5373": {
+    "totals": {
+      "candidate": {
+        "blocked": 1,
+        "findings": 8,
+        "warningErrorNotifications": 1
+      },
+      "reference": {
+        "blocked": 1,
+        "findings": 8,
+        "warningErrorNotifications": 1
+      }
+    },
+    "identicalNormalizedFindingRecords": true,
+    "identicalNormalizedWarningErrorNotifications": true,
+    "newFindingCount": 0,
+    "resolvedFindingCount": 0
+  },
+  "languages": {
+    "java-kotlin": {
+      "count": 8,
+      "blocked": 1,
+      "gateConclusion": "failure",
+      "tools": [
+        {
+          "name": "CodeQL",
+          "semanticVersion": "2.27.3"
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "rules": {
+        "java/local-temp-file-or-directory-information-disclosure": 3,
+        "java/potentially-weak-cryptographic-algorithm": 1,
+        "java/relative-path-command": 2,
+        "java/unreleased-lock": 2
+      },
+      "severityCounts": {
+        "5": 2,
+        "5.4": 2,
+        "6.5": 3,
+        "7.5": 1
+      },
+      "notificationCounts": {
+        "error": 1
+      },
+      "sha256": "50e91d2d09f156b0741d9654711a259e213abfcffb6216a68c713e5983a0c6c5",
+      "bytes": 1923355,
+      "referenceRawSarifSha256": "9681297ec1387212eb9b476d8d2d2e988f673352ec9afb975b11326b3ef006ea",
+      "identicalExactNormalizedFindingMultiset": true,
+      "identicalExactNormalizedNotificationMultiset": true,
+      "newFindingCount": 0,
+      "resolvedFindingCount": 0,
+      "blockedFindings": [
+        {
+          "rule": "java/potentially-weak-cryptographic-algorithm",
+          "severity": 7.5,
+          "locations": [
+            {
+              "uri": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java",
+              "line": 71
+            }
+          ]
+        }
+      ]
+    },
+    "javascript-typescript": {
+      "count": 0,
+      "blocked": 0,
+      "gateConclusion": "success",
+      "tools": [
+        {
+          "name": "CodeQL",
+          "semanticVersion": "2.27.3"
+        }
+      ],
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "rules": {},
+      "severityCounts": {},
+      "notificationCounts": {},
+      "sha256": "9ab6aa896322ce849aeae3d90d0c8c99c37a01d8a63d92aa4e17f6447fdde8d1",
+      "bytes": 1361791,
+      "referenceRawSarifSha256": "5fc9c4bf04ff295efc6c01feb17f19f4eea66df959ba52ecc961db2342780e01",
+      "identicalExactNormalizedFindingMultiset": true,
+      "identicalExactNormalizedNotificationMultiset": true,
+      "newFindingCount": 0,
+      "resolvedFindingCount": 0,
+      "blockedFindings": []
+    }
+  },
+  "jobs": [
+    {
+      "id": 132541050818,
+      "name": "lint-and-audit",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 132541050971,
+      "name": "codeql (java-kotlin, manual)",
+      "conclusion": "failure",
+      "failedSteps": [
+        "Gate on high, critical or unclassified security findings"
+      ]
+    },
+    {
+      "id": 132541050988,
+      "name": "codeql (javascript-typescript, none)",
+      "conclusion": "success",
+      "failedSteps": []
+    },
+    {
+      "id": 132541051801,
+      "name": "changed-dependencies",
+      "conclusion": "skipped",
+      "failedSteps": []
+    },
+    {
+      "id": 132541052182,
+      "name": "openqodex-scan",
+      "conclusion": "skipped",
+      "failedSteps": []
+    }
+  ],
+  "policyAndWorkflowByteIdentical": true,
+  "candidateArtifactMetadataRecheckedAfterDownload": true,
+  "inputProvenanceSha256": "a113d73277ac369b858a11f62d55d87e312cac2727edd5a76afa754583f43818",
+  "comparisonDetailsSha256": "ccc3892bd6b0f3b5f84f713c9f2f8f5b5f393e0d1d0d5f653941701679d3682a",
+  "comparisonDetailsVs5373Sha256": "019f70e5da18f9715cc503cb898ca4ad9e6bf91d64617bdd534fc94229e48230",
+  "normalizerSha256": "780add1aa965d1d10beb925448d004577193aefa13574817072ed4399e5a9b44",
+  "policyHashesSha256": "61940c6c120904a32049615e14706a144b1d730eeb8228a41d5c46df7a9d311f",
+  "gateCliActualExitCodes": {
+    "java-kotlin": 1,
+    "javascript-typescript": 0
+  },
+  "scopeLimitations": [
+    "Java retains one GS1 extraction-error notification naming Gs1SignatureInk.java; no assertion of full Java extraction coverage.",
+    "Manual workflow_dispatch skipped OpenQodex and changed-dependencies jobs; those contribute no scan coverage.",
+    "Exact unchanged findings do not mean security is green or prove absence of other vulnerabilities.",
+    "Windows full Java build/test evidence is separate and was not collected or certified here; parent reported it RUNNING when assigning this audit.",
+    "Security metadata/artifact inspection does not establish package, installation, seller API or release acceptance."
+  ],
+  "sourcePolicyPublisherMutationPerformed": false,
+  "mavenRun": false,
+  "remoteActions": "Authenticated gh API metadata/artifact GET only; no push/dispatch/publish or seller APIs."
+}

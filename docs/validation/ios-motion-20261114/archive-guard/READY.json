@@ -1,0 +1,32 @@
+{
+  "status": "READY_FOR_PARENT_FINAL_DOCS_AND_ACTUAL_ZIP",
+  "sourceCommit": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "folder": "/tmp/vncode-ios-floating-20261114/archive-guard-dynamic",
+  "createdAtUtc": "2026-11-14T18:22:02.019765+00:00",
+  "sourceVerifier": {
+    "path": "/tmp/vncode-ios-floating-20261114/archive-guard-dynamic/verify-source-zip.py",
+    "sha256": "34014891377287253006f68d51ffec4deda2e0d7cef540524cd36bab236fff1f"
+  },
+  "manifest": {
+    "path": "/tmp/vncode-ios-floating-20261114/archive-guard-dynamic/source-preservation.json",
+    "sha256": "fec67cc6a2b7f16695d4c256fece558891040711192f675f16fdaef0354b75a4"
+  },
+  "docsGate": {
+    "path": "/tmp/vncode-ios-floating-20261114/archive-guard-dynamic/verify-final-docs-only.py",
+    "sha256": "d329ee1aef8cbf906ee196a630a10cd4ede9d1a8f9aa298501fd01c73d5bdf8b"
+  },
+  "helperControls": 58,
+  "docsScopeControls": 16,
+  "actualCorruptedZipControls": 10,
+  "codeControlFiles": 3379,
+  "businessRuntimeByteExactFiles": 603,
+  "proofFields": [
+    "clipFixtureCheckpointProof",
+    "focusCheckpointProof",
+    "logicalAttachmentSuccessor"
+  ],
+  "notFinalSourceDeliveryVerification": true,
+  "oldCheckpointGuardsPreserved": true,
+  "noMavenAppGitOrPublicationMutation": true,
+  "nextStep": "Run docs gate on final full commit and actual ZIP guard on that exact archive with new receipt paths."
+}

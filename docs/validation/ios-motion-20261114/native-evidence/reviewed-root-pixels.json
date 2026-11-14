@@ -1,0 +1,252 @@
+{
+  "page-designer-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-designer-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-fbo-orders-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-fbo-orders-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-fbo-packing-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-fbo-packing-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-finance-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-finance-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-gs1-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-gs1-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-gtin-sync-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-gtin-sync-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-guides-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-guides-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-kiz-mapping-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-kiz-mapping-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-kiz-warehouse-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-kiz-warehouse-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-license-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-license-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-listing-copy-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-listing-copy-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-news-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-news-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-ozon-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-ozon-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-packing-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-packing-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-print-history-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-print-history-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-product-edit-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-product-edit-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-products-ozon-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-products-ozon-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-products-wb-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-products-wb-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-settings-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-settings-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-supplies-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-supplies-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-tnved-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-tnved-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-welcome-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-welcome-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-znack-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-znack-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-znack-registration-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-znack-registration-light.png": [
+    227,
+    234,
+    247
+  ],
+  "page-znack-registration-ozon-dark.png": [
+    27,
+    40,
+    63
+  ],
+  "page-znack-registration-ozon-light.png": [
+    227,
+    234,
+    247
+  ]
+}
