@@ -10,6 +10,8 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| UI iOS27 chưa giống kỳ vọng: audit đọc mã/136ảnh native, paint fallback/layout/motion; chưa redesign | [Báo cáo](../validation/ios-ui-audit-20261114/REPORT.md), [so ảnh](../validation/ios-ui-audit-20261114/comparison/index.html), [receipt](../validation/ios-ui-audit-20261114/receipt.json) |
+| Mã nguồn1.6.10: Ozon ghép toàn bộ model/size, proof mua KIZ/GTIN, reader và chống tạo trùng; chưa Latest | [Bàn giao](../validation/2026-11-14-ozon-exact-model-size.md), [hướng dẫn gói nguồn](../../SOURCE-1.6.10.md) |
 | Mã nguồn1.6.10: resume KIZ scoped, nguồn VNCode đầu, đề xuất repo chờ duyệt, WBCode1.3.25 Ozon GTIN; chưa Latest | [Bàn giao](../validation/2026-11-14-kiz-source-repair.md), [đề xuất](../research/2026-11-14-code-quality-proposals.md), [đối chiếu WBCode](../research/wbcode-20261114/README.md) |
 | Đồng bộ đủ trang WB/Ozon, batch đọc chi tiết WB và trạng thái giấy tờ/giữ cache khi response thiếu — sau 1.6.8, chưa phát hành | [Bàn giao](../validation/2026-11-11-product-sync-permit-audit.md), [bằng chứng](../validation/product-sync-20261111/) |
 | Sổ gộp toàn bộ sửa sau 1.6.8, chưa phát hành; checkpoint trước điều tra đồng bộ sản phẩm/giấy tờ | [POST-1.6.8](POST-1.6.8.md) |

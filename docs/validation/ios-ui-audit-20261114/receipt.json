@@ -1,0 +1,58 @@
+{
+  "status": "PASS_CAPTURE_AUDIT_ONLY",
+  "capturedAtUtc": "2026-11-14T14:38:14.778261+00:00",
+  "sourceCommit": "a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3",
+  "baseline169": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "runner": "NativeGlassEvidenceTest via direct JUnit Launcher 1.12.1",
+  "mavenRun": false,
+  "productionEntrypointLaunched": false,
+  "tests": {
+    "found": 1,
+    "passed": 1,
+    "failed": 0,
+    "aborted": 0,
+    "skipped": 0,
+    "seconds": 42.728
+  },
+  "pngCount": 136,
+  "routes": 25,
+  "controlsChecked": 1340,
+  "licenseApiCalls": 0,
+  "dataScope": "Disposable synthetic SQLite; injected product and Ozon readers; no business mutation submitted",
+  "operatingSystem": "Linux / Xvfb / JavaFX software rendering",
+  "windowsSellerProfileVerified": false,
+  "motionMeasured": false,
+  "reducedMotionForcedForCapture": true,
+  "runtimeOrTestSourceEdits": false,
+  "comparisonImages": [
+    {
+      "file": "ozon-proposal-dark.png",
+      "bytes": 242031,
+      "sha256": "3352ef2a780cbe256977f5ee6d6ec895e0e6d23a18b6807e036caad1f7fff999",
+      "source": "/workspace/vncode-apple-preview-20261108/proposal/screenshots/fbs-ozon-dark.png"
+    },
+    {
+      "file": "ozon-current-dark.png",
+      "bytes": 170953,
+      "sha256": "9d49f03c87eb2995526e097e7ec1ff0301300d7539ebe5d35b75353980d75ce0",
+      "source": "/tmp/vncode-ios-ui-audit-20261114/fresh-native/native-ozon-dark-1440x900.png"
+    },
+    {
+      "file": "products-proposal-light.png",
+      "bytes": 234992,
+      "sha256": "3f0bea8c6ff17369cd6876cad0e54f92144f02afbfca510230ac7cc584cf5b66",
+      "source": "/workspace/vncode-apple-preview-20261108/proposal/screenshots/products-wb-light.png"
+    },
+    {
+      "file": "products-current-light.png",
+      "bytes": 200301,
+      "sha256": "d2bf85e4f0219c77061a144b1bcbd2b9b78d6eccde3bbed01ea1fbc092726975",
+      "source": "/tmp/vncode-ios-ui-audit-20261114/fresh-native/native-products-wb-light-1440x900.png"
+    }
+  ],
+  "notes": [
+    "Thumbnail slots are empty because the fixture has no image URLs, not an observed production defect.",
+    "Impeccable context ran once. Its platform/sidecar warnings affect development context, not runtime CSS.",
+    "No visual redesign or new prototype was implemented."
+  ]
+}

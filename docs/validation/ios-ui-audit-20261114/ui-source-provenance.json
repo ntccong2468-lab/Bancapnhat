@@ -1,0 +1,41 @@
+{
+  "codeCommit": "a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3",
+  "baseline169": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "files": [
+    {
+      "path": "src/main/resources/com/vncode/app/styles/theme.css",
+      "sameAsReleased169": true,
+      "sha256": "1b7351d42484618861c5b08243215dec93f7bb82a5ebbe68c171945b6e7b95fd"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+      "sameAsReleased169": true,
+      "sha256": "ff48471b892c10481c44f9d4f6f0688d0cac41eea59129fa07f6985080a4169a"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/WorkspaceMotion.java",
+      "sameAsReleased169": true,
+      "sha256": "5397c27263316f53104366aac40f64b5a6c6f962a2e1ddeb7be9b115333fd5d9"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java",
+      "sameAsReleased169": true,
+      "sha256": "d6a5f1834f8ee96a65f4ee9e196dd431c12711c280f4e7fcff2294f997e85a51"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/UiFonts.java",
+      "sameAsReleased169": true,
+      "sha256": "992ede2eef950fc01745c034e0727a60e851997796b1f3ba1f5c34eff96c63cb"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+      "sameAsReleased169": true,
+      "sha256": "8ebc05ea45fc7837b297e73b6d17f32a6cff2dd6076bb3992d118409f2b512b5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+      "sameAsReleased169": true,
+      "sha256": "f20bc75738eb1dc3d5f0ac5eddcd7a41dff8c61ad9d47c262d50ea9192438f0d"
+    }
+  ]
+}

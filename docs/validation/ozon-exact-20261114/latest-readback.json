@@ -1,0 +1,22 @@
+{
+  "checkedAtUtc": "2026-11-14T14:22:17.305945+00:00",
+  "mode": "PUBLIC_READ_ONLY",
+  "releases": [
+    {
+      "repo": "ntccong2468-lab/Bancapnhat",
+      "tag": "v1.6.9",
+      "releaseId": 442540592,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.9",
+      "publishedAt": "2026-11-12T05:47:19Z",
+      "assets": 16
+    },
+    {
+      "repo": "rupphi/relatest-wcode",
+      "tag": "v1.3.25",
+      "releaseId": 443286851,
+      "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.25",
+      "publishedAt": "2026-11-12T18:29:00Z",
+      "assets": 4
+    }
+  ]
+}

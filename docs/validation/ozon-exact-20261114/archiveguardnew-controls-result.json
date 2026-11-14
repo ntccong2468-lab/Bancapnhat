@@ -1,0 +1,56 @@
+{
+  "kind": "SOURCE_ZIP_GUARD_SUCCESSOR_CONTROLS",
+  "status": "PASS",
+  "createdAtUtc": "2026-11-14T14:33:14.232225+00:00",
+  "sourceCodePin": "a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3",
+  "manifestSha256": "fdf343f467b6edf11033192275adf922e288655a3463f5579749497d604e6762",
+  "predecessorUnchangedSha256": "cf494177d2edeacbe317ab1318a38319348360899289039fac6f89f9ca45a0d7",
+  "unitTreeControls": {
+    "total": 36,
+    "failures": 0,
+    "errors": 0
+  },
+  "codeOnlyPositiveControl": {
+    "result": "PASS_WITH_CONFIRMED_TEST_FIXTURE",
+    "files": 3341,
+    "newRuntimeFiles": 1,
+    "zipSha256": "8b2027a099e62e2c5473fa0a7f242fa342cba4a529e4782d76a812eb646efb6c"
+  },
+  "actualZipNegativeControls": [
+    {
+      "control": "tampered-matcher",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP bytes differ from the pinned Git blob: src/main/java/com/vncode/app/features/gtinsync/OzonExactVariantIdentity.java",
+      "receipt": "archiveguardnew-tampered-matcher-receipt.json"
+    },
+    {
+      "control": "untracked-file",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP contains a file that is not tracked at the final commit",
+      "receipt": "archiveguardnew-untracked-file-receipt.json"
+    },
+    {
+      "control": "missing-baseline",
+      "exitCode": 1,
+      "result": "FAIL",
+      "reason": "ZIP is missing one or more final-commit tracked source files",
+      "receipt": "archiveguardnew-missing-baseline-receipt.json"
+    }
+  ],
+  "artifacts": {
+    "verify-source-zip.py": "10086103374ec5f5c8cde3c4f978b7a3127bf02fe5f5f8d1b3cdc8e153dbe205",
+    "archiveguardnew-test-source-zip-helper.py": "f4f9c17c26db9e74e344953446f10274252c7b18a5fd88f278a990f988bcd555",
+    "archiveguardnew-actual-negative-controls.py": "9e26c21afe444d61fb7c262fdb410735809d0ef0232f239f6c1b3c88399edf20",
+    "archiveguardnew-controls.log": "d6c2d2c29f39457d97d6980e1783a149a36476efccb8485becbaab2d940c26ae",
+    "archiveguardnew-code-control-receipt.json": "c7461cad66870eb1c1ead13236a53d51976de44158a5a678623514bf2c4e89c7",
+    "archiveguardnew-actual-controls-result.json": "6caa411400100c70221999d89c221aaec81e294e2c39d9e02dbaae416d26f075",
+    "archiveguardnew-tampered-matcher-receipt.json": "e5f0e39f1882b46b8075f45c8e214454f0240c7f418d676b715cee3e06119239",
+    "archiveguardnew-untracked-file-receipt.json": "c078e965dd2a0cab9649ae10210dff833328e6dbac7d3c05a49d4ba6e4171728",
+    "archiveguardnew-missing-baseline-receipt.json": "51dbb4f23d6d6cf4a8a235d420b45258e701b09dac199ada1a25a5ddaec52461",
+    "archiveguardnew-README.md": "4d2cc110d7c51923ba774ae20906770fd858c9a1532bce590e45e16ad5f87ea7"
+  },
+  "actualFinalSourceZipAcceptance": "NOT_RUN_BY_CHILD",
+  "noMavenAppRemoteApiPaidPurchaseSigningWindowsExecution": true
+}

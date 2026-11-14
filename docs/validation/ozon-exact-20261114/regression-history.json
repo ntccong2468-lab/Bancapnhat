@@ -1,0 +1,73 @@
+{
+  "phases": [
+    {
+      "phase": "old-index-red",
+      "counts": {
+        "tests": 3,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "logSha256": "f2aaa365630cc11c604c44cf23e3fc287d4aafff876582d3193951056e47a650",
+      "historicalMutableCheckpointNotCertificationForFinalCode": true
+    },
+    {
+      "phase": "integration-first-failed",
+      "counts": {
+        "tests": 159,
+        "failures": 3,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 8,
+      "logSha256": "4e965d62884563bbf038dd197ffadae497af3ef2276639f768a8e3e39d2d9d9e",
+      "historicalMutableCheckpointNotCertificationForFinalCode": true
+    },
+    {
+      "phase": "integration-second-failed",
+      "counts": {
+        "tests": 224,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 12,
+      "logSha256": "3cccab634ad19695716f9398bedd7861bd242a383b7bc2f4b3d5222caf98b6c9",
+      "historicalMutableCheckpointNotCertificationForFinalCode": true
+    },
+    {
+      "phase": "integration-focused-green",
+      "counts": {
+        "tests": 225,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 12,
+      "logSha256": "366f3e134c3fcff3d9218767cc246de30ed9322d47af845adc941c4e62d92cb0",
+      "historicalMutableCheckpointNotCertificationForFinalCode": true
+    },
+    {
+      "phase": "native-reader-red",
+      "counts": {
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0
+      },
+      "xmlSuites": 1,
+      "logSha256": "c0c58842bf757a9bb95e3109df91ee5e19a2eef970f9eaa55ca99eef803c0782",
+      "historicalMutableCheckpointNotCertificationForFinalCode": true
+    }
+  ],
+  "nativeReaderGreen": {
+    "tests": 53,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "logSha256": "5f0a3e1ea64668281c12b738bde526aaec93d9dc4c307c610ff406125396b7ff"
+  },
+  "overlappingRunsDoNotAddTogether": true,
+  "finalFrozenSourceResult": "related-result.json"
+}

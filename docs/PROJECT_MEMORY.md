@@ -1,5 +1,21 @@
 # Bộ nhớ dự án VNCode
 
+## 14.11.2026 MSK — audit vì sao UI chưa giống iOS27 sau khi hoàn tất GTIN
+
+[Báo cáo](validation/ios-ui-audit-20261114/REPORT.md), [so ảnh](validation/ios-ui-audit-20261114/comparison/index.html), [receipt](validation/ios-ui-audit-20261114/receipt.json). Taste app-screen và Impeccable đọc hai prompt gốc: glass alpha-only trên ground phẳng; bảng/sheet cố ý đục; native cell/filter khác cấu trúc HTML mẫu; motion chỉ incoming và thiếu exit/shared-element/đóng đảo chiều. Không thấy bằng chứng CSS bị bỏ khỏi build:7UIfile so byte-equal1.6.9, phần GTIN không redesignUI. Không đổ lỗi cho việc người dùng đã duyệt hướng thiết kế; đó không phải xác nhận từng chi tiết native sau triển khai.
+
+Chạy NativeGlassEvidenceTest qua directJUnitLauncher1.12.1:1ca đạt/0lỗi/bỏqua,42,728s,136PNG/25route/1.340control/0licenseAPIcall. JavaFX/Xvfb/Linux/profileSQLite tổng hợp, không MainApp hoặc API seller; reducedmotion bật để chụp nên không benchmark animation/FPS/Windows. Thumbnail trống do fixture; không báo lỗi mất ảnh seller. Không sửa runtime/skills/config hoặc tự nâng tool. Kiến nghị làm lại vật liệu chrome/overlay, component hierarchy và transition từ chính JavaFX rồi chụp xem trước theo yêu cầu phê duyệt giao diện của người dùng; chưa áp redesign mới.
+
+## 14.11.2026 MSK — triển khai ghép GTIN Ozon vào nguồn1.6.10 theo yêu cầu mới
+
+[Bàn giao](validation/2026-11-14-ozon-exact-model-size.md), nguồn **a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3**, nhánh `fix/ozon-exact-model-size-20261114`, kế thừa checkpoint tài liệu `e277d30`. Người dùng đã yêu cầu áp dụng phép thử exact toàn bộ model và size; checkpoint bên dưới “chỉ nghiên cứu” là lịch sử trước yêu cầu mới.
+
+Một matcher Ozon dùng cho tra cứu/thẻ đã có, AutoSync, native link KIZ và GTIN: không lấy chuỗi con `152NAU` từ `B3152NAU`/`152NAU DASH`; normalize case/NFKC/space và size XXL/2XL, size Nga chỉ từ biến thể hiện hành. Không dùng màu/brand/TN VED để loại cặp mới. `oe1` máy ghép duy nhất tách khỏi `ov2` seller duyệt và receipt barcode đã lên sàn; pháp lý/owner/chứng thư/quyền dùng được kiểm ở bước ghi/mua. Giữ WB, liên kết thủ công và kế hoạch cũ.
+
+Sửa thêm receiver chỉ đọc manual mapping thay vì receipt đã xác nhận; legacy-equal attributes che SKU mới; refresh exact đọc API giá/chứng từ thừa; cache article cũ che model mới; claim hết hạn bị coi như chưa có thẻ; index claims parse Catalog lặp. Giữ RED và các lượt đầu lỗi, không hạ assertion để xanh. Production Java parser/matcher kiểm snapshot API thật 1.380Catalog/533Ozon:1GTIN/1sản phẩm/1cặp,0HTTP mới/0ghi sàn. Hồi quy chọn nhóm nguồn mới **2.198ca/225suite đạt0failure/error/skip**,cleanverify/JARso byte2.048resource đạt; [receipt](validation/ozon-exact-20261114/related-result.json). Không lấy full4.540 checkpoint cũ làm xác nhận mã mới; ba bài10.000 GTIN không chạy lại. Chưa tự ghép10.000/GTIN POST/paidKIZ/CryptoPro/Windows seller acceptance.
+
+801 runtime so nền800:779 giữ byte,21 sửa,1 thêm,0 xóa; cả10 runtime KIZ/theme trước giữ nguyên byte. Không dependency/schema mới. ZIP nguồn1.6.10 kèm checksum và kiểm archive; không tạo bộ cài/publishLatest/cài repo đề xuất. Đề xuất OpenRewrite/ArchUnit/JaCoCo/PIT vẫn dành cho người dùng duyệt.
+
 ## 14.11.2026 MSK — mã nguồn1.6.10 sửa chờ ký KIZ, nghiên cứu repo và WBCode; chưa Latest
 
 [Bàn giao](validation/2026-11-14-kiz-source-repair.md), nguồn **75691c68fa14f728856b0418fb6008083787ef7c**, nhánh fix/kiz-original-flow-20261114 từ f36/nền1.6.9. Đúng bốn yêu cầu: khảo sát refactor; tìm nguồn public đầu thật Vncode4e46/brand27c; sửa local signing pause/same-shop UX và chặn resume lan sang lô khác; đề xuất hồi quy để duyệt; tạo ZIP nguồn. 790/800 runtime giữ byte,10 sửa,0 thêm/xóa; POM chỉversion1610, giữ API/schema/dependency/native/license. Không coi generic wait là một lỗi PIN/chứng thư cụ thể hoặc sao chép module cũ để mất bảo vệ hiện tại.
