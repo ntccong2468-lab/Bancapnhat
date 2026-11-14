@@ -13,6 +13,7 @@ public final class ZnackPurchaseDiagnostics {
         return i.tr("diagnostics.stage")+": "+(stage==null?"—":stage)
                 +"\n"+i.tr("diagnostics.signature_code")+": "+(code.isBlank()?"—":code)
                 +"\n"+i.tr("diagnostics.purchase_reason")+": "+(reason==null||reason.isBlank()?"—":ZnackErrorMessages.display(reason))
-                +"\n"+i.tr("diagnostics.next_check")+": "+(next==null?i.tr("diagnostics.no_scheduled_check"):DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss z").withZone(ZoneId.systemDefault()).format(next));
+                +"\n"+i.tr("diagnostics.next_check")+": "+(next==null?i.tr("diagnostics.no_scheduled_check"):DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss z").withZone(ZoneId.systemDefault()).format(next))
+                +(ZnackSigningSession.isSigningDeferred(reason)?"\n"+i.tr("diagnostics.purchase_resume_action"):"");
     }
 }

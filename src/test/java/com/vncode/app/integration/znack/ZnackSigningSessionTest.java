@@ -7,6 +7,8 @@ import com.vncode.app.integration.znack.signature.ZnackSignatureContext;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -166,6 +168,249 @@ class ZnackSigningSessionTest {
             cancelFirstDialog.countDown();
             executor.shutdownNow();
         }
+    }
+
+    @ParameterizedTest
+    @EnumSource(CryptoProErrorCode.class)
+    void backgroundDeferralKeepsOperationalCancellationAndRetainsTheActualDiagnosticCause(CryptoProErrorCode code) throws Exception {
+        var guarded = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
+            throw new CryptoProException(code, "PIN=synthetic-private-pin clientToken=synthetic-private-token");
+        });
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        var originalFailure = assertThrows(CryptoProException.class,
+                () -> signForPipeline(guarded, SHOP_A, PIPELINE));
+        assertEquals(code, originalFailure.code(), "The actual provider failure must keep its own code");
+        assertEquals(ZnackSigningSession.WAITING_MESSAGE + " [CRYPTOPRO_" + code.name() + "]",
+                ZnackSigningSession.signingWaitMessage(SHOP_A));
+
+        var paused = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guarded, SHOP_A, PIPELINE));
+
+        assertEquals(ZnackSigningSession.WAITING_MESSAGE + " [CRYPTOPRO_" + code.name() + "]", paused.getMessage());
+        assertEquals(CryptoProErrorCode.CANCELLED, paused.code(),
+                "A deferred operation must keep the existing cancellation control-flow contract");
+        assertEquals("CRYPTOPRO_" + code.name(), ZnackErrorMessages.errorCode(paused.getMessage()),
+                "The historical cause belongs in diagnostics, not the deferred operation's control code");
+        assertFalse(paused.getMessage().contains("synthetic-private"));
+        assertTrue(ZnackSigningSession.isWaitingForSignature(SHOP_A, PIPELINE));
+    }
+
+    @Test
+    void authorizingOnePipelineClearsOnlyItsShopCauseAndDoesNotWakeOtherWaitingPipelines() throws Exception {
+        var attemptsA = new AtomicInteger();
+        var guardedA = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
+            if (attemptsA.incrementAndGet() == 1) throw new CryptoProException(CryptoProErrorCode.TIMEOUT, "Synthetic timeout");
+            return new CryptoProSigningResult(new byte[]{1, 2, 3}, "ok");
+        });
+        var guardedB = ZnackSigningSession.guard(SHOP_B, (payload, context) -> {
+            throw new CryptoProException(CryptoProErrorCode.PRIVATE_KEY_UNAVAILABLE, "Synthetic unavailable key");
+        });
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE + 1);
+        ZnackSigningSession.authorizePipeline(SHOP_B, PIPELINE);
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedA, SHOP_A, PIPELINE));
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedB, SHOP_B, PIPELINE));
+        assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guardedA, SHOP_A, PIPELINE + 1));
+
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(guardedA, SHOP_A, PIPELINE).cms());
+        var otherPipeline = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guardedA, SHOP_A, PIPELINE + 1));
+        assertEquals(ZnackSigningSession.WAITING_MESSAGE, otherPipeline.getMessage());
+        var otherShop = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guardedB, SHOP_B, PIPELINE));
+        assertEquals(ZnackSigningSession.WAITING_MESSAGE + " [CRYPTOPRO_PRIVATE_KEY_UNAVAILABLE]", otherShop.getMessage());
+        assertEquals(2, attemptsA.get(), "An explicit retry must not open another paused pipeline's signer");
+    }
+
+    @Test
+    void explicitShopConsentReopensOnlyThatShopAndPreservesAnotherShopsCause() throws Exception {
+        var attempts = new AtomicInteger();
+        var guardedA = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
+            if (attempts.incrementAndGet() == 1) throw new CryptoProException(CryptoProErrorCode.CANCELLED, "Synthetic cancellation");
+            return new CryptoProSigningResult(new byte[]{1, 2, 3}, "ok");
+        });
+        var guardedB = ZnackSigningSession.guard(SHOP_B, (payload, context) -> {
+            throw new CryptoProException(CryptoProErrorCode.CERTIFICATE_EXPIRED, "Synthetic expired certificate");
+        });
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        ZnackSigningSession.authorizePipeline(SHOP_B, PIPELINE);
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedA, SHOP_A, PIPELINE));
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedB, SHOP_B, PIPELINE));
+        ZnackSigningSession.authorizeShop(SHOP_A);
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(guardedA, SHOP_A, PIPELINE).cms());
+        var paused = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guardedB, SHOP_B, PIPELINE));
+        assertEquals(ZnackSigningSession.WAITING_MESSAGE + " [CRYPTOPRO_CERTIFICATE_EXPIRED]", paused.getMessage());
+    }
+
+    @Test
+    void localPauseRecognitionRejectsRemoteWrappersAndUnknownOrMalformedCauses() {
+        String waiting = ZnackSigningSession.WAITING_MESSAGE;
+        assertTrue(ZnackSigningSession.isSigningDeferred(waiting));
+        for (var code : CryptoProErrorCode.values()) {
+            assertTrue(ZnackSigningSession.isSigningDeferred(waiting + " [CRYPTOPRO_" + code.name() + "]"));
+        }
+        assertFalse(ZnackSigningSession.isSigningDeferred(null));
+        for (String other : java.util.List.of("", " " + waiting, waiting + " ", "HTTP 400: " + waiting,
+                "{\"message\":\"" + waiting + "\"}", waiting + " [CRYPTOPRO_UNKNOWN]",
+                waiting + " [CRYPTOPRO_timeout]", waiting + " [CRYPTOPRO_]",
+                waiting + " [CRYPTOPRO_TIMEOUT", waiting + " [CRYPTOPRO_TIMEOUT] extra",
+                waiting + " [CRYPTOPRO_TIMEOUT] [CRYPTOPRO_CANCELLED]")) {
+            assertFalse(ZnackSigningSession.isSigningDeferred(other), "Only exact local persisted markers may enable resume");
+        }
+    }
+
+    @Test
+    void readingAPauseExplanationNeverAuthorizesAShopOrOpensTheSigner() {
+        var calls = new AtomicInteger();
+        assertEquals(ZnackSigningSession.WAITING_MESSAGE, ZnackSigningSession.signingWaitMessage(SHOP_A));
+        var guarded = ZnackSigningSession.guard(SHOP_A, successfulSigner(calls));
+        var paused = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guarded, SHOP_A, PIPELINE));
+        assertEquals(CryptoProErrorCode.CANCELLED, paused.code());
+        assertEquals(0, calls.get());
+        assertTrue(ZnackSigningSession.isWaitingForSignature(SHOP_A, PIPELINE));
+    }
+
+    @Test
+    void explicitRetryDoesNotReuseAnEarlierFailureCodeWhenTheNewFailureHasNoKnownCode() throws Exception {
+        var attempts = new AtomicInteger();
+        var guarded = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
+            throw new CryptoProException(attempts.incrementAndGet() == 1 ? CryptoProErrorCode.TIMEOUT : null,
+                    "PIN=synthetic-private-pin");
+        });
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        assertThrows(CryptoProException.class, () -> signForPipeline(guarded, SHOP_A, PIPELINE));
+        var firstPause = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guarded, SHOP_A, PIPELINE));
+        assertEquals("CRYPTOPRO_TIMEOUT", ZnackErrorMessages.errorCode(firstPause.getMessage()));
+
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        assertThrows(CryptoProException.class, () -> signForPipeline(guarded, SHOP_A, PIPELINE));
+        var unknownPause = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guarded, SHOP_A, PIPELINE));
+        assertEquals(ZnackSigningSession.WAITING_MESSAGE, unknownPause.getMessage());
+        assertEquals("SIGNING_CONFIRMATION_REQUIRED", ZnackErrorMessages.errorCode(unknownPause.getMessage()));
+        assertEquals(2, attempts.get());
+    }
+
+    @Test
+    void scopedResumptionLeavesAnUnvisitedSiblingBlockedAfterCancellation() throws Exception {
+        var callsA = new AtomicInteger();
+        var callsB = new AtomicInteger();
+        var guardedA = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
+            if (callsA.incrementAndGet() == 1) throw new CryptoProException(CryptoProErrorCode.CANCELLED, "Synthetic cancellation");
+            return new CryptoProSigningResult(new byte[]{1, 2, 3}, "ok");
+        });
+        var guardedB = ZnackSigningSession.guard(SHOP_A, successfulSigner(callsB));
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE + 1);
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedA, SHOP_A, PIPELINE));
+        assertFalse(ZnackSigningSession.isWaitingForSignature(SHOP_A, PIPELINE + 1),
+                "The sibling has not yet reached the signer, so a waiting latch cannot protect it");
+
+        ZnackSigningSession.authorizePipelineResumption(SHOP_A, PIPELINE);
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(guardedA, SHOP_A, PIPELINE).cms());
+        var siblingPause = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guardedB, SHOP_A, PIPELINE + 1));
+        assertEquals(0, callsB.get());
+        assertTrue(ZnackSigningSession.isWaitingForSignature(SHOP_A, PIPELINE + 1));
+        assertEquals(ZnackSigningSession.WAITING_MESSAGE + " [CRYPTOPRO_CANCELLED]", siblingPause.getMessage());
+        assertEquals(siblingPause.getMessage(), ZnackSigningSession.signingWaitMessage(SHOP_A),
+                "Resuming one lot must preserve the shop's cancellation and diagnostic cause");
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(guardedA, SHOP_A, PIPELINE).cms(),
+                "A sibling's deferred poll is not a new provider failure and must not revoke this explicit resume");
+        assertEquals(3, callsA.get());
+    }
+
+    @Test
+    void scopedResumptionForOneShopDoesNotReopenAnotherBlockedShop() throws Exception {
+        var callsA = new AtomicInteger();
+        var callsB = new AtomicInteger();
+        var guardedA = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
+            if (callsA.incrementAndGet() == 1) throw new CryptoProException(CryptoProErrorCode.TIMEOUT, "Synthetic timeout");
+            return new CryptoProSigningResult(new byte[]{1, 2, 3}, "ok");
+        });
+        var guardedB = ZnackSigningSession.guard(SHOP_B, (payload, context) -> {
+            callsB.incrementAndGet();
+            throw new CryptoProException(CryptoProErrorCode.TOKEN_OR_CERTIFICATE_ABSENT, "Synthetic absent token");
+        });
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        ZnackSigningSession.authorizePipeline(SHOP_B, PIPELINE);
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedA, SHOP_A, PIPELINE));
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedB, SHOP_B, PIPELINE));
+
+        ZnackSigningSession.authorizePipelineResumption(SHOP_A, PIPELINE);
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(guardedA, SHOP_A, PIPELINE).cms());
+        var otherShop = assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guardedB, SHOP_B, PIPELINE));
+        assertEquals(1, callsB.get());
+        assertTrue(otherShop.getMessage().contains("CRYPTOPRO_TOKEN_OR_CERTIFICATE_ABSENT"));
+    }
+
+    @Test
+    void anotherActualFailureRevokesEveryScopedResumptionForItsShopOnly() throws Exception {
+        var callsA = new AtomicInteger();
+        var callsSibling = new AtomicInteger();
+        var callsOtherShop = new AtomicInteger();
+        var guardedA = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
+            throw new CryptoProException(callsA.incrementAndGet() == 1 ? CryptoProErrorCode.TIMEOUT : CryptoProErrorCode.CANCELLED,
+                    "Synthetic provider failure");
+        });
+        var sibling = ZnackSigningSession.guard(SHOP_A, successfulSigner(callsSibling));
+        var otherShop = ZnackSigningSession.guard(SHOP_B, (payload, context) -> {
+            if (callsOtherShop.incrementAndGet() == 1) throw new CryptoProException(CryptoProErrorCode.CERTIFICATE_EXPIRED, "Synthetic expired certificate");
+            return new CryptoProSigningResult(new byte[]{1, 2, 3}, "ok");
+        });
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE + 1);
+        ZnackSigningSession.authorizePipeline(SHOP_B, PIPELINE);
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedA, SHOP_A, PIPELINE));
+        assertThrows(CryptoProException.class, () -> signForPipeline(otherShop, SHOP_B, PIPELINE));
+        ZnackSigningSession.authorizePipelineResumption(SHOP_A, PIPELINE);
+        ZnackSigningSession.authorizePipelineResumption(SHOP_A, PIPELINE + 1);
+        ZnackSigningSession.authorizePipelineResumption(SHOP_B, PIPELINE);
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(sibling, SHOP_A, PIPELINE + 1).cms());
+
+        assertThrows(CryptoProException.class, () -> signForPipeline(guardedA, SHOP_A, PIPELINE));
+        assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(sibling, SHOP_A, PIPELINE + 1));
+        assertEquals(1, callsSibling.get(), "A new provider failure invalidates the sibling's earlier grant");
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(otherShop, SHOP_B, PIPELINE).cms());
+        assertEquals(2, callsOtherShop.get(), "A different shop keeps its own explicit resumption");
+    }
+
+    @Test
+    void scopedResumptionRequiresItsMatchingPipelineContext() throws Exception {
+        var calls = new AtomicInteger();
+        var guarded = ZnackSigningSession.guard(SHOP_A, successfulSigner(calls));
+        ZnackSigningSession.authorizePipelineResumption(SHOP_A, PIPELINE);
+        assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> guarded.sign(new byte[]{1}, ZnackSignatureContext.TRUE_API_DOCUMENT));
+        assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> signForPipeline(guarded, SHOP_A, PIPELINE + 1));
+        assertEquals(0, calls.get());
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(guarded, SHOP_A, PIPELINE).cms());
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    void legacyPipelineAuthorizationStillUnblocksAPreviouslyAuthorizedUnvisitedSibling() throws Exception {
+        var callsSibling = new AtomicInteger();
+        var failed = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
+            throw new CryptoProException(CryptoProErrorCode.CANCELLED, "Synthetic cancellation");
+        });
+        var sibling = ZnackSigningSession.guard(SHOP_A, successfulSigner(callsSibling));
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE + 1);
+        assertThrows(CryptoProException.class, () -> signForPipeline(failed, SHOP_A, PIPELINE));
+        assertFalse(ZnackSigningSession.isWaitingForSignature(SHOP_A, PIPELINE + 1));
+
+        ZnackSigningSession.authorizePipeline(SHOP_A, PIPELINE);
+        assertArrayEquals(new byte[]{1, 2, 3}, signForPipeline(sibling, SHOP_A, PIPELINE + 1).cms());
+        assertEquals(1, callsSibling.get(), "Only the new resume API is narrow; the existing API contract stays unchanged");
     }
 
     private CryptoProSigningResult signForPipeline(ZnackSignatureProvider signer, int shopId, long pipelineId)

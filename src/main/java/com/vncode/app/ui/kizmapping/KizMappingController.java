@@ -70,7 +70,8 @@ public class KizMappingController {
                 ? tr("kiz_mapping.status.unmapped")
                 : v.getValue().mappingRuleCount() + " " + tr("kiz_mapping.status.rules")));
         availableColumn.setCellValueFactory(v -> new SimpleIntegerProperty(v.getValue().available()));
-        pipelineColumn.setCellValueFactory(v -> new SimpleStringProperty(localizeStatus(first(
+        pipelineColumn.setCellValueFactory(v -> new SimpleStringProperty(signingPaused(v.getValue())
+                ? tr("znack.status_value.signing_paused") : localizeStatus(first(
                 v.getValue().latestPipelineStage(), v.getValue().latestOrderStatus()))));
         mappingColumn.setCellFactory(column -> statusCell("badge-green", "badge-gray"));
         pipelineColumn.setCellFactory(this::pipelineStatusCell);
@@ -356,6 +357,21 @@ public class KizMappingController {
         });
     }
 
+    private boolean signingPaused(ZnackGtinInventorySummary summary) {
+        return shop != null && summary != null && ZnackPurchaseCoordinator.isSigningConfirmationPending(
+                shop.getId(), summary.latestPipelineId(), summary.latestPipelineStage(), summary.latestError());
+    }
+
+    private void resumePurchase(ZnackGtinInventorySummary summary) {
+        if (znackRepository == null || summary == null || summary.latestPipelineId() == null) return;
+        ZnackPurchaseCoordinator coordinator = ZnackPurchaseCoordinator.create(znackRepository);
+        long pipelineId = summary.latestPipelineId();
+        runTask(() -> {
+            coordinator.resumeSigning(pipelineId);
+            return null;
+        });
+    }
+
     private void exportKiz(ZnackGtinInventorySummary summary) {
         long generation = shopGeneration;
         inventoryActions.export(gtinTable, shop, summary,
@@ -532,7 +548,10 @@ public class KizMappingController {
             icon(export, "fth-download", tr("kiz_mapping.action.export"));
             icon(archive, "fth-trash-2", tr("kiz_mapping.action.delete_failed"));
             mapping.setOnAction(e -> showMapping(getItem()));
-            retry.setOnAction(e -> retryIntroduction(getItem()));
+            retry.setOnAction(e -> {
+                if (signingPaused(getItem())) resumePurchase(getItem());
+                else retryIntroduction(getItem());
+            });
             export.setOnAction(e -> exportKiz(getItem()));
             archive.setOnAction(e -> archiveFailedKiz(getItem()));
             buy.setOnAction(e -> showBuy(getItem()));
@@ -548,13 +567,21 @@ public class KizMappingController {
         @Override protected void updateItem(ZnackGtinInventorySummary item, boolean empty) {
             super.updateItem(item, empty);
             boolean technical = !empty && item != null && GtinNormalizer.isTechnicalRange(item.gtin());
-            buy.setDisable(technical);
-            buy.setTooltip(technical ? technicalGtinTooltip : buyTooltip);
+            boolean signingPaused = !empty && signingPaused(item);
+            buy.setDisable(technical || signingPaused);
+            buy.setVisible(!signingPaused);
+            buy.setManaged(!signingPaused);
+            buy.setTooltip(signingPaused ? new Tooltip(tr("kiz_mapping.action.resume_purchase"))
+                    : technical ? technicalGtinTooltip : buyTooltip);
             boolean introductionFailed = !empty && item != null
                     && item.discardable() > 0
                     && "INTRODUCTION_FAILED".equalsIgnoreCase(value(item.latestPipelineStage()));
-            retry.setVisible(introductionFailed);
-            retry.setManaged(introductionFailed);
+            String retryLabel = tr(signingPaused ? "kiz_mapping.action.resume_purchase"
+                    : "kiz_mapping.action.retry_introduction");
+            retry.setTooltip(new Tooltip(retryLabel));
+            retry.setAccessibleText(retryLabel);
+            retry.setVisible(signingPaused || introductionFailed);
+            retry.setManaged(signingPaused || introductionFailed);
             export.setDisable(empty || item == null || item.available() <= 0);
             archive.setDisable(empty || item == null || item.discardable() <= 0);
             setGraphic(empty || item == null ? null : box);

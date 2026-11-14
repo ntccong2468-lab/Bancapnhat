@@ -6,6 +6,7 @@ import com.vncode.app.integration.znack.ZnackModels.Product;
 import com.vncode.app.integration.znack.ZnackModels.PurchaseStage;
 import com.vncode.app.integration.znack.ZnackModels.Settings;
 import com.vncode.app.integration.znack.signature.CryptoProSignatureProvider;
+import com.vncode.app.integration.znack.signature.CryptoProException;
 import com.vncode.app.integration.znack.signature.ZnackSignatureProvider;
 import com.vncode.app.features.license.LicenseGate.LicenseDeniedException;
 import com.vncode.app.features.license.LicenseModels.Permission;
@@ -276,6 +277,42 @@ public class ZnackPurchaseCoordinator {
         }
     }
 
+    /**
+     * Foreground consent to continue one saved purchase after signing was paused.
+     * Keeps the original connection, order, request key and remote checkpoints; never enqueues a buy.
+     */
+    public void resumeSigning(long pipelineId) throws Exception {
+        ZnackPurchasePipelineState pipeline = repository.findPipeline(pipelineId)
+                .orElseThrow(() -> new IllegalArgumentException("PURCHASE_PIPELINE_NOT_FOUND"));
+        if (!isSigningConfirmationPending(repository.shop().shopId(), pipeline.id(),
+                pipeline.stage().name(), pipeline.errorMessage())) {
+            throw new IllegalStateException("This purchase is no longer waiting for signing confirmation.");
+        }
+        LicenseRuntime.require(Permission.KIZ);
+        Settings original = repository.boundPipelineSettings(pipelineId)
+                .orElseThrow(() -> new IllegalStateException("KIZ_CIRCULATION_ORIGINAL_PROFILE_MISSING"));
+        ZnackSafety.requireSigned(original, true);
+        ZnackSigningSession.authorizePipelineResumption(repository.shop().shopId(), pipelineId);
+        try {
+            advance(original, pipelineId);
+        } finally {
+            schedule(pipelineId);
+        }
+    }
+
+    /** UI and recovery share the same explicit-consent eligibility, including saved legacy errors. */
+    public static boolean isSigningConfirmationPending(int shopId, Long pipelineId, String stage, String error) {
+        if (pipelineId == null || stage == null) return false;
+        boolean active = switch (stage) {
+            case "QUEUED", "VALIDATING", "CREATING_ORDER", "RECONCILING_ORDER", "POLLING_ORDER",
+                    "DOWNLOADING_CODES", "WAITING_INTRODUCTION_READINESS", "SUBMITTING_INTRODUCTION",
+                    "POLLING_INTRODUCTION" -> true;
+            default -> false;
+        };
+        return active && (ZnackSigningSession.isSigningDeferred(error)
+                || ZnackSigningSession.isWaitingForSignature(shopId, pipelineId));
+    }
+
     public void resume(Settings settings) {
         var recoveredProfiles=repository.resumeCompletedCirculationChecks();
         for (ZnackPurchasePipelineState pipeline : repository.findActivePipelines()) {
@@ -463,7 +500,7 @@ public class ZnackPurchaseCoordinator {
                     repository.updatePipeline(pipelineId,null,paused,"LICENSE_REQUIRED");
                     throw e;
                 } else if (e instanceof ZnackSigningSession.SigningDeferredException) {
-                    repository.updatePipeline(pipelineId, null, current, ZnackSigningSession.WAITING_MESSAGE);
+                    repository.updatePipeline(pipelineId, null, current, e.getMessage());
                     LOGGER.info("Znack signing deferred until explicit shop selection. shopId={}, pipelineId={}, stage={}",
                             repository.shop().shopId(), pipelineId, current);
                     throw e;
@@ -471,7 +508,10 @@ public class ZnackPurchaseCoordinator {
                         || current == PurchaseStage.POLLING_ORDER || current == PurchaseStage.DOWNLOADING_CODES
                         || current == PurchaseStage.WAITING_INTRODUCTION_READINESS
                         || current == PurchaseStage.POLLING_INTRODUCTION) {
-                    repository.updatePipeline(pipelineId, null, current, e.getMessage());
+                    String reason = e instanceof CryptoProException
+                            && ZnackSigningSession.isWaitingForSignature(repository.shop().shopId(), pipelineId)
+                            ? ZnackSigningSession.signingWaitMessage(repository.shop().shopId()) : e.getMessage();
+                    repository.updatePipeline(pipelineId, null, current, reason);
                 } else if (current == PurchaseStage.SUBMITTING_INTRODUCTION) {
                     if (e instanceof ZnackIntroductionService.PermitDocumentsUnavailableException unavailable) {
                         Long orderId=repository.findPipeline(pipelineId).map(ZnackPurchasePipelineState::orderId).orElse(null);

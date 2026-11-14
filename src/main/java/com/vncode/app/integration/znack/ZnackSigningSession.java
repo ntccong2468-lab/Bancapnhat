@@ -19,10 +19,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class ZnackSigningSession {
     static final String WAITING_MESSAGE = "Waiting for the user to select this shop before signing.";
+    private static final String WAITING_CAUSE_PREFIX = WAITING_MESSAGE + " [CRYPTOPRO_";
 
     private static final Set<Integer> AUTHORIZED_SHOPS = ConcurrentHashMap.newKeySet();
     private static final Set<Integer> BLOCKED_SHOPS = ConcurrentHashMap.newKeySet();
+    private static final java.util.concurrent.ConcurrentMap<Integer, CryptoProErrorCode> BLOCKED_CAUSES =
+            new ConcurrentHashMap<>();
     private static final Set<PipelineKey> AUTHORIZED_PIPELINES = ConcurrentHashMap.newKeySet();
+    private static final java.util.concurrent.ConcurrentMap<Integer, Object> PAUSE_GENERATIONS =
+            new ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentMap<PipelineKey, Object> RESUMPTION_GENERATIONS =
+            new ConcurrentHashMap<>();
     private static final Set<PipelineKey> WAITING_PIPELINES = ConcurrentHashMap.newKeySet();
     private static final ThreadLocal<PipelineKey> CURRENT_PIPELINE = new ThreadLocal<>();
 
@@ -58,16 +65,24 @@ public final class ZnackSigningSession {
         return CertificateSigningQueue.run(fingerprint,()->{
                 PipelineKey pipeline = CURRENT_PIPELINE.get();
                 boolean matchingPipeline = pipeline != null && pipeline.shopId() == shopId;
-                if (BLOCKED_SHOPS.contains(shopId)
+                Object resumedGeneration = matchingPipeline ? RESUMPTION_GENERATIONS.get(pipeline) : null;
+                boolean scopedResumption = resumedGeneration != null
+                        && resumedGeneration == PAUSE_GENERATIONS.get(shopId);
+                if ((BLOCKED_SHOPS.contains(shopId) && !scopedResumption)
                         || (matchingPipeline && WAITING_PIPELINES.contains(pipeline))
                         || (!authenticationOnly && !AUTHORIZED_SHOPS.contains(shopId)
                         && (!matchingPipeline || !AUTHORIZED_PIPELINES.contains(pipeline)))) {
                     if (matchingPipeline) WAITING_PIPELINES.add(pipeline);
-                    throw new SigningDeferredException(WAITING_MESSAGE);
+                    throw new SigningDeferredException(BLOCKED_CAUSES.get(shopId));
                 }
                 try {
                     return work.run();
                 } catch (CryptoProException error) {
+                    // One fresh identity invalidates every earlier grant, including a concurrent
+                    // resume that captured the old generation but has not stored its grant yet.
+                    PAUSE_GENERATIONS.put(shopId, new Object());
+                    if (error.code() == null) BLOCKED_CAUSES.remove(shopId);
+                    else BLOCKED_CAUSES.put(shopId, error.code());
                     BLOCKED_SHOPS.add(shopId);
                     if (matchingPipeline) WAITING_PIPELINES.add(pipeline);
                     throw error;
@@ -77,12 +92,25 @@ public final class ZnackSigningSession {
 
     public static void authorizePipeline(int shopId, long pipelineId) {
         PipelineKey key = new PipelineKey(shopId, pipelineId);
+        RESUMPTION_GENERATIONS.keySet().removeIf(existing -> existing.shopId() == shopId);
+        BLOCKED_CAUSES.remove(shopId);
         BLOCKED_SHOPS.remove(shopId);
         AUTHORIZED_PIPELINES.add(key);
         WAITING_PIPELINES.remove(key);
     }
 
+    /** Consent for one existing paused purchase; the shop and sibling pipelines remain blocked. */
+    public static void authorizePipelineResumption(int shopId, long pipelineId) {
+        PipelineKey key = new PipelineKey(shopId, pipelineId);
+        Object generation = PAUSE_GENERATIONS.computeIfAbsent(shopId, ignored -> new Object());
+        AUTHORIZED_PIPELINES.add(key);
+        RESUMPTION_GENERATIONS.put(key, generation);
+        WAITING_PIPELINES.remove(key);
+    }
+
     public static void authorizeShop(int shopId) {
+        RESUMPTION_GENERATIONS.keySet().removeIf(key -> key.shopId() == shopId);
+        BLOCKED_CAUSES.remove(shopId);
         BLOCKED_SHOPS.remove(shopId);
         AUTHORIZED_SHOPS.add(shopId);
         WAITING_PIPELINES.removeIf(key -> key.shopId() == shopId);
@@ -90,6 +118,27 @@ public final class ZnackSigningSession {
 
     public static boolean isWaitingForSignature(int shopId, long pipelineId) {
         return WAITING_PIPELINES.contains(new PipelineKey(shopId, pipelineId));
+    }
+
+    /** A safe persisted explanation only; reading it never grants signing consent. */
+    public static String signingWaitMessage(int shopId) {
+        return deferredMessage(BLOCKED_CAUSES.get(shopId));
+    }
+
+    private static String deferredMessage(CryptoProErrorCode cause) {
+        return WAITING_MESSAGE + (cause == null ? "" : " [CRYPTOPRO_" + cause.name() + "]");
+    }
+
+    /** Only our persisted local pause marker, optionally followed by an actual signer error code. */
+    public static boolean isSigningDeferred(String raw) {
+        if (WAITING_MESSAGE.equals(raw)) return true;
+        if (raw == null || !raw.startsWith(WAITING_CAUSE_PREFIX) || !raw.endsWith("]")) return false;
+        try {
+            CryptoProErrorCode.valueOf(raw.substring(WAITING_CAUSE_PREFIX.length(), raw.length() - 1));
+            return true;
+        } catch (IllegalArgumentException invalid) {
+            return false;
+        }
     }
 
     static PipelineScope openPipeline(int shopId, long pipelineId) {
@@ -101,7 +150,10 @@ public final class ZnackSigningSession {
     static void resetForTests() {
         AUTHORIZED_SHOPS.clear();
         BLOCKED_SHOPS.clear();
+        BLOCKED_CAUSES.clear();
         AUTHORIZED_PIPELINES.clear();
+        PAUSE_GENERATIONS.clear();
+        RESUMPTION_GENERATIONS.clear();
         WAITING_PIPELINES.clear();
         CURRENT_PIPELINE.remove();
     }
@@ -127,8 +179,8 @@ public final class ZnackSigningSession {
     }
 
     public static final class SigningDeferredException extends CryptoProException {
-        private SigningDeferredException(String message) {
-            super(CryptoProErrorCode.CANCELLED, message);
+        private SigningDeferredException(CryptoProErrorCode cause) {
+            super(CryptoProErrorCode.CANCELLED, deferredMessage(cause));
         }
     }
 }

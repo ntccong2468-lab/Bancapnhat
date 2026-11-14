@@ -61,6 +61,10 @@ public final class ZnackErrorMessages {
     /** Mã lỗi Znack (nếu có), ví dụ "1110"; rỗng nếu không tìm thấy. */
     public static String errorCode(String raw) {
         if (raw == null) return "";
+        if (ZnackSigningSession.isSigningDeferred(raw)) {
+            return ZnackSigningSession.WAITING_MESSAGE.equals(raw) ? "SIGNING_CONFIRMATION_REQUIRED"
+                    : raw.substring(raw.lastIndexOf('[') + 1, raw.length() - 1);
+        }
         Matcher matcher = ERROR_CODE.matcher(raw);
         if(matcher.find())return matcher.group(1);
         for(var code:com.vncode.app.integration.znack.signature.CryptoProErrorCode.values())
@@ -71,6 +75,12 @@ public final class ZnackErrorMessages {
     /** Human-readable form of a stored error; falls back to the raw text when nothing better is found. */
     public static String display(String raw) {
         if (raw == null || raw.isBlank()) return "";
+        if (ZnackSigningSession.isSigningDeferred(raw)) {
+            String shown = com.vncode.app.shared.I18nService.getInstance()
+                    .tr("znack.error.signing_confirmation_required");
+            String code = errorCode(raw);
+            return "SIGNING_CONFIRMATION_REQUIRED".equals(code) ? shown : shown + " [" + code + "]";
+        }
         String circulationKey = switch (raw.trim()) {
             case "KIZ_CIRCULATION_ORIGINAL_PROFILE_MISSING" -> "original_profile_missing";
             case "KIZ_CIRCULATION_CODES_INCOMPLETE" -> "codes_incomplete";
