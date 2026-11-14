@@ -279,6 +279,44 @@ class WorkspaceMaterialRenderingTest {
         assertEquals(3,stable,"The native fixture must be focused and receive its shared backdrop before screen checks");
     }
 
+    @Test void realFxmlTablesInsideAWorkingSheetHaveNoSeparateRectangularPaintedFrame() throws Exception {
+        var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
+        for(var theme:ThemeService.Theme.values())for(String route:List.of("finance","fbo")) {
+            var state=fx(() -> {
+                ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);ThemeService.setCurrentTheme(theme);
+                var loader=route.equals("finance")
+                        ?FxmlViewLoader.loader(com.vncode.app.ui.finance.FinanceDashboardController.class,"finance-dashboard-view.fxml")
+                        :FxmlViewLoader.loader(com.vncode.app.ui.fbo.FboPackingController.class,"fbo-packing-view.fxml");
+                Parent page=loader.load();var table=(TableView<?>)page.lookup(route.equals("finance")?"#dailyTable":"#productTable");
+                var shell=new javafx.scene.layout.StackPane(page);shell.setPadding(new Insets(24));shell.getStyleClass().add("workspace-shell");
+                var visual=javafx.stage.Screen.getPrimary().getVisualBounds();var stage=new Stage(StageStyle.UNDECORATED);stage.setAlwaysOnTop(true);
+                stage.setScene(new Scene(shell,Math.min(1100,visual.getWidth()-48),Math.min(780,visual.getHeight()-48)));stage.setX(visual.getMinX()+24);stage.setY(visual.getMinY()+24);
+                ThemeService.applyTheme(stage.getScene());stage.show();stage.toFront();stage.requestFocus();table.requestFocus();shell.applyCss();shell.layout();
+                return new EmbeddedTable(stage,shell,page,table,loader.getController());
+            });
+            try {
+                awaitSelectorMaterial(state.table());
+                fx(() -> {
+                    pulse();var table=state.table();String context=route+" "+theme;
+                    assertEquals(1,table.getBackground().getFills().stream().filter(fill -> fill.getFill() instanceof javafx.scene.paint.ImagePattern).count(),"The embedded table retains its shared wallpaper: "+context);
+                    assertEquals(1,table.getOpacity());assertEquals(1,state.page().getOpacity());assertSame(table,state.stage().getScene().getFocusOwner());
+                    var pixels=state.shell().snapshot(null,null);double w=table.getWidth(),h=table.getHeight();
+                    double top=Math.min(h-4,((Region)table.lookup(".column-header-background")).getHeight()+16),bottom=h-6;
+                    for(double[] pair:new double[][]{{0,top,2,top},{0,bottom,2,bottom},{w-1,bottom,w-3,bottom},{w/2,h-1,w/2,h-3}}) {
+                        Color edge=pixel(state.shell(),pixels,table,pair[0],pair[1]),body=pixel(state.shell(),pixels,table,pair[2],pair[3]);
+                        checks.add(() -> assertTrue(distance(edge,body)<.015,"Embedded table must not paint a separate outer edge: "+context+" edge="+edge+" body="+body));
+                    }
+                    capture(state.shell(),"embedded-real-fxml-"+route+"-"+theme.getKey()+".png");return null;
+                });
+            } finally {fx(() -> {
+                try {state.controller().getClass().getMethod("dispose").invoke(state.controller());}catch(NoSuchMethodException absent){ }
+                state.stage().close();return null;
+            });}
+        }
+        assertAll(checks);
+    }
+    private record EmbeddedTable(Stage stage,javafx.scene.layout.StackPane shell,Parent page,TableView<?> table,Object controller) { }
+
     private static void checkSettingsAt940(ThemeService.Theme theme) throws Exception {
         var sidebar=FxmlViewLoader.loader(com.vncode.app.ui.shop.ShopSidebarController.class,"shop-sidebar-view.fxml");
         var header=FxmlViewLoader.loader(com.vncode.app.ui.workspace.WorkspaceHeaderController.class,"workspace-header-view.fxml");
