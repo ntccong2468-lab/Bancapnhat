@@ -7,9 +7,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
+import javafx.scene.control.Control;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeTableView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.Parent;
 import javafx.scene.layout.HBox;
@@ -115,6 +118,52 @@ class WorkspaceMaterialRenderingTest {
             }
             assertAll(checks);return null;
         });
+    }
+
+    @Test void nativeTableHeadersRespectStandaloneCornersWithoutRoundingEmbeddedHeaders() throws Exception {
+        fx(() -> {
+            ThemeService.setReducedMotion(true);
+            var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
+            Color ground=Color.rgb(101,37,89);
+            for(var theme:ThemeService.Theme.values())for(boolean tree:new boolean[]{false,true}) {
+                ThemeService.setCurrentTheme(theme);
+                Control standalone=headerTable(tree),embedded=headerTable(tree);
+                var sheet=new VBox(embedded);sheet.getStyleClass().add("workspace-sheet");
+                var root=new HBox(18,standalone,sheet);root.setPadding(new Insets(24));
+                root.setStyle("-fx-background-color: rgb(101,37,89);");
+                var stage=new Stage();stage.setScene(new Scene(root,626,248));ThemeService.applyTheme(stage.getScene());stage.show();
+                try {
+                    root.applyCss();root.layout();
+                    WritableImage image=root.snapshot(null,null);
+                    capture(root,"table-header-corners-"+theme.getKey()+"-"+(tree?"tree":"table")+".png");
+                    String context=theme+" "+(tree?"TreeTableView":"TableView");
+                    Color left=pixel(root,image,standalone,2,2),right=pixel(root,image,standalone,standalone.getWidth()-3,2);
+                    Color embeddedCorner=pixel(root,image,embedded,2,2),embeddedCenter=pixel(root,image,embedded,embedded.getWidth()/2,2);
+                    checks.add(() -> assertEquals(ground,left,"Standalone header must not overpaint the top-left rounded corner: "+context));
+                    checks.add(() -> assertEquals(ground,right,"Standalone header must not overpaint the top-right rounded corner: "+context));
+                    checks.add(() -> assertEquals(embeddedCenter,embeddedCorner,"Embedded header retains its straight edge inside the owning sheet: "+context));
+                    assertNotEquals(ground,embeddedCorner,"Embedded work data remains opaque");
+                    var header=(Region)standalone.lookup(".column-header-background");
+                    Color headerFill=pixel(root,image,header,header.getWidth()/2,header.getHeight()-4);
+                    Color bottomRule=pixel(root,image,header,header.getWidth()/2,header.getHeight()-1);
+                    assertNotEquals(headerFill,bottomRule,"The header's bottom divider remains visible");
+                    standalone.requestFocus();root.applyCss();
+                    assertSame(standalone,stage.getScene().getFocusOwner(),"Table keyboard focus remains available");
+                    assertNull(standalone.getEffect(),"A corner repair must not add an effect to the working table");
+                } finally {stage.close();}
+            }
+            assertAll(checks);return null;
+        });
+    }
+
+    private static Control headerTable(boolean tree){
+        Control control;
+        if(tree){var table=new TreeTableView<String>();table.getColumns().add(new TreeTableColumn<>("Synthetic header"));control=table;}
+        else {var table=new TableView<String>();table.getColumns().add(new TableColumn<>("Synthetic header"));control=table;}
+        control.setMinSize(260,160);control.setPrefSize(260,160);control.setMaxSize(260,160);return control;
+    }
+    private static Color pixel(Parent root,WritableImage image,javafx.scene.Node node,double x,double y){
+        var point=root.sceneToLocal(node.localToScene(x,y));return image.getPixelReader().getColor((int)Math.floor(point.getX()),(int)Math.floor(point.getY()));
     }
 
     private static void capture(VBox root,ThemeService.Theme theme) throws Exception {

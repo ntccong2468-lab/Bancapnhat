@@ -386,8 +386,14 @@
 }
 .workspace-theme .table-view .column-header-background,
 .workspace-theme .tree-table-view .column-header-background {
-    -fx-background-color: -ui-table-header; -fx-background-radius: 0;
+    -fx-background-color: -ui-table-header;
+    -fx-background-radius: 18 18 0 0; -fx-border-radius: 18 18 0 0;
     -fx-border-color: -border-color transparent -border-color transparent; -fx-border-width: 1 0 1 0;
+}
+/* A table embedded in a sheet has no separate outer frame. */
+.workspace-theme .workspace-sheet .table-view .column-header-background,
+.workspace-theme .workspace-sheet .tree-table-view .column-header-background {
+    -fx-background-radius: 0; -fx-border-radius: 0;
 }
 .workspace-theme .table-view .column-header, .workspace-theme .tree-table-view .column-header,
 .workspace-theme .table-view .filler, .workspace-theme .tree-table-view .filler { -fx-background-color: transparent; -fx-size: 36; -fx-border-width: 0; }
