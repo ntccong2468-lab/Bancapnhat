@@ -8,6 +8,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.PopupControl;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 import java.util.Collections;
@@ -25,6 +29,7 @@ public final class ThemeService {
     private static final Set<Parent> ROOTS = Collections.newSetFromMap(new WeakHashMap<>());
     private static final List<Runnable> APPEARANCE_LISTENERS = new CopyOnWriteArrayList<>();
     private static final String ORIGINAL_STYLE = ThemeService.class.getName() + ".originalStyle";
+    private static final String DIALOG_BACKING = ThemeService.class.getName() + ".dialogBacking";
     private static boolean observingWindows;
     private static boolean observingSystemPreferences;
     private static volatile Boolean reducedMotionPreference;
@@ -32,6 +37,8 @@ public final class ThemeService {
     private static volatile Theme systemTheme = Theme.LIGHT;
     public static final int DEFAULT_TRANSPARENCY = 55;
     public static final String STARTUP_SCENE = "vncode.startup.progress";
+    /** Opt out before applying a theme when an intentionally white caller fill looks like the default. */
+    public static final String PRESERVE_SCENE_FILL = "vncode.theme.preserve-scene-fill";
 
     private ThemeService() { }
 
@@ -135,7 +142,11 @@ public final class ThemeService {
     }
 
     public static void applyTheme(Scene scene) {
-        if (scene == null || Boolean.TRUE.equals(scene.getProperties().get(STARTUP_SCENE))) return;
+        if (scene == null) return;
+        if (Boolean.TRUE.equals(scene.getProperties().get(STARTUP_SCENE))) {
+            if (scene.getProperties().get(DIALOG_BACKING) instanceof DialogBacking backing) backing.releaseOwned();
+            return;
+        }
         UiFonts.install();
         observeSystemPreferences();
         observeWindows();
@@ -268,6 +279,7 @@ public final class ThemeService {
         // graph. Theme the public control too so a same-turn theme change cannot
         // leave its skin using the owner's previously resolved lookup colours.
         Scene scene = root.getScene();
+        dialogBacking(scene, theme);
         if (scene != null && scene.getRoot() == root && scene.getWindow() instanceof PopupControl popup) {
             if (!popup.getStyleClass().contains("workspace-theme")) popup.getStyleClass().add("workspace-theme");
             selectClass(popup, "liquid-glass", glass);
@@ -286,6 +298,79 @@ public final class ThemeService {
                 selectClass(content, "glass-disabled", !glass);
                 selectClass(content, "theme-light", theme == Theme.LIGHT);
                 selectClass(content, "theme-dark", theme == Theme.DARK);
+            }
+        }
+    }
+
+    private static void dialogBacking(Scene scene, Theme theme) {
+        if (scene == null) return;
+        Object existing = scene.getProperties().get(DIALOG_BACKING);
+        if (existing instanceof DialogBacking backing) {
+            backing.refresh(theme);
+        } else if (scene.getRoot() instanceof DialogPane
+                && !Boolean.TRUE.equals(scene.getProperties().get(STARTUP_SCENE))) {
+            var backing = new DialogBacking(scene);
+            scene.getProperties().put(DIALOG_BACKING, backing);
+            backing.start(theme);
+        }
+    }
+
+    /** Rounded alpha dialog paints need an opaque app ground on decorated native windows.
+     * Only default fills belong to us; every caller edit/binding permanently keeps caller ownership. */
+    private static final class DialogBacking {
+        // Matches the semantic -bg-primary palette in both shipped stylesheets.
+        private static final Color DARK_GROUND = Color.web("#17181b");
+        private static final Color LIGHT_GROUND = Color.web("#e9ebf0");
+        private final Scene scene;
+        private final Paint original;
+        private Paint owned;
+        private boolean callerOwned, writing;
+
+        private DialogBacking(Scene scene) {
+            this.scene = scene;
+            original = scene.getFill();
+            callerOwned = scene.fillProperty().isBound() || !Color.WHITE.equals(original)
+                    || Boolean.TRUE.equals(scene.getProperties().get(PRESERVE_SCENE_FILL));
+        }
+
+        private void start(Theme theme) {
+            scene.fillProperty().addListener((observable, previous, fill) -> {
+                if (!writing) { callerOwned = true; owned = null; }
+            });
+            scene.windowProperty().addListener((observable, previous, window) -> refresh(getCurrentTheme()));
+            refresh(theme);
+        }
+
+        private void refresh(Theme theme) {
+            if (scene.fillProperty().isBound()
+                    || Boolean.TRUE.equals(scene.getProperties().get(PRESERVE_SCENE_FILL))) {
+                callerOwned = true; owned = null;
+                return;
+            }
+            boolean eligible = scene.getRoot() instanceof DialogPane
+                    && scene.getWindow() instanceof Stage stage && stage.getStyle() != StageStyle.TRANSPARENT
+                    && !Boolean.TRUE.equals(scene.getProperties().get(STARTUP_SCENE));
+            if (!eligible) { releaseOwned(); return; }
+            if (callerOwned) return;
+            if (owned == null && !Color.WHITE.equals(scene.getFill())) { callerOwned = true; return; }
+            owned = theme == Theme.LIGHT ? LIGHT_GROUND : DARK_GROUND;
+            write(owned);
+        }
+
+        private void releaseOwned() {
+            if (owned == null) return;
+            if (scene.fillProperty().isBound()) { callerOwned = true; owned = null; return; }
+            if (Objects.equals(scene.getFill(), owned)) write(original);
+            owned = null;
+        }
+
+        private void write(Paint fill) {
+            writing = true;
+            try { scene.setFill(fill); }
+            finally { writing = false; }
+            // A caller listener can replace or bind the fill reentrantly during our notification.
+            if (scene.fillProperty().isBound() || !Objects.equals(scene.getFill(), fill)) {
+                callerOwned = true; owned = null;
             }
         }
     }

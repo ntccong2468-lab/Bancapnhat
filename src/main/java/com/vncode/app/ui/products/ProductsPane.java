@@ -33,6 +33,7 @@ public final class ProductsPane extends BorderPane {
     private final I18nService i18n=I18nService.getInstance();
     private final ListView<ProductRow> rows=new ListView<>();
     private final StackPane listing=new StackPane(rows);
+    private final VBox progressFooter=new VBox();
     private final Label productHeading=new Label(),codesHeading=new Label(),variantHeading=new Label(),documentsHeading=new Label();
     private final HBox columnHeadings=new HBox(10);
     private final com.vncode.app.ui.workspace.WorkspaceDetailDrawer detailDrawer=new com.vncode.app.ui.workspace.WorkspaceDetailDrawer(listing);
@@ -45,18 +46,16 @@ public final class ProductsPane extends BorderPane {
         backgroundEdits.put(shopScope,editor);installProgress(editor);
     }
     private void installProgress(ProductBulkEditPane editor){
-        TaskStatusDock.install(listing);
         progressDismiss.stop();
         if(currentEdit!=null&&editListener!=null)currentEdit.backgroundRunning().removeListener(editListener);
-        if(progressPill!=null){for(var node:progressPill.getChildren())if(node instanceof Label label)label.textProperty().unbind();listing.getChildren().remove(progressPill);}
+        if(progressPill!=null){for(var node:progressPill.getChildren())if(node instanceof Label label)label.textProperty().unbind();progressFooter.getChildren().remove(progressPill);}
         currentEdit=editor;if(editor==null){updateButtons();return;}
         var text=new Label();text.textProperty().bind(editor.progressText());text.setWrapText(true);text.setMinWidth(0);text.setMaxWidth(Double.MAX_VALUE);HBox.setHgrow(text,Priority.ALWAYS);
         var spinner=new ProgressIndicator();spinner.setMaxSize(20,20);spinner.visibleProperty().bind(editor.backgroundRunning());spinner.managedProperty().bind(spinner.visibleProperty());
         var details=new Button(tr("products.details"));details.setMinWidth(Region.USE_PREF_SIZE);details.setOnAction(e->editor.showBackgroundDetails());
-        progressPill=new HBox(10,spinner,text,details);progressPill.setId("productBulkProgressPill");progressPill.getStyleClass().add("task-status-pill");progressPill.setAlignment(javafx.geometry.Pos.CENTER);progressPill.setMinWidth(0);progressPill.setMaxHeight(Region.USE_PREF_SIZE);progressPill.maxWidthProperty().bind(javafx.beans.binding.Bindings.max(0,listing.widthProperty().subtract(32)));
-        StackPane.setAlignment(progressPill,javafx.geometry.Pos.BOTTOM_CENTER);StackPane.setMargin(progressPill,new Insets(12));listing.getChildren().add(progressPill);
+        progressPill=new HBox(10,spinner,text,details);progressPill.setId("productBulkProgressPill");progressPill.getStyleClass().add("task-status-pill");progressPill.setAlignment(javafx.geometry.Pos.CENTER);progressPill.setMinWidth(0);progressPill.setMaxWidth(Double.MAX_VALUE);progressPill.setMaxHeight(Region.USE_PREF_SIZE);progressFooter.getChildren().add(progressPill);
         var installedPill=progressPill;
-        Runnable dismiss=()->{progressDismiss.setOnFinished(e->{if(currentEdit==editor&&!editor.backgroundRunning().get()){listing.getChildren().remove(installedPill);}});progressDismiss.playFromStart();};
+        Runnable dismiss=()->{progressDismiss.setOnFinished(e->{if(currentEdit==editor&&!editor.backgroundRunning().get()){progressFooter.getChildren().remove(installedPill);}});progressDismiss.playFromStart();};
         editListener=(o,old,value)->{updateButtons();if(value)progressDismiss.stop();else dismiss.run();};editor.backgroundRunning().addListener(editListener);if(!editor.backgroundRunning().get())dismiss.run();updateButtons();
     }
     private final TextField search=new TextField();
@@ -123,7 +122,11 @@ public final class ProductsPane extends BorderPane {
         var headings=new ProductColumns(true,productHeading,codesHeading,variantHeading,documentsHeading);HBox.setHgrow(headings,Priority.ALWAYS);
         columnHeadings.getChildren().setAll(leading,headings);columnHeadings.setId("productColumnHeadings");columnHeadings.getStyleClass().add("product-column-headings");
         columnHeadings.setAlignment(Pos.CENTER_LEFT);columnHeadings.setPadding(new Insets(0,30,0,14));columnHeadings.setMinHeight(28);columnHeadings.setPrefHeight(28);columnHeadings.setMaxHeight(28);
-        var productList=new VBox(0,columnHeadings,listing);productList.setMinSize(0,0);VBox.setVgrow(listing,Priority.ALWAYS);setCenter(productList);
+        // A wrapping progress message is a measured footer, not an overlay whose
+        // height can change after the list has already reserved its margin.
+        progressFooter.setId("productProgressFooter");progressFooter.setPadding(new Insets(8,16,8,16));progressFooter.setMinHeight(Region.USE_PREF_SIZE);progressFooter.setMaxHeight(Region.USE_PREF_SIZE);
+        progressFooter.managedProperty().bind(javafx.beans.binding.Bindings.isNotEmpty(progressFooter.getChildren()));progressFooter.visibleProperty().bind(progressFooter.managedProperty());
+        var productList=new VBox(0,columnHeadings,listing,progressFooter);productList.setMinSize(0,0);VBox.setVgrow(listing,Priority.ALWAYS);setCenter(productList);
         rows.widthProperty().addListener((o,a,b)->updateColumnLayout());updateColumnLayout();
         bulk.setId("productBulkActions");bulk.getStyleClass().add("products-bulk");
         selected.getStyleClass().add("text-bold");selected.setMinWidth(Region.USE_PREF_SIZE);bulkActions.setMinWidth(0);bulkActions.setAlignment(Pos.CENTER_LEFT);
@@ -133,7 +136,10 @@ public final class ProductsPane extends BorderPane {
             button.setOnAction(event->{if(onEdit!=null&&!selection.isEmpty()&&!loading&&!syncing&&!selecting&&!searchDirty)onEdit.accept(field,selection.freeze());});bulkActions.getChildren().add(button);
         }
         clear.setId("productClearSelection");clear.setText("");clear.setGraphic(new FontIcon("fth-x"));clear.setMinSize(30,34);
-        var bottom=new HBox(10,bulk,more);bottom.setAlignment(Pos.CENTER_LEFT);HBox.setHgrow(bulk,Priority.ALWAYS);bottom.managedProperty().bind(bulk.managedProperty());bottom.visibleProperty().bind(bottom.managedProperty());setBottom(bottom);
+        // BorderPane measures the horizontally biased action bar at the width it
+        // actually receives; HBox queried a narrower preferred width and reserved
+        // extra empty rows above the product list.
+        var bottom=new BorderPane(bulk,null,more,null,null);BorderPane.setAlignment(more,Pos.CENTER_RIGHT);BorderPane.setMargin(more,new Insets(0,0,0,10));bottom.managedProperty().bind(bulk.managedProperty());bottom.visibleProperty().bind(bottom.managedProperty());setBottom(bottom);
         reload.setOnAction(e->synchronize());more.setOnAction(e->load(true));
         debounce.setOnFinished(e->filterChanged());search.textProperty().addListener((o,a,b)->{if(!updating){searchDirty=true;selection.clear();updateSelection();debounce.playFromStart();}});
         category.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});document.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});issue.valueProperty().addListener((o,a,b)->{refreshIssueCells();if(!updating)filterChanged();});missing.setOnAction(e->filterChanged());
