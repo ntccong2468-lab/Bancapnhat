@@ -142,7 +142,10 @@ class WorkspaceBackdropMaterialTest {
             assertEquals(1, root.getChildren().size()); assertEquals(2, chrome.getChildren().size());
             assertEquals(1, chrome.getOpacity()); assertEquals(1, chrome.getChildren().getFirst().getOpacity());
             assertNull(chrome.getChildren().getFirst().getEffect(), "Never blur live text");
-            assertNull(chrome.getChildren().getLast().getEffect(), "Never blur live controls");
+            var controlEffect = chrome.getChildren().getLast().getEffect();
+            assertTrue(controlEffect == null || controlEffect instanceof javafx.scene.effect.DropShadow,
+                    "A floating control may have an outer shadow, never a foreground blur");
+            if (controlEffect instanceof javafx.scene.effect.DropShadow shadow) assertNull(shadow.getInput());
             return null;
         });
     }
@@ -310,15 +313,21 @@ class WorkspaceBackdropMaterialTest {
         });
     }
 
-    @Test void workingTablesAndStartupScenesStayEffectFreeAndOpaque() throws Exception {
+    @Test void workingTablesHaveFrostedBackgroundsWithoutBlurringTextAndStartupStaysSeparate() throws Exception {
         var root = fx(() -> {
             var table = new TableView<String>(); table.getColumns().add(new TableColumn<>("Orders"));
             var pane = new VBox(chrome(), table); pane.getStyleClass().add("workspace-shell"); show(pane); return pane;
         });
-        awaitMaterial(root); settle();
+        awaitMaterial((Region) root.getChildren().getLast()); settleCss();
         fx(() -> {
-            var table = (TableView<?>) root.getChildren().getLast(); assertNull(pattern(table)); assertNull(table.getEffect());
-            assertEquals(1, table.getOpacity()); assertInstanceOf(Color.class, table.getBackground().getFills().getFirst().getFill());
+            // The user's later all-glass brief supersedes the earlier opaque-table appearance.
+            var table = (TableView<?>) root.getChildren().getLast(); assertNotNull(pattern(table));
+            assertEquals(1, table.getOpacity(), "Frosted paint must not fade the table or its text");
+            assertTrue(table.getEffect() == null || table.getEffect() instanceof javafx.scene.effect.DropShadow,
+                    "Only an outer floating shadow is allowed; never a foreground blur");
+            var tint = assertInstanceOf(Color.class, table.getBackground().getFills().getLast().getFill());
+            assertTrue(tint.getOpacity() > 0 && tint.getOpacity() < 1, "The working surface now has an actual translucent tint");
+            for (var row : table.lookupAll(".table-row-cell")) { assertEquals(1, row.getOpacity()); assertNull(row.getEffect()); }
             var startup = new VBox(); startup.getStyleClass().add("workspace-shell"); var scene = new Scene(startup, 300, 200);
             scene.getProperties().put(ThemeService.STARTUP_SCENE, true); var stage = new Stage(); stage.setScene(scene); stages.add(stage);
             ThemeService.applyTheme(scene); stage.show(); startup.applyCss(); startup.layout(); assertNull(pattern(startup)); return null;

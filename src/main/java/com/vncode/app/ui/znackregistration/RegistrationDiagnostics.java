@@ -90,7 +90,7 @@ final class RegistrationDiagnostics {
     }
     static boolean confirmCancelPending(){
         var i18n=I18nService.getInstance();var alert=new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION,i18n.tr("znack.registration.confirm_cancel_pending"),javafx.scene.control.ButtonType.OK,javafx.scene.control.ButtonType.CANCEL);
-        alert.setHeaderText(i18n.tr("gtinsync.cancel"));return alert.showAndWait().orElse(javafx.scene.control.ButtonType.CANCEL)==javafx.scene.control.ButtonType.OK;
+        alert.setHeaderText(i18n.tr("gtinsync.cancel"));com.vncode.app.shared.ThemeService.applyThemeDialog(alert);return alert.showAndWait().orElse(javafx.scene.control.ButtonType.CANCEL)==javafx.scene.control.ButtonType.OK;
     }
     private static String value(String value){return value==null||value.isBlank()?"—":value;}
 }

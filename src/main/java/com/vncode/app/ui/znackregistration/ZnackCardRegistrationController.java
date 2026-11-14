@@ -1255,6 +1255,7 @@ public final class ZnackCardRegistrationController {
     }
     private static boolean confirm(String message) {
         Alert alert=new Alert(Alert.AlertType.CONFIRMATION,message,ButtonType.OK,ButtonType.CANCEL);
+        com.vncode.app.shared.ThemeService.applyThemeDialog(alert);
         alert.setHeaderText(tr("znack.registration.register_selected"));
         return alert.showAndWait().orElse(ButtonType.CANCEL)==ButtonType.OK;
     }
@@ -1309,8 +1310,8 @@ public final class ZnackCardRegistrationController {
     }
     private String observation(Sku row){return RegistrationDiagnostics.observation(row.status(),cardIndex==null?java.util.Optional.empty():cardIndex.observation(view(row)),latestReadUnknown);}
     private void showRegistrationReport(Sku sku){RegistrationDiagnostics.show(sku.vendorCode(),first(view(sku).gtin(),sku.gtin()),sku.feedId(),registrationStatus(sku),observation(sku)+"\n"+RegistrationDiagnostics.activeReason(view(sku),sku.errorMessage()));}
-    private static void showWarning(String message) { Alert alert = new Alert(Alert.AlertType.WARNING, message, ButtonType.OK); alert.setHeaderText(null); alert.showAndWait(); }
-    private static void showInfo(String message) { Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK); alert.setHeaderText(null); alert.showAndWait(); }
+    private static void showWarning(String message) { Alert alert = new Alert(Alert.AlertType.WARNING, message, ButtonType.OK); com.vncode.app.shared.ThemeService.applyThemeDialog(alert); alert.setHeaderText(null); alert.showAndWait(); }
+    private static void showInfo(String message) { Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK); com.vncode.app.shared.ThemeService.applyThemeDialog(alert); alert.setHeaderText(null); alert.showAndWait(); }
 
     private enum DocumentType {
         DECLARATION("Декларация о соответствии", "CONFORMITY_DECLARATION"),

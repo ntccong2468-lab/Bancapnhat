@@ -39,7 +39,7 @@ public final class WorkspaceCommandPalette {
         query.setOnAction(event->{if(!results.getChildren().isEmpty())((Button)results.getChildren().getFirst()).fire();});
         dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefWidth(620);
         dialog.getDialogPane().getButtonTypes().add(ButtonType.CANCEL);
-        ThemeService.applyTheme(dialog.getDialogPane());
+        ThemeService.applyThemeDialog(dialog);
         dialog.setOnShown(event->query.requestFocus());
         dialog.setOnHidden(event->{query.clear();open=null;});dialog.show();
     }

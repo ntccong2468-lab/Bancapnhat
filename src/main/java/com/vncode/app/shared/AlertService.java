@@ -115,14 +115,13 @@ public final class AlertService {
 
     public static void applyTheme(Dialog<?> dialog) {
         if (dialog != null) {
+            WorkspaceDialogChrome.install(dialog);
             applyTheme(dialog.getDialogPane());
         }
     }
 
     public static void applyTheme(Alert alert) {
-        if (alert != null) {
-            applyTheme(alert.getDialogPane());
-        }
+        applyTheme((Dialog<?>) alert);
     }
 
     public static void applyTheme(DialogPane pane) {

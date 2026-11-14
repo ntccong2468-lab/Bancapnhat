@@ -2,7 +2,9 @@ package com.vncode.app.shared;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.css.StyleOrigin;
 import javafx.css.StyleableProperty;
 import javafx.geometry.Point2D;
@@ -17,6 +19,10 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.ImagePattern;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Paint;
 import javafx.stage.PopupWindow;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -32,6 +38,12 @@ public final class WorkspaceBackdropMaterial {
     private static final String ATTACH = WorkspaceBackdropMaterial.class.getName() + ".attach";
     private static final int WIDTH = 960, HEIGHT = 600;
     private static final Map<ThemeService.Theme, CompletableFuture<Wallpaper>> WALLPAPERS = new EnumMap<>(ThemeService.Theme.class);
+    private static final Set<String> MATERIAL_PANELS = Set.of(
+            "workspace-glass-header", "workspace-glass-sidebar", "glass-surface", "glass-overlay", "glass-toolbar", "glass-sidebar",
+            "context-menu", "date-picker-popup", "tooltip", "workspace-sheet", "card", "surface", "copy-card", "news-card",
+            "guide-section", "gtin-inventory-card", "supply-detail", "detail-drawer", "appearance-section", "workspace-overlay",
+            "workspace-article", "finance-kpi-card", "task-status-pill", "info-banner", "workspace-batch-footer",
+            "selection-action-bar", "products-bulk");
 
     private WorkspaceBackdropMaterial() { }
 
@@ -109,18 +121,46 @@ public final class WorkspaceBackdropMaterial {
             if (!(node instanceof Parent parent) || !observed.add(parent)) return;
             if (node instanceof Region region && role(region, scene) != 0) {
                 surfaces.computeIfAbsent(region, key -> new Surface(this, key));
-                if (!region.getStyleClass().contains("workspace-shell")) return;
             }
+            InvalidationListener classes = ignored -> { rebuildRequested = true; request(); };
+            parent.getStyleClass().addListener(classes);
+            unwatch.add(() -> parent.getStyleClass().removeListener(classes));
             // Logical content only. Never walk virtualized rows, control skins or product thumbnails.
             if (parent instanceof ScrollPane scroll) {
-                scan(scroll.getContent());
-                javafx.beans.value.ChangeListener<Node> listener = (o, a, b) -> { if (a != null) rebuildRequested = true; scan(b); request(); };
-                scroll.contentProperty().addListener(listener); unwatch.add(() -> scroll.contentProperty().removeListener(listener)); return;
+                content(scroll.contentProperty());
+                scroll.hvalueProperty().addListener(geometry); scroll.vvalueProperty().addListener(geometry);
+                unwatch.add(() -> { scroll.hvalueProperty().removeListener(geometry); scroll.vvalueProperty().removeListener(geometry); });
+                return;
             }
             if (parent instanceof TitledPane titled) {
-                scan(titled.getContent());
-                javafx.beans.value.ChangeListener<Node> listener = (o, a, b) -> { if (a != null) rebuildRequested = true; scan(b); request(); };
-                titled.contentProperty().addListener(listener); unwatch.add(() -> titled.contentProperty().removeListener(listener)); return;
+                content(titled.contentProperty());
+                InvalidationListener expansion = ignored -> { rebuildRequested = true; request(); };
+                titled.expandedProperty().addListener(expansion); unwatch.add(() -> titled.expandedProperty().removeListener(expansion));
+                return;
+            }
+            if (parent instanceof Accordion accordion) { nodes(accordion.getPanes()); return; }
+            if (parent instanceof SplitPane split) { nodes(split.getItems()); return; }
+            if (parent instanceof ToolBar toolbar) { nodes(toolbar.getItems()); return; }
+            if (parent instanceof ButtonBar buttons) { nodes(buttons.getButtons()); return; }
+            if (parent instanceof TabPane tabs) {
+                InvalidationListener selection = ignored -> { rebuildRequested = true; request(); };
+                tabs.selectionModelProperty().addListener(selection);
+                unwatch.add(() -> tabs.selectionModelProperty().removeListener(selection));
+                var model = tabs.getSelectionModel();
+                if (model != null) {
+                    model.selectedItemProperty().addListener(selection);
+                    unwatch.add(() -> model.selectedItemProperty().removeListener(selection));
+                    var selected = model.getSelectedItem();
+                    if (selected != null) content(selected.contentProperty());
+                }
+                ListChangeListener<Tab> changed = ignored -> { rebuildRequested = true; request(); };
+                tabs.getTabs().addListener(changed); unwatch.add(() -> tabs.getTabs().removeListener(changed));
+                return;
+            }
+            if (parent instanceof DialogPane dialog) {
+                content(dialog.contentProperty()); content(dialog.headerProperty()); content(dialog.expandableContentProperty());
+                // DialogPane is a logical Pane, not a Control skin. Its public children
+                // include the existing button bar and app-owned floating title chrome.
             }
             if (parent instanceof Control) return;
             parent.layoutBoundsProperty().addListener(geometry);
@@ -139,6 +179,27 @@ public final class WorkspaceBackdropMaterial {
             parent.getChildrenUnmodifiable().addListener(children);
             unwatch.add(() -> parent.getChildrenUnmodifiable().removeListener(children));
             for (Node child : List.copyOf(parent.getChildrenUnmodifiable())) scan(child);
+        }
+
+        private void content(ObservableValue<? extends Node> property) {
+            scan(property.getValue());
+            javafx.beans.value.ChangeListener<Node> listener = (observable, previous, next) -> {
+                if (previous != null) rebuildRequested = true;
+                scan(next); request();
+            };
+            property.addListener(listener); unwatch.add(() -> property.removeListener(listener));
+        }
+
+        private void nodes(ObservableList<? extends Node> nodes) {
+            for (Node node : List.copyOf(nodes)) scan(node);
+            ListChangeListener<Node> changed = change -> {
+                while (change.next()) {
+                    if (change.wasRemoved()) rebuildRequested = true;
+                    if (change.wasAdded()) for (Node next : change.getAddedSubList()) scan(next);
+                }
+                request();
+            };
+            nodes.addListener(changed); unwatch.add(() -> nodes.removeListener(changed));
         }
 
         private void clearTree() {
@@ -193,12 +254,14 @@ public final class WorkspaceBackdropMaterial {
     private static int role(Region region, Scene scene) {
         var classes = region.getStyleClass();
         if (classes.contains("workspace-shell")) return 1;
-        if (region instanceof DialogPane || classes.contains("workspace-glass-header") || classes.contains("workspace-glass-sidebar")
-                || classes.contains("glass-surface") || classes.contains("glass-overlay") || classes.contains("glass-toolbar")
-                || classes.contains("glass-sidebar") || classes.contains("context-menu") || classes.contains("date-picker-popup")
-                || classes.contains("tooltip")) return 2;
-        // ListView is eligible only in a native popup, never a working product/order list.
-        return scene.getWindow() instanceof PopupWindow && region instanceof ListView<?> ? 2 : 0;
+        // The Settings page is a transparent layout wrapper; only its sections float.
+        if (classes.contains("appearance-pane")) return 0;
+        if (region instanceof DialogPane || region instanceof ButtonBase || region instanceof MenuButton
+                || region instanceof TextInputControl || region instanceof ComboBoxBase<?> || region instanceof ChoiceBox<?> || region instanceof Spinner<?>
+                || region instanceof TableView<?> || region instanceof TreeTableView<?> || region instanceof ListView<?>
+                || region instanceof TreeView<?> || region instanceof TitledPane || region instanceof ToolBar) return 2;
+        for (String type : classes) if (MATERIAL_PANELS.contains(type)) return 2;
+        return 0;
     }
 
     private static final class Surface {
@@ -247,7 +310,8 @@ public final class WorkspaceBackdropMaterial {
                 base = current; origin = selected; owned = null;
             }
             int role = role(region, scope.scene);
-            if (role == 0 || base == null || base.getFills().isEmpty() || !base.getImages().isEmpty()) { release(); return; }
+            if (role == 0 || base == null || base.getFills().isEmpty() || !base.getImages().isEmpty()
+                    || base.getFills().stream().noneMatch(fill -> visible(fill.getFill()))) { release(); return; }
             Parent ground = ground(scope.scene);
             double w = ground.getLayoutBounds().getWidth(), h = ground.getLayoutBounds().getHeight();
             if (w <= 0 || h <= 0 || region.getWidth() <= 0 || region.getHeight() <= 0) return;
@@ -287,6 +351,13 @@ public final class WorkspaceBackdropMaterial {
                 callerOwned = true; owned = null; image = null;
             }
         }
+    }
+
+    private static boolean visible(Paint paint) {
+        if (paint instanceof Color color) return color.getOpacity() > 0;
+        if (paint instanceof LinearGradient gradient) return gradient.getStops().stream().anyMatch(stop -> stop.getColor().getOpacity() > 0);
+        if (paint instanceof RadialGradient gradient) return gradient.getStops().stream().anyMatch(stop -> stop.getColor().getOpacity() > 0);
+        return true;
     }
 
     private static Parent ground(Scene scene) {

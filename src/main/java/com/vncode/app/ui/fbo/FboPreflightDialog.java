@@ -33,6 +33,7 @@ public final class FboPreflightDialog {
         dialog.getDialogPane().lookupButton(print).setDisable(result.ready().isEmpty());
         dialog.getDialogPane().lookupButton(buy).setDisable(result.toBuy().isEmpty());
         dialog.setResultConverter(button->{if(button==registration){openRegistration.run();return List.of();}if(button==buy){buyMissing.accept(result);return List.of();}return button==print?result.ready():List.of();});
+        com.vncode.app.shared.ThemeService.applyThemeDialog(dialog);
         return dialog.showAndWait().orElse(List.of());
     }
     private static void column(TableView<FboPreflightService.Row> table,String name,Function<FboPreflightService.Row,String> value){var c=new TableColumn<FboPreflightService.Row,String>(name);c.setCellValueFactory(v->new ReadOnlyStringWrapper(value.apply(v.getValue())));table.getColumns().add(c);}

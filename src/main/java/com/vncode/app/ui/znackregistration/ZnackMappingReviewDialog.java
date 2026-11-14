@@ -17,7 +17,7 @@ public final class ZnackMappingReviewDialog {
     private ZnackMappingReviewDialog(){}
     private record Loaded(Shop shop,List<GtinSyncModels.RegisteredGtin> catalog){}
     public static void show(Window owner,JobReportRepository.Report report,JobReportRepository.Line item){
-        var dialog=new Dialog<Void>();dialog.initOwner(owner);dialog.setTitle(tr("jobs.review_mapping"));
+        var dialog=new Dialog<Void>();dialog.initOwner(owner);ThemeService.applyThemeDialog(dialog);dialog.setTitle(tr("jobs.review_mapping"));
         var hint=new Label(item.product()+" / "+item.variant()+" · SKU "+item.sku()+" · "+item.article()+" · "+item.size()+" · "+item.color());hint.setWrapText(true);
         var choices=new ComboBox<GtinSyncModels.RegisteredGtin>();choices.setMaxWidth(Double.MAX_VALUE);choices.setPromptText(tr("jobs.choose_gtin"));choices.setDisable(true);
         choices.setConverter(new javafx.util.StringConverter<>(){public String toString(GtinSyncModels.RegisteredGtin g){return g==null?"":g.gtin()+" · "+g.article()+" · "+g.size()+" · "+g.color();}public GtinSyncModels.RegisteredGtin fromString(String s){throw new UnsupportedOperationException();}});

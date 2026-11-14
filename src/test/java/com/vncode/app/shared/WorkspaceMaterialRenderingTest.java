@@ -8,9 +8,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Control;
+import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
 import javafx.scene.image.WritableImage;
@@ -55,7 +57,8 @@ class WorkspaceMaterialRenderingTest {
         if(previous==null)System.clearProperty("vncode.appdata.dir");else System.setProperty("vncode.appdata.dir",previous);
     }
 
-    @Test void floatingChromeHasDirectionalLightWhileWorkingDataStaysOpaque() throws Exception {
+    /** The 2026-11-14 all-surface brief supersedes the archived b00 opaque-workspace assertions. */
+    @Test void floatingChromeAndWorkingGlassKeepTextSolidAndLegible() throws Exception {
         fx(() -> {
             ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);
             var materialChecks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
@@ -64,7 +67,8 @@ class WorkspaceMaterialRenderingTest {
                 var title=new Label("VN Code · Synthetic material evidence");
                 var chrome=new HBox(title);chrome.getStyleClass().add("workspace-glass-header");
                 var data=new TableView<String>();data.getColumns().add(new TableColumn<>("Synthetic data"));data.setPrefHeight(110);
-                var content=new VBox(8,new Label("Opaque, readable working surface"),data);content.getStyleClass().add("workspace-sheet");
+                var caption=new Label("Frosted working surface · solid readable text");
+                var content=new VBox(8,caption,data);content.getStyleClass().add("workspace-sheet");
                 var root=new VBox(16,chrome,content);root.setPadding(new Insets(24));
                 var stage=new Stage();stage.setScene(new Scene(root,620,300));ThemeService.applyTheme(stage.getScene());stage.show();
                 try {
@@ -75,9 +79,13 @@ class WorkspaceMaterialRenderingTest {
                     capture(root,theme);
                     materialChecks.add(() -> assertTrue(brightness(top)-brightness(bottom)>.035,
                             "Floating material needs directional edge light rather than a flat translucent rectangle: "+theme+" top="+top+" bottom="+bottom));
-                    assertEquals(1,((Color)content.getBackground().getFills().getLast().getFill()).getOpacity(),1e-6);
-                    assertEquals(1,((Color)data.getBackground().getFills().getLast().getFill()).getOpacity(),1e-6);
-                    assertNull(data.getEffect(),"The large virtualized work list must not acquire a blur/shadow");
+                    assertTint(content,.68,.81,"Working panel uses a readable frosted tint");
+                    assertTint(data,.68,.81,"The table owns one shared material, not a fill on each row");
+                    assertNull(data.getEffect(),"The existing floating sheet supplies elevation outside the rounded table clip");
+                    assertTrue(data.lookupAll(".table-row-cell").stream().allMatch(node -> node.getEffect()==null),
+                            "Virtualized rows must not acquire per-row blur/shadows");
+                    Color background=pixel(root,pixels,content,content.getWidth()-24,24);
+                    assertTrue(contrast((Color)caption.getTextFill(),background)>=4.5,"Body text contrasts with the actual rendered panel: "+theme);
                     assertEquals(1,title.getOpacity());assertEquals(1,root.getOpacity());assertEquals(1,stage.getOpacity());
                 } finally { stage.close(); }
             }
@@ -106,8 +114,8 @@ class WorkspaceMaterialRenderingTest {
                     checks.add(() -> assertTrue(wrapperTransparent,"The report content wrapper must reveal its rounded dialog frame: "+context));
                     checks.add(() -> assertTrue(wrapperBorderless,"The report wrapper must not add a second square border: "+context));
                     assertEquals(StageStyle.DECORATED,stage.getStyle(),"Native window caption is unchanged");
-                    assertEquals(1,((Color)report.getBackground().getFills().getLast().getFill()).getOpacity(),1e-6,
-                            "Only the redundant wrapper is transparent; report data stays opaque");
+                    assertTint(report,.73,.86,"Report field keeps its own readable frosted tint");
+                    assertEquals(1,ink(report).getOpacity(),1e-6,"Report text remains solid");
                     assertTrue(report.getBackground().getFills().getLast().getRadii().getTopLeftHorizontalRadius()>0,
                             "The report field retains its rounded surface");
                     assertSame(report,stage.getScene().getFocusOwner(),"Keyboard focus remains on the report field");
@@ -122,7 +130,7 @@ class WorkspaceMaterialRenderingTest {
 
     @Test void nativeTableHeadersRespectStandaloneCornersWithoutRoundingEmbeddedHeaders() throws Exception {
         fx(() -> {
-            ThemeService.setReducedMotion(true);
+            ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);
             var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
             Color ground=Color.rgb(101,37,89);
             for(var theme:ThemeService.Theme.values())for(boolean tree:new boolean[]{false,true}) {
@@ -139,21 +147,115 @@ class WorkspaceMaterialRenderingTest {
                     String context=theme+" "+(tree?"TreeTableView":"TableView");
                     Color left=pixel(root,image,standalone,2,2),right=pixel(root,image,standalone,standalone.getWidth()-3,2);
                     Color embeddedCorner=pixel(root,image,embedded,2,2),embeddedCenter=pixel(root,image,embedded,embedded.getWidth()/2,2);
-                    checks.add(() -> assertEquals(ground,left,"Standalone header must not overpaint the top-left rounded corner: "+context));
-                    checks.add(() -> assertEquals(ground,right,"Standalone header must not overpaint the top-right rounded corner: "+context));
-                    checks.add(() -> assertEquals(embeddedCenter,embeddedCorner,"Embedded header retains its straight edge inside the owning sheet: "+context));
-                    assertNotEquals(ground,embeddedCorner,"Embedded work data remains opaque");
+                    // Small offset shadows are now intentional; a square opaque header is not.
+                    checks.add(() -> assertTrue(distance(ground,left)<.045,"Standalone header must not overpaint the top-left rounded corner: "+context));
+                    checks.add(() -> assertTrue(distance(ground,right)<.045,"Standalone header must not overpaint the top-right rounded corner: "+context));
+                    checks.add(() -> assertTrue(distance(embeddedCenter,embeddedCorner)<.045,"Embedded header retains its straight edge inside the owning sheet: "+context));
+                    assertNotEquals(ground,embeddedCorner,"Embedded work data retains a legible material tint");
+                    assertEquals(0,((Region)embedded.lookup(".column-header-background")).getBackground().getFills().getLast().getRadii().getTopLeftHorizontalRadius(),
+                            "The owning sheet supplies the embedded header's outer corners");
                     var header=(Region)standalone.lookup(".column-header-background");
                     Color headerFill=pixel(root,image,header,header.getWidth()/2,header.getHeight()-4);
                     Color bottomRule=pixel(root,image,header,header.getWidth()/2,header.getHeight()-1);
                     assertNotEquals(headerFill,bottomRule,"The header's bottom divider remains visible");
                     standalone.requestFocus();root.applyCss();
                     assertSame(standalone,stage.getScene().getFocusOwner(),"Table keyboard focus remains available");
-                    assertNull(standalone.getEffect(),"A corner repair must not add an effect to the working table");
+                    assertTrue(standalone.lookupAll(".table-row-cell,.tree-table-row-cell").stream().allMatch(node -> node.getEffect()==null),
+                            "Only the whole control floats; rows stay free of effects");
                 } finally {stage.close();}
             }
             assertAll(checks);return null;
         });
+    }
+
+    @Test void settingsHasNoOpaqueEnclosureAndFloatingWidgetsKeepNativeContrast() throws Exception {
+        fx(() -> {
+            ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);
+            var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
+            for(var theme:ThemeService.Theme.values()) {
+                ThemeService.setCurrentTheme(theme);
+                var settings=new com.vncode.app.ui.workspace.WorkspaceAppearancePane();
+                var field=new TextField("Synthetic product");field.setPrefWidth(240);
+                var action=new Button("Apply");action.setPrefWidth(120);
+                var primary=new Button("Save");primary.getStyleClass().add("btn-primary");primary.setPrefWidth(120);
+                var widgets=new HBox(12,field,action,primary);
+                var root=new VBox(12,settings,widgets);root.setPadding(new Insets(24));
+                var stage=new Stage();stage.setScene(new Scene(root,820,790));ThemeService.applyTheme(stage.getScene());stage.show();
+                try {
+                    root.applyCss();root.layout();
+                    capture(root,"all-surface-settings-"+theme.getKey()+".png");
+                    boolean openPage=transparent(settings);
+                    checks.add(() -> assertTrue(openPage,"Settings must not retain the superseded opaque enclosing card: "+theme));
+                    for(var node:settings.lookupAll(".appearance-section")) {
+                        assertTint((Region)node,.68,.81,"Settings section floats independently");
+                        var section=(VBox)node;var first=section.getChildren().getFirst();
+                        double inset=first.localToScene(0,0).getX()-section.localToScene(0,0).getX();
+                        assertTrue(inset>=14,"The rounded section must give its text horizontal breathing room");
+                    }
+                    assertTint(field,.73,.86,"Field tint preserves readable frost");
+                    assertTint(action,.65,.77,"Ordinary action uses the shared floating control tint");
+                    WritableImage pixels=root.snapshot(null,null);
+                    for(var control:List.of(field,action,primary)) {
+                        Color foreground=ink(control);
+                        Color background=pixel(root,pixels,control,control.getWidth()-18,8);
+                        assertEquals(1,foreground.getOpacity(),"Control text is never faded with material");
+                        assertTrue(contrast(foreground,background)>=4.5,"Text must contrast with actual native background: "+theme+" "+control.getClass().getSimpleName());
+                    }
+                    field.requestFocus();root.applyCss();assertSame(field,stage.getScene().getFocusOwner());
+                    assertTrue(field.getBorder().getStrokes().stream().anyMatch(stroke -> stroke.getTopStroke() instanceof Color color&&color.getOpacity()>0),
+                            "The field retains visible keyboard focus");
+                } finally {settings.dispose();stage.close();}
+                checkSettingsAt940(theme);
+            }
+            assertAll(checks);return null;
+        });
+    }
+
+    private static void checkSettingsAt940(ThemeService.Theme theme) throws Exception {
+        var sidebar=FxmlViewLoader.loader(com.vncode.app.ui.shop.ShopSidebarController.class,"shop-sidebar-view.fxml");
+        var header=FxmlViewLoader.loader(com.vncode.app.ui.workspace.WorkspaceHeaderController.class,"workspace-header-view.fxml");
+        Parent navigation=sidebar.load(),toolbar=header.load();
+        var nav=(com.vncode.app.ui.shop.ShopSidebarController)sidebar.getController();
+        var top=(com.vncode.app.ui.workspace.WorkspaceHeaderController)header.getController();
+        var settings=new com.vncode.app.ui.workspace.WorkspaceAppearancePane();
+        settings.setOnTranslationSettings(()->{});settings.setOnCheckUpdate(()->{});settings.setOnPrinterSettings(()->{});
+        settings.setOnAccount(()->{});settings.setOnAbout(()->{});
+        var viewport=new com.vncode.app.ui.workspace.WorkspaceViewport(settings);
+        var work=new javafx.scene.layout.BorderPane(viewport,toolbar,null,null,null);
+        var root=new javafx.scene.layout.BorderPane(work,null,null,null,navigation);root.setPadding(new Insets(8));
+        javafx.scene.layout.BorderPane.setMargin(navigation,new Insets(0,10,0,0));
+        var stage=new Stage();stage.setScene(new Scene(root,940,720));ThemeService.applyTheme(stage.getScene());
+        try {
+            stage.show();nav.setViewportWidth(1440); // Exercise the user's expanded-sidebar override at a narrow desktop.
+            nav.selectNavigation("settingsMenuButton");root.applyCss();root.layout();root.applyCss();root.layout();
+            pulse();root.applyCss();root.layout();
+            assertEquals(940,stage.getScene().getWidth(),1);
+            var bounds=settings.localToScene(settings.getLayoutBounds());int count=0;
+            for(var node:settings.lookupAll("*"))if(node instanceof javafx.scene.control.ButtonBase||node instanceof javafx.scene.control.ComboBoxBase<?>
+                    ||node instanceof javafx.scene.control.ChoiceBox<?>||node instanceof javafx.scene.control.Slider
+                    ||node instanceof javafx.scene.control.CheckBox) {
+                if(!node.isVisible()||!node.isManaged())continue;
+                var control=node.localToScene(node.getLayoutBounds());count++;
+                assertTrue(control.getMinX()>=bounds.getMinX()-1&&control.getMaxX()<=bounds.getMaxX()+1,
+                        "Settings control must fit the 940px workspace horizontally: "+theme+" "+node.getId()+" "+control);
+            }
+            assertTrue(count>=12,"All native settings actions and appearance controls must be exercised");
+            capture(root,"settings-940-"+theme.getKey()+".png");
+            var scroll=(javafx.scene.control.ScrollPane)settings.lookup(".appearance-scroll");scroll.setVvalue(1);viewport.setVvalue(1);root.layout();
+            pulse();root.applyCss();root.layout();
+            var visible=(Region)scroll.lookup(".viewport");var visibleBounds=visible.localToScene(visible.getLayoutBounds());
+            for(String id:List.of("appearanceTranslationSettings","appearanceCheckUpdate","appearanceAccount","appearancePrinterSettings","appearanceAbout")) {
+                var node=settings.lookup("#"+id);var action=node.localToScene(node.getLayoutBounds());
+                assertTrue(action.getMinY()>=visibleBounds.getMinY()-1&&action.getMaxY()<=visibleBounds.getMaxY()+1,
+                        "The full Settings action remains reachable after scrolling at940px: "+theme+" "+id);
+            }
+            capture(root,"settings-940-"+theme.getKey()+"-bottom.png");
+        } finally {settings.dispose();top.dispose();nav.dispose();stage.close();}
+    }
+    private static void pulse(){
+        Object key=new Object();var timer=new javafx.animation.AnimationTimer(){int frames;
+            @Override public void handle(long now){if(++frames==3){stop();Platform.exitNestedEventLoop(key,null);}}
+        };timer.start();Platform.enterNestedEventLoop(key);
     }
 
     private static Control headerTable(boolean tree){
@@ -182,6 +284,21 @@ class WorkspaceMaterialRenderingTest {
             .allMatch(stroke -> stroke.getWidths().getTop()==0&&stroke.getWidths().getRight()==0
                     &&stroke.getWidths().getBottom()==0&&stroke.getWidths().getLeft()==0
                     ||stroke.getTopStroke() instanceof Color color&&color.getOpacity()==0);}
+    private static void assertTint(Region region,double minimum,double maximum,String reason){
+        assertNotNull(region.getBackground(),reason+": material is missing");
+        assertFalse(region.getBackground().getFills().isEmpty(),reason+": material fill is missing");
+        double alpha=((Color)region.getBackground().getFills().getLast().getFill()).getOpacity();
+        assertTrue(alpha>=minimum&&alpha<=maximum,reason+": alpha="+alpha);
+    }
+    private static Color ink(Control control){
+        if(control instanceof javafx.scene.control.Labeled labeled)return (Color)labeled.getTextFill();
+        return control.lookupAll(".text").stream().filter(node -> node instanceof javafx.scene.text.Text text&&!text.getText().isBlank())
+                .map(node -> (Color)((javafx.scene.text.Text)node).getFill()).findFirst().orElseThrow();
+    }
+    private static double distance(Color a,Color b){return Math.max(Math.abs(a.getRed()-b.getRed()),Math.max(Math.abs(a.getGreen()-b.getGreen()),Math.abs(a.getBlue()-b.getBlue())));}
+    private static double contrast(Color a,Color b){double x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
+    private static double luminance(Color c){return .2126*linear(c.getRed())+.7152*linear(c.getGreen())+.0722*linear(c.getBlue());}
+    private static double linear(double c){return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);}
     private static double brightness(Color color){return (color.getRed()+color.getGreen()+color.getBlue())/3;}
     private static <T> T fx(java.util.concurrent.Callable<T> action) throws Exception {
         var task=new FutureTask<T>(action);Platform.runLater(task);return task.get(25,TimeUnit.SECONDS);

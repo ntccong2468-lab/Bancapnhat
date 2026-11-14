@@ -24,7 +24,7 @@ final class RegistrationProvenanceDialog {
         if(selected==null)return;
         Shop shop=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
         var keys=List.copyOf(new LinkedHashSet<>(selection));
-        var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);dialog.initModality(Modality.NONE);dialog.setTitle(tr("znack.provenance.title"));
+        var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);dialog.initModality(Modality.NONE);ThemeService.applyThemeDialog(dialog);dialog.setTitle(tr("znack.provenance.title"));
         var status=new Label(keys.isEmpty()?tr("znack.provenance.choose"):tr("znack.provenance.loading"));status.setWrapText(true);
         var hint=new Label(tr("znack.provenance.hint"));hint.setWrapText(true);
         var table=new TableView<Row>();table.setId("registrationProvenanceTable");table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);

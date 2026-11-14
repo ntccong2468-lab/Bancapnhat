@@ -21,7 +21,7 @@ class ThemeServiceTest {
  @BeforeEach void setup(){System.setProperty("vncode.appdata.dir",temp.toString());Database.initDatabase();}
  @AfterEach void cleanup()throws Exception{fx(()->{for(var w:List.copyOf(Window.getWindows()))if(w instanceof Stage s)s.close();return null;});System.clearProperty("vncode.appdata.dir");}
  static <T>T fx(Callable<T> call)throws Exception{var task=new FutureTask<>(call);Platform.runLater(task);return task.get(30,TimeUnit.SECONDS);}
- @Test void contentStaysOpaqueAndReadableWhileGlassChangesOnlyChrome()throws Exception{
+ @Test void contentUsesFloatingGlassWhileTextAndControlsStaySolidAndReadable()throws Exception{
   fx(()->{
    ThemeService.initializeAppearance();ThemeService.setGlassEnabled(true);
    for(var theme:ThemeService.Theme.values())for(int amount:new int[]{0,55,100}){
@@ -41,10 +41,11 @@ class ThemeServiceTest {
     var material=(Color)chrome.getBackground().getFills().getLast().getFill();
     if(amount==0)assertTrue(material.getOpacity()<.1,"Clear material setting affects chrome: "+context);
     if(amount==100)assertTrue(material.getOpacity()>.9,"Frosted material setting affects chrome: "+context);
-    var canvas=paint(root);var panel=paint(card);
-    assertEquals(1,panel.getOpacity(),1e-6,"Content panels must remain opaque: "+context);
-    assertEquals(1,paint(table).getOpacity(),1e-6,"Working tables must remain opaque: "+context);
-    assertNull(table.getEffect(),"Virtualized content must not inherit a glass blur");
+    var canvas=paint(root);var panelTint=paint(card);var panel=over(panelTint,canvas);
+    // The later all-glass brief replaces the old opaque-panel appearance, never live text opacity.
+    assertEquals(.62+.18*(amount/100.0),panelTint.getOpacity(),.002,"Content glass tint follows the saved amount: "+context);
+    assertEquals(panelTint.getOpacity(),paint(table).getOpacity(),.002,"Tables share the content glass material: "+context);
+    assertTrue(table.getEffect()==null||table.getEffect() instanceof javafx.scene.effect.DropShadow,"Only an outer floating shadow is allowed; never a foreground blur");
     assertTrue(((Color)label.getTextFill()).getOpacity()>=.959,"Primary text is never faded: "+context);
     assertTrue(contrast(over((Color)label.getTextFill(),panel),panel)>=7,"Primary content contrast: "+context);
     assertTrue(contrast(over((Color)muted.getTextFill(),panel),panel)>=4.5,"Secondary content contrast: "+context);
@@ -180,7 +181,7 @@ class ThemeServiceTest {
    assertEquals(Platform.getPreferences().isReducedMotion(),ThemeService.isReducedMotion());return null;
   });
  }
- @Test void approvedNativeChromeUsesManageForAddAndKeepsWorkingContentOpaque()throws Exception{
+ @Test void approvedNativeChromeUsesManageForAddAndKeepsLiveContentReadable()throws Exception{
   fx(()->{
    var previousLanguage=I18nService.getInstance().getCurrentLanguage();I18nService.getInstance().setLanguage(AppLanguage.VI);
    try {
@@ -271,7 +272,11 @@ class ThemeServiceTest {
    });
   }finally{fx(()->{popup[0].hide();owner.close();return null;});}
  }
- static Color paint(Region region){return (Color)region.getBackground().getFills().getFirst().getFill();}
+ static Color paint(Region region){
+  var fills=region.getBackground().getFills();
+  for(int i=fills.size()-1;i>=0;i--)if(fills.get(i).getFill() instanceof Color colour)return colour;
+  throw new AssertionError("No final material tint on "+region);
+ }
  static Color over(Color a,Color b){double t=a.getOpacity();return new Color(a.getRed()*t+b.getRed()*(1-t),a.getGreen()*t+b.getGreen()*(1-t),a.getBlue()*t+b.getBlue()*(1-t),1);}
  static double channel(double n){return n<=.04045?n/12.92:Math.pow((n+.055)/1.055,2.4);}
  static double luminance(Color c){return .2126*channel(c.getRed())+.7152*channel(c.getGreen())+.0722*channel(c.getBlue());}

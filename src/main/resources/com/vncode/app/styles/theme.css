@@ -52,6 +52,12 @@
     -glass-highlight: rgba(255,255,255,.10);
     -glass-control-highlight: rgba(255,255,255,.08);
     -glass-control-shadow: rgba(0,0,0,.08);
+    -glass-content: rgba(38,38,42,.719);
+    -glass-field: rgba(38,38,42,.779);
+    -glass-control: rgba(48,48,53,.699);
+    -glass-table-header: rgba(38,38,42,.779);
+    -glass-edge: rgba(255,255,255,.16);
+    -glass-local-shadow: rgba(0,0,0,.14);
     -chrome-shadow: rgba(0,0,0,.20);
     -overlay-shadow: rgba(0,0,0,.28);
     -glass-selected: #353e49;
@@ -125,6 +131,12 @@
     -glass-highlight: rgba(255,255,255,.80);
     -glass-control-highlight: rgba(255,255,255,.60);
     -glass-control-shadow: rgba(36,37,42,.04);
+    -glass-content: rgba(255,255,255,.719);
+    -glass-field: rgba(255,255,255,.779);
+    -glass-control: rgba(255,255,255,.699);
+    -glass-table-header: rgba(255,255,255,.779);
+    -glass-edge: rgba(255,255,255,.75);
+    -glass-local-shadow: rgba(36,37,42,.07);
     -chrome-shadow: rgba(36,37,42,.09);
     -overlay-shadow: rgba(36,37,42,.16);
     -glass-selected: #e7edf7;

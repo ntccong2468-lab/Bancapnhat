@@ -4,6 +4,7 @@ import com.vncode.app.integration.znack.registration.RegistrationConnectionDiagn
 import com.vncode.app.models.Shop;
 import com.vncode.app.shared.AppTaskExecutor;
 import com.vncode.app.shared.I18nService;
+import com.vncode.app.shared.ThemeService;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
@@ -20,7 +21,7 @@ final class RegistrationConnectionDialog {
     static void show(Window owner,Shop selected){
         if(selected==null)return;
         Shop frozen=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
-        var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);dialog.initModality(Modality.NONE);
+        var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);dialog.initModality(Modality.NONE);ThemeService.applyThemeDialog(dialog);
         dialog.setTitle(tr("znack.connection.title"));
         var labels=new EnumMap<RegistrationConnectionDiagnostics.Step,Label>(RegistrationConnectionDiagnostics.Step.class);
         var body=new VBox(10);body.setPadding(new Insets(16));

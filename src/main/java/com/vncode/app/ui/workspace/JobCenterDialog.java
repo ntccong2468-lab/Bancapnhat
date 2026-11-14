@@ -14,7 +14,7 @@ import java.util.function.*;
 public final class JobCenterDialog {
     private JobCenterDialog() {}
     public static void show(Window owner,Consumer<JobCenterRepository.Row> open) {
-        var dialog=new Dialog<Void>();dialog.setTitle(tr("jobs.title"));if(owner!=null)dialog.initOwner(owner);
+        var dialog=new Dialog<Void>();dialog.setTitle(tr("jobs.title"));if(owner!=null)dialog.initOwner(owner);ThemeService.applyThemeDialog(dialog);
         dialog.getDialogPane().setId("jobCenterDialog");
         var table=new TableView<JobReportRepository.Report>();table.setId("jobReportsTable");table.setPrefHeight(370);table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         column(table,tr("jobs.id"),r->r.id().length()>12?r.id().substring(0,12)+"…":r.id());column(table,tr("jobs.shop"),JobReportRepository.Report::shop);column(table,tr("jobs.kind"),r->tr("jobs.kind."+r.kind()));
@@ -38,7 +38,7 @@ public final class JobCenterDialog {
         var timer=new javafx.animation.Timeline(new javafx.animation.KeyFrame(javafx.util.Duration.seconds(3),e->reload.run()));timer.setCycleCount(javafx.animation.Animation.INDEFINITE);dialog.setOnHidden(e->{closed[0]=true;timer.stop();});reload.run();timer.play();dialog.show();
     }
     static void detail(Window owner,JobReportRepository.Report report){
-        var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);dialog.getDialogPane().setId("jobDetailDialog");dialog.setTitle(tr("jobs.report")+" · "+report.id());var info=new Label(report.shop()+" · "+report.market()+" · "+report.id());info.setWrapText(true);
+        var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);ThemeService.applyThemeDialog(dialog);dialog.getDialogPane().setId("jobDetailDialog");dialog.setTitle(tr("jobs.report")+" · "+report.id());var info=new Label(report.shop()+" · "+report.market()+" · "+report.id());info.setWrapText(true);
         var items=new TableView<JobReportRepository.Line>();items.setId("jobReportItems");items.setPrefHeight(330);items.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         column(items,tr("jobs.product"),r->r.article().isBlank()?r.product():r.article());
         column(items,tr("jobs.variant"),r->r.color().isBlank()&&r.size().isBlank()?r.variant():String.join(" · ",r.color(),r.size()));

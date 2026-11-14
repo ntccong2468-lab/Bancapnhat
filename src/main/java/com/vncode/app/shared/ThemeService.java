@@ -6,6 +6,7 @@ import javafx.collections.ListChangeListener;
 import javafx.css.Styleable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.PopupControl;
 import javafx.scene.paint.Color;
@@ -161,6 +162,13 @@ public final class ThemeService {
         WorkspaceInteractionMotion.install(scene);
     }
 
+    /** App-owned dialog presentation, installed before its first show. */
+    public static void applyThemeDialog(Dialog<?> dialog) {
+        if (dialog == null) return;
+        WorkspaceDialogChrome.install(dialog);
+        applyTheme(dialog.getDialogPane());
+    }
+
     public static void applyTheme(DialogPane pane) {
         if (pane == null) return;
         UiFonts.install();
@@ -272,6 +280,12 @@ public final class ThemeService {
                 tint, alpha, elevated, Math.min(1, alpha + .045 * frost), tint, alpha * .55,
                 elevated, Math.min(1, alpha + .035 * frost), .015 + (theme == Theme.LIGHT ? .36 : .14) * frost,
                 .025 + .22 * frost, .005 + .12 * frost, selection, .035 + .12 * frost, ink);
+        String contentPaint = String.format(Locale.ROOT,
+                "-glass-content:rgba(%s,%.3f);-glass-field:rgba(%s,%.3f);"
+                        + "-glass-control:rgba(%s,%.3f);-glass-table-header:rgba(%s,%.3f);",
+                tint, glass ? .62 + .18 * frost : 1, tint, glass ? .68 + .18 * frost : 1,
+                elevated, glass ? .60 + .18 * frost : 1, elevated, glass ? .68 + .18 * frost : 1);
+        paint += contentPaint;
         root.setStyle(root.getProperties().get(ORIGINAL_STYLE) + ";" + paint);
         root.getProperties().put("glass.transparency", amount);
         root.getProperties().put("glass.enabled", glass);
@@ -281,6 +295,7 @@ public final class ThemeService {
         Scene scene = root.getScene();
         dialogBacking(scene, theme);
         WorkspaceBackdropMaterial.install(root, theme, glass);
+        WorkspaceRoundedControlClip.install(root);
         if (scene != null && scene.getRoot() == root && scene.getWindow() instanceof PopupControl popup) {
             if (!popup.getStyleClass().contains("workspace-theme")) popup.getStyleClass().add("workspace-theme");
             selectClass(popup, "liquid-glass", glass);

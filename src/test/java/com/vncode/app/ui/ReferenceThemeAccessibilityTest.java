@@ -63,7 +63,11 @@ class ReferenceThemeAccessibilityTest {
         });
         Platform.runLater(test);test.get(20,TimeUnit.SECONDS);
     }
-    private static Color paint(Region region) {return (Color)region.getBackground().getFills().getFirst().getFill();}
+    private static Color paint(Region region) {
+        var fills=region.getBackground().getFills();
+        for(int i=fills.size()-1;i>=0;i--)if(fills.get(i).getFill() instanceof Color colour)return colour;
+        throw new AssertionError("No material tint on "+region);
+    }
     private static double contrast(Color first,Color second) {
         double a=luminance(first),b=luminance(second);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
     }

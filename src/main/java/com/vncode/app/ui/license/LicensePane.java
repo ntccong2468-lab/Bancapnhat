@@ -293,6 +293,7 @@ public final class LicensePane extends ScrollPane {
         dialog.setTitle(tr("title"));
         dialog.setHeaderText(tr("reset.confirm"));
         if (getScene() != null && getScene().getWindow() != null) dialog.initOwner(getScene().getWindow());
+        com.vncode.app.shared.ThemeService.applyThemeDialog(dialog);
         if (dialog.showAndWait().orElse(cancel) == confirm) run(actions::logout);
     }
 

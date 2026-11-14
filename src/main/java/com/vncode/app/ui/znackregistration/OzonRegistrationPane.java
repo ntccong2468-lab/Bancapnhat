@@ -444,6 +444,7 @@ public final class OzonRegistrationPane extends VBox {
         }
         if(prepared.preflight()==null) {
             var dialog=new TextInputDialog(prepared.tnved());dialog.setTitle(tr("znack.registration.title"));dialog.setHeaderText(tr("znack.registration.ozon_tnved"));
+            com.vncode.app.shared.ThemeService.applyThemeDialog(dialog);
             var value=dialog.showAndWait();if(value.isEmpty())return;
             if(!value.get().strip().matches("[0-9]{10}")){status.setText(tr("znack.registration.ozon_tnved"));return;}
             background(()->{sources.require(owner);return workflow.prepare(owner,key,value.get().strip());},next->continuePrepare(key,newCard,next,conflictGtin));return;
@@ -497,6 +498,7 @@ public final class OzonRegistrationPane extends VBox {
             dialog.getDialogPane().setContent(new VBox(12,hint,brand));dialog.getDialogPane().setPrefWidth(480);
             var apply=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(apply,ButtonType.CANCEL);
             DialogLayout.install(dialog.getDialogPane());dialog.setResultConverter(button->button==apply?brand.getText().strip():null);
+            com.vncode.app.shared.ThemeService.applyThemeDialog(dialog);
             dialog.showAndWait().ifPresent(value->background(()->{new com.vncode.app.integration.ozon.OzonShopBrand().save(owner,value);return true;},ok->status.setText(tr("znack.status.saved"))));
         });
     }
@@ -579,7 +581,7 @@ public final class OzonRegistrationPane extends VBox {
     private String observation(ProductRow row){return RegistrationDiagnostics.observation(state(row.key()),cardIndex==null?Optional.empty():cardIndex.observation(view(row)),latestReadUnknown);}
     private void showRegistrationReport(ProductRow row){var r=states.get(row.key());RegistrationDiagnostics.show(row.vendorArticle(),r==null||safe(r.gtin()).isBlank()?view(row).gtin():r.gtin(),r==null?"":r.feedId(),tr("znack.registration."+view(row).status()),observation(row)+"\n"+reason(view(row).detail())+"\n"+(r==null?"":r.error()));}
     private String candidateText(ProductKey key){var row=states.get(key);return row==null||safe(row.activeGtin()).isBlank()||safe(row.activeGtin()).equals(safe(row.gtin()))?"":"\n"+tr("znack.registration.active_gtin")+": "+row.activeGtin()+" · "+tr("znack.registration.gtin_unverified");}
-    private static boolean confirm(String message){var alert=new Alert(Alert.AlertType.CONFIRMATION,message,ButtonType.OK,ButtonType.CANCEL);return alert.showAndWait().orElse(ButtonType.CANCEL)==ButtonType.OK;}
+    private static boolean confirm(String message){var alert=new Alert(Alert.AlertType.CONFIRMATION,message,ButtonType.OK,ButtonType.CANCEL);com.vncode.app.shared.ThemeService.applyThemeDialog(alert);return alert.showAndWait().orElse(ButtonType.CANCEL)==ButtonType.OK;}
     private static String reason(String code){String key="znack.registration.reason."+code;String text=tr(key);return text.equals(key)?code:text;}
     private static String safe(String value){return value==null?"":value;}
 }

@@ -1836,7 +1836,7 @@ public class HomeController implements Initializable {
             task.setOnSucceeded(e->{password.clear();dialog.close();if(!disposed&&newsPane!=null)newsPane.translationSettingsChanged();});java.util.function.Consumer<Throwable> taskFailure = rejection ->{saveButton.setDisable(false);feedback.setText(i18nService.tr("news.translation_invalid"));};
         task.setOnFailed(e -> taskFailure.accept(task.getException()));AppTaskExecutor.execute(task, taskFailure);
         });
-        dialog.getDialogPane().lookupButton(remove).addEventFilter(ActionEvent.ACTION,event->{new com.vncode.app.integration.translation.TranslationSettingsRepository().clear();if(newsPane!=null)newsPane.translationSettingsChanged();});dialog.setOnHidden(e->password.clear());dialog.show();
+        dialog.getDialogPane().lookupButton(remove).addEventFilter(ActionEvent.ACTION,event->{new com.vncode.app.integration.translation.TranslationSettingsRepository().clear();if(newsPane!=null)newsPane.translationSettingsChanged();});dialog.setOnHidden(e->password.clear());com.vncode.app.shared.ThemeService.applyThemeDialog(dialog);dialog.show();
     }
 
     private void openJob(com.vncode.app.features.jobs.JobCenterRepository.Row row) {

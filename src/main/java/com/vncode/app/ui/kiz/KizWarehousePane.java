@@ -58,6 +58,7 @@ public final class KizWarehousePane extends BorderPane {
     }
     private void createCategory(){
         if(shop==null||busy)return;var dialog=new TextInputDialog();dialog.setTitle(tr("new_category"));dialog.setHeaderText(tr("category_name"));if(getScene()!=null)dialog.initOwner(getScene().getWindow());
+        com.vncode.app.shared.ThemeService.applyThemeDialog(dialog);
         dialog.showAndWait().filter(name->!name.isBlank()).ifPresent(name->{Shop owner=shop;run(()->categoryRepository.create(owner,name),created->{category.getItems().add(created);category.setValue(created);reload();});});
     }
     private void classifySelected(){
@@ -74,7 +75,7 @@ public final class KizWarehousePane extends BorderPane {
             var task=new Task<Integer>(){protected Integer call(){categoryRepository.assignProducts(owner,group.id(),keys);return (int)keys.stream().map(com.vncode.app.features.products.ProductKey::cardId).distinct().count();}};
             task.setOnSucceeded(e->{dialog.close();if(shop==owner){status.setText(MessageFormat.format(tr("linked"),task.getValue(),group.name()));reload();}});
             task.setOnFailed(e->{button.setDisable(false);status.setText(FriendlyErrorService.format(task.getException()));});AppTaskExecutor.execute(task,error->{button.setDisable(false);status.setText(FriendlyErrorService.format(error));});
-        });dialog.setOnHidden(e->picker.dispose());dialog.show();
+        });dialog.setOnHidden(e->picker.dispose());com.vncode.app.shared.ThemeService.applyThemeDialog(dialog);dialog.show();
     }
     private void archive(boolean restoreStock){
         var row=table.getSelectionModel().getSelectedItem();if(row==null||shop==null||busy)return;Shop owner=shop;

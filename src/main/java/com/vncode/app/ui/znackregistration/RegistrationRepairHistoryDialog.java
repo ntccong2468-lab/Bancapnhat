@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 final class RegistrationRepairHistoryDialog {
     record Row(String when,String field,String before,String after,String source,String rejection){}
     static void show(Window owner,Shop shop,String gtin,long goodId){
-        var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);dialog.initModality(Modality.NONE);dialog.setTitle(tr("znack.repair.history.title"));
+        var dialog=new Dialog<Void>();if(owner!=null)dialog.initOwner(owner);dialog.initModality(Modality.NONE);ThemeService.applyThemeDialog(dialog);dialog.setTitle(tr("znack.repair.history.title"));
         var status=new Label(tr("znack.repair.history.loading"));status.setWrapText(true);
         var hint=new Label(tr("znack.repair.history.hint"));hint.setWrapText(true);
         var table=new TableView<Row>();table.setId("catalogRepairHistoryTable");table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
