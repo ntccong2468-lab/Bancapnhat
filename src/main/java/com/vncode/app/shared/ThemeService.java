@@ -280,6 +280,7 @@ public final class ThemeService {
         // leave its skin using the owner's previously resolved lookup colours.
         Scene scene = root.getScene();
         dialogBacking(scene, theme);
+        WorkspaceBackdropMaterial.install(root, theme, glass);
         if (scene != null && scene.getRoot() == root && scene.getWindow() instanceof PopupControl popup) {
             if (!popup.getStyleClass().contains("workspace-theme")) popup.getStyleClass().add("workspace-theme");
             selectClass(popup, "liquid-glass", glass);
