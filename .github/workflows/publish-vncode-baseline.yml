@@ -59,14 +59,51 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'Cannot pin previous public baseline.'}
           $baseline=Get-Content "$env:RUNNER_TEMP/baseline-pinned/previous-baseline.json" -Raw | ConvertFrom-Json
           "BASELINE_UPGRADE_REQUIRED=$((-not $baseline.skipUpgrade).ToString().ToLowerInvariant())" >> $env:GITHUB_ENV
+      - name: Configure transient worker animation for JavaFX verification
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $motion=Join-Path $env:RUNNER_TEMP "baseline-motion-$env:GITHUB_RUN_ID"
+          New-Item -ItemType Directory -Force $motion | Out-Null
+          "VNCODE_CI_MOTION_ROOT=$motion" >> $env:GITHUB_ENV
+          $helper=Join-Path $env:GITHUB_WORKSPACE 'tools/diagnostics/windows-motion-environment.ps1'
+          $state=Join-Path $motion 'original-motion-state.json'
+          & $helper -Mode Snapshot -StateFile $state -EvidenceFile "$motion/native-original.json" | Out-Host
+          & $helper -Mode Enable -StateFile $state -EvidenceFile "$motion/native-enabled.json" | Out-Host
       - name: Verify release tools
         run: node --test tools/*.test.mjs
+      - name: Verify fresh JVM motion preferences and original OS accessibility authority
+        shell: pwsh
+        env:
+          LOCALAPPDATA: ${{ runner.temp }}\vncode-baseline-motion-${{ github.run_id }}
+        run: |
+          $ErrorActionPreference='Stop'
+          $PSNativeCommandUseErrorActionPreference=$false
+          .\mvnw.cmd -B test-compile dependency:build-classpath '-DincludeScope=test' '-Dmdep.outputFile=target/ci-motion-classpath.txt'
+          if($LASTEXITCODE -ne 0){throw 'Motion probe compilation prerequisites failed.'}
+          $deps=(Get-Content target/ci-motion-classpath.txt -Raw).Trim()
+          $classpath="target/ci-motion-probe;target/classes;$deps"
+          New-Item -ItemType Directory -Force target/ci-motion-probe | Out-Null
+          & javac -encoding UTF-8 -cp "target/classes;$deps" -d target/ci-motion-probe tools/diagnostics/WindowsMotionPreferenceProbe.java
+          if($LASTEXITCODE -ne 0){throw 'Standalone public preference probe did not compile.'}
+          $helper=Join-Path $env:GITHUB_WORKSPACE 'tools/diagnostics/windows-motion-environment.ps1'
+          $motion=$env:VNCODE_CI_MOTION_ROOT
+          $state=Join-Path $motion 'original-motion-state.json'
+          try {
+            & java --enable-native-access=ALL-UNNAMED -cp $classpath com.vncode.tools.diagnostics.WindowsMotionPreferenceProbe "$motion/normal-public-preferences.json" false 2>&1 | Tee-Object "$motion/normal-public-preferences.log" | Out-Host
+            if($LASTEXITCODE -ne 0){throw 'Fresh JavaFX process did not observe normal worker motion.'}
+            & $helper -Mode Disable -StateFile $state -EvidenceFile "$motion/native-reduced.json" | Out-Host
+            & java --enable-native-access=ALL-UNNAMED -cp $classpath com.vncode.tools.diagnostics.WindowsMotionPreferenceProbe "$motion/reduced-public-preferences.json" true 2>&1 | Tee-Object "$motion/reduced-public-preferences.log" | Out-Host
+            if($LASTEXITCODE -ne 0){throw 'Production runtime did not honor OS reduced motion.'}
+          } finally {
+            & $helper -Mode Enable -StateFile $state -EvidenceFile "$motion/native-normal-before-preflight.json" | Out-Host
+          }
       - name: Verify Windows UI, purchase circulation, product documents and Catalog fixtures
         shell: pwsh
         env:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-baseline-preflight-${{ github.run_id }}
         run: |
-          .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,OzonLabelServiceTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest,FashionTnvedBrowserTest,ZnackCardRegistrationControllerTest,CryptoProCertificateDiscoveryServiceTest,ZnackCertificateDiscoveryUiTest,CryptoProCertificateRoutingTest,RegistrationDocumentConfigDialogTest,ZnackSettingsAreaRepositoryTest,ZnackCirculationPolicyTest,ZnackOwnedCisReadbackTest,ZnackIntroductionSubmissionOutcomeTest,ZnackCirculationMessagesTest,KizPurchaseStatusPresentationTest,ProductRefreshBatchRegressionTest,ProductDocumentVerificationReadbackTest,OzonDocumentReadbackIntegrityTest,OzonCatalogPaginationTest,ProductRefreshUiTest' test
+          .\mvnw.cmd -B '-Dtest=FxmlSmokeTest,OzonLabelServiceTest,MavenWrapperIntegrityTest,ZnackRegistrationBatchHttpIntegrationTest,FashionTnvedBrowserTest,ZnackCardRegistrationControllerTest,CryptoProCertificateDiscoveryServiceTest,ZnackCertificateDiscoveryUiTest,CryptoProCertificateRoutingTest,RegistrationDocumentConfigDialogTest,ZnackSettingsAreaRepositoryTest,ZnackCirculationPolicyTest,ZnackOwnedCisReadbackTest,ZnackIntroductionSubmissionOutcomeTest,ZnackCirculationMessagesTest,KizPurchaseStatusPresentationTest,ProductRefreshBatchRegressionTest,ProductDocumentVerificationReadbackTest,OzonDocumentReadbackIntegrityTest,OzonCatalogPaginationTest,ProductRefreshUiTest,ThemeDialogBackingTest,ThemeServiceTest,WorkspaceAllSurfaceGlassTest,WorkspaceBackdropMaterialTest,WorkspaceDialogChromeTest,WorkspaceGlobalMotionContractTest,WorkspaceInteractionMotionTest,WorkspaceMaterialRenderingTest,WorkspaceMotionBoundaryTest,WorkspaceRoundedControlClipTest,WorkspaceRouteContinuityTest,ReferenceThemeAccessibilityTest,ProductBulkDialogTest,ProductColumnHierarchyTest,ProductReferenceLayoutTest,ProductSelectionSmoothnessTest,HomeControllerPageTransitionTest,WorkspaceChromeUiTest,WorkspaceListAreaTest,NativeGlassEvidenceTest' test
           if($LASTEXITCODE -ne 0){throw 'Windows fixture preflight failed.'}
           # A fresh JavaFX process inherits the desktop pointer left by preflight.
           # Exercise that boundary before starting the long, unfiltered full suite.
@@ -78,6 +115,13 @@ jobs:
           LOCALAPPDATA: ${{ runner.temp }}\vncode-baseline-${{ github.run_id }}
         run: |
           $ErrorActionPreference='Stop'
+          # CI worker setup only: production still gives OS accessibility precedence.
+          $motion=$env:VNCODE_CI_MOTION_ROOT
+          $motionHelper=Join-Path $env:GITHUB_WORKSPACE 'tools/diagnostics/windows-motion-environment.ps1'
+          & $motionHelper -Mode Enable -StateFile (Join-Path $motion 'original-motion-state.json') -EvidenceFile "$motion/native-normal-before-full.json" | Out-Host
+          $motionDeps=(Get-Content target/ci-motion-classpath.txt -Raw).Trim()
+          & java --enable-native-access=ALL-UNNAMED -cp "target/ci-motion-probe;target/classes;$motionDeps" com.vncode.tools.diagnostics.WindowsMotionPreferenceProbe "$motion/normal-public-before-full.json" false 2>&1 | Tee-Object "$motion/normal-public-before-full.log" | Out-Host
+          if($LASTEXITCODE -ne 0){throw 'Worker motion changed before the unfiltered full suite.'}
           $nativeInput=Join-Path $env:RUNNER_TEMP "baseline-native-input-$env:GITHUB_RUN_ID"
           New-Item -ItemType Directory -Force $nativeInput | Out-Null
           $observer=Join-Path $env:GITHUB_WORKSPACE 'tools/diagnostics/windows-input-observer.ps1'
@@ -141,6 +185,16 @@ jobs:
         env:
           VNCODE_REUSE_VERIFIED_BUILD: 'true'
         run: build.bat app-image
+      - name: Restore the original worker desktop preferences
+        if: always()
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $motion=Join-Path $env:RUNNER_TEMP "baseline-motion-$env:GITHUB_RUN_ID"
+          $state=Join-Path $motion 'original-motion-state.json'
+          if(Test-Path $state){
+            & ./tools/diagnostics/windows-motion-environment.ps1 -Mode Restore -StateFile $state -EvidenceFile "$motion/native-restored.json" | Out-Host
+          }
       - name: Package all source, Git history, runtime and verification
         shell: pwsh
         run: |
@@ -167,6 +221,7 @@ jobs:
           Copy-Item out/*smoke.json,out/previous-baseline.json $proof
           Copy-Item target/gtin-bulk-*.json $proof
           Copy-Item -LiteralPath (Join-Path $env:RUNNER_TEMP "baseline-native-input-$env:GITHUB_RUN_ID") -Destination $proof -Recurse
+          Copy-Item -LiteralPath $env:VNCODE_CI_MOTION_ROOT -Destination $proof -Recurse
           Compress-Archive -Path "$proof/*" -DestinationPath "out/VN-code-$version-verification.zip"
           $tests=0;$failures=0;$errors=0;$skipped=0
           foreach($report in Get-ChildItem target/surefire-reports -Filter 'TEST-*.xml'){
@@ -203,4 +258,5 @@ jobs:
             target/surefire-reports/TEST-*.xml
             out/*.json
             ${{ runner.temp }}/baseline-native-input-${{ github.run_id }}/
+            ${{ runner.temp }}/baseline-motion-${{ github.run_id }}/
           if-no-files-found: ignore
