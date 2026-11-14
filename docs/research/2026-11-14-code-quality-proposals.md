@@ -20,7 +20,7 @@ Không tự cài bản mới cần tài khoản hoặc áp mọi recipe. [`rewri
 
 Các nguồn có ghim:
 
-- [OpenRewrite core](https://github.com/openrewrite/rewrite/tree/16227d24f77a1027c4c86cbc6d59dac35a91119d), [Java 25 module](https://github.com/openrewrite/rewrite/blob/16227d24f77a1027c4c86cbc6d59dac35a91119d/rewrite-java-25/build.gradle.kts).
+- [OpenRewrite core](https://github.com/openrewrite/rewrite/tree/16227d24f77a1027c4c86cbc6d59dac35a91119d), [Java 25 module](https://github.com/openrewrite/rewrite/tree/16227d24f77a1027c4c86cbc6d59dac35a91119d/rewrite-java-25).
 - [README Maven plugin](https://github.com/openrewrite/rewrite-maven-plugin/blob/a73f7c0c71c20718dbe3d75b44169bef155d224d/README.md), [public plugin 6.46.1](https://repo.maven.apache.org/maven2/org/openrewrite/maven/rewrite-maven-plugin/6.46.1/rewrite-maven-plugin-6.46.1.pom), [public parser Java 25](https://repo.maven.apache.org/maven2/org/openrewrite/rewrite-java-25/8.89.0/rewrite-java-25-8.89.0.pom).
 - [License của static-analysis](https://github.com/openrewrite/rewrite-static-analysis/blob/80ce59c1e46a5eb4052706335a1164f5a756db6c/LICENSE/moderne-source-available-license.md).
 
