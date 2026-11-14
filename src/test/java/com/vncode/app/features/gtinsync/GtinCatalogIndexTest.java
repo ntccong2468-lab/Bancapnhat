@@ -28,12 +28,12 @@ class GtinCatalogIndexTest {
   assertTrue(new GtinCatalogIndex(rows).attributes("PANTS-1","Brown","52").isEmpty());assertTrue(new GtinCatalogIndex(rows).code(unknown.gtin()).isEmpty());
   assertEquals(List.of(draft),new GtinCatalogIndex(rows,true).attributes("PANTS-1","Brown","52"));assertEquals(List.of(unknown),new GtinCatalogIndex(rows,true).attributes("PANTS-2","Brown","52"));
  }
- @Test void ozonAutomaticIndexUsesSellerSkuSizeWithoutChangingTheWbArticleRules(){
+ @Test void ozonAutomaticIndexDoesNotExpandAnExactModelToADifferentSuffix(){
   var source=row("00000000000017","152DASHOA","Brown","52",true);
   var key=new com.vncode.app.features.products.ProductKey(1,com.vncode.app.integration.marketplace.Marketplace.OZON,"101","152DASH-52");
   var product=new com.vncode.app.features.products.ProductRow(key,"Костюм спортивный","152DASH-52","12345678","Костюмы","","Brown","52",List.of(),"","","","",com.vncode.app.features.products.DocumentState.UNVERIFIED,"",true,"52","XL");
   var sized=new GtinSyncModels.RegisteredGtin(source.gtin(),source.article(),source.color(),source.size(),true,true,source.source(),source.syncedAt(),new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@size_type",List.of("РОССИЯ")),List.of(),List.of()));
-  var index=new GtinCatalogIndex(List.of(sized));assertEquals(List.of(sized),index.ozon(product));
+  var index=new GtinCatalogIndex(List.of(sized));assertTrue(index.ozon(product).isEmpty());
   assertTrue(index.attributes(product.vendorArticle(),product.color(),product.size(),product.russianSize()).isEmpty());
  }
  GtinSyncModels.RegisteredGtin row(String gtin,String article,String color,String size,boolean published){return new GtinSyncModels.RegisteredGtin(gtin,article,color,size,true,published,"National Catalog@fixture",Instant.now());}

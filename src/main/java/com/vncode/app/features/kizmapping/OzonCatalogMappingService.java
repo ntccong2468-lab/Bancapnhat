@@ -16,7 +16,8 @@ import java.time.*;
 import java.util.*;
 import java.util.function.Consumer;
 
-/** Read both sources and adopt only an exact, current Ozon barcode readback. Never writes seller cards. */
+/** Explicit local sync: bind unique model/size pairs and separately confirm observed Ozon barcodes.
+ * A purchase identity link is distinct from a verified barcode readback. Never writes seller cards. */
 public final class OzonCatalogMappingService {
     public record Issue(String article,String size,String sku,String gtin,String reason){}
     public record Result(int mapped,int exempt,List<Issue> issues,int linked){public Result{issues=List.copyOf(issues);}public Result(int mapped,int exempt,List<Issue> issues){this(mapped,exempt,issues,0);}}
@@ -33,6 +34,8 @@ public final class OzonCatalogMappingService {
         default Map<Target,Long> confirm(Shop shop,Map<Target,String> candidates)throws Exception{var result=new HashMap<Target,Long>();for(var target:candidates.keySet())result.put(target,0L);return Map.copyOf(result);}
         void verified(Shop shop,Target target,String gtin,long generation);
         default Map<ProductKey,String> reviewed(Shop shop){return Map.of();}
+        default String bindExact(Shop shop,Target target,List<RegisteredGtin> catalog)throws Exception{return "";}
+        default boolean exact(Shop shop,Target target,String gtin){return false;}
     }
     private final Operations operations;
     public OzonCatalogMappingService(){this(new LocalOperations());}
@@ -45,11 +48,19 @@ public final class OzonCatalogMappingService {
         String receipt=operations.synchronize(shop,progress);requireScope(shop,scope);
         var targets=operations.targets(shop,receipt);requireScope(shop,scope);
         if(targets.size()>100000)throw new IllegalStateException("SYNC_REPORT_LIMIT");
-        var catalog=new HashMap<String,RegisteredGtin>();merge(catalog,operations.catalog(shop));var reviewed=operations.reviewed(shop);
+        var catalog=new HashMap<String,RegisteredGtin>();merge(catalog,operations.catalog(shop));var reviewed=new HashMap<>(operations.reviewed(shop));
+        // Only this explicit mapping command creates machine-verified native links.
+        // Pure source reads, matching indexes and registration refreshes never grant them.
+        var exactIssues=new HashMap<ProductKey,String>();var exactTargets=new HashSet<ProductKey>();
+        var exactIndex=new OzonExactVariantIdentity(List.copyOf(catalog.values()));
         var needed=new LinkedHashSet<String>();
         for(var target:targets){
             requireTarget(shop,target);
             if(target.exempt()||reviewed.containsKey(target.row().key()))continue;
+            var exactCandidates=exactIndex.candidates(target.row());
+            if(exactCandidates.stream().map(c->normalized(c.gtin())).distinct().count()==1){
+                var card=exactCandidates.getFirst();if(!com.vncode.app.features.catalogsync.CatalogPermitEvidence.problem(card.details()).isBlank())needed.add(normalized(card.gtin()));
+            }
             for(String code:codes(target.row())){
                 var card=catalog.get(code);
                 if(card==null||!scope.equals(card.source())||!com.vncode.app.features.catalogsync.CatalogPermitEvidence.problem(card.details()).isBlank())needed.add(code);
@@ -68,17 +79,33 @@ public final class OzonCatalogMappingService {
             }
         }
         requireScope(shop,scope);operations.enrich(shop,enriched);merge(catalog,enriched);
+        var enrichedExactIndex=new OzonExactVariantIdentity(List.copyOf(catalog.values()));
+        for(var target:targets){
+            requireTarget(shop,target);requireScope(shop,scope);
+            if(target.exempt()||reviewed.containsKey(target.row().key()))continue;
+            var matches=enrichedExactIndex.candidates(target.row());
+            if(matches.isEmpty())continue;
+            if(matches.stream().map(c->normalized(c.gtin())).distinct().count()!=1){exactIssues.put(target.row().key(),"GTIN_AMBIGUOUS");continue;}
+            try{
+                String code=operations.bindExact(shop,target,List.copyOf(catalog.values()));
+                if(!code.isBlank()){reviewed.put(target.row().key(),code);exactTargets.add(target.row().key());}
+            }catch(Exception error){
+                if(CatalogFeedback.rateLimited(error)||error instanceof InterruptedException||error instanceof java.io.InterruptedIOException&&!(error instanceof java.net.SocketTimeoutException)||error instanceof SecurityException)throw error;
+                exactIssues.put(target.row().key(),SyncFailure.of(error,0).code());
+            }
+        }
         var duplicate=duplicates(targets);var issues=new ArrayList<Issue>();var candidates=new LinkedHashMap<Target,String>();int mapped=0,exempt=0,linked=0;
         for(var target:targets){
             requireScope(shop,scope);
             if(target.exempt()){exempt++;continue;}
             var row=target.row();var codes=codes(row);
+            if(exactIssues.containsKey(row.key())){issues.add(issue(target,"",exactIssues.get(row.key())));continue;}
             // The current reviewed native pair takes precedence over historical barcodes
             // and broad rules, including when its proof has become invalid.
             if(reviewed.containsKey(row.key())){
                 String code=reviewed.get(row.key());
                 if(!RegisteredGtinValidator.isValid(code)){issues.add(issue(target,"","GTIN_REVIEW_CHANGED"));continue;}
-                String reason=problem(target,catalog.get(normalized(code)),scope,duplicate);
+                String reason=problem(target,catalog.get(normalized(code)),scope,duplicate,exactTargets.contains(row.key())||operations.exact(shop,target,code));
                 if(!reason.isBlank()){issues.add(issue(target,code,reason));continue;}
                 if(codes.contains(normalized(code)))candidates.put(target,code);else linked++;
                 continue;
@@ -143,6 +170,9 @@ public final class OzonCatalogMappingService {
         }return out;
     }
     private static String problem(Target target,RegisteredGtin card,String scope,Set<String> duplicate){
+        return problem(target,card,scope,duplicate,false);
+    }
+    private static String problem(Target target,RegisteredGtin card,String scope,Set<String> duplicate,boolean exact){
         if(target.sku().isBlank())return "OZON_SKU_MISSING";
         if(card==null)return "GTIN_CARD_NOT_FOUND";
         if(!scope.equals(card.source()))return "GTIN_OWNER_NOT_VERIFIED";
@@ -152,8 +182,11 @@ public final class OzonCatalogMappingService {
         if(!card.published())return "GTIN_CARD_UNSIGNED";
         if(!card.tradeUnit())return "GTIN_NOT_TRADE_UNIT";
         var row=target.row();
-        if(!GtinVariantIdentity.sizeMatches(card,GtinVariantIdentity.primarySize(row),row.russianSize()))return "GTIN_SIZE_MISMATCH";
-        if(!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";
+        if(exact){if(!OzonExactVariantIdentity.sameIdentity(row,card))return "GTIN_VARIANT_IDENTITY_UNVERIFIED";}
+        else{
+            if(!GtinVariantIdentity.sizeMatches(card,GtinVariantIdentity.primarySize(row),row.russianSize()))return "GTIN_SIZE_MISMATCH";
+            if(!OzonSkuGtinMatcher.sameColor(row.color(),card.color()))return "GTIN_COLOR_MISMATCH";
+        }
         // Marketplace TN VED differences do not block a verified KIZ mapping.
         // Keep the Catalog card's own TN VED and permit data for the purchase.
         return com.vncode.app.features.catalogsync.CatalogPermitEvidence.problem(card.details());
@@ -195,6 +228,15 @@ public final class OzonCatalogMappingService {
             return List.copyOf(targets);
         }
         public List<RegisteredGtin> catalog(Shop shop){return new GtinSyncRepository().catalog(shop.getId(),Marketplace.OZON);}
+        public String bindExact(Shop shop,Target target,List<RegisteredGtin> catalog)throws Exception{
+            var product=new OzonProductSnapshotReader().readForGtinSync(shop,target.row().key());
+            if(!target.sku().equals(product.metadata().getOrDefault("sku","")))throw new IllegalStateException("OZON_VARIANT_IDENTITY_CHANGED");
+            return new OzonExistingCardLinkService().bindExactUnique(shop,product,catalog).gtin();
+        }
+        public boolean exact(Shop shop,Target target,String gtin){
+            var key=target.row().key();var link=OzonReviewedGtinLinks.read(shop,new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,key.cardId(),key.variantId()));
+            return link!=null&&OzonReviewedVariantProof.exactProof(link.revision())&&RegisteredGtinProof.sameCode(gtin,link.gtin());
+        }
         public List<RegisteredGtin> details(Shop shop,String code)throws Exception{return NationalCatalogGtinSource.forSelection(shop,Set.of(code),true).read(shop.getId());}
         public void enrich(Shop shop,List<RegisteredGtin> cards){new GtinSyncRepository().mergeCatalog(shop.getId(),Marketplace.OZON,cards);ZnackCatalogSyncService.project(shop,cards);}
         public Map<Target,Long> confirm(Shop shop,Map<Target,String> candidates)throws Exception{

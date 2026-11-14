@@ -110,9 +110,9 @@ class RegistrationExistingCardsTest {
         var old=rows.get().getFirst();var fields=new LinkedHashMap<>(old.details().fields());fields.put("tnved",List.of("6203430000"));var changed=new com.vncode.app.features.catalogsync.CatalogProductData(fields,old.details().attributes(),old.details().documents());
         try(var context=new LookupContext((s,c)->rows.get(),(c,g,id)->new ZnackNationalCatalogService.ObservedCard(41,g,"published",new ZnackNationalCatalogService.FeedProgress("Signed",41L,List.of()),changed,Instant.now()),(s,c)->scope.get())){assertEquals("CATALOG_REGISTERED_TNVED_MISMATCH",assertThrows(RegistrationValidationException.class,()->context.lookup(shop,variant("PANTS-1","Brown","52",List.of()),session)).getMessage());}
     }
-    @Test void explicitRussianSizeAndEstablishedOzonSkuRuleAreCheckedWithoutGuessingAConversion()throws Exception{
-        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);var source=card("00000000000017","41","152 nau dashoa","Коричневый","52",true,true);var fields=new LinkedHashMap<>(source.details().fields());fields.put("@size_type",List.of("РОССИЯ"));var typed=new RegisteredGtin(source.gtin(),source.article(),source.color(),source.size(),true,true,source.source(),source.syncedAt(),new com.vncode.app.features.catalogsync.CatalogProductData(fields,source.details().attributes(),source.details().documents()));rows.set(List.of(typed));
-        var variant=new Variant(new ProductKey(ozon.getId(),Marketplace.OZON,"501","152DASH-52"),"152DASH-52","Brown","XL","52","6203420000",List.of(),"Костюм спортивный","Костюмы","");try(var context=context()){assertTrue(context.lookup(ozon,variant,session).isPresent());}
+    @Test void ozonExactModelUsesOnlyItsExplicitRussianSizeWithoutGuessingAConversion()throws Exception{
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);var source=card("00000000000017","41","152 NAU","Красный","52",true,true);var fields=new LinkedHashMap<>(source.details().fields());fields.put("@size_type",List.of("РОССИЯ"));var typed=new RegisteredGtin(source.gtin(),source.article(),source.color(),source.size(),true,true,source.source(),source.syncedAt(),new com.vncode.app.features.catalogsync.CatalogProductData(fields,source.details().attributes(),source.details().documents()));rows.set(List.of(typed));
+        var variant=new Variant(new ProductKey(ozon.getId(),Marketplace.OZON,"501","152nau-52"),"152nau-52","Brown","XL","52","6110000000",List.of(),"Костюм спортивный","Костюмы","");try(var context=context()){assertTrue(context.lookup(ozon,variant,session).isPresent());}
         var noSizeMapping=new Variant(variant.key(),variant.article(),variant.color(),"XL","","6203420000",List.of(typed.gtin()),variant.title(),variant.category(),variant.brand());try(var context=context()){assertThrows(RegistrationValidationException.class,()->context.lookup(ozon,noSizeMapping,session));}
     }
     @Test void aRestartedRegistrationLookupReadsPageZeroEvenIfTheUiScanHasASavedCursor()throws Exception{
@@ -123,4 +123,45 @@ class RegistrationExistingCardsTest {
     @Test void closingAReadOperationPreventsItFromBecomingALongLivedNegativeCache()throws Exception{
         var context=context();assertTrue(context.lookup(shop,variant("NEW","Brown","52",List.of()),session).isEmpty());context.close();assertThrows(RegistrationValidationException.class,()->context.lookup(shop,variant("NEW","Brown","52",List.of()),session));assertEquals(1,loads.get());
     }
+    @Test void ozonExistingExactCardIgnoresColourBrandAndSellerTariffButStillReadsGoodId()throws Exception{
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);rows.set(List.of(card("00000000000017","41","152 NAU","Red","XXL",true,true)));
+        var target=new Variant(new ProductKey(ozon.getId(),Marketplace.OZON,"501","152nau-2XL"),"152nau-2XL","","2XL","52","6110000000",List.of(),"Different display title","Костюмы","DifferentBrand");
+        try(var context=context()){var found=context.lookup(ozon,target,session).orElseThrow();assertEquals(41,found.goodId());assertEquals(rows.get().getFirst().gtin(),found.gtin());assertTrue(found.progress().signed());assertEquals(1,observations.get());}
+        try(var c=Database.getConnection();var statement=c.createStatement();var result=statement.executeQuery("SELECT count(*) FROM ozon_card_registrations")){assertEquals(0,result.getInt(1));}
+    }
+    @Test void ozonExactLookupRetainsDraftErrorsAndAmbiguityAcrossDifferentColours()throws Exception{
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);var draft=card("00000000000017","41","152 NAU","Red","XXL",false,true);rows.set(List.of(draft));
+        var target=new Variant(new ProductKey(ozon.getId(),Marketplace.OZON,"501","152nau-2XL"),"152nau-2XL","Blue","2XL","52","6110000000",List.of(),"Other title","Костюмы","");
+        try(var context=context()){assertEquals(41,context.lookup(ozon,target,session).orElseThrow().goodId());}
+        try(var context=new LookupContext((s,c)->rows.get(),(c,g,id)->new ZnackNationalCatalogService.ObservedCard(41,g,"draft",new ZnackNationalCatalogService.FeedProgress("Error",41L,List.of("Actual rejected attribute")),draft.details(),Instant.now()),(s,c)->scope.get())){assertTrue(context.lookup(ozon,target,session).orElseThrow().progress().failed());}
+        rows.set(List.of(draft,card("00000000000024","42","152NAU","Green","2XL",true,true)));
+        try(var context=context()){assertEquals("CATALOG_EXISTING_CARD_AMBIGUOUS",assertThrows(RegistrationValidationException.class,()->context.lookup(ozon,target,session)).getMessage());}
+    }
+    @Test void ozonExactLookupDoesNotMergeFullModelsOrAcceptNonTradeUnits()throws Exception{
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);var target=new Variant(new ProductKey(ozon.getId(),Marketplace.OZON,"501","152NAU-2XL"),"152NAU-2XL","Blue","2XL","52","6110000000",List.of(),"Other title","Костюмы","");
+        for(String article:List.of("B3152NAU","152NAUDASH","152NAUDASHOA")){
+            rows.set(List.of(card("00000000000017","41",article,"Blue","XXL",true,true)));
+            try(var context=context()){assertTrue(context.lookup(ozon,target,session).isEmpty(),article);}
+        }
+        rows.set(List.of(card("00000000000017","41","152NAU","Blue","XXL",true,false)));
+        try(var context=context()){assertEquals("CATALOG_EXISTING_CARD_VARIANT_CONFLICT",assertThrows(RegistrationValidationException.class,()->context.lookup(ozon,target,session)).getMessage());}
+    }
+    @Test void anExpiredOzonNativeClaimNeverBecomesPermissionToCreateADuplicate()throws Exception{
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);
+        var target=new Variant(new ProductKey(ozon.getId(),Marketplace.OZON,"501","152NAU-2XL"),"152NAU-2XL","Blue","2XL","52","6110000000",List.of(),"Other title","Костюмы","");
+        var saved=new OzonReviewedGtinLinks.Link("00000000000017",41L,"901",com.vncode.app.integration.listing.ListingIdentity.fingerprint(ozon),RegisteredGtinProof.source(ozon),"oe1:"+"a".repeat(64));
+        OzonReviewedGtinLinks.save(ozon,new GtinSyncModels.ProductKey(ozon.getId(),Marketplace.OZON,"501","152NAU-2XL"),saved);
+        // The durable link has no current observation. A fresh complete Catalog
+        // read still contains the card, but cannot silently refresh that approval.
+        rows.set(List.of(card(saved.gtin(),"41","152NAU","Red","XXL",true,true)));
+        try(var context=context()){
+            assertEquals("CATALOG_EXISTING_CARD_VARIANT_UNVERIFIED",assertThrows(RegistrationValidationException.class,()->context.lookup(ozon,target,session)).getMessage());
+            var independent=new Variant(new ProductKey(ozon.getId(),Marketplace.OZON,"502","OTHER-L"),"OTHER-L","Blue","L","","6110000000",List.of(),"Other title","Костюмы","");
+            assertTrue(context.lookup(ozon,independent,session).isEmpty());assertEquals(1,loads.get());assertEquals(0,observations.get());
+        }
+        rows.set(List.of());
+        try(var context=context()){assertThrows(RegistrationValidationException.class,()->context.lookup(ozon,target,session),"An invalid saved claim is not complete absence even when the read returns no cards");}
+        try(var c=Database.getConnection();var statement=c.createStatement();var result=statement.executeQuery("SELECT count(*) FROM ozon_card_registrations")){assertEquals(0,result.getInt(1));}
+    }
+
 }

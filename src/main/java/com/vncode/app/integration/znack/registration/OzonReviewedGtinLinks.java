@@ -12,7 +12,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.Instant;
 
-/** Separate seller-reviewed identity link; it never asserts that a barcode was applied. */
+/** Durable native identity link with its own proof kind; never a barcode-applied receipt. */
 public final class OzonReviewedGtinLinks {
     public record Link(String gtin,long goodId,String sku,String owner,String source,String revision) {}
     private OzonReviewedGtinLinks() {}
@@ -48,16 +48,37 @@ public final class OzonReviewedGtinLinks {
     static void save(Shop shop,ProductKey key,Link link) {
         saveBatch(shop,java.util.Map.of(key,link));
     }
+    /** Machine-verified link: a separate proof kind, never a seller-approval or barcode receipt. */
+    static void saveExact(Shop shop,ProductKey key,Link link){
+        if(!com.vncode.app.features.gtinsync.OzonReviewedVariantProof.exactProof(link.revision()))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
+        saveBatch(shop,java.util.Map.of(key,link),true);
+    }
     static void saveBatch(Shop shop,java.util.Map<ProductKey,Link> links) {
+        saveBatch(shop,links,false);
+    }
+    private static void saveBatch(Shop shop,java.util.Map<ProductKey,Link> links,boolean exact) {
         if(links.isEmpty()||links.size()>1000)throw new IllegalArgumentException("GTIN_SELECTION_LIMIT");
         String owner=ListingIdentity.fingerprint(shop),source=RegisteredGtinProof.source(shop);
         var codes=new java.util.HashSet<String>();
         for(var entry:links.entrySet()){
             var key=entry.getKey();var link=entry.getValue();
-            if(key.shopId()!=shop.getId()||key.marketplace()!=Marketplace.OZON||shop.getMarketplace()!=Marketplace.OZON||!owner.equals(link.owner())||!source.equals(link.source())||!RegisteredGtinValidator.isValid(link.gtin())||!link.revision().matches("(?:ov2:)?[0-9a-f]{64}")||link.goodId()<=0||!link.sku().matches("[1-9][0-9]{0,18}"))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
+            if(key.shopId()!=shop.getId()||key.marketplace()!=Marketplace.OZON||shop.getMarketplace()!=Marketplace.OZON||!owner.equals(link.owner())||!source.equals(link.source())||!RegisteredGtinValidator.isValid(link.gtin())||!link.revision().matches("(?:(?:ov2|oe1):)?[0-9a-f]{64}")||link.goodId()<=0||!link.sku().matches("[1-9][0-9]{0,18}"))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
             if(!codes.add(RegisteredGtinProof.canonicalCode(link.gtin())))throw new IllegalArgumentException("GTIN_MULTIPLE_OZON_VARIANTS");
         }
         try{SqliteWriteTransaction.run(c->{schema(c);if(!owner.equals(ListingIdentity.fingerprint(c,shop.getId(),Marketplace.OZON))||!source.equals(RegisteredGtinProof.source(shop)))throw new SecurityException("SOURCE_CONFIGURATION_CHANGED");
+            if(exact)for(var entry:links.entrySet()){
+                var previous=read(c,entry.getKey());var link=entry.getValue();
+                if(previous!=null&&(!com.vncode.app.features.gtinsync.OzonReviewedVariantProof.exactProof(previous.revision())||!RegisteredGtinProof.sameCode(previous.gtin(),link.gtin())||previous.goodId()!=link.goodId()||!previous.sku().equals(link.sku())))throw new IllegalStateException("GTIN_REVIEW_CHANGED");
+                try(var p=c.prepareStatement("SELECT gtin,good_id,sku,active_gtin FROM ozon_card_registrations WHERE shop_id=? AND product_id=? AND offer_id=?")){
+                    p.setInt(1,shop.getId());p.setString(2,entry.getKey().productId());p.setString(3,entry.getKey().variantId());try(var r=p.executeQuery()){if(r.next()){
+                        String registered=java.util.Objects.toString(r.getString(4),"").isBlank()?java.util.Objects.toString(r.getString(1),""):r.getString(4);
+                        if(!registered.isBlank()&&!RegisteredGtinProof.sameCode(registered,link.gtin())||r.getLong(2)>0&&r.getLong(2)!=link.goodId()||!java.util.Objects.toString(r.getString(3),"").isBlank()&&!r.getString(3).equals(link.sku()))throw new IllegalStateException("GTIN_REVIEW_CHANGED");
+                    }}
+                }
+                try(var p=c.prepareStatement("SELECT product_id,offer_id FROM ozon_reviewed_gtin_links WHERE shop_id=? AND gtin=?")){
+                    p.setInt(1,shop.getId());p.setString(2,RegisteredGtinProof.canonicalCode(link.gtin()));try(var r=p.executeQuery()){if(r.next()&&(!entry.getKey().productId().equals(r.getString(1))||!entry.getKey().variantId().equals(r.getString(2))))throw new IllegalStateException("GTIN_MULTIPLE_OZON_VARIANTS");}
+                }
+            }
             try(var p=c.prepareStatement("INSERT INTO ozon_reviewed_gtin_links VALUES(?,?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id,product_id,offer_id) DO UPDATE SET gtin=excluded.gtin,good_id=excluded.good_id,sku=excluded.sku,owner=excluded.owner,source=excluded.source,revision=excluded.revision,approved_at=excluded.approved_at")){
                 for(var entry:links.entrySet()){
                     var key=entry.getKey();var link=entry.getValue();

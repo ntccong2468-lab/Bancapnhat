@@ -38,6 +38,26 @@ class OzonCatalogMappingServiceTest {
         op.targets.add(target);op.cards.add(card(gtin));var result=run(op);
         assertEquals(0,result.mapped());assertEquals(1,result.linked());assertTrue(result.issues().isEmpty());assertTrue(op.verified.isEmpty());
     }
+    @Test void explicitMappingBindsOneExactModelAndNativeSizeWithoutColorOrBarcodeRequirements()throws Exception{
+        String code=gtin(1);var target=exactTarget();var binds=new java.util.concurrent.atomic.AtomicInteger();
+        var op=new Fake(){@Override public String bindExact(Shop shop,Target selected,List<RegisteredGtin> catalog){assertEquals(target,selected);assertEquals(1,catalog.size());binds.incrementAndGet();return code;}};
+        op.targets.add(target);op.cards.add(exactCard(code,"XXL","Blue"));
+        var result=run(op);assertEquals(1,binds.get());assertEquals(1,result.linked());assertEquals(0,result.mapped());assertTrue(result.issues().isEmpty());assertTrue(op.verified.isEmpty());
+    }
+    @Test void multipleGtinsForTheExactModelAndSizeRemainAmbiguousWithoutCallingTheBinder()throws Exception{
+        var op=new Fake(){@Override public String bindExact(Shop shop,Target selected,List<RegisteredGtin> catalog){fail("Ambiguity must not be reduced to a selected singleton");return "";}};
+        op.targets.add(exactTarget());op.cards.addAll(List.of(exactCard(gtin(1),"2XL","Blue"),exactCard(gtin(2),"XXL","Black")));
+        var result=run(op);assertEquals(List.of("GTIN_AMBIGUOUS"),reasons(result));assertEquals(0,result.linked());assertTrue(op.verified.isEmpty());
+    }
+    @Test void aPreviouslyPersistedExactLinkDoesNotReenterLegacyColorAndSizeChecks()throws Exception{
+        String code=gtin(1);var target=exactTarget();var op=new Fake(){
+            @Override public Map<ProductKey,String> reviewed(Shop shop){return Map.of(target.row().key(),code);}
+            @Override public boolean exact(Shop shop,Target selected,String gtin){return true;}
+            @Override public String bindExact(Shop shop,Target selected,List<RegisteredGtin> catalog){fail("Existing proof must not be replaced");return "";}
+        };
+        op.targets.add(target);op.cards.add(exactCard(code,"XXL","Blue"));var result=run(op);
+        assertEquals(1,result.linked());assertTrue(result.issues().isEmpty());assertTrue(op.verified.isEmpty());
+    }
     @Test void aReviewedPairCannotBeReplacedByAnOlderUsableBarcodeDuringMapping()throws Exception{
         String old=gtin(1),selected=gtin(2);var target=target(1,List.of(old),false,old);
         var op=new Fake(){@Override public Map<ProductKey,String> reviewed(Shop shop){return Map.of(target.row().key(),selected);}};
@@ -208,6 +228,11 @@ class OzonCatalogMappingServiceTest {
     }
     static RegisteredGtin card(String gtin){return card(gtin,List.of(new CatalogProductData.Document("DECLARATION","fixture","2020-01-01","",true,"",Map.of())));}
     static RegisteredGtin card(String gtin,List<CatalogProductData.Document> documents){return new RegisteredGtin(gtin,"Fixture","Brown","52",true,true,SOURCE,Instant.now(),new CatalogProductData(Map.of(),List.of(),documents));}
+    static Target exactTarget(){
+        var row=new ProductRow(new ProductKey(2,Marketplace.OZON,"1","152 NAU-2XL"),"Different Ozon title","152 NAU-2XL","sku1","Sets","Ozon brand","Black","2XL",List.of("native-barcode"),"","","cotton","6103109000",DocumentState.VALID,"Male",true,"52","2XL");
+        return new Target(row,"sku1",false,"");
+    }
+    static RegisteredGtin exactCard(String code,String size,String color){return new RegisteredGtin(code,"152NAU",color,size,true,true,SOURCE,Instant.now(),card(code).details());}
     static String gtin(int id){String base=String.format(Locale.ROOT,"%013d",id);int sum=0;for(int i=0;i<13;i++)sum+=(base.charAt(i)-'0')*(i%2==0?3:1);return base+((10-sum%10)%10);}
     static class Fake implements Operations {
         String scope=SOURCE;final List<Target> targets=new ArrayList<>();final List<RegisteredGtin> cards=new ArrayList<>();final Map<String,List<RegisteredGtin>> details=new HashMap<>();final Map<String,Exception> failures=new HashMap<>();final Map<String,String> verified=new LinkedHashMap<>();final List<String> calls=new ArrayList<>();

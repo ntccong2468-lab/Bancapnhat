@@ -36,13 +36,16 @@ public final class OzonGtinAdapter implements GtinBatchAdapter {
     public Capability capability(ProductKey key){requireKey(key);return CAPABILITY;}
     public void validateRegistration(String gtin){RegisteredGtinProof.requireCurrent(shop,gtin);}
     @Override public void validateIdentity(ProductSnapshot target,RegisteredGtin source)throws IOException{
-        identityEvidence(target,source);
+        identityEvidence(target,source,false);
     }
     @Override public ProductSnapshot prepareIdentity(ProductSnapshot target,RegisteredGtin source)throws IOException {
-        String evidence=identityEvidence(target,source);
+        String evidence=identityEvidence(target,source,true);
         return new ProductSnapshot(target.key(),target.article(),target.color(),target.size(),target.barcodes(),target.fingerprint(),target.fetchedAt(),evidence);
     }
     private String identityEvidence(ProductSnapshot target,RegisteredGtin source)throws IOException{
+        return identityEvidence(target,source,false);
+    }
+    private String identityEvidence(ProductSnapshot target,RegisteredGtin source,boolean allowExactBinding)throws IOException{
         requireKey(target.key());
         var key=new com.vncode.app.features.products.ProductKey(shop.getId(),Marketplace.OZON,target.key().productId(),target.key().variantId());
         var product=new OzonProductSnapshotReader(ignored->client).readForGtinSync(shop,key);
@@ -52,17 +55,31 @@ public final class OzonGtinAdapter implements GtinBatchAdapter {
         if(!target.key().productId().equals(text(observed,"id"))||!target.key().variantId().equals(text(observed,"offer_id"))
                 ||!snapshotMatches(target,snapshot(target.key(),observed,null)))throw new IllegalArgumentException("product_changed");
         var variants=product.variants().stream().filter(value->key.variantId().equals(value.id())).toList();if(variants.size()!=1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");var variant=variants.getFirst();
-        for(String field:List.of("color","russianSize")){var values=com.vncode.app.features.products.ProductFieldNames.sourceAttributes(field,product.attributes()).stream().flatMap(attribute->attribute.values().stream()).filter(value->!value.isBlank()).distinct().toList();if(values.size()>1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");}
-        var manufacturerSizes=product.attributes().stream().filter(attribute->attribute.complexId().isBlank()||attribute.complexId().equals("0")).filter(attribute->Set.of("размер производителя","manufacturer size").contains(attribute.name().strip().toLowerCase(Locale.ROOT))).flatMap(attribute->attribute.values().stream()).filter(value->!value.isBlank()).distinct().toList();if(manufacturerSizes.size()>1)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
+        boolean legacyFacts=true;
+        for(String field:List.of("color","russianSize")){var values=com.vncode.app.features.products.ProductFieldNames.sourceAttributes(field,product.attributes()).stream().flatMap(attribute->attribute.values().stream()).filter(value->!value.isBlank()).distinct().toList();if(values.size()>1)legacyFacts=false;}
+        var manufacturerSizes=product.attributes().stream().filter(attribute->attribute.complexId().isBlank()||attribute.complexId().equals("0")).filter(attribute->Set.of("размер производителя","manufacturer size").contains(attribute.name().strip().toLowerCase(Locale.ROOT))).flatMap(attribute->attribute.values().stream()).filter(value->!value.isBlank()).distinct().toList();if(manufacturerSizes.size()>1)legacyFacts=false;
         String primarySize=variant.size().isBlank()?variant.russianSize():variant.size();
         var row=new com.vncode.app.features.products.ProductRow(key,product.title(),product.vendorArticle(),"",product.metadata().getOrDefault("source.category.name",""),product.brand(),variant.color(),primarySize,target.barcodes(),"","","","",com.vncode.app.features.products.DocumentState.UNVERIFIED,"",true,variant.russianSize(),variant.size());
-        if(source==null||!OzonSkuGtinMatcher.sameColor(row.color(),source.color())
-                ||!GtinVariantIdentity.sizeMatches(source,GtinVariantIdentity.primarySize(row),row.russianSize()))
-            throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
-        // Even an exact article/color/size match is only a candidate, not proof
-        // that this Catalog identity belongs to this particular Ozon SKU.
-        // Require the durable, seller-reviewed registration link for every write.
-        String evidence=establishedLink(target,product,source);
+        if(source==null)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
+        legacyFacts=legacyFacts&&OzonSkuGtinMatcher.sameColor(row.color(),source.color())
+                &&GtinVariantIdentity.sizeMatches(source,GtinVariantIdentity.primarySize(row),row.russianSize());
+        boolean exactFacts=OzonExactVariantIdentity.sameIdentity(product,source);
+        var saved=com.vncode.app.integration.znack.registration.OzonReviewedGtinLinks.read(shop,target.key());
+        boolean exactLink=saved!=null&&OzonReviewedVariantProof.exactProof(saved.revision());
+        if(exactLink?!exactFacts:!legacyFacts){
+            if(!allowExactBinding||!exactFacts)throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
+        }
+        // Only explicit plan preparation may persist a new exact binding. Reads,
+        // transport revalidation and recovery require the already saved proof.
+        String evidence=exactLink||legacyFacts?establishedLink(target,product,source):"";
+        if(evidence.isBlank()&&allowExactBinding&&exactFacts){
+            try{new com.vncode.app.integration.znack.registration.OzonExistingCardLinkService().bindExactUnique(shop,product,List.of(source));}
+            catch(IllegalStateException invalid){
+                if("GTIN_VARIANT_IDENTITY_UNVERIFIED".equals(invalid.getMessage()))throw new IllegalArgumentException(invalid.getMessage(),invalid);
+                throw invalid;
+            }
+            evidence=establishedLink(target,product,source);
+        }
         if(evidence.isBlank())throw new IllegalArgumentException("GTIN_VARIANT_IDENTITY_UNVERIFIED");
         GtinTnvedIdentity.requireCompatible(product,source);
         return evidence;
@@ -96,12 +113,13 @@ public final class OzonGtinAdapter implements GtinBatchAdapter {
                 revision=repository.reviewedRevisions(registrationKey).getFirst();goodId=row.goodId();
             }
             if(revision.isBlank())return "";
-            var full=new OzonShopBrand().apply(shop,new OzonProductSnapshotReader(ignored->client).readForGtinRegistrationProof(shop,registrationKey));
+            var full=OzonReviewedVariantProof.exactProof(revision)?product:
+                    new OzonShopBrand().apply(shop,new OzonProductSnapshotReader(ignored->client).readForGtinRegistrationProof(shop,registrationKey));
             if(!sku.equals(full.metadata().getOrDefault("sku","")))return "";
-            if(OzonReviewedVariantProof.version2(revision)){
+            if(OzonReviewedVariantProof.nativeProof(revision)){
                 if(!OzonReviewedVariantProof.matches(shop,full,source))return "";
-                OzonReviewedVariantProof.observe(shop,full,source);
-                String token="ozon-reviewed-v2:"+ListingIdentity.hash(String.join("\n",key.toString(),source.gtin(),Long.toString(goodId),sku,owner,current.source(),revision));
+                OzonReviewedVariantProof.observeForLink(shop,full,source);
+                String token=(OzonReviewedVariantProof.exactProof(revision)?"ozon-exact-v1:":"ozon-reviewed-v2:")+ListingIdentity.hash(String.join("\n",key.toString(),source.gtin(),Long.toString(goodId),sku,owner,current.source(),revision));
                 return target.postWriteFingerprint().isBlank()||token.equals(target.postWriteFingerprint())?token:"";
             }
             String token="ozon-reg-v1:"+ListingIdentity.hash(String.join("\n",key.toString(),source.gtin(),Long.toString(goodId),sku,owner,current.source(),revision,physicalRevision(full)));

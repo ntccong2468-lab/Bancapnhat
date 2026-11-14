@@ -208,17 +208,57 @@ class RegistrationCardIndexTest {
             var cards=index(observed);assertTrue(cards.verifiedWb(sku("A","Blue","M",List.of(observed.gtin()),"")).isEmpty());assertEquals(observed.source(),new GtinSyncRepository().catalogItem(shop.getId(),shop.getMarketplace(),observed.gtin()).source());
         }
     }
-    @Test void establishedOzonSellerSkuProofRequiresUniqueModelColorAndExplicitSize()throws Exception{
+    @Test void ozonExactModelUsesExplicitRussianSizeWithoutColourBrandOrTariffIdentity()throws Exception{
         var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);RegistrationSourceFixture.ready(ozon);
         var detail=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@size_type",List.of("РОССИЯ"),"title",List.of("Костюм спортивный"),"brand",List.of("DASHOA")),List.of(),List.of());
-        var actual=new RegisteredGtin(GtinWriteTestFixture.GTIN,"152 nau dashoa","Коричневый","52",true,true,RegisteredGtinProof.source(ozon),Instant.now(),detail);
+        var actual=new RegisteredGtin(GtinWriteTestFixture.GTIN,"152 NAU","Красный","52",true,true,RegisteredGtinProof.source(ozon),Instant.now(),detail);
         new GtinSyncRepository().saveCatalog(ozon.getId(),ozon.getMarketplace(),List.of(actual));
-        var row=new com.vncode.app.features.products.ProductRow(new com.vncode.app.features.products.ProductKey(ozon.getId(),ozon.getMarketplace(),"501","152DASH-52"),"Костюм спортивный","152DASH-52","501","Костюмы","DASHOA","Brown","XL",List.of(),"","","","",com.vncode.app.features.products.DocumentState.MISSING,"Мужской",true,"52","XL");
+        var row=new com.vncode.app.features.products.ProductRow(new com.vncode.app.features.products.ProductKey(ozon.getId(),ozon.getMarketplace(),"501","152nau-52"),"Other display title","152nau-52","501","Костюмы","OtherBrand","Brown","XL",List.of(),"","","","9999999999",com.vncode.app.features.products.DocumentState.MISSING,"Мужской",true,"52","XL");
         assertEquals(actual,new RegistrationCardIndex(ozon).verifiedOzon(row,Status.NOT_CREATED,"",true).orElseThrow());
         var duplicate=new RegisteredGtin("00000000000024",actual.article(),actual.color(),actual.size(),true,true,actual.source(),Instant.now(),detail);
         new GtinSyncRepository().saveCatalog(ozon.getId(),ozon.getMarketplace(),List.of(actual,duplicate));
         assertEquals(2,new GtinSyncRepository().catalog(ozon.getId(),ozon.getMarketplace()).size(),"Both candidate cards must exist in the same observed Catalog snapshot");
         assertTrue(new RegistrationCardIndex(ozon).verifiedOzon(row,Status.NOT_CREATED,"",true).isEmpty());
+    }
+
+    @Test void ozonExactManufacturerSizeRetainsDraftAndErrorStatesWithoutColour()throws Exception{
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);RegistrationSourceFixture.ready(ozon);
+        var row=ozonRow(ozon,"152nau-2XL","2XL","52",List.of());
+        for(String state:List.of("draft","errors","moderation","notsigned")){
+            var data=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("draft"),"@catalog_signed",List.of("false"),"@catalog_detailed_status",List.of(state),"@size_type",List.of("manufacturer")),List.of(),List.of());
+            var actual=new RegisteredGtin(GtinWriteTestFixture.GTIN,"152 NAU","","XXL",true,false,RegisteredGtinProof.source(ozon),Instant.now(),data);
+            new GtinSyncRepository().saveCatalog(ozon.getId(),Marketplace.OZON,List.of(actual));
+            var view=new RegistrationCardIndex(ozon).viewOzon(Status.NOT_CREATED,"",row,true);
+            assertEquals("source."+(state.equals("notsigned")?"not_signed":state),view.status(),state);
+            assertTrue(view.exists());assertFalse(view.published());assertTrue(view.blocked());
+            assertEquals(state.equals("draft"),view.canReviewDraft());
+        }
+    }
+    @Test void ozonExactMatchingDoesNotStripModelWordsOrBorrowRussianSize()throws Exception{
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);RegistrationSourceFixture.ready(ozon);
+        var data=new com.vncode.app.features.catalogsync.CatalogProductData(Map.of("@size_type",List.of("РОССИЯ")),List.of(),List.of());
+        for(String article:List.of("B3152NAU","152NAUDASH","152NAUDASHOA")){
+            var actual=new RegisteredGtin(GtinWriteTestFixture.GTIN,article,"Brown","52",true,true,RegisteredGtinProof.source(ozon),Instant.now(),data);
+            new GtinSyncRepository().saveCatalog(ozon.getId(),Marketplace.OZON,List.of(actual));
+            assertFalse(new RegistrationCardIndex(ozon).viewOzon(Status.NOT_CREATED,"",ozonRow(ozon,"152NAU-2XL","2XL","52",List.of()),true).exists(),article);
+        }
+        var actual=new RegisteredGtin(GtinWriteTestFixture.GTIN,"152NAU","Brown","52",true,true,RegisteredGtinProof.source(ozon),Instant.now(),data);
+        new GtinSyncRepository().saveCatalog(ozon.getId(),Marketplace.OZON,List.of(actual));
+        assertFalse(new RegistrationCardIndex(ozon).viewOzon(Status.NOT_CREATED,"",ozonRow(ozon,"152NAU-2XL","2XL","",List.of()),true).exists());
+    }
+    @Test void readingOzonExactPublishedCandidatesDoesNotCreateAnApprovalOrCheckpoint()throws Exception{
+        var ozon=GtinWriteTestFixture.shop(Marketplace.OZON);RegistrationSourceFixture.ready(ozon);
+        var actual=new RegisteredGtin(GtinWriteTestFixture.GTIN,"152NAU","Red","XXL",true,true,RegisteredGtinProof.source(ozon),Instant.now());
+        new GtinSyncRepository().saveCatalog(ozon.getId(),Marketplace.OZON,List.of(actual));
+        var row=ozonRow(ozon,"152NAU-2XL","2XL","52",List.of());var index=new RegistrationCardIndex(ozon);
+        assertTrue(index.viewOzon(Status.NOT_CREATED,"",row,true).published());assertEquals(actual,index.verifiedOzon(row,Status.NOT_CREATED,"",true).orElseThrow());
+        try(var c=Database.getConnection();var s=c.createStatement()){
+            try(var r=s.executeQuery("SELECT count(*) FROM ozon_card_registrations")){assertEquals(0,r.getInt(1));}
+            try(var r=s.executeQuery("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='ozon_reviewed_gtin_links'")){if(r.getInt(1)>0)try(var count=s.executeQuery("SELECT count(*) FROM ozon_reviewed_gtin_links")){assertEquals(0,count.getInt(1));}}
+        }
+    }
+    private com.vncode.app.features.products.ProductRow ozonRow(Shop ozon,String article,String manufacturer,String russian,List<String> codes){
+        return new com.vncode.app.features.products.ProductRow(new com.vncode.app.features.products.ProductKey(ozon.getId(),Marketplace.OZON,"501",article),"Other title",article,"501","Костюмы","OtherBrand","Blue",manufacturer,codes,"","","","9999999999",com.vncode.app.features.products.DocumentState.MISSING,"OtherGender",true,russian,manufacturer);
     }
 
 }

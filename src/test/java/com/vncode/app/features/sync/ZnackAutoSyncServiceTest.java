@@ -133,7 +133,7 @@ class ZnackAutoSyncServiceTest {
         assertEquals(1,original.getSuppressed().length);assertEquals("SYNC_STORAGE",original.getSuppressed()[0].getMessage());assertEquals(0,writes);
     }
     @Test void ozonSourceRequiresReviewWithAlphanumericOfferAndExactSku()throws Exception{pipeline(Marketplace.OZON);}
-    @Test void ozonSkuProposalIsPersistedAndRechecksFreshBrandBeforeConfirmation()throws Exception{
+    @Test void ozonNoLongerCreatesAFuzzyDashToDashoaProposalButOldQueuedProofKeepsItsOriginalPolicy()throws Exception{
         init(Marketplace.OZON);
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE ozon_products SET offer_id='152DASH-52',article='152DASH-52',name='Костюм',color='Brown',size='52',manufacturer_size='XL',russian_size='52' WHERE shop_id=2");}
         key=new ProductKey(shop.getId(),Marketplace.OZON,"101","152DASH-52");
@@ -141,10 +141,67 @@ class ZnackAutoSyncServiceTest {
         snapshot=new ProductSnapshot(key,"live:fixture","Костюм","","DASHOA","152DASH-52","1",List.of(),List.of(),List.of(new ProductVariant(key.variantId(),key.variantId(),"Brown","XL","",false,"52")),null,List.of(),Instant.now(),Map.of("sku","501","owner",ListingIdentity.fingerprint(shop)));
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);service.step(shop,"");
         var reports=new SyncRunRepository();var run=reports.list(shop.getId(),0,10).getFirst();var items=reports.items(run.id(),0,10);
-        assertEquals(1,items.size());assertTrue(items.getFirst().evidence().contains("OZON_SELLER_SKU_MODEL_SIZE"));
-        var review=new ZnackGtinReviewService(s->{},service,(s,k)->snapshot);assertEquals(1,review.select(shop,run.id(),items).size());
+        assertEquals(1,items.size());assertEquals("NEEDS_ACTION",items.getFirst().state());
+        assertEquals("ZNACK_MAPPING_UNVERIFIED",items.getFirst().error());assertEquals("",items.getFirst().gtin());
+        // A job already approved under the older rule keeps that rule; the new
+        // policy must not silently relax a persisted job's brand check.
+        var legacy=new SyncRunRepository.Item("old-item",run.id(),key.cardId(),key.variantId(),"501","152DASH-52","Brown","52",observation.gtin(),"AWAITING_CONFIRMATION","MATCHING","","","{\"matchRule\":\"OZON_SELLER_SKU_MODEL_SIZE\"}");
+        assertDoesNotThrow(()->ZnackAutoSyncService.requireSkuMatch(shop,legacy,snapshot));
         snapshot=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),"OTHER",snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),snapshot.variants(),snapshot.dimensions(),snapshot.documents(),snapshot.checkedAt(),snapshot.metadata());
-        assertEquals("OZON_SKU_GTIN_MISMATCH",assertThrows(IllegalArgumentException.class,()->review.select(shop,run.id(),items)).getMessage());assertEquals(0,writes);
+        assertEquals("OZON_SKU_GTIN_MISMATCH",assertThrows(IllegalArgumentException.class,()->ZnackAutoSyncService.requireSkuMatch(shop,legacy,snapshot)).getMessage());assertEquals(0,writes);
+    }
+    private void exactOzonVariant()throws Exception {
+        init(Marketplace.OZON);
+        try(var c=Database.getConnection();var statement=c.createStatement()){
+            statement.execute("UPDATE ozon_products SET offer_id='152NAU-2XL',article='152 nau-XXL',name='Synthetic exact variant',color='Blue',size='52',russian_size='52',manufacturer_size='2XL' WHERE shop_id=2");
+        }
+        key=new ProductKey(shop.getId(),Marketplace.OZON,"101","152NAU-2XL");
+        observation=new GtinSyncModels.RegisteredGtin(observation.gtin(),"152NAU","Catalog color","52",true,true,observation.source(),Instant.now(),
+                new CatalogProductData(Map.of("@catalog_id",List.of("91"),"@catalog_status",List.of("published"),"@size_type",List.of("РОССИЯ"),"brand",List.of("Catalog brand"),"tnved",List.of("6103109000")),List.of(),List.of()));
+        snapshot=new ProductSnapshot(key,"live:exact","Synthetic exact variant","","Ozon brand","152 NAU-2XL","1",List.of(),
+                List.of(new ProductAttribute("tnved","ТНВЭД",List.of("6112110000"),"")),
+                List.of(new ProductVariant(key.variantId(),"152 NAU-2XL","Blue","2XL","",false,"52")),null,List.of(),Instant.now(),
+                Map.of("sku","501","owner",ListingIdentity.fingerprint(shop)));
+        com.vncode.app.testsupport.RegistrationSourceFixture.ready(shop);
+    }
+    private GtinSyncModels.RegisteredGtin exactCard(String gtin,String article,String goodId){
+        return new GtinSyncModels.RegisteredGtin(gtin,article,observation.color(),observation.size(),true,true,observation.source(),Instant.now(),
+                new CatalogProductData(Map.of("@catalog_id",List.of(goodId),"@catalog_status",List.of("published"),"@size_type",List.of("РОССИЯ")),List.of(),List.of()));
+    }
+    @Test void ozonExactFullModelAndObservedSizeAliasesIgnoreCatalogColorBrandAndTnvedWithoutApprovingOrWriting()throws Exception {
+        exactOzonVariant();
+        var distracting=List.of(observation,exactCard("00000000000024","B3152NAU","92"),exactCard("00000000000031","152NAU DASH","93"));
+        service=new ZnackAutoSyncService((s,issues)->distracting,(s,k)->snapshot,catalog);
+        String run=service.review(shop);var item=new SyncRunRepository().items(run,0,10).getFirst();
+        assertEquals("AWAITING_CONFIRMATION",item.state());assertEquals("GTIN_CONFIRMATION_REQUIRED",item.error());assertEquals(observation.gtin(),item.gtin());
+        assertEquals("OZON_EXACT_MODEL_SIZE",com.google.gson.JsonParser.parseString(item.evidence()).getAsJsonObject().get("matchRule").getAsString());
+        assertEquals(1,new ZnackGtinReviewService(s->{},service,(s,k)->snapshot).select(shop,run,List.of(item)).size());
+        assertNull(com.vncode.app.integration.znack.registration.OzonReviewedGtinLinks.read(shop,new GtinSyncModels.ProductKey(shop.getId(),Marketplace.OZON,key.cardId(),key.variantId())));
+        assertEquals("",item.childJob());assertEquals(0,writes);assertTrue(new GtinSyncRepository().verifiedMappings(shop).isEmpty());
+    }
+    @Test void ozonExactRuleRechecksFullModelAndTypedRussianSizeButDoesNotReintroduceOtherCatalogFields()throws Exception {
+        exactOzonVariant();String run=service.review(shop);var item=new SyncRunRepository().items(run,0,10).getFirst();
+        var changedNonIdentity=new ProductSnapshot(key,snapshot.revision(),snapshot.title(),snapshot.description(),"Different brand",snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),
+                List.of(new ProductVariant(key.variantId(),snapshot.vendorArticle(),"Different color","XXL","",false,"52")),null,List.of(),Instant.now(),snapshot.metadata());
+        assertDoesNotThrow(()->ZnackAutoSyncService.requireSkuMatch(shop,item,changedNonIdentity));
+        var changedModel=new ProductSnapshot(key,snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),"152NAU DASH-2XL",snapshot.categoryId(),snapshot.media(),snapshot.attributes(),snapshot.variants(),null,List.of(),Instant.now(),snapshot.metadata());
+        assertEquals("OZON_SKU_GTIN_MISMATCH",assertThrows(IllegalArgumentException.class,()->ZnackAutoSyncService.requireSkuMatch(shop,item,changedModel)).getMessage());
+        var changedRussian=new ProductSnapshot(key,snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),
+                List.of(new ProductVariant(key.variantId(),snapshot.vendorArticle(),"Blue","2XL","",false,"54")),null,List.of(),Instant.now(),snapshot.metadata());
+        assertEquals("OZON_SKU_GTIN_MISMATCH",assertThrows(IllegalArgumentException.class,()->ZnackAutoSyncService.requireSkuMatch(shop,item,changedRussian)).getMessage());assertEquals(0,writes);
+    }
+    @Test void ozonExactRuleDoesNotGuessRussian52FromManufacturer2xl()throws Exception {
+        exactOzonVariant();
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("UPDATE ozon_products SET size='2XL',russian_size='' WHERE shop_id=2");}
+        String run=service.review(shop);var item=new SyncRunRepository().items(run,0,10).getFirst();
+        assertEquals("NEEDS_ACTION",item.state());assertEquals("ZNACK_MAPPING_UNVERIFIED",item.error());assertEquals("",item.gtin());assertEquals(0,writes);
+    }
+    @Test void ozonObservedBarcodeCannotHideAnotherExactCatalogGtin()throws Exception {
+        exactOzonVariant();var other=exactCard("00000000000024","152 nau","92");
+        try(var c=Database.getConnection();var statement=c.createStatement()){statement.execute("INSERT INTO ozon_product_barcodes(shop_id,product_id,barcode) VALUES(2,'101','"+observation.gtin()+"')");}
+        service=new ZnackAutoSyncService((s,issues)->List.of(observation,other),(s,k)->snapshot,catalog);
+        String run=service.review(shop);var item=new SyncRunRepository().items(run,0,10).getFirst();
+        assertEquals("NEEDS_ACTION",item.state());assertEquals("GTIN_AMBIGUOUS",item.error());assertEquals("",item.gtin());assertEquals(0,writes);
     }
     @Test void onlyExplicitlyRegisteredExactWbCardIsAutomaticallyLinkedThenVerified()throws Exception{automaticRegistration(Marketplace.WILDBERRIES,true);}
     @Test void legacyWbReceiptWithOnlyOldMarketplaceConsentNeedsReviewAndNeverWrites()throws Exception{automaticRegistration(Marketplace.WILDBERRIES,false);}

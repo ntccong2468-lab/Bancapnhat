@@ -71,15 +71,32 @@ public final class ListingIdentity {
         return verifiedGtinEvidence(shop,key,barcodes,"","","","");
     }
     public static Optional<VerifiedGtin> verifiedGtinEvidence(Shop shop,ProductKey key,List<String> barcodes,String article,String color,String size,String russianSize){
+        return verifiedGtinEvidence(shop,key,barcodes,article,color,size,russianSize,null);
+    }
+    /** A fresh complete Ozon observation can validate its saved native model/size proof. */
+    public static Optional<VerifiedGtin> verifiedGtinEvidence(Shop shop,ProductSnapshot product){
+        var variants=product.variants().stream().filter(v->product.key().variantId().equals(v.id())).toList();
+        if(variants.size()!=1)return Optional.empty();var variant=variants.getFirst();
+        return verifiedGtinEvidence(shop,product.key(),variant.barcodes(),product.vendorArticle(),variant.color(),variant.size(),variant.russianSize(),product);
+    }
+    private static Optional<VerifiedGtin> verifiedGtinEvidence(Shop shop,ProductKey key,List<String> barcodes,String article,String color,String size,String russianSize,ProductSnapshot observed){
         require(shop,key);
         String source=currentCatalogSource(shop);if(source.isBlank())return Optional.empty();
         String owner=fingerprint(shop);var now=java.time.Instant.now();
-        try(var c=Database.getConnection();var p=c.prepareStatement("""
-          SELECT m.gtin,g.data_json FROM gtin_sync_mappings m JOIN gtin_sync_catalog g
+        // A completed automatic Ozon write has a readback receipt, even when the
+        // seller never saved a separate manual mapping. Prefer that scoped receipt.
+        boolean nativeOzon=observed!=null&&key.marketplace()==com.vncode.app.integration.marketplace.Marketplace.OZON;
+        String mappings=nativeOzon?"""
+          (SELECT shop_id,marketplace,product_id,variant_id,gtin,1 AS confirmed FROM gtin_sync_verified_mappings WHERE owner=? AND source=?
+           UNION ALL SELECT shop_id,marketplace,product_id,variant_id,gtin,0 AS confirmed FROM gtin_sync_mappings)
+          """:"gtin_sync_mappings";
+        try(var c=Database.getConnection();var p=c.prepareStatement("SELECT m.gtin,g.data_json FROM "+mappings+"""
+           m JOIN gtin_sync_catalog g
             ON g.shop_id=m.shop_id AND g.marketplace=m.marketplace AND g.gtin=m.gtin
           WHERE m.shop_id=? AND m.marketplace=? AND m.product_id=? AND m.variant_id=?
-          """)){
-            p.setInt(1,key.shopId());p.setString(2,key.marketplace().name());p.setString(3,key.cardId());p.setString(4,key.variantId());
+          """+(nativeOzon?" ORDER BY m.confirmed DESC":""))){
+            int parameter=1;if(nativeOzon){p.setString(parameter++,owner);p.setString(parameter++,source);}
+            p.setInt(parameter++,key.shopId());p.setString(parameter++,key.marketplace().name());p.setString(parameter++,key.cardId());p.setString(parameter,key.variantId());
             try(var rows=p.executeQuery()){
                 if(!rows.next())return Optional.empty();
                 String gtin=rows.getString(1);var data=com.google.gson.JsonParser.parseString(rows.getString(2)).getAsJsonObject();
@@ -91,7 +108,11 @@ public final class ListingIdentity {
                 var checked=java.time.Instant.parse(data.get("syncedAt").getAsString());
                 if(checked.isBefore(now.minusSeconds(86400))||checked.isAfter(now.plusSeconds(300)))return Optional.empty();
                 var row=ProductJson.GSON.fromJson(data,com.vncode.app.features.gtinsync.GtinSyncModels.RegisteredGtin.class);
-                if(!compatibleVariant(row,article,color,size,russianSize))return Optional.empty();
+                var link=nativeOzon?com.vncode.app.integration.znack.registration.OzonReviewedGtinLinks.read(shop,
+                        new com.vncode.app.features.gtinsync.GtinSyncModels.ProductKey(key.shopId(),key.marketplace(),key.cardId(),key.variantId())):null;
+                boolean nativeProof=link!=null&&com.vncode.app.features.gtinsync.OzonReviewedVariantProof.nativeProof(link.revision());
+                if(nativeProof?!com.vncode.app.features.gtinsync.OzonReviewedVariantProof.matches(shop,observed,row)
+                        :!compatibleVariant(row,article,color,size,russianSize))return Optional.empty();
                 String status=row.details().single("@catalog_status");
                 var content=data.deepCopy();content.remove("syncedAt");content.remove("readRevision");
                 var verification=com.vncode.app.features.gtinsync.RegisteredGtinProof.currentObservation(row,now)?ProductVariant.Verification.VERIFIED:ProductVariant.Verification.HISTORICAL;

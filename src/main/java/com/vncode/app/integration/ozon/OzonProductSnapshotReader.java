@@ -53,8 +53,7 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
         var manufacturerSize=uniqueExplicitSize(attributes,false);var marketplaceRussianSize=uniqueExplicitSize(attributes,true);
         boolean sizeConflict=manufacturerSize.conflict()||marketplaceRussianSize.conflict();
         size=sizeConflict?"":manufacturerSize.value();russianSize=sizeConflict?"":marketplaceRussianSize.value();
-        var proof=includeEvidence?ListingIdentity.verifiedGtinEvidence(shop,new ProductKey(shop.getId(),shop.getMarketplace(),key.cardId(),text(attr,"offer_id")),codes,text(attr,"offer_id"),color,size,russianSize):Optional.<ListingIdentity.VerifiedGtin>empty();
-        var variants=List.of(new ProductVariant(text(attr,"offer_id"),text(attr,"offer_id"),color,size,proof.map(ListingIdentity.VerifiedGtin::gtin).orElse(""),proof.isPresent(),russianSize,codes,proof.map(ListingIdentity.VerifiedGtin::evidence).orElse(ProductVariant.GtinEvidence.UNVERIFIED)));
+        var variants=List.of(new ProductVariant(text(attr,"offer_id"),text(attr,"offer_id"),color,size,"",false,russianSize,codes,ProductVariant.GtinEvidence.UNVERIFIED));
         var docs=new ArrayList<ProductDocument>();var now=Instant.now();int pages=1;Integer declaredPages=null;var documentIds=new HashSet<String>();
         for(int page=1;includeDocuments&&page<=pages;page++){
             b=new JsonObject();b.addProperty("offer_id",text(attr,"offer_id"));b.addProperty("page",page);b.addProperty("page_size",100);
@@ -92,7 +91,16 @@ public final class OzonProductSnapshotReader implements ProductSnapshotReader {
         var raw=new JsonObject();raw.add("info",info);raw.add("attributes",attr);raw.add("documents",ProductJson.GSON.toJsonTree(docs.stream().map(ProductDocument::metadata).toList()));String payload=ListingIdentity.canonical(raw);
         inherited.putAll(Map.of("source.payload",payload,"owner",ListingIdentity.fingerprint(shop),"sku",text(info,"sku"),"complex.ambiguous",Boolean.toString(groups.values().stream().anyMatch(v->v>1))));
         var revisionMetadata=new LinkedHashMap<>(inherited);revisionMetadata.remove("source.payload");
-        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(revisionPayload(raw)+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(revisionMetadata))),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,inherited);if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
+        var snapshot=new ProductSnapshot(key,"live:"+ListingIdentity.hash(revisionPayload(raw)+ListingIdentity.canonical(ProductJson.GSON.toJsonTree(revisionMetadata))),text(attr,"name"),description,brand,text(attr,"offer_id"),text(attr,"description_category_id")+":"+text(attr,"type_id"),media,attributes,variants,dimensions,docs,now,inherited);
+        if(includeEvidence){
+            var proof=ListingIdentity.verifiedGtinEvidence(shop,snapshot);
+            if(proof.isPresent()){
+                var original=variants.getFirst();var verified=proof.get();
+                variants=List.of(new ProductVariant(original.id(),original.sellerArticle(),original.color(),original.size(),verified.gtin(),true,original.russianSize(),original.barcodes(),verified.evidence()));
+                snapshot=new ProductSnapshot(snapshot.key(),snapshot.revision(),snapshot.title(),snapshot.description(),snapshot.brand(),snapshot.vendorArticle(),snapshot.categoryId(),snapshot.media(),snapshot.attributes(),variants,snapshot.dimensions(),snapshot.documents(),snapshot.checkedAt(),snapshot.metadata());
+            }
+        }
+        if(persist)new ProductRepository().saveVerifiedSnapshot(shop,snapshot);else ListingIdentity.require(shop,key);return snapshot;
     }
     private static int certificatePageCount(JsonObject result,int certificateCount)throws IOException{
         var raw=result.get("page_count");if(raw==null)return 1;

@@ -9,7 +9,7 @@ public final class GtinCatalogIndex {
     private record Attributes(String article,String color,String size){}
     private final Map<String,List<RegisteredGtin>> codes=new HashMap<>();
     private final Map<Attributes,List<RegisteredGtin>> attributes=new HashMap<>();
-    private final OzonSkuGtinMatcher ozon;
+    private final OzonExactVariantIdentity ozon;
     private final Map<com.vncode.app.features.products.ProductKey,String> reviewed;
     public GtinCatalogIndex(List<RegisteredGtin> rows){
         this(rows,false);
@@ -20,7 +20,8 @@ public final class GtinCatalogIndex {
     }
     public GtinCatalogIndex(List<RegisteredGtin> rows,boolean includeDrafts,Map<com.vncode.app.features.products.ProductKey,String> reviewed){
         this.reviewed=Map.copyOf(reviewed);
-        ozon=new OzonSkuGtinMatcher(rows,includeDrafts);
+        ozon=new OzonExactVariantIdentity(rows.stream().filter(row->(row.published()||includeDrafts)&&(row.tradeUnit()||includeDrafts)
+                &&RegisteredGtinValidator.isValid(row.gtin())&&!GtinNormalizer.isTechnicalRange(row.gtin())).toList());
         for(var row:rows)if((row.published()||includeDrafts)&&(row.tradeUnit()||includeDrafts)&&RegisteredGtinValidator.isValid(row.gtin())&&!GtinNormalizer.isTechnicalRange(row.gtin())){
             codes.computeIfAbsent(GtinNormalizer.normalize(row.gtin()),key->new ArrayList<>()).add(row);
             attributes.computeIfAbsent(key(row.article(),row.color(),row.size()),key->new ArrayList<>()).add(row);
@@ -33,10 +34,10 @@ public final class GtinCatalogIndex {
         return attributes(article,color,size,"");
     }
     public List<RegisteredGtin> ozon(com.vncode.app.features.products.ProductRow product){
-        if(reviewed.containsKey(product.key()))return code(reviewed.get(product.key())).stream()
-                .filter(c->OzonSkuGtinMatcher.sameColor(product.color(),c.color())&&GtinVariantIdentity.sizeMatches(c,GtinVariantIdentity.primarySize(product),product.russianSize())).toList();
-        var exact=attributes(product.vendorArticle(),product.color(),GtinVariantIdentity.primarySize(product),product.russianSize());
-        return exact.isEmpty()?ozon.candidates(product):exact;
+        // The supplied native proof index has already checked the saved policy:
+        // manual links retain their own variant facts; exact links use model/size.
+        if(reviewed.containsKey(product.key()))return code(reviewed.get(product.key()));
+        return ozon.candidates(product);
     }
     public List<RegisteredGtin> attributes(String article,String color,String size,String russianSize){
         var key=key(article,color,size);if(key.article().isBlank()||key.color().isBlank()||key.size().isBlank()&&(russianSize==null||russianSize.isBlank()))return List.of();
