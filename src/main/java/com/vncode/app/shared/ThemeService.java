@@ -271,6 +271,17 @@ public final class ThemeService {
             selectClass(popup, "theme-dark", theme == Theme.DARK);
             popup.getProperties().putIfAbsent(ORIGINAL_STYLE, popup.getStyle());
             popup.setStyle(popup.getProperties().get(ORIGINAL_STYLE) + ";" + paint);
+            // Context-menu skins copy classes once, while their inline style is bound
+            // to the popup. Retheme retained skin classes without replacing that binding.
+            var skin = popup.getSkin();
+            if (skin != null && skin.getNode() != null) {
+                var content = skin.getNode();
+                if (!content.getStyleClass().contains("workspace-theme")) content.getStyleClass().add("workspace-theme");
+                selectClass(content, "liquid-glass", glass);
+                selectClass(content, "glass-disabled", !glass);
+                selectClass(content, "theme-light", theme == Theme.LIGHT);
+                selectClass(content, "theme-dark", theme == Theme.DARK);
+            }
         }
     }
 

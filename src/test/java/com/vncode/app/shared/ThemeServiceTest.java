@@ -233,6 +233,44 @@ class ThemeServiceTest {
    }
   }finally{fx(()->{((com.vncode.app.ui.workspace.WorkspaceHeaderController)loader[0].getController()).dispose();stage.close();return null;});}
  }
+ @Test void prethemedContextMenuKeepsItsRetainedSkinPaletteInSyncAfterThemeFlip()throws Exception{
+  var popup=new ContextMenu[1];var action=new Button[1];var skin=new javafx.scene.Node[1];
+  Stage owner=fx(()->{
+   ThemeService.initializeAppearance();ThemeService.setCurrentTheme(ThemeService.Theme.DARK);
+   ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);ThemeService.setReducedMotion(true);
+   var anchor=new Button("Manage shops");var root=new VBox(anchor);var stage=new Stage();
+   stage.setScene(new Scene(root,500,220));ThemeService.applyTheme(stage.getScene());stage.show();
+   action[0]=new Button("Add shop");popup[0]=new ContextMenu(new CustomMenuItem(action[0],false));
+   popup[0].getStyleClass().add("seller-actions");
+   // A popup scene may be themed before its lazily created skin is first shown.
+   ThemeService.applyTheme(popup[0].getScene());
+   assertTrue(popup[0].getStyleClass().contains("theme-dark"));
+   popup[0].show(anchor,javafx.geometry.Side.BOTTOM,0,0);
+   popup[0].getScene().getRoot().applyCss();popup[0].getScene().getRoot().layout();
+   assertNotNull(popup[0].getSkin());skin[0]=popup[0].getSkin().getNode();
+   assertTrue(skin[0].getStyleClass().contains("theme-dark"));
+   popup[0].hide();ThemeService.switchTheme("light");popup[0].show(anchor,javafx.geometry.Side.BOTTOM,0,0);
+   return stage;
+  });
+  try{
+   var settled=new CompletableFuture<Void>();
+   fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==3){stop();settled.complete(null);}}}.start();return null;});
+   settled.get(5,TimeUnit.SECONDS);
+   fx(()->{
+    assertTrue(popup[0].isShowing());assertSame(skin[0],popup[0].getSkin().getNode(),"The public popup retains its existing skin");
+    owner.getScene().getRoot().applyCss();var scene=popup[0].getScene();scene.getRoot().applyCss();scene.getRoot().layout();
+    var bounds=action[0].localToScene(action[0].getBoundsInLocal());var pixels=scene.snapshot(null);
+    var material=pixels.getPixelReader().getColor((int)Math.floor(bounds.getMinX()+4),(int)Math.floor(bounds.getMinY()+4));
+    var ink=(Color)action[0].getTextFill();String state="skin="+skin[0].getStyleClass()+" ink="+ink+" material="+material;
+    assertAll("A retained popup skin must follow the current light palette: "+state,
+     ()->assertTrue(skin[0].getStyleClass().contains("theme-light"),state),
+     ()->assertFalse(skin[0].getStyleClass().contains("theme-dark"),state),
+     ()->assertTrue(skin[0].getStyleClass().contains("seller-actions"),"Retheming preserves caller-owned classes"),
+     ()->assertTrue(contrast(ink,material)>=4.5,state));
+    return null;
+   });
+  }finally{fx(()->{popup[0].hide();owner.close();return null;});}
+ }
  static Color paint(Region region){return (Color)region.getBackground().getFills().getFirst().getFill();}
  static Color over(Color a,Color b){double t=a.getOpacity();return new Color(a.getRed()*t+b.getRed()*(1-t),a.getGreen()*t+b.getGreen()*(1-t),a.getBlue()*t+b.getBlue()*(1-t),1);}
  static double channel(double n){return n<=.04045?n/12.92:Math.pow((n+.055)/1.055,2.4);}
