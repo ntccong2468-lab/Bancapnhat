@@ -1,0 +1,40 @@
+{
+  "status": "PASS_BOUNDED_STATIC_REVIEW",
+  "reviewedAtUtc": "2026-11-14T21:14:43.388145+00:00",
+  "baseSource": "f3e98725ee2892abf225cb66978ed9302fd49489",
+  "reviewedSource": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "exactPaths": [
+    {
+      "path": "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+      "gitBlob": "bc31c7c967321475c9052d343a54b97cc45400d3",
+      "sha256": "bd855915738c7e37ff80c8d533dc1ff3be4842dbc9c1972cdc2b2e0bdbee83f8"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java",
+      "gitBlob": "8931f58b634dd1f55f38d286cf2c570dd58c0c6a",
+      "sha256": "8130298a9e754810666b72d8a4e81ad78fa09848aeaae9ba331ff07b60b4f9d1"
+    }
+  ],
+  "cssDelta": "Exactly one added line/two background declarations on existing embedded data-control selector",
+  "oldMaterialTestAndHelpersByteRetained": true,
+  "addedTestLines": 38,
+  "newTestCoverage": {
+    "realFxmlRoutes": [
+      "finance-dashboard-view.fxml#dailyTable",
+      "fbo-packing-view.fxml#productTable"
+    ],
+    "themes": [
+      "DARK",
+      "LIGHT"
+    ],
+    "maxRgbChannelEdgeDifferenceExclusive": 0.015,
+    "actualWallpaperPatterns": 1,
+    "pageAndTableOpacity": 1,
+    "focusOwnerPreserved": true
+  },
+  "standaloneRuleUnchanged": true,
+  "existingEmbeddedLayoutDeclarationsUnchanged": true,
+  "noJavaRuntimeApiCallerOwnershipOrFxmlChange": true,
+  "noExecutionOrNetwork": true,
+  "notWindowsOrSellerAcceptance": true
+}

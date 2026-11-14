@@ -1,0 +1,399 @@
+{
+  "securityRunId": 43641523097,
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "workflowConclusion": "failure",
+  "artifacts": [
+    {
+      "id": 14132317600,
+      "name": "codeql-javascript-typescript",
+      "bytes": 133414,
+      "sha256": "65fdbaf3838d41db95ea44cb057d41cd81e8eb295ee2e7b3889338da6fe48329",
+      "apiDigestMatches": true,
+      "apiSizeMatches": true,
+      "zipCrcPass": true,
+      "sarifMembers": [
+        "javascript.sarif"
+      ],
+      "postDownloadMetadataMatches": true,
+      "stableMetadataFields": [
+        "id",
+        "name",
+        "digest",
+        "size_in_bytes",
+        "expired",
+        "created_at",
+        "updated_at",
+        "workflow_run"
+      ]
+    },
+    {
+      "id": 14132023560,
+      "name": "codeql-java-kotlin",
+      "bytes": 171464,
+      "sha256": "0b09d0e1e35cf664d1bbf0fe4e2e014b75ba9452f55687b96877231b92319ed1",
+      "apiDigestMatches": true,
+      "apiSizeMatches": true,
+      "zipCrcPass": true,
+      "sarifMembers": [
+        "java.sarif"
+      ],
+      "postDownloadMetadataMatches": true,
+      "stableMetadataFields": [
+        "id",
+        "name",
+        "digest",
+        "size_in_bytes",
+        "expired",
+        "created_at",
+        "updated_at",
+        "workflow_run"
+      ]
+    }
+  ],
+  "comparisons": {
+    "1.6.9": {
+      "identicalNormalizedFindingRecords": true,
+      "identicalNormalizedWarningErrorNotifications": true,
+      "newFindingCount": 0,
+      "resolvedFindingCount": 0,
+      "totals": {
+        "candidate": {
+          "blocked": 1,
+          "findings": 8,
+          "warningErrorNotifications": 1
+        },
+        "reference": {
+          "blocked": 1,
+          "findings": 8,
+          "warningErrorNotifications": 1
+        }
+      }
+    },
+    "f3e": {
+      "identicalNormalizedFindingRecords": true,
+      "identicalNormalizedWarningErrorNotifications": true,
+      "newFindingCount": 0,
+      "resolvedFindingCount": 0,
+      "totals": {
+        "candidate": {
+          "blocked": 1,
+          "findings": 8,
+          "warningErrorNotifications": 1
+        },
+        "reference": {
+          "blocked": 1,
+          "findings": 8,
+          "warningErrorNotifications": 1
+        }
+      }
+    },
+    "43b": {
+      "identicalNormalizedFindingRecords": true,
+      "identicalNormalizedWarningErrorNotifications": true,
+      "newFindingCount": 0,
+      "resolvedFindingCount": 0,
+      "totals": {
+        "candidate": {
+          "blocked": 1,
+          "findings": 8,
+          "warningErrorNotifications": 1
+        },
+        "reference": {
+          "blocked": 1,
+          "findings": 8,
+          "warningErrorNotifications": 1
+        }
+      }
+    }
+  },
+  "counts": {
+    "java-kotlin": {
+      "rawSarifSha256": "78eae046bb179a29b3ad8815083fff9b02acab8999c3b1ebdee5a6b1d29bd4b4",
+      "findings": 8,
+      "blocked": 1,
+      "rawCanonicalResultMultisetSha256": "e9a5f441a66b9507348e01adc57ee14444331dd1e3dbd64c0a9064bde6b5224a",
+      "codeflows": 7,
+      "threadFlows": 7,
+      "threadFlowLocations": 80,
+      "rules": {
+        "java/local-temp-file-or-directory-information-disclosure": 3,
+        "java/potentially-weak-cryptographic-algorithm": 1,
+        "java/relative-path-command": 2,
+        "java/unreleased-lock": 2
+      },
+      "severityCounts": {
+        "5": 2,
+        "5.4": 2,
+        "6.5": 3,
+        "7.5": 1
+      },
+      "warningErrorNotifications": [
+        {
+          "descriptorId": "java/diagnostics/extraction-errors",
+          "kind": "toolExecutionNotifications",
+          "level": "error",
+          "message": {
+            "text": "Extraction incomplete in file: /home/runner/work/Bancapnhat/Bancapnhat/src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": "Extraction incomplete in file: /home/runner/work/Bancapnhat/Bancapnhat/src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java"
+            }
+          }
+        }
+      ]
+    },
+    "javascript-typescript": {
+      "rawSarifSha256": "5e6762394962c290c06ec6b0ebd983088aa890995f7cb5512b21f93183d97d7e",
+      "findings": 0,
+      "blocked": 0,
+      "rawCanonicalResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "codeflows": 0,
+      "threadFlows": 0,
+      "threadFlowLocations": 0,
+      "rules": {},
+      "severityCounts": {},
+      "warningErrorNotifications": []
+    }
+  },
+  "fullRawAndInformationalComparison": [
+    {
+      "reference": "1.6.9",
+      "language": "java-kotlin",
+      "allRawResultFieldsIdentical": false,
+      "rawRecordCount": 8,
+      "newRawRecords": 8,
+      "resolvedRawRecords": 8,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 2373,
+      "informationalAdded": 55,
+      "informationalRemoved": 2,
+      "changedLevels": {
+        "none": 55,
+        "note": 2
+      },
+      "changedDescriptors": {
+        "java/diagnostics/successfully-extracted-files": 5,
+        "cli/expected-extracted-files/java": 30,
+        "cli/expected-extracted-files/python": 17,
+        "codeql-action/toolcache-bundle-cleanup": 1,
+        "codeql-action/overlay-disabled": 2,
+        "java/extractor/summary": 2
+      }
+    },
+    {
+      "reference": "1.6.9",
+      "language": "javascript-typescript",
+      "allRawResultFieldsIdentical": true,
+      "rawRecordCount": 0,
+      "newRawRecords": 0,
+      "resolvedRawRecords": 0,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 1729,
+      "informationalAdded": 51,
+      "informationalRemoved": 1,
+      "changedLevels": {
+        "none": 52
+      },
+      "changedDescriptors": {
+        "js/diagnostics/successfully-extracted-files": 2,
+        "cli/expected-extracted-files/java": 30,
+        "cli/expected-extracted-files/python": 17,
+        "codeql-action/toolcache-bundle-cleanup": 1,
+        "codeql-action/overlay-disabled": 2
+      }
+    },
+    {
+      "reference": "f3e",
+      "language": "java-kotlin",
+      "allRawResultFieldsIdentical": false,
+      "rawRecordCount": 8,
+      "newRawRecords": 8,
+      "resolvedRawRecords": 8,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 2373,
+      "informationalAdded": 3,
+      "informationalRemoved": 3,
+      "changedLevels": {
+        "none": 4,
+        "note": 2
+      },
+      "changedDescriptors": {
+        "codeql-action/toolcache-bundle-cleanup": 2,
+        "codeql-action/overlay-disabled": 2,
+        "java/extractor/summary": 2
+      }
+    },
+    {
+      "reference": "f3e",
+      "language": "javascript-typescript",
+      "allRawResultFieldsIdentical": true,
+      "rawRecordCount": 0,
+      "newRawRecords": 0,
+      "resolvedRawRecords": 0,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 1729,
+      "informationalAdded": 2,
+      "informationalRemoved": 2,
+      "changedLevels": {
+        "none": 4
+      },
+      "changedDescriptors": {
+        "codeql-action/toolcache-bundle-cleanup": 2,
+        "codeql-action/overlay-disabled": 2
+      }
+    },
+    {
+      "reference": "43b",
+      "language": "java-kotlin",
+      "allRawResultFieldsIdentical": false,
+      "rawRecordCount": 8,
+      "newRawRecords": 8,
+      "resolvedRawRecords": 8,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 2373,
+      "informationalAdded": 10,
+      "informationalRemoved": 3,
+      "changedLevels": {
+        "none": 11,
+        "note": 2
+      },
+      "changedDescriptors": {
+        "cli/expected-extracted-files/java": 3,
+        "cli/expected-extracted-files/python": 4,
+        "codeql-action/toolcache-bundle-cleanup": 2,
+        "codeql-action/overlay-disabled": 2,
+        "java/extractor/summary": 2
+      }
+    },
+    {
+      "reference": "43b",
+      "language": "javascript-typescript",
+      "allRawResultFieldsIdentical": true,
+      "rawRecordCount": 0,
+      "newRawRecords": 0,
+      "resolvedRawRecords": 0,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 1729,
+      "informationalAdded": 10,
+      "informationalRemoved": 2,
+      "changedLevels": {
+        "none": 12
+      },
+      "changedDescriptors": {
+        "js/diagnostics/successfully-extracted-files": 1,
+        "cli/expected-extracted-files/java": 3,
+        "cli/expected-extracted-files/python": 4,
+        "codeql-action/toolcache-bundle-cleanup": 2,
+        "codeql-action/overlay-disabled": 2
+      }
+    }
+  ],
+  "policyHashes": {
+    ".github/workflows/security-ci.yml": {
+      "bytes": 6188,
+      "sha256": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+      "byteExactAcrossAllSources": true
+    },
+    "tools/codeql-sarif-gate.mjs": {
+      "bytes": 4562,
+      "sha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+      "byteExactAcrossAllSources": true
+    }
+  },
+  "gateCli": {
+    "java-kotlin": {
+      "exitCode": 1,
+      "output": "CodeQL security findings: 8; high, critical or unclassified: 1\n"
+    },
+    "javascript-typescript": {
+      "exitCode": 0,
+      "output": "CodeQL security findings: 0; high, critical or unclassified: 0\n"
+    }
+  },
+  "normalizerSha256": "780add1aa965d1d10beb925448d004577193aefa13574817072ed4399e5a9b44",
+  "noSourceEdits": true,
+  "noPolicyChanges": true,
+  "noWaivers": true,
+  "noCommits": true,
+  "fullResultReferenceResolutionProof": [
+    {
+      "reference": "1.6.9",
+      "language": "java-kotlin",
+      "fullResultFieldsEqualAfterReferenceResolution": true,
+      "resultCount": 8,
+      "serializedChangedLeafCount": 107,
+      "changedLeafTypes": {
+        "artifactLocation.index": 99,
+        "rule.index": 8
+      },
+      "allSerializedChangesAreValidatedTableReferences": true,
+      "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+      "normalizedWholeResultMultisetSha256": "f5ef51b0271864220963c329c0b31d3ff26339e87db765ac16a96626b2f91b71"
+    },
+    {
+      "reference": "1.6.9",
+      "language": "javascript-typescript",
+      "fullResultFieldsEqualAfterReferenceResolution": true,
+      "resultCount": 0,
+      "serializedChangedLeafCount": 0,
+      "changedLeafTypes": {},
+      "allSerializedChangesAreValidatedTableReferences": true,
+      "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+      "normalizedWholeResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "reference": "f3e",
+      "language": "java-kotlin",
+      "fullResultFieldsEqualAfterReferenceResolution": true,
+      "resultCount": 8,
+      "serializedChangedLeafCount": 107,
+      "changedLeafTypes": {
+        "artifactLocation.index": 99,
+        "rule.index": 8
+      },
+      "allSerializedChangesAreValidatedTableReferences": true,
+      "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+      "normalizedWholeResultMultisetSha256": "f5ef51b0271864220963c329c0b31d3ff26339e87db765ac16a96626b2f91b71"
+    },
+    {
+      "reference": "f3e",
+      "language": "javascript-typescript",
+      "fullResultFieldsEqualAfterReferenceResolution": true,
+      "resultCount": 0,
+      "serializedChangedLeafCount": 0,
+      "changedLeafTypes": {},
+      "allSerializedChangesAreValidatedTableReferences": true,
+      "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+      "normalizedWholeResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "reference": "43b",
+      "language": "java-kotlin",
+      "fullResultFieldsEqualAfterReferenceResolution": true,
+      "resultCount": 8,
+      "serializedChangedLeafCount": 107,
+      "changedLeafTypes": {
+        "artifactLocation.index": 99,
+        "rule.index": 8
+      },
+      "allSerializedChangesAreValidatedTableReferences": true,
+      "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+      "normalizedWholeResultMultisetSha256": "f5ef51b0271864220963c329c0b31d3ff26339e87db765ac16a96626b2f91b71"
+    },
+    {
+      "reference": "43b",
+      "language": "javascript-typescript",
+      "fullResultFieldsEqualAfterReferenceResolution": true,
+      "resultCount": 0,
+      "serializedChangedLeafCount": 0,
+      "changedLeafTypes": {},
+      "allSerializedChangesAreValidatedTableReferences": true,
+      "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+      "normalizedWholeResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  ],
+  "rawSerializedByteEqualityClaimed": false,
+  "completeRawIndexResolutionProof": "raw-result-index-resolution-proof.json",
+  "allReferencedFullRuleDescriptorsEqual": true
+}

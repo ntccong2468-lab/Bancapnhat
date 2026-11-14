@@ -1,0 +1,80 @@
+{
+  "method": "Original single-frame extraction by ffmpeg; no image retouching",
+  "frames": [
+    {
+      "file": "screenshots/products-dark.png",
+      "videoTimestampSeconds": 4.0,
+      "sha256": "d1430fa91b7be658ffa5fc124acac140d2c56cbdfcb91d9e44c18454c45f5198"
+    },
+    {
+      "file": "screenshots/manage-popover-dark.png",
+      "videoTimestampSeconds": 7.8,
+      "sha256": "f099602a124d1c8c7c152e6f252cb4559d39fad1e1a2966e3a3958f3a3ecfa53"
+    },
+    {
+      "file": "screenshots/gs1-dark.png",
+      "videoTimestampSeconds": 10.9,
+      "sha256": "e0a3d55fccf099204553afaa9a59474303ca4003b07d865a317f685e41f75530"
+    },
+    {
+      "file": "screenshots/registration-dark.png",
+      "videoTimestampSeconds": 12.7,
+      "sha256": "77f736ba157d40efa511e5fd48b39582478a92316c00c6f6682e3b7949baeda9"
+    },
+    {
+      "file": "screenshots/error-dark.png",
+      "videoTimestampSeconds": 15.8,
+      "sha256": "585085d191f64da894f6ff57ebbd75cad3cfb4bcc45553f64eccfdba2735dae2"
+    },
+    {
+      "file": "screenshots/products-light.png",
+      "videoTimestampSeconds": 20.0,
+      "sha256": "f1a67cacf2a49502c1eece8f12f3d59fd4e3714512abd454618043bfdb3a6346"
+    },
+    {
+      "file": "screenshots/context-drawer-light.png",
+      "videoTimestampSeconds": 22.0,
+      "sha256": "cada70e3dd2e55c868c46b57ef9e70852a174d91892088a27fa4bba98c7c9737"
+    },
+    {
+      "file": "screenshots/gs1-light.png",
+      "videoTimestampSeconds": 24.9,
+      "sha256": "6a7431fcd644d1dd84cd3f6f42932bb7b05d181fe3fb81c7d165c9af7e0e6d59"
+    },
+    {
+      "file": "screenshots/registration-light.png",
+      "videoTimestampSeconds": 28.1,
+      "sha256": "dd759556ad466bcee2fc58a4f44b5dfe062c308e47e726ea13cdc46047c9df1b"
+    },
+    {
+      "file": "screenshots/error-light.png",
+      "videoTimestampSeconds": 31.1,
+      "sha256": "b4fa2841404404941ffb8b2bb5351404fb978f084b0da56d1318bbd45ef42060"
+    },
+    {
+      "file": "screenshots/controls16-light.png",
+      "videoTimestampSeconds": 35.6,
+      "sha256": "25f4dac19ee38ef1a8923c5340c52bc704acc2657cc8fd76f012e3b3f5d6dd1b"
+    },
+    {
+      "file": "screenshots/controls16-resized.png",
+      "videoTimestampSeconds": 35.7,
+      "sha256": "e0940fde2b9a0e544211068a742993c0ad74ff01aa40dae0e59f685d5b56c993"
+    },
+    {
+      "file": "screenshots/controls16-dark.png",
+      "videoTimestampSeconds": 37.5,
+      "sha256": "8fc23f303f7bf67ea419918d33ab4dc77685824fecf1b260cb6d4e3080263b3c"
+    },
+    {
+      "file": "screenshots/appearance-settings.png",
+      "videoTimestampSeconds": 40.4,
+      "sha256": "c558b70851595d8e09218f16f3c11aeacd912990a6449f775b2d86a6b8ad7bde"
+    },
+    {
+      "file": "screenshots/reduced-motion-ozon.png",
+      "videoTimestampSeconds": 43.1,
+      "sha256": "e4c5dea3a769b5ee1bd9c3daab8bdb8a40cfe2d2d7403aec7c2b6a64d6daca16"
+    }
+  ]
+}

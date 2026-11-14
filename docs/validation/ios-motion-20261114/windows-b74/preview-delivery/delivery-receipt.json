@@ -1,0 +1,42 @@
+{
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "status": "PASS_NEW_NATIVE_PREVIEW_DELIVERY_BYTES",
+  "createdAtUtc": "2026-11-14T21:48:05.958086+00:00",
+  "sourceGallery": "/tmp/vncode-ios-floating-20261114/captures/b74b5edfd46636e8779c94f467eef01c03c50a14/public-evidence",
+  "docsCopy": "/workspace/vncode-ios-motion-20261114/docs/validation/ios-motion-20261114/native-evidence-b74",
+  "gallery": "/workspace/artifacts/VN-Code-1.6.10-floating-glass-windowsfix-preview/index.html",
+  "allSourceFilesCopiedByteExactly": true,
+  "copiedFiles": 107,
+  "evidenceManifestItemsVerified": 105,
+  "manifestExclusionsExplicit": [
+    "FINAL-RECEIPT.json",
+    "evidence-sha256.json"
+  ],
+  "evidenceManifestSha256": "76706171d14bffb9c6411e58f0eff51b232451395e843d8acd9c7916825f444d",
+  "finalReceiptSha256": "8b909400c0e9699dff266e3935a76f85f58047157ec60b0512ef3c1f91e0376f",
+  "docsTreeEqualsSource": true,
+  "artifactTreeEqualsSource": true,
+  "zip": {
+    "path": "/workspace/artifacts/VN-Code-1.6.10-floating-glass-windowsfix-anh-video.zip",
+    "bytes": 25153977,
+    "sha256": "456e34f8b3124d18ecf12e9eaf5a54b8d4c49d30a799d930a6065b4b241bef03",
+    "crcPassed": true,
+    "allEntriesByteEqualGallery": true,
+    "manifestItemsVerified": 105
+  },
+  "compact": {
+    "path": "/workspace/artifacts/VN-Code-1.6.10-floating-glass-windowsfix-xem-nhanh.html",
+    "bytes": 10077583,
+    "sha256": "bd73480ad95c8d631ec02bc9454afa85aa88283cd561239f3216073b7fa6e063",
+    "originalPngsEmbedded": 16,
+    "allDataUrlsDecodedAndHashVerified": true,
+    "originalVideoSha256": "4e759074714dd2e1c512b03626ddd76effa1529e97aa97dce7b64dc4992b9b25",
+    "lossyConversionUsed": false
+  },
+  "oldPreservationReceipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/old-preservation-and-negative-receipt.json",
+  "negativeArchiveReceipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/negative-archive-rechecks.json",
+  "noExistingUserLinkOverwritten": true,
+  "noMavenGitCommitPushOrAppSourceEdits": true,
+  "notInstallerPublication": true,
+  "notWindowsSellerAcceptance": true
+}

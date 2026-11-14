@@ -1,0 +1,172 @@
+[
+  {
+    "path": "REPORT.md",
+    "bytes": 5189,
+    "sha256": "eaaf0572561ba182fe0fdbf9771963c2e171612f4ddceaedd8c39763190be150"
+  },
+  {
+    "path": "__pycache__/compare_sarif.cpython-312.pyc",
+    "bytes": 28877,
+    "sha256": "78c0dc0f0cfa32c98d5def02a380ac117e90502b0ef720d717e6555fbb4ba541"
+  },
+  {
+    "path": "all-level-notification-differences.json",
+    "bytes": 92603,
+    "sha256": "05d5e7585ddbc73697293fdf5ec595fcf33735c0e7a3b3269925eed0126d1310"
+  },
+  {
+    "path": "all-level-notification-summary.json",
+    "bytes": 1941,
+    "sha256": "798a4d879d2ef2c2f7d25cff66ee4c202fdfdec5f019e85277eedbfd81966c90"
+  },
+  {
+    "path": "artifact-14130623864-after-download.json",
+    "bytes": 809,
+    "sha256": "fe4a4ab10b7ae42d0326031905cecf9f88aa90449c596ecc267a0b106f6a9371"
+  },
+  {
+    "path": "artifact-14131508814-after-download.json",
+    "bytes": 799,
+    "sha256": "22905d8c618edfe42842def2d91eb79bf85c9314f14198e2d36e6ae4afd9b820"
+  },
+  {
+    "path": "artifact-verification.json",
+    "bytes": 697,
+    "sha256": "2a84d214a3084c164a343347afaae29fe9a2354c77c0d8f77e6b0b51e78f343d"
+  },
+  {
+    "path": "candidate/codeql-java-kotlin/java.sarif",
+    "bytes": 1926541,
+    "sha256": "e114e50e33f96e364787e9c201ec3273d7022bfe5b00db95d0c30b8f2435f3f7"
+  },
+  {
+    "path": "candidate/codeql-javascript-typescript/javascript.sarif",
+    "bytes": 1365456,
+    "sha256": "72d558ce8357ddbd4ce5f906c651a26b3480c9ba90a73c9dda5eacc935f13be2"
+  },
+  {
+    "path": "candidate-artifacts-before.json",
+    "bytes": 1814,
+    "sha256": "c6f718883937aa3b5e7bbb4d1106a41cc5751e63dbc411161ff0f6704029cb04"
+  },
+  {
+    "path": "candidate-run.json",
+    "bytes": 14587,
+    "sha256": "44582b860c0f153f79a32350f2b6e0c4b5f34d4c0cfafbd9eeb2120d1b65ff89"
+  },
+  {
+    "path": "codeql-java-kotlin.zip",
+    "bytes": 172592,
+    "sha256": "449bbdbf3d9e53d30df441a7a310c85706734b26fde9add856c83bf6d5667da2"
+  },
+  {
+    "path": "codeql-javascript-typescript.zip",
+    "bytes": 133412,
+    "sha256": "8bf34499da086c8672c94234992fb8f93b30f9617e5ea56af1da22ef85159149"
+  },
+  {
+    "path": "codeql-sarif-gate.mjs",
+    "bytes": 4562,
+    "sha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb"
+  },
+  {
+    "path": "compare_sarif.py",
+    "bytes": 19415,
+    "sha256": "780add1aa965d1d10beb925448d004577193aefa13574817072ed4399e5a9b44"
+  },
+  {
+    "path": "comparison-details.json",
+    "bytes": 8122,
+    "sha256": "46b070ef58f508e9fa3f2e8c25a6f183573d513bbc884dfc5450ed56e5870a3f"
+  },
+  {
+    "path": "comparison-vs-43b/candidate/codeql-java-kotlin/java.sarif",
+    "bytes": 1926541,
+    "sha256": "e114e50e33f96e364787e9c201ec3273d7022bfe5b00db95d0c30b8f2435f3f7"
+  },
+  {
+    "path": "comparison-vs-43b/candidate/codeql-javascript-typescript/javascript.sarif",
+    "bytes": 1365456,
+    "sha256": "72d558ce8357ddbd4ce5f906c651a26b3480c9ba90a73c9dda5eacc935f13be2"
+  },
+  {
+    "path": "comparison-vs-43b/comparison-details.json",
+    "bytes": 8194,
+    "sha256": "da198373c5532ec1b02dcb0938d87ce807e4ca220041497304b8bea8bc03c98d"
+  },
+  {
+    "path": "comparison-vs-43b/normalization-summary.log",
+    "bytes": 311,
+    "sha256": "d1e463359112739127bc2dde80318e37095c53c88972b22a6e54b2d2680175ce"
+  },
+  {
+    "path": "comparison-vs-43b/normalized-records.json",
+    "bytes": 189693,
+    "sha256": "0a4a186ea645bdfa437532e427c54122e072ae6d0beb37aadf3ac72576b22512"
+  },
+  {
+    "path": "comparison-vs-43b/reference/codeql-java-kotlin/java.sarif",
+    "bytes": 1923355,
+    "sha256": "50e91d2d09f156b0741d9654711a259e213abfcffb6216a68c713e5983a0c6c5"
+  },
+  {
+    "path": "comparison-vs-43b/reference/codeql-javascript-typescript/javascript.sarif",
+    "bytes": 1361791,
+    "sha256": "9ab6aa896322ce849aeae3d90d0c8c99c37a01d8a63d92aa4e17f6447fdde8d1"
+  },
+  {
+    "path": "full-build-early-status.json",
+    "bytes": 5021,
+    "sha256": "b964fcfdee4871d1ce26042380d0f294b522b9463a485dddd75c2be8f0f76ae1"
+  },
+  {
+    "path": "full-raw-result-comparison.json",
+    "bytes": 1459,
+    "sha256": "bd2b8eef34c504ad249395a0929408fe08d00960559e600f1b20fb9b2f659599"
+  },
+  {
+    "path": "gate-cli-exits.json",
+    "bytes": 261,
+    "sha256": "4274eb9aca557e439d55b1dc18ea5c4fbeb17cd7e86f4500c346677007084aa1"
+  },
+  {
+    "path": "normalization-summary.log",
+    "bytes": 311,
+    "sha256": "d1e463359112739127bc2dde80318e37095c53c88972b22a6e54b2d2680175ce"
+  },
+  {
+    "path": "normalized-records.json",
+    "bytes": 189621,
+    "sha256": "9f4c3d05e532ff0f65c624a8277c406f67679a99a02e02bdd95918904ccc6f57"
+  },
+  {
+    "path": "policy-hashes.json",
+    "bytes": 587,
+    "sha256": "de7d82b76a0494f7825e54d385de2cb7ef43e9efc63c337ba8d8e6d3d2549909"
+  },
+  {
+    "path": "reference/codeql-java-kotlin/java.sarif",
+    "bytes": 1902615,
+    "sha256": "9681297ec1387212eb9b476d8d2d2e988f673352ec9afb975b11326b3ef006ea"
+  },
+  {
+    "path": "reference/codeql-javascript-typescript/javascript.sarif",
+    "bytes": 1342653,
+    "sha256": "5fc9c4bf04ff295efc6c01feb17f19f4eea66df959ba52ecc961db2342780e01"
+  },
+  {
+    "path": "sanitized-receipt.json",
+    "bytes": 5510,
+    "sha256": "baeebfff22de04edc7ad51432eb7f24919f2b599986310cc154130b348d3c730"
+  },
+  {
+    "path": "security-comparison-summary.json",
+    "bytes": 5926,
+    "sha256": "34aa392779d54859ec2f361109e9cd02bdaa91043c745ce0a93271dc66627db9"
+  },
+  {
+    "path": "stable-download-metadata.json",
+    "bytes": 855,
+    "sha256": "8484e6083212e636f8d77c514ef0a0817408f6d54912df6a9bf3fd23da592a7c"
+  }
+]

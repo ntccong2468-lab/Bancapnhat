@@ -1,0 +1,12 @@
+{
+  "sourceCommit": "f3e98725ee2892abf225cb66978ed9302fd49489",
+  "testedInputCommit": "86b4a2a751ee7ca40d8253d4650517313d9fba90",
+  "allMainTestPomWrapperInputsIdentical": true,
+  "localTests": 200,
+  "localSuites": 21,
+  "localReceipt": "/tmp/vncode-ios-floating-20261114/windows-repair-86b/result.json",
+  "actualWindowsFocusedRun": 43638439643,
+  "actualWindowsDistinctTests": 200,
+  "notFullAppAcceptance": true,
+  "sourcePreservationSha256": "7aad49a730721072a70a13be0457bbe00b652b95bdc55b838729361d0dfba906"
+}

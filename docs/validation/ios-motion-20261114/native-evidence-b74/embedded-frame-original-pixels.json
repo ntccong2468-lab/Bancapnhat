@@ -1,0 +1,206 @@
+[
+  {
+    "file": "page-finance-dark.png",
+    "sampleEdge": [
+      241,
+      600
+    ],
+    "sampleInside": [
+      245,
+      600
+    ],
+    "f3eEdgeRgb": [
+      56,
+      60,
+      67
+    ],
+    "f3eInsideRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74EdgeRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74InsideRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74EdgeEqualsInside": true,
+    "f3eSha256": "e547d8ac72ac5348261060149c18035421e747b02cfcae9cbfbc903db85e02ae",
+    "b74Sha256": "0fd10a70b7156f2f72b788bff9c84edaffa1f579aa90326e7ea4a65ba0e72b9c"
+  },
+  {
+    "file": "page-finance-light.png",
+    "sampleEdge": [
+      241,
+      600
+    ],
+    "sampleInside": [
+      245,
+      600
+    ],
+    "f3eEdgeRgb": [
+      244,
+      245,
+      247
+    ],
+    "f3eInsideRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74EdgeRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74InsideRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74EdgeEqualsInside": true,
+    "f3eSha256": "d34e40e258ae163d1235a2231e856235d53721da47f5ee3efeac8a7f167644aa",
+    "b74Sha256": "b6dcb7d5ecd9d6717f53d18eeeffc1c0d6786bd5fcd1b44a6df18b1b51a99154"
+  },
+  {
+    "file": "page-fbo-packing-dark.png",
+    "sampleEdge": [
+      237,
+      600
+    ],
+    "sampleInside": [
+      241,
+      600
+    ],
+    "f3eEdgeRgb": [
+      45,
+      49,
+      57
+    ],
+    "f3eInsideRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74EdgeRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74InsideRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74EdgeEqualsInside": true,
+    "f3eSha256": "255660eb77955cbf3ff9a80e4b2f9dbed79731c66fd3e233866127174c2db73d",
+    "b74Sha256": "5de5822acdeafafd40d3e9eeea94e282b197f7f3ede6a2adbde448b344f35006"
+  },
+  {
+    "file": "page-fbo-packing-light.png",
+    "sampleEdge": [
+      237,
+      600
+    ],
+    "sampleInside": [
+      241,
+      600
+    ],
+    "f3eEdgeRgb": [
+      237,
+      239,
+      241
+    ],
+    "f3eInsideRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74EdgeRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74InsideRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74EdgeEqualsInside": true,
+    "f3eSha256": "e444921e9c7aa947a8130bd73c7c76efa44a4551756b69fc33e5bd142fc84a5a",
+    "b74Sha256": "4c2c51d075b1b5490f8efde2c39d2058639a90f3ade7fb18c8a47420d4d08b4f"
+  },
+  {
+    "file": "page-fbo-orders-dark.png",
+    "sampleEdge": [
+      237,
+      600
+    ],
+    "sampleInside": [
+      241,
+      600
+    ],
+    "f3eEdgeRgb": [
+      45,
+      48,
+      57
+    ],
+    "f3eInsideRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74EdgeRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74InsideRgb": [
+      34,
+      38,
+      47
+    ],
+    "b74EdgeEqualsInside": true,
+    "f3eSha256": "231573b0b2eb11cab9405f9a1b3c6ba44254663eaa727e741a9cd1f2c5085abe",
+    "b74Sha256": "8b9d678af5b1f0c618df7c4abfea2a98188cf312e70bd894ee0973d5577e6fdc"
+  },
+  {
+    "file": "page-fbo-orders-light.png",
+    "sampleEdge": [
+      237,
+      600
+    ],
+    "sampleInside": [
+      241,
+      600
+    ],
+    "f3eEdgeRgb": [
+      237,
+      239,
+      241
+    ],
+    "f3eInsideRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74EdgeRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74InsideRgb": [
+      245,
+      248,
+      252
+    ],
+    "b74EdgeEqualsInside": true,
+    "f3eSha256": "e354fb5634bace8dd4789a1638c5ab75781320a22fbbb917c5531dfb75f3b835",
+    "b74Sha256": "e55ff657550c3a1c5093cc7f90da22a2334a3300ccbe4bce130900d7226b9f2b"
+  }
+]

@@ -1,0 +1,113 @@
+{
+  "checkedAtUtc": "2026-11-14T21:48:05.957880+00:00",
+  "allOldFilesAndTreesUnchanged": true,
+  "oldFiles": {
+    "/workspace/artifacts/VN-code-1.6.10-source-20261114.zip": "1630458672f9be335c09f8f3a624c5ec844139ce1cdc4510fccbb304877d5e4c",
+    "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114.zip": "15ab17ed6c867ff81aebe15773bdf403ece2420b8a4b616eec3f407e72a1defb",
+    "/tmp/vncode-ios-floating-20261114/archive-guard/verify-source-zip.py": "9db8a652b318323a45664c984c90bef76e99dfaa72c0a12782e93eb84fda2acf",
+    "/tmp/vncode-ios-floating-20261114/archive-guard-focus/verify-source-zip.py": "f83b61f564f258645fe5421ff0cd786734b315f987a52019460550c5bf5ebd03",
+    "/tmp/vncode-ios-floating-20261114/archive-guard-dynamic/verify-source-zip.py": "34014891377287253006f68d51ffec4deda2e0d7cef540524cd36bab236fff1f",
+    "/tmp/vncode-ios-floating-20261114/archive-guard-windowsfix/verify-source-zip.py": "16049b449f76c1d47d55c96edcd895fa54389e64ea1a6ee622b45bf3f0f16209",
+    "/workspace/artifacts/VNCode-UI-preview-2026-11-04.zip": "87ae59771b03581a14b39f8b8ca18d1c96875e09b80a7202dafe2f3a862a87f0",
+    "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114-docs-only.json": "00bb1420cb93bd0b277d2573de3e8f4b3750448d20c32c8fff9af66775b3531f",
+    "/workspace/artifacts/VN-Code-1.6.10-floating-glass-anh-video.zip": "c0b126b023905050fd20b198cae64926d9946261eb9cabe71fe62061b34a0334",
+    "/workspace/artifacts/VN-Code-1.6.10-floating-glass-xem-truoc.html": "b2f3ae7787517751f05eaeacd79acca5941af3cdb9cf823c03b101fd96763606",
+    "/workspace/artifacts/VN-code-1.6.10-UI-doi-chieu-ios27.html": "240af82e178dd8f7daf6707857e218929d4815270311b08f036122ce303614f0",
+    "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114-verification.json": "b90ad4961e4faf06c7f67c0172f4bcf308389ffb86b8533929b0812eb11ea39f",
+    "/workspace/artifacts/VN-code-1.6.10-source-20261114-verification.json": "96eba193bb28f1c256ca499f629212736c5deaffc1f07ed211f50531e0dc3325",
+    "/workspace/artifacts/VN-Code-1.6.10-floating-glass-xem-nhanh.html": "b39c0583e349eb15d36dee468e289fe317ce7fcb004335dbd711ce67b5062886",
+    "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114.zip.sha256": "e58dc4aba1b2f44ec1ed0c4803a7d77c8e081feb34f6424d5ebb2cecf7ebb5a4",
+    "/workspace/artifacts/VN-code-1.6.10-source-20261114.zip.sha256": "86cdb3ba38e2386e1094db15030dc73569c2d3783778bdc09dd4b021ce412de6"
+  },
+  "oldTrees": {
+    "/workspace/vncode-ios-motion-20261114/docs/validation/ios-motion-20261114/native-evidence": 96,
+    "/workspace/artifacts/VN-Code-1.6.10-floating-glass-preview": 96,
+    "/tmp/vncode-ios-floating-20261114/captures/43b82cca683b29e783a33df995afd675a76aa0dd/public-evidence": 96,
+    "/tmp/vncode-ios-floating-20261114/captures/f3e98725ee2892abf225cb66978ed9302fd49489/public-evidence": 97
+  },
+  "existingDestinationNegativeChecks": [
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-20261114.zip",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114.zip",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/archive-guard/verify-source-zip.py",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/archive-guard-focus/verify-source-zip.py",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/archive-guard-dynamic/verify-source-zip.py",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/archive-guard-windowsfix/verify-source-zip.py",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VNCode-UI-preview-2026-11-04.zip",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114-docs-only.json",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-Code-1.6.10-floating-glass-anh-video.zip",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-Code-1.6.10-floating-glass-xem-truoc.html",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-UI-doi-chieu-ios27.html",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114-verification.json",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-20261114-verification.json",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-Code-1.6.10-floating-glass-xem-nhanh.html",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114.zip.sha256",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-20261114.zip.sha256",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/vncode-ios-motion-20261114/docs/validation/ios-motion-20261114/native-evidence",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/workspace/artifacts/VN-Code-1.6.10-floating-glass-preview",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/captures/43b82cca683b29e783a33df995afd675a76aa0dd/public-evidence",
+      "existingDestinationRejected": true
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/captures/f3e98725ee2892abf225cb66978ed9302fd49489/public-evidence",
+      "existingDestinationRejected": true
+    }
+  ],
+  "archiveNegativeControlsRejected": 17,
+  "intentionallyMalformedArchives": 15,
+  "validHistoricalSourceArchivesRejectedAsB74": 2
+}

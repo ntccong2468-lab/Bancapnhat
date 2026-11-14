@@ -1,0 +1,138 @@
+[
+  {
+    "case": "bad-actual-negative-missing-baseline",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-missing-baseline.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-missing-baseline-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-missing-baseline.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-backdrop",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-backdrop.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-backdrop-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-backdrop.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-caller-test",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-caller-test.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-caller-test-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-caller-test.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-chrome",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-chrome.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-chrome-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-chrome.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-ci-spi",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-ci-spi.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-ci-spi-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-ci-spi.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-ci-workflow",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-ci-workflow.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-ci-workflow-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-ci-workflow.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-clip",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-clip.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-clip-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-clip.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-corrected-test",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-corrected-test.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-corrected-test-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-corrected-test.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-dynamic-test",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-dynamic-test.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-dynamic-test-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-dynamic-test.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-embedded-css",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-embedded-css.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-embedded-css-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-embedded-css.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-embedded-test",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-embedded-test.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-embedded-test-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-embedded-test.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-focus-css",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-focus-css.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-focus-css-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-focus-css.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-focus-test",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-focus-test.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-focus-test-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-focus-test.log"
+  },
+  {
+    "case": "bad-actual-negative-tampered-motion",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-tampered-motion.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-motion-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-tampered-motion.log"
+  },
+  {
+    "case": "bad-actual-negative-untracked-file",
+    "readOnlyZip": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/actual-negative-untracked-file.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-untracked-file-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/bad-actual-negative-untracked-file.log"
+  },
+  {
+    "case": "old-source-163045",
+    "readOnlyZip": "/workspace/artifacts/VN-code-1.6.10-source-20261114.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/old-source-163045-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/old-source-163045.log"
+  },
+  {
+    "case": "old-source-15ab17",
+    "readOnlyZip": "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114.zip",
+    "actualExitCode": 1,
+    "rejectedAsCurrentB74Source": true,
+    "receipt": "/tmp/vncode-ios-floating-20261114/b74-delivery/old-source-15ab17-receipt.json",
+    "log": "/tmp/vncode-ios-floating-20261114/b74-delivery/old-source-15ab17.log"
+  }
+]

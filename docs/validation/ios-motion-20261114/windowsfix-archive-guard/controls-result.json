@@ -1,0 +1,12 @@
+{
+  "kind": "STRICT_SOURCE_ZIP_HELPER_SELF_CONTROLS",
+  "status": "PASS",
+  "tests": 78,
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "helperSha256": "1e3f372913c32d67d8119a0a2808bd01fbb3dca74d6c96f218b7f3d15dde2579",
+  "prior69ControlsRetainedAgainstTheirHistoricalCheckpoints": true,
+  "newEmbeddedFrameControls": 9,
+  "logSha256": "35e7a4e00768b01e1175a424cd3d78a85fad9acb3fbb42bfad6432c4d1a08196",
+  "notFinalSourceZipAcceptance": true,
+  "checkedAtUtc": "2026-11-14T21:16:28.900829+00:00"
+}

@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "f3e98725ee2892abf225cb66978ed9302fd49489",
+  "run": 43639385681,
+  "actualConclusion": "cancelled",
+  "earlyPreflightSteps": "success",
+  "mavenSummariesFromPreflightStep": [
+    {
+      "tests": 579,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "logSha256": "73f046e490f31ab916c7a448968a54f844d343f24a1b30ba0e6c5352171e078e",
+  "notFullAppAcceptance": true,
+  "reason": "Owner-requested UI native review found extra inherited edge frame; full canceled by root for boundedCSSfix beforepackaging."
+}

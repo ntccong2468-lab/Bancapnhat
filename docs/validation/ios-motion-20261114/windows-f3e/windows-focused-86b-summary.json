@@ -1,0 +1,52 @@
+{
+  "status": "DIAGNOSTIC_COMPLETE_FOCUSED_PASS",
+  "sourceCommit": "86b4a2a751ee7ca40d8253d4650517313d9fba90",
+  "runtimeModified": false,
+  "assertionsEdited": false,
+  "baseline": {
+    "exitCode": 1,
+    "tests": 28,
+    "complete": true,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 17
+  },
+  "normal": {
+    "exitCode": 0,
+    "tests": 198,
+    "complete": true,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "observedMaterial": {
+    "exitCode": 0,
+    "tests": 1,
+    "complete": true,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "reducedProbe": 0,
+  "headerRegression": {
+    "exitCode": 0,
+    "tests": 2,
+    "complete": true,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "restore": "PASS",
+  "baselineProbeExit": 0,
+  "normalProbeExit": 0,
+  "unobservedMaterial": {
+    "exitCode": 0,
+    "tests": 1,
+    "complete": true,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0
+  },
+  "headerProbeExit": 0,
+  "allOriginalFocusedPassed": true
+}

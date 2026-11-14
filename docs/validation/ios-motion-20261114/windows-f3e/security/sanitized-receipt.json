@@ -1,0 +1,172 @@
+{
+  "securityRunId": 43639388384,
+  "sourceCommit": "f3e98725ee2892abf225cb66978ed9302fd49489",
+  "actualSecurityWorkflowConclusion": "failure",
+  "artifactVerification": [
+    {
+      "id": 14131508814,
+      "name": "codeql-java-kotlin",
+      "bytes": 172592,
+      "sha256": "449bbdbf3d9e53d30df441a7a310c85706734b26fde9add856c83bf6d5667da2",
+      "apiDigestMatches": true,
+      "apiSizeMatches": true,
+      "zipCrcPass": true,
+      "sarifMembers": [
+        "java.sarif"
+      ],
+      "postDownloadMetadataMatches": true
+    },
+    {
+      "id": 14130623864,
+      "name": "codeql-javascript-typescript",
+      "bytes": 133412,
+      "sha256": "8bf34499da086c8672c94234992fb8f93b30f9617e5ea56af1da22ef85159149",
+      "apiDigestMatches": true,
+      "apiSizeMatches": true,
+      "zipCrcPass": true,
+      "sarifMembers": [
+        "javascript.sarif"
+      ],
+      "postDownloadMetadataMatches": true
+    }
+  ],
+  "findingComparison": {
+    "reference169": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+    "reference43b": "43b82cca683b29e783a33df995afd675a76aa0dd",
+    "newFindings": 0,
+    "resolvedFindings": 0,
+    "unchangedJavaFindings": 8,
+    "javascriptFindings": 0,
+    "fullRawResultsEqualToBothReferences": true,
+    "normalizedLocationsFingerprintsCodeflowsStacksEqual": true,
+    "javaCodeflows": 7,
+    "javaThreadFlowLocations": 80,
+    "warningErrorNotificationsEqual": true
+  },
+  "gate": {
+    "java": "FAIL",
+    "javaCliExit": 1,
+    "blockedHigh": 1,
+    "blockedRule": "java/potentially-weak-cryptographic-algorithm",
+    "blockedSeverity": 7.5,
+    "javascript": "PASS",
+    "javascriptCliExit": 0,
+    "workflowAndGateByteExactAcrossReferences": true,
+    "waiversAdded": false,
+    "policyChanged": false
+  },
+  "coverage": {
+    "javaExtractionErrors": 1,
+    "sourceFile": "src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java",
+    "descriptor": "java/diagnostics/extraction-errors",
+    "sameErrorAsBothReferences": true,
+    "fileAnalysisIncomplete": true,
+    "allLevelNotesExact": false,
+    "informationalOnlyDeltas": [
+      {
+        "reference": "1.6.9",
+        "language": "java-kotlin",
+        "allLevelNotificationsExact": false,
+        "new": 55,
+        "resolved": 2,
+        "changedLevels": {
+          "none": 55,
+          "note": 2
+        },
+        "changedDescriptorIds": {
+          "java/diagnostics/successfully-extracted-files": 5,
+          "cli/expected-extracted-files/java": 30,
+          "cli/expected-extracted-files/python": 17,
+          "codeql-action/toolcache-bundle-cleanup": 1,
+          "codeql-action/overlay-disabled": 2,
+          "java/extractor/summary": 2
+        }
+      },
+      {
+        "reference": "1.6.9",
+        "language": "javascript-typescript",
+        "allLevelNotificationsExact": false,
+        "new": 51,
+        "resolved": 1,
+        "changedLevels": {
+          "none": 52
+        },
+        "changedDescriptorIds": {
+          "js/diagnostics/successfully-extracted-files": 2,
+          "cli/expected-extracted-files/java": 30,
+          "cli/expected-extracted-files/python": 17,
+          "codeql-action/toolcache-bundle-cleanup": 1,
+          "codeql-action/overlay-disabled": 2
+        }
+      },
+      {
+        "reference": "43b",
+        "language": "java-kotlin",
+        "allLevelNotificationsExact": false,
+        "new": 10,
+        "resolved": 3,
+        "changedLevels": {
+          "none": 11,
+          "note": 2
+        },
+        "changedDescriptorIds": {
+          "cli/expected-extracted-files/java": 3,
+          "cli/expected-extracted-files/python": 4,
+          "codeql-action/toolcache-bundle-cleanup": 2,
+          "codeql-action/overlay-disabled": 2,
+          "java/extractor/summary": 2
+        }
+      },
+      {
+        "reference": "43b",
+        "language": "javascript-typescript",
+        "allLevelNotificationsExact": false,
+        "new": 10,
+        "resolved": 2,
+        "changedLevels": {
+          "none": 12
+        },
+        "changedDescriptorIds": {
+          "js/diagnostics/successfully-extracted-files": 1,
+          "cli/expected-extracted-files/java": 3,
+          "cli/expected-extracted-files/python": 4,
+          "codeql-action/toolcache-bundle-cleanup": 2,
+          "codeql-action/overlay-disabled": 2
+        }
+      }
+    ]
+  },
+  "hashes": {
+    "java-kotlin": {
+      "rawSarifSha256": "e114e50e33f96e364787e9c201ec3273d7022bfe5b00db95d0c30b8f2435f3f7",
+      "rawCanonicalResultMultisetSha256": "08771b607fdb7cd7a93b23fa18bcedc5469a671b2abae55ef0c296ce132fe8d6",
+      "findings": 8,
+      "blocked": 1,
+      "codeFlows": 7,
+      "threadFlows": 7,
+      "threadFlowLocations": 80,
+      "warningErrorNotifications": 1
+    },
+    "javascript-typescript": {
+      "rawSarifSha256": "72d558ce8357ddbd4ce5f906c651a26b3480c9ba90a73c9dda5eacc935f13be2",
+      "rawCanonicalResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "findings": 0,
+      "blocked": 0,
+      "codeFlows": 0,
+      "threadFlows": 0,
+      "threadFlowLocations": 0,
+      "warningErrorNotifications": 0
+    }
+  },
+  "normalizerSha256": "780add1aa965d1d10beb925448d004577193aefa13574817072ed4399e5a9b44",
+  "buildMonitor": {
+    "runId": 43639385681,
+    "observedAtUtc": "2026-11-14T20:58:50.922537+00:00",
+    "runStatus": "in_progress",
+    "preflightStatus": "in_progress",
+    "preflightConclusion": "",
+    "partialJobLogsAvailable": false,
+    "first41SuitesNotYetCertified": true
+  },
+  "commitsMade": false
+}

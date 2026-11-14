@@ -1,0 +1,21 @@
+{
+  "sources": [
+    "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+    "43b82cca683b29e783a33df995afd675a76aa0dd",
+    "f3e98725ee2892abf225cb66978ed9302fd49489",
+    "b74b5edfd46636e8779c94f467eef01c03c50a14"
+  ],
+  "allByteExact": true,
+  "files": {
+    ".github/workflows/security-ci.yml": {
+      "bytes": 6188,
+      "sha256": "0d1f3df39ed3306f2551da7d3ba3a402ea1ad275f26a2660fbbe5a400c60f0f0",
+      "byteExactAcrossAllSources": true
+    },
+    "tools/codeql-sarif-gate.mjs": {
+      "bytes": 4562,
+      "sha256": "a5722170627f60c57e30464d7af348ef90acbb944c92ec05c65c16ea36efb0bb",
+      "byteExactAcrossAllSources": true
+    }
+  }
+}

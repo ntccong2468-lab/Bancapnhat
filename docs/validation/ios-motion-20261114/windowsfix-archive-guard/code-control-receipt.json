@@ -1,0 +1,774 @@
+{
+  "kind": "VN_CODE_1610_FLOATING_GLASS_COMPLETE_SOURCE_ZIP_VERIFICATION",
+  "result": "PASS_WITH_CONFIRMED_TEST_FIXTURE",
+  "verifiedAtUtc": "2026-11-14T21:14:47.199022+00:00",
+  "version": "1.6.10",
+  "finalCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "codeCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "baseline": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "zip": {
+    "path": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/code-control.zip",
+    "bytes": 66178528,
+    "sha256": "fb40032029de4d129cba57b8bf6a068d002a2612f4b7cefb1f2c029f630da870",
+    "prefix": "VN-code-1.6.10-source-floating-glass-windowsfix/",
+    "crcPassed": true,
+    "fileCount": 3513,
+    "directoryEntryCount": 412,
+    "allGitTrackedBlobsIncluded": true,
+    "allBlobBytesExactlyMatchFinalRef": true,
+    "gitArchiveCommentMatchesFinalRef": true
+  },
+  "sourcePreservation": {
+    "baseline": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+    "codeCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "runtimeBefore": 800,
+    "runtimeAfter": 805,
+    "unchanged": 756,
+    "modified": [
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/GtinCatalogIndex.java",
+        "beforeGitBlob": "e54c6368e053095a031595c681f1bb518aea955d",
+        "afterGitBlob": "f2f2dd036abcd36075da637d2eb4bdde65cd9737",
+        "beforeSha256": "71a9771eaa3b6a015ad8d22d782e4f399c369964742899ab116095eca2038693",
+        "afterSha256": "26cbbae3946a9ca8e578de893e4a885ef62e20e0f77902c3bb8fabc7fe078f88",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/OzonReviewedVariantProof.java",
+        "beforeGitBlob": "1f6af2c8a1d466d46a1fecb92fe937c5366919c6",
+        "afterGitBlob": "0c2dbc44cdb1bef4f9c2f442672daa8ac3573166",
+        "beforeSha256": "85550d9849d938c0b9c2dd940c2d591cac5434c498af7b3579828ee0b921332c",
+        "afterSha256": "00cce89f1643c63aedb814d28589d651d86afee7e1bfe396ed67413f8ee47568",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java",
+        "beforeGitBlob": "cc14bc18b182a4acc587ce9483014a897d675e47",
+        "afterGitBlob": "9adef1ced732e415e7722e3063a2dafcc06af041",
+        "beforeSha256": "2f4e0ef03096387e57c934b849628c5246f741d7f326ba9307e41ef8062feca9",
+        "afterSha256": "40b82e44120c29c9b9bc5967c6f416e25eb426523d613201783590e8e71b12a9",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/sync/RegistrationCardIndex.java",
+        "beforeGitBlob": "456deefb3c6256c9da5b6deeebb24978d4a1282e",
+        "afterGitBlob": "77f4f993d86b3507f2b2f47c534b5db1c56cc6cd",
+        "beforeSha256": "e013cbff8a8646b4c7d8b8063e9ccb3335c9d8c98e4961f7c0d7a4cc91d17e98",
+        "afterSha256": "29302b93edcf2cc19e3cded467837928ab0a9249711b49adb8b1344d32c327dd",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "beforeGitBlob": "df67edcd52de51c471b7f64e2f666947ab225384",
+        "afterGitBlob": "99fc7cc3ab077feface5382f016cfab0d16e57d9",
+        "beforeSha256": "85bad3ff194b3905ec7a9fe4c4af354061661027beb03ad43828904e7863589a",
+        "afterSha256": "5f7a806ad2067b9670840f6c0c41c564809edcd9db57c5283f2ce7e064090b61",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/listing/ListingIdentity.java",
+        "beforeGitBlob": "f2056922dd32457e884f7662c983f343896d6d29",
+        "afterGitBlob": "b2017b3e60ebeb7abdbd5a079f46a1a9e4dd3471",
+        "beforeSha256": "ca2fa7ec15f8b4a902b8f40cf160a58347eaf11bce7a8a3bba041a41e35d36d3",
+        "afterSha256": "27a29ea469402f0eb7fc5ca02fbd72943bf91489eff1c33124c1042e499aca75",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java",
+        "beforeGitBlob": "62888cce74c588f836fcccc092b7b213de970fd7",
+        "afterGitBlob": "1522dd2421c4630892c45330aa8dcf2b3cb3af06",
+        "beforeSha256": "0ff8d53a2dac982a3a38dc4f23d91bd1e65c3ae2bb21ded82bbb7abacdb1d364",
+        "afterSha256": "7e9b6a2ca8def8de27616281d45bee557559d053b0b9ef47b4a784338c96ca2a",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/ozon/OzonProductSnapshotReader.java",
+        "beforeGitBlob": "87b8f62c7c904d2d2d2990ccdbb0f06504cbeb1f",
+        "afterGitBlob": "16b0ce9b96fa6ff0b90a14b0c8de0e732d8047c1",
+        "beforeSha256": "4a74196219221fa9c710da6b57be318bec31f80a133e9627687374fa4db9b2de",
+        "afterSha256": "1f6e5f3328c5ac7225e7f869dd3c9f9ade4532e308116c4d0a6cfd6952b937b3",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+        "beforeGitBlob": "238b345cd9b4e72aea2b57314edf0b3e0cfdf111",
+        "afterGitBlob": "75fb10a9d56b0dbad68eb6253b2605e9b3dce5de",
+        "beforeSha256": "4b401dd6a27ddd297d58fa393a1ee1e2c4727a60bd14db83f00153bee9618d09",
+        "afterSha256": "4af9ee395b3701d8bf9df858878b5c99c4fe11dee6db3f076d545537e8de6002",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "beforeGitBlob": "f2cc2bb00f9f2489f9750d56d646b79d384fb2d5",
+        "afterGitBlob": "221643397117e47b6c02d7e8508704af69ed10d2",
+        "beforeSha256": "00bea932ab007778fdc7ffc9be06d07bea199b895aeb0b08c42da02a92dff38b",
+        "afterSha256": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnostics.java",
+        "beforeGitBlob": "87d074bfdf6c29a79b2f61bd093badab474d44f1",
+        "afterGitBlob": "043bdba97ee7b8c252588ece24517f0d29e11eaf",
+        "beforeSha256": "7d23d723985fbc596e7f542b2ac4a28b1bf4c15407ea87272100ab3abf0cafe9",
+        "afterSha256": "595823f1910438135952ea5544847290d25aa7c531270f8223ae43fa303e33da",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+        "beforeGitBlob": "c5af6b54b40183ab3e818c4dbe12e13af9f6fd7f",
+        "afterGitBlob": "c346cef48ae94d09b975e2a9eef73581e4955d7f",
+        "beforeSha256": "75b18de048bbd7fa0032613842593e4e873dfa5af27ecfd749375a32eb4f2e4a",
+        "afterSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonExistingCardLinkService.java",
+        "beforeGitBlob": "e46509307d47c3c906b6be19d29c4789dd6024a0",
+        "afterGitBlob": "6fe0003f1e7c0d034f4b5b3b7d0ed786fa3b0cb8",
+        "beforeSha256": "a696b62f58f5c1d5e861bf3fb2eb8dbd715d7174cde4f888a9863363a91cf909",
+        "afterSha256": "ea4aa4743b30134dc52d72f4ae5874ba66c2924fa79478c011e1153b2d1ceb13",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/OzonReviewedGtinLinks.java",
+        "beforeGitBlob": "accf6c86f7f2517899d7acd69cfc4a323a771590",
+        "afterGitBlob": "9eecdadfbd8a7c25924de11590a9e47c32627343",
+        "beforeSha256": "0af9e96be85762548aaf035e46c0885b290a57b5d9c4d85e95ae56a67b3e7a61",
+        "afterSha256": "9064ed284e63ca0f4f561d6d034b98b9afdd35eb25b1948a0dcc20d9fe23d365",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/registration/RegistrationExistingCards.java",
+        "beforeGitBlob": "613bde1a497a25d60cc7abafd18b9767be8d5cfb",
+        "afterGitBlob": "6b382742d0e403198cb8f14864b8f816d0fedef1",
+        "beforeSha256": "392fc9bef99a25cbb6274d6e1431a68452e5436638989330a3eb920ee8aeac98",
+        "afterSha256": "5f7a63a05eb9dd0405e13d1dcb67a1f66339fe20f4c84820147c2518990b67cf",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/AlertService.java",
+        "beforeGitBlob": "38cd2da0b6c61d4a65b752d047fbac6a18bce244",
+        "afterGitBlob": "e755edc40941131cb579b7944d400c828556ec5d",
+        "beforeSha256": "891c2599a0efd393203a5213f57aca5879fad3ee61599fc827c9b72ed72c1ba8",
+        "afterSha256": "46fbf4771d9cc49e5be8cebf73e02014f08bf789d85886367d917f322474690b",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/MotionBoundary.java",
+        "beforeGitBlob": "c1db4fd0421a931a1e179ac21b5d113a2518d6ce",
+        "afterGitBlob": "f93efc60046008f757b6e32931a21a56776be302",
+        "beforeSha256": "167e66c8d3d28bf54b8813a68e5b1171006b0610b0f57fcfa3ac7d7d9af8b441",
+        "afterSha256": "f940770d60161d92b756b4470033484360e0e175af6a9719572ea3e753cea81c",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/ThemeService.java",
+        "beforeGitBlob": "744ce0dbb2f46e3b747c949cd6888421cef64eef",
+        "afterGitBlob": "fc6d39573c460f6dd2bc3b6236232d9f6474faf1",
+        "beforeSha256": "efe6e2aabe381cf07d9eee533e5b42cbea1f96350ebfaad062c28a4b9b01c691",
+        "afterSha256": "c6054ed71ce3fc11ba91c4ab863c9b76166b0767ca94906fe05d7c88334d8740",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceMotion.java",
+        "beforeGitBlob": "fc22910a67c5c9b0376c815b64ee1603f439b181",
+        "afterGitBlob": "2272b66c31afeb18da2596f510f352ded6d6857e",
+        "beforeSha256": "5397c27263316f53104366aac40f64b5a6c6f962a2e1ddeb7be9b115333fd5d9",
+        "afterSha256": "32871dad246b4e0947b409f389a2674f58f608df3fc7bcdfc15a486956311315",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java",
+        "beforeGitBlob": "f2d1ba11b01b29f2a8a2cc2c0834ac08d14dc956",
+        "afterGitBlob": "d3ed2506a907c68ef81a8a8ebd8219d0e7ce6b42",
+        "beforeSha256": "d6a5f1834f8ee96a65f4ee9e196dd431c12711c280f4e7fcff2294f997e85a51",
+        "afterSha256": "ae60fdad73e180432303963d0bfed9ad6745461704651986d0063360fa7bc74a",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java",
+        "beforeGitBlob": "310cec00a1a82cab1dc094cbd54a4f7eaa74357d",
+        "afterGitBlob": "26569376cc998cecee63a4ef3541eff4ba5b4b33",
+        "beforeSha256": "d338155c81c7afea6486f36267493b019918ed4c895dd474b01646efb95b5d40",
+        "afterSha256": "9b3365b1aa30f48fdc77d467a9d176a9342e4ca0b4175269e10f6ead9486ae11",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/kiz/KizWarehousePane.java",
+        "beforeGitBlob": "21ef520c49c00ca4cea18970626a33dd81053bb1",
+        "afterGitBlob": "eee14727011d7952bb6660a15768b21d2b3beda0",
+        "beforeSha256": "823dcfc5e5f04d31f536acc2f7cc60f1f941a5adde446570c12b5a06f7a1e2c3",
+        "afterSha256": "797e2fd0ea928fad15c035931e69a8aeadf570cbb0f356053ee2935327726625",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+        "beforeGitBlob": "98b06d890c2c505010113a945fc366b182336fef",
+        "afterGitBlob": "f8b6475713f004110490336cdc1e93356f92f223",
+        "beforeSha256": "374d0853a3ad170a928b3cb65386275f299ae25687d80b439e7960ff73220679",
+        "afterSha256": "12785db273e7f8b4a92c59d35eedf2d97857ae04bb19239983444521c11c9af6",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/license/LicensePane.java",
+        "beforeGitBlob": "4dbe362a2bd45e8adbf20e80ee9a6b6793ccfdae",
+        "afterGitBlob": "c43876b0a687e242dbaf4830849513e3c9bc8fce",
+        "beforeSha256": "4d76a23b7b63234a061d9bedbbc363f607c56e31d9585cf5b12bbcf318aaa185",
+        "afterSha256": "c7bda9aeff1514ab67fd631319f4ea53aefdb24ce9752461ce95e404980d9cdb",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/listingcopy/ListingCopyPane.java",
+        "beforeGitBlob": "8baba4964e77615a0ce1bda0577e2faa7c8aaaba",
+        "afterGitBlob": "f49831f972a4e77c2b3b4d46b9c8ce9a9671c619",
+        "beforeSha256": "45d0b3effc08beb4d1afae4fe900a93e7686c92b6d9475b48443d19c0f6f9f31",
+        "afterSha256": "627697d17fcb519c439fcb710f5eb4f0db7558d677f98cda5ed096e38913160e",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "beforeGitBlob": "bbc67503bd3b303a319d90a3983a9f29aad6c9ac",
+        "afterGitBlob": "09ed5b599e1d478c039942539ef8c65b30090326",
+        "beforeSha256": "8ebc05ea45fc7837b297e73b6d17f32a6cff2dd6076bb3992d118409f2b512b5",
+        "afterSha256": "91fb0e2442b1a1ce92200379c20d6fb78d7b44fde780b33e689b31b9fbf96fa7",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+        "beforeGitBlob": "db92c9813f781616a040817b5ef7c8a18f581435",
+        "afterGitBlob": "625d99704f86de110d57e6d11d23553e7c9c0923",
+        "beforeSha256": "37a7ce807957cccbf0adfb6b1458912c9d992d4bbfa19d533a4a8b3e2b9dc4d9",
+        "afterSha256": "7ee6a7a5585344c94303fe86e054335ea9cf58916ea7447b7ae7d1a45ee32a5c",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/JobCenterDialog.java",
+        "beforeGitBlob": "4b0184f45b4ae7fd1f82425db5f2c3677ffa4492",
+        "afterGitBlob": "2ea432a7f07011b8c651069b3855cf70e86fd919",
+        "beforeSha256": "c6f666092d6c11a9c2b949f5d3f50eceae89ae5b0b65bd2973b57e1f7638ed83",
+        "afterSha256": "80d7d9f3ad3aa36c3cf9d649552e2380d24c9a45f730cef8d8ba2e4edbea0642",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/WorkspaceCommandPalette.java",
+        "beforeGitBlob": "5a3042f4522d86b7b09814f19285086260460cf6",
+        "afterGitBlob": "a91700c5270e3f03f5d4f04c5975110dfa01fbd8",
+        "beforeSha256": "8b031bb7d67fde024e90d1a5e6c6e5eccc2b0898982933597ab3d94ac6a1715e",
+        "afterSha256": "2504f8026d43d0c90ba25215cf4b75dbdf3ea11801229070b08d9ab624a63274",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/WorkspaceHeaderController.java",
+        "beforeGitBlob": "0469720733fad29ee9a347819d4c99e5c3a4c147",
+        "afterGitBlob": "01847551c6f21e2a5e005fe4cb5f37c14dfb6772",
+        "beforeSha256": "7e7c638381d9bb4917b8432755db10905648640a2fc9c89303ec64132fd6122a",
+        "afterSha256": "4e1e1809f6007dff56f53c9f15edfef8dfb801c2f0951082ad9267f6021dab13",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+        "beforeGitBlob": "f4e321cf4975bd8b26fc33ee39c5c6b1b13a4fef",
+        "afterGitBlob": "c9af16a5b477530260901055ae02eee1ce163fe0",
+        "beforeSha256": "3ee30d528bbf781e721af0ec61958986c00d7740786ae11fa15b29fd4a09223e",
+        "afterSha256": "039752ce7984152e1ed4cf384c1b3597b9bcdb390db9aee7afe323818df4cc4f",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationConnectionDialog.java",
+        "beforeGitBlob": "8b96e3bf646a6f2bc30513e322a2680da8efc0b7",
+        "afterGitBlob": "1191c354617e6e63e9cdeb85dc8e078a75e8c5bd",
+        "beforeSha256": "fafc9aa8a7700a7facd6f96c8be25a3b1493d52782b846deb783c5ffeba4e160",
+        "afterSha256": "be803bace23620877f9a404cd146bac6d74a83cdc6844cf8983ca2f62c55b413",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java",
+        "beforeGitBlob": "d72f8da27098b009709e6abf54fe9c01660a2477",
+        "afterGitBlob": "9e4a8880eec4167bf10590db723e1e39aed269bc",
+        "beforeSha256": "d9c1bc53738551050ba956db18f14773262bdc5e7c6973b571d07ed6bdfb8693",
+        "afterSha256": "4c771eb0641c035fdb36b08e5cb5a5d8774c74effd8fafaf52b31e31ecbf52b0",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationProvenanceDialog.java",
+        "beforeGitBlob": "5d76983b96b638b9aee330a4ac13f8069453c1fa",
+        "afterGitBlob": "b9ad5093d527fc50db3cc172bf53ee797d3be184",
+        "beforeSha256": "974131076155ca9205a02034690f7f9ad70a427f5a865a3c8d54aaa9626eecac",
+        "afterSha256": "9890935b1ac69ee3d6da77c53e8c440378ea7d7ee26ede92b9b2252b306afd96",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/RegistrationRepairHistoryDialog.java",
+        "beforeGitBlob": "dee4c96e83dd5e01dfa76fa5a2426d9fc8289c41",
+        "afterGitBlob": "6674eda3160b37de884591b1c4db4ae7f4972a4c",
+        "beforeSha256": "17e9727480e3db99b6292aac8c47384a25c155db9c61fc83797c953b80c5ff43",
+        "afterSha256": "8ccfd10fe137993d680d605f8f9d786657fe8338d933ebf21ddfa2e86360e945",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+        "beforeGitBlob": "30cd8c30ef882efe90e1e7a5faabc2e5e028789a",
+        "afterGitBlob": "e7c0f2daf962b75ecd55091ef39a1fd2ed64526e",
+        "beforeSha256": "b49543e8d2cd6fd17e325472c090780bf7587631646a841b251ce02e34268428",
+        "afterSha256": "7330b925583ae4f2537fc1d39af0c3b554c0e3856999e7523eef7e2ffbf9e4e6",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackMappingReviewDialog.java",
+        "beforeGitBlob": "fc2d6803048a962802703f40e204e18e917a9e0a",
+        "afterGitBlob": "61e76914ced4eabfcd7d98b869ec705644102c92",
+        "beforeSha256": "6602f77a9af007d26140823ced995845c6bf210067428b57a967eed4a675d8f4",
+        "afterSha256": "8bee0f8500779a8ee559b9116a24ff163dd40d1cd1f53f8dd8f8d10052c602a5",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "beforeGitBlob": "f499cf15e8a7544cdb55928ef7242254fc0d5313",
+        "afterGitBlob": "60eb4d059b6f2efa62b544c1a08178e7c24c353c",
+        "beforeSha256": "0b5c808f53101a10a8607c0f05beb4c095e0c75b6afc5dc9dee54b26e8e1b547",
+        "afterSha256": "37d586ac706e53604ab78d2819ae247383e5cba3ad73e8974c9f8b4a845d1400",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "beforeGitBlob": "18f57888806f423a6f4b9f0cf8a8a8028635204d",
+        "afterGitBlob": "3bdcc1012b6dbe622d78dab42525395c9d403296",
+        "beforeSha256": "7ac6193c8d9ffd9ecc4cf6cf15f59b91799ebd8f9a722664676a746cdc0dd798",
+        "afterSha256": "610722c23e477be8acca9a1512f9c91f0db8317b7f3764446330db10bb1e31ef",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "beforeGitBlob": "ae8141020402624d8b46ec2882d13cfee6d104c8",
+        "afterGitBlob": "935adbd5e2692ca725b893b595aa44a37be1ee35",
+        "beforeSha256": "44330426ba8841144b1f13a26cd41e3a1ff3d534f303026072e19b4591d55377",
+        "afterSha256": "65097da8a5561628a6e623c4bef6507008c564c64f323196cbe2f2e47e93977e",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "beforeGitBlob": "bd1fd601786841db6903dc5e9ab87646a292e7dc",
+        "afterGitBlob": "5b97871847b49023dc191961f055bef117eae5f1",
+        "beforeSha256": "97693d415611a86afbce193967d2225113f48d4678fc266399c639eaf74fa8f2",
+        "afterSha256": "9c4319f2ba4776c1392a867a998b5af5ff1547f0602934d14a8c6b4d97827d84",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/styles/theme.css",
+        "beforeGitBlob": "2e14a1935e6b550c6cb97c13622777b5ae93e695",
+        "afterGitBlob": "6df063eece37cab7aff1764b354ded12f5219ce2",
+        "beforeSha256": "1b7351d42484618861c5b08243215dec93f7bb82a5ebbe68c171945b6e7b95fd",
+        "afterSha256": "dea344220d3b96160ab76018d7df76350a41def4a01170f6e83cd7313372025e",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+        "beforeGitBlob": "263efd07dcc04213c2f62876a1cf01393b453acf",
+        "afterGitBlob": "bc31c7c967321475c9052d343a54b97cc45400d3",
+        "beforeSha256": "ff48471b892c10481c44f9d4f6f0688d0cac41eea59129fa07f6985080a4169a",
+        "afterSha256": "bd855915738c7e37ff80c8d533dc1ff3be4842dbc9c1972cdc2b2e0bdbee83f8",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/ui/print/print-template-designer-view.fxml",
+        "beforeGitBlob": "881323deda5104ea9a19410f4053c15ff04d4bce",
+        "afterGitBlob": "64d89b4b30b5d7c94eab5050a36bedfd81cad892",
+        "beforeSha256": "2a8ca1f305f2460fbcab397a6a25ca3931a756c9a1622697b8724320a53ffa76",
+        "afterSha256": "9bc0d212e874ab9fc2af0a73ac40a405b42a8dc69eab325ac904ca4ce4bb85c4",
+        "beforeMode": "100644",
+        "afterMode": "100644"
+      }
+    ],
+    "added": [
+      {
+        "path": "src/main/java/com/vncode/app/features/gtinsync/OzonExactVariantIdentity.java",
+        "afterGitBlob": "052af55433614d5384d8b64ce8333ed9539a4690",
+        "afterSha256": "636c918743a7eab701e56d5bc9062470e87c6825ae7880db8b08cc2ab2902f0c",
+        "mode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+        "afterGitBlob": "279062e8accafeeb6dd070dbf30eff946a724809",
+        "afterSha256": "190548eb7bc8e7e4fd7c5a319e18b803b61779cc794ed4a4bbba3f93167e1e4c",
+        "mode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceDialogChrome.java",
+        "afterGitBlob": "82523145bbc2f416d04bf6227972ca02f4da122f",
+        "afterSha256": "41c2c5361395a0fb56e19c4f14f6043ae570fcdbea7e598dbe12fe555ff1d31e",
+        "mode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+        "afterGitBlob": "5c278c948e87e1a80c23cc13f2e03b24ae90bb5b",
+        "afterSha256": "3769f7bea8006d76117b75e0a9b8cc2094365c6a58009a41a01bbe4832576f10",
+        "mode": "100644"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceRoundedControlClip.java",
+        "afterGitBlob": "0bf21adfbbf71b89d63d3c17ebb7c2aa99f82f12",
+        "afterSha256": "1b4c9ca5d82dcbceac11ffcc666b4826583d3c0b6617e1b60bb4277af5410f12",
+        "mode": "100644"
+      }
+    ],
+    "removed": [],
+    "baselinePathsRetained": true,
+    "onlyReviewedRuntimeAdditions": true,
+    "finalRuntimeAndTestsExactlyMatchCodeRef": true,
+    "buildInputsExactlyMatchCodeRef": true,
+    "pomOnlyTwoVersionFieldsChanged": true,
+    "inputReceiptSha256": "92714d04db4bc20ec4e14d15bcfdcb24c9e32e728f205cb74843b6fab269c290"
+  },
+  "uiPredecessorPreservation": {
+    "previousCodeCommit": "a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3",
+    "previousRuntimeFiles": 801,
+    "runtimeFiles": 805,
+    "modifiedUiPaths": [
+      "src/main/java/com/vncode/app/shared/AlertService.java",
+      "src/main/java/com/vncode/app/shared/MotionBoundary.java",
+      "src/main/java/com/vncode/app/shared/ThemeService.java",
+      "src/main/java/com/vncode/app/shared/WorkspaceMotion.java",
+      "src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java",
+      "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java",
+      "src/main/java/com/vncode/app/ui/kiz/KizWarehousePane.java",
+      "src/main/java/com/vncode/app/ui/license/LicensePane.java",
+      "src/main/java/com/vncode/app/ui/listingcopy/ListingCopyPane.java",
+      "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+      "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+      "src/main/java/com/vncode/app/ui/workspace/JobCenterDialog.java",
+      "src/main/java/com/vncode/app/ui/workspace/WorkspaceCommandPalette.java",
+      "src/main/java/com/vncode/app/ui/workspace/WorkspaceHeaderController.java",
+      "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+      "src/main/java/com/vncode/app/ui/znackregistration/RegistrationConnectionDialog.java",
+      "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java",
+      "src/main/java/com/vncode/app/ui/znackregistration/RegistrationProvenanceDialog.java",
+      "src/main/java/com/vncode/app/ui/znackregistration/RegistrationRepairHistoryDialog.java",
+      "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+      "src/main/java/com/vncode/app/ui/znackregistration/ZnackMappingReviewDialog.java",
+      "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "src/main/resources/com/vncode/app/styles/theme.css",
+      "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+      "src/main/resources/com/vncode/app/ui/print/print-template-designer-view.fxml"
+    ],
+    "addedUiPaths": [
+      "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+      "src/main/java/com/vncode/app/shared/WorkspaceDialogChrome.java",
+      "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+      "src/main/java/com/vncode/app/shared/WorkspaceRoundedControlClip.java"
+    ],
+    "unchangedPriorRuntimeFiles": 773,
+    "priorBusinessRuntimeOutsideUiScopeByteExact": true,
+    "previousPomByteExact": true,
+    "removed": [],
+    "nonUiBusinessRuntimeFilesVerified": 603,
+    "nonUiBusinessRuntimeByteExact": true
+  },
+  "clipFixtureCheckpointProof": {
+    "productionPredecessor": "830534fdfa2c2374579d415ad4d24100453b9dfa",
+    "clipFixtureCheckpoint": "3c4783187a383f612f9a3668dc262188a51bc860",
+    "clipCheckpointProductionRuntimeByteExact": true,
+    "onlyChangedCheckpointSourcePath": "src/test/java/com/vncode/app/shared/WorkspaceRoundedControlClipTest.java",
+    "correctedTestSha256": "07e0ce60e0defca821171decaca9b2c570e2c4a3be6250b556d48e83a07c16f1",
+    "finalCorrectedTestByteExact": true,
+    "scope": "Historical clip-fixture proof; the final focus CSS successor is checked separately."
+  },
+  "focusCheckpointProof": {
+    "focusPredecessor": "3c4783187a383f612f9a3668dc262188a51bc860",
+    "focusCheckpoint": "3ce0a0ab35089078da480f93a4dddf3adc880da6",
+    "changedCheckpointPaths": [
+      "docs/releases/VN-code-1.6.10.md",
+      "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+      "src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java"
+    ],
+    "onlyCheckpointRuntimeChange": "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+    "focusCssSha256": "26e31d66000f44d8846dfd9253a4a93b7f1ef5d2cc5ebb53334be97df597b33d",
+    "focusTestSha256": "8364034b6122c2aee42649dcddec8e4c723939ce708c72ca910df4fe02e7e204",
+    "exactInnerShadowRemoval": true,
+    "oldMaterialTestAssertionsRetained": true,
+    "additiveNativeFocusTestBlockSha256": "cef162454882f844de115f9cd451933b071bdd71d659fa5aec4ebf6631abb528",
+    "allOtherCheckpointInputsByteExactToPredecessor": true,
+    "checkpointFocusSourceInputsByteExact": true,
+    "scope": "Historical focus checkpoint; the later logical attachment successor is checked independently."
+  },
+  "logicalAttachmentCheckpointProof": {
+    "attachmentPredecessor": "5373f230b36bab763aaaf313d31762e406fc5ac4",
+    "attachmentCodeCommit": "43b82cca683b29e783a33df995afd675a76aa0dd",
+    "intermediateDocumentationCorrection": "docs/research/2026-11-14-code-quality-proposals.md",
+    "intermediateDocumentationSha256": "77d5eecf801fe4e12ca8697de31b9d51edffd1daa7d818930c27f90640917298",
+    "changedCodePaths": [
+      "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+      "src/test/java/com/vncode/app/shared/WorkspaceAllSurfaceGlassTest.java"
+    ],
+    "onlyRuntimeChange": "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+    "helperSha256": "6d305574494342cbd36c17c3b828b3b12c3e485b0d645bbec601572b330cda78",
+    "testSha256": "7da9da7facb693438ce3e340f642aff65064df37703694eb78dc0d134c0a2576",
+    "exactNullSceneRetentionChange": true,
+    "allOtherTrackedInputsByteExactToPredecessor": true,
+    "oldFiveMaterialTestsByteRetained": true,
+    "nativeRegressionTestsBefore": 5,
+    "nativeRegressionTestsAfter": 7,
+    "additiveNativeRegressionLines": 49,
+    "additiveNativeTestBlockSha256": "69cd834dddd49fd10aab08f4e5b3cd265ba062317f22bc25ae644728bb244aed",
+    "checkpointAttachmentSourceInputsByteExact": true
+  },
+  "windowsCallerAndCiCheckpointProof": {
+    "windowsSourceCommit": "f3e98725ee2892abf225cb66978ed9302fd49489",
+    "productionCheckpoint": "86b4a2a751ee7ca40d8253d4650517313d9fba90",
+    "changedInputs": [
+      ".github/workflows/publish-vncode-baseline.yml",
+      "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+      "src/test/java/com/vncode/app/shared/WorkspaceBackdropMaterialTest.java",
+      "src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/NativeGlassEvidenceTest.java",
+      "tools/diagnostics/WindowsMotionPreferenceProbe.java",
+      "tools/diagnostics/windows-motion-environment.ps1"
+    ],
+    "inputSha256": {
+      "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java": "190548eb7bc8e7e4fd7c5a319e18b803b61779cc794ed4a4bbba3f93167e1e4c",
+      "src/test/java/com/vncode/app/shared/WorkspaceBackdropMaterialTest.java": "807573c5f4fcf6edb5522cf2da0e17123180a618d1df2d9b144dfacfcace8942",
+      "src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java": "6fb837d9143db858c5c0dce3006b50022ad0e56d456083cc2dad4a1ddc1ca31d",
+      "src/test/java/com/vncode/app/ui/workspace/NativeGlassEvidenceTest.java": "2df44250b5285c8e2188355ba63a366c028ef9f2778563ee0176644c3c838a57",
+      ".github/workflows/publish-vncode-baseline.yml": "66e9058dd67dfb67f01bd1c884432ebddecb6306d3c0754ca07496340a2d309f",
+      "tools/diagnostics/WindowsMotionPreferenceProbe.java": "d0477068a1b02779496b0532ba760ce1ac39f429cfbdf42f1d25f072add22775",
+      "tools/diagnostics/windows-motion-environment.ps1": "347039ea0ba1c2b24e9476aeeb069e4eb2ca6c4d63037e539115d890680c3a09"
+    },
+    "reviewedCompletePatchSha256": "9d908b6be8c8da2e33696bc546d0396f7614e1bf2a2ca5ea4526d4e58c633834",
+    "mainTestPomByteExactToNativeCheckpoint": true,
+    "onlyRuntimeChangeAfter43b": "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+    "callerOwnershipMarkerBooleanOnly": true,
+    "noSceneControllerOrGlobalReferencesAdded": true,
+    "previous12BackdropTestsByteRetained": true,
+    "additiveCallerRegressionLines": 24,
+    "callerRegressionBlockSha256": "e898bbd09e5b7bd2e667a00305cc03277ede3cdaba037ffbecc1d3cac3229fbc",
+    "headerOriginalAssertionsRetainedExceptCorrectLayoutMetric": true,
+    "headerAdjacencyThresholdsUnchanged": true,
+    "headerOnePixelOverlapAnd21PixelGapNegativeControls": true,
+    "contrast45AndFocus3ThresholdsUnchanged": true,
+    "nativeFixtureRequiresRealScreenAndFocus": true,
+    "unfilteredCleanVerifyRetained": true,
+    "previousPreflightTestsRetainedAndExpanded": true,
+    "newDiagnosticsWindowsActionsWorkerOnly": true,
+    "workerPreferencesTransientAndRestoredWithEvidence": true,
+    "productionOsReducedMotionAuthorityUnchanged": true,
+    "scope": "Pinned source and review proof only; actual Windows build/acceptance receipts remain separate."
+  },
+  "embeddedFrameSuccessor": {
+    "embeddedPredecessor": "f3e98725ee2892abf225cb66978ed9302fd49489",
+    "embeddedCodeCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "changedInputs": [
+      "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+      "src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java"
+    ],
+    "onlyRuntimeChange": "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+    "cssSha256": "bd855915738c7e37ff80c8d533dc1ff3be4842dbc9c1972cdc2b2e0bdbee83f8",
+    "testSha256": "8130298a9e754810666b72d8a4e81ad78fa09848aeaae9ba331ff07b60b4f9d1",
+    "exactScopedBackgroundColorAndInsetsAddition": true,
+    "standaloneControlCssByteUnchanged": true,
+    "oldFiveMaterialTestsAndAllHelpersByteRetained": true,
+    "additiveNativeTestLines": 38,
+    "nativeTestsBefore": 5,
+    "nativeTestsAfter": 6,
+    "additiveNativeTestBlockSha256": "3666a8f0d3d1a7483691abdbc0f7b4b221030d8a880bd167c03324e5ea5968d1",
+    "realFinanceAndFboFxmlBothThemesPixelChecks": true,
+    "pixelDistanceThreshold": 0.015,
+    "liveOpacityAndFocusAssertionsRetained": true,
+    "noApiLayoutCallerOrBuildInputsChanged": true,
+    "allOtherTrackedInputsByteExactToF3": true,
+    "finalEmbeddedInputsByteExact": true,
+    "scope": "Source-byte and pinned regression proof; actual Windows build and app acceptance remain separate."
+  },
+  "criticalFiles": {
+    ".mvn/wrapper/maven-wrapper.jar": {
+      "path": ".mvn/wrapper/maven-wrapper.jar",
+      "mode": "100644",
+      "gitBlob": "7967f30dd1d25fe1b79a4a6e50e2aaa0e425c02c",
+      "bytes": 63028,
+      "sha256": "3d8f20ce6103913be8b52aef6d994e0c54705fb527324ceb9b835b338739c7a8"
+    },
+    ".mvn/wrapper/maven-wrapper.properties": {
+      "path": ".mvn/wrapper/maven-wrapper.properties",
+      "mode": "100644",
+      "gitBlob": "48b0dda2e66c377a731cfc24a9f80ec398baa09a",
+      "bytes": 320,
+      "sha256": "4a85f37701cb77739a05b178a731d9f4edc89818ed230b795202e88f68843579"
+    },
+    "AGENTS.md": {
+      "path": "AGENTS.md",
+      "mode": "100644",
+      "gitBlob": "20d2b435f41669c3df224a23a990e296d4d08414",
+      "bytes": 3210,
+      "sha256": "807079954a0559ca95100a98a37d065ce5373b5b13a824aabebd54a06b65af26"
+    },
+    "README.md": {
+      "path": "README.md",
+      "mode": "100644",
+      "gitBlob": "2c37c8014a91e9024dc305e3c43464b68265c81a",
+      "bytes": 5962,
+      "sha256": "f51044a568f334fda3a94f38a460201960a2e08ab24809e7423551b940cd7c98"
+    },
+    "build.bat": {
+      "path": "build.bat",
+      "mode": "100644",
+      "gitBlob": "49ec97fc18599388110ab430ede46da6badd007d",
+      "bytes": 3873,
+      "sha256": "5b4b4d0bc82e29d7fc9a5d61a317e9002e2d24fb8cfe994c5283c7d0f60e01bf"
+    },
+    "build.sh": {
+      "path": "build.sh",
+      "mode": "100755",
+      "gitBlob": "f1265f6d67f99d46b155eb2ea7307d077ffadaa7",
+      "bytes": 1953,
+      "sha256": "ceb158d4b28cec801bb550c7c18205fde8c24b06102a3a2af6eb379d33280d3e"
+    },
+    "docs/memory/CURRENT.md": {
+      "path": "docs/memory/CURRENT.md",
+      "mode": "100644",
+      "gitBlob": "b2e2ba844691ff79f2ef77955ecc2fdcb5b4a81b",
+      "bytes": 33773,
+      "sha256": "5ced5a888ce28f37d954b833a5b13f8199cea1c07af8001e267cd7157dfc362c"
+    },
+    "mvnw": {
+      "path": "mvnw",
+      "mode": "100755",
+      "gitBlob": "b77547e83cf5ed64d0d94a50644edefbbd93c952",
+      "bytes": 10284,
+      "sha256": "36b0fd37f8c524790fd1d9700690a4a6d50544dd50c74debe19069d92f983b0f"
+    },
+    "mvnw.cmd": {
+      "path": "mvnw.cmd",
+      "mode": "100644",
+      "gitBlob": "e9b99812b89bee79f64f6fa5f60430c3ad887ed6",
+      "bytes": 6734,
+      "sha256": "5288c2f345e41ef9b8dfdc101cc8c597e732182cff66552f57816cd9f92a6deb"
+    },
+    "pom.xml": {
+      "path": "pom.xml",
+      "mode": "100644",
+      "gitBlob": "cffc470f02ab245d5741058ba9462b94e14936aa",
+      "bytes": 12627,
+      "sha256": "0720235409ca5748f43152f96b3f9d63497517dc28166e9bbff5e7027a1956af"
+    },
+    "src/main/java/com/vncode/app/Launcher.java": {
+      "path": "src/main/java/com/vncode/app/Launcher.java",
+      "mode": "100644",
+      "gitBlob": "5ca200c1a5bf2d0bae4a7580c54b3d0b694f8eb2",
+      "bytes": 6128,
+      "sha256": "0eaf9daaac9590924ca6b2111c782d19b6e80d8e044313a9d4b839db9bcdc6ea"
+    },
+    "src/main/resources/app.properties": {
+      "path": "src/main/resources/app.properties",
+      "mode": "100644",
+      "gitBlob": "14157024c6c960d84fc9cdddcb14bf3f1ea4cc31",
+      "bytes": 197,
+      "sha256": "e5d6987ba916e42029bb481db60a73fe80e308d1edc26592c12b9671ea28f5b8"
+    },
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "mode": "100644",
+      "gitBlob": "935adbd5e2692ca725b893b595aa44a37be1ee35",
+      "bytes": 262352,
+      "sha256": "65097da8a5561628a6e623c4bef6507008c564c64f323196cbe2f2e47e93977e"
+    },
+    "src/main/resources/com/vncode/app/ui/kizmapping/kiz-mapping-view.fxml": {
+      "path": "src/main/resources/com/vncode/app/ui/kizmapping/kiz-mapping-view.fxml",
+      "mode": "100644",
+      "gitBlob": "8d5c9d7027af4020b33deeba7951ddf787d9d171",
+      "bytes": 2528,
+      "sha256": "bffbda9e0b9e64bec99f94a3e4b2f59c1850000a7bd467ae06a08d179b95cdec"
+    }
+  },
+  "executableGitScriptsPreserved": [
+    ".agents/skills/impeccable/scripts/impeccable",
+    "build.sh",
+    "mvnw",
+    "tools/windows-mcp/install-client.sh",
+    "tools/windows-mcp/run.sh"
+  ],
+  "symlinkCount": 0,
+  "gitlinkCount": 0,
+  "exportAttributes": {
+    "gitlinks": [],
+    "exportIgnoredNodes": [],
+    "exportIgnoredTrackedFiles": [],
+    "exportSubstPaths": [],
+    "lfsPaths": [],
+    "credentialPatternFindings": [
+      {
+        "path": "src/test/java/com/vncode/app/ui/StartupProgressTest.java",
+        "pattern": "jwt_literal",
+        "classification": "CONFIRMED_SYNTHETIC_DIAGNOSTIC_TEST_FIXTURE",
+        "sourceBlobSha256": "3b258a7170f0a590b43ffc6c1b6d17f94eaeff02f1af3dae5a5f142024a69364"
+      }
+    ]
+  },
+  "fileManifestSha256": "eb9fd841f764c1b64bf642b99efb7231ad057f1cbcfe2641037f65ecfd6c9cf3",
+  "credentialPatternScan": {
+    "patterns": [
+      "github_credential",
+      "jwt_literal",
+      "signed_download_url",
+      "private_key_pem"
+    ],
+    "findings": [
+      {
+        "path": "src/test/java/com/vncode/app/ui/StartupProgressTest.java",
+        "pattern": "jwt_literal",
+        "classification": "CONFIRMED_SYNTHETIC_DIAGNOSTIC_TEST_FIXTURE",
+        "sourceBlobSha256": "3b258a7170f0a590b43ffc6c1b6d17f94eaeff02f1af3dae5a5f142024a69364"
+      }
+    ],
+    "limitation": "Generic byte patterns do not prove absence of every possible credential. Only the exact hash-pinned, reviewed existing diagnostics test fixture is allowed and reported; any other match, including in tests, requires review. Values are never printed or silently removed."
+  },
+  "helperSha256": "1e3f372913c32d67d8119a0a2808bd01fbb3dca74d6c96f218b7f3d15dde2579",
+  "scope": "Read-only Git/ZIP bytes and source-preservation receipt; no extraction, compile, app/API/signing/purchase execution.",
+  "limitations": [
+    "Source byte preservation does not prove absence of indirect behavior changes. Functional/build results are separate evidence.",
+    "No actual credential values or fixture values are included in this receipt."
+  ]
+}

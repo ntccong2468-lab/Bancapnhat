@@ -1,0 +1,41 @@
+{
+  "appliedToMain": true,
+  "committed": false,
+  "pushed": false,
+  "mainHead": "86b4a2a751ee7ca40d8253d4650517313d9fba90",
+  "windowsProofRun": 43638056459,
+  "proofSource": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "originalMotionErrors": 17,
+  "normalMotionErrorsRemoved": true,
+  "normalOtherFailuresRemain": {
+    "failures": 1,
+    "errors": 1
+  },
+  "osReducedAuthorityObserved": true,
+  "restoredOriginalWorkerSettings": "PASS",
+  "runtimeAssertionsUnchangedInProof": true,
+  "helperEolVerification": [
+    {
+      "name": "windows-motion-environment.ps1",
+      "gitLfSha256": "347039ea0ba1c2b24e9476aeeb069e4eb2ca6c4d63037e539115d890680c3a09",
+      "windowsCrLfSha256": "d0f9435d2dc2cf2d25016bd7d2984a28567c5a76c7267916596476101e40c42c",
+      "matchesExecutedWindowsCheckout": true
+    },
+    {
+      "name": "WindowsMotionPreferenceProbe.java",
+      "gitLfSha256": "d0477068a1b02779496b0532ba760ce1ac39f429cfbdf42f1d25f072add22775",
+      "windowsCrLfSha256": "dfb185e4ea98c4bbc873d9989e44d0cacecf683ae91731278e5a2f2e9b9a2e01",
+      "matchesExecutedWindowsCheckout": true
+    }
+  ],
+  "actionlintVersion": "1.7.12",
+  "actionlintExit": 0,
+  "gitDiffCheckExit": 0,
+  "untouchedOriginalStepsComparedEqual": 12,
+  "fullUnfilteredCleanVerifyPreserved": true,
+  "files": {
+    ".github/workflows/publish-vncode-baseline.yml": "66e9058dd67dfb67f01bd1c884432ebddecb6306d3c0754ca07496340a2d309f",
+    "tools/diagnostics/windows-motion-environment.ps1": "347039ea0ba1c2b24e9476aeeb069e4eb2ca6c4d63037e539115d890680c3a09",
+    "tools/diagnostics/WindowsMotionPreferenceProbe.java": "d0477068a1b02779496b0532ba760ce1ac39f429cfbdf42f1d25f072add22775"
+  }
+}

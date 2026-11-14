@@ -1,0 +1,36 @@
+{
+  "status": "PASS_BOUNDED_NATIVE_VISUAL_EVIDENCE",
+  "frozenAtUtc": "2026-11-14T21:42:21.144992+00:00",
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "compiledInputReference": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "publicGallery": "/tmp/vncode-ios-floating-20261114/captures/b74b5edfd46636e8779c94f467eef01c03c50a14/public-evidence/index.html",
+  "filesHashed": 105,
+  "manifestSha256": "76706171d14bffb9c6411e58f0eff51b232451395e843d8acd9c7916825f444d",
+  "videoSha256": "4e759074714dd2e1c512b03626ddd76effa1529e97aa97dce7b64dc4992b9b25",
+  "videoBytes": 3306451,
+  "nativePagePngs": 50,
+  "originalVideoKeyframes": 15,
+  "manualUniqueFinalImages": 65,
+  "reviewedPageHashesMatchCaptureAndPublicBytes": true,
+  "formerEmbeddedFramePairs": 6,
+  "allPairsEdgeEqualsInside": true,
+  "all25MountsBeforeThemeToggle": true,
+  "all50NativePixelAndWorkingSurfaceGates": true,
+  "nativeWallpaperDeltaRange": [
+    0.0,
+    0.0
+  ],
+  "temporaryOverlay": null,
+  "focusedValidation": {
+    "tests": 201,
+    "suites": 21,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "actualExitCode": 0
+  },
+  "windowsSellerVerified": false,
+  "licenseCalls": 0,
+  "businessActionsSubmitted": false,
+  "htmlPrototypeUsed": false
+}

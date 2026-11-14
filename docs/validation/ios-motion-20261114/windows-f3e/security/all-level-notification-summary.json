@@ -1,0 +1,73 @@
+[
+  {
+    "reference": "1.6.9",
+    "language": "java-kotlin",
+    "allLevelNotificationsExact": false,
+    "new": 55,
+    "resolved": 2,
+    "changedLevels": {
+      "none": 55,
+      "note": 2
+    },
+    "changedDescriptorIds": {
+      "java/diagnostics/successfully-extracted-files": 5,
+      "cli/expected-extracted-files/java": 30,
+      "cli/expected-extracted-files/python": 17,
+      "codeql-action/toolcache-bundle-cleanup": 1,
+      "codeql-action/overlay-disabled": 2,
+      "java/extractor/summary": 2
+    }
+  },
+  {
+    "reference": "1.6.9",
+    "language": "javascript-typescript",
+    "allLevelNotificationsExact": false,
+    "new": 51,
+    "resolved": 1,
+    "changedLevels": {
+      "none": 52
+    },
+    "changedDescriptorIds": {
+      "js/diagnostics/successfully-extracted-files": 2,
+      "cli/expected-extracted-files/java": 30,
+      "cli/expected-extracted-files/python": 17,
+      "codeql-action/toolcache-bundle-cleanup": 1,
+      "codeql-action/overlay-disabled": 2
+    }
+  },
+  {
+    "reference": "43b",
+    "language": "java-kotlin",
+    "allLevelNotificationsExact": false,
+    "new": 10,
+    "resolved": 3,
+    "changedLevels": {
+      "none": 11,
+      "note": 2
+    },
+    "changedDescriptorIds": {
+      "cli/expected-extracted-files/java": 3,
+      "cli/expected-extracted-files/python": 4,
+      "codeql-action/toolcache-bundle-cleanup": 2,
+      "codeql-action/overlay-disabled": 2,
+      "java/extractor/summary": 2
+    }
+  },
+  {
+    "reference": "43b",
+    "language": "javascript-typescript",
+    "allLevelNotificationsExact": false,
+    "new": 10,
+    "resolved": 2,
+    "changedLevels": {
+      "none": 12
+    },
+    "changedDescriptorIds": {
+      "js/diagnostics/successfully-extracted-files": 1,
+      "cli/expected-extracted-files/java": 3,
+      "cli/expected-extracted-files/python": 4,
+      "codeql-action/toolcache-bundle-cleanup": 2,
+      "codeql-action/overlay-disabled": 2
+    }
+  }
+]

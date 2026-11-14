@@ -1,0 +1,77 @@
+[
+  {
+    "reference": "1.6.9",
+    "language": "java-kotlin",
+    "fullResultFieldsEqualAfterReferenceResolution": true,
+    "resultCount": 8,
+    "serializedChangedLeafCount": 107,
+    "changedLeafTypes": {
+      "artifactLocation.index": 99,
+      "rule.index": 8
+    },
+    "allSerializedChangesAreValidatedTableReferences": true,
+    "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+    "normalizedWholeResultMultisetSha256": "f5ef51b0271864220963c329c0b31d3ff26339e87db765ac16a96626b2f91b71"
+  },
+  {
+    "reference": "1.6.9",
+    "language": "javascript-typescript",
+    "fullResultFieldsEqualAfterReferenceResolution": true,
+    "resultCount": 0,
+    "serializedChangedLeafCount": 0,
+    "changedLeafTypes": {},
+    "allSerializedChangesAreValidatedTableReferences": true,
+    "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+    "normalizedWholeResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "reference": "f3e",
+    "language": "java-kotlin",
+    "fullResultFieldsEqualAfterReferenceResolution": true,
+    "resultCount": 8,
+    "serializedChangedLeafCount": 107,
+    "changedLeafTypes": {
+      "artifactLocation.index": 99,
+      "rule.index": 8
+    },
+    "allSerializedChangesAreValidatedTableReferences": true,
+    "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+    "normalizedWholeResultMultisetSha256": "f5ef51b0271864220963c329c0b31d3ff26339e87db765ac16a96626b2f91b71"
+  },
+  {
+    "reference": "f3e",
+    "language": "javascript-typescript",
+    "fullResultFieldsEqualAfterReferenceResolution": true,
+    "resultCount": 0,
+    "serializedChangedLeafCount": 0,
+    "changedLeafTypes": {},
+    "allSerializedChangesAreValidatedTableReferences": true,
+    "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+    "normalizedWholeResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+    "reference": "43b",
+    "language": "java-kotlin",
+    "fullResultFieldsEqualAfterReferenceResolution": true,
+    "resultCount": 8,
+    "serializedChangedLeafCount": 107,
+    "changedLeafTypes": {
+      "artifactLocation.index": 99,
+      "rule.index": 8
+    },
+    "allSerializedChangesAreValidatedTableReferences": true,
+    "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+    "normalizedWholeResultMultisetSha256": "f5ef51b0271864220963c329c0b31d3ff26339e87db765ac16a96626b2f91b71"
+  },
+  {
+    "reference": "43b",
+    "language": "javascript-typescript",
+    "fullResultFieldsEqualAfterReferenceResolution": true,
+    "resultCount": 0,
+    "serializedChangedLeafCount": 0,
+    "changedLeafTypes": {},
+    "allSerializedChangesAreValidatedTableReferences": true,
+    "normalization": "Resolve artifact/logical/thread-flow table references; resolve rule reference to validated rule ID, removing only rule table index. Preserve all other raw result fields, array order, regions, line numbers, messages and fingerprints.",
+    "normalizedWholeResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  }
+]

@@ -1,0 +1,196 @@
+{
+  "runId": 43639388384,
+  "sourceCommit": "f3e98725ee2892abf225cb66978ed9302fd49489",
+  "workflowConclusion": "failure",
+  "artifacts": [
+    {
+      "id": 14131508814,
+      "name": "codeql-java-kotlin",
+      "bytes": 172592,
+      "sha256": "449bbdbf3d9e53d30df441a7a310c85706734b26fde9add856c83bf6d5667da2",
+      "apiDigestMatches": true,
+      "apiSizeMatches": true,
+      "zipCrcPass": true,
+      "sarifMembers": [
+        "java.sarif"
+      ],
+      "postDownloadMetadataMatches": true
+    },
+    {
+      "id": 14130623864,
+      "name": "codeql-javascript-typescript",
+      "bytes": 133412,
+      "sha256": "8bf34499da086c8672c94234992fb8f93b30f9617e5ea56af1da22ef85159149",
+      "apiDigestMatches": true,
+      "apiSizeMatches": true,
+      "zipCrcPass": true,
+      "sarifMembers": [
+        "javascript.sarif"
+      ],
+      "postDownloadMetadataMatches": true
+    }
+  ],
+  "versus169": {
+    "identicalNormalizedFindingRecords": true,
+    "identicalNormalizedWarningErrorNotifications": true,
+    "newFindingCount": 0,
+    "resolvedFindingCount": 0,
+    "totals": {
+      "candidate": {
+        "blocked": 1,
+        "findings": 8,
+        "warningErrorNotifications": 1
+      },
+      "reference": {
+        "blocked": 1,
+        "findings": 8,
+        "warningErrorNotifications": 1
+      }
+    }
+  },
+  "versus43b": {
+    "identicalNormalizedFindingRecords": true,
+    "identicalNormalizedWarningErrorNotifications": true,
+    "newFindingCount": 0,
+    "resolvedFindingCount": 0,
+    "totals": {
+      "candidate": {
+        "blocked": 1,
+        "findings": 8,
+        "warningErrorNotifications": 1
+      },
+      "reference": {
+        "blocked": 1,
+        "findings": 8,
+        "warningErrorNotifications": 1
+      }
+    }
+  },
+  "languages": {
+    "java-kotlin": {
+      "findings": 8,
+      "blocked": 1,
+      "rules": {
+        "java/local-temp-file-or-directory-information-disclosure": 3,
+        "java/potentially-weak-cryptographic-algorithm": 1,
+        "java/relative-path-command": 2,
+        "java/unreleased-lock": 2
+      },
+      "severityCounts": {
+        "5": 2,
+        "5.4": 2,
+        "6.5": 3,
+        "7.5": 1
+      },
+      "notificationCounts": {
+        "error": 1
+      },
+      "sha256": "e114e50e33f96e364787e9c201ec3273d7022bfe5b00db95d0c30b8f2435f3f7",
+      "gateConclusion": "failure"
+    },
+    "javascript-typescript": {
+      "findings": 0,
+      "blocked": 0,
+      "rules": {},
+      "severityCounts": {},
+      "notificationCounts": {},
+      "sha256": "72d558ce8357ddbd4ce5f906c651a26b3480c9ba90a73c9dda5eacc935f13be2",
+      "gateConclusion": "success"
+    }
+  },
+  "fullRawResults": [
+    {
+      "reference": "1.6.9",
+      "language": "java-kotlin",
+      "allRawResultFieldsIdentical": true,
+      "rawRecordCount": 8,
+      "newRawRecordCount": 0,
+      "resolvedRawRecordCount": 0,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 2373,
+      "newAllLevelNotificationCount": 55,
+      "resolvedAllLevelNotificationCount": 2
+    },
+    {
+      "reference": "1.6.9",
+      "language": "javascript-typescript",
+      "allRawResultFieldsIdentical": true,
+      "rawRecordCount": 0,
+      "newRawRecordCount": 0,
+      "resolvedRawRecordCount": 0,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 1729,
+      "newAllLevelNotificationCount": 51,
+      "resolvedAllLevelNotificationCount": 1
+    },
+    {
+      "reference": "43b",
+      "language": "java-kotlin",
+      "allRawResultFieldsIdentical": true,
+      "rawRecordCount": 8,
+      "newRawRecordCount": 0,
+      "resolvedRawRecordCount": 0,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 2373,
+      "newAllLevelNotificationCount": 10,
+      "resolvedAllLevelNotificationCount": 3
+    },
+    {
+      "reference": "43b",
+      "language": "javascript-typescript",
+      "allRawResultFieldsIdentical": true,
+      "rawRecordCount": 0,
+      "newRawRecordCount": 0,
+      "resolvedRawRecordCount": 0,
+      "allLevelNotificationsIdentical": false,
+      "allLevelNotificationCount": 1729,
+      "newAllLevelNotificationCount": 10,
+      "resolvedAllLevelNotificationCount": 2
+    }
+  ],
+  "normalizerSha256": "780add1aa965d1d10beb925448d004577193aefa13574817072ed4399e5a9b44",
+  "noPolicyChanges": true,
+  "noWaivers": true,
+  "noCommits": true,
+  "countsAndRecordHashes": {
+    "java-kotlin": {
+      "rawSarifSha256": "e114e50e33f96e364787e9c201ec3273d7022bfe5b00db95d0c30b8f2435f3f7",
+      "rawCanonicalResultMultisetSha256": "08771b607fdb7cd7a93b23fa18bcedc5469a671b2abae55ef0c296ce132fe8d6",
+      "findings": 8,
+      "blocked": 1,
+      "codeFlows": 7,
+      "threadFlows": 7,
+      "threadFlowLocations": 80,
+      "warningErrorNotifications": 1
+    },
+    "javascript-typescript": {
+      "rawSarifSha256": "72d558ce8357ddbd4ce5f906c651a26b3480c9ba90a73c9dda5eacc935f13be2",
+      "rawCanonicalResultMultisetSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "findings": 0,
+      "blocked": 0,
+      "codeFlows": 0,
+      "threadFlows": 0,
+      "threadFlowLocations": 0,
+      "warningErrorNotifications": 0
+    }
+  },
+  "securityPolicyByteExactAcross16943bF3": true,
+  "gateCli": {
+    "java-kotlin": {
+      "exitCode": 1,
+      "output": "CodeQL security findings: 8; high, critical or unclassified: 1\n"
+    },
+    "javascript-typescript": {
+      "exitCode": 0,
+      "output": "CodeQL security findings: 0; high, critical or unclassified: 0\n"
+    }
+  },
+  "allLevelNotificationDetail": "all-level-notification-summary.json (informational none/note changes retained, not treated as security findings)",
+  "gs1CoverageError": {
+    "level": "error",
+    "id": "java/diagnostics/extraction-errors",
+    "file": "src/main/java/com/vncode/app/features/gs1/Gs1SignatureInk.java",
+    "identicalTo169And43b": true,
+    "analysisOfFileIncomplete": true
+  }
+}

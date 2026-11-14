@@ -1,0 +1,108 @@
+{
+  "kind": "FINAL_DOCS_SCOPE_GATE_SELF_CONTROLS",
+  "status": "PASS",
+  "tests": 16,
+  "helperSha256": "1bbea43d9bd48c54ffe28e09f0804e1bab0b7bd24c97c081435be696bf495d17",
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "notFinalCommitAcceptance": true,
+  "readOnlySourceAndGit": true,
+  "checkedAtUtc": "2026-11-14T21:15:15.966005+00:00",
+  "controls": [
+    {
+      "case": "unchanged-tree-is-allowed",
+      "expectedAllowed": true,
+      "actualAllowed": true,
+      "reason": ""
+    },
+    {
+      "case": "documentation-DESIGN.md",
+      "expectedAllowed": true,
+      "actualAllowed": true,
+      "reason": ""
+    },
+    {
+      "case": "documentation-PRODUCT.md",
+      "expectedAllowed": true,
+      "actualAllowed": true,
+      "reason": ""
+    },
+    {
+      "case": "documentation-SOURCE-1.6.10.md",
+      "expectedAllowed": true,
+      "actualAllowed": true,
+      "reason": ""
+    },
+    {
+      "case": "documentation-docs/memory/CURRENT.md",
+      "expectedAllowed": true,
+      "actualAllowed": true,
+      "reason": ""
+    },
+    {
+      "case": "documentation-docs/validation/new.json",
+      "expectedAllowed": true,
+      "actualAllowed": true,
+      "reason": ""
+    },
+    {
+      "case": "outside-docs-src/main/App.java",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final docs commit changed a path outside explicit documentation scope"
+    },
+    {
+      "case": "outside-docs-tools/build.py",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final docs commit changed a path outside explicit documentation scope"
+    },
+    {
+      "case": "outside-docs-website/app.js",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final docs commit changed a path outside explicit documentation scope"
+    },
+    {
+      "case": "outside-docs-.github/workflows/check.yml",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final docs commit changed a path outside explicit documentation scope"
+    },
+    {
+      "case": "outside-docs-README.md",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final docs commit changed a path outside explicit documentation scope"
+    },
+    {
+      "case": "outside-docs-.gitattributes",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final docs commit changed a path outside explicit documentation scope"
+    },
+    {
+      "case": "documentation-deletion-is-rejected",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final docs commit removed tracked paths"
+    },
+    {
+      "case": "new-executable-is-rejected",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final documentation change is executable, symlink, submodule or unsupported type"
+    },
+    {
+      "case": "new-symlink-is-rejected",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final documentation change is executable, symlink, submodule or unsupported type"
+    },
+    {
+      "case": "new-gitlink-is-rejected",
+      "expectedAllowed": false,
+      "actualAllowed": false,
+      "reason": "Final documentation change is executable, symlink, submodule or unsupported type"
+    }
+  ]
+}

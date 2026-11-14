@@ -1,0 +1,50 @@
+[
+  {
+    "reference": "1.6.9",
+    "language": "java-kotlin",
+    "allRawResultFieldsIdentical": true,
+    "rawRecordCount": 8,
+    "newRawRecordCount": 0,
+    "resolvedRawRecordCount": 0,
+    "allLevelNotificationsIdentical": false,
+    "allLevelNotificationCount": 2373,
+    "newAllLevelNotificationCount": 55,
+    "resolvedAllLevelNotificationCount": 2
+  },
+  {
+    "reference": "1.6.9",
+    "language": "javascript-typescript",
+    "allRawResultFieldsIdentical": true,
+    "rawRecordCount": 0,
+    "newRawRecordCount": 0,
+    "resolvedRawRecordCount": 0,
+    "allLevelNotificationsIdentical": false,
+    "allLevelNotificationCount": 1729,
+    "newAllLevelNotificationCount": 51,
+    "resolvedAllLevelNotificationCount": 1
+  },
+  {
+    "reference": "43b",
+    "language": "java-kotlin",
+    "allRawResultFieldsIdentical": true,
+    "rawRecordCount": 8,
+    "newRawRecordCount": 0,
+    "resolvedRawRecordCount": 0,
+    "allLevelNotificationsIdentical": false,
+    "allLevelNotificationCount": 2373,
+    "newAllLevelNotificationCount": 10,
+    "resolvedAllLevelNotificationCount": 3
+  },
+  {
+    "reference": "43b",
+    "language": "javascript-typescript",
+    "allRawResultFieldsIdentical": true,
+    "rawRecordCount": 0,
+    "newRawRecordCount": 0,
+    "resolvedRawRecordCount": 0,
+    "allLevelNotificationsIdentical": false,
+    "allLevelNotificationCount": 1729,
+    "newAllLevelNotificationCount": 10,
+    "resolvedAllLevelNotificationCount": 2
+  }
+]

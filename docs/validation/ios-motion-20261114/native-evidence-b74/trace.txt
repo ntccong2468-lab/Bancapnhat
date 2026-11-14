@@ -1,0 +1,275 @@
+2.173 route=welcome reduced=false
+2.966 ready-material-image-patterns=21
+0.702 press-products
+0.951 route=products-wb reduced=false
+2.210 press-product-checkbox
+2.933 inspect-dark-workspace-material
+2.936 material-node=BorderPane id= image=960x600 imageIdentity=1774271694 error=false sample=-0.0,-0.0,1440.0,900.0 proportional=false lastPaint=ImagePattern tintAlpha=-1.0 regionOpacity=1.0
+2.936 material-node=VBox id=sidebarRoot image=960x600 imageIdentity=543759075 error=false sample=-8.0,-8.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5519999861717224 regionOpacity=1.0
+2.936 material-node=HBox id=headerRoot image=960x600 imageIdentity=543759075 error=false sample=-220.0,-8.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5519999861717224 regionOpacity=1.0
+2.936 material-node=ComboBox id=shopComboBox image=960x600 imageIdentity=543759075 error=false sample=-232.0,-16.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+2.936 material-node=MenuButton id=manageShopButton image=960x600 imageIdentity=543759075 error=false sample=-460.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.936 material-node=Button id=deleteShopButton image=960x600 imageIdentity=543759075 error=false sample=-559.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.936 material-node=Button id=searchActionsButton image=960x600 imageIdentity=543759075 error=false sample=-1132.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.936 material-node=Button id=themeButton image=960x600 imageIdentity=543759075 error=false sample=-1302.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.936 material-node=Button id=syncButton image=960x600 imageIdentity=543759075 error=false sample=-1344.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.936 material-node=MenuButton id=moreButton image=960x600 imageIdentity=543759075 error=false sample=-1386.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.936 material-node=Button id=motionReportTrigger image=960x600 imageIdentity=543759075 error=false sample=-220.0,-858.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.936 material-node=Button id=sidebarToggleButton image=960x600 imageIdentity=543759075 error=false sample=-146.0,-28.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.936 material-node=SplitMenuButton id=settingsMenuButton image=960x600 imageIdentity=543759075 error=false sample=-18.0,-816.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.937 material-node=ProductsPane id=productsPane image=960x600 imageIdentity=543759075 error=false sample=-220.0,-68.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+2.937 material-node=ProductActionBar id=productBulkActions image=960x600 imageIdentity=543759075 error=false sample=-241.0,-780.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+2.937 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-1135.0,-93.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.937 material-node=Button id=productSync image=960x600 imageIdentity=543759075 error=false sample=-1311.0,-93.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.937 material-node=TextField id=productSearch image=960x600 imageIdentity=543759075 error=false sample=-358.0,-141.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+2.939 material-node=ComboBox id=productCategoryFilter image=960x600 imageIdentity=543759075 error=false sample=-743.0,-141.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+2.939 material-node=ComboBox id=productDocumentFilter image=960x600 imageIdentity=543759075 error=false sample=-887.0,-141.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+2.939 material-node=ToggleButton id=productIssue_INVALID_TNVED image=960x600 imageIdentity=543759075 error=false sample=-308.0,-185.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.939 material-node=ToggleButton id=productIssue_MISSING_BRAND image=960x600 imageIdentity=543759075 error=false sample=-499.0,-185.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.939 material-node=ToggleButton id=productIssue_MISSING_MATERIAL image=960x600 imageIdentity=543759075 error=false sample=-665.0,-185.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.939 material-node=ListView id=productRows image=960x600 imageIdentity=543759075 error=false sample=-241.0,-247.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+2.939 material-node=Button id=productClearSelection image=960x600 imageIdentity=543759075 error=false sample=-1379.0,-795.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+2.940 material-node=Button id=productEdit_brand image=960x600 imageIdentity=543759075 error=false sample=-386.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.940 material-node=Button id=productEdit_material image=960x600 imageIdentity=543759075 error=false sample=-537.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.940 material-node=Button id=productEdit_gender image=960x600 imageIdentity=543759075 error=false sample=-667.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.940 material-node=Button id=productEdit_tnved image=960x600 imageIdentity=543759075 error=false sample=-793.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.940 material-node=Button id=productEdit_documents image=960x600 imageIdentity=543759075 error=false sample=-919.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+2.940 material-image-pattern-regions=30
+3.403 press-ozon
+3.863 route=ozon reduced=false
+5.193 switch-ozon-tab
+6.403 open-manage-popover
+7.603 close-manage-popover
+8.203 open-real-gs1-report
+9.203 inspect-dark-gs1-material
+9.203 window-style=TRANSPARENT scene-fill=0x00000000
+9.203 material-node=DialogPane id= image=960x600 imageIdentity=543759075 error=false sample=-251.036376953125,-159.52455139160156,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+9.204 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-1102.5462646484375,-176.8238525390625,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+9.204 material-node=TableView id=gs1SyncReportSources image=960x600 imageIdentity=543759075 error=false sample=-295.2456970214844,-311.37396240234375,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+9.204 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-1047.76513671875,-710.2188720703125,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+9.204 material-node=ComboBox id= image=960x600 imageIdentity=543759075 error=false sample=-295.2456970214844,-232.5660400390625,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+9.204 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-990.100830078125,-232.5660400390625,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+9.204 material-image-pattern-regions=6
+9.204 production-titlebars=1
+9.206 table-clip=Rectangle rows=2 arc=36.0
+9.503 drag-production-titlebar
+9.903 inspect-titlebar-drag
+9.905 titlebar-drag-delta=28.0,12.0
+10.303 close-gs1-report
+11.304 open-real-registration-report-with-search
+12.317 inspect-registration-scene-backing
+12.318 window-style=TRANSPARENT scene-fill=0x00000000
+12.318 material-node=DialogPane id= image=960x600 imageIdentity=543759075 error=false sample=-168.0,-105.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+12.318 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-1214.0,-123.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+12.318 material-node=TableView id=registrationSyncReportItems image=960x600 imageIdentity=543759075 error=false sample=-210.0,-287.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+12.318 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-1157.0,-738.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+12.318 material-node=ComboBox id= image=960x600 imageIdentity=543759075 error=false sample=-210.0,-173.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+12.318 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-868.0,-174.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+12.318 material-node=TextField id=registrationSyncReportSearch image=960x600 imageIdentity=543759075 error=false sample=-210.0,-217.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+12.318 material-node=ComboBox id=registrationSyncReportState image=960x600 imageIdentity=543759075 error=false sample=-668.0,-217.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+12.318 material-node=Button id=registrationSyncReportExport image=960x600 imageIdentity=543759075 error=false sample=-846.0,-218.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+12.318 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-210.0,-685.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+12.318 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-255.0,-685.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+12.318 material-image-pattern-regions=11
+12.318 production-titlebars=1
+12.318 table-clip=Rectangle rows=0 arc=36.0
+13.104 close-registration-via-production-titlebar
+13.115 production-title-close-activated
+13.115 exit-ghost=SILHOUETTE
+14.204 open-real-error-report
+15.104 inspect-dark-error-material
+15.105 window-style=TRANSPARENT scene-fill=0x00000000
+15.105 material-node=DialogPane id= image=960x600 imageIdentity=543759075 error=false sample=-4.5667761128243E-7,-7.18062125315555E-8,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+15.105 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-762.0,-18.000001907348633,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+15.105 material-node=TextArea id= image=960x600 imageIdentity=543759075 error=false sample=-42.0,-135.0,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+15.105 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-610.0,-572.0,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+15.105 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-705.0,-572.0,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+15.105 material-image-pattern-regions=5
+15.106 production-titlebars=1
+16.104 close-error-report
+16.285 exit-ghost=SNAPSHOT
+17.206 switch-light-and-products
+17.670 route=products-wb reduced=false
+19.005 inspect-light-workspace-material
+19.006 material-node=BorderPane id= image=960x600 imageIdentity=1814511161 error=false sample=-0.0,-0.0,1440.0,900.0 proportional=false lastPaint=ImagePattern tintAlpha=-1.0 regionOpacity=1.0
+19.006 material-node=VBox id=sidebarRoot image=960x600 imageIdentity=1751315644 error=false sample=-8.0,-8.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5519999861717224 regionOpacity=1.0
+19.006 material-node=HBox id=headerRoot image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-8.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5519999861717224 regionOpacity=1.0
+19.006 material-node=ComboBox id=shopComboBox image=960x600 imageIdentity=1751315644 error=false sample=-232.0,-16.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+19.006 material-node=MenuButton id=manageShopButton image=960x600 imageIdentity=1751315644 error=false sample=-460.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.006 material-node=Button id=deleteShopButton image=960x600 imageIdentity=1751315644 error=false sample=-559.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.006 material-node=Button id=searchActionsButton image=960x600 imageIdentity=1751315644 error=false sample=-1132.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.006 material-node=Button id=themeButton image=960x600 imageIdentity=1751315644 error=false sample=-1302.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.006 material-node=Button id=syncButton image=960x600 imageIdentity=1751315644 error=false sample=-1344.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.006 material-node=MenuButton id=moreButton image=960x600 imageIdentity=1751315644 error=false sample=-1386.0,-17.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.006 material-node=Button id=motionReportTrigger image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-858.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.006 material-node=Button id=sidebarToggleButton image=960x600 imageIdentity=1751315644 error=false sample=-146.0,-28.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.006 material-node=SplitMenuButton id=settingsMenuButton image=960x600 imageIdentity=1751315644 error=false sample=-18.0,-816.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.007 material-node=ProductsPane id=productsPane image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-68.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+19.007 material-node=ProductActionBar id=productBulkActions image=960x600 imageIdentity=1751315644 error=false sample=-241.0,-780.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+19.007 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1135.0,-93.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=Button id=productSync image=960x600 imageIdentity=1751315644 error=false sample=-1311.0,-93.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=TextField id=productSearch image=960x600 imageIdentity=1751315644 error=false sample=-358.0,-141.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+19.007 material-node=ComboBox id=productCategoryFilter image=960x600 imageIdentity=1751315644 error=false sample=-743.0,-141.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+19.007 material-node=ComboBox id=productDocumentFilter image=960x600 imageIdentity=1751315644 error=false sample=-887.0,-141.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+19.007 material-node=ToggleButton id=productIssue_INVALID_TNVED image=960x600 imageIdentity=1751315644 error=false sample=-308.0,-185.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=ToggleButton id=productIssue_MISSING_BRAND image=960x600 imageIdentity=1751315644 error=false sample=-499.0,-185.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=ToggleButton id=productIssue_MISSING_MATERIAL image=960x600 imageIdentity=1751315644 error=false sample=-665.0,-185.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=ListView id=productRows image=960x600 imageIdentity=1751315644 error=false sample=-241.0,-247.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+19.007 material-node=Button id=productClearSelection image=960x600 imageIdentity=1751315644 error=false sample=-1379.0,-795.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+19.007 material-node=Button id=productEdit_brand image=960x600 imageIdentity=1751315644 error=false sample=-386.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=Button id=productEdit_material image=960x600 imageIdentity=1751315644 error=false sample=-537.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=Button id=productEdit_gender image=960x600 imageIdentity=1751315644 error=false sample=-667.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=Button id=productEdit_tnved image=960x600 imageIdentity=1751315644 error=false sample=-793.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.007 material-node=Button id=productEdit_documents image=960x600 imageIdentity=1751315644 error=false sample=-919.447265625,-794.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+19.008 material-image-pattern-regions=30
+20.205 open-real-context-drawer
+22.105 close-context-drawer
+23.146 seed-synthetic-full-gs1-report
+23.304 seeded-synthetic-full-gs1=24
+23.305 open-light-real-gs1-report
+24.403 inspect-light-gs1-material
+24.404 window-style=TRANSPARENT scene-fill=0x00000000
+24.404 material-node=DialogPane id= image=960x600 imageIdentity=1751315644 error=false sample=-294.6128845214844,-135.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+24.404 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1136.8638916015625,-152.11119079589844,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+24.404 material-node=TableView id=gs1SyncReportSources image=960x600 imageIdentity=1751315644 error=false sample=-338.34149169921875,-285.1982727050781,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+24.404 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1082.678466796875,-679.7063598632812,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+24.404 material-node=ComboBox id= image=960x600 imageIdentity=1751315644 error=false sample=-338.34149169921875,-207.2472686767578,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+24.404 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1025.64111328125,-207.2472686767578,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+24.404 material-image-pattern-regions=6
+24.404 production-titlebars=1
+24.405 table-clip=Rectangle rows=24 arc=36.0
+25.405 close-light-gs1-report
+26.405 open-light-real-registration-report
+27.311 inspect-light-registration-material
+27.316 window-style=TRANSPARENT scene-fill=0x00000000
+27.317 material-node=DialogPane id= image=960x600 imageIdentity=1751315644 error=false sample=-193.51771545410156,-120.94857025146484,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+27.318 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1191.1634521484375,-138.11647033691406,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+27.318 material-node=TableView id=registrationSyncReportItems image=960x600 imageIdentity=1751315644 error=false sample=-233.57614135742188,-294.5351257324219,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+27.318 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1136.7984619140625,-724.6864013671875,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+27.318 material-node=ComboBox id= image=960x600 imageIdentity=1751315644 error=false sample=-233.57614135742188,-185.80508422851562,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+27.318 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-861.1582641601562,-186.75885009765625,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+27.318 material-node=TextField id=registrationSyncReportSearch image=960x600 imageIdentity=1751315644 error=false sample=-233.57614135742188,-227.77105712890625,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+27.318 material-node=ComboBox id=registrationSyncReportState image=960x600 imageIdentity=1751315644 error=false sample=-670.4038696289062,-227.77105712890625,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+27.319 material-node=Button id=registrationSyncReportExport image=960x600 imageIdentity=1751315644 error=false sample=-840.17529296875,-228.72483825683594,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+27.319 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-233.57614135742188,-674.136474609375,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+27.319 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-276.49591064453125,-674.136474609375,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+27.319 material-image-pattern-regions=11
+27.321 production-titlebars=1
+27.321 table-clip=Rectangle rows=0 arc=36.0
+28.507 close-light-registration-report
+28.519 exit-ghost=SILHOUETTE
+29.610 open-light-real-error-report
+30.507 inspect-light-error-material
+30.507 window-style=TRANSPARENT scene-fill=0x00000000
+30.507 material-node=DialogPane id= image=960x600 imageIdentity=1751315644 error=false sample=-6.96557776791451E-7,-3.115110018825362E-7,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+30.507 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-762.0,-17.999998092651367,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+30.507 material-node=TextArea id= image=960x600 imageIdentity=1751315644 error=false sample=-42.0,-135.0,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+30.507 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-610.0,-572.0,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+30.507 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-705.0,-572.0,820.0,629.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+30.508 material-image-pattern-regions=5
+30.508 production-titlebars=1
+31.607 close-light-error-report
+31.763 exit-ghost=SNAPSHOT
+32.407 open-native-control-probe16
+33.440 inspect-control-probe16
+33.440 window-style=TRANSPARENT scene-fill=0x00000000
+33.440 material-node=DialogPane id= image=960x600 imageIdentity=1751315644 error=false sample=-178.0,-100.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+33.440 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1204.0,-118.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+33.440 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1147.0,-743.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+33.440 material-node=Button id=nativeProbe0 image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+33.440 material-node=MenuButton id=nativeProbe1 image=960x600 imageIdentity=1751315644 error=false sample=-723.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+33.440 material-node=TextField id=nativeProbe2 image=960x600 imageIdentity=1751315644 error=false sample=-892.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+33.440 material-node=PasswordField id=nativeProbe3 image=960x600 imageIdentity=1751315644 error=false sample=-1061.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+33.440 material-node=TextArea id=nativeProbe4 image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+33.440 material-node=ComboBox id=nativeProbe5 image=960x600 imageIdentity=1751315644 error=false sample=-723.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+33.440 material-node=ChoiceBox id=nativeProbe6 image=960x600 imageIdentity=1751315644 error=false sample=-892.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+33.440 material-node=DatePicker id=nativeProbe7 image=960x600 imageIdentity=1751315644 error=false sample=-1061.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+33.440 material-node=Spinner id=nativeProbe8 image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+33.440 material-node=ListView id=nativeProbe9 image=960x600 imageIdentity=1751315644 error=false sample=-723.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+33.440 material-node=TreeView id=nativeProbe10 image=960x600 imageIdentity=1751315644 error=false sample=-892.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+33.440 material-node=TableView id=nativeProbe11 image=960x600 imageIdentity=1751315644 error=false sample=-1061.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+33.440 material-node=TreeTableView id=nativeProbe12 image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+33.440 material-node=TitledPane id=nativeProbe13 image=960x600 imageIdentity=1751315644 error=false sample=-723.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+33.440 material-node=ToolBar id=nativeProbe14 image=960x600 imageIdentity=1751315644 error=false sample=-892.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+33.440 material-node=VBox id=nativeProbe15 image=960x600 imageIdentity=1751315644 error=false sample=-1061.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+33.440 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-900.0,-653.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+33.441 material-image-pattern-regions=20
+33.441 production-titlebars=1
+33.441 table-clip=Rectangle rows=2 arc=36.0
+33.607 resize-native-control-probe
+34.707 inspect-probe-resize
+34.708 resizable-probe-width-delta=54.0
+34.708 window-style=TRANSPARENT scene-fill=0x00000000
+34.708 material-node=DialogPane id= image=960x600 imageIdentity=1751315644 error=false sample=-178.0,-100.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+34.708 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1258.0,-118.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+34.708 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-1201.0,-743.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+34.708 material-node=Button id=nativeProbe0 image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+34.708 material-node=MenuButton id=nativeProbe1 image=960x600 imageIdentity=1751315644 error=false sample=-736.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+34.708 material-node=TextField id=nativeProbe2 image=960x600 imageIdentity=1751315644 error=false sample=-918.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+34.708 material-node=PasswordField id=nativeProbe3 image=960x600 imageIdentity=1751315644 error=false sample=-1101.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+34.708 material-node=TextArea id=nativeProbe4 image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+34.708 material-node=ComboBox id=nativeProbe5 image=960x600 imageIdentity=1751315644 error=false sample=-736.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+34.708 material-node=ChoiceBox id=nativeProbe6 image=960x600 imageIdentity=1751315644 error=false sample=-918.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+34.708 material-node=DatePicker id=nativeProbe7 image=960x600 imageIdentity=1751315644 error=false sample=-1101.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+34.708 material-node=Spinner id=nativeProbe8 image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+34.708 material-node=ListView id=nativeProbe9 image=960x600 imageIdentity=1751315644 error=false sample=-736.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+34.708 material-node=TreeView id=nativeProbe10 image=960x600 imageIdentity=1751315644 error=false sample=-918.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+34.708 material-node=TableView id=nativeProbe11 image=960x600 imageIdentity=1751315644 error=false sample=-1101.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+34.708 material-node=TreeTableView id=nativeProbe12 image=960x600 imageIdentity=1751315644 error=false sample=-220.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+34.708 material-node=TitledPane id=nativeProbe13 image=960x600 imageIdentity=1751315644 error=false sample=-736.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+34.708 material-node=ToolBar id=nativeProbe14 image=960x600 imageIdentity=1751315644 error=false sample=-918.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+34.708 material-node=VBox id=nativeProbe15 image=960x600 imageIdentity=1751315644 error=false sample=-1101.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+34.708 material-node=Button id= image=960x600 imageIdentity=1751315644 error=false sample=-926.0,-653.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+34.708 material-image-pattern-regions=20
+34.708 production-titlebars=1
+34.708 table-clip=Rectangle rows=2 arc=36.0
+35.008 switch-control-probe-dark
+36.308 inspect-dark-control-probe16
+36.308 window-style=TRANSPARENT scene-fill=0x00000000
+36.308 material-node=DialogPane id= image=960x600 imageIdentity=543759075 error=false sample=-178.0,-100.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.5770000219345093 regionOpacity=1.0
+36.308 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-1258.0,-118.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+36.308 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-1201.0,-743.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+36.308 material-node=Button id=nativeProbe0 image=960x600 imageIdentity=543759075 error=false sample=-220.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+36.308 material-node=MenuButton id=nativeProbe1 image=960x600 imageIdentity=543759075 error=false sample=-736.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+36.308 material-node=TextField id=nativeProbe2 image=960x600 imageIdentity=543759075 error=false sample=-918.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+36.308 material-node=PasswordField id=nativeProbe3 image=960x600 imageIdentity=543759075 error=false sample=-1101.0,-190.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+36.308 material-node=TextArea id=nativeProbe4 image=960x600 imageIdentity=543759075 error=false sample=-220.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+36.308 material-node=ComboBox id=nativeProbe5 image=960x600 imageIdentity=543759075 error=false sample=-736.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+36.308 material-node=ChoiceBox id=nativeProbe6 image=960x600 imageIdentity=543759075 error=false sample=-918.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+36.308 material-node=DatePicker id=nativeProbe7 image=960x600 imageIdentity=543759075 error=false sample=-1101.0,-332.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+36.308 material-node=Spinner id=nativeProbe8 image=960x600 imageIdentity=543759075 error=false sample=-220.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+36.308 material-node=ListView id=nativeProbe9 image=960x600 imageIdentity=543759075 error=false sample=-736.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+36.308 material-node=TreeView id=nativeProbe10 image=960x600 imageIdentity=543759075 error=false sample=-918.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+36.308 material-node=TableView id=nativeProbe11 image=960x600 imageIdentity=543759075 error=false sample=-1101.0,-474.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+36.308 material-node=TreeTableView id=nativeProbe12 image=960x600 imageIdentity=543759075 error=false sample=-220.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+36.308 material-node=TitledPane id=nativeProbe13 image=960x600 imageIdentity=543759075 error=false sample=-736.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+36.308 material-node=ToolBar id=nativeProbe14 image=960x600 imageIdentity=543759075 error=false sample=-918.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+36.308 material-node=VBox id=nativeProbe15 image=960x600 imageIdentity=543759075 error=false sample=-1101.0,-615.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+36.308 material-node=Button id= image=960x600 imageIdentity=543759075 error=false sample=-926.0,-653.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+36.308 material-image-pattern-regions=20
+36.309 production-titlebars=1
+36.309 table-clip=Rectangle rows=2 arc=36.0
+37.008 close-native-control-probe
+37.810 show-real-appearance
+38.096 route=settings reduced=false
+39.108 inspect-settings-no-outer-frame
+39.109 settings-outer-opaque=false
+39.109 settings-section-count=2
+39.109 material-node=VBox id= image=960x600 imageIdentity=1751315644 error=false sample=-241.0,-163.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+39.109 material-node=VBox id= image=960x600 imageIdentity=1751315644 error=false sample=-241.0,-598.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.718999981880188 regionOpacity=1.0
+39.109 material-node=ComboBox id=appearanceLanguage image=960x600 imageIdentity=1751315644 error=false sample=-257.0,-538.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.7789999842643738 regionOpacity=1.0
+39.109 material-node=Button id=appearanceTranslationSettings image=960x600 imageIdentity=1751315644 error=false sample=-257.0,-655.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+39.109 material-node=Button id=appearanceCheckUpdate image=960x600 imageIdentity=1751315644 error=false sample=-426.0,-655.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+39.109 material-node=Button id=appearanceAbout image=960x600 imageIdentity=1751315644 error=false sample=-574.0,-655.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+39.109 material-node=Button id=appearancePrinterSettings image=960x600 imageIdentity=1751315644 error=false sample=-664.0,-655.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+39.109 material-node=Button id=appearanceAccount image=960x600 imageIdentity=1751315644 error=false sample=-784.0,-655.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+39.109 material-node=ToggleButton id=appearanceThemeLight image=960x600 imageIdentity=1751315644 error=false sample=-257.0,-246.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=1.0 regionOpacity=1.0
+39.109 material-node=ToggleButton id=appearanceThemeDark image=960x600 imageIdentity=1751315644 error=false sample=-321.0,-246.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+39.109 material-node=ToggleButton id=appearanceThemeSystem image=960x600 imageIdentity=1751315644 error=false sample=-373.0,-246.0,1440.0,900.0 proportional=false lastPaint=Color tintAlpha=0.6990000009536743 regionOpacity=1.0
+39.109 material-image-pattern-regions=11
+40.008 enable-reduced-motion
+41.108 navigate-reduced
+41.117 route=ozon reduced=true
+42.808 finish
+42.808 material-shared-images-observed=4
+42.809 licenseCalls=0

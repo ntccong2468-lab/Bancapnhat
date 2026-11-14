@@ -1,0 +1,22 @@
+{
+  "status": "PASS_ROOT_INDEPENDENT_PREVIEW_BYTES",
+  "observedAtUtc": "2026-11-14T21:50:14.058916+00:00",
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "manifestItems": 105,
+  "totalFilesEachTreeAndZip": 107,
+  "docsAndArtifactsEqualFrozenSource": true,
+  "zipCrcAndEveryOriginalBytePass": true,
+  "compactOriginalPngs": 16,
+  "compactOriginalVideos": 1,
+  "lossyConversion": false,
+  "manualRootReview": [
+    "pages/page-finance-light.png",
+    "pages/page-fbo-packing-dark.png",
+    "pages/page-products-wb-dark.png",
+    "pages/page-designer-dark.png",
+    "screenshots/appearance-settings.png",
+    "screenshots/registration-dark.png"
+  ],
+  "notInstallerOrSellerAcceptance": true,
+  "rootVerifierCorrection": "Initial suffix-only ZIP matching was ambiguous for root/static-fixture NativeMotionVideo.java; corrected to exact mandatory root prefix+relative paths. No payload changed."
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "id": 14131508814,
+    "name": "codeql-java-kotlin",
+    "bytes": 172592,
+    "sha256": "449bbdbf3d9e53d30df441a7a310c85706734b26fde9add856c83bf6d5667da2",
+    "apiDigestMatches": true,
+    "apiSizeMatches": true,
+    "zipCrcPass": true,
+    "sarifMembers": [
+      "java.sarif"
+    ],
+    "postDownloadMetadataMatches": true
+  },
+  {
+    "id": 14130623864,
+    "name": "codeql-javascript-typescript",
+    "bytes": 133412,
+    "sha256": "8bf34499da086c8672c94234992fb8f93b30f9617e5ea56af1da22ef85159149",
+    "apiDigestMatches": true,
+    "apiSizeMatches": true,
+    "zipCrcPass": true,
+    "sarifMembers": [
+      "javascript.sarif"
+    ],
+    "postDownloadMetadataMatches": true
+  }
+]

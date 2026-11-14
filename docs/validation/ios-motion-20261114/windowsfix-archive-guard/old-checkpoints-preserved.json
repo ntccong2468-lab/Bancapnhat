@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "checkedAtUtc": "2026-11-14T21:16:28.900577+00:00",
+  "oldDeliveredArchives": [
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-20261114.zip",
+      "bytes": 41509481,
+      "sha256": "1630458672f9be335c09f8f3a624c5ec844139ce1cdc4510fccbb304877d5e4c"
+    },
+    {
+      "path": "/workspace/artifacts/VN-code-1.6.10-source-floating-glass-20261114.zip",
+      "bytes": 66084558,
+      "sha256": "15ab17ed6c867ff81aebe15773bdf403ece2420b8a4b616eec3f407e72a1defb"
+    }
+  ],
+  "historicalGuards": [
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/archive-guard/verify-source-zip.py",
+      "sha256": "9db8a652b318323a45664c984c90bef76e99dfaa72c0a12782e93eb84fda2acf",
+      "historicalCode": "3c4783187a383f612f9a3668dc262188a51bc860"
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/archive-guard-focus/verify-source-zip.py",
+      "sha256": "f83b61f564f258645fe5421ff0cd786734b315f987a52019460550c5bf5ebd03",
+      "historicalCode": "3ce0a0ab35089078da480f93a4dddf3adc880da6"
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/archive-guard-dynamic/verify-source-zip.py",
+      "sha256": "34014891377287253006f68d51ffec4deda2e0d7cef540524cd36bab236fff1f",
+      "historicalCode": "43b82cca683b29e783a33df995afd675a76aa0dd"
+    },
+    {
+      "path": "/tmp/vncode-ios-floating-20261114/archive-guard-windowsfix/verify-source-zip.py",
+      "sha256": "16049b449f76c1d47d55c96edcd895fa54389e64ea1a6ee622b45bf3f0f16209",
+      "historicalCode": "f3e98725ee2892abf225cb66978ed9302fd49489"
+    }
+  ],
+  "allUnchanged": true
+}

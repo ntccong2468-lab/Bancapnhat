@@ -1,0 +1,3696 @@
+[
+  {
+    "reference": "1.6.9",
+    "language": "java-kotlin",
+    "new": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/diagnostics/successfully-extracted-files",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/features/gtinsync/OzonExactVariantIdentity.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/diagnostics/successfully-extracted-files",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/diagnostics/successfully-extracted-files",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceDialogChrome.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/diagnostics/successfully-extracted-files",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/diagnostics/successfully-extracted-files",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceRoundedControlClip.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/ui/kizmapping/KizSigningResumePresentationTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/static-fixture/NativeMotionVideo.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/NativeMotionVideo.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceRoundedControlClip.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tools/diagnostics/WindowsMotionPreferenceProbe.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceRoundedControlClipTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/features/gtinsync/OzonExactVariantIdentityTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/ui/workspace/HomeControllerPageTransitionTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceAllSurfaceGlassTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceDialogChromeTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceInteractionMotionTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/ozon/OzonExactGtinAdapterTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceRouteContinuityTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/ui/products/ProductColumnHierarchyTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnosticsTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceDialogChrome.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/features/gtinsync/OzonExactProofBatchTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/znack/ZnackErrorMessagesTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/features/gtinsync/OzonExactCatalogIndexTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/Installed168UpdateProbe.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceBackdropMaterialTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceGlobalMotionContractTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/znack/registration/OzonExactVariantProofTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-ui-audit-20261114/UiAuditCaptureRunner.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/ThemeDialogBackingTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/znack/ZnackSigningRecoveryTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/features/gtinsync/OzonExactVariantIdentity.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/kiz-source-20261114/tools/verify-source-zip.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/collect-build.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ozon-exact-20261114/archiveguardnew-test-source-zip-helper.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/archive-guard/actual-negative-controls.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/verify-source-zip.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/compare_sarif.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/verify-package.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/kiz-source-20261114/tools/test-source-zip-helper.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/collect-public.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/build_security_summary.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/archive-guard/test-source-zip-helper.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/verify-final-docs-only.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ozon-exact-20261114/run-related.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ozon-exact-20261114/verify-source-zip.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/verify-public.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ozon-exact-20261114/collect-related.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/run-probe.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:52.569Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:56.651Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/extractor/summary",
+          "kind": "toolExecutionNotifications",
+          "level": "note",
+          "message": {
+            "markdown": "Internal telemetry for the Java extractor. No action needed.",
+            "text": "Internal telemetry for the Java extractor. No action needed."
+          },
+          "properties": {
+            "attributes": {
+              "java_vendor": "Oracle Corporation",
+              "java_version": "25.0.5.0.3"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:13:38.027553118Z"
+        }
+      }
+    ],
+    "removed": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-12T00:59:43.519Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/extractor/summary",
+          "kind": "toolExecutionNotifications",
+          "level": "note",
+          "message": {
+            "markdown": "Internal telemetry for the Java extractor. No action needed.",
+            "text": "Internal telemetry for the Java extractor. No action needed."
+          },
+          "properties": {
+            "attributes": {
+              "java_vendor": "Oracle Corporation",
+              "java_version": "25.0.5.0.3"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-12T01:00:47.645567844Z"
+        }
+      }
+    ]
+  },
+  {
+    "reference": "1.6.9",
+    "language": "javascript-typescript",
+    "new": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "js/diagnostics/successfully-extracted-files",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/index.html",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "js/diagnostics/successfully-extracted-files",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-ui-audit-20261114/comparison/index.html",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/ui/kizmapping/KizSigningResumePresentationTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/static-fixture/NativeMotionVideo.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/NativeMotionVideo.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceRoundedControlClip.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceMaterialRenderingTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tools/diagnostics/WindowsMotionPreferenceProbe.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceRoundedControlClipTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/features/gtinsync/OzonExactVariantIdentityTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/ui/workspace/HomeControllerPageTransitionTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceAllSurfaceGlassTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceDialogChromeTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceInteractionMotionTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/ozon/OzonExactGtinAdapterTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceRouteContinuityTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/ui/products/ProductColumnHierarchyTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnosticsTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/shared/WorkspaceDialogChrome.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/features/gtinsync/OzonExactProofBatchTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/znack/ZnackErrorMessagesTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/features/gtinsync/OzonExactCatalogIndexTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/Installed168UpdateProbe.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceBackdropMaterialTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/WorkspaceGlobalMotionContractTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/znack/registration/OzonExactVariantProofTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-ui-audit-20261114/UiAuditCaptureRunner.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/shared/ThemeDialogBackingTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/test/java/com/vncode/app/integration/znack/ZnackSigningRecoveryTest.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/main/java/com/vncode/app/features/gtinsync/OzonExactVariantIdentity.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/kiz-source-20261114/tools/verify-source-zip.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/collect-build.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ozon-exact-20261114/archiveguardnew-test-source-zip-helper.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/archive-guard/actual-negative-controls.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/verify-source-zip.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/compare_sarif.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/verify-package.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/kiz-source-20261114/tools/test-source-zip-helper.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/collect-public.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/build_security_summary.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/archive-guard/test-source-zip-helper.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/verify-final-docs-only.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ozon-exact-20261114/run-related.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ozon-exact-20261114/verify-source-zip.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/verify-public.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ozon-exact-20261114/collect-related.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/vncode-169-20261112/tools/run-probe.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:40.393Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:46.006Z"
+        }
+      }
+    ],
+    "removed": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-12T00:59:42.400Z"
+        }
+      }
+    ]
+  },
+  {
+    "reference": "f3e",
+    "language": "java-kotlin",
+    "new": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:52.569Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:56.651Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/extractor/summary",
+          "kind": "toolExecutionNotifications",
+          "level": "note",
+          "message": {
+            "markdown": "Internal telemetry for the Java extractor. No action needed.",
+            "text": "Internal telemetry for the Java extractor. No action needed."
+          },
+          "properties": {
+            "attributes": {
+              "java_vendor": "Oracle Corporation",
+              "java_version": "25.0.5.0.3"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:13:38.027553118Z"
+        }
+      }
+    ],
+    "removed": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T20:48:49.504Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T20:48:55.327Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/extractor/summary",
+          "kind": "toolExecutionNotifications",
+          "level": "note",
+          "message": {
+            "markdown": "Internal telemetry for the Java extractor. No action needed.",
+            "text": "Internal telemetry for the Java extractor. No action needed."
+          },
+          "properties": {
+            "attributes": {
+              "java_vendor": "Oracle Corporation",
+              "java_version": "25.0.5.0.3"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T20:49:46.015355614Z"
+        }
+      }
+    ]
+  },
+  {
+    "reference": "f3e",
+    "language": "javascript-typescript",
+    "new": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:40.393Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:46.006Z"
+        }
+      }
+    ],
+    "removed": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T20:48:38.611Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T20:48:45.323Z"
+        }
+      }
+    ]
+  },
+  {
+    "reference": "43b",
+    "language": "java-kotlin",
+    "new": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/static-fixture/NativeMotionVideo.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/NativeMotionVideo.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tools/diagnostics/WindowsMotionPreferenceProbe.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/archive-guard/actual-negative-controls.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/verify-source-zip.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/archive-guard/test-source-zip-helper.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/verify-final-docs-only.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:52.569Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:56.651Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/extractor/summary",
+          "kind": "toolExecutionNotifications",
+          "level": "note",
+          "message": {
+            "markdown": "Internal telemetry for the Java extractor. No action needed.",
+            "text": "Internal telemetry for the Java extractor. No action needed."
+          },
+          "properties": {
+            "attributes": {
+              "java_vendor": "Oracle Corporation",
+              "java_version": "25.0.5.0.3"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:13:38.027553118Z"
+        }
+      }
+    ],
+    "removed": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T18:18:09.749Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T18:18:15.578Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "java/extractor/summary",
+          "kind": "toolExecutionNotifications",
+          "level": "note",
+          "message": {
+            "markdown": "Internal telemetry for the Java extractor. No action needed.",
+            "text": "Internal telemetry for the Java extractor. No action needed."
+          },
+          "properties": {
+            "attributes": {
+              "java_vendor": "Oracle Corporation",
+              "java_version": "25.0.5.0.3"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T18:19:03.132142903Z"
+        }
+      }
+    ]
+  },
+  {
+    "reference": "43b",
+    "language": "javascript-typescript",
+    "new": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "js/diagnostics/successfully-extracted-files",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/index.html",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/static-fixture/NativeMotionVideo.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/native-evidence/NativeMotionVideo.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/java",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "tools/diagnostics/WindowsMotionPreferenceProbe.java",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/archive-guard/actual-negative-controls.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/verify-source-zip.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/archive-guard/test-source-zip-helper.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "cli/expected-extracted-files/python",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "docs/validation/ios-motion-20261114/verify-final-docs-only.py",
+                  "uriBaseId": "%SRCROOT%"
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "formattedMessage": {
+              "text": ""
+            }
+          }
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:40.393Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T21:12:46.006Z"
+        }
+      }
+    ],
+    "removed": [
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/toolcache-bundle-cleanup",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "deletedVersions": [
+                "2.27.4"
+              ],
+              "failed": false
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T18:18:06.873Z"
+        }
+      },
+      {
+        "multiplicity": 1,
+        "record": {
+          "descriptorId": "codeql-action/overlay-disabled",
+          "kind": "toolExecutionNotifications",
+          "level": "none",
+          "message": {
+            "text": ""
+          },
+          "properties": {
+            "attributes": {
+              "reason": "overall-feature-not-enabled"
+            },
+            "visibility": {
+              "statusPage": false,
+              "telemetry": true
+            }
+          },
+          "timeUtc": "2026-11-14T18:18:11.035Z"
+        }
+      }
+    ]
+  }
+]

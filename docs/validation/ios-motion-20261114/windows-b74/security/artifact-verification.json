@@ -1,0 +1,48 @@
+[
+  {
+    "id": 14132317600,
+    "name": "codeql-javascript-typescript",
+    "bytes": 133414,
+    "sha256": "65fdbaf3838d41db95ea44cb057d41cd81e8eb295ee2e7b3889338da6fe48329",
+    "apiDigestMatches": true,
+    "apiSizeMatches": true,
+    "zipCrcPass": true,
+    "sarifMembers": [
+      "javascript.sarif"
+    ],
+    "postDownloadMetadataMatches": true,
+    "stableMetadataFields": [
+      "id",
+      "name",
+      "digest",
+      "size_in_bytes",
+      "expired",
+      "created_at",
+      "updated_at",
+      "workflow_run"
+    ]
+  },
+  {
+    "id": 14132023560,
+    "name": "codeql-java-kotlin",
+    "bytes": 171464,
+    "sha256": "0b09d0e1e35cf664d1bbf0fe4e2e014b75ba9452f55687b96877231b92319ed1",
+    "apiDigestMatches": true,
+    "apiSizeMatches": true,
+    "zipCrcPass": true,
+    "sarifMembers": [
+      "java.sarif"
+    ],
+    "postDownloadMetadataMatches": true,
+    "stableMetadataFields": [
+      "id",
+      "name",
+      "digest",
+      "size_in_bytes",
+      "expired",
+      "created_at",
+      "updated_at",
+      "workflow_run"
+    ]
+  }
+]

@@ -1,79 +1,73 @@
-# VN Code 1.6.10 — kính nổi cho toàn bộ phần bên trong
+# VN Code 1.6.10 — kính nổi và bản sửa Windows
 
-Nguồn runtime/test/CI hiện hành: **`43b82cca683b29e783a33df995afd675a76aa0dd`**, nhánh `release/vn-code-1.6.10`, kế thừa nghiệp vụ `a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3`. Người dùng đã yêu cầu đóng gói và phát hành 1.6.10 lên Latest. Tại checkpoint bàn giao này, bộ cài còn đang kiểm Windows; chưa có kết quả công bố.
+Nguồn app/test/CI hiện hành: **`b74b5edfd46636e8779c94f467eef01c03c50a14`**, nhánh `release/vn-code-1.6.10`. Người dùng đã cho phép tạo bộ cài và phát hành lên Latest. Tại checkpoint tài liệu này, full Windows **43641520595** đang chạy; chưa có bộ cài hay Latest 1.6.10 được nghiệm thu. [Lượt Windows hiện hành](https://github.com/ntccong2468-lab/Bancapnhat/actions/runs/43641520595).
 
-## Những gì đã thay đổi
+## Phạm vi đã gộp
 
-Yêu cầu mới thay thế hướng giữ vùng làm việc nền đục trước đó: kính nổi áp dụng bên trong trang, panel, bảng/danh sách, ô nhập, nút, menu, Cài đặt và báo cáo. Dùng Taste và Impeccable theo brief Apple đã duyệt; giữ hai nền, vùng làm việc lớn và chức năng nghiệp vụ.
+- Kính nổi áp dụng trong trang, panel, bảng/danh sách, ô nhập, nút, menu, Cài đặt và báo cáo của cả nền tối/sáng. Material lấy từ wallpaper app, giữ chữ và dữ liệu rõ, không blur nội dung sản phẩm/đơn hoặc chụp desktop. Bảng dùng một lớp dưới hàng trong suốt, giữ virtualization và clip bo góc; không tạo blur/image cho từng hàng.
+- Báo cáo app dùng Scene trong suốt và khung bo/titlebar riêng; Cài đặt bỏ card đục lớn bao màn. Giữ DialogPane, kết quả, owner, modality, close veto và showAndWait; không đổi cửa sổ OS/CryptoPro/FileChooser. Canvas, giấy trắng và dữ liệu in giữ nguyên.
+- Chuyển cảnh và phản hồi nhấn/thả/keyboard dùng chung cho trang, mục con, tab, menu, popup và báo cáo. Nội dung hoạt động ngay; không consume/refire hoặc gọi handler lặp. Nhập liệu, thanh cuộn và canvas giữ hình học thao tác. Giảm chuyển động tiếp tục theo lựa chọn app **hoặc** cài đặt trợ năng OS.
+- Sản phẩm chia cột rõ, footer/tiến độ không che hàng. Sửa focus phủ xanh và trang mới thiếu kính khi material được cài trước khi nội dung ScrollPane gắn vào Scene.
+- Bỏ viền vuông thừa còn lại ở bảng Tài chính và FBO: control nằm trong workspace-sheet dùng một lớp material ở inset0, giữ vạch phân cách header/hàng và khung bo của sheet. Bảng độc lập, bố cục, nền caller và giấy trắng không đổi.
+- Sửa quyền nền caller bị mất sau CSS/đổi theme/dựng lại helper: lưu riêng cờ Boolean theo Region. Không giữ Scene/controller/global map. Nền inline, bound hoặc do caller sở hữu vẫn được giữ sau tháo/gắn, ẩn/hiện và đổi theme.
 
-- Các panel, trường nhập, nút thông thường, combo/date/spinner, bảng/danh sách/cây, toolbar, popup và báo cáo dùng material từ wallpaper app, ánh sáng cạnh và độ nổi phù hợp. Chữ, biểu tượng, focus, lựa chọn và trạng thái vẫn rõ; không giảm opacity cả cửa sổ hoặc blur dữ liệu sản phẩm/đơn.
-- Bảng dùng một lớp kính chung dưới các hàng trong suốt; giữ virtualization, không tạo ảnh/blur cho từng hàng. Clip bo ngăn hàng/header tràn ra góc, có cleanup và tôn trọng clip/binding của bên gọi. Sheet/dialog bao quanh cung cấp bóng nổi vì clip cả Control cũng cắt bóng của chính Control đó.
-- Cài đặt bỏ card đục lớn bao toàn màn; từng nhóm là khối kính nổi có khoảng đệm. Ô nhập bên trong DatePicker/Spinner/ComboBox không chồng nền đặc. Wrapper vốn trong suốt không bị biến thành khung kính vuông mới.
-- Vùng ngoài trình thiết kế nhãn dùng kính; giấy trắng, canvas, thước và nội dung tài liệu in giữ nguyên. Hint thiết lập đã đổi đủ bốn ngôn ngữ; tắt kính có nền đặc dự phòng. Trạng thái chính/semantic, lựa chọn, disabled hoặc paint do caller sở hữu có thể giữ nền đặc khi cần.
-- Dialog app đăng ký trước show dùng StageStyle.TRANSPARENT, Scene trong suốt và khung bo có chỗ cho bóng. Titlebar riêng hỗ trợ đóng/kéo/đổi kích thước ở dialog cho phép resize. Giữ DialogPane, nội dung, nút, kết quả, close veto, owner, modality và showAndWait; không đổi cửa sổ hệ thống/CryptoPro/FileChooser.
-- Bổ sung hook ở dialog đăng ký Znack, giấy tờ/thương hiệu/TN VED Ozon, hủy thẻ chờ, kho KIZ, FBO preflight, sao chép bài, license reset, cấu hình dịch và cảnh báo số dư. Trong 14 đoạn bổ sung cuối, token Java ngoài lời gọi theme/chrome được giữ nguyên.
-- Giữ chuyển cảnh theo quan hệ điều hướng và phản hồi nhấn/thả/keyboard cho mục, mục con, nút, tab, menu và hành động tạo động. Màn mới hoạt động ngay; không chờ animation. Không consume/refire sự kiện hoặc gọi lặp handler. Nhập liệu, thanh cuộn và canvas giữ hình học thao tác.
-- Theo dõi Scene/Stage/popup app; đóng thật trả kết quả và dọn tác vụ ngay, chỉ lớp hình thoát tạm không nhận input tiếp tục chuyển động. Đổi cửa hàng hủy ảnh cũ. Báo cáo có trường nhập/mật khẩu/canvas/WebView dùng silhouette, không chụp nội dung nhập; báo cáo chỉ đọc có ảnh đệm giới hạn. Giảm chuyển động hủy transform/lớp tạm ngay.
-- Sản phẩm chia bốn nhóm cột, thích ứng vùng hẹp, giữ ảnh/tìm/chọn và năm nút sửa. Tiến độ/footer đo riêng, không phủ hàng. Ở viewport 1200×720, vùng danh sách Sản phẩm cao 468px so WB 510px; ở 1480×900 là 648px so WB 690px, đạt assertion cũ mà không nới ngưỡng.
+Bốn raster 960×600 dùng chung cho hai theme và blur: **8,79 MiB pixel thô**, không phải tổng RAM app. Đây là material/motion JavaFX theo brief Apple đã duyệt, không phải UIKit hoặc chứng nhận giống iOS từng pixel. Taste và Impeccable được áp dụng theo brief của người dùng.
 
-## Hai lỗi tìm thấy trong lần nghiệm thu cuối
+## Giữ chức năng và chỉnh sửa trước UI
 
-**Focus làm chữ khó đọc trong frame cập nhật material.** InnerShadow phủ xanh cả trường nền alpha, giảm contrast xuống 2,25:1/3,06:1. Bỏ riêng InnerShadow, giữ viền focus và bóng nền. Một ca native mới tái hiện RED ở cả hai theme; lớp material sau sửa đạt 5/5, giữ nguyên bốn ca cũ và ngưỡng tương phản. Frame ổn định cũ có thể hồi phục sau deferred paint, nên đây không phải lỗi contrast vĩnh viễn.
+[Manifest hiện hành](source-preservation.json): 805 runtime, đủ 800 đường dẫn từ 1.6.9, 756 nguyên byte, 44 sửa, 5 thêm, **0 xóa**. So checkpoint nghiệp vụ trước UI `a86048ec57521bc4d32b0a27c86d2eb1ee70fcb3`: đủ 801 đường dẫn cũ, 773 nguyên byte, 28 tệp UI/theme/locale/caller sửa, 4 helper UI thêm, **603 Java ngoài ui/shared nguyên byte**. POM/dependency/schema/API wire không đổi trong phần UI. Kiểm kê byte không thay thế kiểm thử hành vi.
 
-**Trang mới thiếu kính ở chế độ Giảm chuyển động.** Scope quét nội dung logic ScrollPane trước khi native skin gắn nó vào Scene, rồi refresh bỏ Surface và listener vì Scene còn null. Trang không nhận lại kính đến khi đổi theme. Nguồn 43b giữ listener trong lúc chờ attachment, chỉ vẽ trong Scene sở hữu; vẫn dọn khi gỡ nội dung hoặc chuyển sang Scene khác. Hai ca native mới RED trên đúng nguồn 3ce rồi GREEN sau sửa; kiểm cùng Backdrop/AllSurface đạt 19/19. Lần mount cuối của cả 25 route được kiểm trước bất kỳ đổi theme nào. Không dùng thao tác đổi theme hoặc snapshot để che lỗi.
+Các phần đã sửa trước UI được giữ:
 
-## Material và bảo toàn chức năng
+- Tiếp tục đúng lô KIZ dừng chờ ký bằng hồ sơ/lô/cửa hàng gốc; không mua lại hay cấp quyền cho cửa hàng/lô khác. Không đánh dấu tải mã là đã lưu thông. [Báo cáo nguồn đầu và KIZ](../2026-11-14-kiz-source-repair.md).
+- Ghép Ozon bằng toàn bộ mã mẫu và size đúng biến thể, dùng chung đăng ký/GTIN/mua KIZ; xử lý reader và tránh tạo trùng khi bằng chứng hết hiệu lực. `152NAU` khớp không phân biệt hoa/thường/khoảng trắng, loại `B3152NAU` và `152NAUDASH`; 2XL/XXL/52 chỉ dùng alias có căn cứ đúng biến thể. [Báo cáo và giới hạn](../2026-11-14-ozon-exact-model-size.md).
+- Retheme popup dùng skin cũ; phân tích tĩnh WBCode 1.3.25 có bằng chứng, không thực thi/copy code độc quyền. [WBCode](../../research/wbcode-20261114/README.md).
+- Repo rút gọn/hồi quy đã nghiên cứu để người dùng duyệt: OpenRewrite/Spoon; ArchUnit+JaCoCo trước, PIT phạm vi hẹp sau. Chưa tự cài hoặc refactor diện rộng. [Đề xuất](../../research/2026-11-14-code-quality-proposals.md).
 
-BackgroundFill ImagePattern nằm dưới tint cuối, giữ radius/inset và quyền CSS/binding của bên gọi. Bốn raster 960×600 dùng chung cho hai theme và bản blur: **8,79 MiB pixel thô**, không phải tổng RAM app. Wallpaper không có dữ liệu seller; không chụp OS desktop, foreground hoặc mỗi frame animation. Không thêm JNI/FFM/dependency. Đây là material/motion JavaFX theo hướng Apple, không phải UIKit hay chứng nhận giống từng pixel iOS.
+## Lỗi Windows đã xác định và sửa
 
-So nguồn trước UI a860: đủ 801 đường dẫn cũ, **805 runtime tổng, 773 giữ byte, 28 tệp UI/theme/locale/caller sửa, 4 helper UI thêm, 0 xóa**. **603 tệp Java ngoài ui/shared giữ nguyên byte**, gồm nghiệp vụ/model/config/integration. POM/dependency/schema/API wire không đổi trong phần UI. So nền 1.6.9: đủ 800 đường dẫn cũ, 756 giữ byte, 44 sửa, 5 thêm, 0 xóa. [Manifest](source-preservation.json); kiểm kê byte không thay thế kiểm thử hành vi.
+Full Windows cũ **43625748501**, nguồn43b, **FAIL: 4.697 ca/585 suite, 1 failure +19 error, 2 skip**. Giữ [tổng JUnit thật](windows-f3e/failed-43b-actual-junit-summary.json); không dùng làm chứng nhận hoặc dự đoán tổng lượt mới.
 
-Gói kế thừa tiếp tục đúng lô KIZ chờ ký theo hồ sơ gốc/phạm vi cửa hàng; retheme popup dùng skin cũ; ghép Ozon theo toàn bộ mã mẫu và alias size đúng biến thể, dùng chung đăng ký/GTIN/liên kết KIZ; sửa reader và chống tạo trùng khi bằng chứng ghép hết hiệu lực. Không khôi phục cách đánh dấu tải mã là đã lưu thông.
+| Nhóm | Bằng chứng và sửa |
+| --- | --- |
+| 17 ca chuyển động | Windows Server worker tắt client-area animation; JavaFX công khai báo reducedMotion=true. App tôn trọng OS là đúng. Không sửa production để bỏ trợ năng. Chỉ chuẩn hóa tạm worker CI, probe JVM mới cả bật/tắt và luôn khôi phục OS ban đầu. |
+| Quyền nền caller | Tái hiện RED với CSS trước rescan; helper cũ quên quyền sở hữu khi dispose/rebuild. Sửa cờ Boolean theo Region, giữ nguyên 12 test cũ, thêm regression24dòng. Hai suite liên quan20/20 GREEN. [Receipt](windows-f3e/caller-background-red-green.json). |
+| Kề nhau ô shop/Quản lý | Body gap8px, shadow visual overlap3px. Fixture cũ so vùng shadow; sửa dùng layoutBounds, giữ ngưỡng0..20, kiểm âm overlap1px/gap21px. App/FXML không đổi vì phép đo này. |
+| Contrast native | Desktop Robot lấy trúng console Windows foreground, ratio1,279 đúng cặp màu console/chữ; Scene render đạt. Fixture đưa Stage thật lên trước, fit màn hình và xác nhận focus trước capture; giữ contrast4,5/focus3/opacity1, không retry để săn kết quả xanh. |
 
-Các yêu cầu trước có tài liệu riêng:
+Commit50edad sửa caller ownership và phép đo header; 86b sửa fixture foreground. f3e chỉ thêm setup worker/probe CI và tăng preflight21→41 suite. Giữ nguyên full unfiltered clean verify, native, DPAPI, install/coexist/uninstall và passive upgrade. f3e là checkpoint lịch sử trước sửa đường viền cuối. [Workflow validation](windows-f3e/ci-workflow-validation.json), [patch receipt](windows-f3e/ci-worker-motion-patch.json).
 
-- [Nguồn VNCode đầu và sửa KIZ](../2026-11-14-kiz-source-repair.md).
-- [Ghép Ozon đã tích hợp và bằng chứng](../2026-11-14-ozon-exact-model-size.md).
-- [Repo rút gọn/hồi quy chờ duyệt](../../research/2026-11-14-code-quality-proposals.md): OpenRewrite/Spoon; ArchUnit+JaCoCo và PIT phạm vi hẹp. Chưa tự cài/refactor diện rộng.
-- [WBCode 1.3.25](../../research/wbcode-20261114/README.md), phân tích tĩnh, không chạy/copy code độc quyền.
+## Sửa viền vuông được tìm thấy khi rà ảnh cuối
 
-## Kiểm chứng theo đúng nguồn
+Lượt f3e43639385681 đã đạt preflight579 ca/41 suite và3 ca lặp con trỏ (không cộng thành582 ca phân biệt). Root hủy full trước đóng gói vì ảnh thật cho thấy viền kín1px còn lại ở body bảng Tài chính/FBO. Nguyên nhân: rule embedded bỏ radius/border nhưng vẫn kế thừa gradient edge và inset0,1 từ control độc lập.
 
-- Trên nguồn 43b: **197 ca/20 suite focused và verify đạt, 0 failure/error/skip**. Chỉ đếm 20 suite yêu cầu, không cộng XML incremental cũ. [Receipt](focused-result.json).
-- Cùng lượt này, 1.424 input đối chiếu Git; JAR có 2.068 tệp output biên dịch đã kiểm, gồm 2.026 class, không có test-only class. JAR SHA-256 `c7ad6200217ef07294ac9286f20b02cf7b3ca5f2609d8febd5b6277fe0803a5b`.
-- Nguồn 3c trước hai sửa cuối đạt **1.396 ca/188 suite, 0 failure/error/1 Linux skip** trong [receipt riêng](related-result.json). Đây là hồi quy UI/shared/products/printing/catalog-sync/GTIN liên quan trên checkpoint cũ, không phải full hoặc chứng nhận cho nguồn 43b; không cộng trùng với 197 ca.
-- Lượt 830 focused đầu có hai FAIL do theme đã tự cài clip trước listener của fixture. Nguồn 3c chỉ sửa fixture: xác nhận hook đã có rồi reset bằng API công khai trước khi thử reentrancy; giữ assertion. Production/POM 830→3c nguyên byte. Không gọi hai lỗi fixture là lỗi app.
-- Các kiểm thử native giữ quyền caller/binding/reentrant, bo góc, close/result/owner/resize, focus và contrast. Expectation nền đục cũ được lưu và thay công khai theo brief mới; giữ ngưỡng 4,5:1, foreground opacity1 và không blur chữ.
-- Giữ bằng chứng FAIL thật của các checkpoint UI trước: opacity toàn cửa sổ, spring vượt1, scope ảnh báo cáo sau đổi Scene, footer phủ hàng/khoảng trống và Scene trắng sau dialog tối. Đã sửa production rồi kiểm lại, không hạ assertion để xanh.
-- Full 4.540/569 của KIZ/theme và 2.198/225 của Ozon là lịch sử có nguồn riêng, không chứng nhận UI hiện hành.
+b74 chỉ thêm **hai khai báo CSS trên một dòng**, cộng **38 dòng regression mới**, giữ nguyên byte cả năm test material cũ và helper của chúng. Thử đúng Finance/FBO FXML, hai theme, bốn cạnh body: CSS cũ RED5/6 với10 assertion pixel fail; CSS mới GREEN6/6. Không hạ threshold, không đổi foreground/opacity, caller, layout hoặc focus. [Báo cáo](windows-b74/embedded-frame-REPORT.md), [receipt](windows-b74/embedded-frame-receipt.json), ảnh [Finance trước](windows-b74/red/embedded-real-fxml-finance-light.png)/[sau](windows-b74/green/embedded-real-fxml-finance-light.png), [FBO trước](windows-b74/red/embedded-real-fxml-fbo-dark.png)/[sau](windows-b74/green/embedded-real-fxml-fbo-dark.png).
 
-## Ảnh và chuyển động JavaFX thật
+## Kiểm thử hiện hành và giới hạn
 
-[Gallery cuối](native-evidence/index.html) · [Báo cáo capture](native-evidence/REPORT.md) · [Receipt cuối](native-evidence/FINAL-RECEIPT.json).
+- Local86b: **200 ca/21 suite, 0 failure/error/skip**, verify đạt. 1.424 input kiểm Git; JAR 2.026 class/2.068 output biên dịch, không test class. [Receipt đầy đủ](windows-f3e/local-focused-86b-result.json).
+- Windows thật86b, run **43638439643**: 198 ca/20 suite và NativeGlass2 ca/1 suite đều đạt; **200 ca phân biệt/21 suite**. Material observed/unobserved1 ca trùng tập không cộng thêm. Normal/reduced public probes và khôi phục OS đạt. Baseline giảm chuyển động có17 lỗi assertion animation được giữ làm đối chứng; không gọi toàn diagnostic gốc là full app đạt. [Summary](windows-f3e/windows-focused-86b-summary.json).
+- **Main/test/POM/wrapper f3e nguyên byte so86b** là bằng chứng checkpoint cũ. b74 thay đúng CSS và thêm một test sau f3e; không dùng alias200 ca của f3e làm nghiệm thu nguồn mới. [Alias lịch sử](windows-f3e/input-alias.json). Trên đúng b74: **201 ca/21 suite,0 failure/error/skip**, verify exit0,5:10, kết thúc21:16:58UTC;1.424input đối chiếu Git. JAR7.774.199byte/SHA-256 `4e44fe53f9b9976c5b719eee556c860ec7fe02fa02d400a9ecdc0e192231f620`,2.026class/2.068output gồm class,không testclass. [Receipt hiện hành](windows-b74/focused-result.json).
+- Full Windows mới43641520595 phải tự đạt toàn bộ app và bộ cài trên đúngb74. Không ghép chứng nhận full cũ hoặc dùng tổng4697 làm dự báo. Chưa có kết quả full/package tại checkpoint này.
+- Security checkpoint f3e43639388384 đã xác minh artifact thật: **8 finding Java cũ, 0 mới/0 giải quyết**, một finding7,5 làm high gate FAIL; JS0/lint đạt. Toàn bộ record finding/codeflow/location/fingerprint bằng1.6.9/43b. Error/warning extraction GS1 giữ nguyên và giới hạn coverage; informational/note có khác nên không khẳng định mọi notification giống nhau. [Báo cáo và digest thật](windows-f3e/security/REPORT.md). Không gọi security toàn bộ xanh. OpenQodex/dependency review skip theo điều kiện manual không cung cấp coverage. Run mới **43641523097** trên b74 đã xác minh:8 finding Java không đổi/1high7,5 FAIL,JS0/lint đạt. Dữ liệu thô khác107chỉ số tham chiếu (99artifact+8rule); bằng chứng từngpath/before/after/URI/rule cho thấy toàn bộ record sau giải tham chiếu tương đương1.6.9/f3e/43b, giữ mọi field/line/fingerprint/codeflow khác. Không gọi raw serialization giống byte. GS1 extraction chưa đầy đủ giữ nguyên; informational/note khác được ghi riêng. [Báo cáo b74](windows-b74/security/REPORT.md).
+- 43b focused197/20, 3c related1396/188 và full KIZ4540/569 là lịch sử có nguồn riêng; không dùng chúng thay nghiệm thu hiện hành. [Báo cáo43b nguyên bản](history/ui-checkpoints/REPORT-43b-historical.md).
 
-Dùng production components JavaFX từ runtime 43b được sao chép/so byte, Linux/Xvfb có compositor và SQLite tổng hợp; không dùng HTML prototype thay app hoặc khởi chạy MainApplication của seller. Không gửi tác vụ marketplace/Catalog, mua/ký hay kích hoạt license trong capture; fixture ghi nhận 0 license call.
+## Ảnh và chuyển động
 
-Video gốc 1440×900 dài 44,133333 giây, **3.450.574 byte**, SHA-256 `bd5243d0eed098fdb1d95be3168b62dc7eae8acad5be322c88e0ae3bab3a1b02`. Java/ffmpeg đều exit0; 18 gate đạt. Recording 30fps là định dạng ghi hình, không phải benchmark FPS app.
+[Gallery b74](native-evidence-b74/index.html) · [Báo cáo capture](native-evidence-b74/REPORT.md) · [Receipt cuối](native-evidence-b74/FINAL-RECEIPT.json).
 
-- Đủ **50 PNG của 25 route ở hai theme**; cả 25 lần mount được kiểm material trong cùng theme trước khi đổi theme. Mỗi ảnh kiểm mọi logical surface đủ điều kiện và năm frame hậu Scene/CSS/layout ổn định; pixel wallpaper native khớp mẫu ImagePattern với delta0. Pattern count đơn lẻ hoặc chờ số frame cố định trước CSS không được coi là đạt.
-- Nhóm review đã xem thủ công **50/50 ảnh trang và 15/15 keyframe video**, gồm sáu cửa sổ báo cáo; không tìm thấy blocker cụ thể về material, khung ngoài, bố cục hoặc độ rõ trong phạm vi này. Các hash ảnh trùng receipt pixel và danh sách review.
-- Sáu báo cáo dùng StageStyle.TRANSPARENT, Scene.fill trong suốt và titlebar production; Settings ngoài trong suốt. Video cuối ghi nhận kéo tiêu đề và resize bằng con trỏ native; nút X gọi đúng luồng đóng production qua `Button.fire()`. Bảng đầy/thưa có clip bo, bốn raster dùng chung, không image-load error.
-- Các gallery 1ed/b00/3c/3ce và những sweep 43b trước đó được giữ làm lịch sử. Gesture resize delta0 ở video 3c và probe sửa đúng mép card 1084→1012→1054 chỉ thuộc checkpoint 3c; không dùng làm bằng chứng thay cho video 43b cuối. Những ảnh trước khi native paint hoàn tất không nằm trong bộ ảnh nghiệm thu cuối.
+Runtime JavaFX được sao chép và đối chiếu byte với đúng b74 sau Maven201/21; không alias, không overlay CSS. Capture dùng production components trên Linux/Xvfb/compositor và SQLite tổng hợp. Có **50 PNG/25 route ×2 theme**, kiểm ngay khi mount trong cùng theme; mọi logical surface hợp lệ nhận material sau Scene/CSS/layout. Pixel desktop khớp ImagePattern qua5 frame ổn định, delta0. Giữ quyền caller background. Không dùng Pattern count đơn lẻ thay kiểm native paint.
 
-Đây là phạm vi native Linux tổng hợp; số ảnh không có nghĩa đã mở mọi dialog ẩn hoặc mọi trạng thái control. Không suy từ ảnh này ra Windows graphics-driver, seller/API hoặc hiệu năng app đã cài.
+Đã review thủ công **50/50 ảnh trang và15/15 keyframe video**, có hashmap hợp nhất32+18 ảnh đối chiếu capture/public bytes. Không tìm thấy blocker cụ thể trong phạm vi đã mở; đây không phải kiểm mọi dialog ẩn hoặc mọi trạng thái. Sáu cặp Finance/FBO sáng/tối trước/sau cho thấy viền kín1px đã mất; header rule và khung bo của sheet giữ nguyên. Root đã tự xem thêm6 ảnh và xác minh độc lập toàn bộ107 tệp trong bản nguồn capture, docs copy, gallery và ZIP.
 
-## Build, security và trạng thái phát hành
+Video gốc3.306.451byte, SHA-256 `4e759074714dd2e1c512b03626ddd76effa1529e97aa97dce7b64dc4992b9b25`; Java/ffmpeg exit0,18 gate đạt. Kéo tiêu đề/resize dùng con trỏ native; nútX gọi luồng đóng production bằng Button.fire, không gọi đó là native pointer click. Recording30fps không phải benchmark FPS app. Không gọi marketplace/Catalog, mua/ký hoặc kích hoạt license; licenseCalls0, không MainApplication seller hoặc HTML prototype.
 
-Người dùng đã yêu cầu **đóng gói/phát hành 1.6.10 lên Latest**. Nguồn CI hiện hành là 43b; Windows full run **43625748501** còn đang chạy tại checkpoint tài liệu này. Phải có kết quả full Java, native/install/coexist/uninstall/passive upgrade từ 1.6.9 và review artifact đúng nguồn trước khi công bố. Chưa có draft/artifact được chấp nhận hoặc kết quả Latest mới ở checkpoint này.
+Manifest105 tệp SHA-256 `76706171d14bffb9c6411e58f0eff51b232451395e843d8acd9c7916825f444d`; hai tệp receipt/manifest tự tham chiếu được tách và pin riêng. Gallery/ZIP đầy đủ107 tệp byte-exact; bản HTML gọn nhúng16PNG gốc và MP4 gốc, không chuyển lossy. Hai bản xem trước43b/f3e giữ làm lịch sử, không đổi nguồn ảnh thànhb74. Các bằng chứng này không thay Windows của seller, driver, API thật hoặc bộ cài.
 
-Security run **43625751805** đã hoàn tất: **Java gate FAIL với 8 finding cũ, gồm 1 finding bị chặn; 0 mới/0 được giải quyết so 1.6.9**. Lỗi extraction GS1 cũ còn nên coverage bị giới hạn. JavaScript và lint đạt; OpenQodex/dependency review skip theo điều kiện manual dispatch, không cung cấp coverage. Không gọi kết quả này là security toàn bộ xanh hoặc finding cũ đã được sửa.
+## Source ZIP và phát hành
 
-Lịch sử CI được giữ: run 43623930708 dừng ở Node vì một link nghiên cứu upstream bị guard nhận nhầm cấu hình build cũ; chỉ sửa URL tới thư mục, giữ guard và kiểm 174/174 local đạt. Run Windows 43624250164/SOURCE5373 được hủy khi phát hiện lỗi mount thật, trước đóng gói. Không dùng các lượt fail/canceled hoặc kết quả 3ce/5373 để chứng nhận 43b.
+Gói mới dùng tên **VN-code-1.6.10-source-floating-glass-windowsfix-20261114.zip**; archive Windows chính thức vẫn tên VN-code-1.6.10-source.zip đúng commitCI. Docs sau build có thể làm checksum/sourceZIP khác, nhưng input runtime/test/build phải bằng nguồn đã kiểm. ZIP mới cần [guard b74](windowsfix-archive-guard/README.md) chạy trên chính archive thật và docs-only gate; receipt/hash của ZIP để ngoài tránh tự tham chiếu. Bộ guard đã đạt78control,16control phạm vi tài liệu và15archive cố ý làm sai bị chặn; code-control ZIP3513file đạt, chưa phải chứng nhận ZIP bàn giao cuối.
 
-## Hai gói nguồn và giới hạn
+Hai ZIP đã giao giữ nguyên: đầu1630458672f9be335c09f8f3a624c5ec844139ce1cdc4510fccbb304877d5e4c và43b15ab17ed6c867ff81aebe15773bdf403ece2420b8a4b616eec3f407e72a1defb. Không ghi đè chúng bằng bản sửa Windows.
 
-Gói có thêm tài liệu/ảnh bàn giao tên **`VN-code-1.6.10-source-floating-glass-20261114.zip`**. Source ZIP chính thức trong artifact Windows là **`VN-code-1.6.10-source.zip`**, archive của đúng commit CI. Gói bàn giao có thể thêm tài liệu sau build nên khác checksum; input runtime/test/build phải giữ nguyên byte. Commit tài liệu cuối không được đổi những input đã kiểm.
-
-ZIP checkpoint cũ giữ nguyên SHA-256 `1630458672f9be335c09f8f3a624c5ec844139ce1cdc4510fccbb304877d5e4c`. Guard kiểm Git/path/mode/CRC, input, bảo toàn và dữ liệu nhạy cảm của ZIP thực; checksum/receipt chính ZIP giao ngoài để tránh tự tham chiếu. Kiểm archive không phải nghiệm thu seller.
-
-Chưa nghiệm thu Windows của seller, CryptoPro/SUZ hoặc mua/ký/ghi GTIN thật trong pha UI/release. ZIP nguồn không cập nhật app đang cài; đối chiếu bàn giao phát hành cuối cho kết quả bộ cài, Latest và updater.
+Trước công bố cần full Windows thành công, kiểm actualartifact/digest/16asset, EXE/MSI/portable/source/native/DPAPI/migration/upgrade, publisher pin đúng source/run/draft và retention bản cũ. Sau công bố phải tải lại đủ16file công khai, xác minh checksum/manifest và chạy updater gốc1.6.9 với metadata thật. Latest tại checkpoint này vẫn1.6.9; không coi ZIP nguồn hoặc preview là cập nhật app. Không nghiệm thu CryptoPro/SUZ/mua KIZ hay seller API ghi thật trong pha UI/release này.

@@ -1,0 +1,30 @@
+{
+  "status": "FIX_TRANSFERRED_AFTER_PARENT_REVIEW",
+  "baseline": "43b82cca683b29e783a33df995afd675a76aa0dd",
+  "createdAtUtc": "2026-11-14T20:22:25.510472+00:00",
+  "sourceSha256": {
+    "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java": "190548eb7bc8e7e4fd7c5a319e18b803b61779cc794ed4a4bbba3f93167e1e4c",
+    "src/test/java/com/vncode/app/shared/WorkspaceBackdropMaterialTest.java": "807573c5f4fcf6edb5522cf2da0e17123180a618d1df2d9b144dfacfcace8942"
+  },
+  "genuineIntegratedRed": {
+    "log": "integrated-red.log",
+    "test": "callerBackgroundRemainsExcludedWhenCssPrecedesThemeRescan",
+    "result": "FAIL_AS_EXPECTED",
+    "failure": "Expected null ImagePattern after theme CSS resolves before helper rebuild; old helper reclaimed caller surface"
+  },
+  "sameIntegratedGreen": {
+    "log": "integrated-green.log",
+    "cases": 20,
+    "failed": 0,
+    "classes": [
+      "WorkspaceBackdropMaterialTest",
+      "WorkspaceAllSurfaceGlassTest"
+    ]
+  },
+  "original12BackdropMethodsByteRetained": true,
+  "addedRegressionLines": 24,
+  "addedRegressionBlockSha256": "e898bbd09e5b7bd2e667a00305cc03277ede3cdaba037ffbecc1d3cac3229fbc",
+  "markerLifetime": "Private per-Region Boolean opt-out persists caller ownership history through helper rebuild/theme/hide/reuse; contains no Scene/controller references. No global map or new listeners. Ordinary author-painted regions still receive material.",
+  "earlyProbeOutcomes": "red.log/red-final.log/green.log exercised an invalid transient ordinary-control paint precondition; red-caller-history.log arbitrary class-only timing did not reproduce on Linux. All retained; acceptance uses integrated-red and integrated-green exact final test code.",
+  "scope": "Native JavaFX synthetic fixture only. No Maven, business API, activation, signing, paid KIZ, Git commit or ZIP mutation by this agent."
+}

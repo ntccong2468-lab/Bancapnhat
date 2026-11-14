@@ -1,0 +1,38 @@
+[
+  {
+    "artifactId": 14131508814,
+    "metadataBeforeAndAfterEqualFields": [
+      "id",
+      "name",
+      "digest",
+      "size_in_bytes",
+      "expired",
+      "created_at",
+      "updated_at",
+      "workflow_run"
+    ],
+    "sourceCommit": "f3e98725ee2892abf225cb66978ed9302fd49489",
+    "zipSha256MatchesApiDigest": true,
+    "zipBytesMatchApiSize": true,
+    "zipCrcPass": true,
+    "singleExpectedSarif": true
+  },
+  {
+    "artifactId": 14130623864,
+    "metadataBeforeAndAfterEqualFields": [
+      "id",
+      "name",
+      "digest",
+      "size_in_bytes",
+      "expired",
+      "created_at",
+      "updated_at",
+      "workflow_run"
+    ],
+    "sourceCommit": "f3e98725ee2892abf225cb66978ed9302fd49489",
+    "zipSha256MatchesApiDigest": true,
+    "zipBytesMatchApiSize": true,
+    "zipCrcPass": true,
+    "singleExpectedSarif": true
+  }
+]

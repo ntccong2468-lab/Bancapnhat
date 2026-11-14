@@ -1,0 +1,104 @@
+1.881 route=welcome reduced=false
+2.590 ready-material-image-patterns=21
+2.806 route=welcome reduced=true
+3.102 dynamic-mount-ready=welcome targets=5 themeChanged=false
+3.456 page-captured=welcome theme=dark patterns=21 pageTargets=5 missing=[] frameBarrierAfterAllTargets=5
+4.026 page-captured=welcome theme=light patterns=21 pageTargets=5 missing=[] frameBarrierAfterAllTargets=5
+4.206 route=products-wb reduced=true
+5.832 dynamic-mount-ready=products-wb targets=17 themeChanged=false
+7.192 page-captured=products-wb theme=dark patterns=30 pageTargets=17 missing=[] frameBarrierAfterAllTargets=5
+7.977 page-captured=products-wb theme=light patterns=30 pageTargets=17 missing=[] frameBarrierAfterAllTargets=5
+8.135 route=products-ozon reduced=true
+9.603 dynamic-mount-ready=products-ozon targets=17 themeChanged=false
+10.363 page-captured=products-ozon theme=dark patterns=30 pageTargets=17 missing=[] frameBarrierAfterAllTargets=5
+11.788 page-captured=products-ozon theme=light patterns=30 pageTargets=17 missing=[] frameBarrierAfterAllTargets=5
+11.933 route=packing reduced=true
+13.416 dynamic-mount-ready=packing targets=6 themeChanged=false
+14.242 page-captured=packing theme=dark patterns=21 pageTargets=6 missing=[] frameBarrierAfterAllTargets=5
+15.540 page-captured=packing theme=light patterns=21 pageTargets=6 missing=[] frameBarrierAfterAllTargets=5
+15.665 route=ozon reduced=true
+17.202 dynamic-mount-ready=ozon targets=11 themeChanged=false
+18.573 page-captured=ozon theme=dark patterns=26 pageTargets=11 missing=[] frameBarrierAfterAllTargets=5
+20.072 page-captured=ozon theme=light patterns=26 pageTargets=11 missing=[] frameBarrierAfterAllTargets=5
+20.153 route=znack-registration reduced=true
+22.085 dynamic-mount-ready=znack-registration targets=11 themeChanged=false
+23.721 page-captured=znack-registration theme=dark patterns=24 pageTargets=11 missing=[] frameBarrierAfterAllTargets=5
+25.168 page-captured=znack-registration theme=light patterns=24 pageTargets=11 missing=[] frameBarrierAfterAllTargets=5
+25.255 route=znack-registration-ozon reduced=true
+26.803 dynamic-mount-ready=znack-registration-ozon targets=14 themeChanged=false
+28.324 page-captured=znack-registration-ozon theme=dark patterns=27 pageTargets=14 missing=[] frameBarrierAfterAllTargets=5
+29.272 page-captured=znack-registration-ozon theme=light patterns=27 pageTargets=14 missing=[] frameBarrierAfterAllTargets=5
+29.315 route=license reduced=true
+29.781 dynamic-mount-ready=license targets=10 themeChanged=false
+30.640 page-captured=license theme=dark patterns=25 pageTargets=10 missing=[] frameBarrierAfterAllTargets=5
+31.144 page-captured=license theme=light patterns=25 pageTargets=10 missing=[] frameBarrierAfterAllTargets=5
+31.250 route=designer reduced=true
+31.951 dynamic-mount-ready=designer targets=24 themeChanged=false
+33.407 page-captured=designer theme=dark patterns=37 pageTargets=24 missing=[] frameBarrierAfterAllTargets=5
+34.157 page-captured=designer theme=light patterns=37 pageTargets=24 missing=[] frameBarrierAfterAllTargets=5
+34.314 route=guides reduced=true
+35.385 dynamic-mount-ready=guides targets=27 themeChanged=false
+37.734 page-captured=guides theme=dark patterns=41 pageTargets=27 missing=[] frameBarrierAfterAllTargets=5
+38.786 page-captured=guides theme=light patterns=41 pageTargets=27 missing=[] frameBarrierAfterAllTargets=5
+39.166 route=news reduced=true
+39.752 dynamic-mount-ready=news targets=3 themeChanged=false
+40.707 page-captured=news theme=dark patterns=16 pageTargets=3 missing=[] frameBarrierAfterAllTargets=5
+41.311 page-captured=news theme=light patterns=16 pageTargets=3 missing=[] frameBarrierAfterAllTargets=5
+41.393 route=finance reduced=true
+43.199 dynamic-mount-ready=finance targets=20 themeChanged=false
+44.169 page-captured=finance theme=dark patterns=33 pageTargets=20 missing=[] frameBarrierAfterAllTargets=5
+45.857 page-captured=finance theme=light patterns=33 pageTargets=20 missing=[] frameBarrierAfterAllTargets=5
+45.912 route=supplies reduced=true
+47.314 dynamic-mount-ready=supplies targets=10 themeChanged=false
+48.054 page-captured=supplies theme=dark patterns=28 pageTargets=10 missing=[] frameBarrierAfterAllTargets=5
+49.304 page-captured=supplies theme=light patterns=28 pageTargets=10 missing=[] frameBarrierAfterAllTargets=5
+49.347 route=fbo-packing reduced=true
+50.640 dynamic-mount-ready=fbo-packing targets=5 themeChanged=false
+51.315 page-captured=fbo-packing theme=dark patterns=18 pageTargets=5 missing=[] frameBarrierAfterAllTargets=5
+52.540 page-captured=fbo-packing theme=light patterns=18 pageTargets=5 missing=[] frameBarrierAfterAllTargets=5
+52.582 route=fbo-orders reduced=true
+53.225 dynamic-mount-ready=fbo-orders targets=12 themeChanged=false
+54.540 page-captured=fbo-orders theme=dark patterns=25 pageTargets=12 missing=[] frameBarrierAfterAllTargets=5
+55.276 page-captured=fbo-orders theme=light patterns=25 pageTargets=12 missing=[] frameBarrierAfterAllTargets=5
+55.425 route=kiz-mapping reduced=true
+56.745 dynamic-mount-ready=kiz-mapping targets=5 themeChanged=false
+57.418 page-captured=kiz-mapping theme=dark patterns=18 pageTargets=5 missing=[] frameBarrierAfterAllTargets=5
+58.626 page-captured=kiz-mapping theme=light patterns=18 pageTargets=5 missing=[] frameBarrierAfterAllTargets=5
+58.714 route=znack reduced=true
+60.006 dynamic-mount-ready=znack targets=6 themeChanged=false
+60.763 page-captured=znack theme=dark patterns=19 pageTargets=6 missing=[] frameBarrierAfterAllTargets=5
+61.664 page-captured=znack theme=light patterns=19 pageTargets=6 missing=[] frameBarrierAfterAllTargets=5
+61.866 route=print-history reduced=true
+62.438 dynamic-mount-ready=print-history targets=1 themeChanged=false
+63.709 page-captured=print-history theme=dark patterns=14 pageTargets=1 missing=[] frameBarrierAfterAllTargets=5
+64.369 page-captured=print-history theme=light patterns=14 pageTargets=1 missing=[] frameBarrierAfterAllTargets=5
+64.519 route=gs1 reduced=true
+65.442 dynamic-mount-ready=gs1 targets=7 themeChanged=false
+66.013 page-captured=gs1 theme=dark patterns=24 pageTargets=7 missing=[] frameBarrierAfterAllTargets=5
+66.541 page-captured=gs1 theme=light patterns=24 pageTargets=7 missing=[] frameBarrierAfterAllTargets=5
+66.687 route=tnved reduced=true
+67.377 dynamic-mount-ready=tnved targets=7 themeChanged=false
+67.849 page-captured=tnved theme=dark patterns=20 pageTargets=7 missing=[] frameBarrierAfterAllTargets=5
+68.313 page-captured=tnved theme=light patterns=20 pageTargets=7 missing=[] frameBarrierAfterAllTargets=5
+68.354 route=listing-copy reduced=true
+68.998 dynamic-mount-ready=listing-copy targets=10 themeChanged=false
+70.393 page-captured=listing-copy theme=dark patterns=34 pageTargets=10 missing=[] frameBarrierAfterAllTargets=5
+71.283 page-captured=listing-copy theme=light patterns=34 pageTargets=10 missing=[] frameBarrierAfterAllTargets=5
+71.404 route=product-edit reduced=true
+72.925 dynamic-mount-ready=product-edit targets=24 themeChanged=false
+73.675 page-captured=product-edit theme=dark patterns=38 pageTargets=24 missing=[] frameBarrierAfterAllTargets=5
+75.028 page-captured=product-edit theme=light patterns=38 pageTargets=24 missing=[] frameBarrierAfterAllTargets=5
+75.062 route=kiz-warehouse reduced=true
+75.766 dynamic-mount-ready=kiz-warehouse targets=9 themeChanged=false
+76.243 page-captured=kiz-warehouse theme=dark patterns=22 pageTargets=9 missing=[] frameBarrierAfterAllTargets=5
+76.678 page-captured=kiz-warehouse theme=light patterns=22 pageTargets=9 missing=[] frameBarrierAfterAllTargets=5
+76.726 route=gtin-sync reduced=true
+77.468 dynamic-mount-ready=gtin-sync targets=22 themeChanged=false
+78.872 page-captured=gtin-sync theme=dark patterns=37 pageTargets=22 missing=[] frameBarrierAfterAllTargets=5
+79.660 page-captured=gtin-sync theme=light patterns=37 pageTargets=22 missing=[] frameBarrierAfterAllTargets=5
+79.806 route=settings reduced=true
+80.436 dynamic-mount-ready=settings targets=11 themeChanged=false
+81.533 page-captured=settings theme=dark patterns=24 pageTargets=11 missing=[] frameBarrierAfterAllTargets=5
+82.140 page-captured=settings theme=light patterns=24 pageTargets=11 missing=[] frameBarrierAfterAllTargets=5
+82.184 sweep-pages=50
+82.184 licenseCalls=0

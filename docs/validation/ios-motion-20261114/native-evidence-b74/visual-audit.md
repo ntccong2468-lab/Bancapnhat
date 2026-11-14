@@ -1,0 +1,23 @@
+# b74 native floating-glass and motion acceptance
+
+Runtime source: `b74b5edfd46636e8779c94f467eef01c03c50a14`, exact compiled input; no alias or overlay. All production/test classes were copied from the completed parent build and byte-verified before capture. The resource CSS matches Git, including SHA-256 `bd855915738c7e37ff80c8d533dc1ff3be4842dbc9c1972cdc2b2e0bdbee83f8`.
+
+The page review team manually viewed50/50 untouched Robot PNGs,25routes in both themes (32+18 disjoint images). The capture reviewer manually viewed15/15 original video keyframes, including all six native report openings, both16-control probes, Settings, menu, drawer and Reduced Motion, plus four new Finance/FBO originals. Unique final-image review coverage is65. Root separately reviewed four static originals and two keyframes listed in inspection.json; these duplicate reviews are not added to the count. All reviewed-page hashes equal both the capture receipt and the public gallery bytes. No concrete material, legibility, additional enclosing-wrapper or layout blocker was found in this bounded set.
+
+## Confirmed embedded-frame correction
+
+The f3e checkpoint correctly failed visual acceptance: generic two-fill gradient plus insets0,1 survived the embedded table radius0 rule, leaving a closed1px square body frame. The b74 production change adds only the embedded single-fill/insets0 declarations; headers, row separators, sizing, own outer sheet rounding and caller-owned paint remain. Six untouched f3e/b74 comparisons cover Finance, FBO packing and FBO orders in both themes. At each former left-frame coordinate, b74 edge RGB now equals the adjacent table interior; exact coordinates/colors and both original hashes are in embedded-frame-original-pixels.json. Print paper stays white. Historical f3e and43b captures/source archives are not overwritten or used as final images.
+
+## Native runtime gates
+
+Video and static JVMs use the SAME immutable copied b74 runtime and SAME helper source, with no class overlay. Java and ffmpeg exit0; the video passes18 trace gates: contextual navigation/tab/menu/drawer, three actual report components in both themes with production TRANSPARENT StageStyle/Scene fill and owned titlebar, titlebar close/drag, real pointer resize, empty/sparse/full rounded tables, sixteen native control material samples, Settings without opaque enclosing root, Reduced Motion, four shared960×600 rasters, measured licenseCalls=0.
+
+Each of25 dynamic page mounts must have working material targets ready BEFORE any theme change. Before each of50 Robot captures, eligible logical visible surfaces require actual ImagePatterns with source dimensions/anchors/tint/opacity, excluding bound/USER/INLINE and persistent caller-history opt-outs. Checks occur POST_SCENE after CSS/layout/synchronization; actual Robot wallpaper pixels must match the source ImagePattern for five stable frames. A no-op AnimationTimer supplies otherwise-idle toolkit pulses; no theme, CSS, background, layout or snapshot mutation and no retry around an assertion is used to satisfy the gate. All50 final samples have channel delta0. Earlier partial/prepaint attempts remain separate historical checkpoints.
+
+The generated app wallpaper is not a desktop/seller snapshot. Only cached wallpaper pixels are blurred; text/live content stays opaque. The16-control diagnostic is explicitly a synthetic component stress fixture, not an app business page; it temporarily uses Reduced Motion for stable resize geometry, then restores normal motion before Settings.
+
+## Validation and limits
+
+Parent local focused verification on EXACT b74:201tests/21suites,0failures/errors/skips, actualexit0; JAR7774199bytes SHA-256 `4e44fe53f9b9976c5b719eee556c860ec7fe02fa02d400a9ecdc0e192231f620`,2026classes and2068compiled outputs, no test class in the production JAR. See focused-verification.json and parent-source-preservation.json. Full Windows/release CI is a separate parent gate and is not certified by these captures.
+
+Native JavaFX Linux/Xvfb/software rendering/compositor,1440×900, synthetic SQLite, fixture navigation callbacks, no MainApplication or seller profile. No marketplace/Catalog business action, signing, purchase, Gmail or license activation is submitted; license calls are measured by the rejecting fixture. This is not packet-level network audit, Windows seller/API acceptance, a frame-rate benchmark, or proof that every hidden dialog/control state was opened. Existing scroll/panning/ellipsizing and synthetic blank data distinctions are documented in both subset audits. The gallery HTML is only a viewer for original native evidence, not an app prototype.

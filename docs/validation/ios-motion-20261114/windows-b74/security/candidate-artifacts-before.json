@@ -1,0 +1,45 @@
+{
+  "total_count": 2,
+  "artifacts": [
+    {
+      "id": 14132317600,
+      "node_id": "MDg6QXJ0aWZhY3QxNDEzMjMxNzYwMA==",
+      "name": "codeql-javascript-typescript",
+      "size_in_bytes": 133414,
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/artifacts/14132317600",
+      "archive_download_url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/artifacts/14132317600/zip",
+      "expired": false,
+      "digest": "sha256:65fdbaf3838d41db95ea44cb057d41cd81e8eb295ee2e7b3889338da6fe48329",
+      "created_at": "2026-11-14T21:14:05Z",
+      "updated_at": "2026-11-14T21:14:05Z",
+      "expires_at": "2026-11-28T21:14:05Z",
+      "workflow_run": {
+        "id": 43641523097,
+        "repository_id": 1411036370,
+        "head_repository_id": 1411036370,
+        "head_branch": "release/vn-code-1.6.10",
+        "head_sha": "b74b5edfd46636e8779c94f467eef01c03c50a14"
+      }
+    },
+    {
+      "id": 14132023560,
+      "node_id": "MDg6QXJ0aWZhY3QxNDEzMjAyMzU2MA==",
+      "name": "codeql-java-kotlin",
+      "size_in_bytes": 171464,
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/artifacts/14132023560",
+      "archive_download_url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/artifacts/14132023560/zip",
+      "expired": false,
+      "digest": "sha256:0b09d0e1e35cf664d1bbf0fe4e2e014b75ba9452f55687b96877231b92319ed1",
+      "created_at": "2026-11-14T21:15:49Z",
+      "updated_at": "2026-11-14T21:15:49Z",
+      "expires_at": "2026-11-28T21:15:47Z",
+      "workflow_run": {
+        "id": 43641523097,
+        "repository_id": 1411036370,
+        "head_repository_id": 1411036370,
+        "head_branch": "release/vn-code-1.6.10",
+        "head_sha": "b74b5edfd46636e8779c94f467eef01c03c50a14"
+      }
+    }
+  ]
+}

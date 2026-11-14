@@ -1,0 +1,40 @@
+{
+  "status": "READY_FOR_PARENT_ACTUAL_FINAL_DOCS_AND_EMBEDDED_FRAME_SOURCE_ZIP",
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "folder": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe",
+  "createdAtUtc": "2026-11-14T21:17:18.983935+00:00",
+  "sourceVerifier": {
+    "path": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/verify-source-zip.py",
+    "sha256": "1e3f372913c32d67d8119a0a2808bd01fbb3dca74d6c96f218b7f3d15dde2579"
+  },
+  "manifest": {
+    "path": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/source-preservation.json",
+    "sha256": "92714d04db4bc20ec4e14d15bcfdcb24c9e32e728f205cb74843b6fab269c290"
+  },
+  "docsGate": {
+    "path": "/tmp/vncode-ios-floating-20261114/archive-guard-embeddedframe/verify-final-docs-only.py",
+    "sha256": "1bbea43d9bd48c54ffe28e09f0804e1bab0b7bd24c97c081435be696bf495d17"
+  },
+  "newArchiveFilename": "VN-code-1.6.10-source-floating-glass-windowsfix-20261114.zip",
+  "prefix": "VN-code-1.6.10-source-floating-glass-windowsfix/",
+  "helperControls": 78,
+  "docsScopeControls": 16,
+  "actualCorruptedZipControls": 15,
+  "codeControlFiles": 3513,
+  "businessRuntimeByteExactFiles": 603,
+  "runtimeFiles": 805,
+  "proofFields": [
+    "clipFixtureCheckpointProof",
+    "focusCheckpointProof",
+    "logicalAttachmentCheckpointProof",
+    "windowsCallerAndCiCheckpointProof",
+    "embeddedFrameSuccessor"
+  ],
+  "independentEmbeddedReviewReceiptSha256": "37d1a96b45802ba0b69dfd00673076742bbe4cd32931635c9760689f1c48a296",
+  "nativeRedGreenReceiptSha256": "065e55eea7cb060edcdfd1acb912bf7c0f78cd91bf4523603161da3743c22b6f",
+  "notFinalSourceDeliveryVerification": true,
+  "notFullWindowsFunctionalAcceptance": true,
+  "allHistoricalGuardsAndTwoDeliveredArchivesUnchanged": true,
+  "noSourceGitMavenOrPublicationMutation": true,
+  "nextStep": "Run docs gate on exact final full commit and actual ZIP guard on the undelivered windowsfix private archive with new receipt paths."
+}

@@ -1,0 +1,53 @@
+{
+  "status": "PASS_BOUNDED_NATIVE_VISUAL_EVIDENCE",
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "compiledInputReference": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "manualUniqueFinalPageImages": 50,
+  "manualPageReviewers": {
+    "subset32": 32,
+    "subset18": 18
+  },
+  "reviewedPagesHashUnionEqualsCaptureReceipt": true,
+  "public50PngsByteEqualReceipt": true,
+  "manualOriginalVideoKeyframes": 15,
+  "captureReviewerAdditionalPages": [
+    "page-finance-dark.png",
+    "page-finance-light.png",
+    "page-fbo-packing-dark.png",
+    "page-fbo-packing-light.png"
+  ],
+  "manualUniqueFinalImages": 65,
+  "rootPersonallyReviewedStaticImages": [
+    "page-finance-light.png",
+    "page-fbo-packing-dark.png",
+    "page-products-wb-dark.png",
+    "page-designer-dark.png"
+  ],
+  "rootPersonallyReviewedVideoKeyframes": [
+    "appearance-settings.png",
+    "registration-dark.png"
+  ],
+  "rootReviewsAreDuplicatesNotAddedToUniqueCount": true,
+  "embeddedFrameComparisons": 6,
+  "allSixFormerClosedFrameEdgesMatchInsideNow": true,
+  "actualNativeWallpaperMaxChannelDeltaRange": [
+    0.0,
+    0.0
+  ],
+  "materialGates": {
+    "all50Pages": true,
+    "all50WorkingSurfacesMaterialReady": true,
+    "all50NativeWallpaperPixelsMatched": true,
+    "all25DynamicMountsMaterialReadyWithoutThemeToggle": true,
+    "zeroLicenseCalls": true,
+    "temporaryOverlay": null
+  },
+  "observedBoundedIssues": [
+    "FBO status strip remains horizontally scrollable at this width; last pill continues outside the viewport.",
+    "GTIN last header and long row values may ellipsize within existing column widths; lists and action/footer remain usable.",
+    "Designer retains intentionally white print paper and its own panning viewport; blank thumbnails and empty reports are synthetic fixture data."
+  ],
+  "windowsSellerVerified": false,
+  "allHiddenDialogsAndControlStatesVisited": false,
+  "packetLevelNetworkAudit": false
+}

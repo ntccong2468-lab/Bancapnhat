@@ -1,0 +1,141 @@
+{
+  "suites": 585,
+  "totals": {
+    "tests": 4697,
+    "failures": 1,
+    "errors": 19,
+    "skipped": 2
+  },
+  "failedMethods": [
+    {
+      "class": "com.vncode.app.ui.workspace.NativeGlassEvidenceTest",
+      "method": "productionRoutesKeepNativeControlsAndLargeListsAcrossApprovedDesktopSizes",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: Manage must remain adjacent to the shop selector ==> expected: <true> but was: <false>"
+    },
+    {
+      "class": "com.vncode.app.ui.workspace.HomeControllerPageTransitionTest",
+      "method": "changingRoutesKeepsAnOutgoingVisualWhileTheNewPageIsAlreadyInteractive",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: Outgoing visible content must leave with the incoming route rather than disappearing at once ==> expected: <2> but was: <1>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "method": "rapidRoutesKeepOneOutgoingVisualAndReleaseItWhenCancelled",
+      "type": "error",
+      "message": "java.util.NoSuchElementException: No value present"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "method": "aResetDiscardsThePreviousOwnerVisualBeforeAnotherRouteIsMounted",
+      "type": "error",
+      "message": "java.util.NoSuchElementException: No value present"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "method": "anOffsetWorkAreaCapturesItsOwnPixelsWithoutTakingTheHeaderOrCroppingTheBottom",
+      "type": "error",
+      "message": "java.util.NoSuchElementException: No value present"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "method": "hidingTheHostWindowReleasesTheDepartureFramebufferImmediately",
+      "type": "error",
+      "message": "java.util.NoSuchElementException: No value present"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "method": "sceneRootAppearanceKeepsWorkingDataOpaqueInNormalAndReducedMotion",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <2> but was: <1>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "method": "aWindowRootNeverGrowsPastItsViewportDuringActualPulses",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <true> but was: <false>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceMaterialRenderingTest",
+      "method": "focusedShopSelectorKeepsNativeContrastDuringAndAfterMaterialRefresh",
+      "type": "failure",
+      "message": "Multiple Failures (1 failure)\n org.opentest4j.AssertionFailedError: Focused store text on the actual shown frame: LIGHT contrast=1.279027170389835 ==> expected: <true> but was: <false>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "method": "repeatedPressHasOneOwnedTransformAndDisablingRestoresOnlyThatTransform",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <1> but was: <0>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "method": "sceneRootReplacementCancelsTheOldControlAndCoversTheNewRoot",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <true> but was: <false>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "method": "recyclingAnActiveCellRemovesItsFeedbackWithoutWatchingEveryCell",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <true> but was: <false>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "method": "reducedMotionImmediatelyRemovesCurrentFeedbackAndClosingCopies",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <1> but was: <0>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "method": "aReportWithAnEditableSearchOrPasswordClosesWithGeometryWithoutRetainingItsContents",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <1> but was: <0>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "method": "aReadOnlyReportClosesImmediatelyAndItsVisualCopyDoesNotReceiveInput",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <1> but was: <0>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "method": "replacingAVisibleReportRootOrSceneCannotReauthorizeItsOldShopSession",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: A genuinely new showing session may bind the current owner context ==> expected: <1> but was: <0>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "method": "aShopContextChangeInvalidatesOpenAndAlreadyClosingReportCopies",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <1> but was: <0>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceGlobalMotionContractTest",
+      "method": "aButtonPressHasLocalFeedbackWithoutConsumingOrRefiringItsBusinessAction",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: Every themed scene must provide additive feedback for its real action buttons ==> expected: <true> but was: <false>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceGlobalMotionContractTest",
+      "method": "controlsAddedAfterThemeInstallationReceiveFeedbackWithoutARescan",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: Dialogs and filter groups create new controls after their scene has already been themed ==> expected: <true> but was: <false>"
+    },
+    {
+      "class": "com.vncode.app.shared.WorkspaceBackdropMaterialTest",
+      "method": "existingCustomInlineAndBoundBackgroundsAreNeverClaimed",
+      "type": "error",
+      "message": "org.opentest4j.AssertionFailedError: expected: <null> but was: <javafx.scene.paint.ImagePattern@79ccdedd>"
+    }
+  ],
+  "skipIdentities": [
+    {
+      "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+      "method": "neverFallsBackToPlaintextOffWindows"
+    },
+    {
+      "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+      "method": "privatePermissionsAreAppliedWhereSupported"
+    }
+  ]
+}

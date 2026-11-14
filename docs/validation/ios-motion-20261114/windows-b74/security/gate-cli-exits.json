@@ -1,0 +1,10 @@
+{
+  "java-kotlin": {
+    "exitCode": 1,
+    "output": "CodeQL security findings: 8; high, critical or unclassified: 1\n"
+  },
+  "javascript-typescript": {
+    "exitCode": 0,
+    "output": "CodeQL security findings: 0; high, critical or unclassified: 0\n"
+  }
+}
