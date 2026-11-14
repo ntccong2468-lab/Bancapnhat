@@ -8,6 +8,7 @@ import javafx.animation.PauseTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -32,6 +33,8 @@ public final class ProductsPane extends BorderPane {
     private final I18nService i18n=I18nService.getInstance();
     private final ListView<ProductRow> rows=new ListView<>();
     private final StackPane listing=new StackPane(rows);
+    private final Label productHeading=new Label(),codesHeading=new Label(),variantHeading=new Label(),documentsHeading=new Label();
+    private final HBox columnHeadings=new HBox(10);
     private final com.vncode.app.ui.workspace.WorkspaceDetailDrawer detailDrawer=new com.vncode.app.ui.workspace.WorkspaceDetailDrawer(listing);
     private final Map<String,ProductBulkEditPane> backgroundEdits=new HashMap<>();
     private ProductBulkEditPane currentEdit;
@@ -84,7 +87,7 @@ public final class ProductsPane extends BorderPane {
         this.reader=reader==null?repository::loadProductPage:reader;this.reads=Objects.requireNonNull(reads);
         this.refreshService=Objects.requireNonNull(refreshService);reload.setId("productSync");status.setId("productStatus");
         setId("productsPane");getStyleClass().addAll("products-workspace","workspace-page","workspace-sheet");setPadding(new Insets(16));
-        rows.setId("productRows");rows.getStyleClass().add("dense-data-list");rows.setFixedCellSize(76);rows.setCellFactory(list->new ProductCell());
+        rows.setId("productRows");rows.getStyleClass().add("dense-data-list");rows.setFixedCellSize(72);rows.setCellFactory(list->new ProductCell());
         rows.setAccessibleHelp(tr("ui.detail.open"));
         rows.setOnKeyPressed(e->{if(e.getCode()==javafx.scene.input.KeyCode.ENTER&&e.getTarget()==rows){var row=rows.getSelectionModel().getSelectedItem();if(row!=null){details(row);e.consume();}}});
         rows.skinProperty().addListener((o,a,b)->Platform.runLater(this::installScrollPaging));
@@ -112,7 +115,16 @@ public final class ProductsPane extends BorderPane {
         status.setWrapText(true);status.setMinWidth(0);status.setMaxWidth(Double.MAX_VALUE);status.setMaxHeight(Region.USE_PREF_SIZE);status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());
         syncDetails.setId("productSyncDetails");syncDetails.setMinWidth(Region.USE_PREF_SIZE);syncDetails.managedProperty().bind(syncDetails.visibleProperty());syncDetails.setOnAction(e->showSyncFailures());
         var syncStatusRow=new HBox(10,status,syncDetails);syncStatusRow.setId("productSyncStatusRow");syncStatusRow.setAlignment(Pos.TOP_LEFT);syncStatusRow.setMinWidth(0);syncStatusRow.setMaxHeight(Region.USE_PREF_SIZE);HBox.setHgrow(status,Priority.ALWAYS);syncStatusRow.managedProperty().bind(status.managedProperty().or(syncDetails.visibleProperty()));syncStatusRow.visibleProperty().bind(syncStatusRow.managedProperty());
-        var top=new VBox(6,heading,filters,issueBar,syncStatusRow);top.setPadding(new Insets(0,0,6,0));setTop(top);setCenter(listing);
+        var top=new VBox(6,heading,filters,issueBar,syncStatusRow);top.setPadding(new Insets(0,0,6,0));setTop(top);
+        // Headers and virtual cells share the same column arithmetic. The narrow
+        // view keeps all facts in two rows without spending height on a header.
+        var leading=new Region();leading.setMinWidth(86);leading.setPrefWidth(86);leading.setMaxWidth(86);
+        for(var label:List.of(productHeading,codesHeading,variantHeading,documentsHeading))label.getStyleClass().addAll("product-column-heading","text-muted");
+        var headings=new ProductColumns(true,productHeading,codesHeading,variantHeading,documentsHeading);HBox.setHgrow(headings,Priority.ALWAYS);
+        columnHeadings.getChildren().setAll(leading,headings);columnHeadings.setId("productColumnHeadings");columnHeadings.getStyleClass().add("product-column-headings");
+        columnHeadings.setAlignment(Pos.CENTER_LEFT);columnHeadings.setPadding(new Insets(0,30,0,14));columnHeadings.setMinHeight(28);columnHeadings.setPrefHeight(28);columnHeadings.setMaxHeight(28);
+        var productList=new VBox(0,columnHeadings,listing);productList.setMinSize(0,0);VBox.setVgrow(listing,Priority.ALWAYS);setCenter(productList);
+        rows.widthProperty().addListener((o,a,b)->updateColumnLayout());updateColumnLayout();
         bulk.setId("productBulkActions");bulk.getStyleClass().add("products-bulk");
         selected.getStyleClass().add("text-bold");selected.setMinWidth(Region.USE_PREF_SIZE);bulkActions.setMinWidth(0);bulkActions.setAlignment(Pos.CENTER_LEFT);
         for(String field:List.of("brand","material","gender","tnved","documents")) {
@@ -128,6 +140,46 @@ public final class ProductsPane extends BorderPane {
         pageSelection.setOnAction(e->{if(pageSelection.isSelected())selectAllResults();else{selection.clear();updateSelection();}});
         clear.setOnAction(e->{selection.clear();updateSelection();});copy.setOnAction(e->{if(onCopy!=null&&!loading&&!syncing&&!selecting&&!searchDirty)onCopy.accept(selection.freeze());});
         all.setOnAction(e->selectAllResults());applyTranslations();setShop(null);
+    }
+    private void updateColumnLayout(){
+        boolean wide=rows.getWidth()>=1034;
+        columnHeadings.setVisible(wide);columnHeadings.setManaged(wide);
+        double pitch=wide?72:112;if(rows.getFixedCellSize()!=pitch)rows.setFixedCellSize(pitch);
+    }
+    private void refreshColumnHeadings(){
+        productHeading.setText(tr("products.title"));codesHeading.setText(tr("products.article"));
+        variantHeading.setText(tr("products.sizes")+" · "+tr("products.material"));documentsHeading.setText(tr("copy.documents"));
+    }
+    /** Four fact families on desktop; the same nodes form a two-by-two grid when narrower. */
+    private static final class ProductColumns extends Region {
+        private static final double GAP=12,ROW_GAP=8;
+        private static final double[] SHARES={.35,.20,.23,.22};
+        private final boolean headings;private final Node[] fields;
+        ProductColumns(boolean headings,Node... fields){this.headings=headings;this.fields=fields;getChildren().setAll(fields);setMinWidth(0);setPrefWidth(0);setMaxWidth(Double.MAX_VALUE);}
+        @Override public Orientation getContentBias(){return Orientation.HORIZONTAL;}
+        @Override protected double computePrefHeight(double width){
+            if(headings)return 20;
+            double available=width<0?getWidth():width;
+            if(available>=900)return 53;
+            double left=Math.max(0,(available-GAP)*.54),right=Math.max(0,available-GAP-left);
+            return Math.max(fields[0].prefHeight(left),fields[3].prefHeight(right))+ROW_GAP
+                    +Math.max(fields[1].prefHeight(left),fields[2].prefHeight(right));
+        }
+        @Override protected void layoutChildren(){
+            double width=getWidth();
+            if(headings||width>=900){
+                // Sum: 35% + 20% + 23% + 22% of (width - three 12px gutters).
+                double available=Math.max(0,width-3*GAP),x=0;
+                for(int i=0;i<fields.length;i++){double part=available*SHARES[i];place(fields[i],x,0,part,getHeight());x+=part+GAP;}
+            }else{
+                double left=Math.max(0,(width-GAP)*.54),right=Math.max(0,width-GAP-left);
+                double first=Math.max(fields[0].prefHeight(left),fields[3].prefHeight(right));
+                place(fields[0],0,0,left,first);place(fields[3],left+GAP,0,right,first);
+                place(fields[1],0,first+ROW_GAP,left,getHeight()-first-ROW_GAP);
+                place(fields[2],left+GAP,first+ROW_GAP,right,getHeight()-first-ROW_GAP);
+            }
+        }
+        private static void place(Node node,double x,double y,double width,double height){node.resizeRelocate(x,y,width,Math.min(Math.max(0,height),node.prefHeight(width)));}
     }
     /** Measure wrapped actions with the width remaining beside the caption and close button. */
     private static final class ProductActionBar extends Region {
@@ -230,31 +282,35 @@ public final class ProductsPane extends BorderPane {
         }));
     }
     private final class ProductCell extends ListCell<ProductRow> {
-        private final CheckBox check=new CheckBox();private final ImageView image=new ImageView();private final Label name=new Label(),meta=new Label(),article=new Label(),barcode=new Label(),paper=new Label(),material=new Label(),tnved=new Label(),genderText=new Label();
-        private final HBox box;private final VBox right=new VBox(1),taxonomy=new VBox(1);private long imageRequest;
+        private final CheckBox check=new CheckBox();private final ImageView image=new ImageView();private final Label name=new Label(),meta=new Label(),article=new Label(),barcode=new Label(),paper=new Label(),material=new Label(),tnved=new Label(),genderText=new Label(),variant=new Label();
+        private final HBox box;private long imageRequest;
         ProductCell(){
-            for(var label:List.of(meta,material,tnved,genderText))label.getStyleClass().add("text-muted");
+            for(var label:List.of(meta,article,barcode,material,tnved,genderText,variant))label.getStyleClass().add("text-muted");
             image.setFitWidth(42);image.setFitHeight(53);image.setPreserveRatio(true);
             var photo=new StackPane(image);photo.setMinSize(42,53);photo.setMaxSize(42,53);photo.getStyleClass().add("product-photo");
             name.setWrapText(false);name.setMaxWidth(Double.MAX_VALUE);name.getStyleClass().add("product-name");
-            var middle=new VBox(1,name,meta,article,barcode);HBox.setHgrow(middle,Priority.ALWAYS);middle.setMinWidth(120);middle.setPrefWidth(580);
-            for(var label:List.of(meta,article,barcode))label.setMaxWidth(Double.MAX_VALUE);
-            right.getChildren().setAll(paper,material);right.setMinWidth(170);right.setPrefWidth(280);right.setMaxWidth(280);material.setWrapText(true);
-            taxonomy.setMinWidth(210);taxonomy.setPrefWidth(235);taxonomy.setMaxWidth(235);
-            box=new HBox(10,check,photo,middle,right);box.setAlignment(Pos.TOP_LEFT);box.getStyleClass().add("product-row");box.prefWidthProperty().bind(widthProperty().subtract(32));
-            check.setMinWidth(24);check.setMaxWidth(24);HBox.setMargin(check,new Insets(22,0,0,0));
+            for(var label:List.of(name,meta,article,barcode,paper,material,tnved,genderText,variant)){label.setMinWidth(0);label.setMaxWidth(Double.MAX_VALUE);}
+            var identity=new VBox(1,name,meta);identity.getStyleClass().add("product-identity");
+            var codes=new VBox(1,article,barcode);codes.getStyleClass().add("product-codes");
+            var variants=new VBox(1,variant,material);variants.getStyleClass().add("product-variant-facts");
+            var documents=new VBox(1,paper,genderText,tnved);documents.getStyleClass().add("product-document-facts");
+            for(var group:List.of(identity,codes,variants,documents))group.setMinWidth(0);
+            var columns=new ProductColumns(false,identity,codes,variants,documents);HBox.setHgrow(columns,Priority.ALWAYS);
+            box=new HBox(10,check,photo,columns);box.setAlignment(Pos.TOP_LEFT);box.getStyleClass().add("product-row");box.prefWidthProperty().bind(widthProperty().subtract(32));
+            check.setMinWidth(24);check.setMaxWidth(24);HBox.setMargin(check,new Insets(16,0,0,0));
             check.setOnAction(e->{var row=getItem();if(row!=null){selection.setSelected(row.key(),check.isSelected());updateSelection();}});
             setOnMouseClicked(e->{if(e.getClickCount()==2&&getItem()!=null)details(getItem());});widthProperty().addListener((o,a,b)->adaptRow());
         }
         private void adaptRow(){
-            boolean wide=getWidth()>=1100;taxonomy.getChildren().clear();right.getChildren().setAll(paper,material);
-            material.setWrapText(wide);material.setTooltip(new Tooltip(material.getText()));
-            if(wide){taxonomy.getChildren().setAll(genderText,tnved);if(!box.getChildren().contains(taxonomy))box.getChildren().add(taxonomy);}
-            else{box.getChildren().remove(taxonomy);right.getChildren().addAll(genderText,tnved);}
+            boolean wide=getWidth()>=1018;material.setWrapText(wide);material.setMaxHeight(wide?34:Region.USE_PREF_SIZE);
             var row=getItem();if(row!=null)meta.setText(java.util.stream.Stream.of(row.category(),row.brand()).filter(v->v!=null&&!v.isBlank()).collect(java.util.stream.Collectors.joining(" · ")));
         }
         private void updateCheck(){var row=getItem();check.setDisable(loading||syncing||selecting||searchDirty);check.setSelected(row!=null&&selection.contains(row.key()));}
-        @Override protected void updateItem(ProductRow row,boolean empty){super.updateItem(row,empty);long ticket=++imageRequest;image.setImage(null);if(empty||row==null){setGraphic(null);return;}setGraphic(box);updateCheck();name.setText(row.title());article.setText(java.text.MessageFormat.format(tr("products.market_article"),row.key().marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"WB":"Ozon")+": "+row.marketArticle());name.setTooltip(new Tooltip(row.title()));barcode.setText(tr("products.seller_article")+": "+row.vendorArticle());paper.setText(doc(row.documentState()));styleDocument(paper,row.documentState());material.setText(row.attributesLoaded()?tr("products.material")+": "+row.material():tr("products.attributes_unloaded"));tnved.setText(row.attributesLoaded()?"TN VED: "+row.tnved():"");genderText.setText(tr("products.gender")+": "+row.gender());adaptRow();meta.setTooltip(new Tooltip(meta.getText()));barcode.setTooltip(new Tooltip(tr("products.barcode")+": "+String.join(", ",row.barcodes())+"\nGTIN: "+(row.verifiedGtin().isBlank()?tr("products.unverified"):row.verifiedGtin())));
+        @Override protected void updateItem(ProductRow row,boolean empty){super.updateItem(row,empty);long ticket=++imageRequest;image.setImage(null);if(empty||row==null){setGraphic(null);return;}setGraphic(box);updateCheck();name.setText(row.title());article.setText(java.text.MessageFormat.format(tr("products.market_article"),row.key().marketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?"WB":"Ozon")+": "+row.marketArticle());article.setTooltip(new Tooltip(article.getText()));name.setTooltip(new Tooltip(row.title()));barcode.setText(tr("products.seller_article")+": "+row.vendorArticle());paper.setText(doc(row.documentState()));styleDocument(paper,row.documentState());material.setText(row.attributesLoaded()?tr("products.material")+": "+row.material():tr("products.attributes_unloaded"));material.setTooltip(new Tooltip(material.getText()));tnved.setText(row.attributesLoaded()?"TN VED: "+row.tnved():"");genderText.setText(tr("products.gender")+": "+row.gender());
+            String size=Objects.toString(row.size(),"");if(size.isBlank())size=row.manufacturerSize();if(size.isBlank())size=row.russianSize();
+            variant.setText(java.util.stream.Stream.of(row.color(),size).filter(value->value!=null&&!value.isBlank()).collect(java.util.stream.Collectors.joining(" · ")));
+            variant.setTooltip(new Tooltip(variant.getText()+(row.russianSize().isBlank()?"":"\n"+tr("znack.provenance.field.variant.russian_size")+": "+row.russianSize())));
+            adaptRow();meta.setTooltip(new Tooltip(meta.getText()));for(var label:List.of(paper,genderText,tnved))label.setTooltip(new Tooltip(label.getText()));barcode.setTooltip(new Tooltip(tr("products.barcode")+": "+String.join(", ",row.barcodes())+"\nGTIN: "+(row.verifiedGtin().isBlank()?tr("products.unverified"):row.verifiedGtin())));
             if(row.thumbnailUrl()!=null&&!row.thumbnailUrl().isBlank())try{thumbnails.load(URI.create(row.thumbnailUrl()),96,128).whenComplete((loaded,error)->Platform.runLater(()->{if(!disposed&&ticket==imageRequest&&getItem()==row&&error==null)image.setImage(loaded);}));}catch(IllegalArgumentException ignored){}
         }
     }
@@ -307,6 +363,6 @@ public final class ProductsPane extends BorderPane {
         };
     }
     private void refreshIssueCells(){issue.setCellFactory(list->issueCell());issue.setButtonCell(issueCell());issueChips.forEach((kind,chip)->{chip.setText(tr("products.issue."+kind.name())+" ("+(issueCounts.containsKey(kind)?issueCounts.get(kind):"—")+")");chip.setSelected(issue.getValue()==kind);});}
-    public void applyTranslations(){syncDetails.setText(tr("products.sync_details"));syncDetails.setAccessibleText(tr("products.sync_details_header"));syncDetails.setTooltip(new Tooltip(tr("products.sync_details_header")));updateSyncDetails();if(shop!=null&&!syncing&&lastSync!=null)status.setText(syncStatus());needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));search.setAccessibleText(tr("products.search"));category.setAccessibleText(tr("products.categories"));document.setAccessibleText(tr("products.documents_all"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
+    public void applyTranslations(){refreshColumnHeadings();syncDetails.setText(tr("products.sync_details"));syncDetails.setAccessibleText(tr("products.sync_details_header"));syncDetails.setTooltip(new Tooltip(tr("products.sync_details_header")));updateSyncDetails();if(shop!=null&&!syncing&&lastSync!=null)status.setText(syncStatus());needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));search.setAccessibleText(tr("products.search"));category.setAccessibleText(tr("products.categories"));document.setAccessibleText(tr("products.documents_all"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
     public void dispose(){if(disposed)return;if(syncFailureDialog!=null)syncFailureDialog.close();detailDrawer.clear();disposed=true;generation++;syncTicket++;progressDismiss.stop();debounce.stop();thumbnails.close();}
 }

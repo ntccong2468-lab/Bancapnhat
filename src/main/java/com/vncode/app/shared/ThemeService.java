@@ -147,6 +147,7 @@ public final class ThemeService {
         }
         material(scene.getRoot(), getCurrentTheme(), getGlassTransparency(), isGlassEnabled());
         WorkspaceMotion.install(scene);
+        WorkspaceInteractionMotion.install(scene);
     }
 
     public static void applyTheme(DialogPane pane) {
@@ -158,6 +159,7 @@ public final class ThemeService {
         if (!pane.getStylesheets().contains(CONTROLS_CSS)) pane.getStylesheets().add(CONTROLS_CSS);
         material(pane, getCurrentTheme(), getGlassTransparency(), isGlassEnabled());
         WorkspaceMotion.install(pane);
+        WorkspaceInteractionMotion.install(pane);
     }
 
     public static void addAppearanceListener(Runnable listener) {
@@ -171,7 +173,10 @@ public final class ThemeService {
     private static void refreshAppearance() {
         onFxThread(() -> {
             observeSystemPreferences();
-            if (isReducedMotion()) WorkspaceMotion.cancelAll();
+            if (isReducedMotion()) {
+                WorkspaceMotion.cancelAll();
+                WorkspaceInteractionMotion.cancelAll();
+            }
             previewGlassTransparency(getGlassTransparency());
             for (Runnable listener : APPEARANCE_LISTENERS) listener.run();
         });

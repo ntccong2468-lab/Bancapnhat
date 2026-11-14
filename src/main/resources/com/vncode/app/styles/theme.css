@@ -52,6 +52,8 @@
     -glass-highlight: rgba(255,255,255,.10);
     -glass-control-highlight: rgba(255,255,255,.08);
     -glass-control-shadow: rgba(0,0,0,.08);
+    -chrome-shadow: rgba(0,0,0,.20);
+    -overlay-shadow: rgba(0,0,0,.28);
     -glass-selected: #353e49;
     -ui-panel: -bg-secondary;
     -ui-control: #2c2d32;
@@ -123,6 +125,8 @@
     -glass-highlight: rgba(255,255,255,.80);
     -glass-control-highlight: rgba(255,255,255,.60);
     -glass-control-shadow: rgba(36,37,42,.04);
+    -chrome-shadow: rgba(36,37,42,.09);
+    -overlay-shadow: rgba(36,37,42,.16);
     -glass-selected: #e7edf7;
     -ui-panel: -bg-secondary;
     -ui-control: #ffffff;

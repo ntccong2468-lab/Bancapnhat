@@ -640,10 +640,8 @@ public class HomeController implements Initializable {
             shopSidebarController.selectNavigation(selected);
         }
         if(guidesPane!=null&&view!=guidesPane)guidesPane.stopMedia();
-        dynamicContentContainer.getChildren().setAll(pageViewports.computeIfAbsent(view, WorkspaceViewport::new));
+        navigationMotion.replace(dynamicContentContainer,pageViewports.computeIfAbsent(view, WorkspaceViewport::new),context);
         displayedPage = view;
-        view.setOpacity(1.0);
-        navigationMotion.show(view,context);
     }
 
     private void clearFboQuantitiesIfLeaving(Node nextView) {
@@ -1446,6 +1444,8 @@ public class HomeController implements Initializable {
     }
 
     private void selectShop(Shop shop) {
+        navigationMotion.cancel();
+        com.vncode.app.shared.WorkspaceInteractionMotion.invalidateOwner(dynamicContentContainer==null?null:dynamicContentContainer.getScene());
         boolean sharedView = workspaceNavigator.currentRoute().equals("product-edit") || workspaceNavigator.currentRoute().equals("listing-copy") || workspaceNavigator.currentRoute().equals("products") || workspaceNavigator.currentRoute().equals("gs1") || workspaceNavigator.currentRoute().equals("gtin-sync") || isPrintHistoryVisible() || isZnackAutomationVisible() || isFboSupplyOrdersVisible();
         boolean dashboardVisible = isDashboardVisible();
         pendingSyncViews.clear();syncUiDebounce.stop();
@@ -1986,6 +1986,8 @@ public class HomeController implements Initializable {
     }
 
     private void clearWorkspaceView() {
+        navigationMotion.cancel();
+        com.vncode.app.shared.WorkspaceInteractionMotion.invalidateOwner(dynamicContentContainer==null?null:dynamicContentContainer.getScene());
         contentPane.setVisible(true);
         if (fboSupplyOrdersController != null) {
             fboSupplyOrdersController.setShop(null, false);
