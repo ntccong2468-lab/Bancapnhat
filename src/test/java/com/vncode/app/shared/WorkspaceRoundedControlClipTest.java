@@ -143,7 +143,12 @@ class WorkspaceRoundedControlClipTest {
         fx(() -> {
             Control control = control(0, 2); var root = new StackPane(control); var stage = stage(root, 440, 260);
             try {
-                root.applyCss(); root.layout(); var writes = new java.util.concurrent.atomic.AtomicInteger();
+                root.applyCss(); root.layout();
+                assertNotNull(control.getClip(), "The normal theme hook installs containment before this fixture adds listeners");
+                // Reset through the public API so this regression observes a
+                // first write, rather than an already-installed idempotent scope.
+                WorkspaceRoundedControlClip.uninstall(root); assertNull(control.getClip());
+                var writes = new java.util.concurrent.atomic.AtomicInteger();
                 control.clipProperty().addListener((observable, previous, next) -> {
                     if (next != null && writes.getAndIncrement() == 0) control.setClip(null);
                 });
@@ -225,7 +230,11 @@ class WorkspaceRoundedControlClipTest {
             Control first = control(0, 2), second = control(1, 2);
             var root = new HBox(first, second); var stage = stage(root, 720, 280);
             try {
-                root.applyCss(); root.layout(); var hideOnce = new java.util.concurrent.atomic.AtomicBoolean(true);
+                root.applyCss(); root.layout();
+                assertNotNull(first.getClip(), "The normal theme hook already installed the first control");
+                assertNotNull(second.getClip(), "The normal theme hook already installed the second control");
+                WorkspaceRoundedControlClip.uninstall(root); assertNull(first.getClip()); assertNull(second.getClip());
+                var hideOnce = new java.util.concurrent.atomic.AtomicBoolean(true);
                 for (Control control : List.of(first, second)) control.clipProperty().addListener((observable, previous, next) -> {
                     if (next != null && hideOnce.getAndSet(false)) stage.hide();
                 });
