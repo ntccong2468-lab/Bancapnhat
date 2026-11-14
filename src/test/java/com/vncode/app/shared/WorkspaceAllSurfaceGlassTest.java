@@ -1,6 +1,7 @@
 package com.vncode.app.shared;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.ui.workspace.WorkspaceViewport;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleStringProperty;
@@ -8,6 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.skin.ScrollPaneSkin;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -227,6 +229,53 @@ class WorkspaceAllSurfaceGlassTest {
         });
         await(() -> pattern(fixture[3]) != null, "A panel tagged after installation must acquire material");
         fx(() -> { assertEquals(1, fixture[3].getChildren().size()); assertEquals("New panel", ((Label) fixture[3].getChildren().getFirst()).getText()); return null; });
+    }
+
+    @Test void reducedNavigationMaterializesNewViewportWithoutThemeChange() throws Exception {
+        fx(() -> { ThemeService.setCurrentTheme(ThemeService.Theme.DARK); return null; });
+        var host = fx(() -> {
+            var slot = new StackPane(); var root = new VBox(slot); root.getStyleClass().add("workspace-shell");
+            VBox.setVgrow(slot, Priority.ALWAYS); show(root); return slot;
+        });
+        await(() -> pattern((Region) host.getScene().getRoot()) != null, "Initial shell wallpaper ready");
+        var parts = fx(() -> {
+            var field = new TextField("New route article"); var list = new ListView<String>(); list.getItems().setAll("A", "B");
+            var page = new VBox(10, field, list); page.getStyleClass().add("workspace-sheet");
+            VBox.setVgrow(list, Priority.ALWAYS);
+            var viewport = new WorkspaceViewport(page);
+            new MotionBoundary().replace(host, viewport, NavigationContext.SIBLING);
+            assertNull(page.getScene(), "Logical content is discovered before native ScrollPane skin attachment");
+            return new Region[]{page, field, list};
+        });
+        await(() -> pattern(parts[0]) != null && pattern(parts[1]) != null && pattern(parts[2]) != null,
+                "Reduced-motion route must receive page/field/list material without toggling theme or snapshots");
+        fx(() -> { assertEquals(ThemeService.Theme.DARK, ThemeService.getCurrentTheme()); return null; });
+    }
+    @Test void delayedNativeSkinKeepsLogicalWatchAndTrueRemovalReleasesMaterial() throws Exception {
+        fx(() -> { ThemeService.setCurrentTheme(ThemeService.Theme.DARK); return null; });
+        var host = fx(() -> {
+            var slot = new StackPane(); var root = new VBox(slot); root.getStyleClass().add("workspace-shell");
+            VBox.setVgrow(slot, Priority.ALWAYS); show(root); return slot;
+        });
+        await(() -> pattern((Region) host.getScene().getRoot()) != null, "Initial shell wallpaper ready");
+        var parts = fx(() -> {
+            var field = new TextField("Delayed native content");
+            var custom = new TextField("Caller paint"); custom.setStyle("-fx-background-color: goldenrod;");
+            var page = new VBox(10, field, custom); page.getStyleClass().add("workspace-sheet");
+            var scroll = new ScrollPane(page) { @Override protected Skin<?> createDefaultSkin() { return null; } };
+            host.getChildren().setAll(scroll);
+            return new Object[]{page, field, custom, scroll};
+        });
+        // A genuine native control may have logical content before its skin enters the Scene.
+        fx(() -> { assertNull(((Parent) parts[0]).getScene()); return null; });
+        fx(() -> { assertNull(((Parent) parts[0]).getScene()); return null; });
+        fx(() -> { var scroll = (ScrollPane) parts[3]; scroll.setSkin(new ScrollPaneSkin(scroll)); return null; });
+        await(() -> pattern((Region) parts[0]) != null && pattern((Region) parts[1]) != null,
+                "Late native skin attachment must retain logical content subscriptions");
+        fx(() -> { assertNull(pattern((Region) parts[2])); ((ScrollPane) parts[3]).setContent(null); return null; });
+        await(() -> pattern((Region) parts[0]) == null && pattern((Region) parts[1]) == null,
+                "True logical detach must release owned material");
+        fx(() -> { assertNull(((Parent) parts[0]).getScene()); assertNull(pattern((Region) parts[2])); return null; });
     }
 
     private static TableView<String> table() {

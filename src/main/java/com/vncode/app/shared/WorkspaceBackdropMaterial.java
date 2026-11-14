@@ -245,7 +245,11 @@ public final class WorkspaceBackdropMaterial {
             if (future.isCompletedExceptionally()) { release(); return; }
             Wallpaper images = future.join();
             for (var entry : List.copyOf(surfaces.entrySet())) {
-                if (entry.getKey().getScene() != scene) { entry.getValue().dispose(); surfaces.remove(entry.getKey()); }
+                Scene attached = entry.getKey().getScene();
+                // Logical ScrollPane/Tab content may precede its native skin's Scene attachment.
+                // Keep its scene listener until attachment; logical removal already rebuilds the tree.
+                if (attached == null) continue;
+                if (attached != scene) { entry.getValue().dispose(); surfaces.remove(entry.getKey()); }
                 else entry.getValue().refresh(images);
             }
         }
