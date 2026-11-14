@@ -211,6 +211,62 @@ class WorkspaceMaterialRenderingTest {
         });
     }
 
+    @Test void focusedShopSelectorKeepsNativeContrastDuringAndAfterMaterialRefresh() throws Exception {
+        var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
+        for(var theme:ThemeService.Theme.values()) {
+            var state=fx(() -> {
+                ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);ThemeService.setCurrentTheme(theme);
+                var loader=FxmlViewLoader.loader(com.vncode.app.ui.workspace.WorkspaceHeaderController.class,"workspace-header-view.fxml");
+                Parent chrome=loader.load();var controller=(com.vncode.app.ui.workspace.WorkspaceHeaderController)loader.getController();
+                var shop=new com.vncode.app.models.Shop(1,"Synthetic store",com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"","fixture");
+                controller.setShops(List.of(shop),shop);
+                var root=new VBox(chrome);root.setPadding(new Insets(24));root.getStyleClass().add("workspace-shell");
+                var stage=new Stage(StageStyle.UNDECORATED);stage.setScene(new Scene(root,1040,180));ThemeService.applyTheme(stage.getScene());stage.show();
+                var combo=(javafx.scene.control.ComboBox<?>)root.lookup("#shopComboBox");combo.requestFocus();root.applyCss();root.layout();
+                return new FocusSelector(stage,root,combo,controller);
+            });
+            try {
+                awaitSelectorMaterial(state.combo());
+                fx(() -> {
+                    assertSame(state.combo(),state.stage().getScene().getFocusOwner());
+                    // A real material change invalidates the cached CSS background before
+                    // the shared backdrop is reapplied. The focused field must stay readable.
+                    ThemeService.previewGlassTransparency(56);state.root().applyCss();state.root().layout();
+                    var image=state.stage().getScene().snapshot(null);
+                    Color background=pixel(state.root(),image,state.combo(),state.combo().getWidth()/2,8);
+                    Color foreground=(Color)state.combo().getButtonCell().getTextFill();double ratio=contrast(foreground,background);
+                    checks.add(() -> assertTrue(ratio>=4.5,"Focused store text during material refresh: "+theme+" ink="+foreground+" background="+background+" contrast="+ratio));
+                    capture(state.root(),"focus-selector-refresh-"+theme.getKey()+".png");return null;
+                });
+                awaitSelectorMaterial(state.combo());
+                fx(() -> {
+                    pulse();
+                    var origin=state.root().localToScreen(0,0);
+                    var image=new javafx.scene.robot.Robot().getScreenCapture(null,origin.getX(),origin.getY(),state.root().getWidth(),state.root().getHeight());
+                    Color background=pixel(state.root(),image,state.combo(),state.combo().getWidth()/2,8);
+                    Color foreground=(Color)state.combo().getButtonCell().getTextFill();double ratio=contrast(foreground,background);
+                    checks.add(() -> assertTrue(ratio>=4.5,"Focused store text on the actual shown frame: "+theme+" contrast="+ratio));
+                    var focus=(Color)state.combo().getBorder().getStrokes().getFirst().getTopStroke();
+                    assertTrue(focus.getOpacity()>.9&&contrast(focus,background)>=3,"The focused field retains a visible boundary");
+                    assertEquals(1,foreground.getOpacity());assertEquals(1,state.combo().getOpacity());
+                    assertEquals("Synthetic store",((com.vncode.app.models.Shop)state.combo().getValue()).getName());
+                    assertSame(state.combo(),state.stage().getScene().getFocusOwner());return null;
+                });
+            } finally {fx(() -> {state.controller().dispose();state.stage().close();return null;});}
+        }
+        assertAll(checks);
+    }
+    private record FocusSelector(Stage stage,VBox root,javafx.scene.control.ComboBox<?> combo,
+                                 com.vncode.app.ui.workspace.WorkspaceHeaderController controller) { }
+    private static void awaitSelectorMaterial(Region control) throws Exception {
+        long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);int stable=0;
+        while(System.nanoTime()<until&&stable<3) {
+            boolean ready=fx(() -> control.getBackground()!=null&&control.getBackground().getFills().stream().anyMatch(fill -> fill.getFill() instanceof javafx.scene.paint.ImagePattern));
+            stable=ready?stable+1:0;Thread.sleep(20);
+        }
+        assertEquals(3,stable,"The focused field must receive its real shared backdrop before screen checks");
+    }
+
     private static void checkSettingsAt940(ThemeService.Theme theme) throws Exception {
         var sidebar=FxmlViewLoader.loader(com.vncode.app.ui.shop.ShopSidebarController.class,"shop-sidebar-view.fxml");
         var header=FxmlViewLoader.loader(com.vncode.app.ui.workspace.WorkspaceHeaderController.class,"workspace-header-view.fxml");

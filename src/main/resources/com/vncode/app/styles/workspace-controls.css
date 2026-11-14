@@ -324,7 +324,7 @@
 }
 .workspace-theme .text-input:focused, .workspace-theme .combo-box-base:focused,
 .workspace-theme .choice-box:focused, .workspace-theme .date-picker:focused,
-.workspace-theme .spinner:focused { -fx-border-color: -focus; -fx-effect: innershadow(gaussian,-focus,1,1,0,0); }
+.workspace-theme .spinner:focused { -fx-border-color: -focus; }
 .workspace-theme .text-input:error, .workspace-theme .text-input.error,
 .workspace-theme .combo-box-base:error { -fx-border-color: -danger; }
 .workspace-theme .text-input:disabled, .workspace-theme .combo-box-base:disabled,

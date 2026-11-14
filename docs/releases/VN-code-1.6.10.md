@@ -1,16 +1,14 @@
-# VN Code 1.6.10 — mã nguồn sửa lỗi, chưa phát hành Latest
+# VN Code 1.6.10
 
-Kế thừa đầy đủ nguồn và chức năng của 1.6.9. Bản này được chuẩn bị thành ZIP mã nguồn theo yêu cầu ngày 14.11.2026; không tạo bộ cài hoặc thay Latest.
+Bản cập nhật kế thừa các chức năng và dữ liệu của1.6.9, bổ sung sửa luồng tiếp tục mua KIZ, ghép GTIN Ozon và giao diện kính nổi.
 
-- Thêm thao tác **Tiếp tục lô mua** cho lô KIZ đang chờ xác nhận ký ngay tại cửa hàng đang mở. Tiếp tục đúng pipeline, đơn, request key và hồ sơ kết nối đã lưu; không tạo yêu cầu mua mới.
-- Hiển thị **Chờ xác nhận ký** khi pipeline thực sự đã tạm dừng, thay vì chỉ hiển thị đang tải mã hoặc đối soát lưu thông. Ẩn thao tác mua thêm trên chính hàng đang chờ để tránh mua nhầm lần nữa.
-- Giữ lại mã nguyên nhân CryptoPro đã biết trong chẩn đoán an toàn; khi chưa biết, báo cần xác nhận ký thay vì giả định một lỗi chứng thư/PIN cụ thể. Bổ sung hướng dẫn tiếp tục bằng bốn ngôn ngữ.
-- Xác nhận tiếp tục chỉ có hiệu lực cho lô được chọn. Giữ cơ chế dừng sau lỗi/hủy ký, quyền license, chủ sở hữu, hồ sơ gốc và các bảo vệ đối soát trước khi gửi lại.
+- **Kính nổi bên trong toàn app:** panel, bảng/danh sách, trường nhập, nút, menu, nhóm Cài đặt và báo cáo ở cả nền sáng/tối. Giữ chữ và trạng thái rõ, vùng làm việc lớn, có chế độ Giảm chuyển động và tắt kính.
+- **Báo cáo bo tròn:** bỏ khung vuông ngoài ở dialog app, có tiêu đề/nút đóng riêng, kéo và đổi kích thước khi cho phép. Cửa sổ hệ thống/CryptoPro và giấy trắng trong trình thiết kế nhãn giữ hành vi hiện có.
+- **Thao tác liền mạch:** chuyển cảnh theo ngữ cảnh cho mục/mục con, menu và báo cáo; phản hồi nhấn/thả/keyboard dùng chung, không trì hoãn hay gọi lặp hành động nghiệp vụ. Sửa footer/tiến độ che danh sách và giữ năm nút sửa sản phẩm.
+- **Tiếp tục lô mua KIZ chờ ký:** thao tác tại đúng cửa hàng đang mở, dùng lại pipeline, đơn, request key và hồ sơ kết nối gốc. Hiển thị Chờ xác nhận ký; không tạo yêu cầu mua mới hoặc cho phép mua thêm nhầm trên hàng đang chờ. Quyền tiếp tục chỉ áp dụng lô được chọn; không bỏ bảo vệ chủ sở hữu, ký hoặc đối soát lưu thông.
+- **Ghép GTIN Ozon theo đúng mã mẫu và size:** so toàn bộ mã mẫu, không phân biệt hoa/thường/khoảng trắng. Không ghép152NAU vớiB3152NAU hoặc152NAU DASH.2XL/XXL tương đương; size Nga52 chỉ là alias khi được chính biến thể Ozon xác nhận, không dùng bảng quy đổi toàn sàn. Dùng chung matcher cho đăng ký, đồng bộ GTIN và liên kết KIZ Ozon; giữ quy tắc WB và liên kết thủ công.
+- **Đọc lại liên kết chính xác:** không bỏ GTIN Ozon đã được xác nhận; proof hết hạn không bị hiểu là chưa có thẻ để tạo trùng. Sửa popup còn skin theme cũ sau chuyển sáng/tối.
 
-Đã đối chiếu repo VNCode đầu tiên và tài liệu SUZ: không thay API/auth bằng mã cũ hoặc bỏ các sửa mới về phục hồi buffer, lưu thông KIZ và chống mua/gửi trùng. Đề xuất OpenRewrite, ArchUnit, JaCoCo và PIT được lập riêng để duyệt; chưa cài hay refactor toàn app.
+Các repo OpenRewrite/Spoon và ArchUnit/JaCoCo/PIT vẫn là đề xuất nghiên cứu chờ duyệt, chưa tích hợp hoặc refactor diện rộng.
 
-Kết quả kiểm thử và phần chưa nghiệm thu được ghi trong tài liệu bàn giao của bản nguồn. Kiểm thử với signer/API tạm không thay thế mua/ký thật bằng chứng thư của seller.
-
-- Sửa popup giữ class theme cũ sau đổi nền sáng/tối; đồng bộ riêng class của skin và giữ style binding/class của caller. Có regression RED trước sửa, GREEN và full verification trên nguồn cuối.
-
-[Bàn giao và kiểm thử](../validation/2026-11-14-kiz-source-repair.md) · [Đề xuất repo chờ duyệt](../research/2026-11-14-code-quality-proposals.md) · [Thử ghép đúng152NAU,size2XL/XXL/52](../research/simple-ozon-match-20261114/README.md). Phép thử chỉ là báo cáo trên API thật, chưa thay matcher của app hoặc ghi GTIN.
+Kiểm thử giao diện/dữ liệu tổng hợp và CI không thay thế mua KIZ có phí, ký bằng chứng thư hoặc ghi dữ liệu seller thật. Chỉ xác nhận lưu thông khi có phản hồi trạng thái tương ứng; không đánh dấu tải mã là đã lưu thông. Khi nâng cấp giữ hồ sơ, hàng đợi, feed và lịch sử hiện có.
