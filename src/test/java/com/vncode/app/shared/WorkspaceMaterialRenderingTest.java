@@ -221,7 +221,11 @@ class WorkspaceMaterialRenderingTest {
                 var shop=new com.vncode.app.models.Shop(1,"Synthetic store",com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"","fixture");
                 controller.setShops(List.of(shop),shop);
                 var root=new VBox(chrome);root.setPadding(new Insets(24));root.getStyleClass().add("workspace-shell");
-                var stage=new Stage(StageStyle.UNDECORATED);stage.setScene(new Scene(root,1040,180));ThemeService.applyTheme(stage.getScene());stage.show();
+                var visual=javafx.stage.Screen.getPrimary().getVisualBounds();
+                var stage=new Stage(StageStyle.UNDECORATED);stage.setAlwaysOnTop(true); // Keep the native fixture above CI runner consoles.
+                stage.setScene(new Scene(root,Math.min(1040,Math.max(1,visual.getWidth()-48)),Math.min(180,Math.max(1,visual.getHeight()-48))));
+                stage.setX(visual.getMinX()+24);stage.setY(visual.getMinY()+24);
+                ThemeService.applyTheme(stage.getScene());stage.show();stage.toFront();stage.requestFocus();
                 var combo=(javafx.scene.control.ComboBox<?>)root.lookup("#shopComboBox");combo.requestFocus();root.applyCss();root.layout();
                 return new FocusSelector(stage,root,combo,controller);
             });
@@ -242,12 +246,19 @@ class WorkspaceMaterialRenderingTest {
                 fx(() -> {
                     pulse();
                     var origin=state.root().localToScreen(0,0);
+                    var sample=state.combo().localToScreen(state.combo().getWidth()/2,8);
+                    String placement="windowFocus="+state.stage().isFocused()+" comboFocus="+state.combo().isFocused()+" rootOrigin="+origin+" sample="+sample
+                            +" outputScale="+state.stage().getOutputScaleX()+","+state.stage().getOutputScaleY();
+                    assertTrue(sample!=null&&javafx.stage.Screen.getScreens().stream().anyMatch(screen -> screen.getBounds().contains(sample)),"The contrast sample must be on a real screen: "+placement);
+                    assertTrue(state.stage().isFocused()&&state.combo().isFocused(),"Native screen capture requires the actual focused test window: "+placement);
                     var image=new javafx.scene.robot.Robot().getScreenCapture(null,origin.getX(),origin.getY(),state.root().getWidth(),state.root().getHeight());
                     Color background=pixel(state.root(),image,state.combo(),state.combo().getWidth()/2,8);
                     Color foreground=(Color)state.combo().getButtonCell().getTextFill();double ratio=contrast(foreground,background);
-                    checks.add(() -> assertTrue(ratio>=4.5,"Focused store text on the actual shown frame: "+theme+" contrast="+ratio));
+                    String captureState=theme+" ink="+foreground+" background="+background+" directPixel="+new javafx.scene.robot.Robot().getPixelColor(sample)
+                            +" contrast="+ratio+" image="+image.getWidth()+"x"+image.getHeight()+" "+placement;
+                    checks.add(() -> assertTrue(ratio>=4.5,"Focused store text on the actual shown frame: "+captureState));
                     var focus=(Color)state.combo().getBorder().getStrokes().getFirst().getTopStroke();
-                    assertTrue(focus.getOpacity()>.9&&contrast(focus,background)>=3,"The focused field retains a visible boundary");
+                    assertTrue(focus.getOpacity()>.9&&contrast(focus,background)>=3,"The focused field retains a visible boundary: "+captureState);
                     assertEquals(1,foreground.getOpacity());assertEquals(1,state.combo().getOpacity());
                     assertEquals("Synthetic store",((com.vncode.app.models.Shop)state.combo().getValue()).getName());
                     assertSame(state.combo(),state.stage().getScene().getFocusOwner());return null;
@@ -261,10 +272,11 @@ class WorkspaceMaterialRenderingTest {
     private static void awaitSelectorMaterial(Region control) throws Exception {
         long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);int stable=0;
         while(System.nanoTime()<until&&stable<3) {
-            boolean ready=fx(() -> control.getBackground()!=null&&control.getBackground().getFills().stream().anyMatch(fill -> fill.getFill() instanceof javafx.scene.paint.ImagePattern));
+            boolean ready=fx(() -> control.getScene()!=null&&control.getScene().getWindow()!=null&&control.getScene().getWindow().isFocused()&&control.isFocused()
+                    &&control.getBackground()!=null&&control.getBackground().getFills().stream().anyMatch(fill -> fill.getFill() instanceof javafx.scene.paint.ImagePattern));
             stable=ready?stable+1:0;Thread.sleep(20);
         }
-        assertEquals(3,stable,"The focused field must receive its real shared backdrop before screen checks");
+        assertEquals(3,stable,"The native fixture must be focused and receive its shared backdrop before screen checks");
     }
 
     private static void checkSettingsAt940(ThemeService.Theme theme) throws Exception {
