@@ -480,15 +480,21 @@
 .workspace-theme .titled-pane > .title > .text { -fx-fill: -text-primary; }
 .workspace-theme .titled-pane > .content { -fx-background-color: -bg-secondary; -fx-border-color: -border-color; }
 
-/* Report, error and edit dialogs share the floating material frame. Their content
- * and inputs remain solid, so depth does not reduce working contrast. */
+/* Report, error and edit dialogs share the floating material frame. Working
+ * tables and fields remain solid, so depth does not reduce their contrast. */
 .workspace-theme.dialog-pane, .workspace-theme .dialog-pane {
     -fx-background-color: linear-gradient(to bottom, -glass-highlight, -glass-control-shadow), -glass-elevated;
     -fx-background-insets: 0, 1; -fx-background-radius: 20, 19;
     -fx-border-width: 0; -fx-padding: 18;
     -fx-effect: dropshadow(gaussian, -overlay-shadow, 24, 0, 0, 8);
 }
-.workspace-theme .app-dialog-pane > .content, .workspace-theme .dialog-content { -fx-background-color: -bg-secondary; }
+/* DialogPane is also a scene root. Its content is a layout wrapper, not a
+ * second square surface behind already rounded report tables and fields. */
+.workspace-theme.app-dialog-pane > .content,
+.workspace-theme .app-dialog-pane > .content,
+.workspace-theme.dialog-content, .workspace-theme .dialog-content {
+    -fx-background-color: transparent; -fx-border-width: 0;
+}
 .workspace-theme.dialog-pane > .header-panel, .workspace-theme .dialog-pane > .header-panel {
     -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0 0 14 0;
 }
