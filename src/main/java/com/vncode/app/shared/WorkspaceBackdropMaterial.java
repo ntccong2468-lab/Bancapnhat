@@ -35,6 +35,7 @@ import java.util.concurrent.CompletableFuture;
 /** Shared, data-free app backdrop. Only wallpaper pixels are blurred; live content is never captured. */
 public final class WorkspaceBackdropMaterial {
     private static final String SCOPE = WorkspaceBackdropMaterial.class.getName() + ".scope";
+    private static final String CALLER_BACKGROUND = WorkspaceBackdropMaterial.class.getName() + ".callerBackground";
     private static final String ATTACH = WorkspaceBackdropMaterial.class.getName() + ".attach";
     private static final int WIDTH = 960, HEIGHT = 600;
     private static final Map<ThemeService.Theme, CompletableFuture<Wallpaper>> WALLPAPERS = new EnumMap<>(ThemeService.Theme.class);
@@ -282,7 +283,8 @@ public final class WorkspaceBackdropMaterial {
         private Surface(Scope scope, Region region) {
             this.scope = scope; this.region = region;
             StyleOrigin initial = property().getStyleOrigin();
-            callerOwned = region.backgroundProperty().isBound() || initial == StyleOrigin.USER || initial == StyleOrigin.INLINE;
+            callerOwned = Boolean.TRUE.equals(region.getProperties().get(CALLER_BACKGROUND))
+                    || region.backgroundProperty().isBound() || initial == StyleOrigin.USER || initial == StyleOrigin.INLINE;
             backgroundChanged = (observable, previous, value) -> { if (!writing) scope.request(); };
             sceneChanged = (observable, previous, scene) -> { if (scene != scope.scene) release(); else scope.request(); };
             region.backgroundProperty().addListener(backgroundChanged);
@@ -293,7 +295,10 @@ public final class WorkspaceBackdropMaterial {
         }
 
         private void dispose() {
-            release(); region.backgroundProperty().removeListener(backgroundChanged); region.sceneProperty().removeListener(sceneChanged);
+            release();
+            // CSS may replace USER paint; preserve the caller's exclusion across logical rescans.
+            if (callerOwned) region.getProperties().put(CALLER_BACKGROUND, Boolean.TRUE);
+            region.backgroundProperty().removeListener(backgroundChanged); region.sceneProperty().removeListener(sceneChanged);
             region.widthProperty().removeListener(scope.geometry); region.heightProperty().removeListener(scope.geometry);
             region.layoutXProperty().removeListener(scope.geometry); region.layoutYProperty().removeListener(scope.geometry);
             region.styleProperty().removeListener(scope.geometry); region.getStyleClass().removeListener(scope.geometry);

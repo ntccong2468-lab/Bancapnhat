@@ -207,6 +207,30 @@ class WorkspaceBackdropMaterialTest {
         fx(() -> { assertNull(pattern((Region) root.getChildren().get(0))); assertSame(bound.get(), ((Region) root.getChildren().get(1)).getBackground()); return null; });
     }
 
+    @Test void callerBackgroundRemainsExcludedWhenCssPrecedesThemeRescan() throws Exception {
+        var root = fx(() -> {
+            var caller = chrome(); caller.setBackground(Background.fill(Color.DARKORANGE));
+            var pane = new VBox(caller, chrome()); pane.getStyleClass().add("workspace-shell"); show(pane); return pane;
+        });
+        var caller = (Region) root.getChildren().getFirst();
+        var ordinary = (Region) root.getChildren().getLast();
+        awaitMaterial(ordinary); settleCss(); awaitMaterial(ordinary); settle();
+        fx(() -> {
+            // Native author CSS legitimately supersedes USER paint, while its material exclusion remains.
+            assertEquals(StyleOrigin.AUTHOR, ((StyleableProperty<?>) caller.backgroundProperty()).getStyleOrigin());
+            assertNull(pattern(caller)); assertNotNull(pattern(ordinary));
+            ThemeService.setCurrentTheme(ThemeService.Theme.DARK);
+            // Model the Windows ordering: CSS can resolve before the queued material-tree rebuild.
+            root.applyCss(); root.layout(); return null;
+        });
+        settleCss(); awaitMaterial(ordinary); settle();
+        fx(() -> {
+            assertNull(pattern(caller), "Theme rescans must retain the original caller-owned background exclusion");
+            assertNotNull(pattern(ordinary), "Ordinary author surfaces must still receive the new theme material");
+            return null;
+        });
+    }
+
     @Test void aLaterCallerReplacementOrBindingRetainsOwnership() throws Exception {
         var root = fx(() -> { var pane = new VBox(chrome(), chrome()); pane.getStyleClass().add("workspace-shell"); show(pane); return pane; });
         awaitMaterial((Region) root.getChildren().getFirst()); settle();
