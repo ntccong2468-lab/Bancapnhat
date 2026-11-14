@@ -1,0 +1,86 @@
+{
+  "version": "1.3.25",
+  "method": "STATIC_BINARY_REVIEW",
+  "observations": [
+    {
+      "id": "LATEST_BINARY_PINNED",
+      "evidence": "release-summary.json + download-verification.json + extraction-provenance.json",
+      "observation": "Official latest v1.3.25 release443286851 checked2026-11-14T12:03:04Z. EXE matches GitHub digest and official checksums. JAR extracted statically.",
+      "inference": "Findings describe pinned latest binary, not an inferred source revision.",
+      "confidence": "HIGH_PROVENANCE",
+      "verification": "Rehash artifacts and retrieve release metadata."
+    },
+    {
+      "id": "MAPPING_PRECEDENCE",
+      "evidence": "OzonZnackMappingService.verifiedMappings + javap bytecodes125-415",
+      "observation": "Known replacement by productId in active local GTINs wins; else active existing barcode sorted first; else variant identity matching.",
+      "inference": "Existing bindings can avoid article/size predicate; no fuzzy title matching required for exact barcode path.",
+      "confidence": "HIGH_STATIC_WITH_JAVAP",
+      "verification": "Read bytecode branch order; no live seller testing performed."
+    },
+    {
+      "id": "VARIANT_IDENTITY",
+      "evidence": "OzonZnackMappingService.match + ZnackVariantIdentity.fromOzon + ZnackVariantIdentityRepository.findByRussianSize",
+      "observation": "Candidate lookup scoped by account and Russian size; match compares baseArticleKey and ruSizeKey, plus normalized technicalSize when both sides populated. No independent name/color/brand/category/TNVED predicate in match.",
+      "inference": "Different display names are allowed; arbitrary different article codes do not automatically match merely because names are similar. Color is only incidental if encoded in article.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Review method and normalized string helpers; cases need real product identity evidence before adopting in VNCode."
+    },
+    {
+      "id": "SAME_VARIANT_MULTIPLE_GTINS",
+      "evidence": "OzonZnackMappingService.preferredSameVariant",
+      "observation": "Exactly one distinct baseArticle/ruSize/technicalSize group required; lexicographic minimum GTIN selected inside group.",
+      "inference": "Rule is one identity group, not exactly one GTIN. This should not be recommended blindly for VNCode.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Read grouping and Comparator fields."
+    },
+    {
+      "id": "LOCAL_ELIGIBILITY_SCOPE",
+      "evidence": "OzonZnackMappingService.verifiedMappings public + ZnackMappingEligibility.hasDocuments/documentedProduct",
+      "observation": "The variable activeGtins is produced by local repository products filtered by complete permit presence. SQL requires type/number/date and excludes deleted and archived identities.",
+      "inference": "This predicate alone is not fresh Catalog published or permit expiry verification. Other data acquisition paths may have validated more.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Read called helper and SQL, keep path-scoped conclusion."
+    },
+    {
+      "id": "BACKFILL",
+      "evidence": "ZnackVariantIdentityBackfill.fromSyncedCatalog/fromCatalogCard/forAccount/forWbShop",
+      "observation": "Catalog name article extraction requires арт marker with Russian size. WB identities require same account and registration PUBLISHED/WB_UPDATE_PENDING. Metadata technicalSize/color/category/brand is stored.",
+      "inference": "Source metadata presence does not establish that mapper compares each field. Cross-shop linking is scoped by Catalog account.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Read regex, SQL and account filter."
+    },
+    {
+      "id": "REPOSITORY_RESOLUTION",
+      "evidence": "javap-v-OzonProductGtinMappingRepository.txt findResolvedBySku bytecodes270-637 and BootstrapMethods#4",
+      "observation": "Resolved GTIN priority: explicit article mapping, consistent inferred article mapping, direct SKU mapping; direct residual mappings appended with putIfAbsent. Inconsistent same-article GTINs are removed from inferred article map.",
+      "inference": "Mapping is durable by shop/SKU and shop/article, not an ephemeral name match only.",
+      "confidence": "HIGH_STATIC_WITH_JAVAP",
+      "verification": "CFR failed this SELECT method; javap was used instead. Do not treat CFR throw placeholder as application behavior."
+    },
+    {
+      "id": "MAPPER_WRITE_SCOPED_READBACK",
+      "evidence": "OzonGtinMappingSyncService.syncAndMap + OzonZnackMappingService.sync/publishBarcodes + OzonApiClient.addBarcodes",
+      "observation": "Product sync is before mapper publish. Mapper posts missing barcodes in chunks100, checks response errors, replaces local mappings. No immediate productInfo reread occurs in these inspected methods.",
+      "inference": "This mapper path does not itself prove barcode visibility after POST. This is not a global statement about all WBCode writes.",
+      "confidence": "HIGH_STATIC_BOUNDED",
+      "verification": "Read separate registration binder: it DOES perform fresh before/after reads."
+    },
+    {
+      "id": "ADOPTION_PATH_SEPARATE",
+      "evidence": "OzonGtinMappingSyncService.syncAndMap + independent OzonMarketplaceGtinAdoption",
+      "observation": "Unmapped nonarchived/nonexempt products with recognized barcode GTINs are considered; ADOPTED+one product per GTIN required. Fresh Catalog branch checks unique identified_by GTIN, producer INN, published, documents; local documented shortcut avoids fresh query.",
+      "inference": "GTIN adoption is distinct from inferring variant identity by article/size.",
+      "confidence": "HIGH_STATIC_INDEPENDENT_REVIEW",
+      "verification": "Independent CFR+javap notes in independent-* folders."
+    },
+    {
+      "id": "BARCODE_FILTERS_DISTINCT",
+      "evidence": "GtinNormalizer + independent OzonMarketplaceGtinAdoption.gtins + OzonRegistrationBarcodeBinder.carries",
+      "observation": "normalize accepts numeric1..14 and pads; adoption requires input13/14 numeric/checksum/no restricted ranges020-029,040-049,200-299; binder carries compares normalize only; no046-only rule.",
+      "inference": "Do not conflate helper normalization with callsite identity acceptance.",
+      "confidence": "HIGH_STATIC_INDEPENDENT_REVIEW",
+      "verification": "Read exact caller predicates; no server contract inferred solely from helper."
+    }
+  ]
+}

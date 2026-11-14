@@ -1,0 +1,52 @@
+{
+  "version": "1.3.25",
+  "artifactSha256": "20e339e956d286608681f7e7cf3c6b5af7f7fde3fb202dc933ee06490136a423",
+  "method": "Read-only CFR 0.152 class analysis; original installer/app/license never executed.",
+  "observations": [
+    {
+      "source": "OzonJson.parseProductInfo",
+      "location": "root-static/decompiled/com/tuandev/fbsbarcode/integration/ozon/OzonJson.java:45-74",
+      "observed": "Reads items or result.items; native product id comes from id then product_id; barcode values come from barcodes array, offer_id remains separate; SKU comes from sku then fbo_sku.",
+      "inference": "Product barcode data and the numeric native SKU are separate identities. This parser does not read a dedicated GTIN JSON field or the order tracking barcode.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Trace downstream mapping normalization and active Catalog lookup before treating a barcode as an accepted GTIN."
+    },
+    {
+      "source": "OzonProductDto canonical constructor and withCardAttributes overloads",
+      "location": "root-static/decompiled/com/tuandev/fbsbarcode/integration/ozon/OzonProductDto.java:9-70",
+      "observed": "Stores productId, offerId, SKU, name, article, color, size, manufacturerSize and barcodes separately. Barcode list is sanitized, distinct and capped at100. Card attributes can enrich model/color/size/brand/TN VED/composition without changing stored native identity/barcodes.",
+      "inference": "A display title is not the native association key. This data model alone does not establish a match policy.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Follow OzonZnackMappingService and OzonGtinMappingSyncService for the actual candidate predicates."
+    },
+    {
+      "source": "OzonApiClient.listProducts/productInfo/productInfoBy/productAttributes",
+      "location": "root-static/decompiled/com/tuandev/fbsbarcode/integration/ozon/OzonApiClient.java:117-153",
+      "observed": "Lists v3/product/list, reads v3/product/info/list by product_id or sku/offer_id, and v4/product/info/attributes. Client validates product page/count arguments up to1000.",
+      "inference": "These are bounds observed in this application, not independently revalidated current official API limits.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Call-site cursor/total logic and official Ozon contract require separate review. No seller API was called for this finding."
+    },
+    {
+      "source": "OzonApiClient.addBarcodes",
+      "location": "root-static/decompiled/com/tuandev/fbsbarcode/integration/ozon/OzonApiClient.java:155-168",
+      "observed": "Accepts1..100 bindings; writes numeric sku and normalized barcode to v1/barcode/add.",
+      "inference": "Barcode dispatch targets native SKU. HTTP success and this helper alone do not prove server-side publication/readback.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Review response errors and downstream readback paths separately."
+    },
+    {
+      "source": "GtinNormalizer.normalize/hasValidGs1CheckDigit/isTechnicalRange",
+      "location": "root-static/decompiled/com/tuandev/fbsbarcode/integration/znack/GtinNormalizer.java:12-40",
+      "observed": "Normalizer trims, requires digit-only1..14characters and left-pads to14. Check-digit validation is a separate method. Technical range helper checks normalized029 prefix. No046-only test in this class.",
+      "inference": "A numeric native SKU is not automatically a GTIN just because the helper can normalize numeric strings. Check the caller's Catalog/identity rules. Do not claim every normalization call performs checksum validation.",
+      "confidence": "HIGH_STATIC",
+      "verification": "Inspect actual GTIN extraction/candidate call sites; optionally corroborate specific methods with javap."
+    }
+  ],
+  "limits": [
+    "Static observations are not runtime or live seller/API acceptance.",
+    "No proprietary implementation was copied into VN Code; decompilation remains outside the source repository and source ZIP.",
+    "This record covers four classes only, not the full association policy or whole application."
+  ]
+}

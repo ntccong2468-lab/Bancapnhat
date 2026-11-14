@@ -1,0 +1,18 @@
+{
+  "marketplace": "OZON",
+  "gtins": 10000,
+  "liveSellerMutations": false,
+  "simulatedApi": true,
+  "realApplicationPlannerAdaptersAndSqlite": true,
+  "writes": 100,
+  "reads": 60272,
+  "registrationEvidenceReads": 60000,
+  "certificateEvidenceReads": 60000,
+  "priceEvidenceReads": 0,
+  "pricePreflightReads": 0,
+  "maximumRequestItems": 100,
+  "maximumRequestBytes": 4114,
+  "verified": 10000,
+  "elapsedMs": 1164538.965176,
+  "quotaWaitSimulatedSeparately": true
+}

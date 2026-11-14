@@ -1,0 +1,12 @@
+{
+  "version": "1.3.25",
+  "installerSha256": "86be2d8bbe639b8a1358730c93060e7da0e685e9a1198bd035064b8188e4f8c2",
+  "extractedFile": "/tmp/vncode-wbcode-ozon-20261114/exe/file4fc9c7b267e03d4d83dfd1be2f4252d1",
+  "appJar": "/tmp/vncode-wbcode-ozon-20261114/wbcode-1.3.25-app.jar",
+  "appJarBytes": 5605859,
+  "appJarSha256": "20e339e956d286608681f7e7cf3c6b5af7f7fde3fb202dc933ee06490136a423",
+  "classCount": 1380,
+  "selectedClasses": 429,
+  "extraction": "7zip25.01 recursively parsed PE/MSI/CAB without execution",
+  "targetExecuted": false
+}

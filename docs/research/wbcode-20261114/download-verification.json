@@ -1,0 +1,24 @@
+{
+  "repo": "rupphi/relatest-wcode",
+  "version": "v1.3.25",
+  "releaseId": 443286851,
+  "files": {
+    "checksums.sha256": {
+      "bytes": 256,
+      "sha256": "ea8f61133f8e84f88e3625d66dd9dd1547d943e5981f21ec34d4b3b6fdbda3df",
+      "githubDigestMatched": true
+    },
+    "update-manifest.json": {
+      "bytes": 1566,
+      "sha256": "6aaeaca14695700947674813a5cb7149a80c59e01da054d3bae59c18b5f396e2",
+      "githubDigestMatched": true
+    },
+    "WCode.exe": {
+      "bytes": 149642240,
+      "sha256": "86be2d8bbe639b8a1358730c93060e7da0e685e9a1198bd035064b8188e4f8c2",
+      "githubDigestMatched": true
+    }
+  },
+  "officialChecksumsMatched": true,
+  "installerExecuted": false
+}

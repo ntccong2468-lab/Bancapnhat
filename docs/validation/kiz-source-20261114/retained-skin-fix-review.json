@@ -1,0 +1,47 @@
+{
+  "recorded_at_utc": "2026-11-14T12:44:07.670578+00:00",
+  "status": "TARGETED_RED_TO_GREEN_CONFIRMED_BY_PARENT_TEST_RUN",
+  "baseline_runtime_commit": "53a22c1e2ca169b36afd8e53d6469b2d497805b7",
+  "root_cause_demonstrated": "A publicly prethemed retained ContextMenuSkin kept theme-dark classes while its bound inline style changed to light ink, producing dark material and insufficient contrast.",
+  "change": "ThemeService.material synchronizes only five owned classes onto an existing public skin node. It does not change skin style/id or remove caller classes.",
+  "regression_test": "prethemedContextMenuKeepsItsRetainedSkinPaletteInSyncAfterThemeFlip",
+  "test_kept_original_contrast_minimum": 4.5,
+  "caller_class_preservation_assertion": "seller-actions",
+  "red_receipt": "retained-skin-red.json",
+  "green_receipt": {
+    "parent_log": "/tmp/vncode-kiz-repair-20261114/final-focused-theme-and-kiz.log",
+    "tests": 101,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "theme_tests": 11,
+    "finished_utc": "2026-11-14T12:43:05Z",
+    "maven_seconds": 40.057,
+    "suites": 7
+  },
+  "full_fresh_verification": "PENDING_PARENT",
+  "reviewer_executed_maven": false,
+  "files": [
+    {
+      "path": "src/main/java/com/vncode/app/shared/ThemeService.java",
+      "sha256": "3c8b3d919edcc52720a6b4a66ed2676c782e396e50fae0bdd74edd29ec6a34d6"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/shared/ThemeServiceTest.java",
+      "sha256": "4299b435d9d44f3390617b89ace2c6feca51eceeadd5c8a46ccd4952b02ee62d"
+    }
+  ],
+  "original_full_verification": {
+    "parent_log": "/tmp/vncode-kiz-repair-20261114/full-linux-verify.log",
+    "reports": "/tmp/vncode-kiz-repair-20261114/full-linux-first-failed-reports",
+    "suites": 569,
+    "tests": 4539,
+    "failures": 0,
+    "errors": 1,
+    "skipped": 2,
+    "error": "ThemeServiceTest.reopeningTheRealManagePopupAfterThemeFlipRefreshesItsSkinInkAndMaterial",
+    "observed_ink": "0x24252aff",
+    "observed_material": "0x323d4bff",
+    "history_preserved": true
+  }
+}

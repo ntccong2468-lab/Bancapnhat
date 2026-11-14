@@ -1,0 +1,17 @@
+{
+  "kind": "FULL_LINUX_VERIFY_FIRST_RUN",
+  "result": "FAIL",
+  "sourceCommit": "53a22c1e2ca169b36afd8e53d6469b2d497805b7",
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode clean verify",
+  "exitCode": 1,
+  "suites": 569,
+  "tests": 4539,
+  "failures": 0,
+  "errors": 1,
+  "skipped": 2,
+  "duration": "53:20 min",
+  "finishedAtUtc": "2026-11-14T12:32:31Z",
+  "logSha256": "a5105061d1aba36ffb7430df0e234d8517225834c09fe207721186843cb3624e",
+  "failedCase": "ThemeServiceTest.reopeningTheRealManagePopupAfterThemeFlipRefreshesItsSkinInkAndMaterial",
+  "status": "Investigating; no test/source edits; do not treat partial green counts as full success."
+}

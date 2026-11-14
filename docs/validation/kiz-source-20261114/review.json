@@ -1,0 +1,64 @@
+{
+  "kind": "VN_CODE_KIZ_RESUME_MANUAL_REVIEW",
+  "reviewedAtUtc": "2026-11-14T11:29:42.688019+00:00",
+  "base": "f36d03f35167c75bcf6249c5923d9aa8a54b1339",
+  "worktree": "/workspace/vncode-kiz-original-repair-20261114",
+  "mode": "Read-only source review; no test/app/signature/network execution",
+  "issues": [
+    {
+      "severity": "P2",
+      "title": "Single-pipeline resume clears the shared shop block and can release a different previously authorized pipeline which has not reached its signing guard yet",
+      "locations": [
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java:295",
+        "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java:83",
+        "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java:64"
+      ],
+      "sequence": [
+        "A and B in the same shop both have process-local authorization; B has not attempted signing after A fails.",
+        "A signer throws CANCELLED. guarded() adds BLOCKED_SHOPS[shop] and WAITING_PIPELINES[A], leaving B absent from WAITING_PIPELINES.",
+        "The new foreground resumeSigning(A) calls existing authorizePipeline(A), which removes the entire shop from BLOCKED_SHOPS.",
+        "B later enters guarded(); it has no WAITING marker and retains its prior authorization (or shop authorization), so work.run() is reached without explicitly resuming B."
+      ],
+      "evidence": "Deterministic static control flow; not a test execution claim. Existing new test authorizingOnePipelineClearsOnlyItsShopCauseAndDoesNotWakeOtherWaitingPipelines first places B in WAITING, so that case does not cover B which has not polled yet.",
+      "scope": "If the new action is specified to resume exactly one saved lot as its Javadoc states, shared-shop unblocking is wider than that action. Existing authorizePipeline behavior predates this patch; the new resume entry point exposes it as single-lot recovery.",
+      "suggestion": "Add a regression for an already-authorized but not-yet-WAITING B, then use a scope-specific resume authorization that leaves other shop-blocked signing contexts blocked. Do not broadly change original new-purchase/shop-selection authorization semantics without separate coverage."
+    }
+  ],
+  "positiveChecks": [
+    "Pipeline lookup, settings binding and updates are scoped to repository shop_id.",
+    "resumeSigning requires active exact local pause marker/process latch, KIZ rights, existing original profile and tested signature/OMS before authorizing.",
+    "No enqueue/start/request-key replacement was introduced in resumeSigning.",
+    "advance retains original-profile service recreation, RUNNING single-pipeline guard and CREATING_ORDER reconciliation instead of blind duplicate order creation.",
+    "UI captures coordinator and pipeline ID before background Task; generation guards prevent stale callbacks from mutating new-shop UI.",
+    "Existing rejected-introduction retry remains selected when signing pause is false.",
+    "Actual code now restores SigningDeferredException operational code CANCELLED while retaining historical cause only in the message; this preserves the old control contract.",
+    "No refactor/regression tool integration, Maven dependency or profile was installed by this reviewer."
+  ],
+  "notVerified": [
+    "No Maven or behavioral test was executed in this review.",
+    "No live signing, order purchase, Windows desktop or external API write was performed.",
+    "Source changed concurrently by the owner and API agent; this report pins observed file hashes, and later changes need a scoped reread."
+  ],
+  "observedFiles": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": {
+      "sha256": "25fc00122929fa587deacfb6e4651ed7e7dfdad6bd7462d59000a767787812c7",
+      "bytes": 60876
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java": {
+      "sha256": "5a09e0e844032c34bdc5cd4160c673df6bb721e46ebba3b2541d881a3b4a33b6",
+      "bytes": 7601
+    },
+    "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java": {
+      "sha256": "12785db273e7f8b4a92c59d35eedf2d97857ae04bb19239983444521c11c9af6",
+      "bytes": 33508
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": {
+      "sha256": "4af9ee395b3701d8bf9df858878b5c99c4fe11dee6db3f076d545537e8de6002",
+      "bytes": 16769
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnostics.java": {
+      "sha256": "595823f1910438135952ea5544847290d25aa7c531270f8223ae43fa303e33da",
+      "bytes": 1149
+    }
+  }
+}

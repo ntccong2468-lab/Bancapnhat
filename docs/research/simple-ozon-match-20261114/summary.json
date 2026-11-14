@@ -1,0 +1,93 @@
+{
+  "scope": "FINAL_USER_CRITERIA_EXACT_FULL_152NAU_SIZE_ALIASES_THIS_EXAMPLE_ONLY",
+  "generatedAtUtc": "2026-11-14T13:23:11.548583+00:00",
+  "normalization": "Unicode NFKC + casefold + remove whitespace inside full explicit article; strip at most one explicit separated known size suffix first",
+  "matching": "FULL MODEL EQUALITY; neither substring nor word-boundary search",
+  "sizeAliasesForOnlyThisModel": [
+    "2XL",
+    "XXL",
+    "52"
+  ],
+  "dedicatedArticleTakesPriorityOverTitleNote": true,
+  "titleNoteFallbackRequiresBoundedExplicitArticleMarker": true,
+  "ignoredAsGates": [
+    "brand",
+    "color",
+    "TNVED",
+    "gender",
+    "publication",
+    "documents"
+  ],
+  "catalog": {
+    "allSnapshotRows": 1380,
+    "exactFullModelRows": 5,
+    "exactFullModelAndAllowedSizeRows": 1,
+    "previousSubstringLikeRelevantMainArticleRows": 20,
+    "relevantExcludedReasons": {
+      "EXACT_MODEL_SIZE_NOT_IN_EXAMPLE_ALIAS_SET": 4,
+      "MAIN_MODEL_HAS_DIFFERENT_PREFIX_OR_SUFFIX": 15
+    },
+    "prefixOrSuffixRejectedAmongRelevantRows": 15,
+    "conflictingMainArticleFieldsRejected": 0,
+    "exactModelsRejectedOnlyForSize": 4
+  },
+  "ozon": {
+    "allSnapshotRows": 533,
+    "exactFullModelRows": 1,
+    "exactFullModelAndAllowedSizeRows": 1,
+    "previousSubstringLikeRelevantMainArticleRows": 15,
+    "relevantExcludedReasons": {
+      "MAIN_MODEL_HAS_DIFFERENT_PREFIX_OR_SUFFIX": 14
+    },
+    "prefixOrSuffixRejectedAmongRelevantRows": 14,
+    "conflictingMainArticleFieldsRejected": 0,
+    "exactModelsRejectedOnlyForSize": 0
+  },
+  "uniqueCatalogCandidateGtins": 1,
+  "uniqueCatalogCandidateGoodIds": 1,
+  "duplicateCandidateGtinGoodIdRows": 0,
+  "uniqueOzonCandidateProducts": 1,
+  "possiblePairs": 1,
+  "gtinAutomaticallyChosenOrWritten": false,
+  "existingBarcodeMetadataNotGate": {
+    "ozonProductsAlreadyHoldingCandidate": 0,
+    "existingCandidateEdges": 0,
+    "OZNPrefixNeverStripped": true
+  },
+  "source": {
+    "catalogCards": 1380,
+    "catalog": "hash-verified complete real HTTP snapshot from attempt2",
+    "ozonProducts": 533,
+    "ozon": "complete actual new-credential read,21/21HTTP200",
+    "catalogSnapshotHash": "442263179a2fa522f2b8f18ccb5b59070b095d350856a7472a066a29216eaf81",
+    "ozonInfoSha256": "55d33694c968aa3a36e95cada68eb33d1a413fcf10012b4ac4b3a44951107948",
+    "ozonAttributesSha256": "5161063947ab5d24cd39ab7dbb111927c022823ccdf962bbf43e89af304854ab",
+    "additionalNetworkRequests": 0
+  },
+  "supersededHistoricalContainsRule": {
+    "status": "SUPERSEDED_NOT_FINAL",
+    "catalog52Candidates": 4,
+    "ozon2xlCandidates": 3,
+    "possiblePairs": 12
+  },
+  "localParserControls": {
+    "positiveFullArticleCases": 8,
+    "negativeFullArticleCases": 9,
+    "additionalMarkerAndPriorityCases": 7,
+    "outcome": "LOCAL_PARSER_CONTROLS_PASS_NOT_API_SIMULATION",
+    "networkRequests": 0
+  },
+  "globalSizeConversionCreated": false,
+  "appSourceChanges": 0,
+  "remoteWrites": 0,
+  "paidPurchases": 0,
+  "signatures": 0,
+  "licenseActivations": 0,
+  "gmailMessages": 0,
+  "exclusionCountsScopeNote": "The Ozon non-equal-model rejection count includes other known-size suffixes outside the allowed 2XL/XXL/52 suffix policy; it does not mean all rejected rows are different base models. Candidate membership is unchanged.",
+  "actualCandidateEvidenceAudit": {
+    "allDedicatedObservedSizesWithinUserAliasSet": true,
+    "noBracketSuffixParsingInSelectedCandidate": true,
+    "researchOnlyNotProductionMatcherIntegration": true
+  }
+}

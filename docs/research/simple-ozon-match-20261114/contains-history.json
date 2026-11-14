@@ -1,0 +1,63 @@
+{
+  "scope": "USER_EXPLICIT_EXAMPLE_152_NAU_OZON_2XL_TO_CATALOG_52_REPORT_ONLY",
+  "generatedAtUtc": "2026-11-14T13:08:32.888067+00:00",
+  "dataSource": {
+    "catalog": "previous complete real HTTP snapshot:1380 cards, hash-verified",
+    "ozon": "new credential pair complete real HTTP read:533 products,21HTTP200",
+    "newHttpRequestsForThisSize52Computation": 0
+  },
+  "originalLiteral2XLRulePreserved": {
+    "catalogRows": 0,
+    "ozonRows": 3,
+    "completePairs": 0
+  },
+  "userSelectedCatalog52Rule": {
+    "catalogRows": 4,
+    "distinctCatalogGoodIds": 4,
+    "distinctCanonicalGtins": 4,
+    "gtinsHavingMultipleGoodIds": 0,
+    "duplicatedGtinGoodIdRows": 0,
+    "catalogLiteralSpacedRows": 3,
+    "catalogLiteralCompactRows": 1,
+    "catalogSeparatorVariantAnd52Rows": 3,
+    "catalogSeparatorVariantNewRowsBeyondLiteral": 0,
+    "ozonExact2xlRows": 3,
+    "possiblePairs": 12,
+    "ozonProductsWithMultipleCatalogCandidates": 3,
+    "automaticGtinChoice": false
+  },
+  "actualCatalogSizeType": {
+    "attributeId": "35",
+    "attributeName": "Размер одежды / изделия",
+    "attributeValueType": "РОССИЯ"
+  },
+  "coPresentNativeOzonSizeFieldsMetadataNotGate": [
+    {
+      "manufacturer": "2xl",
+      "russian": "52",
+      "nativeProducts": 3
+    }
+  ],
+  "existingBarcodeMetadataNotGate": {
+    "matchingUsesNumeric13or14DigitGTINOnly": true,
+    "OZNPrefixNeverStripped": true,
+    "ozonProductsAlreadyHoldingAnyCatalogCandidate": 0,
+    "alreadyPresentCandidateEdges": 0,
+    "uniqueAlreadyPresentCandidateGtins": 0
+  },
+  "ignoredAsGates": [
+    "brand",
+    "color",
+    "TNVED",
+    "gender",
+    "publication",
+    "documents"
+  ],
+  "globalSizeConversionCreated": false,
+  "appSourceChanges": 0,
+  "sellerWrites": 0,
+  "paidPurchases": 0,
+  "signatures": 0,
+  "licenseActivations": 0,
+  "gmailMessages": 0
+}

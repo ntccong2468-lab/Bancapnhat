@@ -1,0 +1,80 @@
+{
+  "kind": "VN_CODE_169_TO_1610_SOURCE_PRESERVATION",
+  "result": "PASS",
+  "recordedAtUtc": "2026-11-14T11:43:15.240938+00:00",
+  "published169Source": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "candidateCodeSource": "53a22c1e2ca169b36afd8e53d6469b2d497805b7",
+  "runtimeFileCountBefore": 800,
+  "runtimeFileCountAfter": 800,
+  "runtimeUnchangedFiles": 791,
+  "runtimeAdded": [],
+  "runtimeRemoved": [],
+  "runtimeChanged": [
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+      "beforeGitBlob": "238b345cd9b4e72aea2b57314edf0b3e0cfdf111",
+      "afterGitBlob": "75fb10a9d56b0dbad68eb6253b2605e9b3dce5de",
+      "beforeSha256": "4b401dd6a27ddd297d58fa393a1ee1e2c4727a60bd14db83f00153bee9618d09",
+      "afterSha256": "4af9ee395b3701d8bf9df858878b5c99c4fe11dee6db3f076d545537e8de6002"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "beforeGitBlob": "f2cc2bb00f9f2489f9750d56d646b79d384fb2d5",
+      "afterGitBlob": "221643397117e47b6c02d7e8508704af69ed10d2",
+      "beforeSha256": "00bea932ab007778fdc7ffc9be06d07bea199b895aeb0b08c42da02a92dff38b",
+      "afterSha256": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnostics.java",
+      "beforeGitBlob": "87d074bfdf6c29a79b2f61bd093badab474d44f1",
+      "afterGitBlob": "043bdba97ee7b8c252588ece24517f0d29e11eaf",
+      "beforeSha256": "7d23d723985fbc596e7f542b2ac4a28b1bf4c15407ea87272100ab3abf0cafe9",
+      "afterSha256": "595823f1910438135952ea5544847290d25aa7c531270f8223ae43fa303e33da"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+      "beforeGitBlob": "c5af6b54b40183ab3e818c4dbe12e13af9f6fd7f",
+      "afterGitBlob": "c346cef48ae94d09b975e2a9eef73581e4955d7f",
+      "beforeSha256": "75b18de048bbd7fa0032613842593e4e873dfa5af27ecfd749375a32eb4f2e4a",
+      "afterSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+      "beforeGitBlob": "98b06d890c2c505010113a945fc366b182336fef",
+      "afterGitBlob": "f8b6475713f004110490336cdc1e93356f92f223",
+      "beforeSha256": "374d0853a3ad170a928b3cb65386275f299ae25687d80b439e7960ff73220679",
+      "afterSha256": "12785db273e7f8b4a92c59d35eedf2d97857ae04bb19239983444521c11c9af6"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "beforeGitBlob": "f499cf15e8a7544cdb55928ef7242254fc0d5313",
+      "afterGitBlob": "66b3f07078fb91265f0021a61ca77eb4e3e6ff7e",
+      "beforeSha256": "0b5c808f53101a10a8607c0f05beb4c095e0c75b6afc5dc9dee54b26e8e1b547",
+      "afterSha256": "b370038c373fb02786457a713b746432c6f6a5adfb195f5eeb82d20882d424cb"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "beforeGitBlob": "18f57888806f423a6f4b9f0cf8a8a8028635204d",
+      "afterGitBlob": "3271992d4cf187eb2d3b289c3281aeda0963440b",
+      "beforeSha256": "7ac6193c8d9ffd9ecc4cf6cf15f59b91799ebd8f9a722664676a746cdc0dd798",
+      "afterSha256": "0fa802bc1cb2ca008785542fc0911e5dc8581250d7351ce1e6626659ae511f76"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "beforeGitBlob": "ae8141020402624d8b46ec2882d13cfee6d104c8",
+      "afterGitBlob": "f97478dd3c22f6624f5f4d4ac426669dcbcf56d6",
+      "beforeSha256": "44330426ba8841144b1f13a26cd41e3a1ff3d534f303026072e19b4591d55377",
+      "afterSha256": "a30a266f069fbaf2a5546f9c0a953bc9d78de9af98b17f33f519584289ff22a3"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "beforeGitBlob": "bd1fd601786841db6903dc5e9ab87646a292e7dc",
+      "afterGitBlob": "29aabc14dff897b5db78f0008e38c7ce1a33cf82",
+      "beforeSha256": "97693d415611a86afbce193967d2225113f48d4678fc266399c639eaf74fa8f2",
+      "afterSha256": "46521786dcd26ed112db489a287068ff3119e44e62f3b2446832932fbe17468a"
+    }
+  ],
+  "dependencyAndBuildPluginSectionsUnchanged": true,
+  "pomChanges": "project version and app.version only:1.6.9 to1.6.10",
+  "limitations": "Identical files and unchanged API/storage modules limit the patch scope; they do not prove all indirect runtime behaviors. Regression outcomes are recorded separately."
+}

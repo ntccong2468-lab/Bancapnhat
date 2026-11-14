@@ -1,0 +1,20 @@
+{
+  "kind": "RED_ASSERTION_EXCERPTS",
+  "source": "Previously executed baseline and candidate logs; quotes only, not an additional test run.",
+  "cases": [
+    {
+      "receipt": "ui-baseline-red.json",
+      "classification": "Published1.6.9 plus new behavior test",
+      "message": "A paused purchase in the already-selected shop needs an explicit resume action ==> expected: <1> but was: <0>",
+      "type": "ExecutionException wrapping AssertionFailedError",
+      "logSha256": "0ff959e3ee722687fe2da9dc85790d9c2965355c41b7e3f295f3aa9f25d35df5"
+    },
+    {
+      "receipt": "candidate-consent-red.json",
+      "classification": "In-progress new resume API before scoped correction, not published1.6.9",
+      "message": "Expected com.vncode.app.integration.znack.ZnackSigningSession.SigningDeferredException to be thrown, but nothing was thrown.",
+      "type": "AssertionFailedError",
+      "logSha256": "6588bbf5d71a3328bd1e12e9c97d4966bc712637a3f0a79178f4a5ed27b6ed96"
+    }
+  ]
+}

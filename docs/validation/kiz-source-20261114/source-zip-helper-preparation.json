@@ -1,0 +1,73 @@
+{
+  "kind": "SOURCE_ZIP_HELPER_PREPARATION_ONLY",
+  "result": "PREPARED_NOT_ACTUAL_ZIP_ACCEPTANCE",
+  "time": "2026-11-14T12:48:09.379275+00:00",
+  "helperSha256": "cf494177d2edeacbe317ab1318a38319348360899289039fac6f89f9ca45a0d7",
+  "selfTests": {
+    "cases": 21,
+    "failures": 0,
+    "result": "PASS",
+    "scope": "Small synthetic positive/negative controls, not VNCode app regression tests"
+  },
+  "sourceOnlyPreflight": {
+    "gitlinks": 0,
+    "symlinks": 0,
+    "exportIgnoredNodes": 0,
+    "exportSubstPaths": 0,
+    "lfsPaths": 0,
+    "runtimeFiles": 800,
+    "runtimeUnchanged": 790,
+    "runtimeModified": 10,
+    "runtimeAdded": 0,
+    "runtimeDeleted": 0,
+    "allBuildAndPomChecksPassed": true,
+    "allTrackedBlobsScanned": 3288,
+    "credentialPatternFindings": 1,
+    "confirmedExactSyntheticFixture": 1,
+    "unreviewedFindings": 0
+  },
+  "actualZipVerificationPerformed": false,
+  "applicationFullTestResult": "NOT_ASSUMED_BY_THIS_HELPER; root is running a fresh full verify for the new code pin",
+  "codeRef": "75691c68fa14f728856b0418fb6008083787ef7c",
+  "parentCodeRef": "53a22c1e2ca169b36afd8e53d6469b2d497805b7",
+  "baseline": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "historicalHelper": {
+    "directory": "source-zip-helper-history/code-53a22c1e-scope9/",
+    "sha256": "d188fa524dbc7fd15840e1cd2f1e7634a86cee6f6a65add8c1241e838f6b871a",
+    "oldRuntimeModified": 9,
+    "oldRuntimeUnchanged": 791,
+    "retainedUnchanged": true
+  },
+  "files": {
+    "verify-source-zip.py": {
+      "bytes": 25416,
+      "sha256": "cf494177d2edeacbe317ab1318a38319348360899289039fac6f89f9ca45a0d7"
+    },
+    "test-source-zip-helper.py": {
+      "bytes": 8308,
+      "sha256": "d755efce0563c2ffc07d149f7edd2674257c17cd82d3752662f8606ceec61a6b"
+    },
+    "SOURCE-ZIP-HELPER-README.md": {
+      "bytes": 5417,
+      "sha256": "0d47720416eda6f63be0ca81b1c1abbd56e4400925c06f0237670b003feba593"
+    },
+    "source-zip-helper-self-tests.log": {
+      "bytes": 2613,
+      "sha256": "9730fc670738417cafff97d510d98feba4944a0fe3b56242c5c1b6e6c364abeb"
+    },
+    "source-zip-secret-preflight.json": {
+      "bytes": 778,
+      "sha256": "b2d5b1318e52f859f69d3c0abe97825f57385a522514cd3ff484a3a3acaa21e3"
+    },
+    "source-zip-secret-fixture-review.json": {
+      "bytes": 1236,
+      "sha256": "cf7e74f89b6bfe10b836aebb8b51f1192fd8acd46c6e60a34daf6923b6651fe3"
+    }
+  },
+  "notPerformed": [
+    "App/Maven/API execution",
+    "Source repository edits",
+    "Actual candidate ZIP generation or acceptance",
+    "Tool installation"
+  ]
+}

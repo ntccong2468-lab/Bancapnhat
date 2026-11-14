@@ -1,0 +1,20 @@
+{
+  "kind": "DETERMINISTIC_RETAINED_POPUP_SKIN_RED",
+  "result": "EXPECTED_FAILURE",
+  "baselineRuntimeSource": "53a22c1e2ca169b36afd8e53d6469b2d497805b7",
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode '-Dtest=ThemeServiceTest#prethemedContextMenuKeepsItsRetainedSkinPaletteInSyncAfterThemeFlip' test",
+  "tests": 1,
+  "failures": 0,
+  "errors": 1,
+  "skipped": 0,
+  "cases": [
+    {
+      "name": "prethemedContextMenuKeepsItsRetainedSkinPaletteInSyncAfterThemeFlip",
+      "type": "java.util.concurrent.ExecutionException",
+      "message": "org.opentest4j.MultipleFailuresError: A retained popup skin must follow the current light palette: skin=context-menu workspace-theme liquid-glass theme-dark ink=0x24252aff material=0x2c2d32ff (3 failures)\n org.opentest4j.AssertionFailedError: skin=context-menu workspace-theme liquid-glass theme-dark ink=0x24252aff material=0x2c2d32ff ==> expected: <true> but was: <false>\n org.opentest4j.AssertionFailedError: skin=context-menu workspace-theme liquid-glass theme-dark ink=0x24252aff material=0x2c2d32ff ==> expected: <false> but was: <true>\n org.opentest4j.AssertionFailedError: skin=context-menu workspace-theme liquid-glass theme-dark ink=0x24252aff material=0x2c2d32ff ==> expected: <true> but was: <false>"
+    }
+  ],
+  "xmlSha256": "8e0762ba1a8b89c53f5d9f5f929a1987495ced3522c944726af715df70abf16f",
+  "productionSourceUnchanged": true,
+  "newTestSourceSha256": "9080f04b3ef1682a8f77c87dd75d5b6303d5859d20053c9e1d0d29740a41274a"
+}

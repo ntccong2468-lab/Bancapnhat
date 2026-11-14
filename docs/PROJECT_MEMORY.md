@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## 14.11.2026 MSK — mã nguồn1.6.10 sửa chờ ký KIZ, nghiên cứu repo và WBCode; chưa Latest
+
+[Bàn giao](validation/2026-11-14-kiz-source-repair.md), nguồn **75691c68fa14f728856b0418fb6008083787ef7c**, nhánh fix/kiz-original-flow-20261114 từ f36/nền1.6.9. Đúng bốn yêu cầu: khảo sát refactor; tìm nguồn public đầu thật Vncode4e46/brand27c; sửa local signing pause/same-shop UX và chặn resume lan sang lô khác; đề xuất hồi quy để duyệt; tạo ZIP nguồn. 790/800 runtime giữ byte,10 sửa,0 thêm/xóa; POM chỉversion1610, giữ API/schema/dependency/native/license. Không coi generic wait là một lỗi PIN/chứng thư cụ thể hoặc sao chép module cũ để mất bảo vệ hiện tại.
+
+Full Linux/Xvfb **4540ca/569suite, 4538PASS/0failure/error/2namedskip**, JAR review byte đạt; Node174 riêng; focused101 trùng full nên không cộng. Có baseline UI/diagnostic RED, RED consent và full đầu lỗi popup; đã tái hiện retained-skin RED/sửa ThemeService trước full mới, giữ bằng chứng. Không seller APIwrite/mua/ký/licenseactivation/Gmail; chưa SUZ/CSP/Windows seller acceptance. Không mớiCodeQL/allsecuritygreen.
+
+[Đề xuất repo](research/2026-11-14-code-quality-proposals.md): OpenRewrite từngrecipe/dryRun; ArchUnit+JaCoCo trước, PIT KIZsau. Chưa cài hoặc refactor diện rộng; không công cụ nào bảo đảm100% không hồi quy. [WBCode1.3.25](research/wbcode-20261114/README.md) đã checksum/decompile tĩnh: đọc barcodes, ưu tiên productlink→GTINbarcode→article/size, hai writepaths readback khác nhau. [So sánh VNCode](research/wbcode-20261114/VN-CODE-COMPARISON.md) phân biệt reviewednativepurchaseproof trướcbarcode, observedmapping, cross-onlyWBlink và các TN VEDgates; chỉ nghiên cứu, không tự thay thuật toán. Thử thật1380Catalog/533Ozon theo exact152NAU +alias2XL/XXL/52 của ví dụ trả1GTIN/1Ozon/1cặp,0APIwrite; broad4/3/12đãthaythế. [Báo cáo](research/simple-ozon-match-20261114/README.md); GTIN/ID chi tiết giao riêng ngoàiGit. ZIP nguồn từ finaldocscommit có checksum/receipt ngoài gói, không installer/Latest.
+
 ## 12.11.2026 MSK — VN Code 1.6.9 đã phát hành Latest
 
 Release immutable **442540592 / `v1.6.9`**, công bố **05:47:19 UTC / 08:47:19 MSK**. Nguồn app **`4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b`**, publisher **`b9635f80f0b125ad33830f71430088358ccc671e`**, run **43163588699 SUCCESS**. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.exe), [bàn giao](validation/2026-11-12-vncode-169-release-handoff.md), [receipt cuối](validation/vncode-169-20261112/final-release.json).

@@ -1,0 +1,22 @@
+[
+  {
+    "class": "com/tuandev/fbsbarcode/integration/ozon/OzonJson.class",
+    "sha256": "d8087dae3b7b92a264b437d57b84f7d95e0d5010b8aaf490ef9d9858b0bb83f5",
+    "exitCode": 0
+  },
+  {
+    "class": "com/tuandev/fbsbarcode/integration/ozon/OzonProductDto.class",
+    "sha256": "9ac4a0a9d87d96a48ce32efd8084d342f1602057befea59d3b2f26877470c4b2",
+    "exitCode": 0
+  },
+  {
+    "class": "com/tuandev/fbsbarcode/integration/ozon/OzonApiClient.class",
+    "sha256": "ed5c3fa652e8437b4d3cd6944ccd68b677d6d259c549dee60c10b85629d6890d",
+    "exitCode": 0
+  },
+  {
+    "class": "com/tuandev/fbsbarcode/integration/znack/GtinNormalizer.class",
+    "sha256": "7ef5d9c5c23e011d991f50261eede4e1c4beb9d00c2534af221aab4fb8aa9446",
+    "exitCode": 0
+  }
+]

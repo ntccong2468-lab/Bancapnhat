@@ -1,0 +1,75 @@
+{
+  "kind": "KIZ_AND_THEME_FOCUSED_FINAL",
+  "result": "PASS",
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -Dtest=ZnackSigningSessionTest,ZnackSigningRecoveryTest,ZnackErrorMessagesTest,ZnackPurchaseDiagnosticsTest,KizSigningResumePresentationTest,KizPurchaseStatusPresentationTest,ThemeServiceTest test",
+  "tests": 101,
+  "suites": 7,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "seconds": 40.057,
+  "reports": [
+    {
+      "name": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "8b71c73b919d413834120dac1c554b5da28cba3faad78097506e4a1b87a36ede"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "41c1792f12eb2e655d68efab88bdb7cf22fb90d9dbabba4cc45d4d9d56970256"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "dc65ce79af177e87876dac11013fc634db5a4070efa925b95896c88d5cb848a4"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningRecoveryTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "0dcfdf785d40c76f4abc57921b6661ab9ea254df1bce38d21132bb08c3f83f5d"
+    },
+    {
+      "name": "com.vncode.app.shared.ThemeServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "e3406e7dd32b539879eeaba6dc54b42ef784b7dcb6281dddb028949accb14397"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "48a774af023c5730c25e58a8a7b5290114d302ea15203b5b785d5323091ab8ea"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "81852126e55ba919a746842faedc5891430ca69f8b01c7560d73dec7d8bab9ab"
+    }
+  ],
+  "runtimeHashes": {
+    "src/main/java/com/vncode/app/shared/ThemeService.java": "3c8b3d919edcc52720a6b4a66ed2676c782e396e50fae0bdd74edd29ec6a34d6",
+    "src/test/java/com/vncode/app/shared/ThemeServiceTest.java": "4299b435d9d44f3390617b89ace2c6feca51eceeadd5c8a46ccd4952b02ee62d"
+  },
+  "scope": "Linux/Xvfb, synthetic signer/API, real SQLite/JavaFX; not a live seller purchase.",
+  "sourceCommit": "75691c68fa14f728856b0418fb6008083787ef7c"
+}

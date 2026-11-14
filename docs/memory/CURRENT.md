@@ -1,6 +1,16 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **12.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **14.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+
+## Bản nguồn 1.6.10 — sửa tiếp tục ký KIZ, chưa phát hành Latest
+
+- Tác vụ 14.11: tìm repo refactor/hồi quy để người dùng duyệt; tìm đúng nguồn đầu và sửa mua KIZ; giao ZIP nguồn. Người dùng chỉ yêu cầu nghiên cứu thêm WBCode Ozon GTIN/matching, không tự triển khai thuật toán đó. [Bàn giao](../validation/2026-11-14-kiz-source-repair.md), [đề xuất repo](../research/2026-11-14-code-quality-proposals.md).
+- Nguồn đóng băng **`75691c68fa14f728856b0418fb6008083787ef7c`**, nhánh `fix/kiz-original-flow-20261114`, từ f36d03f/nền runtime1.6.9. Marker chờ ký là local; cùng shop không phát selection event. Thêm **Tiếp tục lô mua** đúng pipeline/hồ sơ gốc, giữ đơn/request/mã, consent riêng theo generation; không tự mua lại hoặc mở lô khác. 800 runtime còn đủ, 790 giữ byte/10 sửa, không dependency/schema/API-wire change.
+- Full Linux/Xvfb **4540 ca/569 suite, 4538 đạt/0 failure/error/2 skip có danh tính**, JAR byte review đạt; chọn lọc101 là tập trùng, không cộng tổng; Node174 riêng. [Full receipt](../validation/kiz-source-20261114/full-linux-result.json). Giữ baseline RED, candidate scope RED và full đầu FAIL popup; thêm regression ổn định/sửa class skin rồi mới full lại trên mã mới, không hạ test.
+- Nguồn VNCode public đầu thực sự là repo Vncode **4e46a1c** (1.1.32/504tệp); root8ad chỉREADME, branded đầu27c(1.1.34). Auth/safety/queue cũ không khác sau package-normalize; không chép module cũ hoặc khôi phục COMPLETED=tải mã thành lưu thông.
+- WBCode Latest **1.3.25** được xác minh binary/hash và đọc tĩnh. [Báo cáo](../research/wbcode-20261114/README.md), [đối chiếu](../research/wbcode-20261114/VN-CODE-COMPARISON.md). Ozon barcode không046-only; phân biệt native purchase proof/observed barcode/cross-only WB link, cùng bốn đường TN VED khác nhau. Không source edit để đổi matching trong nghiên cứu này.
+- Phép thử GTIN mới đã đọc thật1380Catalog/533Ozon; tiêu chí cuối exact152NAU +alias2XL/XXL/52 cho ví dụ, trả1GTIN/1Ozon/1cặp; broad4/3/12SUPERSEDED. [Báo cáo](../research/simple-ozon-match-20261114/README.md); chi tiếtGTIN/ID ngoàiGit,0write/0đổi thuật toán app.
+- Chuẩn bị ZIP nguồn `VN-code-1.6.10-source-20261114.zip` từ commit tài liệu cuối; checksum/receipt archive đi kèm riêng. **Chưa tạo bộ cài/chưa phát hành Latest**; chưa cài OpenRewrite/ArchUnit/JaCoCo/PIT. Không mua/ký/seller write/license activation/Gmail thật; chưa Windows seller/SUZ/CSP acceptance. CodeQL mới NOT RUN, finding kế thừa chưa coi là đã giải quyết.
 
 ## Latest 1.6.9 — đã phát hành và kiểm chứng ngày 12.11.2026
 

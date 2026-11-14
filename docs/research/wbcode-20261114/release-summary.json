@@ -1,0 +1,39 @@
+{
+  "checkedUtc": "2026-11-14T12:03:04.385797+00:00",
+  "repo": "rupphi/relatest-wcode",
+  "tag": "v1.3.25",
+  "releaseId": 443286851,
+  "publishedAt": "2026-11-12T18:29:00Z",
+  "sourceCommitish": "main",
+  "url": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.25",
+  "assets": [
+    {
+      "name": "checksums.sha256",
+      "id": 740606132,
+      "bytes": 256,
+      "digest": "sha256:ea8f61133f8e84f88e3625d66dd9dd1547d943e5981f21ec34d4b3b6fdbda3df",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/download/v1.3.25/checksums.sha256"
+    },
+    {
+      "name": "update-manifest.json",
+      "id": 740604575,
+      "bytes": 1566,
+      "digest": "sha256:6aaeaca14695700947674813a5cb7149a80c59e01da054d3bae59c18b5f396e2",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/download/v1.3.25/update-manifest.json"
+    },
+    {
+      "name": "Wbcode-macos-x64.dmg",
+      "id": 740522361,
+      "bytes": 154412869,
+      "digest": "sha256:aad017d2f2a7209d77462d229aac5d8079763f31809a69dd0af2fdb17664520f",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/download/v1.3.25/Wbcode-macos-x64.dmg"
+    },
+    {
+      "name": "WCode.exe",
+      "id": 740604576,
+      "bytes": 149642240,
+      "digest": "sha256:86be2d8bbe639b8a1358730c93060e7da0e685e9a1198bd035064b8188e4f8c2",
+      "url": "https://github.com/rupphi/relatest-wcode/releases/download/v1.3.25/WCode.exe"
+    }
+  ]
+}

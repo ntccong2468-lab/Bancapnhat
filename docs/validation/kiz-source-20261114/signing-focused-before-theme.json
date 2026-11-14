@@ -1,0 +1,75 @@
+{
+  "kind": "KIZ_SIGNING_RECOVERY_COMBINED",
+  "result": "PASS",
+  "time": "2026-11-14T11:36:42.554955+00:00",
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -Dtest=ZnackSigningSessionTest,ZnackSigningRecoveryTest,ZnackErrorMessagesTest,ZnackPurchaseDiagnosticsTest,KizSigningResumePresentationTest,KizPurchaseStatusPresentationTest test",
+  "version": "1.6.10",
+  "tests": 90,
+  "suites": 6,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "reports": [
+    {
+      "name": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.154"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.257"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "5.738"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningRecoveryTest",
+      "tests": "26",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.88"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.736"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": "32",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.454"
+    }
+  ],
+  "runtimeHashes": {
+    "pom.xml": "0720235409ca5748f43152f96b3f9d63497517dc28166e9bbff5e7027a1956af",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "4af9ee395b3701d8bf9df858878b5c99c4fe11dee6db3f076d545537e8de6002",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnostics.java": "595823f1910438135952ea5544847290d25aa7c531270f8223ae43fa303e33da",
+    "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+    "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java": "12785db273e7f8b4a92c59d35eedf2d97857ae04bb19239983444521c11c9af6",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "b370038c373fb02786457a713b746432c6f6a5adfb195f5eeb82d20882d424cb",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "0fa802bc1cb2ca008785542fc0911e5dc8581250d7351ce1e6626659ae511f76",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "a30a266f069fbaf2a5546f9c0a953bc9d78de9af98b17f33f519584289ff22a3",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "46521786dcd26ed112db489a287068ff3119e44e62f3b2446832932fbe17468a"
+  },
+  "scope": "Linux/Xvfb, real SQLite and local signing consent guard, synthetic signature providers/API; no purchase/signing remotely."
+}

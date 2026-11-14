@@ -1,0 +1,125 @@
+{
+  "fetchedAtUtc": "2026-11-14T11:08:12.691030+00:00",
+  "repository": "ntccong2468-lab/Vncode",
+  "mirrorShallow": false,
+  "allReachableCommitCount": 21,
+  "roots": [
+    "8ad0b6c95ee6d8cca9a7904f1b700c6dd074a059"
+  ],
+  "milestones": [
+    {
+      "kind": "initial-readme",
+      "sha": "8ad0b6c95ee6d8cca9a7904f1b700c6dd074a059",
+      "authorDate": "2026-10-06T19:02:26Z",
+      "commitDate": "2026-10-06T19:02:26Z",
+      "subject": "Initialize Vncode GTIN source import",
+      "parents": [],
+      "url": "https://github.com/ntccong2468-lab/Vncode/commit/8ad0b6c95ee6d8cca9a7904f1b700c6dd074a059",
+      "files": 1,
+      "projectVersion": null
+    },
+    {
+      "kind": "first-code",
+      "sha": "4e46a1cb7883a7cf636ac211ec84bea89eaca5f6",
+      "authorDate": "2026-10-06T19:04:47Z",
+      "commitDate": "2026-10-06T19:04:47Z",
+      "subject": "Import WCode desktop app with verified GTIN workspace",
+      "parents": [
+        "8ad0b6c95ee6d8cca9a7904f1b700c6dd074a059"
+      ],
+      "url": "https://github.com/ntccong2468-lab/Vncode/commit/4e46a1cb7883a7cf636ac211ec84bea89eaca5f6",
+      "files": 504,
+      "projectVersion": "1.1.32",
+      "projectName": "WCode",
+      "appVersion": "1.1.32"
+    },
+    {
+      "kind": "first-vncode-brand",
+      "sha": "27c27a4dd77e27d886eb7ad054340b060cc21cda",
+      "authorDate": "2026-10-07T20:29:50Z",
+      "commitDate": "2026-10-07T20:29:50Z",
+      "subject": "feat: rebrand Windows application as VN code 1.1.34",
+      "parents": [
+        "31aa24468d465ce7c95c7c260543fa0760d8166c"
+      ],
+      "url": "https://github.com/ntccong2468-lab/Vncode/commit/27c27a4dd77e27d886eb7ad054340b060cc21cda",
+      "files": 518,
+      "projectVersion": "1.1.34",
+      "projectName": "VN code",
+      "appVersion": "1.1.34"
+    }
+  ],
+  "coreFirstCodeVsBrand": [
+    {
+      "class": "ZnackSigningSession",
+      "paths": {
+        "first-code": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackSigningSession.java",
+        "first-vncode-brand": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java"
+      },
+      "identicalBytesFirstCodeVsBrand": false,
+      "packageNormalizedEqualFirstCodeVsBrand": true,
+      "firstCodeSha256": "e4f8392e9e193ee2fded302565bc9bbe03babf4c096a6fc715111f7388395780"
+    },
+    {
+      "class": "ZnackAuthService",
+      "paths": {
+        "first-code": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackAuthService.java",
+        "first-vncode-brand": "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java"
+      },
+      "identicalBytesFirstCodeVsBrand": false,
+      "packageNormalizedEqualFirstCodeVsBrand": true,
+      "firstCodeSha256": "b242ce750f104d8410d9f3e9d1e8b27b8555890da472a17fcec2a585a37865d3"
+    },
+    {
+      "class": "ZnackKizOrderService",
+      "paths": {
+        "first-code": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackKizOrderService.java",
+        "first-vncode-brand": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+      },
+      "identicalBytesFirstCodeVsBrand": false,
+      "packageNormalizedEqualFirstCodeVsBrand": true,
+      "firstCodeSha256": "6baf5802be613e6ceb5bf7f7f9458add4a4ac3b0ff4c427a14b5dcb208908887"
+    },
+    {
+      "class": "ZnackPurchaseCoordinator",
+      "paths": {
+        "first-code": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator.java",
+        "first-vncode-brand": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java"
+      },
+      "identicalBytesFirstCodeVsBrand": false,
+      "packageNormalizedEqualFirstCodeVsBrand": false,
+      "firstCodeSha256": "d8f9ba5d93ce5a9a2aed0eafef93e626a5e03cc4d4cd3e0d927ffdb0dc5e4ac7"
+    },
+    {
+      "class": "ZnackKizCodeService",
+      "paths": {
+        "first-code": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackKizCodeService.java",
+        "first-vncode-brand": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java"
+      },
+      "identicalBytesFirstCodeVsBrand": false,
+      "packageNormalizedEqualFirstCodeVsBrand": false,
+      "firstCodeSha256": "6b50aa689ede9af767405a3c8da0414da78376d21ea3378f8b02fc020efa8db8"
+    },
+    {
+      "class": "ZnackIntroductionService",
+      "paths": {
+        "first-code": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackIntroductionService.java",
+        "first-vncode-brand": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java"
+      },
+      "identicalBytesFirstCodeVsBrand": false,
+      "packageNormalizedEqualFirstCodeVsBrand": true,
+      "firstCodeSha256": "9e5974507690862f1e47bb21ac00fc0ee8a13ee2e79e563ea61e53505be873fd"
+    },
+    {
+      "class": "ZnackIntroductionReadinessService",
+      "paths": {
+        "first-code": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackIntroductionReadinessService.java",
+        "first-vncode-brand": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java"
+      },
+      "identicalBytesFirstCodeVsBrand": false,
+      "packageNormalizedEqualFirstCodeVsBrand": true,
+      "firstCodeSha256": "4fa476ef61b6efb7244f0fac0da01b6ba4b9056acb15e144be1665b55a5be0ff"
+    }
+  ],
+  "scope": "Earliest actual code reachable in the public owner Vncode repository; not proof of an unavailable private/deleted history. No binaries executed or service mutations."
+}

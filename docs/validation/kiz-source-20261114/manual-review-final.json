@@ -1,0 +1,70 @@
+{
+  "kind": "VN_CODE_KIZ_RESUME_MANUAL_REVIEW_CLOSURE",
+  "result": "PASS",
+  "reviewedAtUtc": "2026-11-14T11:40:27.375449+00:00",
+  "sourceCommit": "53a22c1e2ca169b36afd8e53d6469b2d497805b7",
+  "sourceBranch": "fix/kiz-original-flow-20261114",
+  "scope": "Read-only final inspection of scoped signing resumption, coordinator/UI/diagnostics and root-produced focused evidence; reviewer did not execute Maven, app, signer, API or process commands.",
+  "previousFinding": {
+    "title": "Single-pipeline resume previously cleared the shared shop block",
+    "initialReport": "review.json",
+    "initialReportSha256": "64f24a01baf9bbbc66dc231954d3cd719f4b9460efc1663df3bda7595de57c30",
+    "status": "CLOSED",
+    "fix": "The coordinator now calls authorizePipelineResumption, which never removes the shop block/cause and grants only (shop,pipeline) at the current per-shop object generation."
+  },
+  "newActionableFindings": [],
+  "checks": [
+    "Resume grants require both matching shop/pipeline context and object-identity equality with the current shop pause generation.",
+    "An unvisited sibling remains blocked even if it already has old pipeline or shop authorization, because its grant has no matching resumption generation.",
+    "Read-only authentication without a matching pipeline does not receive a scoped exemption from a blocked shop.",
+    "A fresh actual CryptoProException swaps the shop generation object, invalidating earlier grants, including a grant captured before the failure but stored after it.",
+    "A denied/deferred sibling exits before the provider try/catch, so it does not rotate the epoch or revoke the selected pipeline grant merely by polling.",
+    "A separate shop has a separate generation, block and diagnostic cause.",
+    "Original authorizePipeline/authorizeShop retain their existing global authorization/unblock semantics; they only clear newly introduced scoped grants as housekeeping.",
+    "SigningDeferredException continues to expose operational CANCELLED. Historical provider cause remains only the safe enum-based message.",
+    "No new refresh/background code calls authorizePipelineResumption; it is reached from the foreground saved-lot action after license/original-profile/signature gates.",
+    "Resume still uses the saved pipeline ID and original settings, keeps order/request/checkpoints, and does not enqueue a new purchase.",
+    "UI existing introduction-failure retry, captured coordinator/pipeline, shop-generation callback protection, and paused-buy disabling remain intact."
+  ],
+  "concurrencyBoundary": "Generation revocation applies to subsequent gate admissions. It does not abort a signing operation already admitted/in flight; existing per-certificate serialization and different-certificate concurrency remain unchanged.",
+  "rootExecutedEvidence": {
+    "combinedReceipt": "/tmp/vncode-kiz-repair-20261114/combined-green-receipt.json",
+    "receiptSha256": "6244705f8a9276c50cccb27237d8f3e6b3de81e468eaa14177a7929b8491cd3b",
+    "independentlyReadSavedXmlCounts": {
+      "tests": 90,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "suites": 6
+    },
+    "reviewerExecutedTests": false,
+    "note": "The root/other agents executed the tests. This reviewer only read the saved receipt/XML; full Linux verification is separately running and is not asserted passed here."
+  },
+  "files": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": {
+      "bytes": 60886,
+      "sha256": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935"
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java": {
+      "bytes": 9146,
+      "sha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db"
+    },
+    "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java": {
+      "bytes": 33508,
+      "sha256": "12785db273e7f8b4a92c59d35eedf2d97857ae04bb19239983444521c11c9af6"
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": {
+      "bytes": 16769,
+      "sha256": "4af9ee395b3701d8bf9df858878b5c99c4fe11dee6db3f076d545537e8de6002"
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnostics.java": {
+      "bytes": 1149,
+      "sha256": "595823f1910438135952ea5544847290d25aa7c531270f8223ae43fa303e33da"
+    }
+  },
+  "limits": [
+    "No live paid KIZ purchase or seller signing was verified by this reviewer.",
+    "No claim of all-app absence of bugs; conclusions are limited to the reviewed diff and saved focused evidence.",
+    "The source ZIP is not a Latest publication; no refactor/regression tool integration was approved or installed."
+  ]
+}

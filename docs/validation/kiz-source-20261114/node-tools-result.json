@@ -1,0 +1,15 @@
+{
+  "kind": "FINAL_SOURCE_NODE_TOOLS_TESTS",
+  "result": "PASS",
+  "sourceCommit": "75691c68fa14f728856b0418fb6008083787ef7c",
+  "command": "node --test tools/*.test.mjs",
+  "tests": 174,
+  "suites": 0,
+  "pass": 174,
+  "fail": 0,
+  "cancelled": 0,
+  "skipped": 0,
+  "todo": 0,
+  "logSha256": "36ca7d2cc8a88ac80c4953590ba3d642a3aec7a7bc3821ac701c484b8f81628a",
+  "scope": "Source Node tooling tests; separate from Maven app tests and live API read experiment."
+}

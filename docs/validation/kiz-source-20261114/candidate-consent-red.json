@@ -1,0 +1,11 @@
+{
+  "kind": "BEHAVIORAL_REGRESSION_RED",
+  "scope": "consent-scope",
+  "command": "/workspace/toolchains/mvn-vncode '-Dtest=ZnackSigningRecoveryTest#resumingOneLotDoesNotUnblockAnUnvisitedSibling' test",
+  "tests": 1,
+  "failures": 1,
+  "errors": 0,
+  "skipped": 0,
+  "note": "UI assertion missing explicit resume is wrapped by FutureTask as ExecutionException; consent scope test asserts sibling signing remains deferred. Neither is a compilation failure.",
+  "publishedBaseline": "in-progress candidate before scoped-resumption correction"
+}

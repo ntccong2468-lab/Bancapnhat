@@ -1,0 +1,11 @@
+{
+  "kind": "BEHAVIORAL_REGRESSION_RED",
+  "scope": "ui",
+  "command": "PATH=/workspace/toolchains/xvfb-current/root/usr/bin:$PATH xvfb-run -a /workspace/toolchains/mvn-vncode -Dtest=KizSigningResumePresentationTest test",
+  "tests": 4,
+  "failures": 0,
+  "errors": 4,
+  "skipped": 0,
+  "note": "UI assertion missing explicit resume is wrapped by FutureTask as ExecutionException; consent scope test asserts sibling signing remains deferred. Neither is a compilation failure.",
+  "publishedBaseline": "f36d03f35167c75bcf6249c5923d9aa8a54b1339"
+}

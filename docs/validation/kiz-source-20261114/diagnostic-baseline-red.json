@@ -1,0 +1,226 @@
+{
+  "kind": "KIZ_SIGNING_PAUSE_BASELINE_BEHAVIOR_RED",
+  "result": "EXPECTED_FAILURE",
+  "baselineRevision": "f36d03f35167c75bcf6249c5923d9aa8a54b1339",
+  "runtimeSource": "4ef0f1e2b8ef7b28190de3034b0c67ebf615be0b",
+  "command": "/workspace/toolchains/mvn-vncode -Dtest=ZnackSigningSessionTest,ZnackErrorMessagesTest,ZnackPurchaseDiagnosticsTest test",
+  "exitCode": 1,
+  "compileSucceeded": true,
+  "tests": 46,
+  "failures": 36,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "tests": 17,
+      "failures": 17,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.878,
+      "xmlSha256": "e3151a48fa877958842a60f2a1b9fc540d2f52d0c1ea59819b8a84e3709a59e2"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest",
+      "tests": 5,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.52,
+      "xmlSha256": "ebdaf0a7a2c68d181284420f4e7e16bc4c157fd7b97b94a1f3756ae59ed68c4b"
+    },
+    {
+      "suite": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": 24,
+      "failures": 15,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.497,
+      "xmlSha256": "64cc1058f9c1f0f137a61a24312eb7a271a8d401a328b2aff1e3293690a41b42"
+    }
+  ],
+  "assertionFailures": [
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[1]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[2]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[3]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[4]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[5]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[6]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[7]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[8]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[9]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[10]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[11]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[12]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "anExplicitRecordedSignerFailureKeepsItsActualCode(CryptoProErrorCode)[13]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "aConfirmationPauseHasALocalizedActionAndDoesNotInventASignerFailure(AppLanguage)[1]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "aConfirmationPauseHasALocalizedActionAndDoesNotInventASignerFailure(AppLanguage)[2]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "aConfirmationPauseHasALocalizedActionAndDoesNotInventASignerFailure(AppLanguage)[3]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "method": "aConfirmationPauseHasALocalizedActionAndDoesNotInventASignerFailure(AppLanguage)[4]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest",
+      "method": "aPausedExistingLotExplainsTheRequiredActionWithoutInventingANextCheck(AppLanguage)[1]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest",
+      "method": "aPausedExistingLotExplainsTheRequiredActionWithoutInventingANextCheck(AppLanguage)[2]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest",
+      "method": "aPausedExistingLotExplainsTheRequiredActionWithoutInventingANextCheck(AppLanguage)[3]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest",
+      "method": "aPausedExistingLotExplainsTheRequiredActionWithoutInventingANextCheck(AppLanguage)[4]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[1]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[2]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[3]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[4]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[5]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[6]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[7]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[8]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[9]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[10]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[11]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[12]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "backgroundDeferralRetainsTheActualFailureCodeWithoutPrivateDetails(CryptoProErrorCode)[13]",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "explicitShopConsentReopensOnlyThatShopAndPreservesAnotherShopsCause",
+      "type": "org.opentest4j.AssertionFailedError"
+    },
+    {
+      "class": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "method": "authorizingOnePipelineClearsOnlyItsShopCauseAndDoesNotWakeOtherWaitingPipelines",
+      "type": "org.opentest4j.AssertionFailedError"
+    }
+  ],
+  "logSha256": "dcc935ff20acdee103407f703f8413cbaa488eb922ae4d22907a00d7e6296440",
+  "scope": "Isolated published baseline plus new behavior tests. No missing-new-method compile failure. No signing process, seller API, purchase, license activation or user database."
+}

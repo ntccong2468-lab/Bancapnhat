@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| Mã nguồn1.6.10: resume KIZ scoped, nguồn VNCode đầu, đề xuất repo chờ duyệt, WBCode1.3.25 Ozon GTIN; chưa Latest | [Bàn giao](../validation/2026-11-14-kiz-source-repair.md), [đề xuất](../research/2026-11-14-code-quality-proposals.md), [đối chiếu WBCode](../research/wbcode-20261114/README.md) |
 | Đồng bộ đủ trang WB/Ozon, batch đọc chi tiết WB và trạng thái giấy tờ/giữ cache khi response thiếu — sau 1.6.8, chưa phát hành | [Bàn giao](../validation/2026-11-11-product-sync-permit-audit.md), [bằng chứng](../validation/product-sync-20261111/) |
 | Sổ gộp toàn bộ sửa sau 1.6.8, chưa phát hành; checkpoint trước điều tra đồng bộ sản phẩm/giấy tờ | [POST-1.6.8](POST-1.6.8.md) |
 | Mua KIZ bắt buộc theo dõi lưu thông, đối soát lô cũ/5xx không mua hay gửi trùng; đối chiếu WBCode 1.3.24 — chưa phát hành | [Bàn giao và sơ đồ](../validation/2026-11-11-kiz-circulation-audit.md), [kiểm thử](../validation/kiz-circulation-20261111/focused-tests.json), [đối chiếu](../validation/kiz-circulation-20261111/wbcode-comparison.json) |

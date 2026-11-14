@@ -1,0 +1,34 @@
+{
+  "createdUtc": "2026-11-14T12:13:42.141228+00:00",
+  "version": "1.3.25",
+  "jarSha256": "20e339e956d286608681f7e7cf3c6b5af7f7fde3fb202dc933ee06490136a423",
+  "classes": {
+    "integration/ozon/OzonZnackMappingService": "8f76fa388d2518c21c1805e582ba75c5477593efdb669d4606bad5a7253b3220",
+    "features/kizmapping/OzonGtinMappingSyncService": "3826c399138448b9679fcf3201115f62d626879fd47034016343a0ea0fb2a46a",
+    "integration/ozon/OzonProductGtinMappingRepository": "5d366639550a48d543d6936cb501f02c8b638730e5e297e40adb47a2099bdc76",
+    "integration/znack/ZnackMappingEligibility": "189074050fd05c97cab5e7e93df132f6c8e4f31b4061e7351b2cfbd963001ee7",
+    "integration/znack/registration/ZnackVariantIdentity": "940520246513f1adcaf989e2bf4ab8fe396da5b96f4cfd272daeb5966ba18311",
+    "integration/znack/registration/ZnackVariantIdentityBackfill": "d8d006ddfad2ad429cc8c9183ba3257a6b014eff4faff9d92e73ac57b8c968ba",
+    "integration/znack/registration/ZnackVariantIdentityRepository": "f27ebd0497e0029351667708d0c017d2a4ca4b7bc473549e6215e003502521dc"
+  },
+  "files": {
+    "decompiled/com/tuandev/fbsbarcode/features/kizmapping/OzonGtinMappingSyncService.java": "92c6a003a3e98dc77c56282655036d4d839a11eb77fabc48392d299bc559323f",
+    "decompiled/com/tuandev/fbsbarcode/integration/ozon/OzonProductGtinMappingRepository.java": "09bc49c5fff1713a127eb8a3c051b44ed963683c37f967d2754c3b0489f2bedf",
+    "decompiled/com/tuandev/fbsbarcode/integration/ozon/OzonZnackMappingService.java": "dd66aae68c6872209bef3dfa66fb1e49a716f4e90532095e20de425ff677c332",
+    "decompiled/com/tuandev/fbsbarcode/integration/znack/ZnackMappingEligibility.java": "7a460b1a8bdd78f87acba014af17dd150a16c088c830633a33f79a773880e1f6",
+    "decompiled/com/tuandev/fbsbarcode/integration/znack/registration/ZnackVariantIdentity.java": "999f56b84089fe83226ee78525a4f4cc83400af8e7bd523316e37eb4a7796090",
+    "decompiled/com/tuandev/fbsbarcode/integration/znack/registration/ZnackVariantIdentityBackfill.java": "1d808e6385600e053f59d479cbb917b33a3d0b359ab63fdf2364a16979e6e4e2",
+    "decompiled/com/tuandev/fbsbarcode/integration/znack/registration/ZnackVariantIdentityRepository.java": "717cb42f4061797cf5f9bd67eed47318943ea968cb6e4c9f0b2c30b01371e257",
+    "download-verification.json": "b961336570ec86cf994dcf0483af1f591bdfd675d55b9518ed6d8e5cd2506a72",
+    "extraction-provenance.json": "71b17a3bfb2514b4bd7bde6d40c02c131bc305f01158997d4b6d1376a5ac2852",
+    "javap-OzonGtinMappingSyncService.txt": "0e0d29bfbb7944240138549463c304c41f3fcc1bb07b32f5bf38c448de1136d2",
+    "javap-OzonZnackMappingService.txt": "e6f09eca39b328133abf9f17d8342bc29c70738bc4769b20a73a28a6912115d3",
+    "javap-v-OzonProductGtinMappingRepository.txt": "28461178bc29d6b379309a9c73820ea642fee0e0cca4716e3aa4a93790fb0109",
+    "release-summary.json": "22b82ac228ce45bb09e44a8b5d0acb59a5cd513f5ebf5fe88660f0edaf43b323",
+    "wbcode-1.3.25-ozon-mapping-audit.md": "27e410fde58530cf4b99644220aa710261ed072ec15bafa78cc6a1ce8afaef98"
+  },
+  "targetExecuted": false,
+  "candidateAppSourceModified": false,
+  "sellerApiCalled": false,
+  "licenseActivatedOrBypassed": false
+}

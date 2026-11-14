@@ -1,0 +1,15 @@
+{
+  "kind": "RETAINED_POPUP_SKIN_FINAL_FULL_CLOSURE",
+  "sourceCommit": "75691c68fa14f728856b0418fb6008083787ef7c",
+  "result": "PASS",
+  "parentExecutedFullReceipt": "full-linux-result.json",
+  "fullReceiptSha256": "3d7eb436fbd03c3d6c6dec20fbd8e471f0beaedd962f2d87b438c884eb77e071",
+  "tests": 4540,
+  "suites": 569,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 2,
+  "firstFullFailurePreserved": true,
+  "controlledRedPreserved": true,
+  "scope": "The parent ran fresh full verification after the deterministic skin fix. No seller/Windows/signing acceptance claimed."
+}
