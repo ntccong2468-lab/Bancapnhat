@@ -14,9 +14,12 @@ jobs:
     timeout-minutes: 35
     env:
       EXPECTED_SOURCE: ${{ inputs.source_commit }}
-      DIAGNOSTIC_ROOT: ${{ runner.temp }}\windows-ui-diagnostic-${{ github.run_id }}
-      LOCALAPPDATA: ${{ runner.temp }}\vncode-ui-diagnostic-${{ github.run_id }}
     steps:
+      - name: Configure isolated diagnostic workspace
+        shell: pwsh
+        run: |
+          "DIAGNOSTIC_ROOT=$env:RUNNER_TEMP\windows-ui-diagnostic-${{ github.run_id }}" >> $env:GITHUB_ENV
+          "LOCALAPPDATA=$env:RUNNER_TEMP\vncode-ui-diagnostic-${{ github.run_id }}" >> $env:GITHUB_ENV
       - name: Checkout diagnostic tooling separately
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
