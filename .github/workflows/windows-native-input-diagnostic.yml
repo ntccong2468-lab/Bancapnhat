@@ -1,98 +1,160 @@
-name: Diagnose Windows native pointer delivery
+name: Diagnose Windows UI motion and native rendering
 on:
-  push:
-    branches: [release/vn-code-1.6.7-publication]
-    paths:
-      - .github/workflows/windows-native-input-diagnostic.yml
-      - tools/diagnostics/NativePointerDiagnosticExtension.java
-      - tools/diagnostics/windows-input-observer.ps1
   workflow_dispatch:
+    inputs:
+      source_commit:
+        description: Exact application source commit; source and test assertions remain unchanged
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
   native-input:
     runs-on: windows-2022
     timeout-minutes: 35
+    env:
+      EXPECTED_SOURCE: ${{ inputs.source_commit }}
+      DIAGNOSTIC_ROOT: ${{ runner.temp }}\windows-ui-diagnostic-${{ github.run_id }}
+      LOCALAPPDATA: ${{ runner.temp }}\vncode-ui-diagnostic-${{ github.run_id }}
     steps:
-      - name: Configure isolated diagnostic workspace
-        shell: pwsh
-        run: |
-          "LOCALAPPDATA=$env:RUNNER_TEMP\vncode-native-input-${{ github.run_id }}" >> $env:GITHUB_ENV
-          "DIAGNOSTIC_ROOT=$env:RUNNER_TEMP\native-input-${{ github.run_id }}" >> $env:GITHUB_ENV
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout diagnostic tooling separately
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: tooling
+      - name: Checkout the exact application source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ inputs.source_commit }}
+          path: app
+          fetch-depth: 1
       - uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95
         with:
           java-version: '25'
           distribution: oracle
           cache: maven
-      - name: Compile unchanged tests and observational helper
+          cache-dependency-path: app/pom.xml
+      - name: Pin immutable application inputs and diagnostic helpers
         shell: pwsh
+        working-directory: app
         run: |
           $ErrorActionPreference='Stop'
           New-Item -ItemType Directory -Force $env:DIAGNOSTIC_ROOT | Out-Null
-          git rev-parse HEAD | Set-Content "$env:DIAGNOSTIC_ROOT/source.txt"
+          $actual=(git rev-parse HEAD).Trim()
+          if($env:EXPECTED_SOURCE -cnotmatch '^[a-f0-9]{40}$' -or $actual -cne $env:EXPECTED_SOURCE){throw 'Application source differs from the exact requested commit.'}
+          if(@(git status --porcelain).Count -ne 0){throw 'Application source must start clean.'}
+          $manifest=@(Get-ChildItem src/main,src/test -Recurse -File | ForEach-Object { @{path=[IO.Path]::GetRelativePath((Get-Location).Path,$_.FullName);sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()} })
+          $manifest | ConvertTo-Json -Depth 5 | Set-Content "$env:DIAGNOSTIC_ROOT/application-inputs-before.json" -Encoding utf8NoBOM
+          $helpers=@(Get-ChildItem ../tooling/tools/diagnostics -File | Where-Object {$_.Name -in @('windows-motion-environment.ps1','WindowsMotionPreferenceProbe.java','HeaderGeometryProbe.java','MaterialCaptureDiagnosticExtension.java')} | ForEach-Object {@{name=$_.Name;sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()}})
+          @{sourceCommit=$actual;toolingCommit=(git -C ../tooling rev-parse HEAD).Trim();workflowRef=$env:GITHUB_WORKFLOW_REF;workflowCommit=$env:GITHUB_WORKFLOW_SHA;runId=$env:GITHUB_RUN_ID;diagnosticOnly=$true;releaseGate=$false;installerBuilt=$false;releasePublished=$false;sourceAssertionsEdited=$false;sellerApiCalls=$false;licenseActivation=$false;helpers=$helpers} | ConvertTo-Json -Depth 6 | Set-Content "$env:DIAGNOSTIC_ROOT/provenance.json" -Encoding utf8NoBOM
+          java -version 2>&1 | Out-File "$env:DIAGNOSTIC_ROOT/java-version.txt" -Encoding utf8NoBOM
+      - name: Compile unchanged tests and observation helpers
+        shell: pwsh
+        working-directory: app
+        run: |
+          $ErrorActionPreference='Stop'
           .\mvnw.cmd -B test-compile dependency:build-classpath '-DincludeScope=test' '-Dmdep.outputFile=target/diagnostic-classpath.txt'
           if($LASTEXITCODE -ne 0){throw 'Diagnostic compilation failed.'}
           $deps=(Get-Content target/diagnostic-classpath.txt -Raw).Trim()
           $classpath="target/test-classes;target/classes;$deps"
-          & javac -encoding UTF-8 -cp $classpath -d target/test-classes tools/diagnostics/NativePointerDiagnosticExtension.java
-          if($LASTEXITCODE -ne 0){throw 'Observational helper compilation failed.'}
+          $helpers=@('../tooling/tools/diagnostics/WindowsMotionPreferenceProbe.java','../tooling/tools/diagnostics/HeaderGeometryProbe.java','../tooling/tools/diagnostics/MaterialCaptureDiagnosticExtension.java')
+          & javac -encoding UTF-8 -cp $classpath -d target/test-classes @helpers
+          if($LASTEXITCODE -ne 0){throw 'Tooling helper compilation failed.'}
           $service='target/test-classes/META-INF/services/org.junit.jupiter.api.extension.Extension'
           New-Item -ItemType Directory -Force (Split-Path $service) | Out-Null
-          $provider='com.vncode.app.ui.tnved.NativePointerDiagnosticExtension'
           $entries=if(Test-Path $service){@(Get-Content $service)}else{@()}
+          $provider='com.vncode.app.testsupport.MaterialCaptureDiagnosticExtension'
           if($provider -notin $entries){(@($entries)+@($provider)) | Set-Content $service -Encoding utf8NoBOM}
-      - name: Compare native input before and after shared JavaFX state
+          if(@(git status --porcelain).Count -ne 0){throw 'Compilation changed tracked application inputs.'}
+      - name: Compare original, normal and reduced OS motion without changing application code
         shell: pwsh
+        working-directory: app
         run: |
           $ErrorActionPreference='Stop'
           $PSNativeCommandUseErrorActionPreference=$false
-          $repo=(Get-Location).Path
-          $root=Join-Path $repo 'src/test/java'
-          $classes=@(Get-ChildItem $root -Recurse -Filter '*Test.java' -File | Where-Object {
-            $_.FullName -match '[\\/]ui[\\/]' -or [IO.File]::ReadAllText($_.FullName).Contains('javafx')
-          } | ForEach-Object {[IO.Path]::GetRelativePath($root,$_.FullName).Replace('\','.').Replace('/','.').Replace('.java','')} | Sort-Object)
-          if($classes.Count -ne 121){throw "Diagnostic class list changed: $($classes.Count)"}
-          $classes | Set-Content "$env:DIAGNOSTIC_ROOT/selected-classes.txt" -Encoding utf8NoBOM
-          function Invoke-Phase([string]$name,[string]$selection,[string]$awtFirst='false',[string]$uiScale='',[bool]$visibleObserver=$false){
-            $phase=Join-Path $env:DIAGNOSTIC_ROOT $name
-            New-Item -ItemType Directory -Force $phase | Out-Null
-            $observer=Join-Path $repo 'tools/diagnostics/windows-input-observer.ps1'
-            & $observer -Directory $phase -Mode Snapshot -ParentProcessId $PID | Out-Host
-            # The observer must never create a visible console above the test window.
-            $observerStyle=if($visibleObserver){'Normal'}else{'Hidden'}
-            $watch=Start-Process pwsh -WindowStyle $observerStyle -PassThru -ArgumentList @('-NoProfile','-File',$observer,'-Directory',$phase,'-Mode','Observe','-ParentProcessId',"$PID",'-MaxSeconds','1500')
-            try {
-              if(Test-Path target/surefire-reports){Remove-Item target/surefire-reports -Recurse -Force}
-              $mavenArgs=@('-B',"-Dtest=$selection","-Dvncode.native.pointer.diagnostics=$phase","-Dvncode.native.pointer.awt.first=$awtFirst")
-              if($uiScale){$mavenArgs+="-DargLine=-Dglass.win.uiScale=$uiScale"}
-              .\mvnw.cmd @mavenArgs surefire:test 2>&1 | Tee-Object "$phase/maven.log" | Out-Host
-              $code=$LASTEXITCODE
-              if(Test-Path target/surefire-reports){Copy-Item target/surefire-reports "$phase/surefire-reports" -Recurse}
-              @{phase=$name;exitCode=$code;selectedClasses=$selection;awtFirst=$awtFirst;uiScale=$uiScale;observerStyle=$observerStyle;diagnosticOnly=$true;releaseGate=$false} | ConvertTo-Json | Set-Content "$phase/result.json" -Encoding utf8NoBOM
-              return $code
-            } finally {
-              New-Item -ItemType File -Force "$phase/windows-input.stop" | Out-Null
-              $watch.WaitForExit(10000) | Out-Null
-              if(-not $watch.HasExited){Stop-Process -Id $watch.Id -Force}
-            }
+          $native=Join-Path $env:GITHUB_WORKSPACE 'tooling/tools/diagnostics/windows-motion-environment.ps1'
+          $state=Join-Path $env:DIAGNOSTIC_ROOT 'original-motion-state.json'
+          $deps=(Get-Content target/diagnostic-classpath.txt -Raw).Trim()
+          $classpath="target/test-classes;target/classes;$deps"
+          $motion='com.vncode.app.shared.WorkspaceGlobalMotionContractTest,com.vncode.app.shared.WorkspaceInteractionMotionTest,com.vncode.app.shared.WorkspaceRouteContinuityTest,com.vncode.app.ui.workspace.HomeControllerPageTransitionTest'
+          $focused='com.vncode.app.shared.ThemeDialogBackingTest,com.vncode.app.shared.ThemeServiceTest,com.vncode.app.shared.WorkspaceAllSurfaceGlassTest,com.vncode.app.shared.WorkspaceBackdropMaterialTest,com.vncode.app.shared.WorkspaceDialogChromeTest,com.vncode.app.shared.WorkspaceGlobalMotionContractTest,com.vncode.app.shared.WorkspaceInteractionMotionTest,com.vncode.app.shared.WorkspaceMaterialRenderingTest,com.vncode.app.shared.WorkspaceMotionBoundaryTest,com.vncode.app.shared.WorkspaceRoundedControlClipTest,com.vncode.app.shared.WorkspaceRouteContinuityTest,com.vncode.app.ui.FxmlSmokeTest,com.vncode.app.ui.ReferenceThemeAccessibilityTest,com.vncode.app.ui.products.ProductBulkDialogTest,com.vncode.app.ui.products.ProductColumnHierarchyTest,com.vncode.app.ui.products.ProductReferenceLayoutTest,com.vncode.app.ui.products.ProductSelectionSmoothnessTest,com.vncode.app.ui.workspace.HomeControllerPageTransitionTest,com.vncode.app.ui.workspace.WorkspaceChromeUiTest,com.vncode.app.ui.workspace.WorkspaceListAreaTest'
+          $focused.Split(',') | Set-Content "$env:DIAGNOSTIC_ROOT/selected-original-classes.txt" -Encoding utf8NoBOM
+          function Invoke-Probe([string]$phase,[string]$expected){
+            $directory=Join-Path $env:DIAGNOSTIC_ROOT $phase
+            New-Item -ItemType Directory -Force $directory | Out-Null
+            & java --enable-native-access=ALL-UNNAMED -cp $classpath com.vncode.tools.diagnostics.WindowsMotionPreferenceProbe "$directory/preferences.json" $expected 2>&1 | Tee-Object "$directory/probe.log" | Out-Host
+            return $LASTEXITCODE
           }
-          $a=Invoke-Phase '01-native-before' 'FashionTnvedBrowserTest'
-          $b=Invoke-Phase '02-graphics-before-fx' 'FashionTnvedBrowserTest' 'graphics'
-          $c=Invoke-Phase '03-toolkit-before-fx' 'FashionTnvedBrowserTest' 'true'
-          $d=Invoke-Phase '04-graphics-scale100' 'FashionTnvedBrowserTest' 'graphics' '100%'
-          $e=Invoke-Phase '05-toolkit-scale100' 'FashionTnvedBrowserTest' 'true' '100%'
-          $f=Invoke-Phase '06-all-fx-ui' ($classes -join ',')
-          # A fresh JVM still runs after the shared-state phase fails; compare evidence.
-          $g=Invoke-Phase '07-native-after' 'FashionTnvedBrowserTest'
-          # Deliberate non-release control: the fixture must resist a worker console.
-          $h=Invoke-Phase '08-visible-console-control' 'FashionTnvedBrowserTest' 'false' '' $true
-          if($a -ne 0 -or $b -ne 0 -or $c -ne 0 -or $d -ne 0 -or $e -ne 0 -or $f -ne 0 -or $g -ne 0 -or $h -ne 0){throw 'Native diagnostic detected a failure; inspect preserved evidence.'}
+          function Invoke-Tests([string]$phase,[string]$selection,[int]$expectedSuites,[int]$minimumTests,[bool]$observe=$false){
+            $directory=Join-Path $env:DIAGNOSTIC_ROOT $phase
+            New-Item -ItemType Directory -Force $directory | Out-Null
+            if(Test-Path target/surefire-reports){Remove-Item target/surefire-reports -Recurse -Force}
+            $arguments=@('-B',"-Dtest=$selection")
+            if($observe){$arguments+=@("-Dvncode.material.capture.dir=$directory/material")}
+            .\mvnw.cmd @arguments surefire:test 2>&1 | Tee-Object "$directory/maven.log" | Out-Host
+            $code=$LASTEXITCODE
+            if(Test-Path target/surefire-reports){Copy-Item target/surefire-reports "$directory/surefire-reports" -Recurse}
+            $suites=@();$tests=0;$failures=0;$errors=0;$skipped=0
+            foreach($report in @(Get-ChildItem target/surefire-reports/TEST-*.xml -ErrorAction SilentlyContinue)){
+              [xml]$xml=Get-Content $report.FullName -Raw
+              $suites+=@($xml.testsuite.name);$tests+=[int]$xml.testsuite.tests;$failures+=[int]$xml.testsuite.failures;$errors+=[int]$xml.testsuite.errors;$skipped+=[int]$xml.testsuite.skipped
+            }
+            $expectedNames=@($selection.Split(',') | ForEach-Object {($_ -split '#')[0]})
+            $complete=$suites.Count -eq $expectedSuites -and $tests -ge $minimumTests -and @(Compare-Object $expectedNames $suites -CaseSensitive).Count -eq 0
+            @{phase=$phase;exitCode=$code;classes=$suites;tests=$tests;failures=$failures;errors=$errors;skipped=$skipped;selectionComplete=$complete;observed=$observe;sourceAssertionsEdited=$false;diagnosticOnly=$true;releaseGate=$false} | ConvertTo-Json -Depth 6 | Set-Content "$directory/result.json" -Encoding utf8NoBOM
+            return [pscustomobject]@{exitCode=$code;tests=$tests;complete=$complete;skipped=$skipped;failures=$failures;errors=$errors}
+          }
+          $summary=[ordered]@{status='STARTED';sourceCommit=$env:EXPECTED_SOURCE;runtimeModified=$false;assertionsEdited=$false;baseline=$null;normal=$null;observedMaterial=$null;reducedProbe=$null;headerRegression=$null;restore=$null}
+          try {
+            & $native -Mode Snapshot -StateFile $state -EvidenceFile "$env:DIAGNOSTIC_ROOT/native-before.json" | Out-Host
+            $summary.baselineProbeExit=Invoke-Probe '01-original-preferences' 'any'
+            $summary.baseline=Invoke-Tests '02-original-motion-regression' $motion 4 28
+            & $native -Mode Enable -StateFile $state -EvidenceFile "$env:DIAGNOSTIC_ROOT/native-normal.json" | Out-Host
+            $summary.normalProbeExit=Invoke-Probe '03-normal-preference-probe' 'false'
+            # Capture the original method before observation in a separate fresh JVM.
+            $summary.unobservedMaterial=Invoke-Tests '04-unobserved-material-focus' 'com.vncode.app.shared.WorkspaceMaterialRenderingTest#focusedShopSelectorKeepsNativeContrastDuringAndAfterMaterialRefresh' 1 1
+            $summary.observedMaterial=Invoke-Tests '05-observed-material-focus' 'com.vncode.app.shared.WorkspaceMaterialRenderingTest#focusedShopSelectorKeepsNativeContrastDuringAndAfterMaterialRefresh' 1 1 $true
+            # Original 20-suite replay has no screenshot observer enabled.
+            $summary.normal=Invoke-Tests '06-original-focused-ui' $focused 20 197
+            $header='src/test/java/com/vncode/app/ui/workspace/NativeGlassEvidenceTest.java'
+            if([IO.File]::ReadAllText((Join-Path (Get-Location).Path $header)).Contains('shopManagementRemainsAdjacentAcrossNativeThemeAndResizeHistory')){
+              $summary.headerRegression=Invoke-Tests '07-header-regression-and-route-matrix' 'com.vncode.app.ui.workspace.NativeGlassEvidenceTest' 1 2
+            }
+            New-Item -ItemType Directory -Force "$env:DIAGNOSTIC_ROOT/08-header-geometry" | Out-Null
+            & java --enable-native-access=ALL-UNNAMED -cp $classpath com.vncode.app.ui.workspace.HeaderGeometryProbe "$env:DIAGNOSTIC_ROOT/08-header-geometry" 2>&1 | Tee-Object "$env:DIAGNOSTIC_ROOT/08-header-geometry/probe.log" | Out-Host
+            $summary.headerProbeExit=$LASTEXITCODE
+            & $native -Mode Disable -StateFile $state -EvidenceFile "$env:DIAGNOSTIC_ROOT/native-reduced.json" | Out-Host
+            $summary.reducedProbe=Invoke-Probe '09-os-reduced-preference-probe' 'true'
+            $normal=$summary.normal
+            if($summary.baselineProbeExit -ne 0 -or $summary.normalProbeExit -ne 0 -or $summary.reducedProbe -ne 0 -or $summary.headerProbeExit -ne 0 -or -not $normal.complete -or $normal.skipped -ne 0){throw 'A diagnostic probe or complete test selection failed. Inspect phase receipts.'}
+            $summary.allOriginalFocusedPassed=$normal.exitCode -eq 0 -and $normal.failures -eq 0 -and $normal.errors -eq 0
+            $summary.status=if($summary.allOriginalFocusedPassed){'DIAGNOSTIC_COMPLETE_FOCUSED_PASS'}else{'DIAGNOSTIC_COMPLETE_WITH_TEST_FAILURES'}
+          } catch {
+            $summary.status='DIAGNOSTIC_FAILED';$summary.error=$_.Exception.Message
+            throw
+          } finally {
+            try {
+              if(Test-Path $state){& $native -Mode Restore -StateFile $state -EvidenceFile "$env:DIAGNOSTIC_ROOT/native-restored.json" | Out-Host;$summary.restore='PASS'}
+            } catch {$summary.restore='FAIL';$summary.restoreError=$_.Exception.Message;$summary.status='DIAGNOSTIC_FAILED'}
+            $summary | ConvertTo-Json -Depth 8 | Set-Content "$env:DIAGNOSTIC_ROOT/summary.json" -Encoding utf8NoBOM
+          }
+          if($summary.restore -ne 'PASS'){throw 'Original CI desktop preference restoration failed.'}
+      - name: Confirm source and assertions remain byte-for-byte unchanged
+        if: always()
+        shell: pwsh
+        working-directory: app
+        run: |
+          $ErrorActionPreference='Stop'
+          git diff --exit-code -- src/main src/test pom.xml .mvn mvnw mvnw.cmd
+          if($LASTEXITCODE -ne 0){throw 'Diagnostic altered application or test source.'}
+          $before=Get-Content "$env:DIAGNOSTIC_ROOT/application-inputs-before.json" -Raw | ConvertFrom-Json
+          $mismatch=@($before | Where-Object { -not (Test-Path $_.path) -or (Get-FileHash $_.path -Algorithm SHA256).Hash.ToLowerInvariant() -cne $_.sha256 })
+          @{sourceCommit=(git rev-parse HEAD).Trim();checkedFiles=$before.Count;mismatches=$mismatch;runtimeOrAssertionsChanged=$mismatch.Count -ne 0} | ConvertTo-Json -Depth 6 | Set-Content "$env:DIAGNOSTIC_ROOT/input-preservation.json" -Encoding utf8NoBOM
+          if($mismatch.Count -ne 0){throw 'Input hashes changed.'}
       - name: Preserve diagnostic evidence only
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: native-input-diagnostic-${{ github.run_id }}
+          name: windows-ui-motion-diagnostic-${{ github.run_id }}
           path: ${{ env.DIAGNOSTIC_ROOT }}
           if-no-files-found: error
           retention-days: 30
