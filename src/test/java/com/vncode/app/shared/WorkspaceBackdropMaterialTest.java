@@ -36,6 +36,8 @@ class WorkspaceBackdropMaterialTest {
     @TempDir Path profile;
     private String previousProfile;
     private boolean previousReduced;
+    private Thread.UncaughtExceptionHandler previousFxHandler;
+    private final java.util.List<Throwable> callbackErrors = new java.util.concurrent.CopyOnWriteArrayList<>();
     private final ArrayList<Stage> stages = new ArrayList<>();
     private final ArrayList<Popup> popups = new ArrayList<>();
 
@@ -51,6 +53,22 @@ class WorkspaceBackdropMaterialTest {
 
     private static void settle() throws Exception { for (int i = 0; i < 4; i++) fx(() -> null); }
 
+    private void settleCss() throws Exception {
+        var completed = new java.util.concurrent.CompletableFuture<Void>();
+        fx(() -> {
+            new javafx.animation.AnimationTimer() {
+                private int pulses;
+                @Override public void handle(long now) { if (++pulses >= 2) { stop(); completed.complete(null); } }
+            }.start();
+            Platform.requestNextPulse(); return null;
+        });
+        completed.get(10, TimeUnit.SECONDS);
+        fx(() -> {
+            for (var stage : stages) if (stage.isShowing()) { stage.getScene().getRoot().applyCss(); stage.getScene().getRoot().layout(); }
+            return null;
+        });
+    }
+
     private static void awaitMaterial(javafx.scene.layout.Region region) throws Exception {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(8);
         while (System.nanoTime() < deadline) {
@@ -64,6 +82,8 @@ class WorkspaceBackdropMaterialTest {
         previousProfile = System.getProperty("vncode.appdata.dir");
         System.setProperty("vncode.appdata.dir", profile.toString()); Database.initDatabase();
         previousReduced = fx(() -> {
+            previousFxHandler = Thread.currentThread().getUncaughtExceptionHandler();
+            Thread.currentThread().setUncaughtExceptionHandler((thread, error) -> callbackErrors.add(error));
             ThemeService.initializeAppearance(); boolean before = ThemeService.isReducedMotion();
             ThemeService.setReducedMotion(true); ThemeService.setCurrentTheme(ThemeService.Theme.LIGHT);
             ThemeService.setGlassEnabled(true); ThemeService.setGlassTransparency(55); return before;
@@ -74,10 +94,12 @@ class WorkspaceBackdropMaterialTest {
         fx(() -> {
             for (var popup : popups) popup.hide();
             for (var stage : stages) stage.close();
-            ThemeService.setReducedMotion(previousReduced); return null;
+            ThemeService.setReducedMotion(previousReduced);
+            Thread.currentThread().setUncaughtExceptionHandler(previousFxHandler); return null;
         });
         if (previousProfile == null) System.clearProperty("vncode.appdata.dir");
         else System.setProperty("vncode.appdata.dir", previousProfile);
+        assertTrue(callbackErrors.isEmpty(), () -> "Unexpected JavaFX callback errors: " + callbackErrors);
     }
 
     private Stage show(Parent root) {
@@ -185,45 +207,58 @@ class WorkspaceBackdropMaterialTest {
     @Test void aLaterCallerReplacementOrBindingRetainsOwnership() throws Exception {
         var root = fx(() -> { var pane = new VBox(chrome(), chrome()); pane.getStyleClass().add("workspace-shell"); show(pane); return pane; });
         awaitMaterial((Region) root.getChildren().getFirst()); settle();
-        var custom = Background.fill(Color.GOLDENROD); var bound = new SimpleObjectProperty<>(Background.fill(Color.SIENNA));
-        fx(() -> {
-            ((Region) root.getChildren().getFirst()).setBackground(custom);
+        var bound = new SimpleObjectProperty<>(Background.fill(Color.SIENNA));
+        var custom = fx(() -> {
+            // AUTHOR theme CSS supersedes USER setBackground at the next pulse, even on the old runtime.
+            // A caller-owned inline background is the persistent public CSS contract being protected here.
+            var caller = (Region) root.getChildren().getFirst(); caller.setStyle("-fx-background-color: #daa520;"); root.applyCss();
             ((Region) root.getChildren().getLast()).backgroundProperty().bind(bound);
-            ThemeService.setCurrentTheme(ThemeService.Theme.DARK); return null;
+            return caller.getBackground();
         });
-        settle();
-        fx(() -> { assertSame(custom, ((Region) root.getChildren().getFirst()).getBackground()); assertSame(bound.get(), ((Region) root.getChildren().getLast()).getBackground()); return null; });
+        fx(() -> { ThemeService.setCurrentTheme(ThemeService.Theme.DARK); root.getScene().getWindow().setWidth(740); return null; });
+        settleCss();
+        fx(() -> {
+            var caller = (Region) root.getChildren().getFirst();
+            // JavaFX may reconstruct an equal CSS Background; identity belongs to the bound case only.
+            assertEquals(custom, caller.getBackground()); assertEquals(Color.GOLDENROD, caller.getBackground().getFills().getLast().getFill());
+            assertNull(pattern(caller)); assertSame(bound.get(), ((Region) root.getChildren().getLast()).getBackground());
+            assertEquals(StyleOrigin.INLINE, ((StyleableProperty<?>) caller.backgroundProperty()).getStyleOrigin()); return null;
+        });
     }
 
-    @Test void aCallerSettingTheSameBackgroundInstanceStillOptsOut() throws Exception {
+    @Test void aCallerSettingTheSameBackgroundInstanceKeepsItsValueWhenWindowHides() throws Exception {
         var root = fx(() -> { var pane = new VBox(chrome()); pane.getStyleClass().add("workspace-shell"); show(pane); return pane; });
         awaitMaterial((Region) root.getChildren().getFirst()); settle();
-        var selected = fx(() -> {
-            var chrome = (Region) root.getChildren().getFirst(); var same = chrome.getBackground(); chrome.setBackground(same);
-            root.getScene().getWindow().setWidth(740); return same;
-        });
-        settle();
         fx(() -> {
-            assertSame(selected, ((Region) root.getChildren().getFirst()).getBackground(), "Do not overwrite a same-value USER ownership change");
-            root.getScene().getWindow().hide(); return null;
+            var chrome = (Region) root.getChildren().getFirst(); var same = chrome.getBackground(); chrome.setBackground(same);
+            // WINDOW_HIDDEN cleanup is synchronous. Native AUTHOR CSS may supersede USER on a later pulse.
+            root.getScene().getWindow().hide();
+            assertSame(same, chrome.getBackground(), "Helper cleanup must respect the same-instance USER adoption");
+            assertEquals(StyleOrigin.USER, ((StyleableProperty<?>) chrome.backgroundProperty()).getStyleOrigin()); return null;
         });
-        settle();
-        fx(() -> { assertSame(selected, ((Region) root.getChildren().getFirst()).getBackground()); return null; });
     }
 
-    @Test void aReentrantCallerReplacementDuringCompositionWins() throws Exception {
-        var custom = Background.fill(Color.DARKORANGE);
+    @Test void aReentrantCallerBindingDuringCompositionWins() throws Exception {
+        var custom = new SimpleObjectProperty<>(Background.fill(Color.DARKORANGE));
         var root = fx(() -> {
             var chrome = chrome();
             chrome.backgroundProperty().addListener((observable, before, after) -> {
-                if (after != null && after.getFills().stream().anyMatch(fill -> fill.getFill() instanceof ImagePattern)) chrome.setBackground(custom);
+                if (!chrome.backgroundProperty().isBound() && after != null
+                        && after.getFills().stream().anyMatch(fill -> fill.getFill() instanceof ImagePattern)) chrome.backgroundProperty().bind(custom);
             });
             var pane = new VBox(chrome); pane.getStyleClass().add("workspace-shell"); show(pane); return pane;
         });
-        awaitMaterial(root); settle();
-        fx(() -> { assertSame(custom, ((Region) root.getChildren().getFirst()).getBackground()); root.getScene().getWindow().setWidth(740); return null; });
-        settle();
-        fx(() -> { assertSame(custom, ((Region) root.getChildren().getFirst()).getBackground()); root.getScene().getWindow().hide(); assertSame(custom, ((Region) root.getChildren().getFirst()).getBackground()); return null; });
+        try {
+            awaitMaterial(root); settleCss();
+            fx(() -> { assertSame(custom.get(), ((Region) root.getChildren().getFirst()).getBackground()); root.getScene().getWindow().setWidth(740); return null; });
+            settleCss();
+            fx(() -> {
+                var chrome = (Region) root.getChildren().getFirst(); assertTrue(chrome.backgroundProperty().isBound()); assertSame(custom.get(), chrome.getBackground());
+                root.getScene().getWindow().hide(); assertTrue(chrome.backgroundProperty().isBound()); assertSame(custom.get(), chrome.getBackground()); return null;
+            });
+        } finally {
+            fx(() -> { ((Region) root.getChildren().getFirst()).backgroundProperty().unbind(); return null; });
+        }
     }
 
     @Test void glassOffAndWindowHideRestoreOnlyOurBackgrounds() throws Exception {
