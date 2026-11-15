@@ -1,0 +1,64 @@
+{
+  "status": "PASS_FINAL_READONLY_PUBLISHER_REVIEW",
+  "observedAtUtc": "2026-11-15T10:38:37.251237+00:00",
+  "source": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "helperSha256": "bae82a0db2b946ba7885f14039cf82d787b0dac5e2a16625be51df6c1e194944",
+  "node": {
+    "total": 200,
+    "passed": 200,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "exit": 0,
+    "runtime": "v24.19.0"
+  },
+  "syntaxExit": 0,
+  "actionlintExit": 0,
+  "gitDiffCheckExit": 0,
+  "pinOnlyDeltaVerifiedAgainstPreliminaryHelper": true,
+  "testsAndWorkflowByteEqualToPreliminaryReview": true,
+  "baseline169HelperAndTestsByteEqualToB9635f8": true,
+  "freshActualGetReadback": {
+    "runId": 43641520595,
+    "runAttempt": 1,
+    "runSource": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "workflowId": 392732536,
+    "runConclusion": "success",
+    "artifactId": 14137224020,
+    "artifactDigest": "sha256:253381c64fb6408d7d1ad1eab491df23a289ce772ca19007138ab9e7768e2ba7",
+    "artifactBytes": 583461462,
+    "artifactExpired": false,
+    "draftId": 445977967,
+    "draftSource": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "draftTag": "v1.6.10",
+    "draft": true,
+    "draftAssets": 0,
+    "latestId": 442540592,
+    "latestTag": "v1.6.9",
+    "latestImmutable": true
+  },
+  "actualBuildFilesValidateEvidence": {
+    "passed": true,
+    "tests": 4700,
+    "passedCases": 4698,
+    "skippedOSCases": 2,
+    "failures": 0,
+    "errors": 0,
+    "nativeAndUpgradeAndBaselineValidated": true
+  },
+  "independentPackage": {
+    "result": "PASS",
+    "packageReviewSha256": "bdfc8210ff1e4e891be79a71093696c8e43782981f72a15103597a7be8d8a5f4",
+    "receiptReadAndHashVerified": true
+  },
+  "expectedExactAssets": 16,
+  "blockingImplementationFaults": [],
+  "remainingOperationalChecks": [
+    "Actual publisher workflow success on reviewed commit",
+    "Actual immutableLatest1610publicassets/retention verification",
+    "Original169binaryupdaterAVAILABLE1610readback"
+  ],
+  "security": "Unchanged disclosed Java gateFAIL:8oldfindings,1high7.5blocker,0new0resolved;JS0;GS1extractioncoveragegap. No waiver/policy/generichelperchanges.",
+  "mutationsByReviewer": false
+}

@@ -1,0 +1,53 @@
+{
+  "kind": "VNCODE_1610_PUBLIC_HELPER_INDEPENDENT_READONLY_REVIEW",
+  "result": "PASS",
+  "reviewedAtUtc": "2026-11-15T10:37:14.692732+00:00",
+  "reviewerTask": "/root/release_public_readback/readonly_verifier_review",
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "ciRun": 43641520595,
+  "noBlockingFaultFoundInReviewedScope": true,
+  "helper": {
+    "bytes": 14285,
+    "sha256": "13585e855802ad569d9e92971e8dc7a6556d093904670b8a37eb7c6c1d00c460"
+  },
+  "reviewedFiles": {
+    "check-public.py": {
+      "bytes": 14285,
+      "sha256": "13585e855802ad569d9e92971e8dc7a6556d093904670b8a37eb7c6c1d00c460"
+    },
+    "run-probe.py": {
+      "bytes": 4948,
+      "sha256": "c8e8251d054bcd2258fcb3a0ea75aba78dafa67853255ca9c656934bb235448d"
+    },
+    "Installed169UpdateProbe.java": {
+      "bytes": 6231,
+      "sha256": "6901618642d4b571ba249f3aeea26214ef59854bb3f72cca0ce6761ab261ae85"
+    },
+    "test-public-verifier.py": {
+      "bytes": 6959,
+      "sha256": "c4250a49c18f5f28691498d33ea766b92a8fc46951cb4666c9ab608f3708ccd4"
+    }
+  },
+  "controls": {
+    "result": "PASS",
+    "syntheticPositive": true,
+    "negativeControlsPassed": 29,
+    "receipt": {
+      "bytes": 1213,
+      "sha256": "663403941d369b428fb9ca249a3117e6ff23fc3dc7cbc9bebee1c9fbab0e8511"
+    },
+    "downloadCounterOnlyAccepted": true
+  },
+  "followupChecks": [
+    "External independent review receipt SHA is rechecked immediately before final PASS.",
+    "Coordinated manifest source corruption refreshes checksum metadata before rejection.",
+    "Coordinated build source/run/version/installer/upgrade corruption rebuilds manifest and checksums before rejection."
+  ],
+  "limits": [
+    "Read-only source review plus synthetic verifier controls; no actual AFTER public download or updater execution was performed by this reviewer.",
+    "Does not establish publication, seller API behavior, anonymous access, customer Windows GUI or installation.",
+    "External independent package receipt authenticity and complete real API snapshots remain runtime inputs; this review does not replace their actual acceptance."
+  ],
+  "networkCallsPerformed": 0,
+  "publicationMutationsPerformed": 0
+}

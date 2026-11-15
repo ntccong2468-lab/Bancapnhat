@@ -1,0 +1,20 @@
+{
+  "id": 14137224020,
+  "node_id": "MDg6QXJ0aWZhY3QxNDEzNzIyNDAyMA==",
+  "name": "VN-code-1.6.10-complete-baseline",
+  "size_in_bytes": 583461462,
+  "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/artifacts/14137224020",
+  "archive_download_url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/artifacts/14137224020/zip",
+  "expired": false,
+  "digest": "sha256:253381c64fb6408d7d1ad1eab491df23a289ce772ca19007138ab9e7768e2ba7",
+  "created_at": "2026-11-14T23:45:36Z",
+  "updated_at": "2026-11-14T23:45:36Z",
+  "expires_at": "2027-02-12T21:11:54Z",
+  "workflow_run": {
+    "id": 43641520595,
+    "repository_id": 1411036370,
+    "head_repository_id": 1411036370,
+    "head_branch": "release/vn-code-1.6.10",
+    "head_sha": "b74b5edfd46636e8779c94f467eef01c03c50a14"
+  }
+}

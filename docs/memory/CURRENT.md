@@ -1,8 +1,20 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **14.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **15.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
-## Hiện hành 1.6.10 — nguồn b74, UI đã kiểm; đang kiểm full Windows và bộ cài
+## Latest đã phát hành — 1.6.10, ngày15.11.2026
+
+- **Đã công bố Latest**13:40:34MSK/10:40:34UTC15.11.2026: release**445977967**, tag**v1.6.10**, immutable,16assets. App/code/test/build**b74b5edfd46636e8779c94f467eef01c03c50a14**; publisher**cbdee5962d8d76a5f76e172c2f17eaf8dec3cb54**. [Bàn giao cuối](../validation/2026-11-15-vncode-1610-release-handoff.md).
+- FullWindows**43641520595**,attempt1: **4.700ca/585suite,4.698đạt,0failure/error,2skip đúngOS**;native/startup/rollback/DPAPI/cài-gỡ/coexistence/passive1.6.9upgrade đạt. Artifact14137224020/583.461.462byte/SHA253381c64fb6408d7d1ad1eab491df23a289ce772ca19007138ab9e7768e2ba7 đã soAPItrước/sau+CRC. Không dự báo hoặc cộng kết quả cũ/focused vào full.
+- Publisher**43705139132**attempt1 thành công,200/200Node0skip. Pin nguồn/run/attempt/artifact/draft thật, không clobber/prune. [Receipt](../validation/vncode-1610-20261115/publication-1.6.10.json).
+- Đã tải thật và so đủ16public với mapCI độc lập;19release/306asset/48rawtag cũ giữ nguyên, sau20/322/49. Updater1.6.9 nguyên bản báo **AVAILABLE1.6.10**, chọn MSI148.870.409byte/SHAe12a5983a99d7665d36db0632bd6403301d5f2a658c5d73584d8bc14438d4fd0;75JAR nguyên byte. [Publicreceipt](../validation/vncode-1610-20261115/public-readback-receipt.json). Probe Linux/Cloudproxy/CA; không chứng minh popup hoặc cài trênWindows seller.
+- EXE149.539.328byte/SHA2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0. Giữ805runtime/0xóa/603businessJava nguyên byte từa860, các sửaKIZ/GTIN/UI đã gộp. Nativeb74 đã review50ảnh+15keyframe;201/21local là tập con, không cộng trùng. Gói sourcewindowsfix códocs cuối nhưng app/test/build cùngb74; hai ZIP163045…/15ab17…và mọi preview đã giao giữ nguyên.
+- Security8findingJava cũ/1high7,5 vẫnFAIL,JS0/0newvs169,GS1extraction coverage hạn chế; không waiver/allgreen. [Báo cáo](../validation/ios-motion-20261114/windows-b74/security/REPORT.md). Không gọi seller/OMS/CSP, kích hoạtlicense/Gmail hoặc mua/ký cóphí tronglượt phát hành.
+- Các repo refactor/regression vẫn là đề xuất chờ duyệt; không tự cài hay refactor rộng. Windows-MCP cho máy seller vẫn cần kết nối thật; không suy từCIra máy seller. Bước tiếp theo chỉ là xác nhận user đã cập nhật/app hoạt động theo yêu cầu mới; không phát hành lại1.6.10 hoặc sửa asset bất biến.
+
+**Mọi mục bên dưới là checkpoint lịch sử trước công bố. Các cụm “chưa/đang” ở đó không phải trạng thái Latest hiện tại.**
+
+## Checkpoint trước phát hành 1.6.10 — nguồn b74, UI đã kiểm; đang kiểm full Windows và bộ cài
 
 - **Nguồn runtime/test/CI: `b74b5edfd46636e8779c94f467eef01c03c50a14`**, nhánh `release/vn-code-1.6.10`. Windows mới **`43641520595`** và security **`43641523097`** được khởi chạy lúc 21:11:52/54 UTC ngày 14.11.2026. Người dùng đã cho phép tạo bộ cài/phát hành Latest, nhưng chưa có kết quả full/package/public/updater để xác nhận đã công bố.
 - **Lý do chốt lại nguồn:** review native cuối vẫn thấy khung chữ nhật kín mảnh quanh bảng Finance/FBO. Border đã bằng 0 nhưng nền kế thừa còn hai lớp edge-gradient/insets 0,1 trong khi embedded radius 0, nên tự vẽ thêm viền. B74 chỉ đổi hai khai báo nền ở data control bên trong workspace-sheet: một fill `-glass-content`, inset 0. Không đổi padding/radius/layout hoặc rule bo tròn của control standalone; không đổi API, FXML, caller ownership hay logic nghiệp vụ.

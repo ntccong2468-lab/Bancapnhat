@@ -1,0 +1,10 @@
+{
+  "status": "PASS_RAW_ARTIFACT_BYTES_AND_SAFE16_EXTRACTION",
+  "observedAtUtc": "2026-11-15T10:26:52.260661+00:00",
+  "artifactId": 14137224020,
+  "bytes": 583461462,
+  "sha256": "253381c64fb6408d7d1ad1eab491df23a289ce772ca19007138ab9e7768e2ba7",
+  "crc": "PASS",
+  "beforeAfterStable": true,
+  "files": 16
+}

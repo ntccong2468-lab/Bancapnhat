@@ -1,0 +1,14 @@
+{
+  "result": "passed",
+  "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+  "wcodeVersion": "1.1.75",
+  "freshVncodeData": true,
+  "liveMarketplaceMutations": false,
+  "windowTitle": "VN code v1.6.10",
+  "version": "1.6.10",
+  "independentRegistrations": true,
+  "wcodeFilesUnchanged": true,
+  "appName": "VN code",
+  "platform": "windows-x64",
+  "uninstallPreservesWcode": true
+}

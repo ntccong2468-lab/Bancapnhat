@@ -1,0 +1,19 @@
+{
+  "version": "1.6.10",
+  "passiveExeInstallerSha256": "2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0",
+  "passiveExeHandoffVerified": true,
+  "fingerprint": "2c0efa1c169fe08f6a494f33a43d7fcd09758055f002d513a3a5936cf4a460f5",
+  "installerUpgradeUuid": "8CBBA0E2-6E73-4F56-9101-6BC0948D3C72",
+  "result": "passed",
+  "baselineTag": "v1.6.9",
+  "baselineInstallerBytes": 149432832,
+  "passiveExeEmbeddedMsiSha256": "e12a5983a99d7665d36db0632bd6403301d5f2a658c5d73584d8bc14438d4fd0",
+  "appName": "VN code",
+  "fromVersion": "1.6.9",
+  "singleRegistration": true,
+  "windowTitle": "VN code v1.6.10",
+  "dataPreserved": true,
+  "liveMarketplaceMutations": false,
+  "baselineInstallerSha256": "b516a2bfb2182a9f0e5f82821cb7f299798258e1764eb0897a410be1985060d1",
+  "singleShortcutPerLocation": true
+}

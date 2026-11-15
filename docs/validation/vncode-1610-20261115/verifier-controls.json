@@ -1,0 +1,9 @@
+{
+  "result": "PASS",
+  "testsRun": 28,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "helperSha256": "06959a231a3e3b7df499c5db2004b1ac8d0f241c27b2d5ceac59f379173e1e26",
+  "scope": "Corrupt copies/synthetic malformed inputs only; actual build assets and app source never changed."
+}

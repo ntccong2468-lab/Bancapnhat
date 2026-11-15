@@ -1,0 +1,484 @@
+{
+  "status": "PASS",
+  "createdAtUtc": "2026-11-15T10:35:29.421908+00:00",
+  "actualZip": "/workspace/release-1610-20261115/build/assets/VN-code-1.6.10-verification.zip",
+  "actualZipSha256Before": "551483d3070321328e6b73c7b43e24c049d4d80dca754035a90d085f210bfde0",
+  "actualZipSha256After": "551483d3070321328e6b73c7b43e24c049d4d80dca754035a90d085f210bfde0",
+  "actualEvidenceUnchanged": true,
+  "actual": {
+    "status": "PASS",
+    "scope": "baseline-motion-43641520595",
+    "sourceContractCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "rootProofCount": 13,
+    "jsonProofCount": 10,
+    "logProofCount": 3,
+    "syntheticDatabaseCount": 3,
+    "allMembersRead": 16,
+    "checks": {
+      "exactInventory": "PASS",
+      "strictJson": "PASS",
+      "nativeModesAndPolicies": "PASS",
+      "nativePhaseContinuity": "PASS",
+      "transientFlagsAndNoRegistryClaim": "PASS",
+      "originalSnapshotRestored": "PASS",
+      "publicOsAuthority": "PASS",
+      "publicSpatialFeedbackAndSingleAction": "PASS",
+      "publicLogAgreement": "PASS",
+      "utcTimeOrder": "PASS",
+      "syntheticDatabaseSchemaAndEmptyBusinessRows": "PASS",
+      "immutableTemporaryCopies": "PASS",
+      "databaseIntegrityAndNoFreeOrTrailingPages": "PASS",
+      "fixedReleaseDatabaseIdentity": "PASS"
+    },
+    "members": [
+      {
+        "path": "baseline-motion-43641520595/native-enabled.json",
+        "bytes": 357,
+        "sha256": "f8162e2858abad520a5cd0908d6138e5df2a0a9cf4b980966846da312098d5c7"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-normal-before-full.json",
+        "bytes": 355,
+        "sha256": "1ba86a74f121126ebddb1065905f6b746afe3a62c1b22e20ca6e5279ab4005dc"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-normal-before-preflight.json",
+        "bytes": 357,
+        "sha256": "f8162e2858abad520a5cd0908d6138e5df2a0a9cf4b980966846da312098d5c7"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-original.json",
+        "bytes": 361,
+        "sha256": "d789a8de539c453f5e0158cc89caad3f4fc458fbba1b4fbdffc0010d8ec66a2d"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-reduced.json",
+        "bytes": 358,
+        "sha256": "209ae885ac0cd7cbfb114b2ed4e75a379abb02697ac13835e4199547cb15dae5"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-restored.json",
+        "bytes": 358,
+        "sha256": "40fb1987c355830eed0dad8178fcc67807e0d06b446b9c0e4a2299a7ced8d2ad"
+      },
+      {
+        "path": "baseline-motion-43641520595/normal-public-before-full.json",
+        "bytes": 362,
+        "sha256": "b287feb90714ef4b5c9dc81b7d9181fdce9f310487660fc083ab7469dbceac75"
+      },
+      {
+        "path": "baseline-motion-43641520595/normal-public-before-full.log",
+        "bytes": 488,
+        "sha256": "25bf508aa8f657d23bf06a4535ebe24522387a5c7f60f02f5d8696cddd9f5274"
+      },
+      {
+        "path": "baseline-motion-43641520595/normal-public-preferences.json",
+        "bytes": 362,
+        "sha256": "15d511387f80340151e66e2f61d7bbb12751a4135e12468815fc1e9ae1a76e53"
+      },
+      {
+        "path": "baseline-motion-43641520595/normal-public-preferences.log",
+        "bytes": 488,
+        "sha256": "e0f3cc6d92e490ef5d676d399895f69837dd7387bb8a478ae842c84a1e552cfb"
+      },
+      {
+        "path": "baseline-motion-43641520595/original-motion-state.json",
+        "bytes": 189,
+        "sha256": "a1e2cccb6cc53fe4ae3648c1329f20a79788b5097be97ea45073ee403bcd0414"
+      },
+      {
+        "path": "baseline-motion-43641520595/reduced-public-preferences.json",
+        "bytes": 361,
+        "sha256": "ffc8f0de0015bad1a8d9d42852d1a94b6d01a9a5f593cb6cf7ff75608dba1aca"
+      },
+      {
+        "path": "baseline-motion-43641520595/reduced-public-preferences.log",
+        "bytes": 487,
+        "sha256": "0a3f335081e394e3d9d6ac0729743f5fe0d82ad149bd0f519376649a45e9e1d2"
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30"
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-14320783741522366999/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30"
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-4314305530174674436/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30"
+      }
+    ],
+    "databases": [
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30",
+        "userVersion": 6,
+        "applicationId": 0,
+        "tableCount": 123,
+        "businessRows": 0,
+        "nonemptyTables": {
+          "app_config": 1,
+          "config": 1,
+          "sqlite_sequence": 2
+        },
+        "integrityCheck": "ok",
+        "foreignKeyViolations": 0,
+        "pageSize": 4096,
+        "pageCount": 341,
+        "freelistCount": 0,
+        "trailingBytes": 0,
+        "schemaSha256": "0c2833d70de55447bd117dcaf45a87fe961326a069f7412a207bcecfc53bf1e6",
+        "temporaryCopyUnchanged": true,
+        "temporarySidecars": []
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-14320783741522366999/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30",
+        "userVersion": 6,
+        "applicationId": 0,
+        "tableCount": 123,
+        "businessRows": 0,
+        "nonemptyTables": {
+          "app_config": 1,
+          "config": 1,
+          "sqlite_sequence": 2
+        },
+        "integrityCheck": "ok",
+        "foreignKeyViolations": 0,
+        "pageSize": 4096,
+        "pageCount": 341,
+        "freelistCount": 0,
+        "trailingBytes": 0,
+        "schemaSha256": "0c2833d70de55447bd117dcaf45a87fe961326a069f7412a207bcecfc53bf1e6",
+        "temporaryCopyUnchanged": true,
+        "temporarySidecars": []
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-4314305530174674436/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30",
+        "userVersion": 6,
+        "applicationId": 0,
+        "tableCount": 123,
+        "businessRows": 0,
+        "nonemptyTables": {
+          "app_config": 1,
+          "config": 1,
+          "sqlite_sequence": 2
+        },
+        "integrityCheck": "ok",
+        "foreignKeyViolations": 0,
+        "pageSize": 4096,
+        "pageCount": 341,
+        "freelistCount": 0,
+        "trailingBytes": 0,
+        "schemaSha256": "0c2833d70de55447bd117dcaf45a87fe961326a069f7412a207bcecfc53bf1e6",
+        "temporaryCopyUnchanged": true,
+        "temporarySidecars": []
+      }
+    ],
+    "limitations": [
+      "Offline evidence validates recorded claims and consistency; it does not re-run Windows or JavaFX.",
+      "Source setters use flags=2 with no registry-write API; transientOnly and registryWritten are declarations, not independently measured registry diffs.",
+      "Three distinct synthetic profile names do not independently establish three executions; their database bytes are identical.",
+      "Logical emptiness, integrity, zero freelist and exact page length are checked. They alone are not a forensic proof of zero historical content in SQLite in-page slack. A fixed-release byte digest is additionally enforced.",
+      "The 123-table and canonical schema/whole-database digests are observed fixed-release identity pins; schema version and default rows are additionally grounded in reviewed source."
+    ]
+  },
+  "inMemoryPositiveControl": "PASS",
+  "negativeControlCount": 44,
+  "allNegativeControlsRejected": true,
+  "negativeControls": [
+    {
+      "name": "missing_root_proof",
+      "result": "REJECTED",
+      "reason": "motion scope must contain exactly 13 proofs and 3 DBs"
+    },
+    {
+      "name": "unexpected_root_proof",
+      "result": "REJECTED",
+      "reason": "unexpected or missing root motion proofs"
+    },
+    {
+      "name": "duplicate_zip_member",
+      "result": "REJECTED",
+      "reason": "motion scope must contain exactly 13 proofs and 3 DBs"
+    },
+    {
+      "name": "nested_wal_file",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db-wal: unexpected nested file or WAL/SHM"
+    },
+    {
+      "name": "nested_shm_file",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db-shm: unexpected nested file or WAL/SHM"
+    },
+    {
+      "name": "unexpected_nested_file",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-123/secret.txt: unexpected nested file or WAL/SHM"
+    },
+    {
+      "name": "different_run_directory",
+      "result": "REJECTED",
+      "reason": "unexpected motion run directory"
+    },
+    {
+      "name": "duplicate_json_key",
+      "result": "REJECTED",
+      "reason": "native-enabled.json: invalid strict JSON: duplicate JSON key: mode"
+    },
+    {
+      "name": "nonfinite_json",
+      "result": "REJECTED",
+      "reason": "native-enabled.json: invalid strict JSON: non-finite JSON number: NaN"
+    },
+    {
+      "name": "json_bom",
+      "result": "REJECTED",
+      "reason": "native-enabled.json: invalid strict JSON: Unexpected UTF-8 BOM (decode using utf-8-sig): line 1 column 1 (char 0)"
+    },
+    {
+      "name": "numeric_boolean",
+      "result": "REJECTED",
+      "reason": "native-enabled.json.transientOnly: expected True with exact type"
+    },
+    {
+      "name": "native_wrong_mode",
+      "result": "REJECTED",
+      "reason": "native-enabled.json.mode: expected 'Enable' with exact type"
+    },
+    {
+      "name": "native_failed_status",
+      "result": "REJECTED",
+      "reason": "native-enabled.json.status: expected 'PASS' with exact type"
+    },
+    {
+      "name": "native_errors_present",
+      "result": "REJECTED",
+      "reason": "native-enabled.json.errors: expected [] with exact type"
+    },
+    {
+      "name": "persistent_flags",
+      "result": "REJECTED",
+      "reason": "native-enabled.json.flags: expected 'SPIF_SENDCHANGE (0x2), without SPIF_UPDATEINIFILE' with exact type"
+    },
+    {
+      "name": "registry_write_claim",
+      "result": "REJECTED",
+      "reason": "native-enabled.json.registryWritten: expected False with exact type"
+    },
+    {
+      "name": "nontransient_claim",
+      "result": "REJECTED",
+      "reason": "native-enabled.json.transientOnly: expected True with exact type"
+    },
+    {
+      "name": "native_phase_chain_broken",
+      "result": "REJECTED",
+      "reason": "native-reduced.json: before/after phase continuity: expected {'clientAreaAnimation': True, 'minimizeAnimation': True} with exact type"
+    },
+    {
+      "name": "restore_does_not_match_original",
+      "result": "REJECTED",
+      "reason": "native-restored.json: requested policy readback: expected {'clientAreaAnimation': False, 'minimizeAnimation': False} with exact type"
+    },
+    {
+      "name": "snapshot_different_run",
+      "result": "REJECTED",
+      "reason": "original runId: expected '43641520595' with exact type"
+    },
+    {
+      "name": "snapshot_numeric_schema_boolean",
+      "result": "REJECTED",
+      "reason": "original schema: expected 1 with exact type"
+    },
+    {
+      "name": "public_os_authority_violation",
+      "result": "REJECTED",
+      "reason": "reduced-public-preferences.json.effectiveReducedMotion: expected True with exact type"
+    },
+    {
+      "name": "public_native_policy_mismatch",
+      "result": "REJECTED",
+      "reason": "reduced-public-preferences.json.windowsSpiClientAreaAnimation: expected False with exact type"
+    },
+    {
+      "name": "public_spatial_scale_when_reduced",
+      "result": "REJECTED",
+      "reason": "reduced-public-preferences.json.pressHasSpatialScale: expected False with exact type"
+    },
+    {
+      "name": "public_action_refired",
+      "result": "REJECTED",
+      "reason": "normal-public-preferences.json.businessActionCalls: expected 1 with exact type"
+    },
+    {
+      "name": "public_boolean_action_count",
+      "result": "REJECTED",
+      "reason": "normal-public-preferences.json.businessActionCalls: expected 1 with exact type"
+    },
+    {
+      "name": "public_closing_copy_when_reduced",
+      "result": "REJECTED",
+      "reason": "reduced-public-preferences.json.reportClosingCopies: expected 0 with exact type"
+    },
+    {
+      "name": "public_failure_field",
+      "result": "REJECTED",
+      "reason": "normal-public-preferences.json: unexpected or missing keys"
+    },
+    {
+      "name": "log_json_mismatch",
+      "result": "REJECTED",
+      "reason": "normal-public-preferences.log:result must match proof: expected '{\"atUtc\": \"2026-11-14T21:14:06.275323800Z\", \"businessActionCalls\": 1, \"effectiveReducedMotion\": false, \"expectedReduced\": \"false\", \"os\": \"Windows Server 2022\", \"platformReducedMotion\": false, \"pressHasSpatialScale\": true, \"reportClosingCopies\": 1, \"savedAppReducedMotion\": \"false\", \"status\": \"PASS\", \"windowsSpiClientAreaAnimation\": true}' with exact type"
+    },
+    {
+      "name": "log_failure_line",
+      "result": "REJECTED",
+      "reason": "normal-public-preferences.log: expected known startup warning and one JSON result only"
+    },
+    {
+      "name": "probe_time_order_broken",
+      "result": "REJECTED",
+      "reason": "snapshot/public probe timestamps not strictly ordered"
+    },
+    {
+      "name": "database_wrong_schema_version",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: header user_version must be 6"
+    },
+    {
+      "name": "database_application_id_nonzero",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: application_id must be zero"
+    },
+    {
+      "name": "database_business_row",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: business rows present in shops"
+    },
+    {
+      "name": "database_extra_config_secret",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: unexpected app_config row count"
+    },
+    {
+      "name": "database_saved_preference_wrong",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: unexpected app_config default/configuration rows"
+    },
+    {
+      "name": "database_config_default_wrong",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: unexpected config default/configuration rows"
+    },
+    {
+      "name": "database_sequence_unexpected",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: unexpected sqlite_sequence row count"
+    },
+    {
+      "name": "database_table_missing",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: nonempty freelist header"
+    },
+    {
+      "name": "database_schema_same_count_changed_index",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: canonical schema identity: expected '0c2833d70de55447bd117dcaf45a87fe961326a069f7412a207bcecfc53bf1e6' with exact type"
+    },
+    {
+      "name": "database_trailing_page",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: truncated or trailing pages/bytes"
+    },
+    {
+      "name": "database_free_pages",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: nonempty freelist header"
+    },
+    {
+      "name": "database_corrupt_btree_page",
+      "result": "REJECTED",
+      "reason": "motion verification could not complete: database disk image is malformed"
+    },
+    {
+      "name": "database_hidden_header_byte_changed",
+      "result": "REJECTED",
+      "reason": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db: fixed-release byte identity: expected 'ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30' with exact type"
+    }
+  ],
+  "sourceReview": {
+    "commit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "files": [
+      {
+        "path": "tools/diagnostics/windows-motion-environment.ps1",
+        "sha256": "347039ea0ba1c2b24e9476aeeb069e4eb2ca6c4d63037e539115d890680c3a09",
+        "exactPinnedGitBlobReviewed": true,
+        "worktreeByteIdentical": true
+      },
+      {
+        "path": "tools/diagnostics/WindowsMotionPreferenceProbe.java",
+        "sha256": "d0477068a1b02779496b0532ba760ce1ac39f429cfbdf42f1d25f072add22775",
+        "exactPinnedGitBlobReviewed": true,
+        "worktreeByteIdentical": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/ThemeService.java",
+        "sha256": "c6054ed71ce3fc11ba91c4ab863c9b76166b0767ca94906fe05d7c88334d8740",
+        "exactPinnedGitBlobReviewed": true,
+        "worktreeByteIdentical": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+        "sha256": "3769f7bea8006d76117b75e0a9b8cc2094365c6a58009a41a01bbe4832576f10",
+        "exactPinnedGitBlobReviewed": true,
+        "worktreeByteIdentical": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/WorkspaceMotion.java",
+        "sha256": "32871dad246b4e0947b409f389a2674f58f608df3fc7bcdfc15a486956311315",
+        "exactPinnedGitBlobReviewed": true,
+        "worktreeByteIdentical": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/config/Database.java",
+        "sha256": "0689d2b91b6957ed25142c495dc1b9d03f54b457d109579fc4612a8cd38d90d1",
+        "exactPinnedGitBlobReviewed": true,
+        "worktreeByteIdentical": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/shared/ConfigService.java",
+        "sha256": "933a3340ee9c39a8d7ad77de907e2b1ceef86545a83ada16d7436d43a7747d51",
+        "exactPinnedGitBlobReviewed": true,
+        "worktreeByteIdentical": true
+      }
+    ],
+    "findings": [
+      "Native setters use literal flags=2, omit SPIF_UPDATEINIFILE and invoke no registry writer; same-run snapshot and SPI readbacks are required.",
+      "Public probe creates a fresh synthetic profile, sets saved motion false and compares effective preference to public JavaFX OS preference; it checks scale, action exactly once, and reduced-motion closing-copy suppression.",
+      "ThemeService combines saved reduced-motion preference with OS preference using logical OR and cancels motion on reduced mode; interaction motion guards use this effective preference.",
+      "Database.initDatabase sets schema/user version 6, config default (1,1); ConfigService upserts the saved preference, and the diagnostic ends with ui_reduced_motion='false'.",
+      "Normal reportClosingCopies=1 is observed fixed-release evidence; source explicitly asserts zero copies only in reduced mode."
+    ]
+  },
+  "execution": {
+    "offline": true,
+    "applicationOrMavenExecuted": false,
+    "networkUsed": false,
+    "productionSourceModified": false,
+    "actualDatabaseFilesOpenedBySQLite": false,
+    "sqliteActualInspection": "ZIP bytes copied to removed immutable/read-only temporary DBs under verifier directory",
+    "sqliteNegativeControls": "Only :memory: databases and in-memory ZIP mutations"
+  },
+  "helperSha256": "9e0afe6f5dc57cecd23816ca606a1b136843cd8d9e9ea8ce92faa89876f19dd1",
+  "runnerSha256": "d175552e2b29cfaebaf56e35ad6a68f78dc1bcbf2821da5fd3d2ef32a7be92f3"
+}

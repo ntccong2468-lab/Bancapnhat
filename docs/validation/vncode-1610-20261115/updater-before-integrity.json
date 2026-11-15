@@ -1,0 +1,47 @@
+{
+  "kind": "VNCODE_ORIGINAL_PUBLIC_169_UPDATER_INTEGRITY",
+  "result": "PASS",
+  "stage": "before",
+  "verifiedAtUtc": "2026-11-15T10:30:03.742914+00:00",
+  "installedBinaryVersion": "1.6.9",
+  "all75OriginalJarHashesUnchanged": true,
+  "status": "CURRENT",
+  "latestVersion": "1.6.9",
+  "selectedMsiUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.9/VN-code-1.6.9-Windows-x64.msi",
+  "selectedMsiSha256": "df41d1c79a73f92208c2d6c6ffc6fbc61dae35e5cb3debdf9b409b0628ceadf4",
+  "selectedMsiBytes": 148763909,
+  "profile": "profile-before-20261115T103002007225",
+  "scope": "Original 1.6.9 classes executed with a fresh synthetic profile, inherited Cloud proxy and verified CA. Linux networking; Windows installer selection only after network. No MainApplication, license activation, seller API, signing, paid operation or publication. Anonymous access and customer Windows popup/installation are not established.",
+  "originalJarManifest": {
+    "bytes": 15457,
+    "sha256": "0fff09946080c9ac8d4542fb8317eab3d2bc767c266a110dfdf4fb4aeeef76fe"
+  },
+  "afterJarManifest": {
+    "bytes": 15457,
+    "sha256": "0fff09946080c9ac8d4542fb8317eab3d2bc767c266a110dfdf4fb4aeeef76fe"
+  },
+  "originalPublicZip": {
+    "bytes": 148353662,
+    "sha256": "a43e26199f27458d5264bd86a2c63f2976783cc0ccfc56be92d5bb61961bea58"
+  },
+  "originalAppJar": {
+    "bytes": 7665594,
+    "sha256": "da4bf48b8ed32e29f8fb786b344e219a1479e981d3f3219939de9564c111637f"
+  },
+  "probeSource": {
+    "bytes": 6231,
+    "sha256": "6901618642d4b571ba249f3aeea26214ef59854bb3f72cca0ce6761ab261ae85"
+  },
+  "probeClass": {
+    "bytes": 10730,
+    "sha256": "f3faee2407a7b65e5c811f2e7dd01f279662eee9f3010f20ac742c0f80126759"
+  },
+  "probeRunner": {
+    "bytes": 4948,
+    "sha256": "c8e8251d054bcd2258fcb3a0ea75aba78dafa67853255ca9c656934bb235448d"
+  },
+  "updaterReceipt": {
+    "bytes": 1410,
+    "sha256": "1387797c075fd128b853dd057823792a11aabf4a7daa25e0dfc399915c130edd"
+  }
+}

@@ -1,0 +1,574 @@
+{
+  "kind": "VNCODE_1610_OFFLINE_CANDIDATE_VERIFICATION",
+  "result": "PASS",
+  "version": "1.6.10",
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "ciRun": 43641520595,
+  "workflowId": 392732536,
+  "actionArtifactId": 14137224020,
+  "actionArtifactSha256": "253381c64fb6408d7d1ad1eab491df23a289ce772ca19007138ab9e7768e2ba7",
+  "time": "2026-11-15T10:35:47.503072+00:00",
+  "source": {
+    "files": 3513,
+    "onlyExactOrUtf8LineEndings": true,
+    "lineEndingDifferences": 3001,
+    "gitArchiveCommentVerified": true
+  },
+  "runtimeInclusion": {
+    "files": 805,
+    "java": 763,
+    "baseline169": {
+      "unchanged": 756,
+      "modified": [
+        "src/main/java/com/vncode/app/features/gtinsync/GtinCatalogIndex.java",
+        "src/main/java/com/vncode/app/features/gtinsync/OzonReviewedVariantProof.java",
+        "src/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java",
+        "src/main/java/com/vncode/app/features/sync/RegistrationCardIndex.java",
+        "src/main/java/com/vncode/app/features/sync/ZnackAutoSyncService.java",
+        "src/main/java/com/vncode/app/integration/listing/ListingIdentity.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java",
+        "src/main/java/com/vncode/app/integration/ozon/OzonProductSnapshotReader.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnostics.java",
+        "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonExistingCardLinkService.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/OzonReviewedGtinLinks.java",
+        "src/main/java/com/vncode/app/integration/znack/registration/RegistrationExistingCards.java",
+        "src/main/java/com/vncode/app/shared/AlertService.java",
+        "src/main/java/com/vncode/app/shared/MotionBoundary.java",
+        "src/main/java/com/vncode/app/shared/ThemeService.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceMotion.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java",
+        "src/main/java/com/vncode/app/ui/kiz/KizWarehousePane.java",
+        "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+        "src/main/java/com/vncode/app/ui/license/LicensePane.java",
+        "src/main/java/com/vncode/app/ui/listingcopy/ListingCopyPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+        "src/main/java/com/vncode/app/ui/workspace/JobCenterDialog.java",
+        "src/main/java/com/vncode/app/ui/workspace/WorkspaceCommandPalette.java",
+        "src/main/java/com/vncode/app/ui/workspace/WorkspaceHeaderController.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationConnectionDialog.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationProvenanceDialog.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationRepairHistoryDialog.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackMappingReviewDialog.java",
+        "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "src/main/resources/com/vncode/app/styles/theme.css",
+        "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+        "src/main/resources/com/vncode/app/ui/print/print-template-designer-view.fxml"
+      ],
+      "added": [
+        "src/main/java/com/vncode/app/features/gtinsync/OzonExactVariantIdentity.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceDialogChrome.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceRoundedControlClip.java"
+      ],
+      "removed": []
+    },
+    "businessCheckpoint": {
+      "unchanged": 773,
+      "modified": [
+        "src/main/java/com/vncode/app/shared/AlertService.java",
+        "src/main/java/com/vncode/app/shared/MotionBoundary.java",
+        "src/main/java/com/vncode/app/shared/ThemeService.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceMotion.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceMotionTokens.java",
+        "src/main/java/com/vncode/app/ui/fbo/FboPreflightDialog.java",
+        "src/main/java/com/vncode/app/ui/kiz/KizWarehousePane.java",
+        "src/main/java/com/vncode/app/ui/license/LicensePane.java",
+        "src/main/java/com/vncode/app/ui/listingcopy/ListingCopyPane.java",
+        "src/main/java/com/vncode/app/ui/products/ProductsPane.java",
+        "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+        "src/main/java/com/vncode/app/ui/workspace/JobCenterDialog.java",
+        "src/main/java/com/vncode/app/ui/workspace/WorkspaceCommandPalette.java",
+        "src/main/java/com/vncode/app/ui/workspace/WorkspaceHeaderController.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationConnectionDialog.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationProvenanceDialog.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/RegistrationRepairHistoryDialog.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackMappingReviewDialog.java",
+        "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "src/main/resources/com/vncode/app/styles/theme.css",
+        "src/main/resources/com/vncode/app/styles/workspace-controls.css",
+        "src/main/resources/com/vncode/app/ui/print/print-template-designer-view.fxml"
+      ],
+      "added": [
+        "src/main/java/com/vncode/app/shared/WorkspaceBackdropMaterial.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceDialogChrome.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceInteractionMotion.java",
+        "src/main/java/com/vncode/app/shared/WorkspaceRoundedControlClip.java"
+      ],
+      "removed": []
+    },
+    "outsideUiSharedJavaByteExact": 603,
+    "manifestSha256": "92714d04db4bc20ec4e14d15bcfdcb24c9e32e728f205cb74843b6fab269c290",
+    "runtimeGitBlobMapVerified": true,
+    "pomBusinessCheckpointByteExact": true
+  },
+  "portable": {
+    "path": "VN code/app/VNcode-1.6.10.jar",
+    "sha256": "45d53e23180b6026d0ec4e5108ad180cc901a69c2d23645787cf9c1e66cc8d50",
+    "classesObserved": 2026,
+    "expectedClassCount": 2026,
+    "runtimeChangesChecked": 49,
+    "classCheckScope": "Presence of all763 main Java top-level classes, exact2026 Java25 class count, all42resources and embeddedPOM; compiled source linkage relies on verified CI provenance, not independent recompilation.",
+    "dependencies": 74,
+    "testProfilesAndFixturesAbsent": true
+  },
+  "junit": {
+    "totals": {
+      "tests": 4700,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "suites": 585,
+    "skipIdentities": [
+      [
+        "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "privatePermissionsAreAppliedWhereSupported"
+      ],
+      [
+        "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "neverFallsBackToPlaintextOffWindows"
+      ]
+    ],
+    "stress": [
+      {
+        "method": "ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites",
+        "seconds": 1980.561
+      },
+      {
+        "method": "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+        "seconds": 638.909
+      },
+      {
+        "method": "wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay",
+        "seconds": 675.367
+      },
+      {
+        "method": "tenThousandApprovedVariantsSurvivePageBoundariesAppendAndReopenWithoutDispatchingNetworkWrites",
+        "seconds": 19.629
+      },
+      {
+        "method": "threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart",
+        "seconds": 376.721
+      }
+    ],
+    "smokesInnerMatch": true,
+    "scope": "Full JUnit evidence including synthetic 300/10000 tests; not real Catalog writes."
+  },
+  "smokes": {
+    "nativeMigration": "passed",
+    "gs1Dpapi": "passed-by-Windows-smoke",
+    "freshInstallCoexistenceUninstall": "passed",
+    "upgradeFrom": "1.6.9",
+    "baselineExeBytes": 149432832,
+    "baselineExeSha256": "b516a2bfb2182a9f0e5f82821cb7f299798258e1764eb0897a410be1985060d1",
+    "passiveExeAndEmbeddedMsi": "bound-to-Windows-extraction-smoke-and-independent-PE-resource-read",
+    "liveBusinessMutations": false
+  },
+  "embeddedMsi": {
+    "result": "PASS",
+    "source": "independent-static-PE-resource-read",
+    "resourceType": 10,
+    "resourceName": "MSI",
+    "resourceBytes": 148870409,
+    "resourceSha256": "e12a5983a99d7665d36db0632bd6403301d5f2a658c5d73584d8bc14438d4fd0",
+    "exeSha256": "2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0",
+    "executedInstaller": false
+  },
+  "assets": {
+    "VN-code-1.6.10-Windows-x64.exe": {
+      "bytes": 149539328,
+      "sha256": "2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0"
+    },
+    "VN-code-1.6.10-Windows-x64.msi": {
+      "bytes": 148870409,
+      "sha256": "e12a5983a99d7665d36db0632bd6403301d5f2a658c5d73584d8bc14438d4fd0"
+    },
+    "VN-code-1.6.10-Windows-x64.sha256": {
+      "bytes": 98,
+      "sha256": "22872edeccba20c8d6433537b99839617b056bba294179eecffb3ac25bdb28f4"
+    },
+    "VN-code-1.6.10-Windows-x64.zip": {
+      "bytes": 148459964,
+      "sha256": "52b816753d7068069ce076f348b3187c4ecb5b6157453805d0c87daf1a5b4e6f"
+    },
+    "VN-code-1.6.10-source.zip": {
+      "bytes": 66012566,
+      "sha256": "5cad9f32c94dec31206e35786262990e3779720d9ede98900f0707e55640f93e"
+    },
+    "VN-code-1.6.10-history.bundle": {
+      "bytes": 72808143,
+      "sha256": "4da47c0c929022a8fbacb19630554b2169165cf024f6ebf1dd9a98cc30ec08f2"
+    },
+    "VN-code-1.6.10-verification.zip": {
+      "bytes": 3350865,
+      "sha256": "551483d3070321328e6b73c7b43e24c049d4d80dca754035a90d085f210bfde0"
+    },
+    "build-info.json": {
+      "bytes": 771,
+      "sha256": "f21685a66f40bc5e80e854427ec6fb24941e8c7cd6f3044b5249759f7ce7d6bf"
+    },
+    "release-notes.md": {
+      "bytes": 2667,
+      "sha256": "b56326bf03f9afa4087c1be4d801b187974c59af2c58a4c1d223ee12c78a64cb"
+    },
+    "native-smoke.json": {
+      "bytes": 288,
+      "sha256": "d78de706bafa54480253937e4ed8893f8785a4b5d7b6ef498a309db7499c9f43"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 833,
+      "sha256": "5c6365462b053d6a738eec334c290e160ae2e34bc23ef9d02cd536558a550e84"
+    },
+    "asset-manifest.json": {
+      "bytes": 1755,
+      "sha256": "6b976018e70dc5da4337779e45abdfa1e0efe68dedaa99af4a84e9344808bec8"
+    },
+    "SHA256SUMS": {
+      "bytes": 1106,
+      "sha256": "712d707cf53731dc6b63a90abf4c06cdefcf4d70c4be355a54e1de9aa51c9923"
+    },
+    "gs1-smoke.json": {
+      "bytes": 287,
+      "sha256": "0678e12ddebd62351793de70ba53b835294ecb185f27e1a1226e32b4dac8e9ef"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 411,
+      "sha256": "adf0c7decf6080f7ad8e7a2b82b83b04f714af17d58c7cbe2625dcd8af8d9dc8"
+    },
+    "previous-baseline.json": {
+      "bytes": 282,
+      "sha256": "bdca13084847ab0fe9c3f00526bbe84145c3552f543eb190b932aaabace59bfe"
+    }
+  },
+  "helperSha256": "b50da3dd6d138e811e8b20cb705e2b679c36f0a66ffdf0aa033221981baa4401",
+  "scope": "Offline actual downloaded16payloads, raw Actions artifact+before/aftermetadata, sourceGit, fullJUnit, CI native+DPAPI+install+passiveupgrade, independentPEresource and motion/profile proof inspection. No new seller/Catalog/license/paid API calls; no installer execution.",
+  "limitations": [
+    "Class/source linkage relies on exact source archive and CI provenance; no independent recompilation.",
+    "Native installation/upgrade behavior is attested by CI; this verifier independently reads EXE MSI resource bytes without executing them.",
+    "No seller machine, actual KIZ purchase or Catalog write verified."
+  ],
+  "actionsExtended": {
+    "artifactBeforeAfterExact": true,
+    "rawArtifactCRC": "PASS",
+    "artifactId": 14137224020,
+    "artifactDigest": "253381c64fb6408d7d1ad1eab491df23a289ce772ca19007138ab9e7768e2ba7",
+    "runAttempt": 1,
+    "actualWindowsJobId": 132589921294,
+    "requiredStepsPassed": [
+      "Configure transient worker animation for JavaFX verification",
+      "Verify release tools",
+      "Verify fresh JVM motion preferences and original OS accessibility authority",
+      "Verify Windows UI, purchase circulation, product documents and Catalog fixtures",
+      "Verify whole Java application and package",
+      "Build final EXE from verified Java",
+      "Restore pinned baseline after installer packaging",
+      "Verify native migration and startup",
+      "Verify actual Windows data protection",
+      "Verify fresh install, coexistence and uninstall",
+      "Verify passive upgrade from pinned current Latest",
+      "Preserve final MSI before building portable runtime",
+      "Build complete portable runtime from same verified Java",
+      "Restore the original worker desktop preferences",
+      "Package all source, Git history, runtime and verification",
+      "Preserve installer and all rebuild inputs"
+    ]
+  },
+  "historyBundle": {
+    "completeWithoutPrerequisites": true,
+    "sourceIsBundledHead": true,
+    "sha256": "4da47c0c929022a8fbacb19630554b2169165cf024f6ebf1dd9a98cc30ec08f2"
+  },
+  "junitExtended": {
+    "requiredNewSuites": {
+      "com.vncode.app.features.gtinsync.GtinCatalogIndexTest": 8,
+      "com.vncode.app.features.gtinsync.OzonExactCatalogIndexTest": 3,
+      "com.vncode.app.features.gtinsync.OzonExactProofBatchTest": 3,
+      "com.vncode.app.features.gtinsync.OzonExactVariantIdentityTest": 23,
+      "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest": 29,
+      "com.vncode.app.features.sync.RegistrationCardIndexTest": 31,
+      "com.vncode.app.features.sync.ZnackAutoSyncServiceTest": 40,
+      "com.vncode.app.integration.ozon.OzonExactGtinAdapterTest": 14,
+      "com.vncode.app.integration.znack.ZnackErrorMessagesTest": 17,
+      "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest": 5,
+      "com.vncode.app.integration.znack.ZnackSigningRecoveryTest": 26,
+      "com.vncode.app.integration.znack.ZnackSigningSessionTest": 32,
+      "com.vncode.app.integration.znack.registration.OzonExactVariantProofTest": 18,
+      "com.vncode.app.integration.znack.registration.RegistrationExistingCardsTest": 18,
+      "com.vncode.app.shared.ThemeDialogBackingTest": 10,
+      "com.vncode.app.shared.ThemeServiceTest": 11,
+      "com.vncode.app.shared.WorkspaceAllSurfaceGlassTest": 7,
+      "com.vncode.app.shared.WorkspaceBackdropMaterialTest": 13,
+      "com.vncode.app.shared.WorkspaceDialogChromeTest": 11,
+      "com.vncode.app.shared.WorkspaceGlobalMotionContractTest": 3,
+      "com.vncode.app.shared.WorkspaceInteractionMotionTest": 11,
+      "com.vncode.app.shared.WorkspaceMaterialRenderingTest": 6,
+      "com.vncode.app.shared.WorkspaceRoundedControlClipTest": 8,
+      "com.vncode.app.shared.WorkspaceRouteContinuityTest": 13,
+      "com.vncode.app.ui.ReferenceThemeAccessibilityTest": 1,
+      "com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest": 4,
+      "com.vncode.app.ui.products.ProductColumnHierarchyTest": 1,
+      "com.vncode.app.ui.workspace.HomeControllerPageTransitionTest": 1,
+      "com.vncode.app.ui.workspace.NativeGlassEvidenceTest": 2
+    },
+    "requiredRegressionCases": [
+      {
+        "suite": "com.vncode.app.shared.WorkspaceAllSurfaceGlassTest",
+        "method": "delayedNativeSkinKeepsLogicalWatchAndTrueRemovalReleasesMaterial",
+        "seconds": "0.644"
+      },
+      {
+        "suite": "com.vncode.app.shared.WorkspaceAllSurfaceGlassTest",
+        "method": "reducedNavigationMaterializesNewViewportWithoutThemeChange",
+        "seconds": "0.882"
+      },
+      {
+        "suite": "com.vncode.app.ui.products.ProductBulkDialogTest",
+        "method": "applyingClosesPickerAndShowsRealProgressBelowProductList",
+        "seconds": "1.386"
+      },
+      {
+        "suite": "com.vncode.app.ui.workspace.WorkspaceListAreaTest",
+        "method": "listsUseTheWbFbsWorkAreaAndGrowWithTheWindow",
+        "seconds": "19.734"
+      },
+      {
+        "suite": "com.vncode.app.shared.WorkspaceBackdropMaterialTest",
+        "method": "callerBackgroundRemainsExcludedWhenCssPrecedesThemeRescan",
+        "seconds": "0.604"
+      },
+      {
+        "suite": "com.vncode.app.shared.WorkspaceMaterialRenderingTest",
+        "method": "focusedShopSelectorKeepsNativeContrastDuringAndAfterMaterialRefresh",
+        "seconds": "1.268"
+      },
+      {
+        "suite": "com.vncode.app.shared.WorkspaceMaterialRenderingTest",
+        "method": "realFxmlTablesInsideAWorkingSheetHaveNoSeparateRectangularPaintedFrame",
+        "seconds": "3.786"
+      },
+      {
+        "suite": "com.vncode.app.ui.workspace.NativeGlassEvidenceTest",
+        "method": "productionRoutesKeepNativeControlsAndLargeListsAcrossApprovedDesktopSizes",
+        "seconds": "213.243"
+      },
+      {
+        "suite": "com.vncode.app.ui.workspace.NativeGlassEvidenceTest",
+        "method": "shopManagementRemainsAdjacentAcrossNativeThemeAndResizeHistory",
+        "seconds": "4.856"
+      }
+    ],
+    "legacy18SourcesByteExactTo169": true
+  },
+  "wholeJar": {
+    "allMainJavaTopLevelClassesPresent": 763,
+    "allRuntimeResourcesPresentAndCompared": 42,
+    "resourceComparison": "40 exact/UTF8-CRLF, app.properties 3POM-default properties filtered, Maven MANIFEST source fields preserved with generated build/classpath fields",
+    "embeddedPomExactOrCrLf": true
+  },
+  "windowsMotionAndSyntheticProfiles": {
+    "status": "PASS",
+    "scope": "baseline-motion-43641520595",
+    "sourceContractCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "rootProofCount": 13,
+    "jsonProofCount": 10,
+    "logProofCount": 3,
+    "syntheticDatabaseCount": 3,
+    "allMembersRead": 16,
+    "checks": {
+      "exactInventory": "PASS",
+      "strictJson": "PASS",
+      "nativeModesAndPolicies": "PASS",
+      "nativePhaseContinuity": "PASS",
+      "transientFlagsAndNoRegistryClaim": "PASS",
+      "originalSnapshotRestored": "PASS",
+      "publicOsAuthority": "PASS",
+      "publicSpatialFeedbackAndSingleAction": "PASS",
+      "publicLogAgreement": "PASS",
+      "utcTimeOrder": "PASS",
+      "syntheticDatabaseSchemaAndEmptyBusinessRows": "PASS",
+      "immutableTemporaryCopies": "PASS",
+      "databaseIntegrityAndNoFreeOrTrailingPages": "PASS",
+      "fixedReleaseDatabaseIdentity": "PASS"
+    },
+    "members": [
+      {
+        "path": "baseline-motion-43641520595/native-enabled.json",
+        "bytes": 357,
+        "sha256": "f8162e2858abad520a5cd0908d6138e5df2a0a9cf4b980966846da312098d5c7"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-normal-before-full.json",
+        "bytes": 355,
+        "sha256": "1ba86a74f121126ebddb1065905f6b746afe3a62c1b22e20ca6e5279ab4005dc"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-normal-before-preflight.json",
+        "bytes": 357,
+        "sha256": "f8162e2858abad520a5cd0908d6138e5df2a0a9cf4b980966846da312098d5c7"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-original.json",
+        "bytes": 361,
+        "sha256": "d789a8de539c453f5e0158cc89caad3f4fc458fbba1b4fbdffc0010d8ec66a2d"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-reduced.json",
+        "bytes": 358,
+        "sha256": "209ae885ac0cd7cbfb114b2ed4e75a379abb02697ac13835e4199547cb15dae5"
+      },
+      {
+        "path": "baseline-motion-43641520595/native-restored.json",
+        "bytes": 358,
+        "sha256": "40fb1987c355830eed0dad8178fcc67807e0d06b446b9c0e4a2299a7ced8d2ad"
+      },
+      {
+        "path": "baseline-motion-43641520595/normal-public-before-full.json",
+        "bytes": 362,
+        "sha256": "b287feb90714ef4b5c9dc81b7d9181fdce9f310487660fc083ab7469dbceac75"
+      },
+      {
+        "path": "baseline-motion-43641520595/normal-public-before-full.log",
+        "bytes": 488,
+        "sha256": "25bf508aa8f657d23bf06a4535ebe24522387a5c7f60f02f5d8696cddd9f5274"
+      },
+      {
+        "path": "baseline-motion-43641520595/normal-public-preferences.json",
+        "bytes": 362,
+        "sha256": "15d511387f80340151e66e2f61d7bbb12751a4135e12468815fc1e9ae1a76e53"
+      },
+      {
+        "path": "baseline-motion-43641520595/normal-public-preferences.log",
+        "bytes": 488,
+        "sha256": "e0f3cc6d92e490ef5d676d399895f69837dd7387bb8a478ae842c84a1e552cfb"
+      },
+      {
+        "path": "baseline-motion-43641520595/original-motion-state.json",
+        "bytes": 189,
+        "sha256": "a1e2cccb6cc53fe4ae3648c1329f20a79788b5097be97ea45073ee403bcd0414"
+      },
+      {
+        "path": "baseline-motion-43641520595/reduced-public-preferences.json",
+        "bytes": 361,
+        "sha256": "ffc8f0de0015bad1a8d9d42852d1a94b6d01a9a5f593cb6cf7ff75608dba1aca"
+      },
+      {
+        "path": "baseline-motion-43641520595/reduced-public-preferences.log",
+        "bytes": 487,
+        "sha256": "0a3f335081e394e3d9d6ac0729743f5fe0d82ad149bd0f519376649a45e9e1d2"
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30"
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-14320783741522366999/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30"
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-4314305530174674436/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30"
+      }
+    ],
+    "databases": [
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-13332428951837570930/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30",
+        "userVersion": 6,
+        "applicationId": 0,
+        "tableCount": 123,
+        "businessRows": 0,
+        "nonemptyTables": {
+          "app_config": 1,
+          "config": 1,
+          "sqlite_sequence": 2
+        },
+        "integrityCheck": "ok",
+        "foreignKeyViolations": 0,
+        "pageSize": 4096,
+        "pageCount": 341,
+        "freelistCount": 0,
+        "trailingBytes": 0,
+        "schemaSha256": "0c2833d70de55447bd117dcaf45a87fe961326a069f7412a207bcecfc53bf1e6",
+        "temporaryCopyUnchanged": true,
+        "temporarySidecars": []
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-14320783741522366999/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30",
+        "userVersion": 6,
+        "applicationId": 0,
+        "tableCount": 123,
+        "businessRows": 0,
+        "nonemptyTables": {
+          "app_config": 1,
+          "config": 1,
+          "sqlite_sequence": 2
+        },
+        "integrityCheck": "ok",
+        "foreignKeyViolations": 0,
+        "pageSize": 4096,
+        "pageCount": 341,
+        "freelistCount": 0,
+        "trailingBytes": 0,
+        "schemaSha256": "0c2833d70de55447bd117dcaf45a87fe961326a069f7412a207bcecfc53bf1e6",
+        "temporaryCopyUnchanged": true,
+        "temporarySidecars": []
+      },
+      {
+        "path": "baseline-motion-43641520595/synthetic-motion-profile-4314305530174674436/database.db",
+        "bytes": 1396736,
+        "sha256": "ef6768e00a2a03cfc930b73c4e68e6a3b8896f9d59f0043cc5743c5f605aee30",
+        "userVersion": 6,
+        "applicationId": 0,
+        "tableCount": 123,
+        "businessRows": 0,
+        "nonemptyTables": {
+          "app_config": 1,
+          "config": 1,
+          "sqlite_sequence": 2
+        },
+        "integrityCheck": "ok",
+        "foreignKeyViolations": 0,
+        "pageSize": 4096,
+        "pageCount": 341,
+        "freelistCount": 0,
+        "trailingBytes": 0,
+        "schemaSha256": "0c2833d70de55447bd117dcaf45a87fe961326a069f7412a207bcecfc53bf1e6",
+        "temporaryCopyUnchanged": true,
+        "temporarySidecars": []
+      }
+    ],
+    "limitations": [
+      "Offline evidence validates recorded claims and consistency; it does not re-run Windows or JavaFX.",
+      "Source setters use flags=2 with no registry-write API; transientOnly and registryWritten are declarations, not independently measured registry diffs.",
+      "Three distinct synthetic profile names do not independently establish three executions; their database bytes are identical.",
+      "Logical emptiness, integrity, zero freelist and exact page length are checked. They alone are not a forensic proof of zero historical content in SQLite in-page slack. A fixed-release byte digest is additionally enforced.",
+      "The 123-table and canonical schema/whole-database digests are observed fixed-release identity pins; schema version and default rows are additionally grounded in reviewed source."
+    ]
+  },
+  "verifierBaseline169Sha256": "14a790dc658ffdb3f4cdf30259e2b8ef15898b2abd89d7d107f3f6054a1c66b9",
+  "motionHelperSha256": "9e0afe6f5dc57cecd23816ca606a1b136843cd8d9e9ea8ce92faa89876f19dd1"
+}

@@ -12,3 +12,6 @@ Bản cập nhật kế thừa các chức năng và dữ liệu của1.6.9, b�
 Các repo OpenRewrite/Spoon và ArchUnit/JaCoCo/PIT vẫn là đề xuất nghiên cứu chờ duyệt, chưa tích hợp hoặc refactor diện rộng.
 
 Kiểm thử giao diện/dữ liệu tổng hợp và CI không thay thế mua KIZ có phí, ký bằng chứng thư hoặc ghi dữ liệu seller thật. Chỉ xác nhận lưu thông khi có phản hồi trạng thái tương ứng; không đánh dấu tải mã là đã lưu thông. Khi nâng cấp giữ hồ sơ, hàng đợi, feed và lịch sử hiện có.
+
+
+Đã công bố Latest ngày15.11.2026: [bàn giao và kiểm chứng sau công bố](../validation/2026-11-15-vncode-1610-release-handoff.md).

@@ -1,0 +1,46 @@
+{
+  "result": "PASS",
+  "time": "2026-11-15T10:36:15.073953+00:00",
+  "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "ciRun": 43641520595,
+  "junit": {
+    "tests": 4700,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "junitSuites": 585,
+  "verifierControls": {
+    "tests": 28,
+    "passed": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "motionNegativeControls": {
+    "tests": 44,
+    "allRejected": true
+  },
+  "files": {
+    "verify_package.py": "b50da3dd6d138e811e8b20cb705e2b679c36f0a66ffdf0aa033221981baa4401",
+    "baseline169_verifier.py": "14a790dc658ffdb3f4cdf30259e2b8ef15898b2abd89d7d107f3f6054a1c66b9",
+    "test_verifier_controls.py": "06959a231a3e3b7df499c5db2004b1ac8d0f241c27b2d5ceac59f379173e1e26",
+    "verifier-controls.json": "59d3dccccf6ab75414ed282c4b0137a85177782fd4f9d40590cd1db3f3835e7b",
+    "package-review.json": "bdfc8210ff1e4e891be79a71093696c8e43782981f72a15103597a7be8d8a5f4",
+    "independent-asset-map.json": "3dd3c15683d5b567c6acf4f57e3e7c7d9c02dbd6a7c475f1d5a764df1277afac",
+    "motion/verify_motion.py": "9e0afe6f5dc57cecd23816ca606a1b136843cd8d9e9ea8ce92faa89876f19dd1",
+    "motion/run_motion_audit.py": "d175552e2b29cfaebaf56e35ad6a68f78dc1bcbf2821da5fd3d2ef32a7be92f3",
+    "motion/motion-receipt.json": "5bf082d5011d8f028c82f78ec50ec601ced5251a8ead1ef0ae7588e6ea3a58e7"
+  },
+  "limitations": [
+    "Class/source linkage relies on exact source archive and CI provenance; no independent recompilation.",
+    "Native installation/upgrade behavior is attested by CI; this verifier independently reads EXE MSI resource bytes without executing them.",
+    "No seller machine, actual KIZ purchase or Catalog write verified.",
+    "Offline evidence validates recorded claims and consistency; it does not re-run Windows or JavaFX.",
+    "Source setters use flags=2 with no registry-write API; transientOnly and registryWritten are declarations, not independently measured registry diffs.",
+    "Three distinct synthetic profile names do not independently establish three executions; their database bytes are identical.",
+    "Logical emptiness, integrity, zero freelist and exact page length are checked. They alone are not a forensic proof of zero historical content in SQLite in-page slack. A fixed-release byte digest is additionally enforced.",
+    "The 123-table and canonical schema/whole-database digests are observed fixed-release identity pins; schema version and default rows are additionally grounded in reviewed source."
+  ],
+  "sourceOrBuildAssetsMutated": false
+}

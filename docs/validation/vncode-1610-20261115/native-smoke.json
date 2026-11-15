@@ -1,0 +1,11 @@
+{
+  "nativeLauncher": "passed",
+  "historyPreserved": true,
+  "platform": "windows-x64",
+  "rollbackSnapshotVerified": true,
+  "appName": "VN code",
+  "windowTitle": "VN code v1.6.10",
+  "liveMarketplaceMutations": false,
+  "version": "1.6.10",
+  "schemaMigration": "3 to 6"
+}
