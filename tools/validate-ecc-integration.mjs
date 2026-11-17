@@ -161,24 +161,105 @@ function withoutFences(text) {
 
 // Check ordinary inline/image links and reference definitions, excluding fenced
 // examples. This is intentionally not a complete CommonMark/HTML renderer.
+const markdownSpace = value => value !== undefined && /\s/u.test(value);
+
+function inlineDestination(line, start) {
+  let cursor = start;
+  while (markdownSpace(line[cursor])) cursor++;
+  let target;
+  if (line[cursor] === '<') {
+    const first = ++cursor;
+    while (cursor < line.length && line[cursor] !== '>') cursor++;
+    if (cursor === line.length) fail('malformed-markdown-link');
+    target = line.slice(first, cursor++);
+  } else {
+    const first = cursor;
+    while (cursor < line.length && !markdownSpace(line[cursor]) && line[cursor] !== ')') {
+      if (line[cursor] === '(') fail('malformed-markdown-link');
+      if (line[cursor] === '\\') {
+        if (cursor + 1 === line.length) fail('malformed-markdown-link');
+        cursor += 2;
+      } else cursor++;
+    }
+    if (cursor === first) fail('malformed-markdown-link');
+    target = line.slice(first, cursor);
+  }
+  const end = cursor;
+  while (markdownSpace(line[cursor])) cursor++;
+  if (cursor > end && (line[cursor] === '"' || line[cursor] === "'")) {
+    const quote = line[cursor++];
+    while (cursor < line.length && line[cursor] !== quote) {
+      if (line[cursor] === '\\' && cursor + 1 < line.length) cursor += 2;
+      else cursor++;
+    }
+    if (cursor === line.length) fail('malformed-markdown-link');
+    cursor++;
+    while (markdownSpace(line[cursor])) cursor++;
+  }
+  if (line[cursor] !== ')') fail('malformed-markdown-link');
+  return { target, next: cursor + 1 };
+}
+
 function markdownTargets(text) {
   const content = withoutFences(text);
   const links = [];
-  const inline = /!?\[[^\]\n]*\]\(\s*(<[^>\n]*>|(?:\\.|[^()\s])+)(?:\s+["'][^\n]*?["'])?\s*\)/gu;
+  // Each cursor only moves forward. Malformed destinations fail closed rather
+  // than restarting a regex search at every suffix of a long, untrusted line.
+  for (const line of content.split('\n')) {
+    let labels = 0;
+    for (let cursor = 0; cursor < line.length; cursor++) {
+      if (line[cursor] === '\\') { cursor++; continue; }
+      if (line[cursor] === '[') { labels++; continue; }
+      if (line[cursor] !== ']' || labels === 0) continue;
+      labels--;
+      if (line[cursor + 1] !== '(') continue;
+      const destination = inlineDestination(line, cursor + 2);
+      links.push(destination.target);
+      cursor = destination.next - 1;
+    }
+  }
+  // This anchored reference-definition pattern has one bounded start per line
+  // and no repeated ambiguous alternatives or suffix-search restarts.
   const references = /^\s{0,3}\[[^\]\n]+\]:\s*(<[^>\n]*>|\S+)/gmu;
-  for (const pattern of [inline, references]) {
-    for (const match of content.matchAll(pattern)) links.push(match[1].replace(/^<|>$/gu, ''));
+  for (const match of content.matchAll(references)) {
+    const target = match[1];
+    links.push(target.startsWith('<') && target.endsWith('>') ? target.slice(1, -1) : target);
   }
   return links;
+}
+
+// Extract heading text, not sanitized HTML. Ambiguous nested angle syntax is
+// rejected; no removed segment is reinterpreted as a newly formed markup tag.
+function headingText(text) {
+  const parts = [];
+  let start = 0;
+  let tag = -1;
+  for (let cursor = 0; cursor < text.length; cursor++) {
+    if (text[cursor] === '<') {
+      if (tag >= 0) fail('ambiguous-markdown-heading');
+      parts.push(text.slice(start, cursor)); tag = cursor;
+    } else if (text[cursor] === '>' && tag >= 0) {
+      tag = -1; start = cursor + 1;
+    }
+  }
+  parts.push(text.slice(tag >= 0 ? tag : start));
+  return parts.join('');
 }
 
 function headingAnchors(text) {
   const counts = new Map();
   const anchors = new Set();
   for (const line of withoutFences(text).split('\n')) {
-    const match = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/u.exec(line);
-    if (!match) continue;
-    const base = match[1].replace(/<[^>]*>/gu, '').toLowerCase()
+    let cursor = 0;
+    while (cursor < 3 && markdownSpace(line[cursor])) cursor++;
+    const first = cursor;
+    while (line[cursor] === '#') cursor++;
+    if (cursor === first || cursor - first > 6 || !markdownSpace(line[cursor])) continue;
+    const title = line.slice(cursor).trim();
+    if (!title) continue;
+    let end = title.length;
+    while (end > 0 && title[end - 1] === '#') end--;
+    const base = headingText(title.slice(0, end).trimEnd()).toLowerCase()
       .replace(/[^\p{L}\p{N}\p{M}_\-\s]/gu, '').replace(/\s/gu, '-');
     const count = counts.get(base) ?? 0;
     counts.set(base, count + 1); anchors.add(count ? `${base}-${count}` : base);
@@ -291,7 +372,8 @@ export async function validateECCIntegration(root, { upstreamRoot } = {}) {
 
   for (const [path, content] of texts) {
     if (!path.endsWith('.md')) continue;
-    for (const rawTarget of markdownTargets(content.text)) {
+    const targets = await attempt(path, () => markdownTargets(content.text)) ?? [];
+    for (const rawTarget of targets) {
       // Network URLs are references only: do not fetch or execute them.
       if (/^[A-Za-z][A-Za-z0-9+.-]*:/u.test(rawTarget)) {
         if (!/^(?:https?|mailto):/iu.test(rawTarget)) add('unsupported-link-scheme', path);

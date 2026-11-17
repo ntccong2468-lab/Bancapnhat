@@ -239,6 +239,43 @@ test('checks inline, image and reference links, fragments, URL schemes and encod
   assert.equal((await validateECCIntegration(f.root)).ok, true);
 });
 
+test('malformed Markdown cannot stall the CLI through ambiguous escapes or repeated open labels', async t => {
+  const script = fileURLToPath(new URL('./validate-ecc-integration.mjs', import.meta.url));
+  for (const [content, expectedCode] of [
+    ['# Reference\n[broken](' + '\\'.repeat(128), 'malformed-markdown-link'],
+    ['['.repeat(100_000) + '\n[Unsafe](javascript:alert)\n', 'unsupported-link-scheme'],
+  ]) {
+    const f = await fixture(t);
+    await put(f.root, 'docs/engineering/ecc/README.md', content);
+    const run = spawnSync(process.execPath, [script, '--root', f.root], {
+      encoding: 'utf8', timeout: 5_000, maxBuffer: 1024 * 1024,
+    });
+    assert.equal(run.error, undefined, `Bounded Markdown validation failed: ${run.error?.code}`);
+    assert.equal(run.signal, null);
+    assert.equal(run.status, 1);
+    invalid(JSON.parse(run.stdout), expectedCode);
+  }
+});
+
+test('nested image destinations and quoted link titles retain the existing path and scheme guards', async t => {
+  const f = await fixture(t);
+  await put(f.root, 'docs/engineering/ecc/image.png', Buffer.from([0x89, 0x50, 0x4e, 0x47, 0]));
+  await put(f.root, 'docs/engineering/ecc/README.md', '# Links\n[![Badge](image.png)](review.md "Review")\n');
+  assert.equal((await validateECCIntegration(f.root)).ok, true);
+  await put(f.root, 'docs/engineering/ecc/README.md', '# Links\n[![Badge](image.png)](javascript:alert)\n');
+  invalid(await validateECCIntegration(f.root), 'unsupported-link-scheme');
+});
+
+test('heading markup is parsed for anchors without accepting ambiguous nested angle syntax', async t => {
+  const f = await fixture(t);
+  await put(f.root, 'docs/engineering/ecc/README.md',
+    '# A <em>Heading</em>\n# A Heading\n# Literal <angle\n' +
+    '[First](#a-heading)\n[Duplicate](#a-heading-1)\n[Literal](#literal-angle)\n');
+  assert.equal((await validateECCIntegration(f.root)).ok, true);
+  await put(f.root, 'docs/engineering/ecc/README.md', '# A <em<hidden>> heading\n[Ambiguous](#a--heading)\n');
+  invalid(await validateECCIntegration(f.root), 'ambiguous-markdown-heading');
+});
+
 test('rejects linked artifacts, ancestor directories, skill directories and upstream files', { skip: process.platform === 'win32' ? 'Windows account may lack symlink privilege' : false }, async t => {
   const outside = await mkdtemp(join(tmpdir(), 'vncode-ecc-outside-'));
   t.after(() => rm(outside, { recursive: true, force: true }));
