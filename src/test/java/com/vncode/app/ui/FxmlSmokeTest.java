@@ -1245,8 +1245,14 @@ class FxmlSmokeTest {
                         && newOrderNumber.getPrefWidth() >= 150.0
                         && packingOrderNumber.getPrefWidth() >= 150.0
                         && deliveringOrderNumber.getPrefWidth() >= 150.0
-                        && newOrders.getColumns().stream().anyMatch(column->"ozonBarcodes".equals(column.getId()))
-                        && packingOrders.getColumns().stream().anyMatch(column->"ozonRowNumber".equals(column.getId()))
+                        && newOrders.getVisibleLeafColumns().size()==5
+                        && packingOrders.getVisibleLeafColumns().size()==5
+                        && newOrders.getColumns().stream().noneMatch(column->"ozonBarcodes".equals(column.getId()))
+                        && packingOrders.getColumns().stream().noneMatch(column->"ozonRowNumber".equals(column.getId()))
+                        && newOrders.getOnKeyPressed()!=null
+                        && packingOrders.getOnKeyPressed()!=null
+                        && newOrders.getRowFactory()!=null
+                        && packingOrders.getRowFactory()!=null
                         && loader.getNamespace().get("printAllButton") != null
                         && loader.getNamespace().get("sortByProductCheckBox") != null
                         && loader.getNamespace().get("sortByArticleCheckBox") != null

@@ -57,7 +57,6 @@
                 <TableColumn fx:id="actionColumn" text="Thao tác" minWidth="134" prefWidth="134" maxWidth="160"/>
             </columns>
         </TableView>
-        <Label fx:id="emptyLabel" text="Không có SKU" visible="false" managed="false" styleClass="text-muted"/>
     </StackPane>
     <FlowPane alignment="CENTER_LEFT" hgap="10" vgap="6" styleClass="workspace-batch-footer">
         <CheckBox fx:id="allFilteredCheckBox" text="Chọn tất cả kết quả đang lọc" onAction="#onToggleAllFiltered"/>

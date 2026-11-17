@@ -1,0 +1,322 @@
+{
+  "status": "PASS",
+  "capturedAtUtc": "2026-11-16T12:46:42.261929+00:00",
+  "sourceHead": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "sourceBranch": "feature/ozon-znack-order-kiz-20261116",
+  "baselineFiles": 3767,
+  "currentFilesExcludingThisReceipt": 3806,
+  "inventoryExcludesThisReceipt": true,
+  "issues": {
+    "missingBaseline": [],
+    "unexpectedModified": [],
+    "unexpectedAdded": [],
+    "freezeDrift": []
+  },
+  "productionModified": 14,
+  "existingFixturesModified": 3,
+  "newTestFiles": 7,
+  "canonicalSourceFiles": 24,
+  "fixtureAssertions": [
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+      "assertionKindsAndOrderUnchanged": true,
+      "assertionCalls": 37
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "assertionKindsAndOrderUnchanged": true,
+      "assertionCalls": 239
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "assertionKindsAndOrderUnchanged": true,
+      "assertionCalls": 386
+    }
+  ],
+  "coordinatorIsExactlyOnePendingReasonLine": true,
+  "priorChangesPreserved": "All non-task baseline files unchanged except three memory files intentionally extended; baseline includes all prior ECC/UI/Ozon dirty changes.",
+  "modifiedFiles": [
+    {
+      "path": "docs/PROJECT_MEMORY.md",
+      "beforeSha256": "f84d53280b6bae027cb2b8dc88a753ce79889dfe3be27e1b40faa66a777848eb",
+      "afterSha256": "1250e8ad4468d8dfa4fd8bd83246efe89b8aded3b22038525c03aece2bf30bcf"
+    },
+    {
+      "path": "docs/memory/CURRENT.md",
+      "beforeSha256": "29bd3a69e74e835db59df3ef26f736df58c5e5bf3f2e4840da378c6f71507f58",
+      "afterSha256": "0f56f07c63f27b6a173570a03e7f613f37ae716c8b7ec2503724865ab08ea812"
+    },
+    {
+      "path": "docs/memory/README.md",
+      "beforeSha256": "7aa87f0e80e69408626804bdd3e1bd2c8cba1c388b9c9b625a89bd2772074a83",
+      "afterSha256": "4332a241640b514cb6bd83dc149bfb7af3e8f4a9ca2e23d267659c31d17f6087"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+      "beforeSha256": "350f2940de8b0356542b846e404b8ef3964c0a3545c149f0ecbacbce8467f878",
+      "afterSha256": "f060ad4062c4e93e2cc27139d9031d4090ebea8bb73e504854a58c21142de6c5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/KizMappingRepository.java",
+      "beforeSha256": "b6a98271b7a2744cadd56b74a013fe99ed9849cc611765a71b62141bcd5400ed",
+      "afterSha256": "78286a1b3313e4aace3e650bd094c502f08dc8042578243c73d96e6e7a1c2e6d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+      "beforeSha256": "4af9ee395b3701d8bf9df858878b5c99c4fe11dee6db3f076d545537e8de6002",
+      "afterSha256": "ef3fa2cbcb01afd9b5c49ddebb346e03a1b71f1b9c1ac24505a8c900e96ba8d6"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+      "beforeSha256": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+      "afterSha256": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+      "beforeSha256": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+      "afterSha256": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+      "beforeSha256": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+      "afterSha256": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "beforeSha256": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935",
+      "afterSha256": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+      "beforeSha256": "56e6f348f88044b0925eb81c3e7b03f6d8b77c8ef08e45a3c386de757bcf48dd",
+      "afterSha256": "84a0721f05b3c889792955f2254be9be3f425e5c3fb402f1ba29a39789b4a02c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+      "beforeSha256": "9263d78a05918e562dd7708a76afbd0bcb940d98a96c33439b363f164e77efa2",
+      "afterSha256": "c4819446b4e50b7d7481912eb64feae39212a781737cae5fc5ed2b741c2deae8"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/supply/SupplyDetailController.java",
+      "beforeSha256": "b752efd304928057fcbda043b9f6dcff9cd36edddbb4c87717146acf0b801d36",
+      "afterSha256": "c53196438b6b8fc05ba45f198cc59e2c4fac57d89fa86ee76bcac68fc5d04acc"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "beforeSha256": "37d586ac706e53604ab78d2819ae247383e5cba3ad73e8974c9f8b4a845d1400",
+      "afterSha256": "dfbcd52a1fc1213d8bdf84c5eaf1098ab363aa07d1348e3f09ba29a46281bb03"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "beforeSha256": "610722c23e477be8acca9a1512f9c91f0db8317b7f3764446330db10bb1e31ef",
+      "afterSha256": "28b2e071ac81e81a26ae4640cdbb37f87cfac5c1cf1f8101f69ce7f0806e4f9b"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "beforeSha256": "65097da8a5561628a6e623c4bef6507008c564c64f323196cbe2f2e47e93977e",
+      "afterSha256": "cc9a5513f3df290be32d8b561d20cf9bff350bcc29031cb3aaa05d575bdfe13b"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "beforeSha256": "9c4319f2ba4776c1392a867a998b5af5ff1547f0602934d14a8c6b4d97827d84",
+      "afterSha256": "b88bcdd783c4afdc9de2383e4c68a763d1291e6b67500d826d184ab71766a9c7"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "beforeSha256": "ae733467cdeda95f2ba06a5060d3f572c53c2b3d8bf6a953cd163cfcbd3be11e",
+      "afterSha256": "fdc9302fabe2f3d2929a8ebb7e4949dc020792a7684a388fad4e9cf28f816950"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+      "beforeSha256": "21edcb5e99721615c6f849e350046657a21e25560a84e7a5ed3b3cccee58f289",
+      "afterSha256": "fe29853f884788dfcecee9dbcf7196d502c4ccb24c8c811510aceb2b8ff22939"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "beforeSha256": "4afc675150c1b2a8a53ffc59cca7fa682beb9557efc2772824fc8abc0339d112",
+      "afterSha256": "8e78c03fadf3f69648e9a6badb1ead511829a7f72905756728fdad052f3d4748"
+    }
+  ],
+  "addedFiles": [
+    {
+      "path": "docs/validation/kiz-first-public-20261116/FINAL-RECEIPT.json",
+      "sha256": "6260289198a5dac220090ea552fbe977aeb32103d169108e2757884a052acf68"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/REPORT.md",
+      "sha256": "cc7670fe498babb7007c0a5672c850ae278285401414f695bf7adf671ecad54a"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/baseline-backup.json",
+      "sha256": "881f62e60a0d0693e1f9d7132ad31419f840fdbf3a677718753fd32038a3b47d"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/circulation-fixtures.json",
+      "sha256": "8cdea8d7ef05a6030be681f58b2aafc1fb747a9adc31523a97010a4b037cf6ab"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/circulation-implementation.md",
+      "sha256": "4ec5b91808820489462fec5a6eb166bac033531c1ce544c9c275df3c3aa23039"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/circulation-result.json",
+      "sha256": "87a3ac4c96fa4acf15c6ae8bc408fe3d59fc0dc922ff285c4d09bc1b6b22e159"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/combined-result.json",
+      "sha256": "866820dae7db9d0a4be90850efa180bbc715e9c82e2b206dd816a51fdd564060"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/download-result.json",
+      "sha256": "2d37c7eb4c5e0d80e7bbf502c2c36a33365ff7bf50a81a10129cd765163bd969"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/fbs-resume-implementation.md",
+      "sha256": "a756964a670dc403fd491b16f6639208921e7d4c36955819fd432385e349edef"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/fbs-resume-result.json",
+      "sha256": "c303edafb412a99ad3c111f272c7b28168d05c1ac8cbca1e9e2098ba3bc15a1b"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/independent-artifact-review.json",
+      "sha256": "3adb39658f2388436460dfd50abc115789e419956cd5b89b6358fdaf0469355e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/independent-review.json",
+      "sha256": "f0fd50d00745556331c9f0303cb503956469bafe7901eee71e373b2a22648b9e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/independent-review.md",
+      "sha256": "6c4fb322ea070ece48b655ec501b71f7321f0bc50398983ac8814f65313dc9e3"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/jar-integrity.json",
+      "sha256": "f1ef05a6214e9b8fccb93fbacb59b499bd90a1cb01073ab30430b24f34b0fa0e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/launcher-result.json",
+      "sha256": "ba6b0b6b760385d0d77d322769f4643980474afe0a5f09e90c8c9209bbf39090"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/REPORT.md",
+      "sha256": "565200ee6a8ea65d632776fccea60dcc1a306111d6f6ceadbf2b68170948280e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/first-release-build-info.json",
+      "sha256": "5670efe976ddcdf609e766a6e220740ac38370a2dcf914c0596a89c2ae226bc7"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/latest-public-release.json",
+      "sha256": "0026cc5911c7abc5db2c7034d8155eb7aea45e8621280ad3bed3cc18ee92221f"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/purchase-source-comparison.json",
+      "sha256": "955dd1dd8aebcfc843ff013c8802715ef3a34f548052796067ac69b8626b8897"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/release-provenance.json",
+      "sha256": "f725219d910e4e42599b5df8fd2306b8461fd3317582074a8ae35f73ac9699a8"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/suz-issuance-contract.json",
+      "sha256": "d58a982a230984f53bd25f1e83fd8c8b789fcad901853d58f4a8c75e0e56c622"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/pause-result.json",
+      "sha256": "c4b6c2a40b82e4e6759c2362f4a8caffcdca7e68035c1e359cc718b1459ac69f"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/red-evidence-index.json",
+      "sha256": "383afd5c12dc5288fcb2b8b2ac06df0fa29368cb882f170abe7f7bb49b0c8a46"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/shared-implementation.md",
+      "sha256": "c447d2156b0224833ded87e24d0d0897b53c0f6c5679b56612caa48192e57373"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/shared-source-sha256.json",
+      "sha256": "d9359c67f21f685b5239317786e1d5ba9ed22fc56b5729bb13d18247134bf6b9"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/source-delta.json",
+      "sha256": "79d427b544db7f8360726dfffd284573493d85c8160616a7bde921d37c5b1b9d"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/source-freeze.json",
+      "sha256": "159ecd923f80a88e6581f96d9ddd4685c88b8c3a3826de81bf8a70586167354f"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/summary-implementation.md",
+      "sha256": "f5a93b5d66faf6269be64cbb73264453d58b198d38258ec79a02b0ded1c0d620"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/summary-result.json",
+      "sha256": "7a968a1226aa48c15da9fb513b162ccab6c53dffe77d8a8254b95b41e5483475"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/unknown-download-implementation.md",
+      "sha256": "e440dbb05add6a0edf47b57f1c146d43f8451211d7a33a386514f1255b68a56e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/unknown-download-result.json",
+      "sha256": "8e4bf1ccc3b0f3b6624b2aa04dfedc9aa6c69dd15f00193819532d2e9514c9fd"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/verification-command.json",
+      "sha256": "fbfbf47edbcd66592961b0cadb77cf39fd9fc8d7ace96203f8743523b5c2b823"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java",
+      "sha256": "33a9679485e001cf100cd03063c12e27bc7a60ea845bce2f25df97b221152b2a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/KizSigningSummaryRecoveryTest.java",
+      "sha256": "2b2e8205b84d7e3856e5a835f80311048d19e017dccbedf868ff4c135eb525b7"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java",
+      "sha256": "85058eaa72711a6aa6d501889f94da7d2d71a0eed4c81cb6601281ec7975c939"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+      "sha256": "87029b7c1c84b6e1e13f186ac5bf4e9694e40952b8ab929fd746c1b5e12bcab0"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackDownloadRecoveryMessagesTest.java",
+      "sha256": "1c9dc6701613d7e520168d254e6c7a5055171dc4900cd6f7021807d7d623a7e1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackNormalDownloadIdentityTest.java",
+      "sha256": "9508ef943956ec2e10bfb4606023b9a659ddbb19da6d66ac73e2bf2ac4842e3b"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/kizmapping/FbsKizSigningResumeUiTest.java",
+      "sha256": "dcd5e78fef73231727215c46c81402c43817aaecc341c347800c414fd107892b"
+    }
+  ],
+  "newEvidenceJsonParsed": 24,
+  "newEvidenceAndMemoryLinksChecked": 45,
+  "brokenLinks": [],
+  "gitDiffCheck": {
+    "exitCode": 0,
+    "outputEmpty": true
+  },
+  "eccValidator": {
+    "exitCode": 0,
+    "result": {
+      "ok": true,
+      "errors": [],
+      "counts": {
+        "existingSkills": 12,
+        "integratedSkills": 3,
+        "artifacts": 11,
+        "sources": 11,
+        "links": 61
+      },
+      "sourceHashesVerified": false
+    }
+  },
+  "finalVerification": "Fresh1576/146 +JAR/Launcher and independentartifact PASS; realpaid/API/Windows NOT_PERFORMED/NOT_RUN, not whole-app acceptance.",
+  "guardNote": "Initial generic one-line guard expected one occurrence but found four legitimate POLLING_INTRODUCTION calls. Corrected guard anchors exact polling else branch and proves only the intended single-line change; no source/test edit was made for the guard."
+}

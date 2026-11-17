@@ -1,0 +1,95 @@
+{
+  "status": "OWNER_A_COMPLETE_PENDING_PARENT_INTEGRATION",
+  "scope": "Synthetic SQLite/JUnit and offline compilation only; no API/sign/paid/license/release/user DB",
+  "sourceManifest": "SOURCE-FREEZE.json",
+  "mainFiles": 10,
+  "testFiles": 4,
+  "green": {
+    "path": "green4",
+    "actualExit": 0,
+    "counts": {
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "seconds": 38.145787890000065,
+    "fullMainCompile": true,
+    "allTestSourcesCompile": true,
+    "allOwnerFilesMatchSnapshot": true
+  },
+  "behavioralRed": {
+    "path": "policy-red",
+    "actualExit": 1,
+    "counts": {
+      "tests": 5,
+      "failures": 3,
+      "errors": 0,
+      "skipped": 0
+    },
+    "seconds": 5.582044230000065,
+    "unchangedAuthoritativeBaselineClasses": 2081,
+    "copiedClassesByteMatch": true,
+    "newTestCompileExit": 0,
+    "failures": [
+      "Settings.empty false instead of required true",
+      "normal Settings save/read false instead of mandatory true",
+      "schema did not freeze legacy raw active intent"
+    ],
+    "errors": 0
+  },
+  "intermediateAttempts": {
+    "green": "Actual new-profile bare Gson Instant reflection defect plus incomplete signature fixture; fixed explicit ProductJson adapter and synthetic verified metadata. Permission-harness attempt archived separately.",
+    "green2": "27 tests pass before download-target addition.",
+    "green3": "32 tests; 1 assertion expected null but existing sanitizer uses empty string; corrected to assert unchanged previous diagnostic. No production change from this fixture correction."
+  },
+  "remaining": [
+    "Parent latest-source full integration after C epoch changes and B/D final edits",
+    "Windows CryptoPro and live SUZ purchase/signing unavailable here"
+  ],
+  "notes": [
+    "All old public constructors retained. New files implement VN-owned behavior, no CFR copy.",
+    "Migration snapshot gate already reads dynamic schema version. Atomic downgrade fence commits with incompatible parent uniqueness.",
+    "Original paid Settings, explicit legacy auto=false, CONSUMED codes, IDs, FK/index/trigger/sequence/view references retained.",
+    "Public getSettings read-only; snapshot bindings occur on caller-controlled schema/save/pipeline write connection.",
+    "Method/group pinned on approval. Recovery creates single-GTIN child drafts only after trusted no-order proof; no uncertainty replay.",
+    "Durable capped download target resolves exact partial issued set before allowing remaining download."
+  ],
+  "oldBinaryMigrationProof": {
+    "path": "old-binary-proof/RESULT.json",
+    "status": "PASS",
+    "actualBaselineJarSha256": "b3ea7e8e20eeda53c38754f38509e3364267d458e297216a18966c4f8eab315b",
+    "sameApplicationVersion": "1.6.10",
+    "exactPreMigrationSchema6Snapshot": true,
+    "actualOldGateAndDatabaseRefuse7WithoutLogicalChange": true,
+    "code901StillConsumedInCirculation": true
+  },
+  "additionalSettingsAreaPolicyAdaptation": {
+    "path": "settings-area-policy/RESULT.json",
+    "counts": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "productionEdits": false
+  },
+  "storageScale1000": {
+    "path": "scale-1000/RESULT.json",
+    "status": "PASS",
+    "approvals": 1000,
+    "batches": 100,
+    "freshJvmRestart": true,
+    "noApiThroughputClaim": true
+  },
+  "additionalCertificatePolicyAdaptation": {
+    "path": "certificate-policy/RESULT.json",
+    "counts": {
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "productionEdits": false
+  }
+}

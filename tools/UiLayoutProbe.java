@@ -26,6 +26,28 @@ public final class UiLayoutProbe {
         for(Node parent=node.getParent();parent!=null;parent=parent.getParent())if(parent instanceof ScrollPane)return true;
         return false;
     }
+    private static boolean activeMotion(Node node) {
+        if(WorkspaceMotion.isAnimating(node)||node.getStyleClass().contains("workspace-motion-departure"))return true;
+        if(node instanceof Parent parent)for(Node child:parent.getChildrenUnmodifiable())if(activeMotion(child))return true;
+        return false;
+    }
+    private static void captureReady(Parent root) {
+        Scene scene=root.getScene();
+        String controls=com.vncode.app.MainApplication.class.getResource("/com/vncode/app/styles/workspace-controls.css").toExternalForm();
+        if(scene==null||!root.getStyleClass().contains("workspace-theme")||!scene.getStylesheets().contains(controls))
+            throw new IllegalStateException("Production workspace theme is not installed");
+        if(activeMotion(root))throw new IllegalStateException("Workspace motion is not settled before capture");
+    }
+    private static void awaitMotionSettled(Parent root)throws Exception {
+        long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);int quietSamples=0;
+        while(System.nanoTime()<deadline) {
+            boolean active=fx(()->{root.applyCss();root.layout();return activeMotion(root);});
+            quietSamples=active?0:quietSamples+1;
+            if(quietSamples>=3){fx(()->{captureReady(root);return null;});return;}
+            Thread.sleep(40);
+        }
+        throw new IllegalStateException("Workspace motion did not settle within five seconds");
+    }
     public static void main(String[] args)throws Exception {
         if(args.length!=2)throw new IllegalArgumentException("UI fixture directory and output directory required");
         Path data=Path.of(args[0]).toAbsolutePath(),out=Path.of(args[1]).toAbsolutePath();
@@ -53,14 +75,14 @@ public final class UiLayoutProbe {
         fx(()->{((javafx.scene.control.ComboBox<?>)field(field(home,"workspaceHeaderController"),"shopComboBox")).getSelectionModel().clearSelection();return null;});
         Stage stage=fx(()->{
             var window=new Stage();var scene=new Scene(root,1024,600);
-            scene.getStylesheets().add(com.vncode.app.MainApplication.class.getResource("/com/vncode/app/styles/theme.css").toExternalForm());
+            ThemeService.applyTheme(scene);
             window.setScene(scene);window.show();return window;
         });
         var results=new ArrayList<Map<String,Object>>();
         var routes=List.of("welcome","products","packing","fbo-packing","fbo-orders","ozon","kiz-mapping","znack","znack-registration","gs1","print-history","designer","guides","finance","gtin-sync","listing-copy","license","tnved");
         try {
             for(AppLanguage language:AppLanguage.values())for(String theme:List.of("theme-dark","theme-light"))for(int[] size:new int[][]{{1024,600},{1366,768}}) {
-                fx(()->{I18nService.getInstance().setLanguage(language);stage.setWidth(size[0]);stage.setHeight(size[1]);root.getStyleClass().removeAll("theme-dark","theme-light");root.getStyleClass().add(theme);return null;});
+                fx(()->{ThemeService.setCurrentTheme(theme.equals("theme-light")?ThemeService.Theme.LIGHT:ThemeService.Theme.DARK);I18nService.getInstance().setLanguage(language);stage.setWidth(size[0]);stage.setHeight(size[1]);return null;});
                 for(String route:routes) {
                     fx(()->{
                         if(route.equals("gtin-sync")) {
@@ -70,6 +92,7 @@ public final class UiLayoutProbe {
                         root.applyCss();root.layout();return null;
                     });
                     fx(()->{root.applyCss();root.layout();return null;});
+                    awaitMotionSettled(root);
                     List<String> overflow=fx(()->{
                         var errors=new ArrayList<String>();double width=stage.getScene().getWidth();
                         for(Node node:root.lookupAll(".button"))if(node instanceof ButtonBase button&&node.isVisible()&&node.isManaged()&&!scrollChild(node)) {
@@ -80,7 +103,7 @@ public final class UiLayoutProbe {
                     });
                     String file=route+"-"+language.code()+"-"+theme+"-"+size[0]+"x"+size[1]+".png";
                     if(language==AppLanguage.VI) {
-                        var image=fx(()->stage.getScene().snapshot(null));int w=(int)image.getWidth(),h=(int)image.getHeight();
+                        var image=fx(()->{captureReady(root);return stage.getScene().snapshot(null);});int w=(int)image.getWidth(),h=(int)image.getHeight();
                         var png=new java.awt.image.BufferedImage(w,h,java.awt.image.BufferedImage.TYPE_INT_ARGB);
                         image.getPixelReader().getPixels(0,0,w,h,javafx.scene.image.PixelFormat.getIntArgbInstance(),((java.awt.image.DataBufferInt)png.getRaster().getDataBuffer()).getData(),0,w);
                         ImageIO.write(png,"png",out.resolve(file).toFile());
@@ -88,7 +111,7 @@ public final class UiLayoutProbe {
                     results.add(Map.of("route",route,"language",language.code(),"theme",theme,"width",size[0],"height",size[1],"horizontalButtonOverflow",overflow));
                 }
             }
-            var report=Map.of("version",com.vncode.app.BuildConfig.getAppVersion(),"liveSellerMutations",false,"shopContext","synthetic fixture; background sync disabled for geometry; no mutation actions invoked","backgroundSynchronizationDisabledForGeometry",true,"layouts",results);
+            var report=Map.of("version",com.vncode.app.BuildConfig.getAppVersion(),"liveSellerMutations",false,"shopContext","synthetic fixture; background sync disabled for geometry; no mutation actions invoked","backgroundSynchronizationDisabledForGeometry",true,"productionWorkspaceThemeAsserted",true,"motionSettledBeforeEachCapture",true,"layouts",results);
             Files.writeString(out.resolve("ui-layout.json"),new Gson().toJson(report));
             if(results.stream().anyMatch(row->!((List<?>)row.get("horizontalButtonOverflow")).isEmpty()))throw new IllegalStateException("UI buttons overflow; inspect ui-layout.json");
         } finally {

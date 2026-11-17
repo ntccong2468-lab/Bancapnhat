@@ -1,0 +1,41 @@
+{
+  "version": "1.1.33",
+  "repository": "ntccong2468-lab/Vncode",
+  "sourceCommit": "3b5c725ec8b481556cb6635859b08dcdb66ab053",
+  "githubRunId": 37677001156,
+  "githubRunUrl": "https://github.com/ntccong2468-lab/Vncode/actions/runs/37677001156",
+  "javaFxmlTests": {
+    "run": 553,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "platforms": [
+      "linux",
+      "windows"
+    ]
+  },
+  "nodeContracts": {
+    "run": 18,
+    "failures": 0
+  },
+  "nativeSmoke": {
+    "version": "1.1.33",
+    "nativeLauncher": "passed",
+    "schemaMigration": "3 to 4",
+    "historyPreserved": true,
+    "liveMarketplaceMutations": false,
+    "rollbackSnapshotVerified": true,
+    "platform": "windows-x64"
+  },
+  "installer": {
+    "filename": "Vncode-1.1.33-Windows-x64.exe",
+    "bytes": 141037056,
+    "sha256": "4214ed4a5f0f230389a69f87089404ad8ef200ba4f05dea75d4230e5eeee2731",
+    "architecture": "x86_64",
+    "authenticodeSigned": false
+  },
+  "liveWbOzonGtinWriteEnabled": false,
+  "signedUpdateManifestPublished": false,
+  "projectDeveloper": "Nguyễn Thành Công",
+  "publicationMetadataUpdatedOn": "2026-10-10"
+}

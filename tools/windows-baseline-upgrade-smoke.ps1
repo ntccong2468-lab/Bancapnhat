@@ -1,5 +1,7 @@
 param([Parameter(Mandatory=$true)][string] $Version,[Parameter(Mandatory=$true)][string] $BaselineManifest)
 $ErrorActionPreference='Stop'
+$targetSchema=(node tools/baseline-release.mjs schema $Version).Trim()
+if($LASTEXITCODE -ne 0 -or $targetSchema -notmatch '^[4-7]$'){throw 'Cannot resolve the candidate schema.'}
 $FromBaseline=$true
 $baseline=$null
 if($FromBaseline){
@@ -82,7 +84,8 @@ try{
     $app=Start-Process $launcher -PassThru -RedirectStandardOutput "out\upgrade-$fromVersion-baseline-stdout.log" -RedirectStandardError "out\upgrade-$fromVersion-baseline-stderr.log"
     [void](Wait-VncodeWindow -Process $app -Version $fromVersion)
     Stop-Process -Id $app.Id -Force;$app.WaitForExit();$app=$null
-    $baselineSchema=if([version]$fromVersion -ge [version]'1.4.19'){6}elseif([version]$fromVersion -ge [version]'1.4.0'){5}else{4}
+    $baselineSchema=(node tools/baseline-release.mjs schema $fromVersion).Trim()
+    if($LASTEXITCODE -ne 0 -or $baselineSchema -notmatch '^[4-7]$'){throw 'Cannot resolve the pinned baseline schema.'}
     & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe fresh $data $baselineSchema
     if($LASTEXITCODE -ne 0){throw 'The baseline launcher did not create the expected empty upgrade fixture.'}
     $baselineClasspath="$root;$program\app\*;$program\app\lib\*"
@@ -105,6 +108,8 @@ try{
     Write-Host "Launching upgraded VN code $Version over the seeded $fromVersion fixture."
     $app=Start-Process $launcher -PassThru -RedirectStandardOutput "out\upgrade-$fromVersion-current-stdout.log" -RedirectStandardError "out\upgrade-$fromVersion-current-stderr.log"
     $window=Wait-VncodeWindow -Process $app -Version $Version
+    & java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsDataProbe ready $data
+    if($LASTEXITCODE -ne 0){throw 'Upgraded data did not reach the actual packaged application schema.'}
     Stop-Process -Id $app.Id -Force;$app.WaitForExit();$app=$null
     $after=& java --enable-native-access=ALL-UNNAMED -cp $probeClasspath WindowsUpgradeDataProbe fingerprint $data
     if($LASTEXITCODE -ne 0 -or $after -cne $before){throw 'Existing VN code data or saved templates changed during upgrade.'}
@@ -112,7 +117,7 @@ try{
     if($LASTEXITCODE -ne 0){throw 'Legacy KIZ stock did not retain its required default priority.'}
     Msi '/x' $newMsi;$installed=$false
     if(@(Registrations).Count -ne 0 -or -not(Test-Path (Join-Path $data 'database.db'))){throw 'Uninstall did not preserve upgrade data.'}
-    $proof=@{appName='VN code';fromVersion=$fromVersion;version=$Version;result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;singleShortcutPerLocation=$singleShortcutPerLocation;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after}
+    $proof=@{appName='VN code';fromVersion=$fromVersion;version=$Version;fromSchema=[int]$baselineSchema;toSchema=[int]$targetSchema;schemaMigration="$baselineSchema to $targetSchema";result='passed';installerUpgradeUuid=$upgrade;singleRegistration=$true;singleShortcutPerLocation=$singleShortcutPerLocation;dataPreserved=$true;windowTitle=$window;liveMarketplaceMutations=$false;fingerprint=$after}
     if($FromBaseline){
         if(-not $passiveExeUpgradeSucceeded){throw 'Passive EXE handoff was not exercised.'}
         $proof.passiveExeHandoffVerified=$true

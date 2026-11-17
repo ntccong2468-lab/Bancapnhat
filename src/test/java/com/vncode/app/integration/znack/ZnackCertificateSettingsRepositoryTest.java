@@ -51,7 +51,7 @@ class ZnackCertificateSettingsRepositoryTest {
                 repository.saveVerifiedCertificate(initial, verified);
 
         assertTrue(result.signerChanged());
-        assertEquals(verified, repository.getSettings());
+        assertEquals(verified.withAutoIntroduction(true), repository.getSettings());
         assertEquals(1, signatureAuditCount());
 
         Settings concurrent = settings("selector-c", null, "metadata-c");
@@ -61,7 +61,7 @@ class ZnackCertificateSettingsRepositoryTest {
                 () -> repository.saveVerifiedCertificate(verified, settings(
                         "selector-d", Instant.parse("2026-07-18T01:00:00Z"), "metadata-d")));
 
-        assertEquals(concurrent, repository.getSettings());
+        assertEquals(concurrent.withAutoIntroduction(true), repository.getSettings());
         assertEquals(1, signatureAuditCount());
     }
 
@@ -174,13 +174,18 @@ class ZnackCertificateSettingsRepositoryTest {
         Settings initial = settings("selector-a", Instant.parse("2026-07-18T00:00:00Z"),
                 "{\"thumbprint\":\"AA11\"}");
         repository.saveSettings(initial);
+        // Preserve an explicit historical opt-out while normal settings now enable
+        // circulation. Changing the certificate must not grant consent to old work.
+        try (var connection = Database.getConnection(); var statement = connection.createStatement()) {
+            statement.execute("UPDATE znack_settings SET auto_introduction=0 WHERE shop_id=7");
+        }
         insertProduct("04600000000001");
         long pipeline=repository.createPipeline("04600000000001", 1);
         Settings verified = settings("selector-b", Instant.parse("2026-07-18T01:00:00Z"),
                 "{\"thumbprint\":\"BB22\"}");
 
         repository.saveVerifiedCertificate(initial, verified);
-        assertEquals(verified, repository.getSettings());
+        assertEquals(verified.withAutoIntroduction(true), repository.getSettings());
         assertEquals(initial, repository.pipelineSettings(pipeline),"Previously accepted purchases retain the original signing connection");
         assertEquals(1, signatureAuditCount());
     }

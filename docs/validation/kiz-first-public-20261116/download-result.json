@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "counts": {
+    "tests": 51,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "name": "ZnackNormalDownloadIdentityTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "7e944b7a21d848ba142ab1236e0494ae98cf450b220f4313b6735f163a2ca9e2"
+    },
+    {
+      "name": "ZnackKizPurchaseReadbackTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "244a2326f7395c8dba67c4e0d70e728f28456ee66de80a5e6172344d40611842"
+    },
+    {
+      "name": "ZnackExhaustedBufferRecoveryTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "436164ab7e1697ad5e9ad83d00c462c155fb1252769dc342a4ad0e186680dea0"
+    }
+  ],
+  "exit": {
+    "exitCode": 0,
+    "elapsedSeconds": 33.361611493000055,
+    "finishedUtc": "2026-11-16T12:26:57.162693+00:00"
+  },
+  "source": {
+    "scope": "Final CodeService normalidentity+WAL+businesserror+replayvalidation",
+    "productionSha256": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f",
+    "testSha256": "9508ef943956ec2e10bfb4606023b9a659ddbb19da6d66ac73e2bf2ac4842e3b",
+    "onlyProductionOverlay": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java"
+  },
+  "sourceStableDuringRun": true,
+  "liveApi": false,
+  "scope": "Final normalidentity+WAL+businesserror+replayvalidation; normal18/readback7/recovery26 fixtureandlocalHTTP, notactualsellerpurchase."
+}

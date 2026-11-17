@@ -409,6 +409,7 @@ public class HomeController implements Initializable {
         ozonDashboardView = FxmlViewLoader.load(ozonLoader);
         ozonDashboardController = ozonLoader.getController();
         ozonDashboardController.setOnBusy((shopId, busy) -> markShopRunning(shopId, busy));
+        ozonDashboardController.setOnZnackRegistration(this::showOzonRegistration);
             return ozonDashboardView;
         });
         workspaceNavigator.register("kiz-mapping", () -> {
@@ -532,6 +533,11 @@ public class HomeController implements Initializable {
     }
 
     private void showGtinSync(){showZnackRegistration();}
+
+    void showOzonRegistration(Shop owner){
+        if(disposed||owner==null||owner.getMarketplace()!=Marketplace.OZON||!sameOwner(owner))return;
+        showZnackRegistration();
+    }
 
     private void refreshPrintHistory() {
         if (printHistoryController == null) {
@@ -1370,13 +1376,13 @@ public class HomeController implements Initializable {
     }
 
     private void selectShopExplicitly(Shop shop) {
-        ZnackSigningSession.authorizeShop(shop.getId());
         selectShop(shop);
         Task<Void> resume = new Task<>() {
             @Override
             protected Void call() throws Exception {
                 ZnackRepository repository = new ZnackRepository(
                         new ZnackModels.ShopContext(shop.getId(), shop.getName()));
+                if (!ZnackSigningSession.authorizeShopExplicitly(repository)) return null;
                 ZnackPurchaseCoordinator coordinator = ZnackPurchaseCoordinator.create(repository);
                 var settings = repository.getSettings();
                 coordinator.resume(settings);
@@ -1397,15 +1403,24 @@ public class HomeController implements Initializable {
             return false;
         }
         initialZnackShopAuthorized = true;
-        ZnackSigningSession.authorizeShop(shop.getId());
         return true;
     }
 
     private void resumeAllPersistedZnackPipelines() {
         Shop selectedShop = state.getSelectedShop();
+        List<Shop> knownShops = List.copyOf(state.getShops());
         Task<Void> resume = new Task<>() {
             @Override
             protected Void call() throws Exception {
+                for (Shop shop : knownShops) {
+                    try {
+                        ZnackRepository saved = new ZnackRepository(
+                                new ZnackModels.ShopContext(shop.getId(), shop.getName()));
+                        ZnackSigningSession.authorizeVerifiedShop(shop, saved.getSettings(), saved);
+                    } catch (RuntimeException unavailable) {
+                        LOGGER.warn("Could not admit persisted Znack shop {} for background recovery", shop.getId(), unavailable);
+                    }
+                }
                 ZnackPurchaseCoordinator.resumeAllPersisted();
                 if (selectedShop != null) {
                     ZnackRepository repository = new ZnackRepository(
@@ -1444,6 +1459,7 @@ public class HomeController implements Initializable {
     }
 
     private void selectShop(Shop shop) {
+        ZnackSigningSession.setForegroundShop(shop.getId());
         navigationMotion.cancel();
         com.vncode.app.shared.WorkspaceInteractionMotion.invalidateOwner(dynamicContentContainer==null?null:dynamicContentContainer.getScene());
         boolean sharedView = workspaceNavigator.currentRoute().equals("product-edit") || workspaceNavigator.currentRoute().equals("listing-copy") || workspaceNavigator.currentRoute().equals("products") || workspaceNavigator.currentRoute().equals("gs1") || workspaceNavigator.currentRoute().equals("gtin-sync") || isPrintHistoryVisible() || isZnackAutomationVisible() || isFboSupplyOrdersVisible();

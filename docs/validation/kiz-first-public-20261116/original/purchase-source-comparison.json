@@ -1,0 +1,112 @@
+[
+  {
+    "class": "ZnackAuthService",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackAuthService.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+    "oldSha256": "b242ce750f104d8410d9f3e9d1e8b27b8555890da472a17fcec2a585a37865d3",
+    "currentSha256": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+    "oldLines": 68,
+    "currentLines": 68,
+    "equalAfterPackageNormalization": true,
+    "diffLines": 0
+  },
+  {
+    "class": "ZnackSigningSession",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackSigningSession.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+    "oldSha256": "e4f8392e9e193ee2fded302565bc9bbe03babf4c096a6fc715111f7388395780",
+    "currentSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+    "oldLines": 112,
+    "currentLines": 186,
+    "equalAfterPackageNormalization": false,
+    "diffLines": 172
+  },
+  {
+    "class": "ZnackPurchaseCoordinator",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+    "oldSha256": "d8f9ba5d93ce5a9a2aed0eafef93e626a5e03cc4d4cd3e0d927ffdb0dc5e4ac7",
+    "currentSha256": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935",
+    "oldLines": 799,
+    "currentLines": 1005,
+    "equalAfterPackageNormalization": false,
+    "diffLines": 758
+  },
+  {
+    "class": "ZnackKizOrderService",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackKizOrderService.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+    "oldSha256": "6baf5802be613e6ceb5bf7f7f9458add4a4ac3b0ff4c427a14b5dcb208908887",
+    "currentSha256": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0",
+    "oldLines": 124,
+    "currentLines": 163,
+    "equalAfterPackageNormalization": false,
+    "diffLines": 161
+  },
+  {
+    "class": "ZnackKizCodeService",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackKizCodeService.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+    "oldSha256": "6b50aa689ede9af767405a3c8da0414da78376d21ea3378f8b02fc020efa8db8",
+    "currentSha256": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+    "oldLines": 110,
+    "currentLines": 191,
+    "equalAfterPackageNormalization": false,
+    "diffLines": 138
+  },
+  {
+    "class": "ZnackIntroductionService",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackIntroductionService.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+    "oldSha256": "9e5974507690862f1e47bb21ac00fc0ee8a13ee2e79e563ea61e53505be873fd",
+    "currentSha256": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+    "oldLines": 132,
+    "currentLines": 173,
+    "equalAfterPackageNormalization": false,
+    "diffLines": 103
+  },
+  {
+    "class": "ZnackIntroductionReadinessService",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackIntroductionReadinessService.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+    "oldSha256": "4fa476ef61b6efb7244f0fac0da01b6ba4b9056acb15e144be1665b55a5be0ff",
+    "currentSha256": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+    "oldLines": 240,
+    "currentLines": 195,
+    "equalAfterPackageNormalization": false,
+    "diffLines": 173
+  },
+  {
+    "class": "ZnackPipelineQueueExecutor",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackPipelineQueueExecutor.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java",
+    "oldSha256": "2118a560ee3d0459e0de392d37f29ebc9e9ab73b52d4f7eb139f2b38b442fa6a",
+    "currentSha256": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc",
+    "oldLines": 59,
+    "currentLines": 59,
+    "equalAfterPackageNormalization": true,
+    "diffLines": 0
+  },
+  {
+    "class": "ZnackSafety",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackSafety.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackSafety.java",
+    "oldSha256": "63114115d9ea17d3af23429df557e3d47cb36f50154ee13b1b768d6b7dd3737d",
+    "currentSha256": "04ae0f77575987521644ffe40edd78ab73906a564cb3f0870e97bf24a2d21a1c",
+    "oldLines": 26,
+    "currentLines": 26,
+    "equalAfterPackageNormalization": true,
+    "diffLines": 0
+  },
+  {
+    "class": "ZnackApiClient",
+    "oldPath": "src/main/java/com/tuandev/fbsbarcode/integration/znack/ZnackApiClient.java",
+    "currentPath": "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+    "oldSha256": "e6504de787e5014748d0bc2db36e20ee33d0609f664d1882b1c6cede36379734",
+    "currentSha256": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637",
+    "oldLines": 297,
+    "currentLines": 519,
+    "equalAfterPackageNormalization": false,
+    "diffLines": 402
+  }
+]

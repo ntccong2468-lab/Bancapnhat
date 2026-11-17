@@ -1,0 +1,34 @@
+flowchart TD
+    A[Seller chọn GTIN và số lượng; Áp dụng mua] --> B[Kiểm quyền app, cấu hình shop, GTIN và giấy tờ local]
+    B --> C[Lưu pipeline/requestKey và snapshot tài khoản; nhóm GTIN phù hợp]
+    C --> D{Quyền ký shop/pipeline và token chữ ký sẵn sàng?}
+    D -->|Chưa| PAUSE[Giữ pipeline chờ; chọn shop hoặc sửa chữ ký để tiếp tục]
+    PAUSE --> D
+    D -->|Có| E[Lấy challenge; CryptoPro ký; đăng nhập True API/SUZ]
+    E --> F[Dựng và ký payload mua; POST SUZ order một lần]
+    F -->|Mất phản hồi, chưa rõ đã tạo| REC[Đối soát order/list theo hồ sơ đã lưu; không mua lại ngay]
+    REC -->|Khớp một order| G
+    REC -->|Chưa thấy hoặc nhiều ứng viên| REC
+    F -->|Có orderId| G[GET order/status theo GTIN; chờ buffer có mã]
+    G --> H[GET codes phần còn thiếu; lưu block và mã tải về]
+    H -->|Buffer hết/đóng, mã thiếu| BLOCK[Đọc blocks và retry khối đã cấp của order cũ]
+    BLOCK --> H
+    H --> I{Đã đủ số mã của order?}
+    I -->|Chưa| G
+    I -->|Đủ| J[POST True API cises/info theo nhóm tối đa1000]
+    J -->|Chưa APPLIED hoặc dữ liệu chưa đủ| WAIT[Giữ WAITING_INTRODUCTION_READINESS; tự kiểm lại]
+    WAIT --> J
+    J -->|Tất cả đã INTRODUCED| DONE[Đánh legal_status IN_CIRCULATION và pipeline INTRODUCED]
+    J -->|Tất cả APPLIED; statusEx hợp lệ| K[Đọc thẻ: goodMarkFlag và goodTurnFlag phải true]
+    K -->|Chưa sẵn sàng| WAIT
+    K --> MODE{Phương thức mua đã lưu?}
+    MODE -->|PRODUCTION| L[Đọc giấy tờ Catalog hiện hành cho hồ sơ sản xuất]
+    MODE -->|COMMISSION| M
+    L -->|Thiếu/chưa xác minh| DOCWAIT[Giữ hồ sơ chờ giấy tờ, đồng bộ và thử lại]
+    DOCWAIT --> L
+    L --> M[Dựng LP_INTRODUCE_GOODS hoặc LK_INDI_COMMISSIONING; ký CMS]
+    M --> N[POST documents/create; lưu documentId]
+    N --> O[GET doc/info và POST cises/info]
+    O -->|Bị từ chối| ERR[INTRODUCTION_FAILED; giữ chi tiết lỗi, không báo lưu thông]
+    O -->|Còn xử lý hoặc mã chưa đủ INTRODUCED| O
+    O -->|Document CHECKED_OK và đủ số trạng thái INTRODUCED| DONE

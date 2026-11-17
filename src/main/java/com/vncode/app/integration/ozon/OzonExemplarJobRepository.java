@@ -243,6 +243,9 @@ public final class OzonExemplarJobRepository {
         return stageLocalForPrint(shopId, plan, sources, authorizeNewPrint, () -> {});
     }
     public LocalPrintReservation stageLocalForPrint(int shopId,OzonRequirementGuard.PreparationPlan plan,KizSourceSelection sources,Runnable authorizeNewPrint,Runnable verifyMapping) {
+        return stageLocalForPrint(shopId,plan,sources,authorizeNewPrint,verifyMapping,false);
+    }
+    public LocalPrintReservation stageLocalForPrint(int shopId,OzonRequirementGuard.PreparationPlan plan,KizSourceSelection sources,Runnable authorizeNewPrint,Runnable verifyMapping,boolean strictPaid){
         if (shopId <= 0 || plan == null || plan.exemplarCount() <= 0) {
             throw new IllegalArgumentException("A shop-owned Ozon print plan is required.");
         }
@@ -296,7 +299,7 @@ public final class OzonExemplarJobRepository {
                     transaction.execute("SAVEPOINT ozon_print_allocate");
                     try {
                         authorizeNewPrint.run();
-                        reserveAndLink(connection, job, plan,sources);
+                        reserveAndLink(connection, job, plan,sources,strictPaid);
                         transaction.execute("RELEASE ozon_print_allocate");
                         transition(connection, job.id(), OzonExemplarJobStage.RESERVED,
                                 OzonExemplarJobStage.VALIDATED, job.requestFingerprint(), null, false);
@@ -322,6 +325,7 @@ public final class OzonExemplarJobRepository {
             throw new IllegalStateException("Cannot reserve the selected Ozon posting for printing", exception);
         }
     }
+
 
     private static void clearUnboundSlots(Connection connection, long jobId) throws SQLException {
         try (PreparedStatement clear = connection.prepareStatement(
@@ -448,6 +452,9 @@ public final class OzonExemplarJobRepository {
         reserveAndLink(connection,job,plan,null);
     }
     private static void reserveAndLink(Connection connection,OzonExemplarJob job,OzonRequirementGuard.PreparationPlan plan,KizSourceSelection sources)throws SQLException {
+        reserveAndLink(connection,job,plan,sources,false);
+    }
+    private static void reserveAndLink(Connection connection,OzonExemplarJob job,OzonRequirementGuard.PreparationPlan plan,KizSourceSelection sources,boolean strictPaid)throws SQLException {
         if(sources!=null&&!sources.anySelected())throw new IllegalStateException("KIZ_SOURCE_REQUIRED");
         String reservationToken = "ozon:" + job.id();
         String inventoryOwner=com.vncode.app.features.kiz.KizWarehouseRepository.currentOwner(connection,job.shopId());
@@ -478,7 +485,7 @@ public final class OzonExemplarJobRepository {
                 if(shortage>0){
                     if(sources!=null&&!sources.purchased())throw new InsufficientKizException();
                     if(required.gtin()==null||required.gtin().isBlank())throw new OzonRequirementGuard.MissingMappingException(required.sku());
-                    available.addAll(availableKiz(connection,job.shopId(),required.gtin(),shortage,inventoryOwner,sources!=null));
+                    available.addAll(availableKiz(connection,job.shopId(),required.gtin(),shortage,inventoryOwner,sources!=null,strictPaid));
                 }
                 if (available.size() != required.quantity()) throw new InsufficientKizException();
                 for (int index = 0; index < available.size(); index++) {
@@ -1087,18 +1094,27 @@ public final class OzonExemplarJobRepository {
     }
     private static List<Long> availableKiz(Connection connection, int shopId, String gtin, int quantity,String owner,boolean purchasedOnly)
             throws SQLException {
+        return availableKiz(connection,shopId,gtin,quantity,owner,purchasedOnly,false);
+    }
+    private static List<Long> availableKiz(Connection connection,int shopId,String gtin,int quantity,String owner,boolean purchasedOnly,boolean strictPaid)throws SQLException{
+        if(strictPaid)return OzonPurchasedKizStock.select(connection,shopId,gtin,quantity,owner,true);
         try (PreparedStatement statement = connection.prepareStatement("""
-                SELECT id FROM kiz_codes INDEXED BY idx_kiz_codes_priority_circulation
+                SELECT id,raw_code,(NOT EXISTS(SELECT 1 FROM kiz_import_entries imported WHERE imported.code_id=kiz_codes.id) AND %s)
+                FROM kiz_codes INDEXED BY idx_kiz_codes_priority_circulation
                 WHERE shop_id=? AND gtin=? AND status='AVAILABLE' AND legal_status='IN_CIRCULATION' AND %s
-                ORDER BY source_priority,id LIMIT ?
-                """.formatted(com.vncode.app.features.kiz.KizWarehouseRepository.eligibleExact("kiz_codes")+(purchasedOnly?" AND NOT EXISTS(SELECT 1 FROM kiz_import_entries imported WHERE imported.code_id=kiz_codes.id)":"")))) {
+                ORDER BY source_priority,id
+                """.formatted(OzonPurchasedKizStock.downloadedSql("kiz_codes"),com.vncode.app.features.kiz.KizWarehouseRepository.eligibleExact("kiz_codes")+(purchasedOnly?" AND NOT EXISTS(SELECT 1 FROM kiz_import_entries imported WHERE imported.code_id=kiz_codes.id)":"")))) {
             statement.setInt(1, shopId);
             statement.setString(2, gtin);
             statement.setString(3,owner);
-            statement.setInt(4, quantity);
             try (ResultSet result = statement.executeQuery()) {
                 List<Long> ids = new ArrayList<>();
-                while (result.next()) ids.add(result.getLong(1));
+                while (result.next()&&ids.size()<quantity){
+                    // Untyped legacy local printing keeps its old path. Known
+                    // downloaded rows must never be mistaken for another GTIN.
+                    if(result.getBoolean(3)&&!gtin.equals(OzonPurchasedKizAssignment.rawGtin(result.getString(2))))continue;
+                    ids.add(result.getLong(1));
+                }
                 return ids;
             }
         }

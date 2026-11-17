@@ -1,0 +1,290 @@
+[
+  {
+    "name": "ozon-final-dark-1200x720.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-final-dark-1200x720.png",
+    "dimensions": [
+      1200,
+      720
+    ],
+    "bytes": 220811,
+    "sha256": "79ea0eec0622f82448683e1e24e0a0f0cb0128d3b9c677b69ab35d57a7d12f16",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 306614,
+    "sha256": "56490629b37486258384ee0e35df1dbcb66889dbdcdaf53f7820366570f64b86",
+    "manuallyViewed": true,
+    "coverage": "paired-main"
+  },
+  {
+    "name": "ozon-final-light-1200x720.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-final-light-1200x720.png",
+    "dimensions": [
+      1200,
+      720
+    ],
+    "bytes": 224932,
+    "sha256": "0ced30db9abf39af19f139004f4b606d2929f69f7260d7ce18e58a8417454c6e",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 315869,
+    "sha256": "fb00e9c67fed2c70ba587a2cb1fd525291f5fc77967d4ce2d0495510b0f27253",
+    "manuallyViewed": true,
+    "coverage": "paired-main"
+  },
+  {
+    "name": "ozon-sort-popup-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-sort-popup-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 306060,
+    "sha256": "0e1bf278f0e7ea64f084d1dda5f3977b043041a84e61019c6f3ba98604a2146d",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-sort-popup-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-sort-popup-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 315287,
+    "sha256": "17a03b019f8855d377d9a9c9f6cd2f770ca8e27546405b5e8939e0d5679cc432",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab0-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab0-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 306614,
+    "sha256": "56490629b37486258384ee0e35df1dbcb66889dbdcdaf53f7820366570f64b86",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab0-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab0-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 315873,
+    "sha256": "1f16ebca0667783be10895f2ac764ef4e16086c5c745a59a7bd112c1ab645160",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab1-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab1-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 306328,
+    "sha256": "3b7e59d6e01ebdafff81bc78c1754bc7d539280ecac70d33874188d5123ddbec",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab1-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab1-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 314480,
+    "sha256": "dd829d057c26aec5be8d319ab9d55fedae455db2ae1b76a45e563667b6437a9b",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab2-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab2-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 315144,
+    "sha256": "159ae083babbefe2658416d95c1de9b7c721c973a3a94a516074ddfe6726cf16",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab2-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab2-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 322986,
+    "sha256": "643f20c646f355df23b3c927c7bbac3651d4916860d3f6c5578ffa70a8de2bcc",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab3-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab3-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 310970,
+    "sha256": "be39849e3870a3d5f33ea74e22cf229e6db21bf08d701a28197d1bfa2438bc4e",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab3-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab3-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 317858,
+    "sha256": "fbffdd6dd765b6dd700dcd797d0b5ea7cdc25b7e99ea2538b5521aca353ebb53",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab4-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab4-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 215820,
+    "sha256": "e8ce1b1b1c13de49fc4debe522a634bce85734ef8d2962f9d0321c531d077694",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "ozon-tab4-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-tab4-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 221028,
+    "sha256": "cb7f3af155356473550dc06eedd8373ee6976a0614a79703e154ac59fd8d4c86",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "packing-final-dark-1200x720.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/packing-final-dark-1200x720.png",
+    "dimensions": [
+      1200,
+      720
+    ],
+    "bytes": 181961,
+    "sha256": "d70d94baad3a39c2c6e1a7059d5f7823bb7017b51103ff3506b42ddcada8a4fa",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "packing-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/packing-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 242550,
+    "sha256": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff",
+    "manuallyViewed": true,
+    "coverage": "paired-main"
+  },
+  {
+    "name": "packing-final-light-1200x720.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/packing-final-light-1200x720.png",
+    "dimensions": [
+      1200,
+      720
+    ],
+    "bytes": 185367,
+    "sha256": "52e64eca876ff34a2e95fb57836d08301fc3f482c866ab6a8e7f0e69e8e8e69e",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "packing-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/packing-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 249852,
+    "sha256": "73c69bcb67c35dc7d1a409fea32d4afa912e2f311290edaa53a9ed064ebda954",
+    "manuallyViewed": true,
+    "coverage": "paired-main"
+  },
+  {
+    "name": "znack-registration-ozon-final-dark-1200x720.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/znack-registration-ozon-final-dark-1200x720.png",
+    "dimensions": [
+      1200,
+      720
+    ],
+    "bytes": 212779,
+    "sha256": "f64dadc0e9cf16ddc065ff9387d2b86511dc878ed6b158633dddfb8561a599f1",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "znack-registration-ozon-final-dark-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/znack-registration-ozon-final-dark-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 290762,
+    "sha256": "1555c26b4fc52e63b2dbb24b77a0ba74dead2fa60c6ff78f538dae4af471a28a",
+    "manuallyViewed": true,
+    "coverage": "paired-main"
+  },
+  {
+    "name": "znack-registration-ozon-final-light-1200x720.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/znack-registration-ozon-final-light-1200x720.png",
+    "dimensions": [
+      1200,
+      720
+    ],
+    "bytes": 217987,
+    "sha256": "abc54f5de644425e83cb46181d8dea15e1bf4502093a4c6e194768c00828c947",
+    "manuallyViewed": true,
+    "coverage": "state-or-expanded-narrow-popup"
+  },
+  {
+    "name": "znack-registration-ozon-final-light-1600x1000.png",
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/znack-registration-ozon-final-light-1600x1000.png",
+    "dimensions": [
+      1600,
+      1000
+    ],
+    "bytes": 299853,
+    "sha256": "acf70c7f36f244880a0a33878f49fe9bb3eac00cfc6240e825095400a5d75307",
+    "manuallyViewed": true,
+    "coverage": "paired-main"
+  }
+]

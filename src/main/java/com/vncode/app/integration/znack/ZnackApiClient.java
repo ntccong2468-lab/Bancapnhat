@@ -26,6 +26,8 @@ public class ZnackApiClient {
     private final OkHttpClient client;
     private final OkHttpClient nonRepeatingClient;
     private final Sleeper sleeper;
+    private static final SuzRequestPacing SHARED_SUZ_PACING=new SuzRequestPacing();
+    private final SuzRequestPacing suzPacing;
     private final Gson gson = new Gson();
     private String catalogKey = "";
     private Runnable catalogReadScopeGuard=()->{};
@@ -96,7 +98,7 @@ public class ZnackApiClient {
     }
 
     public ZnackApiClient() {
-        this(defaultClient(), Thread::sleep);
+        this(defaultClient(), Thread::sleep, SHARED_SUZ_PACING);
     }
 
     ZnackApiClient(OkHttpClient client) {
@@ -108,6 +110,10 @@ public class ZnackApiClient {
     }
 
     ZnackApiClient(OkHttpClient client, Sleeper sleeper) {
+        this(client,sleeper,null);
+    }
+
+    ZnackApiClient(OkHttpClient client, Sleeper sleeper, SuzRequestPacing suzPacing) {
         this.client = client;
         this.nonRepeatingClient=client.newBuilder().retryOnConnectionFailure(false)
                 .followRedirects(false).followSslRedirects(false)
@@ -121,6 +127,7 @@ public class ZnackApiClient {
                     return chain.proceed(chain.request());
                 }).build();
         this.sleeper = sleeper;
+        this.suzPacing=suzPacing;
     }
 
     private static final class NetworkAttempt {
@@ -248,7 +255,8 @@ public class ZnackApiClient {
     public JsonObject createOrder(String base,String token,String omsId,byte[] body,String signature)throws IOException{
         Request request=new Request.Builder().url(join(base,"/api/v3/order?omsId="+url(omsId))).headers(suzHeaders(token).newBuilder().add("X-Signature",signature).build())
                 .post(RequestBody.create(body,JSON)).build();
-        return execute(request).getAsJsonObject();
+        // The durable batch engine owns 1090/no-order evidence and every paid retry.
+        return execute(request,false,false).getAsJsonObject();
     }
     public JsonObject orderList(String base,String token,String omsId)throws IOException{
         return suzGet(base,"/api/v3/order/list?omsId="+url(omsId),token).getAsJsonObject();
@@ -270,8 +278,18 @@ public class ZnackApiClient {
         return suzGet(base,"/api/v3/order/codes/retry?omsId="+url(omsId)+"&blockId="+url(blockId),token);
     }
     public String createDocument(String base,String token,JsonObject body)throws IOException{
-        String endpoint=join(trueApiBase(base,3),"/lk/documents/create?pg=lp");
-        JsonElement response=post(trueApiBase(base,3),"/lk/documents/create?pg=lp",token,body);
+        return createPurchaseDocument(base,token,body,"lp");
+    }
+    /** The paid order's persisted product group determines its introduction route. */
+    public String createDocument(String base,String token,JsonObject body,String productGroup)throws IOException{
+        String group=purchaseProductGroup(productGroup);
+        // Preserve the established LP override seam used by existing adapters and callers.
+        return "lp".equals(group)?createDocument(base,token,body):createPurchaseDocument(base,token,body,group);
+    }
+    private String createPurchaseDocument(String base,String token,JsonObject body,String group)throws IOException{
+        String path="/lk/documents/create?pg="+group;
+        String endpoint=join(trueApiBase(base,3),path);
+        JsonElement response=postWithoutRetry(trueApiBase(base,3),path,token,body);
         String documentId=documentId(response);
         if(!documentId.isBlank())return documentId;
         String raw=response==null?"null":response.toString();
@@ -283,15 +301,33 @@ public class ZnackApiClient {
     public JsonElement document(String base,String token,String documentId)throws IOException{
         return get(trueApiBase(base,4),"/doc/"+url(documentId)+"/info?pg=lp",token);
     }
+    public JsonElement document(String base,String token,String documentId,String productGroup)throws IOException{
+        String group=purchaseProductGroup(productGroup);
+        return "lp".equals(group)?document(base,token,documentId)
+                :get(trueApiBase(base,4),"/doc/"+url(documentId)+"/info?pg="+group,token);
+    }
     public JsonElement cisesInfo(String base,String token,JsonElement body)throws IOException{
+        return purchaseCisesInfo(base,token,body,"lp");
+    }
+    public JsonElement cisesInfo(String base,String token,JsonElement body,String productGroup)throws IOException{
+        String group=purchaseProductGroup(productGroup);
+        return "lp".equals(group)?cisesInfo(base,token,body):purchaseCisesInfo(base,token,body,group);
+    }
+    private JsonElement purchaseCisesInfo(String base,String token,JsonElement body,String group)throws IOException{
         if(body==null||!body.isJsonArray())throw new IllegalArgumentException("Znack cises/info requires an array of KIZ codes.");
         if(body.getAsJsonArray().size()>CISES_MAX_CODES_PER_REQUEST){
             throw new IllegalArgumentException("Znack cises/info accepts at most "
                     +CISES_MAX_CODES_PER_REQUEST+" KIZ codes per request.");
         }
-        Request request=new Request.Builder().url(join(trueApiBase(base,3),"/cises/info?pg=lp")).headers(headers(token))
+        Request request=new Request.Builder().url(join(trueApiBase(base,3),"/cises/info?pg="+group)).headers(headers(token))
                 .post(RequestBody.create(gson.toJson(body),JSON)).build();
         return execute(request,true);
+    }
+    private static String purchaseProductGroup(String group){
+        if(group==null)throw new IllegalArgumentException("Purchase product group is required.");
+        String value=group.trim().toLowerCase(java.util.Locale.ROOT);
+        if(!"lp".equals(value)&&!"shoes".equals(value))throw new IllegalArgumentException("Unsupported purchase product group.");
+        return value;
     }
 
     private JsonElement get(String base,String path,String token)throws IOException{return execute(new Request.Builder().url(join(base,path)).headers(headers(token)).get().build());}
@@ -314,12 +350,25 @@ public class ZnackApiClient {
     private JsonElement execute(Request request,boolean allowNotFoundBody,boolean allowRetry)throws IOException{return execute(request,allowNotFoundBody,allowRetry,false);}
     private JsonElement execute(Request request,boolean allowNotFoundBody,boolean allowRetry,boolean emptyOnNotFound)throws IOException{
         long rateLimitDelayUsed=0;
+        String oms=request.url().queryParameter("omsId");
+        String pacedAccount=suzPacing!=null&&oms!=null&&!oms.isBlank()
+                &&request.url().encodedPath().startsWith("/api/v3/")
+                ?request.url().scheme()+"://"+request.url().host()+":"+request.url().port()+"|"+oms:null;
         for(int attempt=1;;attempt++){
+            if(pacedAccount!=null){
+                long delay;
+                while((delay=suzPacing.reserve(pacedAccount))>0){
+                    try{sleepRateLimit(delay);}
+                    catch(IOException beforeTransport){throw new SuzRequestPacing.DeferredException(delay,beforeTransport);}
+                }
+            }
             boolean repeatable=allowRetry&&isIdempotent(request);
             OkHttpClient transport=repeatable?client:nonRepeatingClient;
             Request attemptRequest=repeatable?request:request.newBuilder()
                     .tag(NetworkAttempt.class,new NetworkAttempt()).build();
             try(Response response=transport.newCall(attemptRequest).execute()){
+                if(pacedAccount!=null&&response.code()==429)
+                    suzPacing.defer(pacedAccount,rateLimitDelay(response.header("Retry-After"),attempt));
                 if ((!catalogKey.isEmpty()||request.tag(ReadContext.class)!=null) && response.body()!=null && response.peekBody(4_194_305L).bytes().length>4_194_304)
                     throw new IOException("Catalog response exceeds size limit");
                 String body=response.body()==null?"":response.body().string();

@@ -1,0 +1,120 @@
+{
+  "suites": [
+    {
+      "name": "com.vncode.app.features.gs1.Gs1AutomaticSessionTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "10.323"
+    },
+    {
+      "name": "com.vncode.app.integration.gs1.NationalCatalogGs1ClientTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.701"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326AuthIsolationRegressionTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.006"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326AuthSessionTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.098"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326SigningAdmissionTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.363"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.56"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": "32",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.387"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.CryptoProSignatureTest",
+      "tests": "24",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.2"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.Wb1326KeyPresenceTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.011"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.004"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.Wb1326StartupAdmissionTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.338"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.Wb1326PurchasePreferencesUiTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.647"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.ZnackAutomationControllerTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.016"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.ZnackAutomationInformationTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.646"
+    }
+  ],
+  "tests": 132,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0
+}

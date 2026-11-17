@@ -29,6 +29,7 @@ class ZnackModuleTest {
     @TempDir Path temp;
 
     @BeforeEach void init() {
+        ZnackSigningSession.resetForTests();
         System.setProperty("vncode.appdata.dir", temp.toString());
         Database.initDatabase();
         try (Connection c=Database.getConnection(); Statement st=c.createStatement()) {
@@ -37,9 +38,11 @@ class ZnackModuleTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        // Explicit synthetic user consent; no native process or remote sign-in occurs here.
+        ZnackSigningSession.authorizeShop(1);
     }
 
-    @AfterEach void clear() { System.clearProperty("vncode.appdata.dir"); }
+    @AfterEach void clear() { ZnackPurchaseCoordinator.cancelPendingPolls();ZnackSigningSession.resetForTests();System.clearProperty("vncode.appdata.dir"); }
 
     @Test void schemaAndSettingsDoNotPersistTokensOrSignatures() throws Exception {
         ZnackRepository repository = repository(1, "Shop A");
@@ -633,8 +636,9 @@ class ZnackModuleTest {
                 return new CryptoProSigningResult(new byte[]{0x30,0x02,0x01,0x00},"");
             };
             ZnackAuthService auth=new ZnackAuthService(new ZnackApiClient(),signer){@Override public String suzToken(Settings s){return "dynamic-client-token";}};
-            new ZnackKizOrderService(new ZnackApiClient(),auth,signer,repository)
-                    .buy(testedSettings("",base,"oms","connection",""),"04601234567890",2);
+            fixtureOrderService(new ZnackApiClient(),auth,signer,repository,
+                    testedSettings("",base,"oms","connection",""))
+                    .buy(repository.getSettings(),"04601234567890",2);
             assertArrayEquals(signed.get(),sent.get());
             assertEquals("MAIBAA==",signature.get());
             assertEquals("dynamic-client-token",clientToken.get());
@@ -676,8 +680,9 @@ class ZnackModuleTest {
                 @Override public String trueApiToken(Settings s){return "true-api-token";}
             };
 
-            new ZnackKizOrderService(new ZnackApiClient(),auth,signer,repository)
-                    .buy(testedSettings(base,base,"oms","connection",""),"04627154623006",1);
+            fixtureOrderService(new ZnackApiClient(),auth,signer,repository,
+                    testedSettings(base,base,"oms","connection",""))
+                    .buy(repository.getSettings(),"04627154623006",1);
 
             JsonObject product=JsonParser.parseString(new String(sent.get(),StandardCharsets.UTF_8))
                     .getAsJsonObject().getAsJsonArray("products").get(0).getAsJsonObject();
@@ -952,7 +957,7 @@ class ZnackModuleTest {
         };
 
         assertTrue(new ZnackIntroductionService(api,auth,testSigner(),repository).confirm(
-                testedSettings("","","","connection",""),repository.findOrder(orderId).orElseThrow(),
+                testedSettings("","","","connection","7701234567"),repository.findOrder(orderId).orElseThrow(),
                 repository.findCodes(orderId)).introduced());
         assertEquals("010460123456789021abcdefghijklm",cisesRequest.get().getAsJsonArray().get(0).getAsString());
         assertEquals(OrderStatus.INTRODUCED,repository.findOrder(orderId).orElseThrow().localStatus());
@@ -977,7 +982,7 @@ class ZnackModuleTest {
         };
 
         assertTrue(new ZnackIntroductionService(api,auth,testSigner(),repository).confirm(
-                testedSettings("","","","connection",""),repository.findOrder(orderId).orElseThrow(),
+                testedSettings("","","","connection","7701234567"),repository.findOrder(orderId).orElseThrow(),
                 repository.findCodes(orderId)).introduced());
         assertEquals("CHECKED_OK",repository.findLatestDocument(orderId).orElseThrow().status());
     }
@@ -1003,7 +1008,7 @@ class ZnackModuleTest {
         };
 
         assertFalse(new ZnackIntroductionService(api,auth,testSigner(),repository).confirm(
-                testedSettings("","","","connection",""),repository.findOrder(orderId).orElseThrow(),
+                testedSettings("","","","connection","7701234567"),repository.findOrder(orderId).orElseThrow(),
                 repository.findCodes(orderId)).introduced());
         assertNotEquals(OrderStatus.INTRODUCED,repository.findOrder(orderId).orElseThrow().localStatus());
     }
@@ -1035,7 +1040,7 @@ class ZnackModuleTest {
         };
 
         ZnackIntroductionService.ConfirmResult result=new ZnackIntroductionService(api,auth,testSigner(),repository)
-                .confirm(testedSettings("","","","connection",""),repository.findOrder(orderId).orElseThrow(),
+                .confirm(testedSettings("","","","connection","7701234567"),repository.findOrder(orderId).orElseThrow(),
                         repository.findCodes(orderId));
 
         assertTrue(result.introduced());
@@ -1047,6 +1052,7 @@ class ZnackModuleTest {
 
     @Test void persistedPollingIntroductionAutomaticallyResumesWithBatchedConfirmation() throws Exception {
         ZnackRepository repository=repository(1,"Shop A");
+        Settings original=testedSettings("","","","connection","7701234567");repository.saveSettings(original);
         Product product=new Product("04601234567890","Product","6201000000",null,null,null,null);
         repository.upsertProducts(List.of(product));
         int quantity=1_001;
@@ -1079,7 +1085,7 @@ class ZnackModuleTest {
             }
         };
 
-        coordinator.resume(testedSettings("","","","connection",""));
+        coordinator.resume(original);
 
         assertEquals(List.of(1_000,1),requestSizes);
         assertEquals(PurchaseStage.INTRODUCED,repository.findPipeline(pipelineId).orElseThrow().stage());
@@ -2010,7 +2016,7 @@ class ZnackModuleTest {
 
     private static JsonArray introducedCises(JsonElement request,String gtin){
         var response=new JsonArray();for(var code:request.getAsJsonArray()){
-            var info=new JsonObject();info.addProperty("requestedCis",code.getAsString());info.addProperty("cis",code.getAsString());info.addProperty("gtin",gtin);info.addProperty("status","INTRODUCED");
+            var info=new JsonObject();info.addProperty("requestedCis",code.getAsString());info.addProperty("cis",code.getAsString());info.addProperty("gtin",gtin);info.addProperty("status","INTRODUCED");info.addProperty("ownerInn","7701234567");
             var row=new JsonObject();row.add("cisInfo",info);response.add(row);
         }return response;
     }
@@ -2022,6 +2028,26 @@ class ZnackModuleTest {
     private static Settings testedSettings(String trueBase, String suzBase, String omsId, String connection, String participantInn) {
         return new Settings(trueBase,suzBase,omsId,connection,participantInn,"","","signer","certificate","[]",
                 "","","",false,"","[]","certificate",java.time.Instant.now());
+    }
+
+
+    /** Transport tests supply an explicit native preflight substitute; all paid batch persistence and guards stay real. */
+    private static ZnackKizOrderService fixtureOrderService(ZnackApiClient api,ZnackAuthService auth,
+            ZnackSignatureProvider signer,ZnackRepository repository,Settings original) {
+        repository.saveSettings(original);
+        for(var product:repository.findProducts())repository.updateProductDocuments(product.gtin(),
+                List.of(new GoodsDocument("CONFORMITY_DECLARATION","FIXTURE-PERMIT","01.01.2026")));
+        return new ZnackKizOrderService(api,auth,signer,repository){
+            @Override protected ZnackPurchaseCoordinator createAdmissionCoordinator(){
+                return new ZnackPurchaseCoordinator(repository,this,null,null){
+                    @Override public void validatePrerequisites(Settings settings,String gtin,int quantity){
+                        assertTrue(quantity>0);String normalized=GtinNormalizer.requireProductionOrderable(gtin);
+                        ZnackSafety.requireSigned(settings,true);assertFalse(settings.omsId().isBlank());
+                        ZnackPurchasePreflight.requireLocalPermit(settings,repository.findProduct(normalized).orElseThrow(),ZnackPurchaseMethod.PRODUCTION);
+                    }
+                };
+            }
+        };
     }
 
     private static ZnackSignatureProvider testSigner() {

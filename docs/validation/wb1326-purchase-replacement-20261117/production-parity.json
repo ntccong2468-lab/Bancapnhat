@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "mainSourceAndResourceCount": 820,
+  "compiledMainEntryCount": 2119,
+  "sourceDifferences": [],
+  "compiledMainDifferences": [],
+  "pomByteEqual": true,
+  "scope": "Final JAR production inputs and compiled outputs exactly match previous current-final affected-consumer candidate; test fixture-only adaptations do not change production."
+}

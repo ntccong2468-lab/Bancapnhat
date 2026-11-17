@@ -75,9 +75,11 @@ public final class ZnackErrorMessages {
     /** Human-readable form of a stored error; falls back to the raw text when nothing better is found. */
     public static String display(String raw) {
         if (raw == null || raw.isBlank()) return "";
+        if(ZnackKizCodeService.DOWNLOAD_OUTCOME_UNCERTAIN.equals(raw.trim()))return com.vncode.app.shared.I18nService.getInstance().tr("znack.error.suz_code_download_uncertain");
         if (ZnackSigningSession.isSigningDeferred(raw)) {
             String shown = com.vncode.app.shared.I18nService.getInstance()
-                    .tr("znack.error.signing_confirmation_required");
+                    .tr(ZnackSigningSession.isTransientKeyWait(raw)
+                            ?"znack.error.signing_key_disconnected":"znack.error.signing_confirmation_required");
             String code = errorCode(raw);
             return "SIGNING_CONFIRMATION_REQUIRED".equals(code) ? shown : shown + " [" + code + "]";
         }

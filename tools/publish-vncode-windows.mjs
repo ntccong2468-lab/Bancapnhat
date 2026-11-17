@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveReleaseVersion } from './release-version.mjs';
+import { databaseSchemaForVersion } from './baseline-release.mjs';
 const REPO='ntccong2468-lab/Bancapnhat';
 export function validateBuild(run,tagSha,workflowId) {
   assert.equal(run.status,'completed');assert.equal(run.conclusion,'success');
@@ -16,8 +17,7 @@ export function validateBuild(run,tagSha,workflowId) {
 export function validateNativeSmoke(smoke,version) {
   assert.equal(smoke.version,version);assert.equal(smoke.platform,'windows-x64');
   assert.equal(smoke.appName,'VN code');assert.match(smoke.windowTitle,/^VN code v/);
-  const [major,minor]=version.split('.').map(Number);
-  const migration=version.localeCompare('1.4.19','en',{numeric:true})>=0?'3 to 6':major>1||major===1&&minor>=4?'3 to 5':'3 to 4';
+  const migration=`3 to ${databaseSchemaForVersion(version)}`;
   assert.equal(smoke.nativeLauncher,'passed');assert.equal(smoke.schemaMigration,migration);
   assert.equal(smoke.historyPreserved,true);assert.equal(smoke.rollbackSnapshotVerified,true);
   assert.equal(smoke.liveMarketplaceMutations,false);

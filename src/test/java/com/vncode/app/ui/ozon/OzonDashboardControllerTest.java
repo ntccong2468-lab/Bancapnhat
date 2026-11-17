@@ -35,7 +35,7 @@ class OzonDashboardControllerTest {
         OzonPostingDto posting = posting(List.of(item(0, "SKU-1", "Product", 2)));
 
         assertEquals("Product × 2", OzonDashboardController.itemsText(posting));
-        assertEquals(76.0, OzonDashboardController.orderRowHeight(posting));
+        assertEquals(70.0, OzonDashboardController.orderRowHeight(posting));
     }
 
     @Test
@@ -44,7 +44,7 @@ class OzonDashboardControllerTest {
                 item(0, "SKU-1", "First product", 1),
                 item(1, "SKU-2", "Second product", 1)));
 
-        assertEquals(144.0, OzonDashboardController.orderRowHeight(posting));
+        assertEquals(132.0, OzonDashboardController.orderRowHeight(posting));
     }
 
     private static OzonPostingDto posting(List<OzonPostingItemDto> items) {

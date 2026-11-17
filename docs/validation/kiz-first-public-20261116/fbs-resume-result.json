@@ -1,0 +1,134 @@
+{
+  "status": "PASS",
+  "capturedAtUtc": "2026-11-16T12:20:37.756941+00:00",
+  "counts": {
+    "tests": 98,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suiteCount": 11,
+  "suites": [
+    {
+      "name": "com.vncode.app.ui.kizmapping.FbsKizSigningResumeUiTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "27c226fa68ebee0c185647e02b6471ddc98045bcf346a6fb26220edce993a1fb"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "c7d474e6ca3d06188bfa6782315834264b062a188bbfa82eebe49fe93f8a1275"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "96e4d325a4f948bb69f6282a7ef3839d9e375e89f5036914d971d8389b540398"
+    },
+    {
+      "name": "com.vncode.app.ui.supply.SupplyOrderPresentationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "8750207d9f3b7ae098a18a69d6baf8e2f109918b2b7b86a43c9fa2065f57e8c4"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonRegistrationEntryUiTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "827b358828f5b0102e1acec2c9e8bf226e2c6e5c218bb6d7ad6612aee7472d86"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonDashboardControllerTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "0b97d93176e7e7e4c95727343e84c0463e2d6f6d2683f965f61f8276bb122850"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "7fa7a03398b45baff1d0aa50be5de2bf2a3baaa0fee60feac653cd2df8b4f653"
+    },
+    {
+      "name": "com.vncode.app.features.shop.OzonSellerCacheIsolationTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "305602aaf0076c4b13d713961f65d57fa9278567815449be8c884c0e5289926b"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningRecoveryTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "21b120b0177cb37b4f022d645b0a5a932210ca42115032b285937a1fc8301547"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "5830bcffaafb39d879e3d4f65b9a1bbd5e23664a591711f4167a4884aaf50ecb"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceListAreaTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "11bbafec9a8d280953f087e3e54043d43822a1ef4ea11352df9c880fa1024e8e"
+    }
+  ],
+  "command": {
+    "command": [
+      "flock",
+      "/workspace/kiz-first-release-audit-20261116/maven.lock",
+      "/workspace/toolchains/xvfb-current/root/usr/bin/xvfb-run",
+      "-a",
+      "/workspace/toolchains/mvn-vncode",
+      "-o",
+      "-Dvncode.appdata.dir=/workspace/kiz-first-release-audit-20261116/ozon-audit/green-profile",
+      "-Dtest=FbsKizSigningResumeUiTest,KizSigningResumePresentationTest,OzonFbsUiTest,SupplyOrderPresentationTest,OzonRegistrationEntryUiTest,OzonDashboardControllerTest,OzonShipmentSourcesUiTest,OzonSellerCacheIsolationTest,ZnackSigningRecoveryTest,ZnackSigningSessionTest,WorkspaceListAreaTest",
+      "test"
+    ],
+    "cwd": "/workspace/kiz-first-release-audit-20261116/ozon-audit/source-copy",
+    "secretEnvironmentRemoved": true,
+    "liveSellerOperations": false
+  },
+  "process": {
+    "exitCode": 0,
+    "elapsedSeconds": 95.29544144200008
+  },
+  "ownedSourceHashes": {
+    "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java": "c4819446b4e50b7d7481912eb64feae39212a781737cae5fc5ed2b741c2deae8",
+    "src/main/java/com/vncode/app/ui/supply/SupplyDetailController.java": "c53196438b6b8fc05ba45f198cc59e2c4fac57d89fa86ee76bcac68fc5d04acc",
+    "src/test/java/com/vncode/app/ui/kizmapping/FbsKizSigningResumeUiTest.java": "dcd5e78fef73231727215c46c81402c43817aaecc341c347800c414fd107892b"
+  },
+  "liveSourceDrift": [],
+  "copySourceDrift": [],
+  "scope": "Actual JavaFX WB/Ozon FBS controls and delegated resume-action routing, plus existing signing/recovery/layout/selection regressions. Synthetic database, injected resume callback for action test; no live seller/SUZ calls, real signing, activation, fee or release.",
+  "newFixtureCases": 14,
+  "redEvidence": "red-result.json",
+  "firstWrappedAssertionsPreserved": "red.log",
+  "nativeWindows": "NOT_RUN",
+  "liveCommercialAcceptance": "NOT_PERFORMED"
+}

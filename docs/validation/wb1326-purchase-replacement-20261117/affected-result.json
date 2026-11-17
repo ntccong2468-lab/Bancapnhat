@@ -1,0 +1,3067 @@
+{
+  "status": "PASS_AFFECTED_SCOPE_ONLY",
+  "counts": {
+    "tests": 2296,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suiteCount": 232,
+  "singleFullSuitePass": false,
+  "method": "Union of latest per-suite results from231-suite current-production run and final4-suite clean package. Final4 supersede3 existing suites and add FxmlSmoke; overlapping cases counted once. Initial failing runs retained, never relabeled PASS.",
+  "sameProductionSourceAndCompiledBytes": true,
+  "productionInputs": 821,
+  "compiledEntriesCompared": 2119,
+  "changedTestFilesRerunInFinalPhase": [
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+    "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+    "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java"
+  ],
+  "initialCurrentResult": {
+    "status": "FAIL",
+    "counts": {
+      "tests": 2238,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0
+    },
+    "exitCode": 1
+  },
+  "finalCleanBuildResult": {
+    "status": "PASS",
+    "counts": {
+      "tests": 92,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "exitCode": 0
+  },
+  "suites": [
+    {
+      "name": "com.vncode.app.config.DatabaseBatchSessionTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.168"
+    },
+    {
+      "name": "com.vncode.app.config.DatabaseMigrationCompatibilityTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.99"
+    },
+    {
+      "name": "com.vncode.app.config.SqliteWriteTransactionTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.577"
+    },
+    {
+      "name": "com.vncode.app.config.SynchronizedDataUpgradeTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.478"
+    },
+    {
+      "name": "com.vncode.app.features.fbo.FboBarcodePdfExporterTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.373"
+    },
+    {
+      "name": "com.vncode.app.features.fbo.FboKizPrintPlannerTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.159"
+    },
+    {
+      "name": "com.vncode.app.features.fbo.FboProductImageServiceTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.584"
+    },
+    {
+      "name": "com.vncode.app.features.fbo.FboProductRepositoryTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.209"
+    },
+    {
+      "name": "com.vncode.app.features.fbo.FboPurchaseServiceTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.004"
+    },
+    {
+      "name": "com.vncode.app.features.fbo.FboVerifiedGtinRepositoryTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.049"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.CatalogKeyPendingIdentityTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.619"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizCategoryAllocatorTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.12"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizCrossMarketplaceProofTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.071"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizImportFormatsTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.05"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPendingIdentityTest",
+      "tests": "23",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.766"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPrintPurchasePauseTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.377"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPrintPurchaseSessionTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.229"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPurchaseAvailabilityPolicyTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.708"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPurchaseMappingProofTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.416"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest",
+      "tests": "21",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.466"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizReimportRecoveryTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.112"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizServiceScopeTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.218"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizServiceTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.006"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizStockReplenisherTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.836"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizWarehouseTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.754"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.OzonShipmentKizRepositoryTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.322"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.SellerKizImportSchemaTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.Wb1326PurchaseIdentityGatewayTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.72"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.Wb1326PurchaseProducerBatchTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.432"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.WbLabelIdentifierRateLimiterTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.WbShipmentKizRepositoryTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.42"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.status.Kn3BatchReplacementTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "19.94"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.465"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.status.Kn3ProtocolTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.007"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.status.Kn3ReplacementTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.549"
+    },
+    {
+      "name": "com.vncode.app.features.kizmapping.KizMappingRepositoryTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.271"
+    },
+    {
+      "name": "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest",
+      "tests": "29",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.186"
+    },
+    {
+      "name": "com.vncode.app.features.kizmapping.VerifiedKizMappingsTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.984"
+    },
+    {
+      "name": "com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest",
+      "tests": "21",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.067"
+    },
+    {
+      "name": "com.vncode.app.integration.gs1.Gs1MailClientTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.02"
+    },
+    {
+      "name": "com.vncode.app.integration.gs1.Gs1MembershipTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.gs1.Gs1MimeMailboxTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.528"
+    },
+    {
+      "name": "com.vncode.app.integration.gs1.NationalCatalogGs1ClientTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.813"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.CatalogApiAuthorizationTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.028"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.CatalogCountryDiagnosticsTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.067"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.CatalogCredentialRepositoryTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.184"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.CatalogDeviceConnectionTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.59"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ChestnyZnakBalanceClientTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.762"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.KizSigningSummaryRecoveryTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.497"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.OwnerBBatchEngineTest",
+      "tests": "21",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.699"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.OwnerBCoordinatorBatchStateTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.488"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.OwnerBPurchaseQueueTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.882"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326AuthIsolationRegressionTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.003"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326AuthSessionTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.021"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326CodeDownloadTargetTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.95"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326DownloadAvailabilityTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.231"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326IntroductionMethodTest",
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.443"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326OrderMigrationTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.019"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326PermitResolverTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.013"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326ProtocolApiRoutingTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.214"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326PurchasePersistenceTest",
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.706"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326SettingsPolicyTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.505"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326SharedOrderDownloadTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.155"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326SigningAdmissionTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.743"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326SuzPacingTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.003"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackAccountInfoTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.012"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackAmbiguousCodeDownloadTest",
+      "tests": "36",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.455"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCatalogEndpointRoutingTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.015"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.562"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCirculationMessagesTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.251"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCirculationOwnerCompletionTest",
+      "tests": "30",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "5.24"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCirculationPolicyTest",
+      "tests": "27",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.48"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCisReadbackTest",
+      "tests": "28",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.025"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackConnectionReuseTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.084"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackDownloadRecoveryMessagesTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.267"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackErrorDetailsTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.013"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+      "tests": "22",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.897"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest",
+      "tests": "27",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.267"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.039"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackGtinInventoryBulkTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.988"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackGtinWorkflowTest",
+      "tests": "53",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "7.508"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackIntroductionIdentityTest",
+      "tests": "29",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.86"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackIntroductionSubmissionOutcomeTest",
+      "tests": "30",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.487"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.434"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackLicenseBoundaryTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.385"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackModuleTest",
+      "tests": "76",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "9.357"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackMutationTransportTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.111"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackNormalDownloadIdentityTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.243"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackOrderReconciliationSafetyTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.631"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackOwnedCisReadbackTest",
+      "tests": "26",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.043"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackPermitDocumentParserTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackPipelineQueueExecutorTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.004"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackProductLabelMetadataParserTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.013"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackProductServicePaginationTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.381"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.398"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackPurchaseMigrationSafetyTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.463"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSanitizerTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSettingsAreaRepositoryTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.286"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningRecoveryTest",
+      "tests": "26",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.351"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+      "tests": "32",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.265"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogApprovedVariantValuesTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.685"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogArticleValueTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogAutomaticRepairTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.026"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogCardStateTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogCorrectionLifecycleTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.01"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.205"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogFieldCorrectionsTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.007"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceIntegrationTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogPackingPolicyTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogReadCursorRevisionTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.799"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogRepairImageBoundaryTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.471"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogRepairImageEvidenceTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogRepairLedgerStateTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.492"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogReplacementEvidenceTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.435"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogSubmissionGuardTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.921"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogTerminalFeedProofTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.012"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.CatalogUncreatedFeedProofTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.004"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.NationalCatalogListWindowTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.275"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.NationalCatalogVersionSourceTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "5.861"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ObservedCatalogReadRevisionTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.104"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonAllocationRecoveryTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.017"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest",
+      "tests": "22",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "8.845"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonCardBatchSigningTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "21.206"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonCardRegistrationRepositoryTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.465"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest",
+      "tests": "92",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "60.141"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonConsentRecoveryTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.328"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonExactVariantProofTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.165"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonExistingCardLinkServiceTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.744"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonHistoryMigrationTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonRegistrationActiveBatchTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.748"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReportsTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.323"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonRegistrationIntegrationTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.428"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonRegistrationTestCleanupTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "4.035"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonReplacementFailClosedTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.154"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonReviewedReplacementE2eTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "23.169"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonReviewedVariantProofTest",
+      "tests": "17",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.387"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonSandboxAllocationTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.228"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonSellerRegistrationE2eTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "21.398"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.OzonSourceConsentPolicyTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.328"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegisteredCatalogOwnershipTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.129"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationAllocationAtomicTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.324"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationAttributeRulesTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.003"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationAutomaticDraftTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationBatchConnectionLifetimeTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.982"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationBatchReopenFeedTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.622"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationCatalogCooldownTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationConnectionDiagnosticsTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.013"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest",
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.924"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationExistingCardsTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.731"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceCountryTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.368"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.068"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "146.058"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationLifecycleDecisionTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.004"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationMonitoringEngineTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.003"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationPermitReadFailureTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.014"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.01"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationPreparationReuseTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.012"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationPresetNormalizerTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.006"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationProductInputsTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationRepairCheckpointTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.137"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationRepairConsentTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.091"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest",
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.322"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationSigningBatchEngineTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationSigningConsentTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.53"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.372"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.045"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationStorageConcurrencyTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "5.594"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationSubmissionEngineTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationTemplateTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.011"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaultsTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.009"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.WbConsentRecoveryTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.388"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.WbSourceReviewHttpEndToEndTest",
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "13.816"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCardBatchSigningTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "19.639"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepositoryTest",
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.48"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest",
+      "tests": "85",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "36.506"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCatalogObservationGuardTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.012"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCatalogSigningBatchTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.105"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCatalogSubmissionReadbackTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.035"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.004"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackCurrentSchemaSubmissionTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.016"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest",
+      "tests": "44",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.111"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest",
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "10.039"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest",
+      "tests": "36",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "74.692"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackRegistrationCountryModelTest",
+      "tests": "22",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.146"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.01"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.555"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackRegistrationScopeTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.321"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackReviewedDraftSubmissionTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.9"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackVerifiedRegistrationAttributesTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.018"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.ZnackWbAttributeMapperTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.008"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.v3.RegistrationAllocationPoolTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.351"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournalTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.061"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.v3.RegistrationOrchestratorTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.03"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.v3.RegistrationStoreTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.735"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.registration.v3.WbRegistrationImportTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.047"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.BouncyCastleAdvisoryRegressionTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.183"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+      "tests": "39",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.136"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.CryptoProCommandRunnerTest",
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "10.662"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.CryptoProSignatureTest",
+      "tests": "24",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.028"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.CryptoProSignedCertificateReaderTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.058"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.Wb1326KeyPresenceTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.009"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.signature.WindowsXmlSignatureTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.01"
+    },
+    {
+      "name": "com.vncode.app.shared.FriendlyErrorCodeTest",
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.896"
+    },
+    {
+      "name": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": "58",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "36.237"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.FbsKizSigningResumeUiTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "7.117"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizMappingEditorTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.017"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizMappingIssuesDialogTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.403"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "7.24"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.745"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.OzonGtinMappingEditorTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.016"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonAcceptanceRetryTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.031"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonBulkUiTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "56.859"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonDashboardControllerTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.006"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsEnrichmentUiTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.144"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "15.52"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonManualSyncUiTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.741"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonPrintedQueueUiTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "9.434"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonRegistrationEntryUiTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.842"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.571"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonWbPackingParityTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "43.986"
+    },
+    {
+      "name": "com.vncode.app.ui.supply.SupplyOrderPresentationTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.012"
+    },
+    {
+      "name": "com.vncode.app.ui.supply.WbShippingHistoryPaneTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.607"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.Wb1326StartupAdmissionTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.194"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.SignatureTestFailureTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.007"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.Wb1326PurchasePreferencesUiTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.2"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.ZnackAutomationControllerTest",
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.009"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.ZnackAutomationInformationTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.959"
+    },
+    {
+      "name": "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest",
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.007"
+    }
+  ],
+  "suiteOrigins": {
+    "com.vncode.app.config.DatabaseBatchSessionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.config.DatabaseBatchSessionTest.xml",
+      "sha256": "37cc3f79de30c0f4156267789c8bdfd77b44067e70936fac680606aa808cdc26"
+    },
+    "com.vncode.app.config.DatabaseMigrationCompatibilityTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.config.DatabaseMigrationCompatibilityTest.xml",
+      "sha256": "4bd52e0e91643741c6fdfca4c7700620185b6017061723367e71e8bea1f92e12"
+    },
+    "com.vncode.app.config.SqliteWriteTransactionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.config.SqliteWriteTransactionTest.xml",
+      "sha256": "b2897c76944c54b7b741a5697ea9915c2790ce1cb6dead4c0183e11c779453b1"
+    },
+    "com.vncode.app.config.SynchronizedDataUpgradeTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.config.SynchronizedDataUpgradeTest.xml",
+      "sha256": "70fc571f81e220d4c6eead2b96369da3fd670831f6bb60d4857b3c4737f51b25"
+    },
+    "com.vncode.app.features.fbo.FboBarcodePdfExporterTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.fbo.FboBarcodePdfExporterTest.xml",
+      "sha256": "edd51f233759433d1d87b24755bb3704963140ede0188e5c079d318156365eb6"
+    },
+    "com.vncode.app.features.fbo.FboKizPrintPlannerTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.fbo.FboKizPrintPlannerTest.xml",
+      "sha256": "79a673adb01defa2f1687caca3ff0fe5e44172d4db837b7be54e3a9a3abc8a95"
+    },
+    "com.vncode.app.features.fbo.FboProductImageServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.fbo.FboProductImageServiceTest.xml",
+      "sha256": "d16404790994b0c34a1c24f5fe933665186f28f7a9d0aec760ca932b5c006a76"
+    },
+    "com.vncode.app.features.fbo.FboProductRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.fbo.FboProductRepositoryTest.xml",
+      "sha256": "258ba8f62f623cb718087c44a9fab9840c8ef342e74f2c5a80a6aeb8cc06aade"
+    },
+    "com.vncode.app.features.fbo.FboPurchaseServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.fbo.FboPurchaseServiceTest.xml",
+      "sha256": "a944d8a27435e5b3796bf0064218049f03a52a0e42b3f802949d7bed69f3307d"
+    },
+    "com.vncode.app.features.fbo.FboVerifiedGtinRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.fbo.FboVerifiedGtinRepositoryTest.xml",
+      "sha256": "53a257082f12cdbdc7bf6ac796967c8e07486a9f6753689b95f87e5f9d394a86"
+    },
+    "com.vncode.app.features.kiz.CatalogKeyPendingIdentityTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.CatalogKeyPendingIdentityTest.xml",
+      "sha256": "1af5b25e2efa669a41f22444eb12fdd58b7c2a0093572ffa2920b3e0a7e05631"
+    },
+    "com.vncode.app.features.kiz.KizCategoryAllocatorTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizCategoryAllocatorTest.xml",
+      "sha256": "1ce586ff27e5d8109ff8846aab486adc3969b0cc4d0a249cff8ba4105586fef8"
+    },
+    "com.vncode.app.features.kiz.KizCrossMarketplaceProofTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizCrossMarketplaceProofTest.xml",
+      "sha256": "ec844da9c1093ad88416b3472a5185c95c7f38edafd2886d3e2177402267776f"
+    },
+    "com.vncode.app.features.kiz.KizImportFormatsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizImportFormatsTest.xml",
+      "sha256": "88d18cabda12e8913c8aabd9c6b20a9c625d363b1e34a955f3f17aadf480b070"
+    },
+    "com.vncode.app.features.kiz.KizPendingIdentityTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPendingIdentityTest.xml",
+      "sha256": "91a5c9d612e530898712272245bcb47947b70b327a7fcc036781ecbfc4779ce8"
+    },
+    "com.vncode.app.features.kiz.KizPrintPurchasePauseTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPrintPurchasePauseTest.xml",
+      "sha256": "6cfc60472cc65c807d91f2e145bb4479214b9fbc5d3002dc092c7185be5ed3f0"
+    },
+    "com.vncode.app.features.kiz.KizPrintPurchaseSessionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPrintPurchaseSessionTest.xml",
+      "sha256": "1b6685954159b3c17f9b709aa055ad3bd0fadd4e4f66feb52a81fbe6fc1e8351"
+    },
+    "com.vncode.app.features.kiz.KizPurchaseAvailabilityPolicyTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPurchaseAvailabilityPolicyTest.xml",
+      "sha256": "c1eac068d29a772fa5094c7117bdffcc864ff43641891d9f4ae35707558bf0ac"
+    },
+    "com.vncode.app.features.kiz.KizPurchaseMappingProofTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPurchaseMappingProofTest.xml",
+      "sha256": "6870427483bbb23128bdee032d363c032cc8b75ffcb40c9be810bcf7a7af854b"
+    },
+    "com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest.xml",
+      "sha256": "bf6ffb2b7a3c96724f8af78ce4f01b3f983fcb717d3874e047c8585281bafc2a"
+    },
+    "com.vncode.app.features.kiz.KizReimportRecoveryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizReimportRecoveryTest.xml",
+      "sha256": "31e21ed3f08a0dfbae7ce711bce0fcb391cb69052edec6003bad2aea6682f951"
+    },
+    "com.vncode.app.features.kiz.KizServiceScopeTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizServiceScopeTest.xml",
+      "sha256": "44d13372151f2621919e8fe385012a4dd4ca2d833e8bf13958d42ab8b4bc8b22"
+    },
+    "com.vncode.app.features.kiz.KizServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizServiceTest.xml",
+      "sha256": "798bf7c1bda65ae270f06bba563da53ccb72eb1f5327f215099e30ac46de3d35"
+    },
+    "com.vncode.app.features.kiz.KizStockReplenisherTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizStockReplenisherTest.xml",
+      "sha256": "70f2d8e8021aca87b0e25c02b1aec2172ebb4f118cce67cf7337b2a1b57ee0f7"
+    },
+    "com.vncode.app.features.kiz.KizWarehouseTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizWarehouseTest.xml",
+      "sha256": "4ebb716467b0b5720fd639ba8de06e81b656c9383478083f79854e7cbeecd34e"
+    },
+    "com.vncode.app.features.kiz.OzonShipmentKizRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.OzonShipmentKizRepositoryTest.xml",
+      "sha256": "ad088faf4b9bf2f3f44aacf3163db3d908e0ae34f02b22112de416f56dbb692b"
+    },
+    "com.vncode.app.features.kiz.SellerKizImportSchemaTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.SellerKizImportSchemaTest.xml",
+      "sha256": "4fd6c2894e8fb12a29d3dcb62e465768371bbde65f6873e78a7a368bd468def9"
+    },
+    "com.vncode.app.features.kiz.Wb1326PurchaseIdentityGatewayTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.Wb1326PurchaseIdentityGatewayTest.xml",
+      "sha256": "6587fa4c46364d28366483ddaeca457ff1207bfa3bde30f9bd960b026cc99f3f"
+    },
+    "com.vncode.app.features.kiz.Wb1326PurchaseProducerBatchTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.Wb1326PurchaseProducerBatchTest.xml",
+      "sha256": "88ae69befd2f6e644ff804bf6a1085fc6c912779af40be6d96b857d3d44c1c42"
+    },
+    "com.vncode.app.features.kiz.WbLabelIdentifierRateLimiterTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.WbLabelIdentifierRateLimiterTest.xml",
+      "sha256": "cc52d1c662d02d32f4f779785da88a0fabcb0a0a4168c2550615de300824537c"
+    },
+    "com.vncode.app.features.kiz.WbShipmentKizRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.WbShipmentKizRepositoryTest.xml",
+      "sha256": "c5757dd7aabf6eef06c34c244d614e1a6c5ae639139cc9db7aff038e287be09e"
+    },
+    "com.vncode.app.features.kiz.status.Kn3BatchReplacementTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.status.Kn3BatchReplacementTest.xml",
+      "sha256": "6cfa23a2f8efaab06699f5dece69f67336df10e5c7aeb2bf62b8652b660172a7"
+    },
+    "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest.xml",
+      "sha256": "96ae9f850cf8029b0ddb00a24828b1610d572c2c3b91ee2c2217ded8fcb50069"
+    },
+    "com.vncode.app.features.kiz.status.Kn3ProtocolTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.status.Kn3ProtocolTest.xml",
+      "sha256": "a6cae11440db0e9f01caa7477c37fcb8bfa90c3c9f013cab1d5f4db0f0cc376d"
+    },
+    "com.vncode.app.features.kiz.status.Kn3ReplacementTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.status.Kn3ReplacementTest.xml",
+      "sha256": "36020a15b91021474fed82cc9ee5bc1a15f1e4f2e6d3b5fe676430b883c46e89"
+    },
+    "com.vncode.app.features.kizmapping.KizMappingRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kizmapping.KizMappingRepositoryTest.xml",
+      "sha256": "953d9f769699650f6aa770945d81a47065d56dc7159d130a9a9e8044bae7659c"
+    },
+    "com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kizmapping.OzonCatalogMappingServiceTest.xml",
+      "sha256": "b88b143f01888c27827c7be7890d98067a89d30225e6d73be541acf3ae7bad02"
+    },
+    "com.vncode.app.features.kizmapping.VerifiedKizMappingsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kizmapping.VerifiedKizMappingsTest.xml",
+      "sha256": "b14214749c233b6d7c9cc80f23ba89fa0aadfcdd27b2d801c2db3e16bf8313cb"
+    },
+    "com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kizmapping.WbCatalogMappingServiceTest.xml",
+      "sha256": "1f3b9c71d5ed21e474d4561f5922bcfb71ef8f7c1cf2782e530cc05c442869ea"
+    },
+    "com.vncode.app.integration.gs1.Gs1MailClientTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.gs1.Gs1MailClientTest.xml",
+      "sha256": "3febb31283d08937f93af36af7489dbb945194373e5d3ae7e75ea56bb6bf6065"
+    },
+    "com.vncode.app.integration.gs1.Gs1MembershipTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.gs1.Gs1MembershipTest.xml",
+      "sha256": "e92cca7646d85cad7dec99ac4865ad93f48805f7606307c2e8d056b7a1968e53"
+    },
+    "com.vncode.app.integration.gs1.Gs1MimeMailboxTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.gs1.Gs1MimeMailboxTest.xml",
+      "sha256": "86308a76449d767371d479ceb3bbb164e5af4630ddb3478ed44dda28a5653e10"
+    },
+    "com.vncode.app.integration.gs1.NationalCatalogGs1ClientTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.gs1.NationalCatalogGs1ClientTest.xml",
+      "sha256": "359ec36713477438c2d50ee74829a7899057508be1ccdb59aefe6ae6932a4395"
+    },
+    "com.vncode.app.integration.znack.CatalogApiAuthorizationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.CatalogApiAuthorizationTest.xml",
+      "sha256": "a1fdc77ecc33394845f2045acb5b1e82263933bb90fb1f26f90f5bd93e317076"
+    },
+    "com.vncode.app.integration.znack.CatalogCountryDiagnosticsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.CatalogCountryDiagnosticsTest.xml",
+      "sha256": "28001d9034d268b55ec32343a30eb435733a936fe565f0e4e0afa1646b16d5da"
+    },
+    "com.vncode.app.integration.znack.CatalogCredentialRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.CatalogCredentialRepositoryTest.xml",
+      "sha256": "90024eec908a234d216a7eb2482445620348a483b7bc9609b8298e0204643991"
+    },
+    "com.vncode.app.integration.znack.CatalogDeviceConnectionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.CatalogDeviceConnectionTest.xml",
+      "sha256": "f4405000d2db6c1c0eb070417f1bc0397c0fe40543b793778ff6bf94841beeeb"
+    },
+    "com.vncode.app.integration.znack.ChestnyZnakBalanceClientTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ChestnyZnakBalanceClientTest.xml",
+      "sha256": "62b11435fb72fa0ce1e453eb0e79e10bd860656e87c45a4ec1ea328e8c4bfcb4"
+    },
+    "com.vncode.app.integration.znack.KizSigningSummaryRecoveryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.KizSigningSummaryRecoveryTest.xml",
+      "sha256": "439d4306809b7dcdd35a5fa5800389baa4c18c06a007a2b307a25c65257b84d5"
+    },
+    "com.vncode.app.integration.znack.OwnerBBatchEngineTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.OwnerBBatchEngineTest.xml",
+      "sha256": "682bfe692fd6d6faba751bddfe7c21afeda7c40f3c45a688d5957a445461913d"
+    },
+    "com.vncode.app.integration.znack.OwnerBCoordinatorBatchStateTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.OwnerBCoordinatorBatchStateTest.xml",
+      "sha256": "5e25e827cb24db89812640278b4614b25a31fbc8b1450d931676fbc298d64b7a"
+    },
+    "com.vncode.app.integration.znack.OwnerBPurchaseQueueTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.OwnerBPurchaseQueueTest.xml",
+      "sha256": "eb83f0c4916556e62c5ddb3c43667383d8669caaf0bed0d07eed496106697717"
+    },
+    "com.vncode.app.integration.znack.Wb1326AuthIsolationRegressionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326AuthIsolationRegressionTest.xml",
+      "sha256": "99b1e9c6f3ca2cd67589a1594c3268659e36f750f335a63642adc3e2ea1cc54d"
+    },
+    "com.vncode.app.integration.znack.Wb1326AuthSessionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326AuthSessionTest.xml",
+      "sha256": "2334da72d5f3258c458de3962914c7a2a7f5fbb05fb41f7a8643074b5c06d843"
+    },
+    "com.vncode.app.integration.znack.Wb1326CodeDownloadTargetTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326CodeDownloadTargetTest.xml",
+      "sha256": "6eedcd8295dafdacaa85ed1c09907f4a75363f26baa19c2575e3bf432c62dfef"
+    },
+    "com.vncode.app.integration.znack.Wb1326DownloadAvailabilityTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326DownloadAvailabilityTest.xml",
+      "sha256": "71b98dd82b9fab822f66b19484eeaa45f53e120ae9ea11dcd7103d20197e082c"
+    },
+    "com.vncode.app.integration.znack.Wb1326IntroductionMethodTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326IntroductionMethodTest.xml",
+      "sha256": "f0c41ce889dd47add4cad0daa695f1a0bf52ff26b48c7c354179cd541a4963be"
+    },
+    "com.vncode.app.integration.znack.Wb1326OrderMigrationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326OrderMigrationTest.xml",
+      "sha256": "ba3bcbe5fee697ac7f05aac198c54671d907b899b912ecd016e8feeb5389fef3"
+    },
+    "com.vncode.app.integration.znack.Wb1326PermitResolverTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326PermitResolverTest.xml",
+      "sha256": "ae8d7360bb1dea3ef22e08cecc03a2e2f67198006c84b9c19eead774467325c7"
+    },
+    "com.vncode.app.integration.znack.Wb1326ProtocolApiRoutingTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326ProtocolApiRoutingTest.xml",
+      "sha256": "dd10699b209c49f8edd0f8d76091b13037873e22f64bdb9b120452942bd220fc"
+    },
+    "com.vncode.app.integration.znack.Wb1326PurchasePersistenceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326PurchasePersistenceTest.xml",
+      "sha256": "caf1ad33f43c4a65473df7d19513527bdb1be2c75570c5de8d66675b8b292b3b"
+    },
+    "com.vncode.app.integration.znack.Wb1326SettingsPolicyTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326SettingsPolicyTest.xml",
+      "sha256": "ecd990ec1e0705023301ae4eeacec1b1cb55aa7acc73f013c13fc2e47401d8ee"
+    },
+    "com.vncode.app.integration.znack.Wb1326SharedOrderDownloadTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326SharedOrderDownloadTest.xml",
+      "sha256": "01d23ec079abde0dd46b7bd0a61bc56892abde90e6b62298fb4ca51eb1e9ddf8"
+    },
+    "com.vncode.app.integration.znack.Wb1326SigningAdmissionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326SigningAdmissionTest.xml",
+      "sha256": "1730506304ba8b8144aadd4d80a541848a4a088278626fa3bbe4cbbc1f54961e"
+    },
+    "com.vncode.app.integration.znack.Wb1326SuzPacingTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326SuzPacingTest.xml",
+      "sha256": "63f4ae1a2b4fbb32809070ad6185c14ec089948e41489df772a9ca315ed32c49"
+    },
+    "com.vncode.app.integration.znack.ZnackAccountInfoTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackAccountInfoTest.xml",
+      "sha256": "2add8cda1d08587d2d1b188997579cf80bebbdbad4b2b266c53f1d44716c54b1"
+    },
+    "com.vncode.app.integration.znack.ZnackAmbiguousCodeDownloadTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackAmbiguousCodeDownloadTest.xml",
+      "sha256": "bb1bba8a73bbf930497d77aabd20b39c8aa85d49f14b104751f693fbca851124"
+    },
+    "com.vncode.app.integration.znack.ZnackCatalogEndpointRoutingTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCatalogEndpointRoutingTest.xml",
+      "sha256": "28ac63baf08bb5dfdacec11552c54140d29ea862fce2ab9ffb68c1e960d2cbc9"
+    },
+    "com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest.xml",
+      "sha256": "7f4002b27f8352cca5daa4758bf372fe53c371307daaf46744ac25d5d06aaa3d"
+    },
+    "com.vncode.app.integration.znack.ZnackCirculationMessagesTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCirculationMessagesTest.xml",
+      "sha256": "ee1fa68cbd9482a2e0b50c8e238f9f402f100e2831328125aec6442d876caddb"
+    },
+    "com.vncode.app.integration.znack.ZnackCirculationOwnerCompletionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCirculationOwnerCompletionTest.xml",
+      "sha256": "a979d0222e708601583bbc8cd78bc8df63ffcd6ba2692a2735e0fcb3d8a2959b"
+    },
+    "com.vncode.app.integration.znack.ZnackCirculationPolicyTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCirculationPolicyTest.xml",
+      "sha256": "2182ab5e84a29dafeb2f3614e4e400dba552062adc397bf41b7d9b46d1ec3c94"
+    },
+    "com.vncode.app.integration.znack.ZnackCisReadbackTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCisReadbackTest.xml",
+      "sha256": "c0dd47db2ab2f40e628e1d3da37229ecf5ac36aaa5af909b576049c2af21417b"
+    },
+    "com.vncode.app.integration.znack.ZnackConnectionReuseTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackConnectionReuseTest.xml",
+      "sha256": "000290c01bca9a653d0286acbf652fed1a01ca9b7017db0f9b4ec81102d339a6"
+    },
+    "com.vncode.app.integration.znack.ZnackDownloadRecoveryMessagesTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackDownloadRecoveryMessagesTest.xml",
+      "sha256": "9ff3c9ffece337fdf9b3770568d41133f91ba215a9c39e578d27001969d43543"
+    },
+    "com.vncode.app.integration.znack.ZnackErrorDetailsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackErrorDetailsTest.xml",
+      "sha256": "aa317a17bb3f02305771824c18e01e2769a02eb603885c90c33b5bb23acd7092"
+    },
+    "com.vncode.app.integration.znack.ZnackErrorMessagesTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackErrorMessagesTest.xml",
+      "sha256": "3ea9112911c36fb9761933362c3b179d3ff156ebc264f583924582e952ce8387"
+    },
+    "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest.xml",
+      "sha256": "9385c00d398b84a5dce71f16e1da1f469483c1154a720ed4a4702eb152378193"
+    },
+    "com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest.xml",
+      "sha256": "f369eaa5ad371a3a0ce9757ae1bb060c88aafc468fdb1c8ff8862b95a59abad1"
+    },
+    "com.vncode.app.integration.znack.ZnackGtinInventoryBulkTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackGtinInventoryBulkTest.xml",
+      "sha256": "004431e96e87e4fb3b344945a120539d224e354d120ec51676ec7a5fcda3c1ba"
+    },
+    "com.vncode.app.integration.znack.ZnackGtinWorkflowTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackGtinWorkflowTest.xml",
+      "sha256": "9cf913386202823304798d10a2220374fd8b4a72a60d83edae84affed64a4c38"
+    },
+    "com.vncode.app.integration.znack.ZnackIntroductionIdentityTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackIntroductionIdentityTest.xml",
+      "sha256": "d178d869b13bef100db78bcfaba1ac19271946a63456c7ce2a9c875f6932f07d"
+    },
+    "com.vncode.app.integration.znack.ZnackIntroductionSubmissionOutcomeTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackIntroductionSubmissionOutcomeTest.xml",
+      "sha256": "40291f3679fed0853c33f71449d48a45ab21b30439bd3f6fa241e257eaf8d293"
+    },
+    "com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest.xml",
+      "sha256": "995127079d25e61bad058ab1db4b9ffb9c11dcf06ca12f727eede734ae733648"
+    },
+    "com.vncode.app.integration.znack.ZnackLicenseBoundaryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackLicenseBoundaryTest.xml",
+      "sha256": "51972598ee6133c6e75239e389216eafb50272db6a5a7bb76c2316ca9a24971e"
+    },
+    "com.vncode.app.integration.znack.ZnackModuleTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackModuleTest.xml",
+      "sha256": "eb2985617b5d87054fa4b375f878ececd98f03246671eff993c422cfbb66ab5b"
+    },
+    "com.vncode.app.integration.znack.ZnackMutationTransportTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackMutationTransportTest.xml",
+      "sha256": "827e6027e15d2dc27a2cf413679aa41b38b31e96d4721ec55be41094b03c6eb9"
+    },
+    "com.vncode.app.integration.znack.ZnackNormalDownloadIdentityTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackNormalDownloadIdentityTest.xml",
+      "sha256": "87a0657332c8980edac7b38ba087ed6a368ab0708e16e14afcf2e068cfaa0d0e"
+    },
+    "com.vncode.app.integration.znack.ZnackOrderReconciliationSafetyTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackOrderReconciliationSafetyTest.xml",
+      "sha256": "29c29d5779002c8d5f4ababbbf6301bfdd3f926f17b4971f5d6fc2dc15b2e548"
+    },
+    "com.vncode.app.integration.znack.ZnackOwnedCisReadbackTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackOwnedCisReadbackTest.xml",
+      "sha256": "9218b7c88069f560caa4385d726c0ed613a017e81ed1556d6c04065fdb9aa2a1"
+    },
+    "com.vncode.app.integration.znack.ZnackPermitDocumentParserTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackPermitDocumentParserTest.xml",
+      "sha256": "a242886601bdbfed9a3ce32f4de0f8ae97b4d5a598f549508394e5f61a44d4a5"
+    },
+    "com.vncode.app.integration.znack.ZnackPipelineQueueExecutorTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackPipelineQueueExecutorTest.xml",
+      "sha256": "2cb588eccac1cd0e344439880ccc16825638b63e4f2d3af1bc125c9795167dd8"
+    },
+    "com.vncode.app.integration.znack.ZnackProductLabelMetadataParserTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackProductLabelMetadataParserTest.xml",
+      "sha256": "f039f554c14eeed87ae179caae226119e16cb0c705d10974cd9c95338e08986a"
+    },
+    "com.vncode.app.integration.znack.ZnackProductServicePaginationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackProductServicePaginationTest.xml",
+      "sha256": "b472f724b5f2ef85f806d49f342e7047b9fed1b24d8ffa3295af29d6277a0f26"
+    },
+    "com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackPurchaseDiagnosticsTest.xml",
+      "sha256": "35e50a859071d92be52ec8e980c772c2edb74567f2176c9079cb38ffdb4ae3ae"
+    },
+    "com.vncode.app.integration.znack.ZnackPurchaseMigrationSafetyTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackPurchaseMigrationSafetyTest.xml",
+      "sha256": "0357b4435bb10475ebca642f57c7c37d5f229843aa73543e1d4343c5eb05a5d8"
+    },
+    "com.vncode.app.integration.znack.ZnackSanitizerTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackSanitizerTest.xml",
+      "sha256": "1323fe38e605171af92ece6d53f9ac40760e841bf016fe122f0ad36ccfe88f42"
+    },
+    "com.vncode.app.integration.znack.ZnackSettingsAreaRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackSettingsAreaRepositoryTest.xml",
+      "sha256": "b1549390fc8fd51bf701e83b25c4d121351223c30cf584ea36517d4210e55ae3"
+    },
+    "com.vncode.app.integration.znack.ZnackSigningRecoveryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackSigningRecoveryTest.xml",
+      "sha256": "283d1cf19e4a38ee919b52134a87704050e9916be2a01352d7f772d6669904a8"
+    },
+    "com.vncode.app.integration.znack.ZnackSigningSessionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackSigningSessionTest.xml",
+      "sha256": "293ab7c7a6b3bbb4c89ef8553024d86d57ee8dd199c2fa8e39ea975adb1c5636"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogApprovedVariantValuesTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogApprovedVariantValuesTest.xml",
+      "sha256": "68d729e86aaccc7f4bb68e23614dca07989805b95ca54fda4cfb84e789267125"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogArticleValueTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogArticleValueTest.xml",
+      "sha256": "4bf42a0ff270dc83eacfb7ce2de4c95b5d892923898b3e5648ce2c86f15a2681"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogAutomaticRepairTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogAutomaticRepairTest.xml",
+      "sha256": "6334d612ab08969fb3df5eaa707efaf1cc33394847fa27e827783df0057ead3a"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogCardStateTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogCardStateTest.xml",
+      "sha256": "ae015087a5c78036d4137a5a48538e982f0f2b941e16f12805fdf6483c45ee28"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogCorrectionLifecycleTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogCorrectionLifecycleTest.xml",
+      "sha256": "6144ed7d171b9226e9ce7607aac02cc70a89511452f42fecbccef5c93e6cf940"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogErrorRepairServiceTest.xml",
+      "sha256": "5a236c61d574d9b3ce4650fa58bd54b5ddd34b34477754afb517daaf53a9a306"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogFieldCorrectionsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogFieldCorrectionsTest.xml",
+      "sha256": "070fd59e2e024d90174e4d8e1c9f444a92ac884f7ef650d0ca4575355564d2a5"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceIntegrationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceIntegrationTest.xml",
+      "sha256": "a4b71785b30e4d369c20b0fa327b8e94b9a6e6ea743e65de13efb4601f90dba0"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogOwnerEvidenceTest.xml",
+      "sha256": "b5898d7da488e6b72e526b1723168bbb1c5e04c7995ddb55a9dd6411fc2ecfd4"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogPackingPolicyTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogPackingPolicyTest.xml",
+      "sha256": "e47b1fc2ae2f289313e768cfe2aa6c2825c94bb18303b829170c1a1841c3d55e"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogReadCursorRevisionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogReadCursorRevisionTest.xml",
+      "sha256": "7d34891c2d8986efbdf0c9587c54fb6d390e2d70d3abfe7a72baf8902b2a1fa1"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogRepairImageBoundaryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogRepairImageBoundaryTest.xml",
+      "sha256": "c9396eb2153de2376c0b7731f0b60e25a7eb6e2584c256c738067f78bb5aadaf"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogRepairImageEvidenceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogRepairImageEvidenceTest.xml",
+      "sha256": "5ccb9933f3bd0c714c7ec4b96a2a193cc1653e7a39b992c74701d69a5f6de1a9"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogRepairLedgerStateTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogRepairLedgerStateTest.xml",
+      "sha256": "0a95d521fb2210128e88fa9f3b508210349482ed699e3785c01e81abdc54a8d9"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogReplacementEvidenceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogReplacementEvidenceTest.xml",
+      "sha256": "c71b03b708c54b3ce18a3d535b44fea6fd4fbd43811f92065a0c7aa77e66b096"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogSubmissionGuardTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogSubmissionGuardTest.xml",
+      "sha256": "308e3f223f52ac9b83f58325c040159968bf32a98b749d45445dae565578003d"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogTerminalFeedProofTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogTerminalFeedProofTest.xml",
+      "sha256": "eda63d913414072412515f1dcb1afb2c36bb78fc5b49a5a48ffe52f3471ef745"
+    },
+    "com.vncode.app.integration.znack.registration.CatalogUncreatedFeedProofTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.CatalogUncreatedFeedProofTest.xml",
+      "sha256": "4f1c3e996c7bd29b6859b3e8056fd957770d871bbb34998e19da21a8b46da9d0"
+    },
+    "com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.NationalCatalogBatchReadTest.xml",
+      "sha256": "c5377da12ee16197e717b0a13092e7e505cbf7cecac3ee827d0cd931eae2eaec"
+    },
+    "com.vncode.app.integration.znack.registration.NationalCatalogListWindowTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.NationalCatalogListWindowTest.xml",
+      "sha256": "a2751b88ce4394ba904fc770266dbdb4118367fe44fe403e5a894dfa4ae1f42e"
+    },
+    "com.vncode.app.integration.znack.registration.NationalCatalogVersionSourceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.NationalCatalogVersionSourceTest.xml",
+      "sha256": "d03db8eee642d92fdbfb39a887d167e728141fadff46ee524ea688bd7cc0c04b"
+    },
+    "com.vncode.app.integration.znack.registration.ObservedCatalogReadRevisionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ObservedCatalogReadRevisionTest.xml",
+      "sha256": "5a151cfe18f25eb6a27a843cefea03966389e236eb02692a7d0946d0a5aa3a6f"
+    },
+    "com.vncode.app.integration.znack.registration.OzonAllocationRecoveryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonAllocationRecoveryTest.xml",
+      "sha256": "4598a3bda0d68e6620079ce476ee86a3b30c39ad3390833f89d4412e78761a03"
+    },
+    "com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonAutomaticDraftSchemaTest.xml",
+      "sha256": "34665f9a4d647964c1755c164ae9154042f37720475b898feac05d2a622bd9dd"
+    },
+    "com.vncode.app.integration.znack.registration.OzonCardBatchSigningTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonCardBatchSigningTest.xml",
+      "sha256": "727f4257dbfe56b8b60f5f30932b627f8ab86937e2d99cb5ff539b6e7f71122f"
+    },
+    "com.vncode.app.integration.znack.registration.OzonCardRegistrationRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonCardRegistrationRepositoryTest.xml",
+      "sha256": "735bcd68c3a94c0bf068c84aca1813c40ce8c9c3c3778d1864eb1efe2f155bc3"
+    },
+    "com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonCardRegistrationWorkflowTest.xml",
+      "sha256": "166ed2d1c83f0929a100a49b236916b4e7242bb92836a846e493295a0b6ff9fd"
+    },
+    "com.vncode.app.integration.znack.registration.OzonConsentRecoveryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonConsentRecoveryTest.xml",
+      "sha256": "a33fbfe28aee3a6665c5f73b1bb5c7efbd24e9dfe4c65e5b74d07c0643198521"
+    },
+    "com.vncode.app.integration.znack.registration.OzonExactVariantProofTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonExactVariantProofTest.xml",
+      "sha256": "b85ca2a45a20e4937ec2238bd09f3e5620b286a3162bd355f084636e18c04ed5"
+    },
+    "com.vncode.app.integration.znack.registration.OzonExistingCardLinkServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonExistingCardLinkServiceTest.xml",
+      "sha256": "8816e4a01f437327b2dc3e8753a57ba3b2ad0a8f3ca4820a27251905d4305be5"
+    },
+    "com.vncode.app.integration.znack.registration.OzonHistoryMigrationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonHistoryMigrationTest.xml",
+      "sha256": "902d5fa3facccccc174411e89e312a16073023982f70678571d7409e3d5e2273"
+    },
+    "com.vncode.app.integration.znack.registration.OzonRegistrationActiveBatchTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationActiveBatchTest.xml",
+      "sha256": "cb26cbc089e890198ad5a186cdd2c287fa0eb5130865dc4a1e58b27baf560948"
+    },
+    "com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReportsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationAttemptReportsTest.xml",
+      "sha256": "9871d5509ce5ae8dc39fedcf167798c2c7ba17814a20bb6710c93cdc2b548ec2"
+    },
+    "com.vncode.app.integration.znack.registration.OzonRegistrationIntegrationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationIntegrationTest.xml",
+      "sha256": "d409b5aff67e5b1d3f5fdc446b97d7b814d5520a25ce333b0ed34d7a3426c797"
+    },
+    "com.vncode.app.integration.znack.registration.OzonRegistrationTestCleanupTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonRegistrationTestCleanupTest.xml",
+      "sha256": "5e0cb747f26b53009385817d0afc5ce14620c29f7ab6aa625401cae6aa70b2ff"
+    },
+    "com.vncode.app.integration.znack.registration.OzonReplacementFailClosedTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonReplacementFailClosedTest.xml",
+      "sha256": "823aecaa7e0ce48ea29ec8d4111e931869e02363ef8a75689314250a35c8875d"
+    },
+    "com.vncode.app.integration.znack.registration.OzonReviewedReplacementE2eTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonReviewedReplacementE2eTest.xml",
+      "sha256": "ba68a3a34aa19345763f017ce828514fa4b6d029c63406a85af052e2ab961b60"
+    },
+    "com.vncode.app.integration.znack.registration.OzonReviewedVariantProofTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonReviewedVariantProofTest.xml",
+      "sha256": "9bdd0b315c0cc368b4ad02d9b545c5424d5112f5c9b14d6889cd08b1f12f973f"
+    },
+    "com.vncode.app.integration.znack.registration.OzonSandboxAllocationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonSandboxAllocationTest.xml",
+      "sha256": "4040caca0d1fa0a7497080b232527532ea4cd6ec88feab8c8aea1a29b1c9aecb"
+    },
+    "com.vncode.app.integration.znack.registration.OzonSellerRegistrationE2eTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonSellerRegistrationE2eTest.xml",
+      "sha256": "eaa049ae22a4247f5093d54170a5208cef87a22bf454a58a939e7576a25736c2"
+    },
+    "com.vncode.app.integration.znack.registration.OzonSourceConsentPolicyTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.OzonSourceConsentPolicyTest.xml",
+      "sha256": "56bdd7aa69324dc9190f353a9e2c0f4c07766132848f1734e1e06c4e15afa876"
+    },
+    "com.vncode.app.integration.znack.registration.RegisteredCatalogOwnershipTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegisteredCatalogOwnershipTest.xml",
+      "sha256": "d202aa1fb01190cac5d941d20472407d56e061f6e6dd1dbe0389ced4156b1076"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationAllocationAtomicTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationAllocationAtomicTest.xml",
+      "sha256": "2de7d87132853442725984131b44f7580cfec4ba1705a2c5ca6c87493ab58396"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationAttributeRulesTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationAttributeRulesTest.xml",
+      "sha256": "e1b597d23933204f0465cf8d78025ddffb51c101be59b25af0601dc568efe0a6"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationAutomaticDraftTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationAutomaticDraftTest.xml",
+      "sha256": "6707ae2640f89bcbb0d40dce585a8f9b587740e0de8ed3703925dd65ab053b94"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationBatchConnectionLifetimeTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationBatchConnectionLifetimeTest.xml",
+      "sha256": "12a61e12d151b5b997b99727f7babe1997b03554b7d17045ccf622b6ff618d1a"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationBatchReopenFeedTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationBatchReopenFeedTest.xml",
+      "sha256": "2578103f7a60684dc37e2eb79f65bacc493fc8d8dd370caf8caab9f3ace1d36b"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationCatalogCooldownTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationCatalogCooldownTest.xml",
+      "sha256": "77d56b1876fbe3b70095d1fcfab3c211a6bbbb4d89c53321db5d0e96e5c7567d"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationConnectionDiagnosticsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationConnectionDiagnosticsTest.xml",
+      "sha256": "0efdfdd3acb78067855b51fa31aeb2ae7ce2432afa7f10c82b7278ee6c9acf99"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationDynamicPreflightTest.xml",
+      "sha256": "223a893e8f90c9a8e9170c2f3c67eb9c7b734b5229ae480009589c362bc83e15"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationExistingCardsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationExistingCardsTest.xml",
+      "sha256": "891fa4741fd3a4ec25c26308f2ed52a5273bc50c07baf1c3e79dc04be766af90"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceCountryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceCountryTest.xml",
+      "sha256": "8d7391d0968c469a95dfefe889a492d7065c1c8994a1718df4427cc75c2e8def"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationFieldProvenanceTest.xml",
+      "sha256": "9c54647979b839c820a203c3b190f93baff4924040e59bca073c6ec8d1e4afd0"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationLargeBatchDurabilityTest.xml",
+      "sha256": "c2336e0bf903060acfbbc9309b5e9498fb037cfe5f6f18cce5e6132167b1c8fd"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationLifecycleDecisionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationLifecycleDecisionTest.xml",
+      "sha256": "0f902d8079f809356a60d88971a844a0146676a398b3f3f8e99490cb59a2916f"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationMonitoringEngineTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationMonitoringEngineTest.xml",
+      "sha256": "45e4168081e30035c93a13d06b7e840d1a0369525ec842f1e13adbdea9bc93fb"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationPermitReadFailureTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationPermitReadFailureTest.xml",
+      "sha256": "3dc3186e4ec4de8f6182945239108f0212baf9072c0409f0c040113278a1213f"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationPermitValidatorTest.xml",
+      "sha256": "182625db114ede2aaaa641b0ba6a05f767f77da0cb95e8a569b7568c19d47eda"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationPreparationReuseTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationPreparationReuseTest.xml",
+      "sha256": "da5e90effacf1a9b4b5f65c0494e5b95a3368a9f5585572974881642fc8479ae"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationPresetNormalizerTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationPresetNormalizerTest.xml",
+      "sha256": "e3b2aa3d521ee4cc5c7d91b6a30f3664cab0f557af693f586b9d56c33856e59d"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationProductInputsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationProductInputsTest.xml",
+      "sha256": "2371791b509981a3f090b76076139a3840d8c194e3794b3b4b0276a5b6921bae"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationRepairCheckpointTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationRepairCheckpointTest.xml",
+      "sha256": "f544638b86c1ced5b5efb44188ee3bc73cf235d4e779bc12001996af22689a7d"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationRepairConsentTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationRepairConsentTest.xml",
+      "sha256": "c46f150ded72ff62e47f6c0eeaee860725330a9e6da209cb6da007e46cec4a07"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationReviewedValuesTest.xml",
+      "sha256": "9405b96349dd73bce2ebb9dcfc36ce4368370daf92affc2fd1b9c28e227de87d"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationSigningBatchEngineTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSigningBatchEngineTest.xml",
+      "sha256": "e4961d4837bf93157182634377529cc401052811ec6c6af40af206ee9a1c908b"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationSigningConsentTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSigningConsentTest.xml",
+      "sha256": "850a1ffe15d211312abbad6d9b08e871bff042578b1d1e6e25e56e4c867b5d7a"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSnapshotReviewTest.xml",
+      "sha256": "a97bbd32c59663885899dba5c74adc5ff5e0b8ac4e236c0008dcfff4d4badb07"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSourceConsentTest.xml",
+      "sha256": "219f94cf5a4cffd6528e877f680fa67c3bb6015acb75c41f27e270333443ce51"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationStorageConcurrencyTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationStorageConcurrencyTest.xml",
+      "sha256": "27a6359a2f78886adbc96a1e1e9b5a31b50e2716accc9852f6e89158e4a29fc2"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationSubmissionEngineTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationSubmissionEngineTest.xml",
+      "sha256": "d046ef14b2ab8c2c389c5af530d20e6e549b6a01cdb1346583c50dc2e98e6b7a"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationTemplateTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationTemplateTest.xml",
+      "sha256": "e2ed341dd7636dc36bc1d7dc9a932a25bf0b6868fb1b418f33d9b242927eecdc"
+    },
+    "com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaultsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.RegistrationVerifiedDefaultsTest.xml",
+      "sha256": "a1c32a6a3e26a2976eb891d736b3d34317c8d70330d831a36877e90c8edff78b"
+    },
+    "com.vncode.app.integration.znack.registration.WbConsentRecoveryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.WbConsentRecoveryTest.xml",
+      "sha256": "a5eed2d65095159cea316b423beb4af1f6b6ab8143a75aa051685c1110ae5077"
+    },
+    "com.vncode.app.integration.znack.registration.WbSourceReviewHttpEndToEndTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.WbSourceReviewHttpEndToEndTest.xml",
+      "sha256": "be51e914594107a9b7db00ca80abea1613c2c6773c690f3a20009323e42c2015"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackCardBatchSigningTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCardBatchSigningTest.xml",
+      "sha256": "b1be2e65e6ea7aff0d1f83c8d2e0bcba123c50e861e140241804f9f29ce2a40a"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepositoryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCardRegistrationRepositoryTest.xml",
+      "sha256": "27a62efdd3684c7f1a3e6399b88806defab627a72423baca56e5937c9ac09f39"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCardRegistrationWorkflowTest.xml",
+      "sha256": "585052a9f6c888db70321c33e9a51e92815b0b70c4b938fa695387101e3e762a"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackCatalogObservationGuardTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCatalogObservationGuardTest.xml",
+      "sha256": "68627ca8366cc6b6091808c11f8d027759ab71b817e4da80d920527c5a13fada"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackCatalogSigningBatchTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCatalogSigningBatchTest.xml",
+      "sha256": "97f71a09296396f1ad929fb7a837c3b1444217c800dbfdeec65875ab6d8bb0d6"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackCatalogSubmissionReadbackTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCatalogSubmissionReadbackTest.xml",
+      "sha256": "d35c62090b5be5137442c2a538c1ddcc31d8a1413fa1a811be36910845843be4"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCategoryResolverTest.xml",
+      "sha256": "6354ba797746b3bdda9d96cc7fc84c768ae232fd9cc96ae786f29dd2a20d9bac"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackCurrentSchemaSubmissionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackCurrentSchemaSubmissionTest.xml",
+      "sha256": "d5f7fe3f4eba181ef0c44521b8181cfdaec6305bdd9f141797aa9aed93dac9d8"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackNationalCatalogServiceTest.xml",
+      "sha256": "9d531dc5da861db7809051da6f2dd897978ffd08b54b7eb9b12479c6d5b72753"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationBatchHttpIntegrationTest.xml",
+      "sha256": "bbda0c4f2bb93d0ff4410397707fceb07b8e2023e48c7d7b3e982b1c895fd9ce"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationBatchServiceTest.xml",
+      "sha256": "13bcbc3cfd059eb7c5b59667a32c8a117f55e6036d588b6127ae42451184a38e"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackRegistrationCountryModelTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationCountryModelTest.xml",
+      "sha256": "8939dd9b8569acfa3eed70db9bfc23af7890db72f5cc01a66f583d6c3f6f946b"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationDocumentsTest.xml",
+      "sha256": "b330e3b794567d13b659ac393b13427a0bbe9c5c40485691b10aaffecf14838b"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationMonitorFairnessTest.xml",
+      "sha256": "7455b3e98331232cb8a67a4245166481ef67c41c9186859677cbb5f73854457e"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackRegistrationScopeTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackRegistrationScopeTest.xml",
+      "sha256": "05227eabe78efed1cd6be412ca1e7ee811751c829e757ea98099e4d422229adc"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackReviewedDraftSubmissionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackReviewedDraftSubmissionTest.xml",
+      "sha256": "403da89d19856caf38e632628c7290ca539ac48279f32685036dd76e1490af41"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackVerifiedRegistrationAttributesTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackVerifiedRegistrationAttributesTest.xml",
+      "sha256": "d98a9908782c2710fb28ea83624e5b90cecca449cb0740e70e67351a147a21b2"
+    },
+    "com.vncode.app.integration.znack.registration.ZnackWbAttributeMapperTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.ZnackWbAttributeMapperTest.xml",
+      "sha256": "0e9a60480ee29db73879a97008d640511af41782de67b4a2abe0d8c3a9df618c"
+    },
+    "com.vncode.app.integration.znack.registration.v3.RegistrationAllocationPoolTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.RegistrationAllocationPoolTest.xml",
+      "sha256": "3b6cff02ec4587dd2c052cf0feecad173fc7d10302559b868ae6bde54ac43303"
+    },
+    "com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournalTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.RegistrationCommandJournalTest.xml",
+      "sha256": "d9b0b24b3ecca3a92af2386c14b27cbbda0652d300688a86dd99d580944b6017"
+    },
+    "com.vncode.app.integration.znack.registration.v3.RegistrationOrchestratorTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.RegistrationOrchestratorTest.xml",
+      "sha256": "782cf952a796ab7764ce5d6f2fe372594cbb4691e03315fc7a7e9f003a34d84d"
+    },
+    "com.vncode.app.integration.znack.registration.v3.RegistrationStoreTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.RegistrationStoreTest.xml",
+      "sha256": "2528040dc2779ee14d0414cb25f3dd7c2f30c52f9144560d098f93dafbe2ff68"
+    },
+    "com.vncode.app.integration.znack.registration.v3.WbRegistrationImportTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.registration.v3.WbRegistrationImportTest.xml",
+      "sha256": "eb8af7eef8879b286ddfb4fc7bcbdce5a0f31f38c2a78652e37ad3ffe6af99fd"
+    },
+    "com.vncode.app.integration.znack.signature.BouncyCastleAdvisoryRegressionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.BouncyCastleAdvisoryRegressionTest.xml",
+      "sha256": "05329a481127c5fc486c595a1b8a30cea4f13e918e8a01333c60163188537ad8"
+    },
+    "com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProCertificateDiscoveryServiceTest.xml",
+      "sha256": "bc277f25d27e61a4550ca8920e8c8444fe23d902dbf1fe254cf3a5ebc9f5c01e"
+    },
+    "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest.xml",
+      "sha256": "6a72c1d56a9429bfdb51805190b66a1290139cae9553ff33da4a9d2ca6412fdd"
+    },
+    "com.vncode.app.integration.znack.signature.CryptoProCommandRunnerTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProCommandRunnerTest.xml",
+      "sha256": "e3bd5cd341698b1789e2f4c10d49640871450ff37a50ce8591203cbf3b20508a"
+    },
+    "com.vncode.app.integration.znack.signature.CryptoProSignatureTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProSignatureTest.xml",
+      "sha256": "a4c7e328ce701e4abd94aeb5ca7c04747ee6e754db8896462794016e748a19d7"
+    },
+    "com.vncode.app.integration.znack.signature.CryptoProSignedCertificateReaderTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.CryptoProSignedCertificateReaderTest.xml",
+      "sha256": "9bf244d13025631d231d94103ac504d39f4326f8310d85bd3da403e09ad153a9"
+    },
+    "com.vncode.app.integration.znack.signature.Wb1326KeyPresenceTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.Wb1326KeyPresenceTest.xml",
+      "sha256": "8330482f7f363d9c51405ba0e56376dee662212f2c601929c657e17891686578"
+    },
+    "com.vncode.app.integration.znack.signature.WindowsXmlSignatureTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.signature.WindowsXmlSignatureTest.xml",
+      "sha256": "c89c82703a171d8374a5a47001b39817327671072cbb1ea3e96e68b96c7820d5"
+    },
+    "com.vncode.app.shared.FriendlyErrorCodeTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.shared.FriendlyErrorCodeTest.xml",
+      "sha256": "5c5de625eb2a49b36e5e4a8cd6aef17272ea331a0b878eb075f7908a66adb3c6"
+    },
+    "com.vncode.app.ui.kizmapping.FbsKizSigningResumeUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.kizmapping.FbsKizSigningResumeUiTest.xml",
+      "sha256": "623012b2c047f4c022c587b3a77719a531d4a032a82eedec863bf326d8c1ed60"
+    },
+    "com.vncode.app.ui.kizmapping.KizMappingEditorTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizMappingEditorTest.xml",
+      "sha256": "edd12b442c5b18fcb3a31a2a1e65a4a844f5ab221628a37626028365bbd9a834"
+    },
+    "com.vncode.app.ui.kizmapping.KizMappingIssuesDialogTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizMappingIssuesDialogTest.xml",
+      "sha256": "ad1e295a83d0261888fe39d63531f0b14be4a2a6baf2a81a6d2c21f46da8f4d1"
+    },
+    "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest.xml",
+      "sha256": "f2db1476be2cc1f71c01ce3640959fb6da06dcbda55b94f21aa66aa19a6e77e8"
+    },
+    "com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest.xml",
+      "sha256": "647504e95004c7bf1619fbf36931f7c5d69ede897ff3c5fdb850f6a3bf00c664"
+    },
+    "com.vncode.app.ui.kizmapping.OzonGtinMappingEditorTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.kizmapping.OzonGtinMappingEditorTest.xml",
+      "sha256": "063d81c87b0a2cf43f19025806d17c432f5a9806a86effe1bd8cd29da9bbee99"
+    },
+    "com.vncode.app.ui.ozon.OzonAcceptanceRetryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonAcceptanceRetryTest.xml",
+      "sha256": "c287437a612038bd29b4fc3e23999c7e8810e11c0f6c21656688877ee857e6fb"
+    },
+    "com.vncode.app.ui.ozon.OzonBulkUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonBulkUiTest.xml",
+      "sha256": "9920a2c2a2d075a9f42ff50ecf43ce87e0ee5839ce334c6cfb0f2bd02050a502"
+    },
+    "com.vncode.app.ui.ozon.OzonDashboardControllerTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonDashboardControllerTest.xml",
+      "sha256": "7e63012428e6a3a483b0a1e434333c463fdedd79701b5c6695016bfb022fb534"
+    },
+    "com.vncode.app.ui.ozon.OzonFbsEnrichmentUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonFbsEnrichmentUiTest.xml",
+      "sha256": "b415abc60a3e54bcc68a914734b4132a8f318e9d59c755b6d90883a10783fc71"
+    },
+    "com.vncode.app.ui.ozon.OzonFbsUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonFbsUiTest.xml",
+      "sha256": "57ded75a17ef997297352af2eba11394921b43ac811ace4640a8a841d49eb340"
+    },
+    "com.vncode.app.ui.ozon.OzonManualSyncUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonManualSyncUiTest.xml",
+      "sha256": "eeec8aed566eab59a5fb902d9a4f783a65360c83adf5572afb0ceab0945cbe8a"
+    },
+    "com.vncode.app.ui.ozon.OzonPrintedQueueUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonPrintedQueueUiTest.xml",
+      "sha256": "4256cbdaa238de361fcf751f074f6fea6c772c12915bf960fd7d000704c5a9cc"
+    },
+    "com.vncode.app.ui.ozon.OzonRegistrationEntryUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonRegistrationEntryUiTest.xml",
+      "sha256": "1e0345e32baa6dd0f5616c057554097d4b90dba98c87700a5e556ed7d55af71f"
+    },
+    "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest.xml",
+      "sha256": "49e172a634085a2132c39c149712ea59e894c948d08c462da3b5197abff4f54f"
+    },
+    "com.vncode.app.ui.ozon.OzonWbPackingParityTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.ozon.OzonWbPackingParityTest.xml",
+      "sha256": "51e6b61cc9d5a8ef339cb793048bab40112673a1d25da715764cb442bbcb7d99"
+    },
+    "com.vncode.app.ui.supply.SupplyOrderPresentationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.supply.SupplyOrderPresentationTest.xml",
+      "sha256": "49c23b8cdccbc70fa84f4c7cad26efab2af4a019e17a622527c521f144418be2"
+    },
+    "com.vncode.app.ui.supply.WbShippingHistoryPaneTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.supply.WbShippingHistoryPaneTest.xml",
+      "sha256": "8d357a32ae5f4e048983ab1b16003afa915f00d9467174d13b5a511aa41ec289"
+    },
+    "com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest.xml",
+      "sha256": "51fd777e191f00275cd7a8c0705c2e6a813f0137588a4ad4bec9a25c760b1569"
+    },
+    "com.vncode.app.ui.workspace.Wb1326StartupAdmissionTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.workspace.Wb1326StartupAdmissionTest.xml",
+      "sha256": "cc5c9fde6589664b606120f2eb00ef4656d7627422d89e1089cf9635239be1c4"
+    },
+    "com.vncode.app.ui.znack.SignatureTestFailureTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.znack.SignatureTestFailureTest.xml",
+      "sha256": "5791f4f13b85965db45762990391d9d5b9d18c2135f5632e36d67f722cf3dc1a"
+    },
+    "com.vncode.app.ui.znack.Wb1326PurchasePreferencesUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.znack.Wb1326PurchasePreferencesUiTest.xml",
+      "sha256": "f06b8b1899c5abaa51d9135b870a703ffe8f91b8d844ed41bcb7895e75efc859"
+    },
+    "com.vncode.app.ui.znack.ZnackAutomationControllerTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.znack.ZnackAutomationControllerTest.xml",
+      "sha256": "a24f98d9861c9fd6ae69192097e84dc83e840e4f812ff842d7411fd1bf4c258e"
+    },
+    "com.vncode.app.ui.znack.ZnackAutomationInformationTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.znack.ZnackAutomationInformationTest.xml",
+      "sha256": "5cdc55aa59c56c859af5e1d9b70bccb6318c4763046c71a90ee0ee61b5450b94"
+    },
+    "com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/current-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.znack.ZnackCertificateDiscoveryUiTest.xml",
+      "sha256": "cd17b90c8a1718a36b46bb0e9274c3b52cc3c2c7a1ba4b8a37d70cd6b2f22274"
+    },
+    "com.vncode.app.ui.FxmlSmokeTest": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/RESULT.json",
+      "xml": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.FxmlSmokeTest.xml",
+      "sha256": "977475f1a13f60248a3855cf4a76d834c5ffc040388884251af696abb5ac9f09"
+    }
+  },
+  "notRun": [
+    "Complete Java-suite pass on final source",
+    "Native Windows/CryptoPro hardware",
+    "Live paid SUZ/marketplace/Catalog acceptance"
+  ],
+  "completedAtUtc": "2026-11-17T14:25:54.735069+00:00"
+}

@@ -1,0 +1,74 @@
+{
+  "baseCommit": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "trackedFilesCompared": 3715,
+  "missingFiles": [],
+  "changedExistingFiles": [
+    {
+      "path": "AGENTS.md",
+      "beforeSha256": "807079954a0559ca95100a98a37d065ce5373b5b13a824aabebd54a06b65af26",
+      "afterSha256": "571ac5bdce9bc3d450cd96a929258ec262fe19de6b890b873dc32092020d46da"
+    },
+    {
+      "path": "docs/PROJECT_MEMORY.md",
+      "beforeSha256": "33bf189070c56e1f3248107bc6212364d0320148802649d891f522b6395ba464",
+      "afterSha256": "d76e3adafedd8331fc3f73727d30bb6ce014edd21f37e05610a49defacfaa80b"
+    },
+    {
+      "path": "docs/memory/CURRENT.md",
+      "beforeSha256": "858c774606289bdcfe6bb291dfb113faedc7562f3100f1b959709f46f1502c64",
+      "afterSha256": "c7463e006a6a91f44d803373370480bd511efabbf58ef4b2afdb1f9952ea1ca3"
+    },
+    {
+      "path": "docs/memory/README.md",
+      "beforeSha256": "5c903fd26fbbf1eb8203f60f1e74c7a6ad4b01c66b971871ac84096b8055e8d5",
+      "afterSha256": "ceb7b15e8c3bcc83541fe68633263d0c12a479abd80fd6f8d8f7ea4fc0e91d2b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+      "beforeSha256": "7330b925583ae4f2537fc1d39af0c3b554c0e3856999e7523eef7e2ffbf9e4e6",
+      "afterSha256": "cd3ac4934302ee52b6a551c295496bc3ffaab365a8492035551ae38e199fae12"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml",
+      "beforeSha256": "81eb2e2d7332dffb62310fb3aaa9b6d9376a9f366ad4b4c4b34e6975d4ad0988",
+      "afterSha256": "61cb9499ebfdd84119c48e3246c94c7c8d5ee2b0a0c2f64fafa3955dca843ce9"
+    },
+    {
+      "path": "tools/UiLayoutProbe.java",
+      "beforeSha256": "6b2ccd7effc66496c7c2b45dbcf88e6a8b735eb7073ee3a2ee459e8c19ffa7b5",
+      "afterSha256": "feeedec4b088456ab6d03257738581ed494eb2c4027dbaee65f7ffa24f9d2c91"
+    }
+  ],
+  "groups": {
+    "runtime": {
+      "files": 805,
+      "changed": [
+        "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+        "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml"
+      ]
+    },
+    "tests": {
+      "files": 614,
+      "changed": []
+    },
+    "businessJavaOutsideUiShared": {
+      "files": 603,
+      "changed": []
+    },
+    "ci": {
+      "files": 27,
+      "changed": []
+    },
+    "portal": {
+      "files": 53,
+      "changed": []
+    },
+    "existingSkills": {
+      "files": 291,
+      "changed": []
+    }
+  },
+  "originalAgentsBytePrefixPreserved": true,
+  "status": "PASS",
+  "scope": "Byte comparison with pre-task Git baseline; source preservation does not prove all external workflows."
+}

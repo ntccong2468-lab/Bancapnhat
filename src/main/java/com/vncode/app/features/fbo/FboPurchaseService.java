@@ -18,10 +18,10 @@ public final class FboPurchaseService {
             // Validate the complete batch before creating the first purchase checkpoint.
             for(var entry:fresh.toBuy().entrySet())coordinator.validatePrerequisites(settings.withAutoIntroduction(true),entry.getKey(),entry.getValue());
             String request=UUID.randomUUID().toString();
-            for(var entry:fresh.toBuy().entrySet()) {
-                ListingIdentity.require(shop);
-                coordinator.enqueue(settings,entry.getKey(),entry.getValue(),requestKey(request,entry.getKey()));
-            }
+            var batch=fresh.toBuy().entrySet().stream().map(entry->new ZnackPurchaseBatchStore.Approved(
+                    entry.getKey(),entry.getValue(),requestKey(request,entry.getKey()))).toList();
+            ListingIdentity.require(shop);
+            coordinator.enqueueBatch(settings,batch);
             coordinator.resumeAsync(settings);return null;
         });
     }

@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "Read-only source/version evidence verification, not app/API test",
+  "sourceArchiveFileCount": 619,
+  "missingFiles": [],
+  "changedExtractedSource": [],
+  "brokenReportLocalLinks": [],
+  "staticChecks": {
+    "orderPayloadConstructionIdenticalAfterRemovingLicenseGate": true,
+    "payloadConstructionSha256": "2e2ed9f35d5d815ad00896ba206c523bd6a440138aeb03d17570047b5236b4f3",
+    "authServiceByteIdentical": true,
+    "queueByteIdentical": true,
+    "oldHasDownloadOnlyCompletion": true,
+    "publicEnqueueForcesAutoIntroduction": true,
+    "oldAlreadyContainsSameSigningWaitText": true
+  },
+  "oldOrCurrentAppRun": false,
+  "sellerApiTransactions": false,
+  "sourceAppEdits": false,
+  "diagramSyntaxValidation": "Manually reviewed Mermaid source; no Mermaid renderer executed"
+}

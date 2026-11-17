@@ -1,0 +1,25 @@
+{
+  "command": [
+    "node",
+    "tools/validate-ecc-integration.mjs"
+  ],
+  "exitCode": 0,
+  "log": "/workspace/kiz-wb1326-replacement-20261117/integration/ecc-validator.log",
+  "testRun": {
+    "command": [
+      "node",
+      "--test",
+      "tools/validate-ecc-integration.test.mjs"
+    ],
+    "exitCode": 0,
+    "tests": 17,
+    "pass": 17,
+    "fail": 0,
+    "skipped": 0,
+    "evidence": "Executed via tools.exec_command/session10631 on17Nov; complete TAP output captured in tool transcript. No test changes since that run."
+  },
+  "files": {
+    "tools/validate-ecc-integration.mjs": "2defcace12d3d3abc9839ba487463b94d96522633baac514c7a09a1c3f85d72f",
+    "tools/validate-ecc-integration.test.mjs": "9ebc38c2a9c56e80eeac87ce7df6d35e4339bc274a76a774902143bbd03c6681"
+  }
+}

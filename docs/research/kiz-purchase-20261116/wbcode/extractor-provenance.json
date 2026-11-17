@@ -1,0 +1,9 @@
+{
+  "officialRelease": "https://github.com/ip7z/7zip/releases/tag/25.01",
+  "assetUrl": "https://github.com/ip7z/7zip/releases/download/25.01/7z2501-linux-x64.tar.xz",
+  "sha256": "4ca3b7c6f2f67866b92622818b58233dc70367be2f36b498eb0bdeaaa44b53f4",
+  "githubDigestMatches": true,
+  "isolatedToolDirectory": "/workspace/kiz-v130-wbcode-20261116/wbcode/tools",
+  "systemInstallation": false,
+  "targetExecuted": false
+}

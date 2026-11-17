@@ -1,0 +1,13 @@
+{
+  "status": "PASS",
+  "createdAtUtc": "2026-11-16T20:25:10.862264+00:00",
+  "files": {
+    "REPORT.md": "270fffdf369d59b3cfb99a5f91d788ea9995b160c9eec9e32211a80010b0438e",
+    "observations.json": "0fefcdf30eb837bbe5861370d573c271eff9f8486d0e600aa75bce51b2773e25",
+    "download-verification.json": "6d8a39539f2042c67cae4503ed5079284eee7241329c19741918be136ea97dff",
+    "extraction-provenance.json": "45952b58cc330cec32c9a1e125240147bc848f5252bf9edc9966608f30c8b02e",
+    "extractor-provenance.json": "a867cdc224d9d64a438c8a8ec013e0e5bf906e6d93d344c9786c2dda35dd6bb5",
+    "cfr-provenance.json": "35fdbe8bcbe8424ffda72ffd2112af91863c6ab2e36388f82b19f459401dfaa9"
+  },
+  "targetExecuted": false
+}

@@ -26,7 +26,8 @@ class ZnackIntroductionIdentityTest {
     }
     @AfterEach void cleanup(){System.clearProperty("vncode.appdata.dir");}
     static Stream<Object[]> invalid(){return ZnackCisReadbackTest.unknownResponses();}
-    private Settings settings(){return new Settings("","","oms","connection","","","","","certificate","[]","","","",false,"","[]","certificate",Instant.now());}
+    private Settings settings(){return new Settings("","","oms","connection","7700000001","","7700000001","","certificate","[]","","","",false,"","[]","certificate",Instant.now());}
+    private static JsonObject ownedRow(String cis){var row=row(cis,GTIN,"INTRODUCED");row.getAsJsonObject("cisInfo").addProperty("ownerInn","7700000001");return row;}
     private ZnackApiClient api(JsonElement response){return new ZnackApiClient(){
         @Override public JsonElement document(String base,String token,String id){assertEquals("accepted-document",id);return JsonParser.parseString("{\"status\":\"CHECKED_OK\"}");}
         @Override public JsonElement productCards(String base,String token,String gtin){assertEquals(GTIN,gtin);return JsonParser.parseString("{\"result\":[{\"gtin\":\""+GTIN+"\",\"goodMarkFlag\":true,\"goodTurnFlag\":true,\"goodStatus\":\"published\"}]}");}
@@ -43,10 +44,10 @@ class ZnackIntroductionIdentityTest {
         var api=api(response);var result=new ZnackIntroductionReadinessService(api,auth(api),repository).check(settings(),repository.findProduct(GTIN).orElseThrow(),repository.findCodes(order));assertFalse(result.ready(),name);assertFalse(result.allIntroduced(),name);assertRetained();
     }
     @Test void exactReorderedReadbackPromotesEveryPersistedCodeAfterTheDocumentWasAccepted()throws Exception{
-        var response=rows(row(SECOND,GTIN,"INTRODUCED"),row(FIRST,GTIN,"INTRODUCED"));var result=confirmation(api(response)).confirm(settings(),repository.findOrder(order).orElseThrow(),repository.findCodes(order));assertTrue(result.introduced());assertEquals(OrderStatus.INTRODUCED,repository.findOrder(order).orElseThrow().localStatus());assertEquals("CHECKED_OK",repository.findLatestDocument(order).orElseThrow().status());assertTrue(repository.findCodes(order).stream().allMatch(c->c.legalStatus()==KizLegalStatus.IN_CIRCULATION));
+        var response=rows(ownedRow(SECOND),ownedRow(FIRST));var result=confirmation(api(response)).confirm(settings(),repository.findOrder(order).orElseThrow(),repository.findCodes(order));assertTrue(result.introduced());assertEquals(OrderStatus.INTRODUCED,repository.findOrder(order).orElseThrow().localStatus());assertEquals("CHECKED_OK",repository.findLatestDocument(order).orElseThrow().status());assertTrue(repository.findCodes(order).stream().allMatch(c->c.legalStatus()==KizLegalStatus.IN_CIRCULATION));
     }
     @Test void exactSuccessfulCodeZeroResponseConfirmsCirculationAndReadiness()throws Exception{
-        var first=row(FIRST,GTIN,"INTRODUCED");first.addProperty("errorCode","0");first.addProperty("errorMessage","");var second=row(SECOND,GTIN,"INTRODUCED");second.addProperty("errorCode",0);
+        var first=ownedRow(FIRST);first.addProperty("errorCode","0");first.addProperty("errorMessage","");var second=ownedRow(SECOND);second.addProperty("errorCode",0);
         var response=rows(first,second);var api=api(response);assertTrue(new ZnackIntroductionReadinessService(api,auth(api),repository).check(settings(),repository.findProduct(GTIN).orElseThrow(),repository.findCodes(order)).allIntroduced());assertRetained();
         assertTrue(confirmation(api).confirm(settings(),repository.findOrder(order).orElseThrow(),repository.findCodes(order)).introduced());assertEquals(OrderStatus.INTRODUCED,repository.findOrder(order).orElseThrow().localStatus());
     }

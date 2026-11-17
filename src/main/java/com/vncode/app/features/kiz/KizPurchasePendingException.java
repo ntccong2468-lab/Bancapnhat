@@ -1,6 +1,8 @@
 package com.vncode.app.features.kiz;
 
 import com.vncode.app.integration.znack.GtinNormalizer;
+import com.vncode.app.integration.znack.ZnackGtinInventoryService;
+import com.vncode.app.models.Shop;
 import com.vncode.app.shared.I18nService;
 import java.text.MessageFormat;
 import java.util.*;
@@ -10,8 +12,13 @@ public final class KizPurchasePendingException extends IllegalStateException {
     public record Deficit(String gtin,int required,int available,int missing){}
     private final List<Deficit> deficits;
     private final String reason;
+    private final KizPurchaseAvailability availability;
     public KizPurchasePendingException(Map<String,Integer> required,KizStockReplenisher.Result result){
+        this(required,result,null);
+    }
+    public KizPurchasePendingException(Map<String,Integer> required,KizStockReplenisher.Result result,KizPurchaseAvailability availability){
         super("KIZ_PURCHASE_PENDING");
+        this.availability=availability;
         reason=Set.of("queued","existing","review").contains(result.reason())?result.reason():"review";
         var normalized=new TreeMap<String,Integer>();required.forEach((g,n)->normalized.merge(GtinNormalizer.normalize(g),n,Math::addExact));
         var rows=new ArrayList<Deficit>();
@@ -20,6 +27,9 @@ public final class KizPurchasePendingException extends IllegalStateException {
     }
     public List<Deficit> deficits(){return deficits;}
     public String reason(){return reason;}
+    public Map<String,Integer> availableCounts(Shop shop,Collection<String> gtins){
+        return availability==null?new ZnackGtinInventoryService().purchasedAvailableCounts(shop.getId(),gtins):availability.counts(shop,gtins);
+    }
     public String display(){
         var i18n=I18nService.getInstance();
         String rows=deficits.stream().map(d->MessageFormat.format(i18n.tr("kiz.pending.deficit"),d.gtin(),d.required(),d.available(),d.missing()))

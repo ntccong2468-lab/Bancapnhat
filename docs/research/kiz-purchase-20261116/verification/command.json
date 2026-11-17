@@ -1,0 +1,27 @@
+{
+  "command": [
+    "/workspace/toolchains/xvfb-current/root/usr/bin/xvfb-run",
+    "-a",
+    "sh",
+    "/workspace/toolchains/apache-maven-3.8.5/bin/mvn",
+    "-B",
+    "-o",
+    "-s",
+    "/workspace/kiz-v130-wbcode-20261116/verification/maven-settings.xml",
+    "-gs",
+    "/workspace/kiz-v130-wbcode-20261116/verification/maven-settings.xml",
+    "-Dmaven.repo.local=/workspace/toolchains/m2",
+    "-Dvncode.appdata.dir=/workspace/kiz-v130-wbcode-20261116/verification/isolated-appdata",
+    "-Dtest=ZnackCirculationPolicyTest#everyNewPurchasePinsCirculationWithoutChangingTheGlobalPreference,ZnackSigningRecoveryTest#pausedPaidReadinessDoesNotOpenSignerOrScheduleAutomaticRetries+foregroundResumeKeepsPaidIdentityRawCodesAndConsumedInventory",
+    "surefire:test"
+  ],
+  "cwd": "/workspace/kiz-v130-wbcode-20261116/verification/source-copy",
+  "startedAtUtc": "2026-11-16T20:22:08.189203+00:00",
+  "javaRuntime": "/workspace/toolchains/jdk-25.0.4.1",
+  "maven": "3.8.5 cached offline; direct surefire only",
+  "secretEnvironmentRemoved": true,
+  "sourceEdits": false,
+  "testEdits": false,
+  "fixtureScope": "Synthetic SQLite, signed JUnit license fixture and mocked API/signing; no paid/live acceptance",
+  "compiledInputs": "Previously verified production and test classes copied exactly; no fresh compile claimed"
+}

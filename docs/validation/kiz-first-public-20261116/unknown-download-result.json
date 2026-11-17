@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "counts": {
+    "tests": 36,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "exitCode": 0,
+  "elapsedSeconds": 63.66267640600017,
+  "finishedAtUtc": "2026-11-16T12:27:28.796149+00:00",
+  "codeServiceSha256": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f",
+  "testSha256": "85058eaa72711a6aa6d501889f94da7d2d71a0eed4c81cb6601281ec7975c939",
+  "copiedSourceAndTargetOwnedHashesMatch": true,
+  "otherFrozenSnapshotFilesChanged": [],
+  "xmlSha256": "452c411505d671402e9a7b18bb556196b35f4d10d9c607f19abbd83406cc36f8",
+  "realApiCalls": false,
+  "paidPurchases": false,
+  "realSigning": false,
+  "productionEditedByThisAgent": false,
+  "meaningfulRedSets": {
+    "uncertainDelivery": {
+      "tests": 24,
+      "failures": 16,
+      "errors": 0,
+      "skipped": 0,
+      "receipt": "red-final-result.json"
+    },
+    "replayPrevalidation": {
+      "tests": 12,
+      "failures": 12,
+      "errors": 0,
+      "skipped": 0,
+      "receipt": "replay-red-result.json"
+    }
+  },
+  "notAdditionalTests": "All36 are in this final run; do not add preceding24/12 again. Parent finalcombinedscope will include this sameclass.",
+  "scope": "CachedofflineJDK25/Maven/Linux/Xvfb; productionCoordinator+CodeService withsyntheticSQLite andfakeAPI. GREEN overlay onlyfinalCodeService into the isolatedREDsnapshot; notwholeapp/live/native verification."
+}

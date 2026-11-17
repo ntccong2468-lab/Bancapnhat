@@ -49,4 +49,22 @@ class ZnackErrorMessagesTest {
         assertNotEquals(raw, ZnackErrorMessages.display(raw));
         assertTrue(ZnackErrorMessages.display(raw).contains("CRYPTOPRO_" + code.name()));
     }
+
+    @ParameterizedTest @EnumSource(AppLanguage.class)
+    void onlyTheExactDisconnectedKeyWaitExplainsAutomaticRetry(AppLanguage language) {
+        var i18n=I18nService.getInstance();i18n.setLanguage(language);
+        String raw=ZnackSigningSession.WAITING_MESSAGE+" [CRYPTOPRO_KEY_NOT_CONNECTED]";
+        String shown=ZnackErrorMessages.display(raw);
+        assertEquals(i18n.getBundle().getString("znack.error.signing_key_disconnected")+" [CRYPTOPRO_KEY_NOT_CONNECTED]",shown);
+        assertNotEquals(i18n.getBundle().getString("znack.error.signing_confirmation_required")+" [CRYPTOPRO_KEY_NOT_CONNECTED]",shown);
+        assertEquals(shown,ZnackErrorMessages.displayForPipeline("WAITING_INTRODUCTION_READINESS",raw));
+        assertFalse(ZnackSigningSession.isTransientKeyWait(raw+" extra"));
+        assertNotEquals(shown,ZnackErrorMessages.display(raw+" extra"),"A loose diagnostic match cannot claim automatic retry");
+        for(var code:CryptoProErrorCode.values()) {
+            if(code==CryptoProErrorCode.KEY_NOT_CONNECTED)continue;
+            String paused=ZnackSigningSession.WAITING_MESSAGE+" [CRYPTOPRO_"+code.name()+"]";
+            assertEquals(i18n.getBundle().getString("znack.error.signing_confirmation_required")+" [CRYPTOPRO_"+code.name()+"]",
+                    ZnackErrorMessages.display(paused),"Durable signing pauses must keep their explicit resume instruction");
+        }
+    }
 }

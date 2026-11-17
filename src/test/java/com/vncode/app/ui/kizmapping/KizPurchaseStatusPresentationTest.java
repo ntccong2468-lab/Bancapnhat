@@ -75,10 +75,20 @@ class KizPurchaseStatusPresentationTest {
     }
 
     @ParameterizedTest @ValueSource(booleans={false,true})
-    void legacyStoredFlagIsNotAPurchaseChoiceAndLoadingOrEditingDoesNotRewriteIt(boolean enabled)throws Exception{
+    void mandatoryNewPurchaseIntentDoesNotExposeAChoiceOrRewriteAnExistingLegacyPipeline(boolean enabled)throws Exception{
         var repository=new ZnackRepository(new ZnackModels.ShopContext(1,"Fixture"));repository.saveSettings(ZnackModels.Settings.empty().withAutoIntroduction(enabled));
-        sql("UPDATE znack_settings SET updated_at='2020-01-01T00:00:00Z' WHERE shop_id=1");
+        // Model an actual older stored profile; normal saveSettings now correctly forces new intent on.
+        sql("UPDATE znack_settings SET auto_introduction="+(enabled?1:0)+",updated_at='2020-01-01T00:00:00Z' WHERE shop_id=1");
+        String legacyGtin="04601234567890";
+        repository.upsertProducts(List.of(new ZnackModels.Product(legacyGtin,"Synthetic legacy product",null,null,null,null,null)));
+        // The historical API captures raw original intent; a new approved enqueue correctly forces true.
+        long legacyPipeline=repository.createPipeline(legacyGtin,1);
+        var rawBefore=repository.getRawSettings();
+        assertEquals(enabled,rawBefore.autoIntroduction());
+        var legacyBefore=new com.vncode.app.integration.znack.ZnackPurchaseBatchStore(repository).settingsForPipeline(legacyPipeline);
+        assertEquals(enabled,legacyBefore.autoIntroduction());
         var before=repository.getSettings();
+        assertTrue(before.autoIntroduction(),"New normal purchases always include circulation");
         fx(()->{
             var loader=FxmlViewLoader.loader(ZnackAutomationController.class,"znack-automation-view.fxml");Parent view=FxmlViewLoader.load(loader);
             var controller=(ZnackAutomationController)loader.getController();controller.setShop(new Shop(1,"Fixture","fixture"));
@@ -87,19 +97,22 @@ class KizPurchaseStatusPresentationTest {
             var menu=((Label)loader.getNamespace().get("titleLabel")).getContextMenu();
             assertTrue(menu.getItems().stream().noneMatch(CheckMenuItem.class::isInstance),"Purchases must not depend on a title-menu mode switch");
             assertFalse(checkbox.isVisible());assertFalse(checkbox.isManaged());
-            assertEquals(enabled,checkbox.isSelected(),"The hidden legacy field must retain its stored value without rewriting preferences");
+            assertTrue(checkbox.isSelected(),"The hidden field projects mandatory new purchase intent without rewriting a legacy pipeline");
             assertFalse(loader.getNamespace().containsKey("autoIntroductionScopeLabel"));
             for(var language:List.of(AppLanguage.VI,AppLanguage.EN,AppLanguage.VI)){
                 I18nService.getInstance().setLanguage(language);controller.applyTranslations();
-                assertEquals(enabled,checkbox.isSelected());assertFalse(checkbox.isVisible());assertFalse(checkbox.isManaged());
+                assertTrue(checkbox.isSelected());assertFalse(checkbox.isVisible());assertFalse(checkbox.isManaged());
                 assertTrue(menu.getItems().stream().noneMatch(CheckMenuItem.class::isInstance));
                 assertEquals(before,repository.getSettings(),"Changing display language must not rewrite legacy preferences");
             }
-            ((Button)loader.getNamespace().get("editSettingsButton")).fire();assertFalse(checkbox.isVisible());assertFalse(checkbox.isManaged());assertEquals(enabled,checkbox.isSelected());
+            ((Button)loader.getNamespace().get("editSettingsButton")).fire();assertFalse(checkbox.isVisible());assertFalse(checkbox.isManaged());assertTrue(checkbox.isSelected());
             assertEquals(before,repository.getSettings(),"Opening settings for editing must not save or change the hidden legacy flag");
-            ((Button)loader.getNamespace().get("editSettingsButton")).fire();assertEquals(enabled,checkbox.isSelected());
+            ((Button)loader.getNamespace().get("editSettingsButton")).fire();assertTrue(checkbox.isSelected());
             assertEquals(before,repository.getSettings());controller.setShop(null);return null;
         });
+        assertEquals(rawBefore,repository.getRawSettings(),"Display/edit actions do not rewrite the raw historical preference");
+        assertEquals(legacyBefore,repository.boundPipelineSettings(legacyPipeline).orElseThrow());
+        assertEquals(legacyBefore,new com.vncode.app.integration.znack.ZnackPurchaseBatchStore(repository).settingsForPipeline(legacyPipeline));
         try(var c=Database.getConnection();var p=c.createStatement();var r=p.executeQuery("SELECT updated_at FROM znack_settings WHERE shop_id=1")){
             assertTrue(r.next());assertEquals("2020-01-01T00:00:00Z",r.getString(1));
         }

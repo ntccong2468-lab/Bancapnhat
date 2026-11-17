@@ -1,0 +1,111 @@
+{
+  "id": 445977967,
+  "tag_name": "v1.6.10",
+  "name": "VN Code 1.6.10",
+  "draft": false,
+  "prerelease": false,
+  "immutable": true,
+  "published_at": "2026-11-15T10:40:34Z",
+  "target_commitish": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "html_url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.10",
+  "assets": [
+    {
+      "id": 750658246,
+      "name": "asset-manifest.json",
+      "size": 1755,
+      "digest": "sha256:6b976018e70dc5da4337779e45abdfa1e0efe68dedaa99af4a84e9344808bec8"
+    },
+    {
+      "id": 750658038,
+      "name": "build-info.json",
+      "size": 771,
+      "digest": "sha256:f21685a66f40bc5e80e854427ec6fb24941e8c7cd6f3044b5249759f7ce7d6bf"
+    },
+    {
+      "id": 750658334,
+      "name": "gs1-smoke.json",
+      "size": 287,
+      "digest": "sha256:0678e12ddebd62351793de70ba53b835294ecb185f27e1a1226e32b4dac8e9ef"
+    },
+    {
+      "id": 750658149,
+      "name": "native-smoke.json",
+      "size": 288,
+      "digest": "sha256:d78de706bafa54480253937e4ed8893f8785a4b5d7b6ef498a309db7499c9f43"
+    },
+    {
+      "id": 750658408,
+      "name": "previous-baseline.json",
+      "size": 282,
+      "digest": "sha256:bdca13084847ab0fe9c3f00526bbe84145c3552f543eb190b932aaabace59bfe"
+    },
+    {
+      "id": 750658093,
+      "name": "release-notes.md",
+      "size": 2667,
+      "digest": "sha256:b56326bf03f9afa4087c1be4d801b187974c59af2c58a4c1d223ee12c78a64cb"
+    },
+    {
+      "id": 750658298,
+      "name": "SHA256SUMS",
+      "size": 1106,
+      "digest": "sha256:712d707cf53731dc6b63a90abf4c06cdefcf4d70c4be355a54e1de9aa51c9923"
+    },
+    {
+      "id": 750658374,
+      "name": "side-by-side-smoke.json",
+      "size": 411,
+      "digest": "sha256:adf0c7decf6080f7ad8e7a2b82b83b04f714af17d58c7cbe2625dcd8af8d9dc8"
+    },
+    {
+      "id": 750658198,
+      "name": "upgrade-baseline-smoke.json",
+      "size": 833,
+      "digest": "sha256:5c6365462b053d6a738eec334c290e160ae2e34bc23ef9d02cd536558a550e84"
+    },
+    {
+      "id": 750657897,
+      "name": "VN-code-1.6.10-history.bundle",
+      "size": 72808143,
+      "digest": "sha256:4da47c0c929022a8fbacb19630554b2169165cf024f6ebf1dd9a98cc30ec08f2"
+    },
+    {
+      "id": 750657776,
+      "name": "VN-code-1.6.10-source.zip",
+      "size": 66012566,
+      "digest": "sha256:5cad9f32c94dec31206e35786262990e3779720d9ede98900f0707e55640f93e"
+    },
+    {
+      "id": 750658007,
+      "name": "VN-code-1.6.10-verification.zip",
+      "size": 3350865,
+      "digest": "sha256:551483d3070321328e6b73c7b43e24c049d4d80dca754035a90d085f210bfde0"
+    },
+    {
+      "id": 750657113,
+      "name": "VN-code-1.6.10-Windows-x64.exe",
+      "size": 149539328,
+      "digest": "sha256:2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0"
+    },
+    {
+      "id": 750657282,
+      "name": "VN-code-1.6.10-Windows-x64.msi",
+      "size": 148870409,
+      "digest": "sha256:e12a5983a99d7665d36db0632bd6403301d5f2a658c5d73584d8bc14438d4fd0"
+    },
+    {
+      "id": 750657510,
+      "name": "VN-code-1.6.10-Windows-x64.sha256",
+      "size": 98,
+      "digest": "sha256:22872edeccba20c8d6433537b99839617b056bba294179eecffb3ac25bdb28f4"
+    },
+    {
+      "id": 750657560,
+      "name": "VN-code-1.6.10-Windows-x64.zip",
+      "size": 148459964,
+      "digest": "sha256:52b816753d7068069ce076f348b3187c4ecb5b6157453805d0c87daf1a5b4e6f"
+    }
+  ],
+  "observedAtUtc": "2026-11-16T12:11:54.365783+00:00",
+  "readOnly": true
+}

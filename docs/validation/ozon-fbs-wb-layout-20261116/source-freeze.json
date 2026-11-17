@@ -1,0 +1,15 @@
+{
+  "atUtc": "2026-11-16T15:10:39.663254+00:00",
+  "scope": "Final presentation source freeze; same source is being verified by native final22 suite.",
+  "files": {
+    "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java": "c1b3030d8a13d4f6bcd35db0147dcfb4332853b48dd72e1d04a6461fea21e8aa",
+    "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml": "35d39c4a08873999fbaa24e2891be2e14081c42cb18453f1a8db4635b125bab0",
+    "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java": "055fcdfecfe1e7cfb65b23b57fed69831ab5035c59696a7590210af13fe9479d",
+    "src/test/java/com/vncode/app/ui/ozon/OzonDashboardControllerTest.java": "a98adc00ab784b62868d9ad40b80e36022f663b5c199e3ab1fff7af8abcc0f16",
+    "src/test/java/com/vncode/app/ui/ozon/OzonWbPackingParityTest.java": "ad91c7814357089beb6bce6e6c2251b2d6a9567449eafe915f4fc8b3c5efa1a8",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "7e22b01ac4c85d127e4ebe6592334817dbb34188ea93b20b111de2bcd48431c3",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "88be94b8fbcddde4e197a6c4c54209164758e5731bfca7fff83733eedbf6ba12",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "8840d29be6f0f3073a9831f19c2390e57d50b3d4d5b7220b3ebe62133c600fb4",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "ccf51f90e5b4625e6861ddefc551f6d8cfac6d006cd45bdbf58d0993bc9c84b6"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "status": "PASS",
+  "files": [
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+      "beforeSha256": "21edcb5e99721615c6f849e350046657a21e25560a84e7a5ed3b3cccee58f289",
+      "afterSha256": "fe29853f884788dfcecee9dbcf7196d502c4ccb24c8c811510aceb2b8ff22939",
+      "assertionCallKindsAndOrderUnchanged": true,
+      "assertionCalls": 37,
+      "reason": "Complete legitimate synthetic original owner/healthy INTRODUCED response; preserve every assertion and all invalid readback payloads."
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "beforeSha256": "ae733467cdeda95f2ba06a5060d3f572c53c2b3d8bf6a953cd163cfcbd3be11e",
+      "afterSha256": "fdc9302fabe2f3d2929a8ebb7e4949dc020792a7684a388fad4e9cf28f816950",
+      "assertionCallKindsAndOrderUnchanged": true,
+      "assertionCalls": 239,
+      "reason": "Complete legitimate synthetic original owner/healthy INTRODUCED response; preserve every assertion and all invalid readback payloads."
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "beforeSha256": "4afc675150c1b2a8a53ffc59cca7fa682beb9557efc2772824fc8abc0339d112",
+      "afterSha256": "8e78c03fadf3f69648e9a6badb1ead511829a7f72905756728fdad052f3d4748",
+      "assertionCallKindsAndOrderUnchanged": true,
+      "assertionCalls": 386,
+      "reason": "Complete legitimate synthetic original owner/healthy INTRODUCED response; preserve every assertion and all invalid readback payloads."
+    }
+  ],
+  "legacyCisReadbackByteUnchanged": true,
+  "note": "Assertion kind/order audit plus manual diff; Module settings input inside assertions intentionally now has valid expected owner. No expected outcome, assertion, parameterized case or negative CIS response removed."
+}

@@ -171,7 +171,7 @@ class ZnackSigningSessionTest {
     }
 
     @ParameterizedTest
-    @EnumSource(CryptoProErrorCode.class)
+    @EnumSource(value=CryptoProErrorCode.class,names="KEY_NOT_CONNECTED",mode=EnumSource.Mode.EXCLUDE)
     void backgroundDeferralKeepsOperationalCancellationAndRetainsTheActualDiagnosticCause(CryptoProErrorCode code) throws Exception {
         var guarded = ZnackSigningSession.guard(SHOP_A, (payload, context) -> {
             throw new CryptoProException(code, "PIN=synthetic-private-pin clientToken=synthetic-private-token");

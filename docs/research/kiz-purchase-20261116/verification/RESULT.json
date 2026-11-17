@@ -1,0 +1,51 @@
+{
+  "status": "PASS",
+  "exitCode": 0,
+  "elapsedSeconds": 4.5868574760024785,
+  "counts": {
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCirculationPolicyTest",
+      "sha256": "5116525349faa4ebf2bd15c7922c230d0f15778db30ad17bc7410107db5ba398",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "everyNewPurchasePinsCirculationWithoutChangingTheGlobalPreference(boolean)[1]",
+        "everyNewPurchasePinsCirculationWithoutChangingTheGlobalPreference(boolean)[2]"
+      ]
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackSigningRecoveryTest",
+      "sha256": "47c079c43cc702d30afa1e5025114b07a8732fbc8dd57c40a5a631018f984f92",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "foregroundResumeKeepsPaidIdentityRawCodesAndConsumedInventory",
+        "pausedPaidReadinessDoesNotOpenSignerOrScheduleAutomaticRetries"
+      ]
+    }
+  ],
+  "preservation": {
+    "priorVerificationFiles": 7705,
+    "priorVerificationTreeUnchanged": true,
+    "currentSrcUnchanged": true,
+    "copiedSrcUnchanged": true,
+    "productionClassFilesUnchanged": true,
+    "testClassFilesUnchanged": true
+  },
+  "finishedAtUtc": "2026-11-16T20:22:13.908948+00:00",
+  "scope": "Only four existing synthetic local semantics cases on exact verified current compiled classes; not API paid purchase, CryptoPro, native Windows or app startup",
+  "sourceOrTestEdits": false,
+  "paidPurchase": false,
+  "realSigning": false,
+  "licenseActivation": false
+}

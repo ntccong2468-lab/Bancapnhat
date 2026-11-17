@@ -1,0 +1,22 @@
+{
+  "status": "PASS_WITH_VISUAL_LIMITATIONS",
+  "capturedAtUtc": "2026-11-16T15:27:11.666826+00:00",
+  "primaryPngCount": 24,
+  "allPrimaryImagesManuallyViewed": true,
+  "before26HashPreservation": "PASS",
+  "captureProcessExitCode": 0,
+  "jarSha256": "c84f7d94bc9c855a6a878aa01b45a02b1aa885b9e6fa51ad67b9eb33fac97782",
+  "scope": "Rendered production controls and Home-equivalent native shell composition from current JAR on Linux/Xvfb; synthetic24-product/order fixture; not Windows/customer screenshot or API acceptance.",
+  "requestedFbsMainBothThemesAndNarrow": "PASS",
+  "requestedFbsAll5TabsBothThemes": "PASS",
+  "popupDiagnostic": "White backing reproduced in unchanged WB; Xvfb TRANSPARENT_WINDOW=false; Windows rendering not verified",
+  "unchangedZnackNarrowFinding": "1200x720 wrapped toolbar/table overlap; source preserved",
+  "repositorySourceEdited": false,
+  "liveSellerMutations": false,
+  "paidPurchases": false,
+  "realSigningOrLicenseActivation": false,
+  "receipt": "capture-result.json",
+  "imageIndex": "image-index.json",
+  "beforePreservation": "before-preservation.json",
+  "popupReceipt": "popup-diagnostic/capture-result.json"
+}

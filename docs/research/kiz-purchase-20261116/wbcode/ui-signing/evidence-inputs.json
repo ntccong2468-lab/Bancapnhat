@@ -1,0 +1,42 @@
+{
+  "status": "READ_ONLY_STATIC_ANALYSIS",
+  "jarSha256": "d10efde1c0ef6e6f8cf3e850e1dd7615966b0aa1e83082181f6c8dd26380f1b6",
+  "binaryVersion": "1.3.26",
+  "files": {
+    "repository-javap.txt": "2678658a708b797afba148dadc4b1370d662088cbd5ded8f49ab54c65d265e36",
+    "home-controller-javap.txt": "61083b6f95e104a4229a13d713e91213e54edefefb52d67b2e1e731b41aa64a2",
+    "signing-session-javap.txt": "fe03ae78a59b34acfc2be48a9d6f1bbed000a0fc461d45e4c163aea6e2c5fa13",
+    "purchase-settings-javap.txt": "daf2fdc034f7ae61e3bc1b809ae4eb6e7ec2e0b9e353083a585633db851b5bee",
+    "settings-record-javap.txt": "778f1b7d0a51663e07fef1f5ee9ac9d66cf3496d8499ca557e2495bc2a102642",
+    "home-resume-selected-javap.txt": "aa5dc8d9f3479cf57e0e7ad5540fc7d580ceb50c0f72d68fc6fd999f1e118637",
+    "home-resume-all-javap.txt": "4d11a2946d84c2edefd86f813081b6c06741484998ff793ffbc93b288f9221eb",
+    "kiz-mapping-controller-javap.txt": "9f87fafa96ced0bf3a9e4cdbf22690d6f3d9a03028a8d48018a4f51aaf4644e4",
+    "automation-controller-javap.txt": "3a46422374dd65a97a71374af6b76fa4445d475691d1dbc8ec1ca84607d4c8ce",
+    "decompiled/com/tuandev/fbsbarcode/integration/znack/ZnackSigningSession.java": "b41fd61b16b8cc1c3b56c99f3f5da6730d651c52a75186790270a290d809c984",
+    "decompiled/com/tuandev/fbsbarcode/integration/znack/ZnackRepository.java": "d218d019068c8e5dfb78f11f083bff62f65e698a4226f51a7d6a0dec687a071f",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackSuzAuthDialogService.java": "393698d3773a9567cb9b1010f85397a86d4cb0267cdeb663621c0b5625d375ab",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackBalanceMonitor.java": "2d1e0d7c7cd3d9fd180483fba215590f5b56d6046dcd56c93c3ac3d642c02cf5",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackInfoFormat.java": "1ad0b7ae41899464d9287c3223551df522a38824a7b94e84e21e2814b22a101f",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackKizInventoryActionService.java": "3f425d930ed2b3d872135cd479a3f5b7c991daade7040b1d02b58a8cf8d3f971",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackMissingDocumentsDialogService.java": "6ab73a284c191dc8b55a282bd9c2c03e7dee5e12d98a4487622aa2fdcdfe065d",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackBalanceCache.java": "442979170bc1bb624f63b339232b5ff0889086947ba5fdb7d471679990a95473",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackAutomationController.java": "0af27368c62aa4910228e8ff6590400ab55b9bc17df279ad0c5ed95e6d0413d6",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackInsufficientFundsDialogService.java": "3fbf701e04eac502fb2a6ffc7c83175c9602395ccd9253f9384aad484b64ff8b",
+    "decompiled/com/tuandev/fbsbarcode/ui/znack/ZnackOperatorTermsDialogService.java": "0defa6b959dc3b16c1959e9e43d0202049176a19c450459e7d78aaa948b1d25c",
+    "decompiled/com/tuandev/fbsbarcode/ui/kizmapping/KizMappingController.java": "e0e7e1d430b41e2744264f69b491e514ead1cf475db1b52c2966bec9dae2f802"
+  },
+  "targetExecuted": false,
+  "sellerApiCalls": false,
+  "signing": false,
+  "licenseActivation": false,
+  "unitTestsRun": false,
+  "reportSha256": "aa03adffe145a017ce900d577e1bb6df8e0dc30ff08d8a7d060f292b870cd19e",
+  "confirmedFacts": {
+    "autoIntroductionForcedTrueAtEmptyLoadSaveUi": true,
+    "buyDialogQuantityOnlyNoAutoIntroCheckbox": true,
+    "sameWaitingMessageAsVnCode": true,
+    "startupCanAuthorizeAllVerifiedUnpausedWbOzonShops": true,
+    "explicitSelectionAuthorizesAndResumes": true,
+    "completedAndIntroducedLabelsDistinct": true
+  }
+}

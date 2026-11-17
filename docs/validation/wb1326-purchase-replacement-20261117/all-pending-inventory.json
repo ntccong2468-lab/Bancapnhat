@@ -1,0 +1,3474 @@
+{
+  "status": "ALL_PENDING_SOURCE_INVENTORY",
+  "atUtc": "2026-11-17T14:31:49.980538+00:00",
+  "head": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "branch": "feature/ozon-znack-order-kiz-20261116",
+  "baselineFileCount": 3947,
+  "baselineMissing": [],
+  "baselineByteUnchanged": 3892,
+  "baselineModified": 55,
+  "gitVisibleSourceFiles": 4026,
+  "allPendingPaths": 384,
+  "preexistingPendingPathsAtTaskStart": 270,
+  "sourceVersion": "1.6.10-unreleased-working-tree",
+  "selfExcludedFromHashAndSize": "docs/validation/wb1326-purchase-replacement-20261117/all-pending-inventory.json",
+  "files": [
+    {
+      "path": ".agents/skills/vncode-ecc-review/SKILL.md",
+      "sha256": "61ba59aaa999ca3f68329e087d36be6057aa19fc2484512f004a2c0093a9a8db",
+      "bytes": 2845,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "61ba59aaa999ca3f68329e087d36be6057aa19fc2484512f004a2c0093a9a8db"
+    },
+    {
+      "path": ".agents/skills/vncode-ecc-security/SKILL.md",
+      "sha256": "9b4eed602db7f1ea7080f00e652b772af38463f35ad4a92f77c6009ad7a60c09",
+      "bytes": 2865,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "9b4eed602db7f1ea7080f00e652b772af38463f35ad4a92f77c6009ad7a60c09"
+    },
+    {
+      "path": ".agents/skills/vncode-ecc-tdd-verification/SKILL.md",
+      "sha256": "e8641624ceafdb21d400a8334bbfa7d02e52600c6818ffc01187190d47bd99e8",
+      "bytes": 2963,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e8641624ceafdb21d400a8334bbfa7d02e52600c6818ffc01187190d47bd99e8"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "571ac5bdce9bc3d450cd96a929258ec262fe19de6b890b873dc32092020d46da",
+      "bytes": 4179,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "571ac5bdce9bc3d450cd96a929258ec262fe19de6b890b873dc32092020d46da"
+    },
+    {
+      "path": "docs/PROJECT_MEMORY.md",
+      "sha256": "81518b1111672b7b3f3aba4cfc769fd4bc6a49e488e6acb6724603d76cd45b5c",
+      "bytes": 228565,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "3ccb9234e1db3079befcd75760b7fe3d8fe152627d8922e31d96f35777108895"
+    },
+    {
+      "path": "docs/engineering/ecc/LICENSE.upstream.txt",
+      "sha256": "326146379f01bb137c0a5d3c54770c1aa31076705c8b88a7f6b26a460f6221b2",
+      "bytes": 1071,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "326146379f01bb137c0a5d3c54770c1aa31076705c8b88a7f6b26a460f6221b2"
+    },
+    {
+      "path": "docs/engineering/ecc/README.md",
+      "sha256": "cb6a5efa79c05adcab8c7aca467839f11457f82a0ef34284328f23a0f1f26021",
+      "bytes": 7596,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "cb6a5efa79c05adcab8c7aca467839f11457f82a0ef34284328f23a0f1f26021"
+    },
+    {
+      "path": "docs/engineering/ecc/integration-manifest.json",
+      "sha256": "92221f39410af5a92db1dab3c339a49f66fb35c1d10666a0ac80ff25348912fb",
+      "bytes": 8608,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "92221f39410af5a92db1dab3c339a49f66fb35c1d10666a0ac80ff25348912fb"
+    },
+    {
+      "path": "docs/engineering/ecc/review.md",
+      "sha256": "bb64d97a0228a8a8b70d72fcc2549a55830912b74e3ac3232422f0b363647800",
+      "bytes": 4505,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "bb64d97a0228a8a8b70d72fcc2549a55830912b74e3ac3232422f0b363647800"
+    },
+    {
+      "path": "docs/engineering/ecc/security.md",
+      "sha256": "b2c393fa04511a2aa639c3181ebe56a4f19a1d21ee04549d6be79117d46655aa",
+      "bytes": 3962,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "b2c393fa04511a2aa639c3181ebe56a4f19a1d21ee04549d6be79117d46655aa"
+    },
+    {
+      "path": "docs/engineering/ecc/verification.md",
+      "sha256": "7d3c02799b314c16a2c816ae8833d6d614b11d0df5c304f3c619af502edb1efd",
+      "bytes": 5140,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "7d3c02799b314c16a2c816ae8833d6d614b11d0df5c304f3c619af502edb1efd"
+    },
+    {
+      "path": "docs/memory/CURRENT.md",
+      "sha256": "50f06f3a5fc2eac3914d4ab63e95a8866fc5b58add23c4926f13aa3bf5dabb31",
+      "bytes": 67904,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "7d605d81f906d153fec567a6f5533514a98a4c1442a69aa0d5b13c47d8970dbb"
+    },
+    {
+      "path": "docs/memory/README.md",
+      "sha256": "c6234d2391f3e5e95f585a19aa1b96cd50684e516b3bedb8a60d682164dcf69c",
+      "bytes": 20137,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "27539dfd5bae5e1c655a69a16a1054867a743cf2fa8b9c7b0e488c73e23e6c4e"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/REPORT.md",
+      "sha256": "b69323431af697f813701ae0789346fd6d0d010c40a4e71ffe19f02458fbd2e3",
+      "bytes": 14986,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "b69323431af697f813701ae0789346fd6d0d010c40a4e71ffe19f02458fbd2e3"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/current/CURRENT-AUDIT.md",
+      "sha256": "e665d57e82fc6b58c5d235ff925eb0a04291d5b9273853a507ad4e353fd4a01e",
+      "bytes": 13892,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e665d57e82fc6b58c5d235ff925eb0a04291d5b9273853a507ad4e353fd4a01e"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/current/SOURCE-COMPARISON.json",
+      "sha256": "a97e1d9d587d4df2af4881ed9cad52ad3d9643b2065c40418c873fca3bec8ea3",
+      "bytes": 12092,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "a97e1d9d587d4df2af4881ed9cad52ad3d9643b2065c40418c873fca3bec8ea3"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/diagrams/vn-comparison-summary.mmd",
+      "sha256": "c042676197fc1ef2c53fc8a125477774e9baf05ca9fa20112735ddfe335792e7",
+      "bytes": 1385,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c042676197fc1ef2c53fc8a125477774e9baf05ca9fa20112735ddfe335792e7"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/diagrams/vn-current-full.mmd",
+      "sha256": "4aa6ae08309c611e71bac17848375ad72987779ee3998c2f37e55dca627bc45f",
+      "bytes": 2352,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "4aa6ae08309c611e71bac17848375ad72987779ee3998c2f37e55dca627bc45f"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/diagrams/vn-signing-pause-resume.mmd",
+      "sha256": "d59e3505df804d5db9f9815cabcfd2ca8b4ce3f7cf3b3fd70509aad6d43fafd1",
+      "bytes": 1394,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "d59e3505df804d5db9f9815cabcfd2ca8b4ce3f7cf3b3fd70509aad6d43fafd1"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/diagrams/wbcode-full.mmd",
+      "sha256": "8a582cf8d91ed3628a2dd203d69bd8d20b53ffd1d946bec00f05a375376cc20b",
+      "bytes": 2280,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "8a582cf8d91ed3628a2dd203d69bd8d20b53ffd1d946bec00f05a375376cc20b"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/diagrams/wbcode-signing.mmd",
+      "sha256": "0cd3bc345bfc638d0d48654c7312fb9217a105a81e2877e495abeb3f151ab62b",
+      "bytes": 1103,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "0cd3bc345bfc638d0d48654c7312fb9217a105a81e2877e495abeb3f151ab62b"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/diagrams/wbcode-summary.mmd",
+      "sha256": "ee204d57e8ab78b3f66f226aa6b4e7abe0b58714dc10ad1a37c1c97842e33c41",
+      "bytes": 1654,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "ee204d57e8ab78b3f66f226aa6b4e7abe0b58714dc10ad1a37c1c97842e33c41"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/latest-public/VERSION-RECEIPT.json",
+      "sha256": "8f2856f6641a1460225651862e200a1eb246b7ed444f9a3b521837c8d3654b17",
+      "bytes": 1738,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "8f2856f6641a1460225651862e200a1eb246b7ed444f9a3b521837c8d3654b17"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/latest-public/purchase-source-proof.json",
+      "sha256": "925facecd51c729cc8c408e2a94f10c75d078356fbe95d08948b9daa3be9f4e0",
+      "bytes": 3407,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "925facecd51c729cc8c408e2a94f10c75d078356fbe95d08948b9daa3be9f4e0"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/preservation.json",
+      "sha256": "1366f6a791e8cfd6d47c8d5bf6aa617e0c258f4aee70632d8c726824e96875cb",
+      "bytes": 3616,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1366f6a791e8cfd6d47c8d5bf6aa617e0c258f4aee70632d8c726824e96875cb"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/validation.json",
+      "sha256": "e99649adccece88b34a78863c2816e7538d57a2c8a8bb7acaaebbf9543226c06",
+      "bytes": 494,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e99649adccece88b34a78863c2816e7538d57a2c8a8bb7acaaebbf9543226c06"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/verification/README.md",
+      "sha256": "e9de215449ccab076bf3fdd0de44fa4a05969e7b9c64a3230be541bee0a5be2c",
+      "bytes": 3879,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e9de215449ccab076bf3fdd0de44fa4a05969e7b9c64a3230be541bee0a5be2c"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/verification/RESULT.json",
+      "sha256": "4d8dfa91437c4439d5eb6f8a7107dcf5c5ef9104e2e58a72776dfa54c0656ece",
+      "bytes": 1647,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "4d8dfa91437c4439d5eb6f8a7107dcf5c5ef9104e2e58a72776dfa54c0656ece"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/verification/command.json",
+      "sha256": "eec1a2daf625eb112d5fbaaedd736c6f861ef895335aa2a98e74e662f984242e",
+      "bytes": 1325,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "eec1a2daf625eb112d5fbaaedd736c6f861ef895335aa2a98e74e662f984242e"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/verification/input-proof.json",
+      "sha256": "bb4a585098f3d6eae09abfdcf76fe0e0ccb1004eb41791ce000012be18900760",
+      "bytes": 215684,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "bb4a585098f3d6eae09abfdcf76fe0e0ccb1004eb41791ce000012be18900760"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/verification/run.log",
+      "sha256": "e4a9b480e198297d12c8418add715b59bf6b44a50dc493774b55ee23b1ae35ba",
+      "bytes": 3802,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e4a9b480e198297d12c8418add715b59bf6b44a50dc493774b55ee23b1ae35ba"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/versions.json",
+      "sha256": "fc00fe8a3d4a343dde8d92ad82244f8516e7e2b526da0a2972630eaad8d47607",
+      "bytes": 1606,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "fc00fe8a3d4a343dde8d92ad82244f8516e7e2b526da0a2972630eaad8d47607"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/FINAL-RECEIPT.json",
+      "sha256": "93b664e19166860bec1f726ee22088da8e5c4f394e7b7df5ce33baed02bac66b",
+      "bytes": 816,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "93b664e19166860bec1f726ee22088da8e5c4f394e7b7df5ce33baed02bac66b"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/REPORT.md",
+      "sha256": "7d7407880d271565b28f18581e2b3af49bde57da8914b945d2b003859630a3e5",
+      "bytes": 10738,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "7d7407880d271565b28f18581e2b3af49bde57da8914b945d2b003859630a3e5"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/STATIC-CHECKS.json",
+      "sha256": "e7a422665300c7f2afdabd6fe03ce18ac7cd9834adda52e7c1a19f00376734f9",
+      "bytes": 373,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e7a422665300c7f2afdabd6fe03ce18ac7cd9834adda52e7c1a19f00376734f9"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/THREE-WAY-FILE-COMPARISON.json",
+      "sha256": "ed65d7198b0f2b1945877b115c98e861699697b65b513b0fb6565851f408af41",
+      "bytes": 5903,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "ed65d7198b0f2b1945877b115c98e861699697b65b513b0fb6565851f408af41"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/VERSION-RECEIPT.json",
+      "sha256": "1bfe8c784d6e2d1ba481a99bccfdf903d8afe897b687a751fca1fea3d4527636",
+      "bytes": 1877,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1bfe8c784d6e2d1ba481a99bccfdf903d8afe897b687a751fca1fea3d4527636"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/bancapnhat-version-api-checks.json",
+      "sha256": "f2d800e70e4ea8f988898868a6edd02c72fb555663d33ba8fa7b419e90e35d2d",
+      "bytes": 16907,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f2d800e70e4ea8f988898868a6edd02c72fb555663d33ba8fa7b419e90e35d2d"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/linked-repo-README.md",
+      "sha256": "69cdfd4bf4f67e4fa263ecbba6d70e0719fcde8e5047ce83aea107bfb540be6c",
+      "bytes": 3492,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "69cdfd4bf4f67e4fa263ecbba6d70e0719fcde8e5047ce83aea107bfb540be6c"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/purchase-v130-vs-public-latest.mmd",
+      "sha256": "6fd822c0fb2a876418cc4a478f9ada64f7a5d1a6b0115c28d150585608a0d332",
+      "bytes": 1328,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "6fd822c0fb2a876418cc4a478f9ada64f7a5d1a6b0115c28d150585608a0d332"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/purchase-v130.mmd",
+      "sha256": "6b154b876ba41aba987a655e575d5c11ca4f993a38dc057bdb58df72563e5113",
+      "bytes": 1525,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "6b154b876ba41aba987a655e575d5c11ca4f993a38dc057bdb58df72563e5113"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/vn130/remote-tags.txt",
+      "sha256": "5a4c9d4b58a8ae3c8f69b01943e7ab464f917118e40d6a29bfd4441f02a0dce1",
+      "bytes": 68,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "5a4c9d4b58a8ae3c8f69b01943e7ab464f917118e40d6a29bfd4441f02a0dce1"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/REPORT.md",
+      "sha256": "270fffdf369d59b3cfb99a5f91d788ea9995b160c9eec9e32211a80010b0438e",
+      "bytes": 16247,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "270fffdf369d59b3cfb99a5f91d788ea9995b160c9eec9e32211a80010b0438e"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/cfr-provenance.json",
+      "sha256": "35fdbe8bcbe8424ffda72ffd2112af91863c6ab2e36388f82b19f459401dfaa9",
+      "bytes": 402,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "35fdbe8bcbe8424ffda72ffd2112af91863c6ab2e36388f82b19f459401dfaa9"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/download-verification.json",
+      "sha256": "6d8a39539f2042c67cae4503ed5079284eee7241329c19741918be136ea97dff",
+      "bytes": 928,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "6d8a39539f2042c67cae4503ed5079284eee7241329c19741918be136ea97dff"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/extraction-provenance.json",
+      "sha256": "45952b58cc330cec32c9a1e125240147bc848f5252bf9edc9966608f30c8b02e",
+      "bytes": 467,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "45952b58cc330cec32c9a1e125240147bc848f5252bf9edc9966608f30c8b02e"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/extractor-provenance.json",
+      "sha256": "a867cdc224d9d64a438c8a8ec013e0e5bf906e6d93d344c9786c2dda35dd6bb5",
+      "bytes": 417,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "a867cdc224d9d64a438c8a8ec013e0e5bf906e6d93d344c9786c2dda35dd6bb5"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/javap/provenance.json",
+      "sha256": "15935c9556d54ada837f7a3a18dceb28e2b7abb3ae82073adad2d69027e41677",
+      "bytes": 1337,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "15935c9556d54ada837f7a3a18dceb28e2b7abb3ae82073adad2d69027e41677"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/observations.json",
+      "sha256": "0fefcdf30eb837bbe5861370d573c271eff9f8486d0e600aa75bce51b2773e25",
+      "bytes": 4776,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "0fefcdf30eb837bbe5861370d573c271eff9f8486d0e600aa75bce51b2773e25"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/report-integrity.json",
+      "sha256": "1c5f7ba835bf1942d237b79f754cf1fbaf464cffe869ecb628883fed896d1332",
+      "bytes": 699,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1c5f7ba835bf1942d237b79f754cf1fbaf464cffe869ecb628883fed896d1332"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/ui-signing/REPORT.md",
+      "sha256": "aa03adffe145a017ce900d577e1bb6df8e0dc30ff08d8a7d060f292b870cd19e",
+      "bytes": 7018,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "aa03adffe145a017ce900d577e1bb6df8e0dc30ff08d8a7d060f292b870cd19e"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/ui-signing/evidence-inputs.json",
+      "sha256": "8d9f2199faa0ea34d4600bf289c29ceff576fd0f28a39dfca4fc6e5c78bf22af",
+      "bytes": 3449,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "8d9f2199faa0ea34d4600bf289c29ceff576fd0f28a39dfca4fc6e5c78bf22af"
+    },
+    {
+      "path": "docs/research/kiz-purchase-20261116/wbcode/ui-signing/home-resume-all-javap.txt",
+      "sha256": "4d11a2946d84c2edefd86f813081b6c06741484998ff793ffbc93b288f9221eb",
+      "bytes": 6957,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "4d11a2946d84c2edefd86f813081b6c06741484998ff793ffbc93b288f9221eb"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/REPORT.md",
+      "sha256": "195f2f7903ddd651125315a5a71f1db6862041b05a43c869e49b6538e5b86ec0",
+      "bytes": 10422,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "195f2f7903ddd651125315a5a71f1db6862041b05a43c869e49b6538e5b86ec0"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/behavior-review.md",
+      "sha256": "2a33eb21e46a9f2319eb6e283f2d88784d13c719e3f9c7ea3d594b4058f6fece",
+      "bytes": 9320,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2a33eb21e46a9f2319eb6e283f2d88784d13c719e3f9c7ea3d594b4058f6fece"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/current-launcher-receipt.json",
+      "sha256": "2f373521d0941d50f5ea1043b63c7b4c34cc8c4b0bfbc1b76a51bf4c7966061d",
+      "bytes": 1434,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2f373521d0941d50f5ea1043b63c7b4c34cc8c4b0bfbc1b76a51bf4c7966061d"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/current-launcher-smoke.json",
+      "sha256": "06c2cd23ec27525d33a3ef76d55322ea44e0e2de06bad55ad45c276bc4f3a06e",
+      "bytes": 600,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "06c2cd23ec27525d33a3ef76d55322ea44e0e2de06bad55ad45c276bc4f3a06e"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/file-inventory.json",
+      "sha256": "2831b51e1b34eb494e013756b4c711b61eb3667eaea6c9a1e818d06deffec1c9",
+      "bytes": 6818,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2831b51e1b34eb494e013756b4c711b61eb3667eaea6c9a1e818d06deffec1c9"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/final-current-build-input-proof.json",
+      "sha256": "6226ee7619ee1cbb6bc859ed617ebaf1a02c65e8c5a97372a20e4877c8157e73",
+      "bytes": 432,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "6226ee7619ee1cbb6bc859ed617ebaf1a02c65e8c5a97372a20e4877c8157e73"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/focused-result.json",
+      "sha256": "52b9ea282abae423c0623a17975299d613cdef342499d46c619e8918c2888241",
+      "bytes": 8494,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "52b9ea282abae423c0623a17975299d613cdef342499d46c619e8918c2888241"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/full-result.json",
+      "sha256": "596c4fdc86dd98d313e9cce87c506e07a38766955a65f89488b8d54f5f9947cc",
+      "bytes": 167186,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "596c4fdc86dd98d313e9cce87c506e07a38766955a65f89488b8d54f5f9947cc"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/receipt.json",
+      "sha256": "a4b2fbf22778da7086e9d7e45329b797487146f7309a4ceaceb705c817168257",
+      "bytes": 9638,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "a4b2fbf22778da7086e9d7e45329b797487146f7309a4ceaceb705c817168257"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/scope-preservation.json",
+      "sha256": "bf5ab1685d052829f8206523ba8265509bb1ced3dba077e87b50183a8bfeb5fc",
+      "bytes": 2689,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "bf5ab1685d052829f8206523ba8265509bb1ced3dba077e87b50183a8bfeb5fc"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/ui-review.md",
+      "sha256": "fe751742b84b5ecf7bde805c27fa091c9514a05db2fffe3aaf389a66595e2803",
+      "bytes": 8761,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "fe751742b84b5ecf7bde805c27fa091c9514a05db2fffe3aaf389a66595e2803"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/validator-independent-review.json",
+      "sha256": "7e9ce76ae944f9503e7e18d4f53e3ee39a9f7205b1e3a645ace41b505c85db63",
+      "bytes": 7084,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "7e9ce76ae944f9503e7e18d4f53e3ee39a9f7205b1e3a645ace41b505c85db63"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/znack-empty-after.png",
+      "sha256": "2e37ae3004b4ce46ef5b15c7b3675c61fb40c5052fd345b25f9ff394d8dffe6a",
+      "bytes": 200967,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2e37ae3004b4ce46ef5b15c7b3675c61fb40c5052fd345b25f9ff394d8dffe6a"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/znack-empty-before.png",
+      "sha256": "a7f2cf417491df03fa6ffa0cb2b8616a275f74fd94d66ecbf2c3134d93ed2919",
+      "bytes": 203337,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "a7f2cf417491df03fa6ffa0cb2b8616a275f74fd94d66ecbf2c3134d93ed2919"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/FINAL-RECEIPT.json",
+      "sha256": "6260289198a5dac220090ea552fbe977aeb32103d169108e2757884a052acf68",
+      "bytes": 5070,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "6260289198a5dac220090ea552fbe977aeb32103d169108e2757884a052acf68"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/REPORT.md",
+      "sha256": "cc7670fe498babb7007c0a5672c850ae278285401414f695bf7adf671ecad54a",
+      "bytes": 12707,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "cc7670fe498babb7007c0a5672c850ae278285401414f695bf7adf671ecad54a"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/baseline-backup.json",
+      "sha256": "881f62e60a0d0693e1f9d7132ad31419f840fdbf3a677718753fd32038a3b47d",
+      "bytes": 288,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "881f62e60a0d0693e1f9d7132ad31419f840fdbf3a677718753fd32038a3b47d"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/circulation-fixtures.json",
+      "sha256": "8cdea8d7ef05a6030be681f58b2aafc1fb747a9adc31523a97010a4b037cf6ab",
+      "bytes": 1855,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "8cdea8d7ef05a6030be681f58b2aafc1fb747a9adc31523a97010a4b037cf6ab"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/circulation-implementation.md",
+      "sha256": "4ec5b91808820489462fec5a6eb166bac033531c1ce544c9c275df3c3aa23039",
+      "bytes": 3775,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "4ec5b91808820489462fec5a6eb166bac033531c1ce544c9c275df3c3aa23039"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/circulation-result.json",
+      "sha256": "87a3ac4c96fa4acf15c6ae8bc408fe3d59fc0dc922ff285c4d09bc1b6b22e159",
+      "bytes": 3939,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "87a3ac4c96fa4acf15c6ae8bc408fe3d59fc0dc922ff285c4d09bc1b6b22e159"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/combined-result.json",
+      "sha256": "866820dae7db9d0a4be90850efa180bbc715e9c82e2b206dd816a51fdd564060",
+      "bytes": 41049,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "866820dae7db9d0a4be90850efa180bbc715e9c82e2b206dd816a51fdd564060"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/download-result.json",
+      "sha256": "2d37c7eb4c5e0d80e7bbf502c2c36a33365ff7bf50a81a10129cd765163bd969",
+      "bytes": 1524,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2d37c7eb4c5e0d80e7bbf502c2c36a33365ff7bf50a81a10129cd765163bd969"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/fbs-resume-implementation.md",
+      "sha256": "a756964a670dc403fd491b16f6639208921e7d4c36955819fd432385e349edef",
+      "bytes": 3963,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "a756964a670dc403fd491b16f6639208921e7d4c36955819fd432385e349edef"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/fbs-resume-result.json",
+      "sha256": "c303edafb412a99ad3c111f272c7b28168d05c1ac8cbca1e9e2098ba3bc15a1b",
+      "bytes": 4795,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c303edafb412a99ad3c111f272c7b28168d05c1ac8cbca1e9e2098ba3bc15a1b"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/handoff-integrity.json",
+      "sha256": "815013ee6c71cded3e9dd23861cafde87953e7c2dffb979c31848bd1c05c350c",
+      "bytes": 14822,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "815013ee6c71cded3e9dd23861cafde87953e7c2dffb979c31848bd1c05c350c"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/independent-artifact-review.json",
+      "sha256": "3adb39658f2388436460dfd50abc115789e419956cd5b89b6358fdaf0469355e",
+      "bytes": 12595,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3adb39658f2388436460dfd50abc115789e419956cd5b89b6358fdaf0469355e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/independent-review.json",
+      "sha256": "f0fd50d00745556331c9f0303cb503956469bafe7901eee71e373b2a22648b9e",
+      "bytes": 21549,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f0fd50d00745556331c9f0303cb503956469bafe7901eee71e373b2a22648b9e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/independent-review.md",
+      "sha256": "6c4fb322ea070ece48b655ec501b71f7321f0bc50398983ac8814f65313dc9e3",
+      "bytes": 6941,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "6c4fb322ea070ece48b655ec501b71f7321f0bc50398983ac8814f65313dc9e3"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/jar-integrity.json",
+      "sha256": "f1ef05a6214e9b8fccb93fbacb59b499bd90a1cb01073ab30430b24f34b0fa0e",
+      "bytes": 8606,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f1ef05a6214e9b8fccb93fbacb59b499bd90a1cb01073ab30430b24f34b0fa0e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/launcher-result.json",
+      "sha256": "ba6b0b6b760385d0d77d322769f4643980474afe0a5f09e90c8c9209bbf39090",
+      "bytes": 1326,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "ba6b0b6b760385d0d77d322769f4643980474afe0a5f09e90c8c9209bbf39090"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/REPORT.md",
+      "sha256": "565200ee6a8ea65d632776fccea60dcc1a306111d6f6ceadbf2b68170948280e",
+      "bytes": 11647,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "565200ee6a8ea65d632776fccea60dcc1a306111d6f6ceadbf2b68170948280e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/first-release-build-info.json",
+      "sha256": "5670efe976ddcdf609e766a6e220740ac38370a2dcf914c0596a89c2ae226bc7",
+      "bytes": 1125,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "5670efe976ddcdf609e766a6e220740ac38370a2dcf914c0596a89c2ae226bc7"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/latest-public-release.json",
+      "sha256": "0026cc5911c7abc5db2c7034d8155eb7aea45e8621280ad3bed3cc18ee92221f",
+      "bytes": 3435,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "0026cc5911c7abc5db2c7034d8155eb7aea45e8621280ad3bed3cc18ee92221f"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/purchase-source-comparison.json",
+      "sha256": "955dd1dd8aebcfc843ff013c8802715ef3a34f548052796067ac69b8626b8897",
+      "bytes": 5267,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "955dd1dd8aebcfc843ff013c8802715ef3a34f548052796067ac69b8626b8897"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/release-provenance.json",
+      "sha256": "f725219d910e4e42599b5df8fd2306b8461fd3317582074a8ae35f73ac9699a8",
+      "bytes": 2120,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f725219d910e4e42599b5df8fd2306b8461fd3317582074a8ae35f73ac9699a8"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/original/suz-issuance-contract.json",
+      "sha256": "d58a982a230984f53bd25f1e83fd8c8b789fcad901853d58f4a8c75e0e56c622",
+      "bytes": 3060,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "d58a982a230984f53bd25f1e83fd8c8b789fcad901853d58f4a8c75e0e56c622"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/pause-result.json",
+      "sha256": "c4b6c2a40b82e4e6759c2362f4a8caffcdca7e68035c1e359cc718b1459ac69f",
+      "bytes": 3210,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c4b6c2a40b82e4e6759c2362f4a8caffcdca7e68035c1e359cc718b1459ac69f"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/red-evidence-index.json",
+      "sha256": "383afd5c12dc5288fcb2b8b2ac06df0fa29368cb882f170abe7f7bb49b0c8a46",
+      "bytes": 6672,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "383afd5c12dc5288fcb2b8b2ac06df0fa29368cb882f170abe7f7bb49b0c8a46"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/shared-implementation.md",
+      "sha256": "c447d2156b0224833ded87e24d0d0897b53c0f6c5679b56612caa48192e57373",
+      "bytes": 6763,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c447d2156b0224833ded87e24d0d0897b53c0f6c5679b56612caa48192e57373"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/shared-source-sha256.json",
+      "sha256": "d9359c67f21f685b5239317786e1d5ba9ed22fc56b5729bb13d18247134bf6b9",
+      "bytes": 2116,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "d9359c67f21f685b5239317786e1d5ba9ed22fc56b5729bb13d18247134bf6b9"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/source-delta.json",
+      "sha256": "79d427b544db7f8360726dfffd284573493d85c8160616a7bde921d37c5b1b9d",
+      "bytes": 7295,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "79d427b544db7f8360726dfffd284573493d85c8160616a7bde921d37c5b1b9d"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/source-freeze.json",
+      "sha256": "159ecd923f80a88e6581f96d9ddd4685c88b8c3a3826de81bf8a70586167354f",
+      "bytes": 4188,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "159ecd923f80a88e6581f96d9ddd4685c88b8c3a3826de81bf8a70586167354f"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/summary-implementation.md",
+      "sha256": "f5a93b5d66faf6269be64cbb73264453d58b198d38258ec79a02b0ded1c0d620",
+      "bytes": 5187,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f5a93b5d66faf6269be64cbb73264453d58b198d38258ec79a02b0ded1c0d620"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/summary-result.json",
+      "sha256": "7a968a1226aa48c15da9fb513b162ccab6c53dffe77d8a8254b95b41e5483475",
+      "bytes": 3446,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "7a968a1226aa48c15da9fb513b162ccab6c53dffe77d8a8254b95b41e5483475"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/unknown-download-implementation.md",
+      "sha256": "e440dbb05add6a0edf47b57f1c146d43f8451211d7a33a386514f1255b68a56e",
+      "bytes": 2568,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e440dbb05add6a0edf47b57f1c146d43f8451211d7a33a386514f1255b68a56e"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/unknown-download-result.json",
+      "sha256": "8e4bf1ccc3b0f3b6624b2aa04dfedc9aa6c69dd15f00193819532d2e9514c9fd",
+      "bytes": 1392,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "8e4bf1ccc3b0f3b6624b2aa04dfedc9aa6c69dd15f00193819532d2e9514c9fd"
+    },
+    {
+      "path": "docs/validation/kiz-first-public-20261116/verification-command.json",
+      "sha256": "fbfbf47edbcd66592961b0cadb77cf39fd9fc8d7ace96203f8743523b5c2b823",
+      "bytes": 5196,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "fbfbf47edbcd66592961b0cadb77cf39fd9fc8d7ace96203f8743523b5c2b823"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/FINAL-RECEIPT-final.json",
+      "sha256": "70f68be47c680e8dc04574715517c1ae739475c6961bb66932813770649a146a",
+      "bytes": 5196,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "70f68be47c680e8dc04574715517c1ae739475c6961bb66932813770649a146a"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/FINAL-RECEIPT.json",
+      "sha256": "ce83a16071e9dead1e9e9955292affd09b7af80487a7452d2de02511a5f32b3c",
+      "bytes": 4819,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "ce83a16071e9dead1e9e9955292affd09b7af80487a7452d2de02511a5f32b3c"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/REPORT.md",
+      "sha256": "dc5001347ec3266f092dea6666d6d7878183bdc576553acf3c9895b974db7171",
+      "bytes": 10968,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "dc5001347ec3266f092dea6666d6d7878183bdc576553acf3c9895b974db7171"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/absolute-geometry-final.json",
+      "sha256": "c71755abd88bfce2d2867bdc48b690b4d23411a6275ee248cf2a120373ce6db3",
+      "bytes": 164780,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c71755abd88bfce2d2867bdc48b690b4d23411a6275ee248cf2a120373ce6db3"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/after-capture-summary.json",
+      "sha256": "7086d7f4e87834c27bdf6975c76c3c9663325ec0180557c7555daf78e01f6f78",
+      "bytes": 1159,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "7086d7f4e87834c27bdf6975c76c3c9663325ec0180557c7555daf78e01f6f78"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/after-capture.json",
+      "sha256": "f08f6bb50e27168fcbd1b4243daeb7fe24f8c8344340627c0ec5fe592e82807a",
+      "bytes": 82505,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f08f6bb50e27168fcbd1b4243daeb7fe24f8c8344340627c0ec5fe592e82807a"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/after-image-index.json",
+      "sha256": "2d0eb7164464b218c9c2b20af889a5788c97e2df9d399c558d062b12e1c4e436",
+      "bytes": 8955,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2d0eb7164464b218c9c2b20af889a5788c97e2df9d399c558d062b12e1c4e436"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/baseline-backup.json",
+      "sha256": "0e01f1342b76b194c913916c1a59e02b13caf59b09c4f26a39e60d00bb313605",
+      "bytes": 296,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "0e01f1342b76b194c913916c1a59e02b13caf59b09c4f26a39e60d00bb313605"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/before-capture-preservation.json",
+      "sha256": "79c12e87ee37feda2858b9c088cc9f09fa0aac882d8ab98ba50d84e02f84cd01",
+      "bytes": 8475,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "79c12e87ee37feda2858b9c088cc9f09fa0aac882d8ab98ba50d84e02f84cd01"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/before-capture-summary.json",
+      "sha256": "04fec491c9fdf62c0665de85997fa90c516c8ae8a05b037520356d7f95741094",
+      "bytes": 570,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "04fec491c9fdf62c0665de85997fa90c516c8ae8a05b037520356d7f95741094"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/before-capture.json",
+      "sha256": "27a6a9f661e317c2f9fd0e7d191cb439486e22677992e45740e2216343ce95f2",
+      "bytes": 3658,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "27a6a9f661e317c2f9fd0e7d191cb439486e22677992e45740e2216343ce95f2"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/combined-result-final.json",
+      "sha256": "3c73b32972fce20ae4b39f65f12090981f9dc1604dbae81df62110cbf511a50d",
+      "bytes": 18106,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3c73b32972fce20ae4b39f65f12090981f9dc1604dbae81df62110cbf511a50d"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/combined-result.json",
+      "sha256": "1750ae857b7052476a91c86e62edc4f53c53229abc00faa296078f859908e356",
+      "bytes": 18108,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1750ae857b7052476a91c86e62edc4f53c53229abc00faa296078f859908e356"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/final-capture-summary.json",
+      "sha256": "22b089b02f34421bba5bab0442fbb1d36c194865c9dfdddb1d244997d531b2ae",
+      "bytes": 1367,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "22b089b02f34421bba5bab0442fbb1d36c194865c9dfdddb1d244997d531b2ae"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/final-capture.json",
+      "sha256": "79173204963bc76bfb0739288ee3a0a2b2083a3acb8448509a9bc4b284efe784",
+      "bytes": 82803,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "79173204963bc76bfb0739288ee3a0a2b2083a3acb8448509a9bc4b284efe784"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/final-image-index.json",
+      "sha256": "f286eed98896666a3933509fb899f295d5e7d7637a3a32dcefcf7d9aa8a726e8",
+      "bytes": 9551,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f286eed98896666a3933509fb899f295d5e7d7637a3a32dcefcf7d9aa8a726e8"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/final-visual-check.md",
+      "sha256": "1831de1d9e782027d351ba0729e76a3a32db557351b0f18315c37aba49bd1441",
+      "bytes": 1849,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1831de1d9e782027d351ba0729e76a3a32db557351b0f18315c37aba49bd1441"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/focused-ui-result-final.json",
+      "sha256": "62ad50974747159f17d4c44d2d6e249f72ce6030fc379b7cfd2ae28f14cb50c0",
+      "bytes": 1324,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "62ad50974747159f17d4c44d2d6e249f72ce6030fc379b7cfd2ae28f14cb50c0"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/focused-ui-result.json",
+      "sha256": "27f0762bfbbeb7df4436515a1734b1098075837fac4d389cae71737e129ae316",
+      "bytes": 1280,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "27f0762bfbbeb7df4436515a1734b1098075837fac4d389cae71737e129ae316"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/handoff-integrity.json",
+      "sha256": "3531e4970eaf3e5d5905f239cade8ad77f0b659b9670bf742dd60eb5ea465c16",
+      "bytes": 10865,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3531e4970eaf3e5d5905f239cade8ad77f0b659b9670bf742dd60eb5ea465c16"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-dark-1200x720.png",
+      "sha256": "79ea0eec0622f82448683e1e24e0a0f0cb0128d3b9c677b69ab35d57a7d12f16",
+      "bytes": 220811,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "79ea0eec0622f82448683e1e24e0a0f0cb0128d3b9c677b69ab35d57a7d12f16"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-dark-1600x1000.png",
+      "sha256": "56490629b37486258384ee0e35df1dbcb66889dbdcdaf53f7820366570f64b86",
+      "bytes": 306614,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "56490629b37486258384ee0e35df1dbcb66889dbdcdaf53f7820366570f64b86"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-light-1200x720.png",
+      "sha256": "0ced30db9abf39af19f139004f4b606d2929f69f7260d7ce18e58a8417454c6e",
+      "bytes": 224932,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "0ced30db9abf39af19f139004f4b606d2929f69f7260d7ce18e58a8417454c6e"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-light-1600x1000.png",
+      "sha256": "fb00e9c67fed2c70ba587a2cb1fd525291f5fc77967d4ce2d0495510b0f27253",
+      "bytes": 315869,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "fb00e9c67fed2c70ba587a2cb1fd525291f5fc77967d4ce2d0495510b0f27253"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-sort-popup-final-dark-1600x1000.png",
+      "sha256": "0e1bf278f0e7ea64f084d1dda5f3977b043041a84e61019c6f3ba98604a2146d",
+      "bytes": 306060,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "0e1bf278f0e7ea64f084d1dda5f3977b043041a84e61019c6f3ba98604a2146d"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-sort-popup-final-light-1600x1000.png",
+      "sha256": "17a03b019f8855d377d9a9c9f6cd2f770ca8e27546405b5e8939e0d5679cc432",
+      "bytes": 315287,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "17a03b019f8855d377d9a9c9f6cd2f770ca8e27546405b5e8939e0d5679cc432"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab0-final-dark-1600x1000.png",
+      "sha256": "56490629b37486258384ee0e35df1dbcb66889dbdcdaf53f7820366570f64b86",
+      "bytes": 306614,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "56490629b37486258384ee0e35df1dbcb66889dbdcdaf53f7820366570f64b86"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab0-final-light-1600x1000.png",
+      "sha256": "1f16ebca0667783be10895f2ac764ef4e16086c5c745a59a7bd112c1ab645160",
+      "bytes": 315873,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1f16ebca0667783be10895f2ac764ef4e16086c5c745a59a7bd112c1ab645160"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab1-final-dark-1600x1000.png",
+      "sha256": "3b7e59d6e01ebdafff81bc78c1754bc7d539280ecac70d33874188d5123ddbec",
+      "bytes": 306328,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3b7e59d6e01ebdafff81bc78c1754bc7d539280ecac70d33874188d5123ddbec"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab1-final-light-1600x1000.png",
+      "sha256": "dd829d057c26aec5be8d319ab9d55fedae455db2ae1b76a45e563667b6437a9b",
+      "bytes": 314480,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "dd829d057c26aec5be8d319ab9d55fedae455db2ae1b76a45e563667b6437a9b"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab2-final-dark-1600x1000.png",
+      "sha256": "159ae083babbefe2658416d95c1de9b7c721c973a3a94a516074ddfe6726cf16",
+      "bytes": 315144,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "159ae083babbefe2658416d95c1de9b7c721c973a3a94a516074ddfe6726cf16"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab2-final-light-1600x1000.png",
+      "sha256": "643f20c646f355df23b3c927c7bbac3651d4916860d3f6c5578ffa70a8de2bcc",
+      "bytes": 322986,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "643f20c646f355df23b3c927c7bbac3651d4916860d3f6c5578ffa70a8de2bcc"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab3-final-dark-1600x1000.png",
+      "sha256": "be39849e3870a3d5f33ea74e22cf229e6db21bf08d701a28197d1bfa2438bc4e",
+      "bytes": 310970,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "be39849e3870a3d5f33ea74e22cf229e6db21bf08d701a28197d1bfa2438bc4e"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab3-final-light-1600x1000.png",
+      "sha256": "fbffdd6dd765b6dd700dcd797d0b5ea7cdc25b7e99ea2538b5521aca353ebb53",
+      "bytes": 317858,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "fbffdd6dd765b6dd700dcd797d0b5ea7cdc25b7e99ea2538b5521aca353ebb53"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab4-final-dark-1600x1000.png",
+      "sha256": "e8ce1b1b1c13de49fc4debe522a634bce85734ef8d2962f9d0321c531d077694",
+      "bytes": 215820,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e8ce1b1b1c13de49fc4debe522a634bce85734ef8d2962f9d0321c531d077694"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab4-final-light-1600x1000.png",
+      "sha256": "cb7f3af155356473550dc06eedd8373ee6976a0614a79703e154ac59fd8d4c86",
+      "bytes": 221028,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "cb7f3af155356473550dc06eedd8373ee6976a0614a79703e154ac59fd8d4c86"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-dark-1200x720.png",
+      "sha256": "d70d94baad3a39c2c6e1a7059d5f7823bb7017b51103ff3506b42ddcada8a4fa",
+      "bytes": 181961,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "d70d94baad3a39c2c6e1a7059d5f7823bb7017b51103ff3506b42ddcada8a4fa"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-dark-1600x1000.png",
+      "sha256": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff",
+      "bytes": 242550,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-light-1200x720.png",
+      "sha256": "52e64eca876ff34a2e95fb57836d08301fc3f482c866ab6a8e7f0e69e8e8e69e",
+      "bytes": 185367,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "52e64eca876ff34a2e95fb57836d08301fc3f482c866ab6a8e7f0e69e8e8e69e"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-light-1600x1000.png",
+      "sha256": "73c69bcb67c35dc7d1a409fea32d4afa912e2f311290edaa53a9ed064ebda954",
+      "bytes": 249852,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "73c69bcb67c35dc7d1a409fea32d4afa912e2f311290edaa53a9ed064ebda954"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-dark-1200x720.png",
+      "sha256": "f64dadc0e9cf16ddc065ff9387d2b86511dc878ed6b158633dddfb8561a599f1",
+      "bytes": 212779,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f64dadc0e9cf16ddc065ff9387d2b86511dc878ed6b158633dddfb8561a599f1"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-dark-1600x1000.png",
+      "sha256": "1555c26b4fc52e63b2dbb24b77a0ba74dead2fa60c6ff78f538dae4af471a28a",
+      "bytes": 290762,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1555c26b4fc52e63b2dbb24b77a0ba74dead2fa60c6ff78f538dae4af471a28a"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-light-1200x720.png",
+      "sha256": "abc54f5de644425e83cb46181d8dea15e1bf4502093a4c6e194768c00828c947",
+      "bytes": 217987,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "abc54f5de644425e83cb46181d8dea15e1bf4502093a4c6e194768c00828c947"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-light-1600x1000.png",
+      "sha256": "acf70c7f36f244880a0a33878f49fe9bb3eac00cfc6240e825095400a5d75307",
+      "bytes": 299853,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "acf70c7f36f244880a0a33878f49fe9bb3eac00cfc6240e825095400a5d75307"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-dark-1200x720.png",
+      "sha256": "c89a31a7babf1fe5980d89e56c7f8397e3bcaf10c7813c4d3e0cfed3a3788535",
+      "bytes": 221657,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c89a31a7babf1fe5980d89e56c7f8397e3bcaf10c7813c4d3e0cfed3a3788535"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-dark-1600x1000.png",
+      "sha256": "1e19aa5c7207df73411b613f7e7fa8ce262032142add57e285797a64f0ac535d",
+      "bytes": 306894,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1e19aa5c7207df73411b613f7e7fa8ce262032142add57e285797a64f0ac535d"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-light-1200x720.png",
+      "sha256": "27b5b093022c3cfa0b592c78678f8cecbdd5e7d654adff6e24e9f349e907af22",
+      "bytes": 225239,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "27b5b093022c3cfa0b592c78678f8cecbdd5e7d654adff6e24e9f349e907af22"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-light-1600x1000.png",
+      "sha256": "16e647c2b90af8d3567018600dcfca570b3d69e73ea3cd9961978d05dc7d0b00",
+      "bytes": 316130,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "16e647c2b90af8d3567018600dcfca570b3d69e73ea3cd9961978d05dc7d0b00"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-before-dark-1600x1000.png",
+      "sha256": "2abab1bcd1051794e76f522613ab25037b9886e8e0f41d7187bf2d6b23e6a2e3",
+      "bytes": 315294,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2abab1bcd1051794e76f522613ab25037b9886e8e0f41d7187bf2d6b23e6a2e3"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-before-light-1600x1000.png",
+      "sha256": "a578eb0586455251a1d3e014470b09b188801cd823ec13c33507e36f74e0a926",
+      "bytes": 326952,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "a578eb0586455251a1d3e014470b09b188801cd823ec13c33507e36f74e0a926"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-sort-popup-after-dark-1600x1000.png",
+      "sha256": "58af8fae1abd2ca0e94977925268143c69806050f1d04f6fa948eef4a3366d9e",
+      "bytes": 306369,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "58af8fae1abd2ca0e94977925268143c69806050f1d04f6fa948eef4a3366d9e"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-sort-popup-after-light-1600x1000.png",
+      "sha256": "6f987e7ff57f4e17c39eea4d17c4677fa13fc86c5d0f50fa08c682174fcebfa1",
+      "bytes": 315505,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "6f987e7ff57f4e17c39eea4d17c4677fa13fc86c5d0f50fa08c682174fcebfa1"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab0-after-dark-1600x1000.png",
+      "sha256": "1e19aa5c7207df73411b613f7e7fa8ce262032142add57e285797a64f0ac535d",
+      "bytes": 306894,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1e19aa5c7207df73411b613f7e7fa8ce262032142add57e285797a64f0ac535d"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab0-after-light-1600x1000.png",
+      "sha256": "b999e59141c10e2f1388d03396fac4e30620012951954784e0f66bed8163faba",
+      "bytes": 316095,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "b999e59141c10e2f1388d03396fac4e30620012951954784e0f66bed8163faba"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab1-after-dark-1600x1000.png",
+      "sha256": "54ceb0c3187bec9314246bcd5a2de5bedcbb7969fef6d264cf8dab036cc0b4dd",
+      "bytes": 307263,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "54ceb0c3187bec9314246bcd5a2de5bedcbb7969fef6d264cf8dab036cc0b4dd"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab1-after-light-1600x1000.png",
+      "sha256": "c5cf4f311a30f49808df8eca4345ecb9c9cd9a94673360ee7e1dbd50b33114ae",
+      "bytes": 315193,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c5cf4f311a30f49808df8eca4345ecb9c9cd9a94673360ee7e1dbd50b33114ae"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab2-after-dark-1600x1000.png",
+      "sha256": "f6ec065dca2b88a515604550f1089d151e9fcacdc97aca52fc4ef18552267582",
+      "bytes": 315669,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f6ec065dca2b88a515604550f1089d151e9fcacdc97aca52fc4ef18552267582"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab2-after-light-1600x1000.png",
+      "sha256": "1d69da4937132c53adde05c9d653a3d057fa4b53d186a635be5e93dc32f4af22",
+      "bytes": 323228,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1d69da4937132c53adde05c9d653a3d057fa4b53d186a635be5e93dc32f4af22"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab3-after-dark-1600x1000.png",
+      "sha256": "c45777b061377c0c4bc3b0a328e9009c1614c83ecdac1528eabca05896862dfe",
+      "bytes": 311377,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c45777b061377c0c4bc3b0a328e9009c1614c83ecdac1528eabca05896862dfe"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab3-after-light-1600x1000.png",
+      "sha256": "bd0fff8dd067268c20129c86a385f06799669d8560cc25d582530fb1c471c924",
+      "bytes": 318559,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "bd0fff8dd067268c20129c86a385f06799669d8560cc25d582530fb1c471c924"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab4-after-dark-1600x1000.png",
+      "sha256": "8f66ad7aca4a9b1d4a0a4daa7da0b9a75a5b7db896c014f6a1cef68019fe49b1",
+      "bytes": 215953,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "8f66ad7aca4a9b1d4a0a4daa7da0b9a75a5b7db896c014f6a1cef68019fe49b1"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab4-after-light-1600x1000.png",
+      "sha256": "2e62cb408538e3da03ef3b136627604c4fe9bd1debdb6830f442d064efa20687",
+      "bytes": 220956,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2e62cb408538e3da03ef3b136627604c4fe9bd1debdb6830f442d064efa20687"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-dark-1200x720.png",
+      "sha256": "d70d94baad3a39c2c6e1a7059d5f7823bb7017b51103ff3506b42ddcada8a4fa",
+      "bytes": 181961,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "d70d94baad3a39c2c6e1a7059d5f7823bb7017b51103ff3506b42ddcada8a4fa"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-dark-1600x1000.png",
+      "sha256": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff",
+      "bytes": 242550,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-light-1200x720.png",
+      "sha256": "52e64eca876ff34a2e95fb57836d08301fc3f482c866ab6a8e7f0e69e8e8e69e",
+      "bytes": 185367,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "52e64eca876ff34a2e95fb57836d08301fc3f482c866ab6a8e7f0e69e8e8e69e"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-light-1600x1000.png",
+      "sha256": "73c69bcb67c35dc7d1a409fea32d4afa912e2f311290edaa53a9ed064ebda954",
+      "bytes": 249852,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "73c69bcb67c35dc7d1a409fea32d4afa912e2f311290edaa53a9ed064ebda954"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-before-dark-1600x1000.png",
+      "sha256": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff",
+      "bytes": 242550,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-before-light-1600x1000.png",
+      "sha256": "3b0f5e7825a16d2456fcd45b253c9a7b6ffad75055dd8e869ee13382efa28dfa",
+      "bytes": 249838,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3b0f5e7825a16d2456fcd45b253c9a7b6ffad75055dd8e869ee13382efa28dfa"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-dark-1200x720.png",
+      "sha256": "19ef0868502d94b53fe813a3c0ee0ed32eed84b6cecc56a57d1edf134e9c059f",
+      "bytes": 213009,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "19ef0868502d94b53fe813a3c0ee0ed32eed84b6cecc56a57d1edf134e9c059f"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-dark-1600x1000.png",
+      "sha256": "55cd2a1b9b79cd58a43b964f6e518cda33c37fc524b2439410692a467e481990",
+      "bytes": 290872,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "55cd2a1b9b79cd58a43b964f6e518cda33c37fc524b2439410692a467e481990"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-light-1200x720.png",
+      "sha256": "693acd2d96bd992444df85b57c3ccd99bcf3f68d819080fc471c31a32d39700d",
+      "bytes": 218342,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "693acd2d96bd992444df85b57c3ccd99bcf3f68d819080fc471c31a32d39700d"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-light-1600x1000.png",
+      "sha256": "e2eff6e4291438984a3846a81f0e9d48f74534cd67b2b3eb6ec62679bb4a2b4d",
+      "bytes": 299962,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e2eff6e4291438984a3846a81f0e9d48f74534cd67b2b3eb6ec62679bb4a2b4d"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-before-dark-1600x1000.png",
+      "sha256": "b8ab85ca3138076a16756129111021f114ef7a910be818f8068be1a7da0eed36",
+      "bytes": 290911,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "b8ab85ca3138076a16756129111021f114ef7a910be818f8068be1a7da0eed36"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-before-light-1600x1000.png",
+      "sha256": "44180f8071c369bdf8ca45f70f121e08ab423a068e1d7b82a1e2ccc00ee38c76",
+      "bytes": 301605,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "44180f8071c369bdf8ca45f70f121e08ab423a068e1d7b82a1e2ccc00ee38c76"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/implementation-final.md",
+      "sha256": "d6d9900be6eb9253965ebeb3b8be847ce85b381d3abd7cb7d80e701852213e66",
+      "bytes": 3341,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "d6d9900be6eb9253965ebeb3b8be847ce85b381d3abd7cb7d80e701852213e66"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/implementation-notes.md",
+      "sha256": "5cb0acb833ea8ce1085e05cf883282bca8398969e413c06b459ead509749acc5",
+      "bytes": 4731,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "5cb0acb833ea8ce1085e05cf883282bca8398969e413c06b459ead509749acc5"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/independent-artifact-review-final.json",
+      "sha256": "4cef1e34ebf6fef888c7fb7f9a15fad4428f0e906f66723d97e10d73e84c7d9b",
+      "bytes": 12406,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "4cef1e34ebf6fef888c7fb7f9a15fad4428f0e906f66723d97e10d73e84c7d9b"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/independent-artifact-review.json",
+      "sha256": "929090581db10ec3a1bc3da1182978ce19fe9d43ab7f3e08ea3c9619fc4135a5",
+      "bytes": 11956,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "929090581db10ec3a1bc3da1182978ce19fe9d43ab7f3e08ea3c9619fc4135a5"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/independent-review-final.json",
+      "sha256": "cfc454d3af92e07b37d02b65e8e237e5c3fe67b5a9c27d5db1a375c021e38117",
+      "bytes": 7960,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "cfc454d3af92e07b37d02b65e8e237e5c3fe67b5a9c27d5db1a375c021e38117"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/independent-review-final.md",
+      "sha256": "8dbf65a595af262d799be62454adb848a0c2dc9f168359078ccda2d5ea050567",
+      "bytes": 2551,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "8dbf65a595af262d799be62454adb848a0c2dc9f168359078ccda2d5ea050567"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/independent-review.json",
+      "sha256": "3b9284deb586abbac5723109de5f51ef9c1cc4add95d299a2b0faa83fac515ab",
+      "bytes": 4312,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3b9284deb586abbac5723109de5f51ef9c1cc4add95d299a2b0faa83fac515ab"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/independent-review.md",
+      "sha256": "492243841bbab2447206cc9c149dd0e3c176669ccd3f47f1eb88442617091ae0",
+      "bytes": 10166,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "492243841bbab2447206cc9c149dd0e3c176669ccd3f47f1eb88442617091ae0"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/independent-source-final.json",
+      "sha256": "ebd124992fb38892c1c6bf95031e165ccdcc42184c361f97242c2ee14cdf27f2",
+      "bytes": 1233,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "ebd124992fb38892c1c6bf95031e165ccdcc42184c361f97242c2ee14cdf27f2"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/jar-integrity-final.json",
+      "sha256": "88100929cf447b0ef83a47237c6d41ddf6e72e9a5b40ebf2b96d04b2f88b8fc1",
+      "bytes": 8593,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "88100929cf447b0ef83a47237c6d41ddf6e72e9a5b40ebf2b96d04b2f88b8fc1"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/jar-integrity.json",
+      "sha256": "01c3a6985d76b28c4995fdd9f9d6e0288e8135ea8b186e224344bbe7888af0fd",
+      "bytes": 8590,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "01c3a6985d76b28c4995fdd9f9d6e0288e8135ea8b186e224344bbe7888af0fd"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/launcher-result-final.json",
+      "sha256": "f8463330d3258dd7f14b752b3384b7684493c694042b91b022be0160d9ed277b",
+      "bytes": 1325,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f8463330d3258dd7f14b752b3384b7684493c694042b91b022be0160d9ed277b"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/launcher-result.json",
+      "sha256": "4379bc47f9f40fdeb6983f81ad6ef779c7d6fe6e6ef77687f9bb755389e68840",
+      "bytes": 1327,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "4379bc47f9f40fdeb6983f81ad6ef779c7d6fe6e6ef77687f9bb755389e68840"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/popup-diagnostic.json",
+      "sha256": "50ecf316f91b833a6ec4822ac68f8784af83f8010e994e2b8b3bd826fbd174a9",
+      "bytes": 5863,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "50ecf316f91b833a6ec4822ac68f8784af83f8010e994e2b8b3bd826fbd174a9"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/preservation-contract.json",
+      "sha256": "06be9290b08152ffea17c90a457f8b5e4a9c206526f2d0d7cdb9762bae033920",
+      "bytes": 91450,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "06be9290b08152ffea17c90a457f8b5e4a9c206526f2d0d7cdb9762bae033920"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/previous-evidence-preservation-final.json",
+      "sha256": "177dfb5291c1b2d2bfb945526f4c7bd3909011502c00c870deff3e24ce81aca9",
+      "bytes": 28405,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "177dfb5291c1b2d2bfb945526f4c7bd3909011502c00c870deff3e24ce81aca9"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/same-jar-table-geometry-final.json",
+      "sha256": "228503fc63ea87af016b64e4ae64e358105557036b75d16c1ac924bd95c2e4a2",
+      "bytes": 1985,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "228503fc63ea87af016b64e4ae64e358105557036b75d16c1ac924bd95c2e4a2"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/selector-review.json",
+      "sha256": "1080d718d8bf36901d951284f3eaac94ae8dd7ad91b66a383a3b41ae7576404d",
+      "bytes": 1729,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1080d718d8bf36901d951284f3eaac94ae8dd7ad91b66a383a3b41ae7576404d"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/source-freeze-final.json",
+      "sha256": "fabf143b9004ad1aba661fa7c89b8f4f5a75d9d4759fd977038e925abc8fe3f1",
+      "bytes": 1647,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "fabf143b9004ad1aba661fa7c89b8f4f5a75d9d4759fd977038e925abc8fe3f1"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/source-freeze.json",
+      "sha256": "4b67b8eda6e8d7adab13f649d3121e16a8f2da168aae673d105add813cb5eeca",
+      "bytes": 1418,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "4b67b8eda6e8d7adab13f649d3121e16a8f2da168aae673d105add813cb5eeca"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/test-selection-final.json",
+      "sha256": "3c6d5fe76682923f5018bca03faec30c88a7a7ea7eb7cf3388fca41959fb1a4b",
+      "bytes": 9418,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3c6d5fe76682923f5018bca03faec30c88a7a7ea7eb7cf3388fca41959fb1a4b"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/test-selection.json",
+      "sha256": "3c6d5fe76682923f5018bca03faec30c88a7a7ea7eb7cf3388fca41959fb1a4b",
+      "bytes": 9418,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3c6d5fe76682923f5018bca03faec30c88a7a7ea7eb7cf3388fca41959fb1a4b"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/thumbnail-geometry-final.json",
+      "sha256": "868328ed31d24274e370b60a8c2542ca1654f4aa9b587d32bdc6b6ce392acca2",
+      "bytes": 12316,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "868328ed31d24274e370b60a8c2542ca1654f4aa9b587d32bdc6b6ce392acca2"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/thumbnail-geometry-red.json",
+      "sha256": "21025f9519fb950000da62db117d2b068164ec174dc6d5cde47db2e28bb00919",
+      "bytes": 12318,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "21025f9519fb950000da62db117d2b068164ec174dc6d5cde47db2e28bb00919"
+    },
+    {
+      "path": "docs/validation/ozon-fbs-wb-layout-20261116/vertical-geometry-fix.md",
+      "sha256": "d1ae5e00dc681c358c38204dff66c63bfdd8c7a7c147e811a21456d99d7b3f64",
+      "bytes": 1849,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "d1ae5e00dc681c358c38204dff66c63bfdd8c7a7c147e811a21456d99d7b3f64"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/FINAL-RECEIPT.json",
+      "sha256": "fe8da1f3c792182db76940642b97b4b4db2064ed6e447acf7fdd433cf2289370",
+      "bytes": 4790,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "fe8da1f3c792182db76940642b97b4b4db2064ed6e447acf7fdd433cf2289370"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/REPORT.md",
+      "sha256": "d1d30385604f1ef7309941a2132d774cd15a43b9bb8cb9943cd540541a0d0845",
+      "bytes": 10910,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "d1d30385604f1ef7309941a2132d774cd15a43b9bb8cb9943cd540541a0d0845"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/backup-receipt.json",
+      "sha256": "e2cfe32cfa0d0d53afd532cfb1831e7904e7cca7a530184df77acdd5109d889b",
+      "bytes": 2247,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e2cfe32cfa0d0d53afd532cfb1831e7904e7cca7a530184df77acdd5109d889b"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/combined-result.json",
+      "sha256": "a1518ab949450cb37a920878de13cbd24c4ea6559389b8ca1e0a80e4cd821fea",
+      "bytes": 53068,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "a1518ab949450cb37a920878de13cbd24c4ea6559389b8ca1e0a80e4cd821fea"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/handoff-integrity.json",
+      "sha256": "1a177a28bc14d3edb811f77f6fd070186cbd044f1b5951b5292d8b5a2f1e320b",
+      "bytes": 11127,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1a177a28bc14d3edb811f77f6fd070186cbd044f1b5951b5292d8b5a2f1e320b"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/independent-artifact-review.json",
+      "sha256": "7e45a08fc4870c9ce3c0b3e272908df3e4a91dd5fa8d970702222459ec64124b",
+      "bytes": 10869,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "7e45a08fc4870c9ce3c0b3e272908df3e4a91dd5fa8d970702222459ec64124b"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/independent-result.json",
+      "sha256": "650832e0be0234699acfef13b6c90ed2a4cd60356fc4f411aaaacd029c79910e",
+      "bytes": 2926,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "650832e0be0234699acfef13b6c90ed2a4cd60356fc4f411aaaacd029c79910e"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/independent-review.md",
+      "sha256": "c2c37b61bd1fef6e3ca5b3cd578e8521cd578ef4f8fa1d045a0499ff3a74e21c",
+      "bytes": 5733,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c2c37b61bd1fef6e3ca5b3cd578e8521cd578ef4f8fa1d045a0499ff3a74e21c"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/jar-integrity.json",
+      "sha256": "3c62564232835adbceb7c7f32fe5df6ce510e0b98c912fcfc19ad8ccd980c41b",
+      "bytes": 8384,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "3c62564232835adbceb7c7f32fe5df6ce510e0b98c912fcfc19ad8ccd980c41b"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/launcher-result.json",
+      "sha256": "69d14f10bae61f577741bae1c11418eaff852b6238835fa5108e321acf8a880c",
+      "bytes": 1326,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "69d14f10bae61f577741bae1c11418eaff852b6238835fa5108e321acf8a880c"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/preservation.json",
+      "sha256": "e555c771f8ac9af2dca16f97f0499a9f2d8e13136230c0af01ef862f59540b93",
+      "bytes": 13834,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e555c771f8ac9af2dca16f97f0499a9f2d8e13136230c0af01ef862f59540b93"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/preservation.md",
+      "sha256": "aa00d2706c43410870d3e57ffa7d60cfdf5a8b29748b9e6b3c73083daddd2c2c",
+      "bytes": 3731,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "aa00d2706c43410870d3e57ffa7d60cfdf5a8b29748b9e6b3c73083daddd2c2c"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/purchase-implementation.md",
+      "sha256": "ea5dd06e8961832fe36be8013fd0a2e112c86a86209299441cc8ee99c083bfb3",
+      "bytes": 5010,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "ea5dd06e8961832fe36be8013fd0a2e112c86a86209299441cc8ee99c083bfb3"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/purchase-source-sha256.json",
+      "sha256": "96d3347f41ae94d8109de151b7c5e3f03660d975c3b692b1abe42df12389dad7",
+      "bytes": 2809,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "96d3347f41ae94d8109de151b7c5e3f03660d975c3b692b1abe42df12389dad7"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/registration-implementation.md",
+      "sha256": "30ce857d72f16adbd2f81f03a4ae375e3437ead15d3931686ee35356de66b272",
+      "bytes": 4482,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "30ce857d72f16adbd2f81f03a4ae375e3437ead15d3931686ee35356de66b272"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/registration-result.json",
+      "sha256": "e7ad792eb25f03e312dd663ceca6588c4a512899c447615363963dc712289c61",
+      "bytes": 4570,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "e7ad792eb25f03e312dd663ceca6588c4a512899c447615363963dc712289c61"
+    },
+    {
+      "path": "docs/validation/ozon-znack-orders-20261116/verification-command.json",
+      "sha256": "8961f678b6f2997258d1a610269e6e7631e6c4abecc51e41211dc21d5fd863c0",
+      "bytes": 5796,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "8961f678b6f2997258d1a610269e6e7631e6c4abecc51e41211dc21d5fd863c0"
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/FINAL-RECEIPT.json",
+      "sha256": "088b85bd9c5dc6ad9976f696c5a5e46517916e06a5a38d414229b4bd233cffdb",
+      "bytes": 2381,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/PARITY-CHECKLIST.json",
+      "sha256": "605268244bcae079a0c6cca9623fc293f33764fe8be06ec1ef73f356b9fe7457",
+      "bytes": 7170,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/PLAN.md",
+      "sha256": "6952754cd31781fe004c399645eb4a5723a5b44cab5d8b71fcff8ceb079ea278",
+      "bytes": 14490,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/README.md",
+      "sha256": "a10d6038441705028f40a66b381c291f988e60c885bebfbd8cf867e196383f05",
+      "bytes": 1121,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/REPORT.md",
+      "sha256": "3b000286e26f0d26eca13467898a0c30eb37e5b9aa27cfe7bffc0e41255a983f",
+      "bytes": 15458,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/actual-launcher-workspace.png",
+      "sha256": "47fd385faa32581dba7bd50816b42713b0f87aa5d7309fddbf3235a7a1cbaec0",
+      "bytes": 147641,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/affected-result.json",
+      "sha256": "9f0ce5f868d9316d6b01d079ffa7cecd09609aba27270f4694e823f5fee4bf36",
+      "bytes": 156032,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/all-pending-inventory.json",
+      "sha256": null,
+      "bytes": null,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/artifact-launcher-result.json",
+      "sha256": "8d04fb7f31b69217d67268b28292979ffe0c223b3c07c112f1005dd067e3f2c6",
+      "bytes": 3240,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/baseline-backup.json",
+      "sha256": "61cf5c44db5a8616391d443e2999d9870e1e959b0043cb2588e3ae64545433f1",
+      "bytes": 559,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/engine-freeze.json",
+      "sha256": "31194fe3ae0bffb3c1226863911d3d667b5af4a38ece07168a2481d2ddf6c99a",
+      "bytes": 2583,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/engine.md",
+      "sha256": "d80376a1410c62d8cefef6b75cabbc644b8c3d0a5ac31569b53a752ae1968649",
+      "bytes": 6305,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/exhausted-freeze-final.json",
+      "sha256": "5c0d60c611bcc381a8900c62058cc3582b13f028e10d685b65b391fdf88fd93d",
+      "bytes": 1967,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/exhausted-freeze.json",
+      "sha256": "c26d1c9b77afae39a778c65ae8e44ac13ed4709c04a68b46b709f52d34629a9b",
+      "bytes": 1669,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/legacy-engine-fixtures.md",
+      "sha256": "79b8a78e85c0b1772564f0950aad0e28df55b3734d158a5326e1d72bb1925cfb",
+      "bytes": 5101,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/legacy-readback-freeze.json",
+      "sha256": "fbb7589c6d9da21d242bc908eb65e952260e04f7f47f0b397beb86b06d40b9d4",
+      "bytes": 1390,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/message-freeze.json",
+      "sha256": "2c0c706175cc44af875aa16bc35dc65358b4f43a3f6b0e4235f4e97d1e6b3366",
+      "bytes": 1380,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/persistence-freeze.json",
+      "sha256": "92b75b66514e8e53c7fce74496d0fdee5d71e976ce131b4fe068a1b8c7a4a231",
+      "bytes": 3174,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/persistence-tests.json",
+      "sha256": "b5744a49022bd10b7de7598c1b1d93d22fb38f07fc13165a6cbf845a015d2261",
+      "bytes": 3582,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/protocol-freeze.json",
+      "sha256": "f5ef8e8eb3e6e0829f6dd540800a37c9b21fa25b327445a90c1d53ddfca83ed5",
+      "bytes": 5494,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/protocol.md",
+      "sha256": "cd86015e5f9d0c145d523e469300c48b284562a230883b975330fff3b0e483db",
+      "bytes": 6699,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/scale-1000.json",
+      "sha256": "f20be647080cd2ee4c61b39383e3d58c3c9772eef5ef877a4bd71c7e214196fd",
+      "bytes": 11617,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/signing-recovery-fixtures.md",
+      "sha256": "9dbce4882234ee02115ecd6068bc835bf6dc6b7774eab586daf8314ad9b6c091",
+      "bytes": 2096,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/signing-tests.json",
+      "sha256": "f81504c9e82459a497e79509567d2e2a3faed4196965899d3fe6889e5e45a308",
+      "bytes": 2840,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/signing.md",
+      "sha256": "6e626dad70b2aec90310def5a812f80df64a0554ab2cfe65fbede1d24de4079a",
+      "bytes": 8565,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/theme-isolation.json",
+      "sha256": "aec5d7f7897010b42f1c39232b80d0a7fa141b006238a4600f3a5b6325185f3b",
+      "bytes": 468,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/theme-isolation.md",
+      "sha256": "40e31ca11ccd7c89fd190e3a51663ee579998b2de5ea305a896567fa6e3f390a",
+      "bytes": 2039,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/components/ui-fixture-adaptation.md",
+      "sha256": "83c37679fa5a510cedd1b95434ed1d72e4a3e2fad05853184990f8af7421b5af",
+      "bytes": 3159,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/ecc-validator-result.json",
+      "sha256": "f0941894ff0813de884ea7875187d7901cddd985ac846904fb10731ef62fac5c",
+      "bytes": 780,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/entrypoints-baseline-audit.md",
+      "sha256": "c2c84f827d3ff3be99df19cbcf6fcd97a1756459f973dd9845f12ac5fa6c6c50",
+      "bytes": 7908,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/entrypoints.json",
+      "sha256": "b7e8db26c81c1ec079c4265d1e6b76d2e9209f53092a8cad5142733a0ea20d7b",
+      "bytes": 7333,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/final-build-result.json",
+      "sha256": "03ccee4fdb02531cb3da620f1b4b528641c06458c540d5ee9c8e6b5631d6b30e",
+      "bytes": 1969,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/final-evidence-review.json",
+      "sha256": "7a85a486204740357ef8cfb9ea9c8f91e0a8f6989bebc5a98748be6a497e8233",
+      "bytes": 3797,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/final-evidence-review.md",
+      "sha256": "a7391a37b649cc413c04b2cd80913c747494540c11c6c2d82eb59f7fe419f15f",
+      "bytes": 2163,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/initial-broad-result.json",
+      "sha256": "1dc0cf49070d3dc4dc78b1564d83a5813c30a5664a6641b6dfaa8f2da12e5a2e",
+      "bytes": 348047,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/jar-integrity.json",
+      "sha256": "5e56d714e5da0f3ee5e4f120f9216ef1530890279b3e6b76e710735a5dc6ffc9",
+      "bytes": 8322,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/old-binary-schema-proof.json",
+      "sha256": "1851e6554e33367cf3b7f98c11d329bf4c127fe063de0e2071f6efe44e89de32",
+      "bytes": 40353,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/parity-review.json",
+      "sha256": "59d34925c974af39c05d03157d9f3ca1d0f1ee72e1326361253a1be4c796adf6",
+      "bytes": 36441,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/parity-review.md",
+      "sha256": "3aeaceabe97dd36721d695d397754b798ff07f540f6d5695fc2da793dd1a2880",
+      "bytes": 11093,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/production-parity.json",
+      "sha256": "422683a9d948ef1fd8b97697927ee90765496355f53d72778d399e1eebc4545e",
+      "bytes": 363,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/purchase-flow.mmd",
+      "sha256": "1e865524cfe388245296020ab247697ee426bd619935c9e6fe7a1adfca7a6a1c",
+      "bytes": 1601,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/reviewer-pending-inventory.json",
+      "sha256": "343bd783776f047b85a09b2f7418a61175d1453386e15060f82a649ad6a4f7c2",
+      "bytes": 88034,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/source-preservation-review.json",
+      "sha256": "712b93e1800577ed69b1a01f1c15ea1ed5dc05e9d6a18dbae1c632cf82acd0e5",
+      "bytes": 15677,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/source-preservation-review.md",
+      "sha256": "b2ef769a79630bc10e6c01232f011558fea5623b7a895fb1c5fd255628c18612",
+      "bytes": 4439,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/test-modernization-review.json",
+      "sha256": "a938545fa2c12b618fb1e8c24672f799102a22aa3d328bc35e610fc25b654452",
+      "bytes": 27420,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "docs/validation/wb1326-purchase-replacement-20261117/test-modernization-review.md",
+      "sha256": "78f72db431d71d1e43a8e1c8ff21b1fbd1e37b8bb077a8ea959bda4df663f1b6",
+      "bytes": 5486,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/config/Database.java",
+      "sha256": "6c8ec1f72ebb9cb0365828aa93889dc70e079b2aa1a96d05b239ffef25ead0b5",
+      "bytes": 13602,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "0689d2b91b6957ed25142c495dc1b9d03f54b457d109579fc4612a8cd38d90d1"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/fbo/FboPurchaseService.java",
+      "sha256": "b88b7df4409a90b9729b42908e3db9f974debff1a08fcd4bcdd92fb853109106",
+      "bytes": 2154,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "bdcf8c82ccbcac64d87e9511ac7c74d24a95d6ddd55976c92e2b73fa78a911d6"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+      "sha256": "f060ad4062c4e93e2cc27139d9031d4090ebea8bb73e504854a58c21142de6c5",
+      "bytes": 9744,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "f060ad4062c4e93e2cc27139d9031d4090ebea8bb73e504854a58c21142de6c5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPurchaseAvailability.java",
+      "sha256": "40022251a2fb0c890d19f5d63f8012eea814c3138004e254adb969f845f15eb5",
+      "bytes": 353,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "40022251a2fb0c890d19f5d63f8012eea814c3138004e254adb969f845f15eb5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+      "sha256": "e7b3efbe3892abd60ede12da08bb99fc8e28d7f6ffab6da02b8bbdd83e28092c",
+      "bytes": 6723,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "de9ef97c4bed03fcde0e2b672c4b55665986bd78525ceeeb3d8c14834b6d213f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPurchasePendingException.java",
+      "sha256": "9dd9610f989a34dec85c01584d8cc624a1faca1c7c848d47b7b4ab1a5a3abec2",
+      "bytes": 2535,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "9dd9610f989a34dec85c01584d8cc624a1faca1c7c848d47b7b4ab1a5a3abec2"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+      "sha256": "49b3007e7164e7ce3cbccc8e118267318613bc9f0e9e4dd37881d98bcba624a7",
+      "bytes": 7788,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "7bfa63f03962cf4649a365135b03bdd39be6cedac23ebdccd704a7b05ec1911d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/KizMappingRepository.java",
+      "sha256": "78286a1b3313e4aace3e650bd094c502f08dc8042578243c73d96e6e7a1c2e6d",
+      "bytes": 33266,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "78286a1b3313e4aace3e650bd094c502f08dc8042578243c73d96e6e7a1c2e6d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizReplacement.java",
+      "sha256": "f20175dc7e7ea2f72438e494db3eba66085fb4d456b1c22a75b16dd4dc7372ba",
+      "bytes": 19311,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "f20175dc7e7ea2f72438e494db3eba66085fb4d456b1c22a75b16dd4dc7372ba"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizService.java",
+      "sha256": "983bbe6dc95e4f65c497837d5099ffc5067026785ec190698079d0170207e959",
+      "bytes": 27848,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "983bbe6dc95e4f65c497837d5099ffc5067026785ec190698079d0170207e959"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceStockReplenishment.java",
+      "sha256": "18d5fcca086774cdbf473885259b82386f0d780708ed7e001c0bb5f3fda24844",
+      "bytes": 10496,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "18d5fcca086774cdbf473885259b82386f0d780708ed7e001c0bb5f3fda24844"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJobRepository.java",
+      "sha256": "265ede6492f3b67f7876538ed06552125ca94f905c4d241621c4244dc7372e78",
+      "bytes": 71427,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "265ede6492f3b67f7876538ed06552125ca94f905c4d241621c4244dc7372e78"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonExemplarService.java",
+      "sha256": "b300a4a4fd19e655fd55753478acb81b988f92ffaeeb29734573bcf644950d62",
+      "bytes": 38452,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "b300a4a4fd19e655fd55753478acb81b988f92ffaeeb29734573bcf644950d62"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java",
+      "sha256": "4ddc745027a547b487304254391bd53102812ea301d04456f2484ac03cfc7d3f",
+      "bytes": 72050,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "4ddc745027a547b487304254391bd53102812ea301d04456f2484ac03cfc7d3f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizAssignment.java",
+      "sha256": "2d88761b93170dd6f9a47f5a97915276a83e3da9381c4b91c7f9d46822341a29",
+      "bytes": 12986,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2d88761b93170dd6f9a47f5a97915276a83e3da9381c4b91c7f9d46822341a29"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizStock.java",
+      "sha256": "720ff96b18658f7f5b183cfa6760667db490574f8efc4846c292478d0ef36384",
+      "bytes": 5027,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "720ff96b18658f7f5b183cfa6760667db490574f8efc4846c292478d0ef36384"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonStockReplenishment.java",
+      "sha256": "3ba9f5759053e52440f7bea1c53d382a526c39d5bbd735325942fd94e078eaec",
+      "bytes": 4490,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "3ba9f5759053e52440f7bea1c53d382a526c39d5bbd735325942fd94e078eaec"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/SuzRequestPacing.java",
+      "sha256": "1db64937b3d88037228aa903dfe4ecbf5c58abea2230cdefd95f0d106650da8b",
+      "bytes": 2446,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+      "sha256": "125c69104722ac068edf7fbaf6b9c17f7327dcd97ab4cb74d0fc65c410bf419f",
+      "bytes": 40951,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+      "sha256": "e7ae31aa39b657ab2905ae04bc67eeb84706aa9f9ef529a671a2f0971de02099",
+      "bytes": 8027,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+      "sha256": "eed0d30f0e7fe4881eb4c1717f43303e61af39bfc514290fb1221e2fb44d7433",
+      "bytes": 17060,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "ef3fa2cbcb01afd9b5c49ddebb346e03a1b71f1b9c1ac24505a8c900e96ba8d6"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+      "sha256": "5966a5080535129edbbdc93f789a00b6f894234ba47ea231f5ae1fddf7935395",
+      "bytes": 12121,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+      "sha256": "15300a064178701992de0c617e993ac4841a900bec8c16a68276fbd055378ec5",
+      "bytes": 17830,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+      "sha256": "a1e694bbeb071eda8a022f53de9000308f48fb9d52fa5630ba3c206940cd65f1",
+      "bytes": 19834,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+      "sha256": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+      "bytes": 32691,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackModels.java",
+      "sha256": "77acca249ba8e8a65976772865c0f1fb4be392be2718d3b6ac10065635e2313b",
+      "bytes": 16436,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "ede78033c39b2d8fbd2d83836891652409a208e24a907bd5db3a9a895acbe975"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java",
+      "sha256": "1a5fe985b43017b8beb01554ad99028f06263667e580033385778135af8e27e7",
+      "bytes": 5310,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackProductGroup.java",
+      "sha256": "4940fea6083e64484b6bce977aa6750c35de1864149c22a8584674f4a4ed0add",
+      "bytes": 1312,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java",
+      "sha256": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610",
+      "bytes": 36742,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseContext.java",
+      "sha256": "83d76c30291ca257290f74789a26d499fb45fec6a4fbc0a64e5b4e39b42e2423",
+      "bytes": 3156,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "sha256": "08d87189b6f9015a15e5053c5c198b9dcc65a1ac0ff60bb703a8f700e5ea79dd",
+      "bytes": 72469,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseMethod.java",
+      "sha256": "192c9d6caac7eb41a3f01faa4aac4101a32f5d517d64ace7ce03ea14d3dd980c",
+      "bytes": 1021,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePermitResolver.java",
+      "sha256": "6e2407fcae5c5564a1f213a2615f3b2a0f0e90554f3a228f0717aa5ebb329b72",
+      "bytes": 2752,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreferences.java",
+      "sha256": "c6e5502815c26278769861754af71872caf9e754d3fc7a8552d0dbad540c60b1",
+      "bytes": 1923,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreflight.java",
+      "sha256": "309d722460b7903e9013331e1611960f34f011b9a794d482118c579cc757e442",
+      "bytes": 1529,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseProtocolContext.java",
+      "sha256": "225eb8c348d43adf6a123c40a934b9dbc3368cc321c692fb6553743119386642",
+      "bytes": 836,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseSchema.java",
+      "sha256": "cf96f27bc3cea57d0e96badc99f90ae8423765898d86e4c8b31c8ad91e494076",
+      "bytes": 9620,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+      "sha256": "caaca9ed9f76ffdc0970de14600de7246e57a983ee78e99b12f641bb4d8174f1",
+      "bytes": 82446,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java",
+      "sha256": "cc55f05ec0bf20ba37c267bf8049b47001ad2df802337f018191d53c4110ae58",
+      "bytes": 33865,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "9c1a423b9dab1e2f55a508c095eba762504d25f77164835af958365d7c02c519"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSigningPauseStore.java",
+      "sha256": "8dd6ed2e1792eb274aab78673a002a668280250226c0f922d0bd60d05399d2ea",
+      "bytes": 7019,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+      "sha256": "4a3da75dbc316d674fb8b9f314af477e35ab30c539c8d7a476f2d822871f022d",
+      "bytes": 24947,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProErrorCode.java",
+      "sha256": "20fbaf014f59ebf83604472359be5a22e7822f373a4a1516c284dd691d6053cd",
+      "bytes": 413,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "4df9df223ce27ba185c1cb847a68b5602d17dcd25606e24b8f1d35f1255274c7"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProKeyPresence.java",
+      "sha256": "974feec9b788caf7fc4448626e883b6fec29ebd6f0887fccb5045a857877141c",
+      "bytes": 5505,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+      "sha256": "97a8ef45163afe6c3000b3148b22089491c2e9c03120b4f88851f3316f8fc0db",
+      "bytes": 16599,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/ZnackSignatureProvider.java",
+      "sha256": "0e52b93579037e03f51e00fe9119b85793b3e1c717041f3bfa0f85b06623bd81",
+      "bytes": 580,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "d3a813595e3d586d1877a093b75806ab2d4a323d64212be5b8403083bce029fc"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+      "sha256": "84a0721f05b3c889792955f2254be9be3f425e5c3fb402f1ba29a39789b4a02c",
+      "bytes": 16707,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "84a0721f05b3c889792955f2254be9be3f425e5c3fb402f1ba29a39789b4a02c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+      "sha256": "eff86ed2598fdfdb5063f37896983d9b74752ae74792bac5428ef48da89e07a0",
+      "bytes": 144549,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "eff86ed2598fdfdb5063f37896983d9b74752ae74792bac5428ef48da89e07a0"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/shop/ShopSidebarController.java",
+      "sha256": "7d81fb59a8a99ec3fb80b9ff29a9323748c9db6416e6dc80cabb42cd3687bf07",
+      "bytes": 24036,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "7d81fb59a8a99ec3fb80b9ff29a9323748c9db6416e6dc80cabb42cd3687bf07"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/supply/SupplyDetailController.java",
+      "sha256": "c53196438b6b8fc05ba45f198cc59e2c4fac57d89fa86ee76bcac68fc5d04acc",
+      "bytes": 54374,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "c53196438b6b8fc05ba45f198cc59e2c4fac57d89fa86ee76bcac68fc5d04acc"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+      "sha256": "529d67698e0c70bdad7fb403c2163109346f162ee5936e3dce154fead3366f4a",
+      "bytes": 137282,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "8195d4c643293e2d8235bb7d7db0f7cf58221b255b5d059f2a577fa09ad21b01"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+      "sha256": "a5374307ebc5ce3630d9def825de4e6c7eb01b5c8d85f4c8cb7c3bd39cf926ca",
+      "bytes": 96505,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "ef4f9611c051cfdc3a2f7f3a9652681dca459d17ae7276321f2ddabe058ca5b4"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+      "sha256": "cd3ac4934302ee52b6a551c295496bc3ffaab365a8492035551ae38e199fae12",
+      "bytes": 107291,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "cd3ac4934302ee52b6a551c295496bc3ffaab365a8492035551ae38e199fae12"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "sha256": "96b107ec5a31271d90021ef6a623311f5be9f9e17b1f082d663610ac528d374f",
+      "bytes": 225656,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "88be94b8fbcddde4e197a6c4c54209164758e5731bfca7fff83733eedbf6ba12"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "sha256": "419d2f643e46227effc578f8dd4a7d8a1a787f8bfdd7d2d96565fe5ad1b56bb1",
+      "bytes": 368338,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "8840d29be6f0f3073a9831f19c2390e57d50b3d4d5b7220b3ebe62133c600fb4"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "sha256": "9cbc9735ed58ebdcc60da1d910380a9479071964ec821c3b08b25aa9c4411f15",
+      "bytes": 262837,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "7e22b01ac4c85d127e4ebe6592334817dbb34188ea93b20b111de2bcd48431c3"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "sha256": "0cd70dd4978c82f3d15db98b0bfc4356a7bae80a5ff41f74a9e03b90d0c59870",
+      "bytes": 218539,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "ccf51f90e5b4625e6861ddefc551f6d8cfac6d006cd45bdbf58d0993bc9c84b6"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+      "sha256": "25381572d9e79b952f9ca804e0da41318e34cf52c999d3e963cb3f9b58615c44",
+      "bytes": 18255,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "25381572d9e79b952f9ca804e0da41318e34cf52c999d3e963cb3f9b58615c44"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml",
+      "sha256": "61cb9499ebfdd84119c48e3246c94c7c8d5ee2b0a0c2f64fafa3955dca843ce9",
+      "bytes": 6300,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "61cb9499ebfdd84119c48e3246c94c7c8d5ee2b0a0c2f64fafa3955dca843ce9"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/CatalogKeyPendingIdentityTest.java",
+      "sha256": "0016a8936ee1d656090364278fc85037d253b6863671018490e24aefc2499809",
+      "bytes": 2367,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "738485af6c3e825d8f5d57d30d7233ce21b324e21b3f112330c9b316c6d91bef"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPendingIdentityTest.java",
+      "sha256": "52ba4d0f44ba187795fa0f84ba207f85a86a1997322860f7d87fa16652b76fb9",
+      "bytes": 21061,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "400102ba2e46057c57e596a5e1df5dc564ee1bbbc9ed3cc5cf36354657e7fab2"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java",
+      "sha256": "c85d219cb32d4654e5ba44aeaa58fe2c51b48b3769f151340229c12f4aa05290",
+      "bytes": 8933,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "33a9679485e001cf100cd03063c12e27bc7a60ea845bce2f25df97b221152b2a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPrintPurchaseSessionTest.java",
+      "sha256": "b2835047258789352bc3e30d0813af6947d4714a3f37c99cad36be42ce3ed4e9",
+      "bytes": 11711,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "8c5ef80ca63402778123a60778892fda1f7d7e58f46723b50648ecf8eb0d03ed"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPurchaseAvailabilityPolicyTest.java",
+      "sha256": "29e9324a256b9e572663b57fe7e75f809fefca8cf4d8694a6c32a91b7532d6e9",
+      "bytes": 9061,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "322a8c96a4d21cbd7ce47c8816b9c1ee3af9fe9443bd392007a57f5213e596c0"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPurchasePermitEvidenceTest.java",
+      "sha256": "4fbd4d97b84d0ab5697f2299d6814e34f814859beb27602982757f10a98e52e1",
+      "bytes": 14917,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "556ab175d3134cc64d3a04a069f1d93ca8271125c60adc7c128261abf3613268"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizStockReplenisherTest.java",
+      "sha256": "bc099eb863f2dd3e9cfe4ee6e6acc838e0861e4f872778df74e0e8ed0cbf0770",
+      "bytes": 12226,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "e926b04427b4a424c3a8b172b08337fd85faebf89021e02733fe346025d2f379"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/Wb1326PurchaseIdentityGatewayTest.java",
+      "sha256": "377065e5266525a72bb91310c081a8f521a6f0f67084e54b5624aae103d47666",
+      "bytes": 3753,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/Wb1326PurchaseProducerBatchTest.java",
+      "sha256": "693fbd5e418c2a0cb19912a0a2f8d1859c57549c9b9b4c844470c0a0ccd351a8",
+      "bytes": 6955,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedKizReplacementTest.java",
+      "sha256": "c10e63f2568e887c71306d1dd9324358944bdfb78ae3f5f857473e17a7d5202c",
+      "bytes": 17078,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "c10e63f2568e887c71306d1dd9324358944bdfb78ae3f5f857473e17a7d5202c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedPrintAssignmentTest.java",
+      "sha256": "f112e24ce3fe93fa79d7e1148eaf532d088c42ac9e2fc5bd6585d5358d32b64b",
+      "bytes": 18789,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f112e24ce3fe93fa79d7e1148eaf532d088c42ac9e2fc5bd6585d5358d32b64b"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedStockPolicyTest.java",
+      "sha256": "775ec72ddb4c8bef635ff31f3be4659d3a0c3d8236ef954538abd73d47d0db02",
+      "bytes": 8260,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "775ec72ddb4c8bef635ff31f3be4659d3a0c3d8236ef954538abd73d47d0db02"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonRejectedPurchasedDemandTest.java",
+      "sha256": "f8baefb13e915bd088d9c5a8b5b46bf9bec54d563a1e7b2d743241269836ab33",
+      "bytes": 12915,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "f8baefb13e915bd088d9c5a8b5b46bf9bec54d563a1e7b2d743241269836ab33"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/KizSigningSummaryRecoveryTest.java",
+      "sha256": "2b2e8205b84d7e3856e5a835f80311048d19e017dccbedf868ff4c135eb525b7",
+      "bytes": 13556,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2b2e8205b84d7e3856e5a835f80311048d19e017dccbedf868ff4c135eb525b7"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/OwnerBBatchEngineTest.java",
+      "sha256": "4a2236c5174794c2be21904aa6dfcce4e53b292a9f9b60ad938a2cfe2f7c8fe8",
+      "bytes": 25901,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/OwnerBCoordinatorBatchStateTest.java",
+      "sha256": "0a6810fa43fa1706b450ff3c21dd47533afad61912516eaaf21ae4073a69f1ac",
+      "bytes": 6473,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/OwnerBPurchaseQueueTest.java",
+      "sha256": "5e3ba9dc28dcb205e6825274815f3bf007b53509e7b5db871a7d7686d5e4cf35",
+      "bytes": 11461,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326AuthIsolationRegressionTest.java",
+      "sha256": "25dec63877d63e4f83905fb6d3a9964bf31ac18c73e4a3c48b0e15c75d140775",
+      "bytes": 2901,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326AuthSessionTest.java",
+      "sha256": "44091782a072f15e92d75b1a5f0cb07151ec955577d5b697b148aebd85fcec36",
+      "bytes": 3932,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326CodeDownloadTargetTest.java",
+      "sha256": "c2c5c8c8c2931bd1a0f29f89a0d6d0035588427bac1b8169d3d548fb1da374eb",
+      "bytes": 4729,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326DownloadAvailabilityTest.java",
+      "sha256": "e324de039def3d8f0edbaa6e4dcd2519aa711951db344bd95cd5a8fb1735ca54",
+      "bytes": 9709,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326IntroductionMethodTest.java",
+      "sha256": "8e1101981b210662de3de4846742bd16f8fe835ac14f13a5f26e76966e162455",
+      "bytes": 21244,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326OrderMigrationTest.java",
+      "sha256": "9b9469c76e5e988c0f5ca8e686f868cc71b887ccaa2d66a8a530ed91b9a70340",
+      "bytes": 7827,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326PermitResolverTest.java",
+      "sha256": "91d5afa571cf1f50204f502f44fd42ce79ee6d0a7ed88ce5af9ad1d65df7d887",
+      "bytes": 3672,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326ProtocolApiRoutingTest.java",
+      "sha256": "21c2f654545de16317a1fbbe30ce7f81f9d22a8023ae1c72d83018e3df25afde",
+      "bytes": 9341,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326PurchasePersistenceTest.java",
+      "sha256": "ae183ac1b6d77ae4d887e50d5790a94d32bcea1c394dcf19eeefd186c4cbd82f",
+      "bytes": 14506,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326SettingsPolicyTest.java",
+      "sha256": "4e2b9c14e1ea3eb01e57963da1cb39910bdda11fa8f9370a866855fea81a59db",
+      "bytes": 4546,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326SharedOrderDownloadTest.java",
+      "sha256": "ec9468e4697549c88dc5ff690d3338286bc5928e596ef6183726f70226cf9e87",
+      "bytes": 13765,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326SigningAdmissionTest.java",
+      "sha256": "bf0d41ad77acf7f5b4b8182688c70f9e84ef2a695756a6a5d470e1a8adabcbf9",
+      "bytes": 18954,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/Wb1326SuzPacingTest.java",
+      "sha256": "09f54a2223662d3733ab94c2831e516c2cce4ae22f4e2ab9a7cebc7bf61fa196",
+      "bytes": 1716,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java",
+      "sha256": "cf03f1d49eee90bac2aee5660a5a3e07a457015b3e4266c40d74d6c2abfb6541",
+      "bytes": 20195,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "85058eaa72711a6aa6d501889f94da7d2d71a0eed4c81cb6601281ec7975c939"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCertificateSettingsRepositoryTest.java",
+      "sha256": "442604c1a6f6b0b1dd38fa612ea65b20cee158edb0da56b125a5104500f22323",
+      "bytes": 12032,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "1fdff54c6aca3167485c881bbd3731fa82172170c1143c1edde2d6d6da16481c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+      "sha256": "0b4d0f0fcae33b7ef123ceabd9aa0bc33ab3875eed5cd459cb3becfd0eb41dac",
+      "bytes": 10377,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "87029b7c1c84b6e1e13f186ac5bf4e9694e40952b8ab929fd746c1b5e12bcab0"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java",
+      "sha256": "f53f20b5175462582742df5af5da20cbdc1b74fbdd2ceb87781d90fd539a6365",
+      "bytes": 26278,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "471ac9c8a44c3f194699760453d6420506518a6446f0cc6b6f3d806390b553c0"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackDownloadRecoveryMessagesTest.java",
+      "sha256": "1c9dc6701613d7e520168d254e6c7a5055171dc4900cd6f7021807d7d623a7e1",
+      "bytes": 1832,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "1c9dc6701613d7e520168d254e6c7a5055171dc4900cd6f7021807d7d623a7e1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackErrorMessagesTest.java",
+      "sha256": "c868d1b5c683930bd2898e53f7e4430e01d94dcb80fccc00a6f8f2649987b4cb",
+      "bytes": 3785,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "1c78a0c079e1037ad5d708830b46faf3b6c758668408ab1d6e82c39dab54da64"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "sha256": "8f41889bfd2a5af5d6a0ad5438c1e9f20eeb62458a7255b80c919028473386a4",
+      "bytes": 20041,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "92973f7bcba066d88f285435d15b96f8142f98f56af461dffcd2314a625a888a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+      "sha256": "62bc9faa09d2a2e412cddd7fa76d4f4c7e45d66db50d410df4c63ee68a9814ce",
+      "bytes": 4311,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "73f40cd2e0f8a454a2d0b860969ff5700b1c400fcfcebc6c9a6e54360ec10d61"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "sha256": "15e58b8f86e9dba2f1d8d1d78ffd99b885554e883542c62615bd6b0b0255c517",
+      "bytes": 99220,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "fdc9302fabe2f3d2929a8ebb7e4949dc020792a7684a388fad4e9cf28f816950"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+      "sha256": "fe29853f884788dfcecee9dbcf7196d502c4ccb24c8c811510aceb2b8ff22939",
+      "bytes": 8654,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "fe29853f884788dfcecee9dbcf7196d502c4ccb24c8c811510aceb2b8ff22939"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionSubmissionOutcomeTest.java",
+      "sha256": "505fd8670a19b06be359354e17d4aad497d6c38d4a3b819f21282886831f7f45",
+      "bytes": 8274,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "764341a52955f4c1508489f847ee6f303b766b34a95081ae1bd4833400b84126"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackKizPurchaseReadbackTest.java",
+      "sha256": "e82d9cd5cbbde34624f4fc14614e87a83c8eaf3e33893a82d73f2f92231eec81",
+      "bytes": 13069,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "8dcc418fda565d2888cf8aba729877e4c918397b31259956ebc0cce98205644e"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackLicenseBoundaryTest.java",
+      "sha256": "61564aad7b01c9f2fca13ad95dbc779c7697956e3e9e91587476e52094a611ea",
+      "bytes": 6745,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "81b61f9fa700c40ab3af0187bd9634aa8481448ec67816331689062ce583b5fe"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "sha256": "677b64288d09832233386267efb50740e6d8d3d8aa2b14d01918aded78fef1ff",
+      "bytes": 126173,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "8e78c03fadf3f69648e9a6badb1ead511829a7f72905756728fdad052f3d4748"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackNormalDownloadIdentityTest.java",
+      "sha256": "9508ef943956ec2e10bfb4606023b9a659ddbb19da6d66ac73e2bf2ac4842e3b",
+      "bytes": 13021,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "9508ef943956ec2e10bfb4606023b9a659ddbb19da6d66ac73e2bf2ac4842e3b"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java",
+      "sha256": "198ea5af68e49ca36bf446eb6c1cdfc06d42b0b29fe569aabb25df84f276148f",
+      "bytes": 2672,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "b56fff75b407174d38fe63fc6b987809e1c2285cc398a202ea3eb0d741adb4a2"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackSettingsAreaRepositoryTest.java",
+      "sha256": "bcf0a9e46e9f3ad1a92f03c2ccb8e5bc61aa5dab382d4a4d0d02464c42f46cc1",
+      "bytes": 5698,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "132dff1237709ab45c54a9a58ec2db99158bb86db06ab5c7dfbfc176ca582f6a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackSigningRecoveryTest.java",
+      "sha256": "225c266393a6c9697528f8494edb61c0f4ca2502823e60fefac03c2e1d143d0c",
+      "bytes": 30968,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "22bc69fa2bc986e6be42eba5be2cd22bb852d4ccb8881aff91f6daee3aa5c4ad"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackSigningSessionTest.java",
+      "sha256": "be1bb34fdc63cba9965ed9c2a0ee196dc1f5cbf79242eb205c4954ccc2969c0a",
+      "bytes": 26878,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "92b968112cc303876cf2cd164972e59237a81296c914e4ede0c4a1974f461ad6"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/signature/Wb1326KeyPresenceTest.java",
+      "sha256": "618be5b0a9064b69840fc61991a79c008934072150688f7aa7ed9891b276a3cf",
+      "bytes": 3310,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+      "sha256": "b0f356de55c39cafdf9757c10c607afb8ebf5058f5afadb3110bb12cbbcdc033",
+      "bytes": 120351,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "b7413ba8ed77975c28b994bb1fe6c517c8ba38d017776543029fded126caecb7"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/kizmapping/FbsKizSigningResumeUiTest.java",
+      "sha256": "dcd5e78fef73231727215c46c81402c43817aaecc341c347800c414fd107892b",
+      "bytes": 12712,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "dcd5e78fef73231727215c46c81402c43817aaecc341c347800c414fd107892b"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java",
+      "sha256": "810b267c414f6f3c1b73435f0f1cd40094ef47b06304497394a68e6020a8fa02",
+      "bytes": 12102,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "02ff559dfdfed4b042c279e235aeafab38b88b2f6bdc396f94b5a5a20c58a99b"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/ozon/OzonDashboardControllerTest.java",
+      "sha256": "a98adc00ab784b62868d9ad40b80e36022f663b5c199e3ab1fff7af8abcc0f16",
+      "bytes": 3235,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "a98adc00ab784b62868d9ad40b80e36022f663b5c199e3ab1fff7af8abcc0f16"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java",
+      "sha256": "055fcdfecfe1e7cfb65b23b57fed69831ab5035c59696a7590210af13fe9479d",
+      "bytes": 15464,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "055fcdfecfe1e7cfb65b23b57fed69831ab5035c59696a7590210af13fe9479d"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/ozon/OzonRegistrationEntryUiTest.java",
+      "sha256": "afef560b1a9a8c14ade4f8fb1927890c77746b139caec876673aa042c970a8c1",
+      "bytes": 9447,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "afef560b1a9a8c14ade4f8fb1927890c77746b139caec876673aa042c970a8c1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/ozon/OzonWbPackingParityTest.java",
+      "sha256": "0350cec33070206364c243206f5c3f0a95496a3c809daabde638b0e3737691f3",
+      "bytes": 30565,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "0350cec33070206364c243206f5c3f0a95496a3c809daabde638b0e3737691f3"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/workspace/HomeControllerStartupRecoveryTest.java",
+      "sha256": "f558cc83b0022b6c1a5a4b172821f9c1a6174d77effb35cbf024028a138efb34",
+      "bytes": 2076,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "3744357924cdab890a50dbfaee51d00ad7782b892fac5f63d3bd966408096b52"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/workspace/OzonRegistrationNavigationTest.java",
+      "sha256": "7307f73f8d206673604236948add0f7b2bad9765b98d6c853e367b20f927fdd4",
+      "bytes": 6015,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "7307f73f8d206673604236948add0f7b2bad9765b98d6c853e367b20f927fdd4"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/workspace/Wb1326StartupAdmissionTest.java",
+      "sha256": "14993b4a46e3b854e803ea6bb206515ac5b5d1a21c2fbb452629d9b635200659",
+      "bytes": 1337,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/znack/Wb1326PurchasePreferencesUiTest.java",
+      "sha256": "008bb7a878e30e36c5661530507db029a15c63083749e365679944683ced8c54",
+      "bytes": 4476,
+      "preexistingPendingAtTaskStart": false,
+      "changedSinceFullTaskBackup": true,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": null
+    },
+    {
+      "path": "tools/UiLayoutProbe.java",
+      "sha256": "feeedec4b088456ab6d03257738581ed494eb2c4027dbaee65f7ffa24f9d2c91",
+      "bytes": 8693,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "MODIFIED",
+      "baselineSha256": "feeedec4b088456ab6d03257738581ed494eb2c4027dbaee65f7ffa24f9d2c91"
+    },
+    {
+      "path": "tools/validate-ecc-integration.mjs",
+      "sha256": "2defcace12d3d3abc9839ba487463b94d96522633baac514c7a09a1c3f85d72f",
+      "bytes": 19176,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "2defcace12d3d3abc9839ba487463b94d96522633baac514c7a09a1c3f85d72f"
+    },
+    {
+      "path": "tools/validate-ecc-integration.test.mjs",
+      "sha256": "9ebc38c2a9c56e80eeac87ce7df6d35e4339bc274a76a774902143bbd03c6681",
+      "bytes": 17877,
+      "preexistingPendingAtTaskStart": true,
+      "changedSinceFullTaskBackup": false,
+      "gitStatus": "UNTRACKED",
+      "baselineSha256": "9ebc38c2a9c56e80eeac87ce7df6d35e4339bc274a76a774902143bbd03c6681"
+    }
+  ],
+  "archiveNote": "External ZIP manifest verifies every final file including this inventory; all baseline files retained, no repository history/build/private profile included."
+}

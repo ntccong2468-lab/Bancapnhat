@@ -133,7 +133,6 @@ public final class ZnackCardRegistrationController {
     @FXML private TableColumn<Sku,String> detailColumn;
     @FXML private Label titleLabel;
     @FXML private Label loadingLabel;
-    @FXML private Label emptyLabel;
     @FXML private Label summaryLabel;
     @FXML private Label batchProgressLabel;
     @FXML private Label paginationLabel;
@@ -270,7 +269,6 @@ public final class ZnackCardRegistrationController {
         reportLink.setText(i18n.tr("znack.registration.report"));
         registerSelectedButton.setText(i18n.tr("znack.registration.register_short"));newCardsSelectedButton.setText(i18n.tr("znack.registration.batch_new_cards"));
         loadingLabel.setText(i18n.tr("znack.registration.loading"));
-        emptyLabel.setText(i18n.tr("znack.registration.empty"));
         productTable.setPlaceholder(new Label(i18n.tr("znack.registration.empty")));
         statusFilter.setButtonCell(statusFilterCell());
         statusFilter.setCellFactory(ignored->statusFilterCell());
@@ -676,7 +674,7 @@ public final class ZnackCardRegistrationController {
     private void reload() {
         debounce.stop();batchRowsRefresh.stop();++loadSequence;batchRowsReadInFlight=false;frozenSelection=List.of();frozenSelectionIds=Set.of();frozenActions=null;
         if(shop==null) {
-            loading=false;productTable.getItems().clear();summary=null;setLoading(false);updateEmpty();updateCounts();return;
+            loading=false;productTable.getItems().clear();summary=null;setLoading(false);updateCounts();return;
         }
         readiness=null;latestReadUnknown=true;readinessLabel.setText(tr("znack.registration.sources_checking"));
         loadPage(false);
@@ -724,7 +722,7 @@ public final class ZnackCardRegistrationController {
             var retained=backgroundRefresh?List.copyOf(selectedRows()):List.<Sku>of();
             var result=task.getValue();if(backgroundRefresh)batchRowsReadInFlight=false;else loading=false;readiness=result.readiness();
             readinessLabel.setText(readiness.ready()?tr("znack.registration.sources_ready")+" · "+readiness.completed():tr("znack.registration.sources_required")+" · "+readiness.reason());
-            if(result.page()==null){sourceReadUnavailable(readiness.reason(),retain.get());setLoading(false);updateEmpty();return;}
+            if(result.page()==null){sourceReadUnavailable(readiness.reason(),retain.get());setLoading(false);return;}
             cardIndex=result.index();latestReadUnknown=!readiness.ready();sourceReadAt=readiness.completed();
             if(latestReadUnknown)readinessLabel.setText(RegistrationDiagnostics.readWarning(readiness.reason(),true)+" · "+sourceReadAt);
             var page=result.page();summary=page.summary();filteredCount=page.filtered();if(!append)rowDetails.clear();rowDetails.putAll(page.details());
@@ -739,7 +737,7 @@ public final class ZnackCardRegistrationController {
                     if(backgroundRefresh)for(int n=0;n<productTable.getItems().size();n++)if(frozenSelectionIds.contains(productTable.getItems().get(n).chrtId()))productTable.getSelectionModel().select(n);
                 }
             } finally {selectingProgrammatically=false;}
-            setLoading(false);updateEmpty();updateCounts();
+            setLoading(false);updateCounts();
         });
         java.util.function.Consumer<Throwable> failure=error->{
             if(sequence!=loadSequence||!isCurrent(owner,epoch))return;
@@ -753,7 +751,7 @@ public final class ZnackCardRegistrationController {
         readiness=null;latestReadUnknown=true;
         if(!retain){cardIndex=null;sourceReadAt="";productTable.getItems().clear();rowDetails.clear();summary=null;filteredCount=0;frozenSelection=List.of();frozenSelectionIds=Set.of();frozenActions=null;}
         readinessLabel.setText(RegistrationDiagnostics.readWarning(code,retain));
-        updateActionState();updateEmpty();
+        updateActionState();
     }
 
     private void createCard(Sku sku) {
@@ -1258,9 +1256,6 @@ public final class ZnackCardRegistrationController {
         com.vncode.app.shared.ThemeService.applyThemeDialog(alert);
         alert.setHeaderText(tr("znack.registration.register_selected"));
         return alert.showAndWait().orElse(ButtonType.CANCEL)==ButtonType.OK;
-    }
-    private void updateEmpty() {
-        boolean empty = productTable.getItems().isEmpty(); emptyLabel.setVisible(empty); emptyLabel.setManaged(empty);
     }
     private void updateCategoryText() {
         categoryMenuButton.setText(selectedSubjects.isEmpty() ? tr("znack.registration.categories")

@@ -12,20 +12,84 @@ import java.util.Map;
 import java.io.IOException;
 
 public class ZnackKizCodeService {
+    /** Persisted before the consuming /codes request; recovery may only replay issued packages. */
+    public static final String DOWNLOAD_OUTCOME_UNCERTAIN="SUZ_CODE_DOWNLOAD_UNCERTAIN";
+    public static final class DownloadPendingException extends IOException {
+        private DownloadPendingException(){super(DOWNLOAD_OUTCOME_UNCERTAIN);}
+        private DownloadPendingException(IOException cause){super(DOWNLOAD_OUTCOME_UNCERTAIN,cause);}
+    }
     private final ZnackApiClient api;private final ZnackAuthService auth;private final ZnackRepository repository;
     public ZnackKizCodeService(ZnackApiClient api,ZnackAuthService auth,ZnackRepository repository){this.api=api;this.auth=auth;this.repository=repository;}
     public int download(Settings s,long id)throws Exception{
-        ZnackSafety.requireSigned(s,true);
+        return download(s,id,Integer.MAX_VALUE);
+    }
+    /** Availability limits a fresh issuance request, never replay of an already-issued block. */
+    public int download(Settings s,long id,int maximumNewCodes)throws Exception{
+        if(maximumNewCodes<0)throw new IllegalArgumentException("Code availability must not be negative.");
         KizOrder order=repository.findOrder(id).orElseThrow();
-        int remaining=Math.max(0,order.quantity()-repository.findCodes(id).size());
+        s=ZnackPurchaseProtocolContext.resolve(repository,s,id).settings();
+        ZnackSafety.requireSigned(s,true);
+        var storedCodes=repository.findCodes(id);
+        if(order.externalOrderId()==null||order.externalOrderId().isBlank()
+                ||s.omsId()==null||s.omsId().isBlank())throw invalidRecovery();
+        storedIdentities(order,storedCodes);
+        int remaining=order.quantity()-storedCodes.size();
         if(remaining==0){
+            repository.clearCodeDownloadTarget(id);
             repository.updateOrder(id,null,"READY",OrderStatus.CODES_DOWNLOADED,null);
             return 0;
         }
-        JsonElement response=api.codes(s.resolvedSuzBaseUrl(),auth.suzToken(s),s.omsId(),
-                order.externalOrderId(),remaining,order.gtin());
-        int inserted=storeResponse(id,order.gtin(),response,null);
+        if(DOWNLOAD_OUTCOME_UNCERTAIN.equals(order.errorMessage())||repository.codeDownloadTarget(id).isPresent()){
+            int inserted;
+            try{inserted=recoverIssuedBlocks(s,id);}
+            catch(RecoveryIdentityException invalid){throw invalid;}
+            catch(ZnackApiClient.ZnackApiException unavailable){
+                if(unavailable.statusCode()==401||unavailable.statusCode()==403)throw unavailable;
+                throw new DownloadPendingException(unavailable);
+            }
+            catch(IOException unavailable){throw new DownloadPendingException(unavailable);}
+            var recovered=repository.findCodes(id);
+            storedIdentities(order,recovered);
+            // A capped consuming request may cover only part of the approved purchase. The
+            // durable target proves which issued package must be recovered before another GET.
+            int target=repository.codeDownloadTarget(id).orElse(order.quantity());
+            if(target<=0||target>order.quantity()||recovered.size()!=target)throw new DownloadPendingException();
+            repository.clearCodeDownloadTarget(id);
+            boolean complete=recovered.size()==order.quantity();
+            repository.updateOrder(id,null,complete?"READY":order.remoteStatus(),
+                    complete?OrderStatus.CODES_DOWNLOADED:OrderStatus.WAITING_CODES,null);
+            return inserted;
+        }
+        int requested=Math.min(remaining,maximumNewCodes);
+        if(requested==0)return 0;
+        // Authentication/signature failures before this boundary did not issue a package.
+        String token=auth.suzToken(s);
+        repository.beginCodeDownload(id,storedCodes.size()+requested);
+        JsonElement response;
+        try{response=api.codes(s.resolvedSuzBaseUrl(),token,s.omsId(),order.externalOrderId(),requested,order.gtin());}
+        catch(SuzRequestPacing.DeferredException knownUnsent){
+            repository.clearCodeDownloadTarget(id);
+            repository.updateOrder(id,null,null,order.localStatus(),order.errorMessage());
+            throw knownUnsent;
+        }
+        catch(ZnackApiClient.ZnackApiException rejected){
+            // A definitive client rejection confirms the delivery request was not accepted.
+            // HTTP408 and transport/5xx/invalid-success outcomes retain the write-ahead marker.
+            if(rejected.statusCode()>=400&&rejected.statusCode()<500&&rejected.statusCode()!=408){
+                repository.clearCodeDownloadTarget(id);
+                repository.updateOrder(id,null,null,order.localStatus(),order.errorMessage());
+                if(rejected.statusCode()==401)auth.invalidateSuzToken(s,token);
+            }
+            throw rejected;
+        }
+        requireResponseIdentity(response,s,order,null);
+        if(!response.isJsonArray()&&(!response.isJsonObject()||!response.getAsJsonObject().has("codes")
+                ||!response.getAsJsonObject().get("codes").isJsonArray()))throw invalidRecovery();
+        var fresh=validatedFreshCodes(order,storedCodes,response);
+        if(fresh.size()>requested)throw invalidRecovery();
+        int inserted=storeResponse(id,order.gtin(),response,null,fresh);
         int stored=repository.findCodes(id).size();
+        repository.clearCodeDownloadTarget(id);
         // A nonempty response can still be a partial block. Only the durable count proves that
         // every purchased code was received; callers must not mistake partial delivery for done.
         repository.updateOrder(id,null,stored>=order.quantity()?"READY":order.remoteStatus(),
@@ -40,15 +104,16 @@ public class ZnackKizCodeService {
      * keeps the operation idempotent.
      */
     public int recoverIssuedBlocks(Settings s,long id)throws Exception{
-        ZnackSafety.requireSigned(s,true);
         KizOrder order=repository.findOrder(id).orElseThrow();
+        s=ZnackPurchaseProtocolContext.resolve(repository,s,id).settings();
+        ZnackSafety.requireSigned(s,true);
         var storedCodes=repository.findCodes(id);
         requireStoredCodeIdentity(order,storedCodes);
         if(storedCodes.size()>=order.quantity())return 0;
         if(s.omsId()==null||s.omsId().isBlank()||order.externalOrderId()==null||order.externalOrderId().isBlank())throw invalidRecovery();
-        String token=auth.suzToken(s);
-        JsonElement response=api.codeBlocks(s.resolvedSuzBaseUrl(),token,s.omsId(),
-                order.externalOrderId(),order.gtin());
+        final Settings original=s;
+        JsonElement response=auth.readWithSuzRecovery(original,token->api.codeBlocks(
+                original.resolvedSuzBaseUrl(),token,original.omsId(),order.externalOrderId(),order.gtin()));
         requireResponseIdentity(response,s,order,null);
         var expectedQuantities=new HashMap<String,Integer>();
         collectBlockQuantities(response,order.quantity(),expectedQuantities);
@@ -63,11 +128,12 @@ public class ZnackKizCodeService {
             if(blockId.isBlank())continue;
             Integer expected=expectedQuantities.get(identityKey(blockId));
             if(expected!=null&&expected.equals(storedQuantities.getOrDefault(identityKey(blockId),0)))continue;
-            JsonElement block=api.retryCodeBlock(s.resolvedSuzBaseUrl(),token,s.omsId(),blockId);
+            JsonElement block=auth.readWithSuzRecovery(original,token->api.retryCodeBlock(
+                    original.resolvedSuzBaseUrl(),token,original.omsId(),blockId));
             requireResponseIdentity(block,s,order,blockId);
             if(expected!=null&&new java.util.HashSet<>(codes(block)).size()>expected)throw invalidRecovery();
-            for(String raw:codes(block))requireRawCodeIdentity(order,raw);
-            int received=storeResponse(id,order.gtin(),block,blockId);inserted+=received;stored+=received;
+            var fresh=validatedFreshCodes(order,repository.findCodes(id),block);
+            int received=storeResponse(id,order.gtin(),block,blockId,fresh);inserted+=received;stored+=received;
         }
         repository.log("RECOVER_CODE_BLOCKS",String.valueOf(id),"INFO","Recovered "+inserted+" new codes",200);
         return inserted;
@@ -133,16 +199,69 @@ public class ZnackKizCodeService {
     private static String identityKey(String value){return value!=null&&value.matches("(?i)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")?value.toLowerCase(java.util.Locale.ROOT):value;}
     private static RecoveryIdentityException invalidRecovery(){return new RecoveryIdentityException();}
 
-    private int storeResponse(long orderId,String gtin,JsonElement response,String fallbackBlockId){
+    private int storeResponse(long orderId,String gtin,JsonElement response,String fallbackBlockId,List<String> values){
         String blockId=fallbackBlockId;
         if(response!=null&&response.isJsonObject()){
             JsonObject object=response.getAsJsonObject();
             if(object.has("blockId")&&!object.get("blockId").isJsonNull())blockId=object.get("blockId").getAsString();
         }
-        return repository.insertCodes(orderId,gtin,new DownloadedCodes(codes(response),blockId));
+        return repository.insertCodes(orderId,gtin,new DownloadedCodes(values,blockId));
     }
 
-    private List<String> codes(JsonElement response){
+    /** Compare logical identities without changing the full payload retained for printing. */
+    private static String normalizedPayload(String raw){
+        try{return com.vncode.app.features.kiz.KizMark.parse(raw).raw();}
+        catch(IllegalArgumentException legacy){return raw;}
+    }
+
+    private static Map<String,String> storedIdentities(KizOrder order,List<KizCode> stored)throws RecoveryIdentityException{
+        requireStoredCodeIdentity(order,stored);
+        if(order.quantity()<=0||stored.size()>order.quantity())throw invalidRecovery();
+        var identities=new HashMap<String,String>();
+        for(var code:stored){
+            String payload=normalizedPayload(code.rawCode());
+            if(identities.putIfAbsent(ZnackCisNormalizer.forTrueApi(payload),payload)!=null)throw invalidRecovery();
+        }
+        return identities;
+    }
+
+    /** Validate a whole package before any code in it can affect durable stock or readiness. */
+    private List<String> validatedFreshCodes(KizOrder order,List<KizCode> stored,JsonElement response)throws RecoveryIdentityException{
+        var identities=storedIdentities(order,stored);
+        requireSuccessfulPayload(response);
+        var fresh=new ArrayList<String>();
+        for(String raw:codes(response)){
+            requireRawCodeIdentity(order,raw);
+            String payload=normalizedPayload(raw);
+            String previous=identities.putIfAbsent(ZnackCisNormalizer.forTrueApi(payload),payload);
+            if(previous==null)fresh.add(raw);
+            else if(!previous.equals(payload))throw invalidRecovery();
+        }
+        if(fresh.size()>order.quantity()-stored.size())throw invalidRecovery();
+        return fresh;
+    }
+
+    private static void requireSuccessfulPayload(JsonElement response)throws RecoveryIdentityException{
+        if(response==null||response.isJsonNull())throw invalidRecovery();
+        if(response.isJsonArray()){
+            for(var value:response.getAsJsonArray())if(value.isJsonObject()||value.isJsonArray())requireSuccessfulPayload(value);
+            return;
+        }
+        if(!response.isJsonObject())return;
+        var object=response.getAsJsonObject();
+        if(ZnackErrorMessages.hasCisLookupError(object))throw invalidRecovery();
+        for(var entry:object.entrySet()){
+            String name=entry.getKey().replace("_","").toLowerCase(java.util.Locale.ROOT);var value=entry.getValue();
+            if(Set.of("errors","error","globalerrors").contains(name)&&value!=null&&!value.isJsonNull()
+                    &&(value.isJsonArray()?!value.getAsJsonArray().isEmpty():value.isJsonObject()?!value.getAsJsonObject().entrySet().isEmpty()
+                    :!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isString()||!value.getAsString().isBlank()))throw invalidRecovery();
+            if("success".equals(name)&&value!=null&&!value.isJsonNull()
+                    &&(!value.isJsonPrimitive()||!value.getAsJsonPrimitive().isBoolean()||!value.getAsBoolean()))throw invalidRecovery();
+            if(value!=null&&!value.isJsonNull()&&(value.isJsonObject()||value.isJsonArray()))requireSuccessfulPayload(value);
+        }
+    }
+
+    private List<String> codes(JsonElement response)throws RecoveryIdentityException{
         if(response==null||response.isJsonNull())return List.of();
         JsonArray array;
         if(response.isJsonArray())array=response.getAsJsonArray();
@@ -151,8 +270,10 @@ public class ZnackKizCodeService {
         else return List.of();
         List<String> result=new ArrayList<>();
         for(JsonElement element:array){
-            if(element.isJsonPrimitive())result.add(element.getAsString());
-            else if(element.isJsonObject()&&element.getAsJsonObject().has("cis"))result.add(element.getAsJsonObject().get("cis").getAsString());
+            if(element.isJsonPrimitive()&&element.getAsJsonPrimitive().isString())result.add(element.getAsString());
+            else if(element.isJsonObject()&&element.getAsJsonObject().has("cis")&&element.getAsJsonObject().get("cis").isJsonPrimitive()
+                    &&element.getAsJsonObject().get("cis").getAsJsonPrimitive().isString())result.add(element.getAsJsonObject().get("cis").getAsString());
+            else throw invalidRecovery();
         }
         return result;
     }

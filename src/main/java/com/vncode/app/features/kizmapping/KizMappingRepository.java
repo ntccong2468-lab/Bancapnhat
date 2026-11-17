@@ -4,6 +4,7 @@ import com.vncode.app.config.Database;
 import com.vncode.app.integration.znack.GtinNormalizer;
 import com.vncode.app.integration.znack.ZnackGtinInventorySummary;
 import com.vncode.app.integration.znack.ZnackGtinMappingRule;
+import com.vncode.app.integration.znack.ZnackPurchaseCoordinator;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -67,11 +68,11 @@ public class KizMappingRepository {
                    + (SELECT COUNT(*) FROM ozon_product_gtin_mappings o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin)
                    + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)
                    + (SELECT COUNT(*) FROM gtin_sync_verified_mappings v WHERE v.shop_id=p.shop_id AND v.gtin=p.gtin)) rule_count,
-                  (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin ORDER BY o.updated_at DESC LIMIT 1) order_status,
-                  (SELECT x.id FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_id,
-                  (SELECT x.stage FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_stage,
-                  COALESCE((SELECT x.error_message FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1),
-                           (SELECT o.error_message FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin ORDER BY o.updated_at DESC LIMIT 1)) latest_error,
+                  (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin ORDER BY o.updated_at DESC,o.id DESC LIMIT 1) order_status,
+                  (SELECT x.id FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC,x.id DESC LIMIT 1) pipeline_id,
+                  (SELECT x.stage FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC,x.id DESC LIMIT 1) pipeline_stage,
+                  COALESCE((SELECT x.error_message FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC,x.id DESC LIMIT 1),
+                           (SELECT o.error_message FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin ORDER BY o.updated_at DESC,o.id DESC LIMIT 1)) latest_error,
                   p.synced_at
                 FROM znack_products p
                 LEFT JOIN kiz_codes c ON c.shop_id=p.shop_id AND c.gtin=p.gtin
@@ -100,7 +101,7 @@ public class KizMappingRepository {
             try (ResultSet rs = ps.executeQuery()) {
                 List<ZnackGtinInventorySummary> result = new ArrayList<>();
                 while (rs.next()) result.add(summary(rs));
-                return result;
+                return preferSigningRecovery(c, shopId, result);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -422,11 +423,11 @@ public class KizMappingRepository {
                    + (SELECT COUNT(*) FROM ozon_product_gtin_mappings o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin)
                    + (SELECT COUNT(*) FROM ozon_article_gtin_mappings a WHERE a.shop_id=p.shop_id AND a.gtin=p.gtin)
                    + (SELECT COUNT(*) FROM gtin_sync_verified_mappings v WHERE v.shop_id=p.shop_id AND v.gtin=p.gtin)) rule_count,
-                  (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin {KIZ_ORDER_FILTER} ORDER BY o.updated_at DESC LIMIT 1) order_status,
-                  (SELECT x.id FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_id,
-                  (SELECT x.stage FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1) pipeline_stage,
-                  COALESCE((SELECT x.error_message FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC LIMIT 1),
-                           (SELECT o.error_message FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin {KIZ_ORDER_FILTER} ORDER BY o.updated_at DESC LIMIT 1)) latest_error,
+                  (SELECT o.local_status FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin {KIZ_ORDER_FILTER} ORDER BY o.updated_at DESC,o.id DESC LIMIT 1) order_status,
+                  (SELECT x.id FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC,x.id DESC LIMIT 1) pipeline_id,
+                  (SELECT x.stage FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC,x.id DESC LIMIT 1) pipeline_stage,
+                  COALESCE((SELECT x.error_message FROM znack_purchase_pipelines x WHERE x.shop_id=p.shop_id AND x.gtin=p.gtin ORDER BY x.updated_at DESC,x.id DESC LIMIT 1),
+                           (SELECT o.error_message FROM kiz_orders o WHERE o.shop_id=p.shop_id AND o.gtin=p.gtin {KIZ_ORDER_FILTER} ORDER BY o.updated_at DESC,o.id DESC LIMIT 1)) latest_error,
                   p.synced_at
                 FROM znack_products p
                 LEFT JOIN kiz_codes c ON c.shop_id=p.shop_id AND c.gtin=p.gtin {KIZ_SOURCE_FILTER}
@@ -443,12 +444,51 @@ public class KizMappingRepository {
                 while (rs.next()) {
                     result.add(summary(rs));
                 }
-                return result;
+                return preferSigningRecovery(c, shopId, result);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
+
+    /** A newer intent must not hide the action that resumes an already-paid signing pause. */
+    private static List<ZnackGtinInventorySummary> preferSigningRecovery(
+            Connection connection, int shopId, List<ZnackGtinInventorySummary> rows) throws SQLException {
+        if (rows.isEmpty()) return rows;
+        var gtins = rows.stream().map(ZnackGtinInventorySummary::gtin).distinct().toList();
+        var paused = new LinkedHashMap<String, SigningPause>();
+        for (int start = 0; start < gtins.size(); start += SQL_PARAM_BATCH_SIZE) {
+            var batch = gtins.subList(start, Math.min(start + SQL_PARAM_BATCH_SIZE, gtins.size()));
+            String sql = "SELECT id,gtin,stage,error_message FROM znack_purchase_pipelines WHERE shop_id=? AND gtin IN ("
+                    + String.join(",", Collections.nCopies(batch.size(), "?")) + ") ORDER BY updated_at DESC,id DESC";
+            try (var statement = connection.prepareStatement(sql)) {
+                statement.setInt(1, shopId);
+                for (int i = 0; i < batch.size(); i++) statement.setString(i + 2, batch.get(i));
+                try (var result = statement.executeQuery()) {
+                    while (result.next()) {
+                        String gtin = result.getString("gtin");
+                        long id = result.getLong("id");
+                        String stage = result.getString("stage"), error = result.getString("error_message");
+                        if (!paused.containsKey(gtin)
+                                && ZnackPurchaseCoordinator.isSigningConfirmationPending(shopId, id, stage, error)) {
+                            paused.put(gtin, new SigningPause(id, stage, error));
+                        }
+                    }
+                }
+            }
+        }
+        if (paused.isEmpty()) return rows;
+        var result = new ArrayList<ZnackGtinInventorySummary>(rows.size());
+        for (var row : rows) {
+            var pause = paused.get(row.gtin());
+            result.add(pause == null ? row : new ZnackGtinInventorySummary(row.gtin(), row.productName(), row.category(),
+                    row.available(), row.reserved(), row.consumed(), row.discardable(), row.mappingRuleCount(),
+                    row.latestOrderStatus(), pause.id(), pause.stage(), pause.error(), row.syncedAt()));
+        }
+        return result;
+    }
+
+    private record SigningPause(long id, String stage, String error) { }
 
     private void validateNoConflicts(Connection c, int shopId, String gtin,
                                      List<ZnackGtinMappingSelection> selections) throws SQLException {

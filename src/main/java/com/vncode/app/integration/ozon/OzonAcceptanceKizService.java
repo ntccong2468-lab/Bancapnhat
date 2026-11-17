@@ -75,6 +75,24 @@ final class OzonAcceptanceKizService {
         if(!requiredBeforeAccept(shop,posting,sources))return;
         ensureRequired(shop,posting,api,sources);
     }
+    /** Explicit paid print assignment: local print receipts never substitute for Ozon readback. */
+    void confirmPurchasedForPrint(Shop shop,OzonPostingDto posting,OzonApiClient api,KizSourceSelection sources)throws IOException {
+        ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
+        var job=jobs.find(shop.getId(),posting.postingNumber());
+        if(!OzonPurchasedKizAssignment.required(shop,job,sources))return;
+        if(OzonPurchasedKizAssignment.acceptedProof(shop,job))return;
+        if(job.stage()==OzonExemplarJobStage.ACCEPTED){
+            // Historical consumed slots cannot be reopened or submitted again. Only
+            // exact read-only authoritative reconciliation can recover their proof.
+            verify(shop,posting,api,job);
+        }else{
+            OzonPurchasedKizAssignment.requireCurrentPaidBindings(shop,posting,job,sources);
+            ensureRequired(shop,posting,api,sources);
+        }
+        job=jobs.find(shop.getId(),posting.postingNumber());
+        OzonPurchasedKizAssignment.recordAcceptedReadback(shop,job);
+        if(!OzonPurchasedKizAssignment.acceptedProof(shop,job))throw new IOException("OZON_ACCEPT_KIZ_PENDING");
+    }
     /** A received posting can lose its optional-mark requirements; repair its exact held job anyway. */
     boolean repairRejectedForPrint(Shop shop,OzonPostingDto posting,OzonApiClient api,KizSourceSelection sources)throws IOException {
         var job=jobs.find(shop.getId(),posting.postingNumber());
@@ -95,6 +113,17 @@ final class OzonAcceptanceKizService {
         return true;
     }
     private void ensureRequired(Shop shop,OzonPostingDto posting,OzonApiClient api,KizSourceSelection sources)throws IOException {
+        var terminal=jobs.find(shop.getId(),posting.postingNumber());
+        if(terminal!=null&&terminal.stage()==OzonExemplarJobStage.ACCEPTED&&OzonPurchasedKizAssignment.required(shop,terminal,sources)){
+            ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
+            if(!OzonPurchasedKizAssignment.acceptedProof(shop,terminal)){
+                // A historical local PDF may already have consumed these slots.
+                // Receipt/repair, like reprint, can only recover read-only proof.
+                verify(shop,posting,api,terminal);
+                OzonPurchasedKizAssignment.recordAcceptedReadback(shop,terminal);
+            }
+            return;
+        }
         var replacements=new OzonAcceptanceKizReplacement();
         long started=System.nanoTime();
         for(int attempt=0;attempt<MAX_MARK_ATTEMPTS;attempt++) {
@@ -112,7 +141,7 @@ final class OzonAcceptanceKizService {
                         throw detailedRejection(shop,posting,job,observed,OzonExemplarService.exemplarPayload(posting.postingNumber(),bound,true),"");
                     }
                 }
-                if(ticket!=null&&ticket.state().equals("PREPARED"))sendPreparedReplacement(shop,posting,api,job,ticket,replacements);
+                if(ticket!=null&&ticket.state().equals("PREPARED"))sendPreparedReplacement(shop,posting,api,job,ticket,replacements,sources);
                 ensureOnce(shop,posting,api,sources);
                 return;
             }catch(RejectedMarks failure){
@@ -124,7 +153,11 @@ final class OzonAcceptanceKizService {
                     throw new OzonKizReplacementDeferredException();
                 }
                 OzonKizProgress.report(OzonKizProgress.Stage.REPLACE);
-                if(!replacements.prepare(shop,posting,failure.job,failure.marks,failure.payload,failure.remoteAnchor,sources,jobs))throw failure;
+                if(!replacements.prepare(shop,posting,failure.job,failure.marks,failure.payload,failure.remoteAnchor,sources,jobs)){
+                    if(!OzonPurchasedKizAssignment.rejectedDemand(shop,List.of(posting),sources).quantities().isEmpty())
+                        throw new IOException("OZON_ACCEPT_KIZ_STOCK_REQUIRED",failure);
+                    throw failure;
+                }
             }
         }
         throw new IOException("OZON_ACCEPT_KIZ_RETRY_LIMIT");
@@ -153,9 +186,10 @@ final class OzonAcceptanceKizService {
         var plan=OzonRequirementGuard.plan(posting,skuMappings,
                 new OzonProductKizPolicyRepository().findExemptSkus(shop.getId()),categorySkus);
         var local=jobs.stageLocalForPrint(shop.getId(),plan,sources,()->{ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);},
-                ()->OzonRequirementGuard.requireCurrentPurchasedMappings(shop.getId(),plan,sources));
+                ()->OzonRequirementGuard.requireCurrentPurchasedMappings(shop.getId(),plan,sources),OzonPurchasedKizStock.purchaseIntent(shop,sources));
         var job=local.job();
         if(!local.ready())throw new IOException("OZON_ACCEPT_KIZ_STOCK_REQUIRED");
+        OzonPurchasedKizAssignment.requireCurrentPaidBindings(shop,posting,job,sources);
         OzonKizProgress.report(OzonKizProgress.Stage.READ);
         var remote=api.createOrGetExemplars(OzonExemplarService.createRequest(posting));
         // Match IDs by product before replacing local print slots; KIZ reservations stay unchanged.
@@ -163,6 +197,7 @@ final class OzonAcceptanceKizService {
         if(hasMarks(remote))throw new IOException("OZON_ACCEPT_KIZ_EXISTING_MARKS");
         jobs.persistRemoteExemplars(job,plan,ids);
         var bindings=jobs.bindings(job.id());
+        OzonPurchasedKizAssignment.requireCurrentPaidBindings(shop,posting,job,sources);
         OzonKizProgress.report(OzonKizProgress.Stage.VALIDATE);
         var rawValidation=api.validateExemplars(OzonExemplarService.exemplarPayload(posting.postingNumber(),bindings,false));
         var validation=OzonExemplarJson.validation(rawValidation,bindings.size());
@@ -172,6 +207,7 @@ final class OzonAcceptanceKizService {
         var payload=OzonExemplarService.exemplarPayload(posting.postingNumber(),bindings,true);
         String fingerprint=ListingIdentity.hash(payload.toString());
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
+        OzonPurchasedKizAssignment.requireCurrentPaidBindings(shop,posting,job,sources);
         jobs.requireCurrentBindingsBeforeSend(shop,posting.postingNumber(),job.id());
         if(!jobs.tryBeginAction(shop.getId(),"accept_kiz",posting.postingNumber(),fingerprint)){
             verify(shop,posting,api,job);return;
@@ -227,8 +263,11 @@ final class OzonAcceptanceKizService {
         throw new IOException("OZON_ACCEPT_KIZ_PENDING");
     }
     private void sendPreparedReplacement(Shop shop,OzonPostingDto posting,OzonApiClient api,OzonExemplarJob job,
-            OzonAcceptanceKizReplacement.Ticket ticket,OzonAcceptanceKizReplacement replacements)throws IOException {
+            OzonAcceptanceKizReplacement.Ticket ticket,OzonAcceptanceKizReplacement replacements,KizSourceSelection sources)throws IOException {
         ListingIdentity.require(shop);LicenseRuntime.require(Permission.PACKING);
+        // Existing imported/category bindings retain their GTIN-independent rule.
+        // Any paid slot must still be the exact native variant before a new write.
+        OzonPurchasedKizAssignment.requireCurrentPaidBindings(shop,posting,job,sources);
         var payload=ticket.payload();
         if(ticket.remoteRejected()){
             OzonKizProgress.report(OzonKizProgress.Stage.READ);
@@ -254,10 +293,12 @@ final class OzonAcceptanceKizService {
         var validationPayload=payload.deepCopy();
         for(var product:validationPayload.getAsJsonArray("products"))
             for(var exemplar:product.getAsJsonObject().getAsJsonArray("exemplars"))exemplar.getAsJsonObject().remove("exemplar_id");
+        OzonPurchasedKizAssignment.requireCurrentPaidBindings(shop,posting,job,sources);
         OzonKizProgress.report(OzonKizProgress.Stage.VALIDATE);
         var raw=api.validateExemplars(validationPayload);var status=OzonExemplarJson.validation(raw,jobs.bindings(job.id()).size());
         if(status.rejected())throw detailedRejection(shop,posting,job,validationMarks(posting,raw,jobs.bindings(job.id())),payload,ticket.remoteRejected()?ticket.oldHash():"");
         if(!status.allMarksPassed())throw new IOException("OZON_ACCEPT_KIZ_PENDING");
+        OzonPurchasedKizAssignment.requireCurrentPaidBindings(shop,posting,job,sources);
         jobs.requireCurrentBindingsBeforeSend(shop,posting.postingNumber(),job.id());
         String fingerprint=ListingIdentity.hash(payload.toString());
         if(!replacements.claim(shop,job,sendingTicket,fingerprint))throw new IOException("OZON_ACCEPT_KIZ_PENDING");

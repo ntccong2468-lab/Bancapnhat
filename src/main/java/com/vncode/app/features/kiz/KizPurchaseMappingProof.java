@@ -1,9 +1,6 @@
 package com.vncode.app.features.kiz;
 
 import com.vncode.app.features.fbo.*;
-import com.vncode.app.features.catalogsync.CatalogPermitEvidence;
-import com.vncode.app.features.gtinsync.GtinSyncRepository;
-import com.vncode.app.features.gtinsync.RegisteredGtinProof;
 import com.vncode.app.models.Shop;
 import com.vncode.app.integration.znack.GtinNormalizer;
 import java.util.*;
@@ -27,32 +24,23 @@ public final class KizPurchaseMappingProof {
             for(var product:selected)if(!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(direct.get(product),resolved.get(product)))
                 throw new KizAssignmentException("KIZ_CROSS_PURCHASE_REVIEW_REQUIRED",product.order(),Objects.toString(product.nativeId(),"")+"-"+Objects.toString(product.sku(),""));
         }
-        requireKnownPermit(shop,requested);
+        // Admission here proves the requested native variants. The shared purchase
+        // engine validates local permits using the approved purchase method; a
+        // complete global Catalog scan is not a prerequisite for buying codes.
     }
-    /** New paid requests must honor known permit validity; existing stock identity is independent. */
+    /** Compatibility entry point for the new local, method-aware purchase policy. */
     public static void requireKnownPermit(Shop shop,Collection<String> gtins){
-        String revision=com.vncode.app.integration.znack.CatalogReadRevision.current(shop.getId());
-        com.vncode.app.integration.znack.CatalogReadRevision.requireComplete(shop.getId());
-        var requested=new HashSet<String>();var aliases=new LinkedHashSet<String>();
+        if(shop==null)throw new IllegalArgumentException("Shop is required.");
+        var repository=new com.vncode.app.integration.znack.ZnackRepository(
+                new com.vncode.app.integration.znack.ZnackModels.ShopContext(shop.getId(),shop.getName()));
+        var settings=repository.getSettings();
         for(String gtin:gtins){
-            String normalized=GtinNormalizer.normalize(gtin);requested.add(normalized);
-            for(int width:new int[]{8,12,13,14}){
-                String alias=normalized.substring(14-width);
-                if(RegisteredGtinProof.sameCode(normalized,alias))aliases.add(alias);
-            }
+            String normalized=GtinNormalizer.normalize(gtin);
+            var product=repository.findActiveProduct(normalized).orElseGet(()->
+                    new KizRegistrationIdentityRepository().product(shop.getId(),normalized).orElse(null));
+            if(product==null)throw new IllegalArgumentException("GTIN is not registered for the selected shop.");
+            com.vncode.app.integration.znack.ZnackPurchasePreflight.requireLocalPermit(shop.getId(),settings,product);
         }
-        var observed=new GtinSyncRepository().catalogItems(shop.getId(),shop.getMarketplace(),aliases).values().stream()
-                .filter(card->card.published()&&requested.contains(GtinNormalizer.normalize(card.gtin())))
-                .filter(card->!card.details().documents().isEmpty()||!card.details().values("@documents_status").isEmpty()
-                        ||!card.details().values("@registry_document_count").isEmpty()).toList();
-        com.vncode.app.integration.znack.CatalogReadRevision.requireUnchanged(shop.getId(),revision);
-        if(observed.isEmpty())return; // Legacy and accepted, unpublished registrations keep their existing prerequisites.
-        String source=RegisteredGtinProof.current(shop).source();
-        for(var card:observed)if(source.equals(card.source())){
-            String problem=CatalogPermitEvidence.problem(card.details());
-            if(!problem.isBlank())throw new IllegalStateException(problem);
-        }
-        com.vncode.app.integration.znack.CatalogReadRevision.requireUnchanged(shop.getId(),revision);
     }
     /** Resolve exact native variants for printing, including GTIN barcodes entered outside VNCode.
      * A legacy category rule is deliberately not evidence for this view. */

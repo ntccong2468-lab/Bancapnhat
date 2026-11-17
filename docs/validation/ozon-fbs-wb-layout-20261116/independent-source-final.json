@@ -1,0 +1,11 @@
+{
+  "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java": "eff86ed2598fdfdb5063f37896983d9b74752ae74792bac5428ef48da89e07a0",
+  "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml": "25381572d9e79b952f9ca804e0da41318e34cf52c999d3e963cb3f9b58615c44",
+  "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java": "055fcdfecfe1e7cfb65b23b57fed69831ab5035c59696a7590210af13fe9479d",
+  "src/test/java/com/vncode/app/ui/ozon/OzonDashboardControllerTest.java": "a98adc00ab784b62868d9ad40b80e36022f663b5c199e3ab1fff7af8abcc0f16",
+  "src/test/java/com/vncode/app/ui/ozon/OzonWbPackingParityTest.java": "0350cec33070206364c243206f5c3f0a95496a3c809daabde638b0e3737691f3",
+  "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "7e22b01ac4c85d127e4ebe6592334817dbb34188ea93b20b111de2bcd48431c3",
+  "src/main/resources/com/vncode/app/i18n/messages_en.properties": "88be94b8fbcddde4e197a6c4c54209164758e5731bfca7fff83733eedbf6ba12",
+  "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "8840d29be6f0f3073a9831f19c2390e57d50b3d4d5b7220b3ebe62133c600fb4",
+  "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "ccf51f90e5b4625e6861ddefc551f6d8cfac6d006cd45bdbf58d0993bc9c84b6"
+}

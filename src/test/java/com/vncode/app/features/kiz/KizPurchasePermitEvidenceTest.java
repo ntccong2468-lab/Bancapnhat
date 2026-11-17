@@ -19,6 +19,7 @@ import org.junit.jupiter.params.provider.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class KizPurchasePermitEvidenceTest {
+    private static final String LOCAL_PERMIT_MISSING="GTIN has no complete local declaration or certificate. Save its goods document before buying KIZ.";
     @TempDir Path root;
     @BeforeEach void init(){System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();}
     @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
@@ -30,16 +31,26 @@ class KizPurchasePermitEvidenceTest {
                 Arguments.of(market,"future","GTIN_DOCUMENT_NOT_YET_VALID")));
     }
     @ParameterizedTest @MethodSource("invalidPermits")
-    void invalidKnownPermitBlocksNewPaidMappingWithoutChangingExistingStockIdentity(Marketplace market,String state,String reason)throws Exception{
+    void nativeIdentityIsIndependentFromPermitWhileTheSharedMethodAwareGuardProtectsNewProduction(Marketplace market,String state,String reason)throws Exception{
         var shop=fixture(market);var card=card(shop,state);save(shop,card);
         var selection=List.of(selected(market));
         assertEquals(GtinWriteTestFixture.GTIN,KizPurchaseMappingProof.resolve(shop,selection).get(selection.getFirst()),
                 "Permit validity must not remove the physical identity used for existing introduced stock");
-        var failure=assertThrows(IllegalStateException.class,()->KizPurchaseMappingProof.require(shop,selection,Set.of(GtinWriteTestFixture.GTIN)));
-        assertEquals(reason,failure.getMessage());assertNoPurchase();
+        assertDoesNotThrow(()->KizPurchaseMappingProof.require(shop,selection,Set.of(GtinWriteTestFixture.GTIN)),
+                "The native variant proof must not perform a global Catalog permit gate");
+        var wrong=new KizPurchaseMappingProof.Product(selection.getFirst().nativeId(),"WRONG-NATIVE-SKU",GtinWriteTestFixture.GTIN,"SYNTHETIC-ORDER");
+        assertThrows(KizAssignmentException.class,()->KizPurchaseMappingProof.require(shop,List.of(wrong),Set.of(GtinWriteTestFixture.GTIN)),
+                "Removing the old permit gate must preserve exact native variant identity");
+        ZnackCatalogSyncService.project(shop,List.of(card));
+        var failure=assertThrows(IllegalStateException.class,()->KizPurchaseMappingProof.requireKnownPermit(shop,Set.of(GtinWriteTestFixture.GTIN)));
+        assertEquals(LOCAL_PERMIT_MISSING,failure.getMessage(),"Projected "+state+" evidence cannot authorize production: "+reason);
+        new ZnackPurchasePreferences(shop.getId()).saveMethod(ZnackPurchaseMethod.COMMISSION);
+        assertDoesNotThrow(()->KizPurchaseMappingProof.requireKnownPermit(shop,Set.of(GtinWriteTestFixture.GTIN)),
+                "Commission does not require production declarations");
+        assertNoPurchase();
     }
     @ParameterizedTest @MethodSource("invalidPermits")
-    void projectionClearsInvalidPermitsAndCoordinatorReportsTheRichReasonBeforeSigning(Marketplace market,String state,String reason)throws Exception{
+    void projectionClearsInvalidPermitsAndCoordinatorRequiresLocalProductionDocumentsBeforeSigning(Marketplace market,String state,String reason)throws Exception{
         var shop=fixture(market);var card=card(shop,state);save(shop,card);var repository=repository(shop);
         repository.upsertProducts(List.of(new ZnackModels.Product(GtinWriteTestFixture.GTIN,"Synthetic","6109100000","CONFORMITY_DECLARATION","OLD","2020-01-01",null)));
         repository.updateProductDocuments(GtinWriteTestFixture.GTIN,List.of(new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION","OLD","2020-01-01")));
@@ -47,7 +58,7 @@ class KizPurchasePermitEvidenceTest {
         var product=repository.findActiveProduct(GtinWriteTestFixture.GTIN).orElseThrow();
         var failure=assertThrows(IllegalStateException.class,()->new ZnackPurchaseCoordinator(repository,null,null,null)
                 .validatePrerequisites(repository.getSettings(),GtinWriteTestFixture.GTIN,1));
-        assertAll(()->assertEquals(reason,failure.getMessage()),
+        assertAll(()->assertEquals(LOCAL_PERMIT_MISSING,failure.getMessage(),"Projected invalid source retains "+reason+" in Catalog evidence"),
                 ()->assertTrue(product.permitDocuments().isEmpty()),
                 ()->assertNull(product.certificateNumber()),
                 ()->assertEquals(List.of(card),new GtinSyncRepository().catalog(shop.getId(),market),"Keep rich validity/status evidence in the Catalog cache"));
@@ -71,10 +82,13 @@ class KizPurchasePermitEvidenceTest {
         assertDoesNotThrow(()->KizPurchaseMappingProof.require(shop,List.of(selected(market)),Set.of(GtinWriteTestFixture.GTIN)));
         var repository=repository(shop);repository.upsertProducts(List.of(new ZnackModels.Product(GtinWriteTestFixture.GTIN,"Synthetic","6109100000","CONFORMITY_DECLARATION","OLD","2020-01-01",null)));
         repository.updateProductDocuments(GtinWriteTestFixture.GTIN,List.of(new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION","OLD","2020-01-01")));
-        ZnackCatalogSyncService.project(shop,List.of(card));assertEquals("OLD",repository.findActiveProduct(GtinWriteTestFixture.GTIN).orElseThrow().certificateNumber());assertNoPurchase();
+        ZnackCatalogSyncService.project(shop,List.of(card));assertEquals("OLD",repository.findActiveProduct(GtinWriteTestFixture.GTIN).orElseThrow().certificateNumber());
+        assertDoesNotThrow(()->KizPurchaseMappingProof.requireKnownPermit(shop,Set.of(GtinWriteTestFixture.GTIN)),
+                "Complete saved local documents do not need a complete global Catalog document observation");
+        assertNoPurchase();
     }
     @ParameterizedTest @ValueSource(strings={"REGISTRY_DOCUMENTS_PENDING","REGISTRY_DOCUMENTS_UNAVAILABLE"})
-    void unresolvedRegistryEvidenceClearsProjectedPermitsAndReachesThePaidGuard(String reason)throws Exception{
+    void unresolvedRegistryEvidenceClearsLocalDocumentsButDoesNotBecomeAGlobalPurchaseGate(String reason)throws Exception{
         var shop=fixture(Marketplace.WILDBERRIES);var active=card(shop,"active");
         var fields=new HashMap<>(active.details().fields());fields.put("@documents_status",List.of(reason));
         var card=new GtinSyncModels.RegisteredGtin(active.gtin(),active.article(),active.color(),active.size(),true,true,active.source(),active.syncedAt(),
@@ -83,7 +97,10 @@ class KizPurchasePermitEvidenceTest {
         assertTrue(repository.findActiveProduct(card.gtin()).orElseThrow().permitDocuments().isEmpty());
         var failure=assertThrows(IllegalStateException.class,()->new ZnackPurchaseCoordinator(repository,null,null,null)
                 .validatePrerequisites(repository.getSettings(),card.gtin(),1));
-        assertEquals(reason,failure.getMessage());assertNoPurchase();
+        assertEquals(LOCAL_PERMIT_MISSING,failure.getMessage());
+        assertEquals(List.of(card),new GtinSyncRepository().catalog(shop.getId(),shop.getMarketplace()),
+                "The unresolved registry reason must remain available for diagnosis: "+reason);
+        assertNoPurchase();
     }
     @Test void mixedPermitsProjectOnlyTheActiveDocumentAndPermitTheExistingPrerequisiteFlow()throws Exception{
         var shop=fixture(Marketplace.WILDBERRIES);var active=card(shop,"active");var expired=card(shop,"expired");
@@ -95,20 +112,30 @@ class KizPurchasePermitEvidenceTest {
         assertEquals(List.of(new ZnackModels.GoodsDocument("CONFORMITY_DECLARATION","ACTIVE","2020-01-01")),product.permitDocuments());
         assertEquals("ACTIVE",product.certificateNumber());assertNoPurchase();
     }
-    @Test void canonicalCatalogAliasesCannotHideKnownInvalidPermitsFromThePaidGuard()throws Exception{
+    @Test void canonicalCatalogAliasesPreserveNativeIdentityAndProjectedLocalPermitProtection()throws Exception{
         var shop=fixture(Marketplace.WILDBERRIES);var expired=card(shop,"expired");
-        save(shop,new GtinSyncModels.RegisteredGtin(expired.gtin().substring(1),expired.article(),expired.color(),expired.size(),true,true,expired.source(),expired.syncedAt(),expired.details()));
-        var failure=assertThrows(IllegalStateException.class,()->KizPurchaseMappingProof.require(shop,List.of(selected(Marketplace.WILDBERRIES)),Set.of(expired.gtin())));
-        assertEquals("GTIN_DOCUMENT_EXPIRED",failure.getMessage());assertNoPurchase();
+        var alias=new GtinSyncModels.RegisteredGtin(expired.gtin().substring(1),expired.article(),expired.color(),expired.size(),true,true,expired.source(),expired.syncedAt(),expired.details());
+        save(shop,alias);
+        var selection=List.of(selected(Marketplace.WILDBERRIES));
+        assertDoesNotThrow(()->KizPurchaseMappingProof.require(shop,selection,Set.of(expired.gtin())));
+        assertEquals(expired.gtin(),KizPurchaseMappingProof.resolve(shop,selection).get(selection.getFirst()));
+        ZnackCatalogSyncService.project(shop,List.of(alias));
+        var failure=assertThrows(IllegalStateException.class,()->KizPurchaseMappingProof.requireKnownPermit(shop,Set.of(expired.gtin())));
+        assertEquals(LOCAL_PERMIT_MISSING,failure.getMessage());assertNoPurchase();
     }
-    @Test void coordinatorRechecksRichEvidenceWhenTheOlderProjectedProductStillHasACompletePermit()throws Exception{
+    @Test void coordinatorUsesLocalPermitAtPurchaseAndExplicitProjectionCanInvalidateIt()throws Exception{
         var shop=fixture(Marketplace.WILDBERRIES);var active=card(shop,"active");save(shop,active);
         ZnackCatalogSyncService.project(shop,List.of(active));var repository=repository(shop);
-        save(shop,card(shop,"expired")); // The queued request must not trust its older flattened metadata.
+        var expired=card(shop,"expired");save(shop,expired); // A separate cache refresh is not a global admission gate.
         assertFalse(repository.findActiveProduct(active.gtin()).orElseThrow().permitDocuments().isEmpty());
         var failure=assertThrows(IllegalStateException.class,()->new ZnackPurchaseCoordinator(repository,null,null,null)
                 .validatePrerequisites(repository.getSettings(),active.gtin(),1));
-        assertEquals("GTIN_DOCUMENT_EXPIRED",failure.getMessage());assertNoPurchase();
+        assertEquals("omsId is required before buying KIZ.",failure.getMessage(),
+                "A complete saved local permit reaches the independent signing/account prerequisites");
+        ZnackCatalogSyncService.project(shop,List.of(expired));
+        var projectedFailure=assertThrows(IllegalStateException.class,()->new ZnackPurchaseCoordinator(repository,null,null,null)
+                .validatePrerequisites(repository.getSettings(),active.gtin(),1));
+        assertEquals(LOCAL_PERMIT_MISSING,projectedFailure.getMessage());assertNoPurchase();
     }
     private Shop fixture(Marketplace market)throws Exception{
         var shop=GtinWriteTestFixture.shop(market);

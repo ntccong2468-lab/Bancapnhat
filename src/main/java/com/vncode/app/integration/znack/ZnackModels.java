@@ -115,7 +115,7 @@ public final class ZnackModels {
         }
 
         public static Settings empty() {
-            return new Settings("", "", "", "", "", "", "", "", "", "[]", "", "", "", false,
+            return new Settings("", "", "", "", "", "", "", "", "", "[]", "", "", "", true,
                     "", "[]", "", null, "", "", "", 60, "", "");
         }
 

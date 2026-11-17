@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class HomeControllerStartupRecoveryTest {
 
     @Test
-    void startupAuthorizesOnlyTheInitiallySelectedShopForRecoveredSigning() throws Exception {
+    void initialSelectionDefersSigningUntilVerifiedShopAdmissionRuns() throws Exception {
         int activeShopId = 987_654_321;
         int otherShopId = 987_654_322;
         HomeController controller = new HomeController();
@@ -33,9 +33,9 @@ class HomeControllerStartupRecoveryTest {
                 (payload, context) -> new CryptoProSigningResult(new byte[]{2}, "ok"));
 
         assertTrue(controller.authorizeInitialZnackShop(activeShop));
-        assertArrayEquals(new byte[]{1},
-                activeSigner.sign(new byte[]{9}, ZnackSignatureContext.AUTH_CHALLENGE).cms());
-        assertEquals(1, activeSigningCalls.get());
+        assertThrows(ZnackSigningSession.SigningDeferredException.class,
+                () -> activeSigner.sign(new byte[]{9}, ZnackSignatureContext.AUTH_CHALLENGE));
+        assertEquals(0, activeSigningCalls.get());
 
         assertFalse(controller.authorizeInitialZnackShop(otherShop));
         assertThrows(ZnackSigningSession.SigningDeferredException.class,

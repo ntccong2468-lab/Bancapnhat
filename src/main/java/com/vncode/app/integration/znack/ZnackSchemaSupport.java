@@ -25,6 +25,7 @@ public final class ZnackSchemaSupport {
         addPurchaseIdempotencyColumns(connection);
         addCryptoProColumns(connection);
         addIntroductionColumns(connection);
+        ZnackPurchaseSchema.initialize(connection);
         migrateMissingDocumentWaitStages(connection);
         addInventoryColumns(connection);
         migrateInventoryStatuses(connection);
@@ -171,7 +172,7 @@ public final class ZnackSchemaSupport {
                     CREATE TABLE IF NOT EXISTS kiz_orders(
                     id INTEGER PRIMARY KEY AUTOINCREMENT,shop_id INTEGER NOT NULL,external_order_id TEXT,gtin TEXT NOT NULL,
                     quantity INTEGER NOT NULL,remote_status TEXT,local_status TEXT NOT NULL,error_message TEXT,created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL,UNIQUE(shop_id,id),UNIQUE(shop_id,external_order_id),
+                    updated_at TEXT NOT NULL,UNIQUE(shop_id,id),UNIQUE(shop_id,external_order_id,gtin),
                     FOREIGN KEY(shop_id,gtin) REFERENCES znack_products(shop_id,gtin),FOREIGN KEY(shop_id) REFERENCES shops(id) ON DELETE CASCADE)
                     """);
             st.execute("""

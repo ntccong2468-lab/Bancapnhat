@@ -1,0 +1,108 @@
+{
+  "status": "OFFICIAL_DOCUMENT_RETRIEVED_AND_READ_NO_LIVE_OMS",
+  "observedAtUtc": "2026-11-16T12:15:20.436398+00:00",
+  "url": "https://docs.crpt.ru/gismt/files/pdf/API_%D0%A1%D0%A3%D0%97_3.0.pdf",
+  "http": 200,
+  "bytes": 4578785,
+  "sha256": "0a019c4208f8a781aa431a6a3dad60c537e33f268529e24a0678721022fe1313",
+  "identicalToCached20261110": true,
+  "pdfPages": 761,
+  "normalCodes": {
+    "section": "4.4.4",
+    "pdfPages": [
+      174,
+      175,
+      176
+    ],
+    "method": "GET",
+    "path": "/api/v3/codes",
+    "query": [
+      "omsId",
+      "orderId",
+      "quantity",
+      "gtin"
+    ],
+    "quantityRange": "positive integer, maximum150000",
+    "response": [
+      "omsId",
+      "codes",
+      "blockId"
+    ],
+    "consumptive": true,
+    "automaticClosureNote": "Order closes automatically when last marking code is printed; manual close is for incomplete printing",
+    "noKeepOpenParameterFound": true
+  },
+  "bufferStatus": {
+    "table": 83,
+    "pdfPage": 169,
+    "availableCodes": "Total available codes in buffer and registrar pools",
+    "totalCodes": "Ordered code quantity",
+    "totalPassed": "Cumulative codes obtained from buffer",
+    "leftInBuffer": "Unused codes in local buffer",
+    "negativeProofWarning": "These scalar fields do not document whether a timed-out issuance is still in flight or whether block index is complete/strongly consistent."
+  },
+  "blockList": {
+    "section": "4.4.5",
+    "pdfPages": [
+      177,
+      178,
+      179,
+      180
+    ],
+    "path": "/api/v3/order/codes/blocks",
+    "query": [
+      "omsId",
+      "orderId",
+      "gtin"
+    ],
+    "response": [
+      "omsId",
+      "orderId",
+      "gtin",
+      "blocks"
+    ],
+    "blockFields": [
+      "blockId",
+      "blockDateTime",
+      "quantity"
+    ],
+    "restrictions": [
+      "Marking-code suborder is not closed",
+      "First print request was through API"
+    ]
+  },
+  "retry": {
+    "section": "4.4.6",
+    "pdfPages": [
+      181,
+      182,
+      183
+    ],
+    "path": "/api/v3/order/codes/retry",
+    "query": [
+      "omsId",
+      "blockId"
+    ],
+    "response": [
+      "omsId",
+      "codes",
+      "blockId"
+    ],
+    "meaning": "Re-obtain already emitted codes lost in communications, not a new order",
+    "restrictions": [
+      "Codes previously requested through API",
+      "Code order is not closed",
+      "Release method/TN VED group not closed or blocked"
+    ]
+  },
+  "notEstablished": [
+    "Empty block list is authoritative proof no issuance occurred",
+    "availableCodes or totalPassed alone rules out an in-flight timed-out issuance",
+    "Retry always available after final-code automatic close",
+    "Any hidden keepOpen/autoClose=false request parameter"
+  ],
+  "recommendation": "Persist unknown issuance before consumptive request and reconcile block list/retry before another issuance after timeout/restart; retain unresolved state and original paid order instead of inventing negative proof or buying again.",
+  "liveApiCalls": 0,
+  "targetEdits": false,
+  "testsExecuted": false
+}

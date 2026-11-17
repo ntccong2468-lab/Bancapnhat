@@ -1,0 +1,75 @@
+{
+  "createdUtc": "2026-11-17T13:53:14.925109+00:00",
+  "files": {
+    "src/main/java/com/vncode/app/config/Database.java": {
+      "sha256": "6c8ec1f72ebb9cb0365828aa93889dc70e079b2aa1a96d05b239ffef25ead0b5",
+      "bytes": 13602,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackModels.java": {
+      "sha256": "77acca249ba8e8a65976772865c0f1fb4be392be2718d3b6ac10065635e2313b",
+      "bytes": 16436,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java": {
+      "sha256": "caaca9ed9f76ffdc0970de14600de7246e57a983ee78e99b12f641bb4d8174f1",
+      "bytes": 82446,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java": {
+      "sha256": "cc55f05ec0bf20ba37c267bf8049b47001ad2df802337f018191d53c4110ae58",
+      "bytes": 33865,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackProductGroup.java": {
+      "sha256": "4940fea6083e64484b6bce977aa6750c35de1864149c22a8584674f4a4ed0add",
+      "bytes": 1312,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseMethod.java": {
+      "sha256": "192c9d6caac7eb41a3f01faa4aac4101a32f5d517d64ace7ce03ea14d3dd980c",
+      "bytes": 1021,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseContext.java": {
+      "sha256": "83d76c30291ca257290f74789a26d499fb45fec6a4fbc0a64e5b4e39b42e2423",
+      "bytes": 3156,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreferences.java": {
+      "sha256": "c6e5502815c26278769861754af71872caf9e754d3fc7a8552d0dbad540c60b1",
+      "bytes": 1923,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseSchema.java": {
+      "sha256": "cf96f27bc3cea57d0e96badc99f90ae8423765898d86e4c8b31c8ad91e494076",
+      "bytes": 9620,
+      "matchesGreen4": true
+    },
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": {
+      "sha256": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610",
+      "bytes": 36742,
+      "matchesGreen4": true
+    },
+    "src/test/java/com/vncode/app/integration/znack/Wb1326SettingsPolicyTest.java": {
+      "sha256": "4e2b9c14e1ea3eb01e57963da1cb39910bdda11fa8f9370a866855fea81a59db",
+      "bytes": 4546,
+      "matchesGreen4": true
+    },
+    "src/test/java/com/vncode/app/integration/znack/Wb1326OrderMigrationTest.java": {
+      "sha256": "9b9469c76e5e988c0f5ca8e686f868cc71b887ccaa2d66a8a530ed91b9a70340",
+      "bytes": 7827,
+      "matchesGreen4": true
+    },
+    "src/test/java/com/vncode/app/integration/znack/Wb1326PurchasePersistenceTest.java": {
+      "sha256": "ae183ac1b6d77ae4d887e50d5790a94d32bcea1c394dcf19eeefd186c4cbd82f",
+      "bytes": 14506,
+      "matchesGreen4": true
+    },
+    "src/test/java/com/vncode/app/integration/znack/Wb1326CodeDownloadTargetTest.java": {
+      "sha256": "c2c5c8c8c2931bd1a0f29f89a0d6d0035588427bac1b8169d3d548fb1da374eb",
+      "bytes": 4729,
+      "matchesGreen4": true
+    }
+  }
+}

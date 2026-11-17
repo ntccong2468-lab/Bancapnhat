@@ -1,0 +1,18 @@
+flowchart TD
+    A["Bấm Mua KIZ"] --> V{"Phiên bản"}
+    V -- "1.3.0" --> OLD["Giữ autoIntroduction trong cấu hình"]
+    V -- "1.6.10 phát hành" --> NEW["enqueueForCirculation: bật tự đưa vào lưu thông cho lô"]
+    OLD --> CORE["Ký + SUZ POST order → poll status → tải đủ mã"]
+    NEW --> CORE
+    CORE --> MODE{"Điều kiện kết thúc"}
+    MODE -- "1.3.0 và autoIntroduction tắt" --> DL["COMPLETED: đã tải mã, chưa xác minh lưu thông"]
+    MODE -- "1.3.0 bật tự lưu thông / 1.6.10" --> CHECK["WAITING_INTRODUCTION_READINESS: đối chiếu True API"]
+    CHECK --> STATE{"Từng mã / thẻ / giấy tờ đã sẵn sàng?"}
+    STATE -- "APPLIED và hồ sơ hợp lệ" --> DOC["Ký và gửi LP_INTRODUCE_GOODS; chờ duyệt"]
+    STATE -- "Chưa đạt" --> WAIT["Giữ đúng đơn mua; tiếp tục kiểm trạng thái"]
+    STATE -- "Đã INTRODUCED" --> DONE["Đã lưu thông"]
+    DOC --> VERIFY["Đọc lại trạng thái tài liệu và từng mã"]
+    VERIFY -- "Đủ bằng chứng" --> DONE
+    CHECK -. "Chữ ký chưa được phép / bị hủy/lỗi" .-> PAUSE["Dừng ký cục bộ; không lên lịch tự ký lại"]
+    DOC -. "Chữ ký bị chặn" .-> PAUSE
+    PAUSE --> RESUME["Đúng shop / Tiếp tục đúng lô; không mua lại"]

@@ -26,7 +26,8 @@ import java.util.function.IntConsumer;
 /**
  * Idempotent Ozon print orchestration: reserve KIZ locally, preserve official shipping pages,
  * exclude standalone product labels, append combined KIZ labels and create a separate picking list.
- * KIZ is never submitted to Ozon.
+ * Seller-imported legacy printing stays local. Downloaded purchased bindings require
+ * authoritative Ozon confirmation before they can be included in a combined print.
  */
 public final class OzonPrintBundleService {
     private final OzonPostingRepository postings;
@@ -68,19 +69,22 @@ public final class OzonPrintBundleService {
     static Preparation defaultPreparation(OzonExemplarService service,KizSourceSelection sources) {
         return new Preparation() {
             @Override public OzonPreparationResult prepare(Shop shop, String postingNumber) throws IOException {
-                return service.openPrintBatch(shop,sources).stageForPrint(postingNumber);
+                return service.openConfirmedPrintBatch(shop,sources).prepareConfirmedForPrint(postingNumber);
+            }
+            @Override public void verifyPurchased(Shop shop,String number)throws IOException{
+                service.openConfirmedPrintBatch(shop,sources).confirmPurchasedForPrint(number);
             }
             @Override public boolean refreshEveryNewPrint() { return true; }
             @Override public boolean recheckReadiness() { return true; }
             @Override public boolean validateShopOwner() { return true; }
             @Override public void refreshProducts(Shop shop,java.util.Collection<OzonPostingDto> selected,Map<String,OzonProductDto> products)throws IOException{
-                service.openPrintBatch(shop,sources).refreshPrintProducts(selected,products);
+                service.openConfirmedPrintBatch(shop,sources).refreshPrintProducts(selected,products);
             }
             @Override public boolean repairRejected(Shop shop,String number)throws IOException {
-                return service.openPrintBatch(shop,sources).repairRejectedForPrint(number);
+                return service.openConfirmedPrintBatch(shop,sources).repairRejectedForPrint(number);
             }
             @Override public Preparation forBatch(Shop shop) {
-                OzonExemplarService.PrintBatch batch = service.openPrintBatch(shop,sources);
+                OzonExemplarService.PrintBatch batch = service.openConfirmedPrintBatch(shop,sources);
                 return new Preparation() {
                     private final Map<String,OzonPreparationResult> prepared=new LinkedHashMap<>();
                     private final Map<String,String> failures=new LinkedHashMap<>();
@@ -101,8 +105,13 @@ public final class OzonPrintBundleService {
                         if(apiFailure!=null)throw apiFailure;
                         if(failure!=null)throw new IOException(failure);
                         OzonPreparationResult result=prepared.remove(number);
-                        if(result!=null)return result;
-                        return batch.stageForPrint(number);
+                        if(result!=null)return batch.confirmPurchasedForPrint(number,result);
+                        return batch.prepareConfirmedForPrint(number);
+                    }
+                    @Override public void verifyPurchased(Shop selected,String number)throws IOException{
+                        MarketplaceGuard.requireOzon(selected);
+                        if(selected.getId()!=shop.getId())throw new IOException("Ozon print shop changed.");
+                        batch.confirmPurchasedForPrint(number);
                     }
                     @Override public void prefetch(Shop selected,List<String> numbers)throws IOException {
                         MarketplaceGuard.requireOzon(selected);
@@ -242,6 +251,11 @@ public final class OzonPrintBundleService {
             }
         }
 
+        // This also protects already-printed terminal jobs: ACCEPTED alone can
+        // mean a local PDF, whereas paid bindings need an exact Ozon receipt.
+        operation.verifyPurchased(shop,safePosting);
+        job=jobs.find(shop.getId(),safePosting);
+        if(context!=null&&job!=null)context.jobs.put(safePosting,job);
         List<OzonExemplarJobRepository.KizBinding> bindings = printable(job)
                 ? jobs.bindings(job.id()) : List.of();
         List<OzonExemplarJobRepository.ExemplarSummary> summaries = printable(job)
@@ -969,6 +983,7 @@ public final class OzonPrintBundleService {
         default void prefetch(Shop shop,List<String> numbers)throws IOException {}
         default void discard(String number) {}
         default boolean repairRejected(Shop shop,String number)throws IOException { return false; }
+        default void verifyPurchased(Shop shop,String number)throws IOException {}
         default boolean recheckReadiness() { return false; }
         default void refreshProducts(Shop shop,java.util.Collection<OzonPostingDto> postings,Map<String,OzonProductDto> products)throws IOException {}
     }

@@ -1,0 +1,27 @@
+# Initial broad failures: independent fixture/policy review
+
+READ_ONLY_TEST_MODERNIZATION_REVIEW_PASS_FINAL_AFFECTED_SCOPE_VERIFIED
+
+The initial broad FAIL remains valid evidence. This review accepts the narrow test updates below because the authorized workflow changed, or because fixtures still targeted old adapter/storage seams. It does not convert failed or queued tests into successful execution.
+
+| Suite | Classification | Preserved negative controls |
+|---|---|---|
+| KizPurchasePermitEvidenceTest | AUTHORIZED_POLICY_REPLACEMENT | Global Catalog permit gating moved to pinned-method local admission. Tests retain existing-stock native identity, add wrong-native rejection and PRODUCTION-versus-COMMISSION negatives, retain invalid-rich-evidence cache/projected-local rejection and assertNoPurchase. |
+| ZnackSettingsAreaRepositoryTest | EFFECTIVE_DEFAULT_AND_REAL_LEGACY_FIXTURE | Only autoIntroduction(true) equality is normalized; old raw=false is seeded before unsnapshotted legacy binding. Other shop, documents, connection fields and original-profile assertions remain. |
+| ZnackCertificateSettingsRepositoryTest | EFFECTIVE_DEFAULT_AND_REAL_LEGACY_FIXTURE | Only effective auto flag expectations change. Original false consent is explicitly stored before active legacy pipeline; stale-configuration rollback, atomic audit and old paid profile remain asserted. |
+| ZnackPipelineQueueExecutorTest | AUTHORIZED_QUEUE_SEMANTICS | Whole-shop global FIFO is obsolete under CREATE4. New latch-based test proves same-GTIN FIFO after error while independent GTIN progresses; no test skipped. |
+| ZnackSigningRecoveryTest | CANONICAL_CONTEXT_AND_ADAPTER_FIXTURE | Negative original-profile corruption/deletion now affects both canonical and legacy stores. Explicit availability and capped-download adapters retain one status read/one delivery; new batch no-rebuy trap supplements old buy trap. All26 assertions/cases retained. |
+| ZnackExhaustedBufferRecoveryTest | ORIGINAL_PROFILE_AND_AVAILABILITY_FIXTURE | Save verified settings before pipeline binding; provide explicit synthetic availability dependency. All no-rebuy, ordinary-once, consumed-code, whole-list prevalidation and foreign raw GTIN/OMS/order/block/quantity negatives remain; CLOSED positive added. |
+| ZnackExhaustedBufferWorkflowRegressionTest | CAP_ADAPTER_AND_FULL_RAW_CODE_FIXTURE | Bridge current capped download to the original synthetic3390 response. Save original profile before enqueue; retain ordinary-once/replay-once/same-order assertions and strengthen full raw GS/crypto payload preservation. |
+| ZnackGtinWorkflowTest | STAGED_PROGRESS_AND_EXPLICIT_CIRCULATION_FIXTURE | Reconciliation now separately reaches POLLING_ORDER before download. Registry absence schedules bounded recovery instead of old indefinite parking. Existing no-second-purchase, same order/raw codes, zero stock and signer scope assertions remain. Readiness/mock payloads now fit explicit dependencies and real CIS format. |
+| ZnackKizPurchaseReadbackTest | ACTUAL_PRODUCTION_REGRESSION_FIXED | New context lookup ignored explicit caller settings for imported historical orders without pipelines and used current shop defaults. The one-line contextForOrder(id,settings) fix restores explicit fallback while pinned context wins. Added loopback routing/token/OMS/certificate and wrong-current/caller negative controls;9 pass. |
+| KizPendingIdentityTest | NATIVE_CRYPTO_PREFLIGHT_FIXTURE | Payload test supplies an explicit native-availability substitute while still validating exact reviewed GTIN, quantity and real local production permit. Stopping signer remains the actual observed boundary; no product publication or paid request is claimed. |
+| KizPrintPurchaseSessionTest | AUTHORITY_VERSUS_LOCAL_METADATA_EXPECTATION | Default document metadata changes no longer invalidate credential identity. The conflict negative now changes OMS and still requires SettingsConflictException; legacy false intent and per-print true snapshots remain. |
+| KizPurchaseStatusPresentationTest | MANDATORY_NEW_UI_INTENT_WITH_RAW_LEGACY_GUARD | Hidden field projects mandatory true for new purchases, while an explicitly seeded historical false profile and pipeline remain byte-equal after language/edit actions. No mode choice is reintroduced. |
+| FxmlSmokeTest | PRESERVED_WB_STYLE_OZON_LAYOUT_EXPECTATIONS | Old assertions demanded columns deliberately removed in the prior approved WB-style Ozon layout. New assertions retain all existing controls, require exactly five visible columns and add keyboard/row-factory coverage; production FXML/controller unchanged in this purchase task. |
+
+The actual legacy imported-order readback bug is separate: ignored caller profile caused reads to use current defaults. It is fixed by preserving explicit fallback while retaining pinned context priority;9 loopback cases prove correct original routing.
+
+No case deletion, new skip/disable directive or blanket assertion removal was found in the inspected modernizations. The signer26 and exhausted28 focused receipts preserve no-rebuy, exact identity and consumed-stock assertions. The fresh affected-scope union is verified2296/232 on identical production inputs; the initial broad FAIL is retained.
+
+Only production change relative to the initial broad source: `ZnackKizOrderService.refresh` passes explicit settings to contextForOrder. Source diff hashes, original failing case names and owner receipt paths are in `TEST-MODERNIZATION-REVIEW.json`.

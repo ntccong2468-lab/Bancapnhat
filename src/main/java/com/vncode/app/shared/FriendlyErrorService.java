@@ -52,6 +52,7 @@ public final class FriendlyErrorService {
         String code="VN_LOCAL";
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if(com.vncode.app.integration.znack.ZnackKizCodeService.DOWNLOAD_OUTCOME_UNCERTAIN.equals(cause.getMessage())){code=com.vncode.app.integration.znack.ZnackKizCodeService.DOWNLOAD_OUTCOME_UNCERTAIN;break;}
             if("WB_OZON_RESUME_FROM_LINK_WORKFLOW".equals(cause.getMessage())){code="WB_OZON_RESUME_FROM_LINK_WORKFLOW";break;}
             if("SUZ_ORDER_RECONCILIATION_INVALID".equals(cause.getMessage())){code="SUZ_ORDER_RECONCILIATION_INVALID";break;}
             if("SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID".equals(cause.getMessage())){code="SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID";break;}
@@ -83,6 +84,7 @@ public final class FriendlyErrorService {
         if(error instanceof com.vncode.app.features.sync.ZnackGtinBackgroundService.RunException&&error.getCause()!=null)return formatDetail(error.getCause());
         Throwable cause=error;
         for(int depth=0;cause!=null&&depth<8;depth++,cause=cause.getCause()) {
+            if(com.vncode.app.integration.znack.ZnackKizCodeService.DOWNLOAD_OUTCOME_UNCERTAIN.equals(cause.getMessage()))return ZnackErrorMessages.display(cause.getMessage());
             if("WB_OZON_RESUME_FROM_LINK_WORKFLOW".equals(cause.getMessage()))return I18nService.getInstance().tr("catalogsync.issue.WB_OZON_RESUME_FROM_LINK_WORKFLOW");
             if("SUZ_ORDER_RECONCILIATION_INVALID".equals(cause.getMessage()))return I18nService.getInstance().tr("znack.error.suz_order_reconciliation_invalid");
             if("SUZ_CODE_BLOCK_RECOVERY_IDENTITY_INVALID".equals(cause.getMessage()))return I18nService.getInstance().tr("znack.error.suz_code_block_recovery_identity_invalid");

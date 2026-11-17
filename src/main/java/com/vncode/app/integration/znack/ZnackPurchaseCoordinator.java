@@ -42,11 +42,14 @@ public class ZnackPurchaseCoordinator {
     private static final java.util.concurrent.ConcurrentMap<String,Instant> NEXT_CHECKS=new java.util.concurrent.ConcurrentHashMap<>();
     public static Instant nextCheckAt(int shopId,long pipelineId){return NEXT_CHECKS.get(shopId+":"+pipelineId);}
     private static final Set<String> SCHEDULED = ConcurrentHashMap.newKeySet();
+    private static final java.util.concurrent.atomic.AtomicLong POLL_GENERATION = new java.util.concurrent.atomic.AtomicLong();
     private static final Set<String> RUNNING = ConcurrentHashMap.newKeySet();
     private static final Set<java.util.concurrent.ScheduledFuture<?>> PENDING_POLLS = ConcurrentHashMap.newKeySet();
 
     private final ZnackRepository repository;
     private Settings serviceSettings;
+    private long serviceGeneration = -1;
+    private final ThreadLocal<ZnackPurchaseMethod> admissionMethod = new ThreadLocal<>();
     private final ZnackKizOrderService orders;
     private final ZnackKizCodeService codes;
     private final ZnackIntroductionService introduction;
@@ -68,15 +71,18 @@ public class ZnackPurchaseCoordinator {
     }
 
     public static ZnackPurchaseCoordinator create(ZnackRepository repository) {
+        ZnackSigningSession.registerRepository(repository);
         Settings settings = repository.getSettings();
         return create(repository, settings);
     }
 
     private static ZnackPurchaseCoordinator create(ZnackRepository repository, Settings settings) {
+        ZnackSigningSession.registerRepository(repository);
         ZnackSignatureProvider cryptoProSigner = settings.signerCertificate() == null || settings.signerCertificate().isBlank()
                 ? ZnackSignatureProvider.unconfigured()
                 : new CryptoProSignatureProvider(settings.cryptcpPath(), settings.signerCertificate(),
                 Duration.ofSeconds(settings.resolvedCryptoProTimeoutSeconds()));
+        long generation = ZnackSigningSession.signerGenerationSnapshot(repository.shop().shopId());
         ZnackSignatureProvider signer = ZnackSigningSession.guard(repository.shop().shopId(), settings.signerCertificate(), cryptoProSigner);
         ZnackApiClient api = new ZnackApiClient();
         ZnackAuthService auth = new ZnackAuthService(api, signer);
@@ -84,7 +90,9 @@ public class ZnackPurchaseCoordinator {
                 new ZnackKizCodeService(api, auth, repository),
                 new ZnackIntroductionService(api, auth, signer, repository),
                 new ZnackIntroductionReadinessService(api, auth, repository));
-        coordinator.serviceSettings=settings;return coordinator;
+        coordinator.serviceSettings=settings;
+        coordinator.serviceGeneration=generation;
+        return coordinator;
     }
 
     public static void resumeAllPersisted() {
@@ -111,74 +119,105 @@ public class ZnackPurchaseCoordinator {
         return start(settings, gtin, quantity, null);
     }
 
+    /** Synchronous admission uses the same durable batch path as every asynchronous producer. */
     public long start(Settings settings, String gtin, int quantity, String requestKey) throws Exception {
-        ZnackPurchasePipelineState replay = replay(requestKey, gtin, quantity);
-        if (replay != null) {
-            requireUnsentReplay(replay);
-            ZnackSigningSession.authorizePipeline(repository.shop().shopId(), replay.id());
-            return replay.id();
-        }
-        LicenseRuntime.require(Permission.KIZ);
-        validatePrerequisites(settings, gtin, quantity);
-        long pipelineId;
-        synchronized (CREATE_LOCK) {
-            replay = replay(requestKey, gtin, quantity);
-            if (replay != null) {
-                requireUnsentReplay(replay);
-                ZnackSigningSession.authorizePipeline(repository.shop().shopId(), replay.id());
-                return replay.id();
-            }
-            LicenseRuntime.require(Permission.KIZ);
-            pipelineId = repository.enqueuePipeline(gtin, quantity, requestKey);
-        }
-        ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipelineId);
-        ZnackPurchasePipelineState persisted = repository.findPipeline(pipelineId).orElseThrow();
-        if (persisted.stage() != PurchaseStage.QUEUED) advance(settings, pipelineId);
-        schedule(pipelineId);
-        return pipelineId;
+        String key = requestKey == null || requestKey.isBlank() ? UUID.randomUUID().toString() : requestKey;
+        return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(repository.shop().shopId(), () -> {
+            long id = admitApproved(settings, List.of(new ZnackPurchaseBatchStore.Approved(gtin, quantity, key)), false).getFirst();
+            advance(settings, id);
+            schedule(id);
+            return id;
+        });
     }
 
-    /** Persists an idempotent purchase before any remote mutation, then advances it asynchronously. */
     public long enqueue(Settings settings, String gtin, int quantity, String requestKey) throws Exception {
-        return enqueueForCirculation(settings,gtin,quantity,requestKey);
+        return enqueueBatch(settings, List.of(new ZnackPurchaseBatchStore.Approved(gtin, quantity, requestKey))).getFirst();
     }
-    public long enqueueForPrint(Settings original,String gtin,int quantity,String requestKey)throws Exception {
-        return enqueueForCirculation(original,gtin,quantity,requestKey);
+
+    public long enqueueForPrint(Settings settings, String gtin, int quantity, String requestKey) throws Exception {
+        return enqueue(settings, gtin, quantity, requestKey);
     }
-    public long enqueueForCirculation(Settings original,String gtin,int quantity,String requestKey)throws Exception {
-        return enqueue(original.withAutoIntroduction(true),gtin,quantity,requestKey,original);
+
+    public long enqueueForCirculation(Settings settings, String gtin, int quantity, String requestKey) throws Exception {
+        return enqueue(settings, gtin, quantity, requestKey);
     }
-    private long enqueue(Settings settings, String gtin, int quantity, String requestKey,Settings printOriginal) throws Exception {
-        requireRequestKey(requestKey);
-        ZnackPurchasePipelineState replay = replay(requestKey, gtin, quantity);
-        if (replay != null) {
-            requireUnsentReplay(replay);
-            ZnackSigningSession.authorizePipeline(repository.shop().shopId(), replay.id());
-            return replay.id();
-        }
+
+    /** Validate every approved amount before persisting or dispatching the first purchase. */
+    public List<Long> enqueueBatch(Settings settings, List<ZnackPurchaseBatchStore.Approved> requests) throws Exception {
+        return com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(repository.shop().shopId(),
+                () -> admitApproved(settings, requests, true));
+    }
+
+    List<Long> admitApproved(Settings original, List<ZnackPurchaseBatchStore.Approved> requests,
+                                     boolean dispatch) throws Exception {
+        if (requests == null || requests.isEmpty()) return List.of();
         LicenseRuntime.require(Permission.KIZ);
-        validatePrerequisites(settings, gtin, quantity);
-        long pipelineId;
-        synchronized (CREATE_LOCK) {
-            replay = replay(requestKey, gtin, quantity);
-            if (replay != null) {
-                requireUnsentReplay(replay);
-                ZnackSigningSession.authorizePipeline(repository.shop().shopId(), replay.id());
-                return replay.id();
-            }
-            LicenseRuntime.require(Permission.KIZ);
-            pipelineId = printOriginal==null?repository.enqueuePipeline(gtin, quantity, requestKey):repository.enqueueCirculationPipeline(gtin,quantity,requestKey,printOriginal);
+        ZnackSigningSession.registerRepository(repository);
+        Settings settings = original.withAutoIntroduction(true);
+        List<ZnackPurchaseBatchStore.Approved> approved = List.copyOf(requests);
+        ZnackPurchaseMethod approvedMethod = new ZnackPurchasePreferences(repository.shop().shopId()).method();
+        ZnackPurchaseMethod previousMethod = admissionMethod.get();
+        admissionMethod.set(approvedMethod);
+        try {
+        var requestKeys = new java.util.HashSet<String>();
+        for (var request : approved) {
+            if (Thread.currentThread().isInterrupted()) throw new InterruptedException("Purchase cancelled before enqueue.");
+            requireRequestKey(request.requestKey());
+            if (!requestKeys.add(request.requestKey())) throw new IllegalArgumentException("Duplicate purchase request key.");
+            var existing = replay(request.requestKey(), request.gtin(), request.quantity());
+            if (existing == null) validatePrerequisites(settings, request.gtin(), request.quantity());
+            else requireUnsentReplay(existing);
         }
-        ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipelineId);
-        ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), gtin, () -> advanceEnqueued(pipelineId));
-        return pipelineId;
+        List<Long> ids;
+        synchronized (CREATE_LOCK) {
+            LicenseRuntime.require(Permission.KIZ);
+            if (Thread.currentThread().isInterrupted()) throw new InterruptedException("Purchase cancelled before enqueue.");
+            ids = batches().enqueueApproved(settings, approvedMethod, approved);
+        }
+        for (long id : ids) {
+            ZnackSigningSession.authorizePipeline(repository.shop().shopId(), id, batches().settingsForPipeline(id));
+        }
+        var dispatched = new java.util.HashSet<Long>();
+        for (long id : ids) {
+            var batch = batches().prepare(id);
+            long leader = batch.map(value -> value.lines().getFirst().pipelineId()).orElse(id);
+            if (dispatch && dispatched.add(leader)) {
+                var pipeline = repository.findPipeline(leader).orElseThrow();
+                if (!ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(),
+                        workStage(pipeline.stage()), () -> advanceEnqueued(leader))) {
+                    schedule(leader);
+                }
+            }
+        }
+        return List.copyOf(ids);
+        } finally {
+            if (previousMethod == null) admissionMethod.remove(); else admissionMethod.set(previousMethod);
+        }
+    }
+
+    private ZnackPurchaseBatchStore batches() { return new ZnackPurchaseBatchStore(repository); }
+
+    static void scheduleExisting(ZnackRepository repository, long pipelineId) {
+        create(repository, new ZnackPurchaseBatchStore(repository).settingsForPipeline(pipelineId)).schedule(pipelineId);
+    }
+
+    private boolean hasCurrentRuntime(Settings original) {
+        return serviceSettings != null
+                && serviceSettings.withAutoIntroduction(original.autoIntroduction()).equals(original)
+                && serviceGeneration == ZnackSigningSession.signerGenerationSnapshot(repository.shop().shopId());
+    }
+
+    private ZnackPurchaseCoordinator currentRuntime(Settings original) {
+        // Injected test/services retain their explicit graph. Production graphs retain the
+        // SUZ authentication cache until the saved authority or signer generation changes.
+        return serviceSettings == null || hasCurrentRuntime(original) ? this : create(repository, original);
     }
 
     private void advanceEnqueued(long pipelineId) {
         ZnackPurchaseCoordinator latestCoordinator = this;
         try {
             Settings latest = repository.getSettings();
-            latestCoordinator = create(repository, latest);
+            latestCoordinator = currentRuntime(latest);
             latestCoordinator.advance(latest, pipelineId);
         } catch (Exception error) {
             ZnackPurchasePipelineState current = repository.findPipeline(pipelineId).orElse(null);
@@ -231,7 +270,7 @@ public class ZnackPurchaseCoordinator {
             throw new IllegalStateException("The failed introduction has no downloaded codes to retry.");
         }
         LicenseRuntime.require(Permission.KIZ);
-        ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipeline.id());
+        ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipeline.id(), batches().settingsForPipeline(pipeline.id()));
         synchronized (CREATE_LOCK) {
             LicenseRuntime.require(Permission.KIZ);
             repository.updatePipeline(pipeline.id(), pipeline.orderId(),
@@ -251,6 +290,20 @@ public class ZnackPurchaseCoordinator {
      * local purchase request. Only the deterministic insufficient-funds failure is eligible.
      */
     public void retryInsufficientFunds(Settings settings, long pipelineId) throws Exception {
+        var batch = batches().findByPipeline(pipelineId).orElse(null);
+        if (batch != null) {
+            var current = repository.findPipeline(pipelineId).orElseThrow();
+            if (current.stage() != PurchaseStage.FAILED || !ZnackErrorMessages.isInsufficientFunds(current.errorMessage()))
+                throw new IllegalStateException("The purchase is not a confirmed insufficient-funds rejection.");
+            LicenseRuntime.require(Permission.KIZ);
+            if (!batches().retryRejected(batch.id()))
+                throw new IllegalStateException("The rejected purchase cannot safely be retried.");
+            for (var line : batch.lines())
+                ZnackSigningSession.authorizePipeline(repository.shop().shopId(), line.pipelineId(), batches().settingsForPipeline(line.pipelineId()));
+            try { advance(batch.settings(), pipelineId); }
+            finally { batch.lines().forEach(line -> schedule(line.pipelineId())); }
+            return;
+        }
         ZnackPurchasePipelineState pipeline;
         synchronized (CREATE_LOCK) {
             pipeline = repository.findPipeline(pipelineId)
@@ -261,7 +314,7 @@ public class ZnackPurchaseCoordinator {
             LicenseRuntime.require(Permission.KIZ);
             repository.updatePipeline(pipeline.id(), pipeline.orderId(), PurchaseStage.QUEUED, null);
         }
-        ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipeline.id());
+        ZnackSigningSession.authorizePipeline(repository.shop().shopId(), pipeline.id(), batches().settingsForPipeline(pipeline.id()));
         repository.log("PURCHASE_RETRY", pipeline.gtin(), "INFO", "INSUFFICIENT_FUNDS_RETRY_REQUESTED", null);
 
         ZnackPurchasePipelineState activated = repository.activateNextQueuedPipeline(pipeline.gtin()).orElse(null);
@@ -282,22 +335,23 @@ public class ZnackPurchaseCoordinator {
      * Keeps the original connection, order, request key and remote checkpoints; never enqueues a buy.
      */
     public void resumeSigning(long pipelineId) throws Exception {
-        ZnackPurchasePipelineState pipeline = repository.findPipeline(pipelineId)
+        var pipeline = repository.findPipeline(pipelineId)
                 .orElseThrow(() -> new IllegalArgumentException("PURCHASE_PIPELINE_NOT_FOUND"));
-        if (!isSigningConfirmationPending(repository.shop().shopId(), pipeline.id(),
-                pipeline.stage().name(), pipeline.errorMessage())) {
+        if (!isSigningConfirmationPending(repository.shop().shopId(), pipeline.id(), pipeline.stage().name(), pipeline.errorMessage()))
             throw new IllegalStateException("This purchase is no longer waiting for signing confirmation.");
-        }
         LicenseRuntime.require(Permission.KIZ);
-        Settings original = repository.boundPipelineSettings(pipelineId)
-                .orElseThrow(() -> new IllegalStateException("KIZ_CIRCULATION_ORIGINAL_PROFILE_MISSING"));
-        ZnackSafety.requireSigned(original, true);
-        ZnackSigningSession.authorizePipelineResumption(repository.shop().shopId(), pipelineId);
-        try {
-            advance(original, pipelineId);
-        } finally {
-            schedule(pipelineId);
+        var batch = batches().findByPipeline(pipelineId).orElse(null);
+        List<Long> members = batch != null && batch.state() != ZnackPurchaseBatchStore.State.ACCEPTED
+                ? batch.lines().stream().map(ZnackPurchaseBatchStore.Line::pipelineId).toList() : List.of(pipelineId);
+        for (long member : members) {
+            var current = repository.findPipeline(member).orElseThrow();
+            if (!current.active()) throw new IllegalStateException("Purchase batch member changed before signing resumed.");
+            Settings original = batches().settingsForPipeline(member);
+            ZnackSafety.requireSigned(original, true);
+            ZnackSigningSession.authorizePipelineResumption(repository.shop().shopId(), member, original);
         }
+        try { advance(batches().settingsForPipeline(pipelineId), pipelineId); }
+        finally { members.forEach(this::schedule); }
     }
 
     /** UI and recovery share the same explicit-consent eligibility, including saved legacy errors. */
@@ -318,7 +372,7 @@ public class ZnackPurchaseCoordinator {
         for (ZnackPurchasePipelineState pipeline : repository.findActivePipelines()) {
             if(licensePaused(pipeline))continue;
             try {
-                advance(recoveredProfiles.getOrDefault(pipeline.id(),settings), pipeline.id());
+                advanceScheduled(recoveredProfiles.getOrDefault(pipeline.id(),settings), pipeline.id());
             } catch (Exception e) {
                 if (!(e instanceof ZnackSigningSession.SigningDeferredException) && !(e instanceof LicenseDeniedException)) {
                     repository.log("PURCHASE_PIPELINE_RESUME", pipeline.gtin(), "ERROR", e.getMessage(), null);
@@ -333,10 +387,10 @@ public class ZnackPurchaseCoordinator {
         var recoveredProfiles=repository.resumeCompletedCirculationChecks();
         for (ZnackPurchasePipelineState pipeline : repository.findActivePipelines()) {
             if(licensePaused(pipeline))continue;
-            ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(), () -> {
+            ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(), workStage(pipeline.stage()), () -> {
                 if(repository.findPipeline(pipeline.id()).map(ZnackPurchaseCoordinator::licensePaused).orElse(true))return;
                 try {
-                    advance(recoveredProfiles.getOrDefault(pipeline.id(),settings), pipeline.id());
+                    advanceScheduled(recoveredProfiles.getOrDefault(pipeline.id(),settings), pipeline.id());
                 } catch (Exception e) {
                     if (!(e instanceof ZnackSigningSession.SigningDeferredException) && !(e instanceof LicenseDeniedException)) {
                         repository.log("PURCHASE_PIPELINE_RESUME", pipeline.gtin(), "ERROR", e.getMessage(), null);
@@ -357,9 +411,10 @@ public class ZnackPurchaseCoordinator {
             Settings original=introductionSettings(pipeline);
             if(original==null)continue;
             Product product = repository.findProduct(pipeline.gtin()).orElse(null);
+            boolean production = batches().contextForPipeline(pipeline.id()).method().requiresProductionMetadata();
             if (product == null || pipeline.orderId() == null || repository.findCodes(pipeline.orderId()).isEmpty()
-                    || product.tnVed() == null || product.tnVed().isBlank()
-                    || (ZnackErrorMessages.isMissingDocumentsWait(
+                    || (production && (product.tnVed() == null || product.tnVed().isBlank()))
+                    || (production && ZnackErrorMessages.isMissingDocumentsWait(
                                 pipeline.stage().name(), pipeline.errorMessage())
                         && !hasCompletePermit(product))) {
                 continue;
@@ -396,14 +451,15 @@ public class ZnackPurchaseCoordinator {
             Settings original=introductionSettings(pipeline);
             if(original==null)continue;
             Product product = repository.findProduct(pipeline.gtin()).orElse(null);
+            boolean production = batches().contextForPipeline(pipeline.id()).method().requiresProductionMetadata();
             if (product == null || pipeline.orderId() == null || repository.findCodes(pipeline.orderId()).isEmpty()
-                    || product.tnVed() == null || product.tnVed().isBlank()
-                    || (ZnackErrorMessages.isMissingDocumentsWait(
+                    || (production && (product.tnVed() == null || product.tnVed().isBlank()))
+                    || (production && ZnackErrorMessages.isMissingDocumentsWait(
                                 pipeline.stage().name(), pipeline.errorMessage())
                         && !hasCompletePermit(product))) {
                 continue;
             }
-            ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(), () -> {
+            ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(), workStage(pipeline.stage()), () -> {
                 synchronized (CREATE_LOCK) {
                     try{LicenseRuntime.require(Permission.KIZ);}
                     catch(LicenseDeniedException denied){return;}
@@ -439,24 +495,43 @@ public class ZnackPurchaseCoordinator {
     }
 
     public void advance(Settings settings, long pipelineId) throws Exception {
+        com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(repository.shop().shopId(), () -> {
+            advanceActive(settings, pipelineId, false);
+            return null;
+        });
+    }
+
+    private void advanceScheduled(Settings settings, long pipelineId) throws Exception {
+        com.vncode.app.features.shop.ShopOperationCoordinator.withActiveShop(repository.shop().shopId(), () -> {
+            advanceActive(settings, pipelineId, true);
+            return null;
+        });
+    }
+
+    private void advanceActive(Settings settings, long pipelineId, boolean automatic) throws Exception {
         if(serviceSettings!=null){
-            var original=repository.pipelineSettings(pipelineId);
+            var original=batches().settingsForPipeline(pipelineId);
             // A per-purchase circulation intent does not change signer/OMS/token identity.
             // Reuse those services only when every other persisted setting still matches.
-            if(!serviceSettings.withAutoIntroduction(original.autoIntroduction()).equals(original)){create(repository,original).advance(original,pipelineId);return;}
+            if(!hasCurrentRuntime(original)){create(repository,original).advanceActive(original,pipelineId,automatic);return;}
             settings=original;
         }
         String key = pipelineKey(pipelineId);
         if (!RUNNING.add(key)) return;
         String gtin = null;
         try (ZnackSigningSession.PipelineScope ignored =
-                     ZnackSigningSession.openPipeline(repository.shop().shopId(), pipelineId)) {
+                     ZnackSigningSession.openPipeline(repository.shop().shopId(), pipelineId, automatic)) {
             ZnackPurchasePipelineState pipeline = repository.findPipeline(pipelineId).orElseThrow();
             gtin = pipeline.gtin();
             try {
                 if(licensePaused(pipeline)) {
                     LicenseRuntime.require(Permission.KIZ);
                     repository.updatePipeline(pipelineId,pipeline.orderId(),pipeline.stage(),null);
+                }
+                var batch = batches().findByPipeline(pipeline.id()).orElse(null);
+                if (batch != null && batch.state() != ZnackPurchaseBatchStore.State.ACCEPTED) {
+                    advanceBatch(batch);
+                    return;
                 }
                 switch (pipeline.stage()) {
                     case QUEUED -> {
@@ -468,7 +543,9 @@ public class ZnackPurchaseCoordinator {
                     case VALIDATING -> {
                         if(resumeExistingPurchase(settings,pipeline))break;
                         LicenseRuntime.require(Permission.KIZ);
-                        validatePrerequisites(settings, pipeline.gtin(), pipeline.quantity());
+                        // A validated intent is immutable; use its pinned purchase method.
+                        var context = batches().contextForPipeline(pipeline.id());
+                        ZnackPurchasePreflight.requireLocalPermit(settings, product(pipeline.gtin()), context.method());
                         createOrder(settings, pipeline);
                     }
                     case POLLING_ORDER -> pollOrder(settings, pipeline);
@@ -476,6 +553,12 @@ public class ZnackPurchaseCoordinator {
                     case WAITING_INTRODUCTION_READINESS -> checkIntroductionReadiness(settings, pipeline);
                     case SUBMITTING_INTRODUCTION -> submitIntroduction(settings, pipeline);
                     case POLLING_INTRODUCTION -> pollIntroduction(settings, pipeline);
+                    case WAITING_INTRODUCTION_DOCUMENTS -> {
+                        if (settings.autoIntroduction()) {
+                            repository.updatePipeline(pipeline.id(), pipeline.orderId(), PurchaseStage.SUBMITTING_INTRODUCTION, null);
+                            submitIntroduction(settings, repository.findPipeline(pipeline.id()).orElseThrow());
+                        }
+                    }
                     case CREATING_ORDER -> {
                         Long localOrderId = pipeline.orderId() != null ? pipeline.orderId()
                                 : repository.findLatestUnlinkedOrder(pipeline.gtin(), pipeline.quantity(),
@@ -492,18 +575,32 @@ public class ZnackPurchaseCoordinator {
             } catch (Exception e) {
                 PurchaseStage current = repository.findPipeline(pipelineId).map(ZnackPurchasePipelineState::stage)
                         .orElse(PurchaseStage.FAILED);
+                var mutationBatch = batches().findByPipeline(pipelineId).orElse(null);
                 if(e instanceof LicenseDeniedException) {
                     // No new order/document was sent at this boundary. Retain bought codes and the
                     // accepted remote checkpoints, and require an explicit retry after rights return.
                     PurchaseStage paused=current==PurchaseStage.CREATING_ORDER?PurchaseStage.VALIDATING
                             :current==PurchaseStage.SUBMITTING_INTRODUCTION?PurchaseStage.WAITING_INTRODUCTION_READINESS:current;
-                    repository.updatePipeline(pipelineId,null,paused,"LICENSE_REQUIRED");
+                    if (mutationBatch != null && mutationBatch.state() != ZnackPurchaseBatchStore.State.ACCEPTED) {
+                        batches().project(mutationBatch.id(), paused, "LICENSE_REQUIRED");
+                        for (var line : mutationBatch.lines()) NEXT_CHECKS.remove(pipelineKey(line.pipelineId()));
+                    } else repository.updatePipeline(pipelineId,null,paused,"LICENSE_REQUIRED");
                     throw e;
                 } else if (e instanceof ZnackSigningSession.SigningDeferredException) {
-                    repository.updatePipeline(pipelineId, null, current, e.getMessage());
+                    var pausedBatch = batches().findByPipeline(pipelineId).orElse(null);
+                    if (pausedBatch != null && pausedBatch.state() != ZnackPurchaseBatchStore.State.ACCEPTED) {
+                        batches().project(pausedBatch.id(), current, e.getMessage());
+                        for (var line : pausedBatch.lines()) NEXT_CHECKS.remove(pipelineKey(line.pipelineId()));
+                    } else repository.updatePipeline(pipelineId, null, current, e.getMessage());
                     LOGGER.info("Znack signing deferred until explicit shop selection. shopId={}, pipelineId={}, stage={}",
                             repository.shop().shopId(), pipelineId, current);
                     throw e;
+                } else if (mutationBatch != null && mutationBatch.state() != ZnackPurchaseBatchStore.State.ACCEPTED) {
+                    // Batch state is authoritative. A deferred authentication/read, capacity
+                    // hold or credential recovery must not become a one-member legacy FAILED
+                    // projection while its approved siblings can still continue.
+                    if (mutationBatch.state() != ZnackPurchaseBatchStore.State.FAILED)
+                        batches().project(mutationBatch.id(), current, e.getMessage());
                 } else if (current == PurchaseStage.RECONCILING_ORDER
                         || current == PurchaseStage.POLLING_ORDER || current == PurchaseStage.DOWNLOADING_CODES
                         || current == PurchaseStage.WAITING_INTRODUCTION_READINESS
@@ -567,12 +664,9 @@ public class ZnackPurchaseCoordinator {
         if (product == null) {
             throw new IllegalArgumentException("GTIN is not registered for the selected shop.");
         }
-        com.vncode.app.features.kiz.KizPurchaseMappingProof.requireKnownPermit(
-                new com.vncode.app.features.shop.ShopRepository().findById(repository.shop().shopId()), List.of(normalized));
-        if (settings.autoIntroduction() && !hasCompletePermit(product)) {
-            throw new IllegalStateException("GTIN has no active National Catalog declaration or certificate. "
-                    + "Synchronize the GTIN after publishing its goods document before buying KIZ.");
-        }
+        ZnackPurchaseMethod method = admissionMethod.get();
+        if (method == null) method = new ZnackPurchasePreferences(repository.shop().shopId()).method();
+        ZnackPurchasePreflight.requireLocalPermit(settings, product, method);
         ZnackSafety.requireSigned(settings, true);
         if (settings.omsId() == null || settings.omsId().isBlank()) {
             throw new IllegalStateException("omsId is required before buying KIZ.");
@@ -596,18 +690,27 @@ public class ZnackPurchaseCoordinator {
 
     private void createOrder(Settings settings, ZnackPurchasePipelineState pipeline) throws Exception {
         LicenseRuntime.require(Permission.KIZ);
-        Instant attemptStarted = Instant.now();
-        repository.updatePipeline(pipeline.id(), null, PurchaseStage.CREATING_ORDER, null);
+        var batch = batches().prepare(pipeline.id()).orElse(null);
+        if (batch == null) {
+            // An older already-sent request is observed through its original local order.
+            if (!resumeExistingPurchase(settings, pipeline))
+                repository.updatePipeline(pipeline.id(), pipeline.orderId(), PurchaseStage.QUEUED, null);
+            return;
+        }
+        advanceBatch(batch);
+    }
+
+    private void advanceBatch(ZnackPurchaseBatchStore.Batch batch) throws Exception {
+        LicenseRuntime.require(Permission.KIZ);
         try {
-            KizOrder order = orders.buy(settings, pipeline.gtin(), pipeline.quantity());
-            repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.POLLING_ORDER, null);
-        } catch (ZnackOrderCreationAmbiguousException ambiguous) {
-            Long localOrderId = repository.findLatestUnlinkedOrder(pipeline.gtin(), pipeline.quantity(),
-                            attemptStarted.minusSeconds(30))
-                    .map(KizOrder::id).orElse(null);
-            repository.updatePipeline(pipeline.id(), localOrderId,
-                    PurchaseStage.RECONCILING_ORDER, ambiguous.getMessage());
-            throw ambiguous;
+            orders.advanceBatch(batch.settings(), batch.id());
+        } finally {
+            // Followers need truthful diagnostics/timers even if one shared signer
+            // deferred, quota held creation, or a child replaced the rejected parent.
+            for (var line : batch.lines()) {
+                var pipeline = repository.findPipeline(line.pipelineId()).orElse(null);
+                if (pipeline != null) schedule(pipeline.id());
+            }
         }
     }
 
@@ -652,7 +755,12 @@ public class ZnackPurchaseCoordinator {
 
     private void pollOrder(Settings settings, ZnackPurchasePipelineState pipeline) throws Exception {
         KizOrder order = orders.refresh(settings, consistentRecoveryOrder(pipeline).id());
-        if("EXHAUSTED".equalsIgnoreCase(order.remoteStatus())){
+        if("CLOSED".equalsIgnoreCase(order.remoteStatus())) {
+            repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.DOWNLOADING_CODES,
+                    "SUZ order CLOSED; reconciling previously issued code blocks.");
+            recoverInactiveOrder(settings, repository.findPipeline(pipeline.id()).orElseThrow(),
+                    "SUZ order CLOSED; reconciling previously issued code blocks.", "CLOSED");
+        } else if("EXHAUSTED".equalsIgnoreCase(order.remoteStatus())){
             repository.updatePipeline(pipeline.id(),order.id(),PurchaseStage.DOWNLOADING_CODES,
                     ZnackErrorMessages.EXHAUSTED_KIZ_BUFFER);
             recoverInactiveOrder(settings,repository.findPipeline(pipeline.id()).orElseThrow(),
@@ -681,7 +789,27 @@ public class ZnackPurchaseCoordinator {
             return;
         }
         try {
-            codes.download(settings, orderId);
+            boolean replayOnly = ZnackKizCodeService.DOWNLOAD_OUTCOME_UNCERTAIN.equals(local.errorMessage())
+                    || repository.codeDownloadTarget(orderId).isPresent();
+            boolean alreadyComplete = repository.findCodes(orderId).size() >= local.quantity();
+            if (replayOnly || alreadyComplete) {
+                // Neither a zero fresh buffer nor a stale readiness count may prevent
+                // validation/recovery of codes that the server already issued.
+                codes.download(settings, orderId);
+            } else {
+            var available = orders.availableCodes(orderId);
+            if (available.isEmpty()) {
+                orders.refresh(settings, orderId);
+                available = orders.availableCodes(orderId);
+            }
+            if (available.isPresent() && available.getAsInt() == 0) {
+                repository.updatePipeline(pipeline.id(), orderId, PurchaseStage.POLLING_ORDER, null);
+                return;
+            }
+            if (available.isPresent()) codes.download(settings, orderId, available.getAsInt());
+            else codes.download(settings, orderId);
+            orders.clearAvailability(orderId);
+            }
         } catch (ZnackApiClient.ZnackApiException error) {
             if (ZnackErrorMessages.isPendingKizBuffer(error.responseBody())) {
                 // The order exists and remains safe to resume. Poll that same order until SUZ changes
@@ -803,7 +931,8 @@ public class ZnackPurchaseCoordinator {
             return;
         }
         Product product = product(pipeline.gtin());
-        if (product.tnVed() == null || product.tnVed().isBlank()) {
+        if (batches().contextForOrder(orderId).method().requiresProductionMetadata()
+                && (product.tnVed() == null || product.tnVed().isBlank())) {
             // Metadata is required to submit a new legal document, not to observe an
             // already introduced code. Keep polling so external circulation is mirrored.
             String error = "Missing TN VED.";
@@ -855,14 +984,6 @@ public class ZnackPurchaseCoordinator {
             repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.FAILED, error);
             throw new IllegalStateException(error);
         }
-        if (!hasCompletePermit(product)) {
-            String message = "GTIN " + pipeline.gtin()
-                    + " has no active National Catalog declaration or certificate. "
-                    + "Synchronize the GTIN after publishing or reactivating its goods document.";
-            repository.updateOrder(order.id(), null, null, OrderStatus.WAITING_INTRODUCTION_DOCUMENTS, message);
-            repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.WAITING_INTRODUCTION_DOCUMENTS, message);
-            return;
-        }
         LicenseRuntime.require(Permission.KIZ);
         introduction.submit(settings, order, product, repository.findCodes(order.id()));
         repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.POLLING_INTRODUCTION, null);
@@ -879,7 +1000,7 @@ public class ZnackPurchaseCoordinator {
             repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.INTRODUCTION_FAILED, result.message());
             repository.log("INTRODUCTION", pipeline.gtin(), "ERROR", result.message(), null);
         } else {
-            repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.POLLING_INTRODUCTION, null);
+            repository.updatePipeline(pipeline.id(), order.id(), PurchaseStage.POLLING_INTRODUCTION, result.message());
         }
     }
 
@@ -912,31 +1033,89 @@ public class ZnackPurchaseCoordinator {
                 &&legacyDocumentId(document.errorMessage()).isBlank();
     }
 
+    static ZnackPipelineQueueExecutor.WorkStage workStage(PurchaseStage stage) {
+        return switch (stage) {
+            case QUEUED, VALIDATING, CREATING_ORDER, RECONCILING_ORDER -> ZnackPipelineQueueExecutor.WorkStage.CREATE;
+            case POLLING_ORDER, DOWNLOADING_CODES -> ZnackPipelineQueueExecutor.WorkStage.RETRIEVE;
+            default -> ZnackPipelineQueueExecutor.WorkStage.INTRODUCE;
+        };
+    }
+
     void schedule(long pipelineId) {
-        ZnackPurchasePipelineState pipeline = repository.findPipeline(pipelineId).orElse(null);
-        if (pipeline == null || !pipeline.active() || pipeline.stage() == PurchaseStage.CREATING_ORDER) return;
-        if(licensePaused(pipeline))return;
-        if (ZnackSigningSession.isWaitingForSignature(repository.shop().shopId(), pipelineId)) return;
+        ZnackPurchasePipelineState pipeline;
+        try { pipeline = repository.findPipeline(pipelineId).orElse(null); }
+        catch (RuntimeException storageFailure) { scheduleLookupRetry(pipelineId); return; }
+        if (pipeline == null || (!pipeline.active() && pipeline.stage() != PurchaseStage.WAITING_INTRODUCTION_DOCUMENTS)) return;
+        if (licensePaused(pipeline)) { NEXT_CHECKS.remove(pipelineKey(pipelineId)); return; }
+        boolean keyWait = ZnackSigningSession.isTransientKeyWait(pipeline.errorMessage());
+        if ((ZnackSigningSession.isWaitingForSignature(repository.shop().shopId(), pipelineId)
+                || ZnackSigningSession.isSigningDeferred(pipeline.errorMessage())) && !keyWait) {
+            NEXT_CHECKS.remove(pipelineKey(pipelineId));
+            return;
+        }
         String key = pipelineKey(pipelineId);
         if (!SCHEDULED.add(key)) return;
-        long delaySeconds = pipeline.stage() == PurchaseStage.WAITING_INTRODUCTION_READINESS
-                || pipeline.stage() == PurchaseStage.RECONCILING_ORDER
-                ? 30 : inactiveDelivery(pipeline)
-                ? 300 : pipeline.errorMessage() == null || pipeline.errorMessage().isBlank() ? 5 : 30;
+        long delay = pollDelaySeconds(pipeline.stage(), pipeline.errorMessage());
+        if (inactiveDelivery(pipeline)) delay = 300;
+        var batch = batches().findByPipeline(pipelineId).orElse(null);
+        if (batch != null && batch.state() != ZnackPurchaseBatchStore.State.ACCEPTED && batch.nextAttemptAt() != null)
+            delay = Math.max(delay, Math.max(1, Duration.between(Instant.now(), batch.nextAttemptAt()).toSeconds()));
+        if (keyWait) delay = 30;
         PENDING_POLLS.removeIf(java.util.concurrent.Future::isDone);
-        NEXT_CHECKS.put(key,Instant.now().plusSeconds(delaySeconds));
+        long generation = POLL_GENERATION.get();
+        NEXT_CHECKS.put(key, Instant.now().plusSeconds(delay));
         PENDING_POLLS.add(POLLER.schedule(() -> {
-            NEXT_CHECKS.remove(key);
-            try {
-                Settings latestSettings = repository.getSettings();
-                advance(latestSettings, pipelineId);
-            } catch (Exception ignored) {
-                // The persisted error and stage are surfaced in the GTIN list.
-            } finally {
+            if (generation != POLL_GENERATION.get()) return;
+            boolean accepted = ZnackPipelineQueueExecutor.submit(repository.shop().shopId(), pipeline.gtin(),
+                    workStage(pipeline.stage()), () -> {
+                if (generation != POLL_GENERATION.get()) return;
+                NEXT_CHECKS.remove(key);
+                ZnackPurchaseCoordinator runtime = this;
+                try {
+                    var saved = repository.findPipeline(pipelineId).orElse(null);
+                    if (saved == null) return;
+                    if (ZnackSigningSession.isTransientKeyWait(saved.errorMessage())
+                            && !ZnackSigningSession.retryDisconnectedKey(repository.shop().shopId(), pipelineId, saved.errorMessage())) return;
+                    Settings original = batches().settingsForPipeline(pipelineId);
+                    runtime = currentRuntime(original);
+                    runtime.advanceScheduled(original, pipelineId);
+                } catch (Exception ignored) {
+                    // State/error is durable and surfaced by the existing per-GTIN read model.
+                } finally {
+                    if (generation == POLL_GENERATION.get()) {
+                        SCHEDULED.remove(key);
+                        runtime.schedule(pipelineId);
+                    }
+                }
+            });
+            if (!accepted && generation == POLL_GENERATION.get()) {
                 SCHEDULED.remove(key);
+                scheduleLookupRetry(pipelineId);
+            }
+        }, delay, TimeUnit.SECONDS));
+    }
+
+    static long pollDelaySeconds(PurchaseStage stage, String error) {
+        if (stage == PurchaseStage.WAITING_INTRODUCTION_READINESS
+                || stage == PurchaseStage.WAITING_INTRODUCTION_DOCUMENTS
+                || stage == PurchaseStage.RECONCILING_ORDER
+                || stage == PurchaseStage.POLLING_INTRODUCTION
+                || error != null && !error.isBlank()) return 30;
+        return 2;
+    }
+
+    private void scheduleLookupRetry(long pipelineId) {
+        String key = pipelineKey(pipelineId);
+        if (!SCHEDULED.add(key)) return;
+        long generation = POLL_GENERATION.get();
+        NEXT_CHECKS.put(key, Instant.now().plusSeconds(5));
+        PENDING_POLLS.add(POLLER.schedule(() -> {
+            if (generation == POLL_GENERATION.get()) {
+                SCHEDULED.remove(key);
+                NEXT_CHECKS.remove(key);
                 schedule(pipelineId);
             }
-        }, delaySeconds, TimeUnit.SECONDS));
+        }, 5, TimeUnit.SECONDS));
     }
 
     private boolean inactiveDelivery(ZnackPurchasePipelineState pipeline){
@@ -978,6 +1157,8 @@ public class ZnackPurchaseCoordinator {
      * different test — on Windows that file lock makes the JUnit temp-dir cleanup fail.
      */
     static void cancelPendingPolls() {
+        POLL_GENERATION.incrementAndGet();
+        NEXT_CHECKS.clear();
         for (java.util.concurrent.ScheduledFuture<?> poll : PENDING_POLLS) {
             poll.cancel(false);
         }

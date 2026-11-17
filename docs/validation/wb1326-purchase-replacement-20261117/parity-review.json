@@ -1,0 +1,608 @@
+{
+  "status": "SOURCE_PARITY_AND_AFFECTED_SCOPE_ACCEPTED_WITH_EXTERNAL_LIMITS",
+  "reviewedAtUtc": "2026-11-17T14:30:16.240299+00:00",
+  "reviewerRole": "Independent read-only preservation reviewer; no source edits, Maven or real APIs",
+  "designBaselineSha256": "605268244bcae079a0c6cca9623fc293f33764fe8be06ec1ef73f356b9fe7457",
+  "designFileUnmodified": true,
+  "referenceJarSha256": "d10efde1c0ef6e6f8cf3e850e1dd7615966b0aa1e83082181f6c8dd26380f1b6",
+  "items": [
+    {
+      "id": "PUR-01",
+      "topic": "new-intent",
+      "designContract": "Allnormalnewpurchase settings/queue forcecirculation; legacyrawsnapshotcapturedbefore normalization",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Normal settings and approved contexts force auto-introduction. Raw legacy profile and false consent are frozen before normalization; completed unknown profiles are not invented.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackModels.java": "77acca249ba8e8a65976772865c0f1fb4be392be2718d3b6ac10065635e2313b",
+        "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java": "caaca9ed9f76ffdc0970de14600de7246e57a983ee78e99b12f641bb4d8174f1",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseContext.java": "83d76c30291ca257290f74789a26d499fb45fec6a4fbc0a64e5b4e39b42e2423"
+      },
+      "focusedReceiptKeys": [
+        "A"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "SettingsPolicy5 covers empty/read/save, nested read safety, legacy raw and completed-profile quarantine.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-02",
+      "topic": "preflight",
+      "designContract": "Localpermitbeforepurchase; noglobalCatalogrevisiongateinCoordinator ORFBSrequire callback; purevariantchecksremain",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "The coordinator and direct buy use the same pinned-method local permit policy. Purchase mapping callback retains exact native variant checks and no longer requires a global Catalog scan.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "08d87189b6f9015a15e5053c5c198b9dcc65a1ac0ff60bb703a8f700e5ea79dd",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreflight.java": "309d722460b7903e9013331e1611960f34f011b9a794d482118c579cc757e442"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "B"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Root identity10 passed earlier; final root producer-bulk and all-route combined tests remain pending.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-03",
+      "topic": "entrypoints",
+      "designContract": "13paths/18facademethods retain onecentralengine; nohiddenolddefault",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Thirteen producer/recovery paths retain the eighteen public facade contracts. Bulk FBS/FBO adapters route to enqueueBatch; direct buy uses common admission. Only one production emission POST site remains.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "08d87189b6f9015a15e5053c5c198b9dcc65a1ac0ff60bb703a8f700e5ea79dd",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2"
+      },
+      "focusedReceiptKeys": [
+        "B"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Source audit covers13 producer/recovery paths and18 facade contracts. Root producer, FBO/FBS shortage and affected-consumer cases are part of the verified2296-case union.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-04",
+      "topic": "batch",
+      "designContract": "Durablehomogeneousidentity+group+method batches max10distinctGTIN, perGTINlocalIDs",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Batch store pins authority/group/method and up to ten distinct GTINs. Every member keeps local order/pipeline/request/quantity; remote ID adoption is transactional.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "B"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Persistence16 plus batch21 exercise1/10/11 splitting and immutable member IDs. External1,000-GTIN storage probe produced100 batches with pinned context and verified a separate JVM restart; API throughput is not claimed.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-05",
+      "topic": "groups",
+      "designContract": "LPtemplate10 andfootwear6401–6405→shoestemplate1, persistedgroup andAPIpg",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Footwear TN VED6401-6405 pins shoes/template1; other supported flow LP/template10. Paid group controls every subsequent endpoint.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackProductGroup.java": "4940fea6083e64484b6bce977aa6750c35de1864149c22a8584674f4a4ed0add",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseProtocolContext.java": "225eb8c348d43adf6a123c40a934b9dbc3368cc321c692fb6553743119386642"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "D"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Protocol routing and method tests verify saved group rather than changed current product metadata.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-06",
+      "topic": "method",
+      "designContract": "PRODUCTION andCOMMISSION context/payload/doc types; old defaultPRODUCTION; visiblepurchasepreference",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "PRODUCTION and COMMISSION are pinned at approval. Preference sidecar preserves Settings constructor. Document types and receiving/production dates follow the saved method and paid identity.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseMethod.java": "192c9d6caac7eb41a3f01faa4aac4101a32f5d517d64ace7ce03ea14d3dd980c",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreferences.java": "c6e5502815c26278769861754af71872caf9e754d3fc7a8552d0dbad540c60b1",
+        "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java": "15300a064178701992de0c617e993ac4841a900bec8c16a68276fbd055378ec5"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "C",
+        "D"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Persisted method UI and payload/routing cases passed; final packaged Launcher opened and FxmlSmoke58 passed. Physical Windows presentation remains unverified.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-07",
+      "topic": "queue",
+      "designContract": "CREATE4/RETRIEVE2/INTRODUCE2 shopworkers, sameGTINserialized acrosstages",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Separate per-shop CREATE4, RETRIEVE2 and INTRODUCE2 pools maintain one FIFO lane per GTIN across stages.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java": "1a5fe985b43017b8beb01554ad99028f06263667e580033385778135af8e27e7"
+      },
+      "focusedReceiptKeys": [
+        "Q"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Actual11 queue concurrency tests passed with matching source: capacities, cross-stage FIFO, exception cleanup and shutdown admission.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-08",
+      "topic": "send",
+      "designContract": "Canonicalpayload/hash+attemptstate durable beforeactualPOST, lease/generationchecks atmutation",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Canonical payload/hash and SUBMITTING attempt commit before the sole paid POST. All member permits and license/generation/profile checks surround the actual mutation.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+        "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java": "4a3da75dbc316d674fb8b9f314af477e35ab30c539c8d7a476f2d822871f022d"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "B",
+        "C"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Batch tests inspect durable state at the send boundary, all-member authorization and unknown-outcome survival.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-09",
+      "topic": "reconcile",
+      "designContract": "Ambiguouscreate exactsameaccount+creationwindow+entireGTINquantityset, uniqueconfirmedmatchonly",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Unknown creation reconciles the original OMS, creation window and entire GTIN/quantity set. Only one matching order can be adopted; supplied errors/foreign OMS/group/method cannot override the saved context.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610"
+      },
+      "focusedReceiptKeys": [
+        "B"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Matching/no-match/ambiguous transport and plausible-but-foreign scope cases passed in final21.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-10",
+      "topic": "quota",
+      "designContract": "3350 durableaccountcapacityhold30s, retrievalcontinues, nonewrequestapproval/rebuy",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Exact global3350 records known-no-order, shared account30s hold and nonterminal member state atomically. Retrieval has its own lane; no extra seller approval or amount is invented.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "B",
+        "Q"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Quota and account-sharing tests passed. B99 focused integration includes scheduler/member projection checks; root whole-app receipt pending.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-11",
+      "topic": "credential-recovery",
+      "designContract": "Onlydefinite no-created evidence; bounded3attempts0/5/15min, approvedremainingdemand; unknownno-rebuy",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Only exact known-negative1090 permits recovery. One-GTIN children preserve original approved demand and method/group, update only allowed credentials, cap three attempts at0/5/15min; unknown or paid/issued orders never become recovery candidates.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseContext.java": "83d76c30291ca257290f74789a26d499fb45fec6a4fbc0a64e5b4e39b42e2423"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "B"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Timing/cap/no hold bypass, foreign-owner rejection, paid/issued rejection and lineage/idempotency tests passed.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-12",
+      "topic": "download",
+      "designContract": "Remainingqty/sharedstatus/recoverblocks; preserveVNwholepackage/WAL/fullCISidentity/cardinality/consumed",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Fresh download is bounded by approved remainder and current availability. Shared status is scoped to profile/context/remote order. Capped download target+uncertainty are atomic; lost response recovers issued blocks before remaining quantity. Whole-CIS/cardinality/consumed safeguards remain.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java": "a1e694bbeb071eda8a022f53de9000308f48fb9d52fa5630ba3c206940cd65f1",
+        "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+        "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java": "caaca9ed9f76ffdc0970de14600de7246e57a983ee78e99b12f641bb4d8174f1"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "B",
+        "D"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "D181 includes lost3/5 with erased text marker, exact remainder, duplicate/wrong GTIN/over-quantity and no replay of consuming GET.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-13",
+      "topic": "readiness",
+      "designContract": "APPLIEDstatusExblank/EMPTY orINTRODUCED, cardflags,EMITTEDwait; retainstrictownertruth",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Readiness uses strict per-CIS APPLIED with allowed statusEx, or all owned INTRODUCED. EMITTED stays pending; product flags are required before a new production introduction.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "5966a5080535129edbbdc93f789a00b6f894234ba47ea231f5ae1fddf7935395"
+      },
+      "focusedReceiptKeys": [
+        "D"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Method/readiness tests plus existing owner/CIS regressions passed. The unchanged ZnackCisReadback supplies the stronger VN identity proof.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-14",
+      "topic": "introduction",
+      "designContract": "Registryafterdownload forPRODUCTION, properCOMMISSIONdoc, saveID/reconcileunknown/no-secondsubmit",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "PRODUCTION reads current registry documents after download with owner/participant fallback; COMMISSION uses its proper document. Saved document IDs and unknown outcomes are reconciled; low-level POST never retries itself.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java": "15300a064178701992de0c617e993ac4841a900bec8c16a68276fbd055378ec5",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePermitResolver.java": "6e2407fcae5c5564a1f213a2615f3b2a0f0e90554f3a228f0717aa5ebb329b72",
+        "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java": "125c69104722ac068edf7fbaf6b9c17f7327dcd97ab4cb74d0fc65c410bf419f"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "C",
+        "D"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "D181 includes registry pending/empty/failure distinctions, latest refreshed token, document outcomes and no duplicate legal submission.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-15",
+      "topic": "completion",
+      "designContract": "OnlyactualperCISlegalconfirmationIN_CIRCULATION; noHTTP200/downloadfalsecomplete",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Downloading codes, HTTP200 or CHECKED_OK document alone never marks stock circulating. Exact every-CIS/GTIN/owner proof is required for IN_CIRCULATION.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java": "15300a064178701992de0c617e993ac4841a900bec8c16a68276fbd055378ec5",
+        "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "5966a5080535129edbbdc93f789a00b6f894234ba47ea231f5ae1fddf7935395"
+      },
+      "focusedReceiptKeys": [
+        "D"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Owner completion30 and identity29 tests plus new foreign-CIS token-refresh controls passed.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-16",
+      "topic": "startup",
+      "designContract": "GrantallverifiedWB/Ozonshopsunpaused/unblocked/unreconfiguring thenresume, scopedconsent",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Startup grants only verified WB/Ozon shops matching the repository and not durably paused/reconfiguring, then resumes saved work. Explicit one-job consent remains scoped to its original profile.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java": "4a3da75dbc316d674fb8b9f314af477e35ab30c539c8d7a476f2d822871f022d"
+      },
+      "focusedReceiptKeys": [
+        "C"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "C132 includes multi-shop startup, shop/repository mismatch and scoped original-profile resumption.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-17",
+      "topic": "signing",
+      "designContract": "Durablepausecause+generation+explicitresume+keypresence; retain sharedfingerprintqueue/challengeonlyauth",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Signing preserves shared fingerprint serialization and challenge-only read auth; adds durable pause/generation/profile epochs, original-job resume and noninteractive removable-key probe. Transient disconnected key marker can retry after restart without clearing PIN/cancellation pause.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java": "4a3da75dbc316d674fb8b9f314af477e35ab30c539c8d7a476f2d822871f022d",
+        "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java": "e7ae31aa39b657ab2905ae04bc67eeb84706aa9f9ef529a671a2f0971de02099",
+        "src/main/java/com/vncode/app/integration/znack/ZnackSigningPauseStore.java": "8dd6ed2e1792eb274aab78673a002a668280250226c0f922d0bd60d05399d2ea"
+      },
+      "focusedReceiptKeys": [
+        "C"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "C132 passed with matching sources. Physical CryptoPro token, PIN and Windows app operation remain unexecuted in this review.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-18",
+      "topic": "legacy",
+      "designContract": "Originalsettings/requestkeys/orderIDs/CISstates/docs survive; no automaticneworder/doc atstartup",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Legacy order/request/pipeline/CIS/document identities and raw original consent survive. Transactional uniqueness migration and schema7 fence preserve pre6 snapshot and refuse old binaries. Missing completed paid authority stays quarantined.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java": "caaca9ed9f76ffdc0970de14600de7246e57a983ee78e99b12f641bb4d8174f1",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseSchema.java": "cf96f27bc3cea57d0e96badc99f90ae8423765898d86e4c8b31c8ad91e494076"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "OLD"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Actual old JAR proof ran five successful probe processes: same version marker6->7, exact pre6 snapshot, old Gate and Database refuse7 without row/sequence changes.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-19",
+      "topic": "external-ID",
+      "designContract": "ResolveUNIQUEshop/externalconstraint; retainrealIDsfor3Ozonclasses4SQLsites orcorrectalladapters",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "UNIQUE(shop,external,gtin) permits one real remote ID on every member while retaining local IDs/FKs. Existing three Ozon paid-proof classes/four SQL sites remain unchanged and still see real external IDs.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseSchema.java": "cf96f27bc3cea57d0e96badc99f90ae8423765898d86e4c8b31c8ad91e494076",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "B"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Migration tests prove data/trigger/index/view/FK/sequence preservation, duplicate same-GTIN rejection and shared remote ID across different GTINs.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-20",
+      "topic": "Ozon-preservation",
+      "designContract": "Exactslotpaidacceptance/sourcepolicy/mapping/GTIN/PDF unchangedoutsidenecessaryadapter",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Native Ozon acceptance, exact accepted-slot checks, paid-source policy, GTIN/registration and label/PDF code are unchanged from the complete working baseline. Necessary shared purchase adapters are explicit.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610"
+      },
+      "focusedReceiptKeys": [],
+      "focusedDisposition": "SOURCE_PRESERVATION_PASS_RUNTIME_PENDING",
+      "verificationNotes": "All eight protected source groups remain SHA-identical to the full working baseline. The verified affected-scope union includes FBS/PDF/native-source/registration/mapping consumers; external Windows and real seller acceptance are not claimed.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    },
+    {
+      "id": "PUR-21",
+      "topic": "projection",
+      "designContract": "StaticUI/readmodel APIs andoldpipelineSQL projectnewbatch stateatomically; injectedconstructorsrunthesamenewengine,nolegacy mutationfallback",
+      "implementation": "IMPLEMENTED_IN_CURRENT_SOURCE",
+      "sourceObservation": "Existing pipeline stages and public static read-model/timer APIs remain. New batch changes project atomically to current member rows; rejected parent history cannot overwrite recovery children. Injected compatibility constructors use the same canonical mutation engine.",
+      "sourceHashes": {
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "08d87189b6f9015a15e5053c5c198b9dcc65a1ac0ff60bb703a8f700e5ea79dd",
+        "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610"
+      },
+      "focusedReceiptKeys": [
+        "A",
+        "B"
+      ],
+      "focusedDisposition": "PASS_OWNER_RECEIPTS_INSPECTED",
+      "verificationNotes": "Final B focused engine and root affected consumers pass on identical821 production inputs/2119 compiled entries. Existing UI static APIs and member SQL projection remain verified; no second mutation engine.",
+      "wholeAppIntegration": "AFFECTED_SCOPE_PASS_2296_CASES_232_SUITES_ON_IDENTICAL_PRODUCTION_INPUTS_NOT_FULL_JAVA_PASS",
+      "livePaidAcceptance": "NOT_RUN_NOT_CLAIMED"
+    }
+  ],
+  "ownerReceipts": {
+    "A": {
+      "kind": "Owner-run synthetic SQLite/JUnit; inspected XML",
+      "totals": {
+        "tests": 32,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "suites": [
+        {
+          "name": "com.vncode.app.integration.znack.Wb1326PurchasePersistenceTest",
+          "tests": 16,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "receipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/green4/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326PurchasePersistenceTest.xml"
+        },
+        {
+          "name": "com.vncode.app.integration.znack.Wb1326SettingsPolicyTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "receipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/green4/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326SettingsPolicyTest.xml"
+        },
+        {
+          "name": "com.vncode.app.integration.znack.Wb1326OrderMigrationTest",
+          "tests": 6,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "receipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/green4/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326OrderMigrationTest.xml"
+        },
+        {
+          "name": "com.vncode.app.integration.znack.Wb1326CodeDownloadTargetTest",
+          "tests": 5,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "receipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/green4/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.Wb1326CodeDownloadTargetTest.xml"
+        }
+      ],
+      "currentFileHashesMatchTestCopy": true
+    },
+    "B": {
+      "kind": "Owner-run synthetic batch protocol tests; inspected receipt and hashes",
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/engine/final-99-v2/RESULT.json",
+      "totals": {
+        "tests": 99,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "drift": [],
+      "compilationScope": "Refrozen B source after explicit legacy refresh-settings fallback: all current top-level integration.znack refreshed against completed full-checkpoint-7; 99 focused B/new and legacy safety cases. Synthetic APIs/tempSQLite only; no real API/paid/signing/license action."
+    },
+    "Q": {
+      "kind": "Owner-run isolated queue concurrency tests; inspected receipt and hashes",
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/engine/queue-tests/SUMMARY.json",
+      "totals": {
+        "tests": 11,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "drift": [],
+      "compilationScope": "Only currentQueue and newtest compiled; all other app/test classes copied from verified prior fixture snapshot; not a whole-project build"
+    },
+    "C": {
+      "kind": "Owner-run signing/auth/startup/settings focused integration; inspected log/XML and matching owned sources",
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/signing/integrated-profile-scoped.log",
+      "totals": {
+        "tests": 132,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "D": {
+      "kind": "Owner-run loopback HTTP and synthetic SQLite; inspected all XML and owned hashes",
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/protocol/D-FREEZE.json",
+      "totals": {
+        "tests": 181,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "drift": []
+    },
+    "OLD": {
+      "kind": "Actual pinned old JAR and current classes; synthetic profile only",
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/old-binary-proof/RESULT.json",
+      "status": "PASS",
+      "oldJarSha256": "b3ea7e8e20eeda53c38754f38509e3364267d458e297216a18966c4f8eab315b",
+      "sameAppVersion": "1.6.10",
+      "beforeSchema": 6,
+      "afterSchema": 7,
+      "exactPre6Snapshot": true,
+      "oldGateRefused7": true,
+      "oldDatabaseRefused7": true,
+      "rowsUnchangedAfterRefusal": true,
+      "integrity": "ok",
+      "foreignKeyErrors": [],
+      "processExitCodes": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "SCALE1000": {
+      "status": "PASS",
+      "scope": "1000-GTIN synthetic local storage partition/load only; no remote API throughput/paid/signing claim",
+      "durableApprovalCount": 1000,
+      "batchCount": 100,
+      "memberCount": 1000,
+      "freshJvmRestartReadAll100": true,
+      "profileMethodGroupPinnedDespiteMutableChanges": true,
+      "maxDistinctGtinsPerBatch": 10,
+      "integrity": [
+        [
+          "ok"
+        ]
+      ],
+      "foreignKeyErrors": [],
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/scale-1000/RESULT.json"
+    },
+    "LEGACY_READBACK": {
+      "receipt": "/workspace/kiz-wb1326-replacement-20261117/protocol/readback-integration/READBACK-FREEZE.json",
+      "counts": {
+        "tests": 9,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "hashDrift": [],
+      "scope": "Private incremental compile of current B OrderService and strengthened test over combined-final verified classes, not a replacement for root whole-current rerun; only synthetic loopback HTTP and isolated SQLite."
+    }
+  },
+  "pendingIntegrationGates": [
+    "Parent final documentation/source ZIP creation and manifest verification; no runtime source change is needed."
+  ],
+  "externalLimits": [
+    "No live SUZ payment/order or legal introduction acceptance tested",
+    "No real Windows CryptoPro hardware, PIN, new certificate or private user profile tested",
+    "No installer publication, license activation or Latest release authorized by this replacement task"
+  ],
+  "declaredAdaptations": [
+    "Retain VN exact full-CIS/GTIN/owner legal proof instead of weaker recursive WB status counting",
+    "Retain and strengthen consuming-GET write-ahead/recovered-package identity checks",
+    "Retain strict Ozon native-variant/accepted-slot/paid-source checks and seller-import behavior",
+    "Preserve explicit legacy false circulation consent and original paid authority; only new approved intents force circulation",
+    "Credential replacements require definite negative evidence, same-party authority and unchanged approved quantities",
+    "Keep compatibility facades and per-member local IDs/read models while replacing their mutation internals with one batch engine"
+  ],
+  "noGlobalTestCountSum": "Owner suites overlap historical classes; do not add A/B/C/D totals or call them a unified whole-app pass.",
+  "testModernizationReview": "/workspace/kiz-wb1326-replacement-20261117/preservation/TEST-MODERNIZATION-REVIEW.json",
+  "boundedFinalEvidence": {
+    "receipt": "/workspace/kiz-wb1326-replacement-20261117/preservation/FINAL-EVIDENCE-REVIEW.json",
+    "counts": {
+      "tests": 2296,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": 232,
+    "singleFullSuitePass": false,
+    "productionInputs": 821,
+    "compiledMainEntries": 2119,
+    "sameProductionInputsAndBytes": true,
+    "packagedJarSha256": "f9d623f91e1dcf9e567c82ddc0067a722cc216530ee52b4fb9cb94c8a61926b9",
+    "launcherSeconds": 6.184349299,
+    "launcherScope": "Actual packaged Launcher, synthetic zero-shop profile, outbound blocked, Linux/Xvfb; not Windows/live paid acceptance."
+  },
+  "initialBroadResult": {
+    "status": "FAIL_RETAINED",
+    "suites": 620,
+    "tests": 5062,
+    "failures": 51,
+    "errors": 12,
+    "skipped": 2,
+    "scope": "Initial broader run; not relabeled pass. Obsolete policy/fixture updates and real legacy readback correction tracked independently."
+  },
+  "themeIsolation": {
+    "receipt": "/workspace/kiz-wb1326-replacement-20261117/signing/theme-isolation/classification.json",
+    "counts": {
+      "name": "com.vncode.app.shared.ThemeServiceTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "8.35"
+    },
+    "sourceInputsByteIdenticalToBackupAndFrozen": true,
+    "compiledClassesIdentical": true,
+    "cause": "Two initial popup-isShowing errors did not reproduce in unchanged complete-class isolation. Exact cause unproven.",
+    "includedInAffected2296": false
+  }
+}

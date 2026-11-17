@@ -1,0 +1,44 @@
+{
+  "atUtc": "2026-11-17T14:11:06.032895+00:00",
+  "supersedes": "engine/B-FREEZE-v2.json solely to add one modernized legacy queue test; production unchanged.",
+  "scope": "Owner B refrozen production/test source; no further planned edits.",
+  "files": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "08d87189b6f9015a15e5053c5c198b9dcc65a1ac0ff60bb703a8f700e5ea79dd",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java": "1a5fe985b43017b8beb01554ad99028f06263667e580033385778135af8e27e7",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreflight.java": "309d722460b7903e9013331e1611960f34f011b9a794d482118c579cc757e442",
+    "src/test/java/com/vncode/app/integration/znack/OwnerBPurchaseQueueTest.java": "5e3ba9dc28dcb205e6825274815f3bf007b53509e7b5db871a7d7686d5e4cf35",
+    "src/test/java/com/vncode/app/integration/znack/OwnerBCoordinatorBatchStateTest.java": "0a6810fa43fa1706b450ff3c21dd47533afad61912516eaaf21ae4073a69f1ac",
+    "src/test/java/com/vncode/app/integration/znack/OwnerBBatchEngineTest.java": "4a2236c5174794c2be21904aa6dfcce4e53b292a9f9b60ad938a2cfe2f7c8fe8",
+    "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java": "cf03f1d49eee90bac2aee5660a5a3e07a457015b3e4266c40d74d6c2abfb6541",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java": "f53f20b5175462582742df5af5da20cbdc1b74fbdd2ceb87781d90fd539a6365",
+    "src/test/java/com/vncode/app/features/kiz/KizPurchasePermitEvidenceTest.java": "4fbd4d97b84d0ab5697f2299d6814e34f814859beb27602982757f10a98e52e1",
+    "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java": "198ea5af68e49ca36bf446eb6c1cdfc06d42b0b29fe569aabb25df84f276148f"
+  },
+  "receipts": [
+    "engine/final-99-v2/RESULT.json",
+    "engine/permit-policy-21/RESULT.json",
+    "engine/queue-compat-12/RESULT.json"
+  ],
+  "counts": {
+    "focused99": {
+      "tests": 99,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "permitPolicy21": {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "queueCompatibilityIncludingRepeatedOwnerB11": {
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "pending": "Parent final combined verification/package. Distinct B cases:99+21+1=121; queue12 repeats11 already inside99."
+}

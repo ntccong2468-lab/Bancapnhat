@@ -1,0 +1,114 @@
+{
+  "status": "PASS",
+  "finishedAtUtc": "2026-11-16T15:20:59.506914+00:00",
+  "sourceHead": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "sourceBranch": "feature/ozon-znack-order-kiz-20261116",
+  "scope": "Fresh affected-scope native JavaFX/Linux/Xvfb Ozon FBS presentation verification, isolated build and actual production JAR Launcher; after screenshots are a separate owner gate",
+  "baselineFiles": 3807,
+  "checks": {
+    "combinedRegressionAndPackage": "PASS",
+    "jarIntegrity": "PASS",
+    "actualJarFirstLauncher": "PASS",
+    "independentArtifactReview": "PASS",
+    "finalInputSetAndHashes": "PASS",
+    "afterCaptureManualReview": "SEPARATE_OWNER_GATE",
+    "nativeWindowsCryptoProDpapi": "NOT_RUN",
+    "realMarketplaceTransactions": "NOT_PERFORMED",
+    "newCodeQLScan": "NOT_RUN",
+    "wholeApplicationFullSuite": "NOT_RUN"
+  },
+  "counts": {
+    "tests": 393,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": 64,
+  "selectedClasses": 64,
+  "combinedExitCode": 0,
+  "combinedElapsedSeconds": 395.3552603199987,
+  "newTestClassCasesAlreadyIncluded": {
+    "OzonWbPackingParityTest": 13
+  },
+  "modifiedVisualTestClassCasesAlreadyIncluded": {
+    "OzonDashboardControllerTest": 5,
+    "OzonFbsUiTest": 4
+  },
+  "buildInputs": 1442,
+  "ownerFiles": 9,
+  "canonicalFreezeExpectedFilesMatch": true,
+  "finalSourceIssues": {
+    "addedLiveInputs": [],
+    "missingLiveInputs": [],
+    "changedLiveInputs": [],
+    "addedCopyInputs": [],
+    "missingCopyInputs": [],
+    "changedCopyInputs": [],
+    "changedOwnerInputs": []
+  },
+  "jar": {
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/final-verification/source-copy/target/VNcode-1.6.10.jar",
+    "bytes": 7810853,
+    "sha256": "c84f7d94bc9c855a6a878aa01b45a02b1aa885b9e6fa51ad67b9eb33fac97782",
+    "compiledNonmanifestEntries": 2080,
+    "classes": 2039,
+    "runtimeLibraries": 74,
+    "runtimeLibrariesUnchangedFromPreLayoutBuild": true
+  },
+  "launcher": {
+    "liveSellerMutations": false,
+    "syntheticLicense": true,
+    "outboundNetworkBlocked": true,
+    "actualEntrypoint": "com.vncode.app.Launcher.main",
+    "workspaceVisible": true,
+    "width": 1300,
+    "height": 700,
+    "startupToWorkspaceSeconds": 6.159392917,
+    "launcherReturned": true,
+    "elapsedSeconds": 6.702026406,
+    "startupFailureLogCreated": false,
+    "dataLockReleasedAfterShutdown": true,
+    "result": "PASS"
+  },
+  "database": {
+    "status": "PASS",
+    "integrityCheck": [
+      "ok"
+    ],
+    "foreignKeyViolations": 0,
+    "schemaVersion": 6,
+    "shopCount": 0
+  },
+  "startupScreenshotManuallyViewed": true,
+  "startupScreenshotScope": "First actual workspace, zero seller shops/synthetic profile; not Ozon row/after-capture acceptance",
+  "afterCaptureOwner": "/root/ozon_znack_capture; parent reviews same-fixture paired captures separately",
+  "evidenceSha256": {
+    "command.json": "7a4dbc924062d50d4b90dda6a1e0a3c4d5e4a9c7d9c755d386d5d4d982e7b61b",
+    "combined-result.json": "1750ae857b7052476a91c86e62edc4f53c53229abc00faa296078f859908e356",
+    "source-copy-manifest.json": "86d1e54a25a41da0a60db06025870784290d0a4011344186408867e4fa91b3a3",
+    "owner-manifest-before.json": "a0bf9af4e379c81a2255b5c436a556f84b1fcab11ded2a8566e02167a547467a",
+    "test-selection.json": "3c6d5fe76682923f5018bca03faec30c88a7a7ea7eb7cf3388fca41959fb1a4b",
+    "maven.log": "535671267893761123d9dd9a1ca04e7036e3531c9d8c23e409846ff888ea4c35",
+    "maven-settings.xml": "ee6885c097c2a81b59682d70e2f94843103a476345501b1e66f8f5fa0bdf3719",
+    "jar-integrity.json": "01c3a6985d76b28c4995fdd9f9d6e0288e8135ea8b186e224344bbe7888af0fd",
+    "launcher-command.json": "0105ba2a980def48d614f7133b2141acba57fa474620c847786561e5262f6f31",
+    "launcher-result.json": "4379bc47f9f40fdeb6983f81ad6ef779c7d6fe6e6ef77687f9bb755389e68840",
+    "smoke-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "smoke-runtime.log": "f21721acc5bc9c3e94874e5be91d33925bee6f8c4a6d1dbb802228c27f36eb86",
+    "independent-artifact-review.json": "929090581db10ec3a1bc3da1182978ce19fe9d43ab7f3e08ea3c9619fc4135a5",
+    "actual-launcher-smoke/actual-launcher-workspace.png": "47fd385faa32581dba7bd50816b42713b0f87aa5d7309fddbf3235a7a1cbaec0"
+  },
+  "notPerformed": [
+    "real seller API writes/order acceptance/purchases",
+    "real signing/license activation/Gmail",
+    "native Windows/installer checks",
+    "publication/push/Latest changes",
+    "new CodeQL scan",
+    "unrelated whole-app/SUZ/finance/quota/10k-GTIN suites"
+  ],
+  "knownHistoricalLimits": [
+    "Eight existing Java CodeQL findings including one high7.5 remain unresolved; no new scanner result.",
+    "Historical GS1 extraction coverage limitation remains.",
+    "Synthetic PDF100/1000 and API fixtures do not establish real paid marketplace throughput."
+  ]
+}

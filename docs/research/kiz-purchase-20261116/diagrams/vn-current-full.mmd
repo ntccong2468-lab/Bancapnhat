@@ -1,0 +1,33 @@
+flowchart TD
+    A[Seller mua GTIN hoặc Áp dụng mua phần thiếu FBS] --> B[Pin shop / requestKey / hồ sơ OMS-chứng thư\nautoIntroduction=true cho lô mới]
+    B --> C{GTIN active, giấy tờ, Catalog revision,\nsigner đã test, OMS, quyền KIZ hợp lệ?}
+    C -- Không --> X[Dừng trước POST; báo đúng điều kiện thiếu]
+    C -- Có --> D[Hàng đợi bền vững theo shop và GTIN]
+    D --> E[Ký body SUZ + xác thực SUZ bằng chứng thư]
+    E --> F[POST /api/v3/order; lưu externalOrderId]
+    F -- Mất kết quả gửi --> R[Đối soát /order/list trên yêu cầu cũ\nkhông POST mua lặp]
+    R --> G
+    F -- Có orderId --> G[Poll /order/status đúng GTIN buffer]
+    G -- PENDING --> G
+    G -- ACTIVE/codes-ready --> H[Ghi WAL trước GET /codes]
+    H -- Mất response --> Q[Chỉ đọc blocks và retry block đã cấp]
+    Q --> QR{Block đã cấp được xác minh\nvà lưu đủ toàn bộ mã?}
+    QR -- Chưa --> Q
+    QR -- Đủ --> J
+    H -- Có response --> I{Identity/full CIS/GTIN/quantity hợp lệ\nvà đã lưu đủ toàn bộ mã?}
+    I -- Thiếu, response chắc chắn đã lưu --> H
+    I -- Đủ --> J[WAITING_INTRODUCTION_READINESS\nĐọc True API cises/info + card flags]
+    J -- Pending/EMITTED/card chưa sẵn sàng --> J
+    J -- Tất cả INTRODUCED đúng owner --> N[INTRODUCED + IN_CIRCULATION\nKho đủ điều kiện mới được dùng]
+    J -- APPLIED đủ và card sẵn sàng --> K[Đọc chứng từ active trên registry\nKý LP_INTRODUCE_GOODS]
+    K -- Thiếu chứng từ --> W[Park WAITING_INTRODUCTION_DOCUMENTS\nGiữ mã cũ; chờ đồng bộ giấy tờ]
+    W -- Giấy tờ đã bổ sung, cùng danh tính --> J
+    K --> L[POST /lk/documents/create; lưu documentId]
+    L -- Kết quả không rõ --> J
+    L -- Có documentId --> M[Poll trạng thái tài liệu + đọc từng CIS/owner]
+    M -- Chưa đủ bằng chứng --> M
+    M -- CHECKED_OK và mọi CIS đã lưu thông đúng owner --> N
+    N --> O[WB: phân bổ/in theo luồng hiện có\nOzon: còn phải gán và đọc lại acceptance đúng slot]
+    E -. Ký bị tạm dừng .-> P[Giữ stage + marker chờ ký; xem sơ đồ dưới]
+    K -. Ký bị tạm dừng .-> P
+    J -. True API auth cần ký nhưng bị pause .-> P

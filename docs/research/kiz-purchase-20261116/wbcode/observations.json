@@ -1,0 +1,120 @@
+{
+  "status": "READ_ONLY_STATIC_VERIFIED",
+  "version": "1.3.26",
+  "releaseId": 446845555,
+  "latestRecheckedUtc": "2026-11-16T20:25:10.861648+00:00",
+  "latestStillSame": true,
+  "releaseUrl": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.26",
+  "publishedAtUtc": "2026-11-16T10:14:10Z",
+  "publishedAtMSK": "2026-11-16 13:14:10 MSK",
+  "installerSha256": "afcd6f99f800fa1f1e83f4229ec24223becf72d0f78f90680ceb390a0bfd1d70",
+  "appJar": {
+    "bytes": 5614068,
+    "sha256": "d10efde1c0ef6e6f8cf3e850e1dd7615966b0aa1e83082181f6c8dd26380f1b6",
+    "classCount": 1383
+  },
+  "normalAutoIntroduction": true,
+  "autoIntroductionFalseCompletionBranch": "Legacy method branch present; normal UI/repository Settings force true",
+  "prePostGate": {
+    "positiveQuantity": true,
+    "productionGtin": true,
+    "noParkedSameGtin": true,
+    "localProductExists": true,
+    "localPermitRequiredForProduction": true,
+    "localPermitFields": [
+      "type",
+      "number",
+      "date"
+    ],
+    "verifiedSignature": true,
+    "omsConnection": true,
+    "omsId": true,
+    "cryptoProAvailable": true,
+    "completeCatalogRevisionGateObserved": false,
+    "marketplaceVariantMappingProofGateObserved": false
+  },
+  "readiness": {
+    "statusesAccepted": [
+      "APPLIED with statusEx blank or EMPTY",
+      "all INTRODUCED"
+    ],
+    "emittedIsReady": false,
+    "productFlagsAfterApplied": [
+      "goodMarkFlag=true",
+      "goodTurnFlag=true"
+    ],
+    "ownerInnComparedInInspectCises": false,
+    "missingCisesWait": true
+  },
+  "normalObservedCallChain": [
+    "enqueueBatch/start and persist snapshot",
+    "validatePrerequisites local product/permit/signature",
+    "sign request; authenticate SUZ",
+    "POST order and reconcile uncertain result",
+    "GET order/status",
+    "GET codes or recover issued blocks",
+    "POST cises/info readiness",
+    "refresh Catalog card flags",
+    "read active Catalog permits for production",
+    "sign LP_INTRODUCE_GOODS or LK_INDI_COMMISSIONING",
+    "POST documents/create; persist external ID",
+    "GET document CHECKED_OK and cises/info INTRODUCED status count",
+    "mark local legal IN_CIRCULATION"
+  ],
+  "explicitUsageReportOrApplyStepObservedInChain": false,
+  "serverSideAppliedTransitionVerified": false,
+  "normalIntroductionProof": {
+    "documentCheckedOk": true,
+    "cisStatusIntroducedCount": true,
+    "perCodeOwnerInnMatch": false,
+    "perCodeFingerprintSetMatch": false
+  },
+  "legacyAllIntroducedReadinessFastPath": "Marks IN_CIRCULATION directly when inspected response statuses all INTRODUCED; no separate ownership proof observed",
+  "uiSigningSummary": "Same WAITING local signing guard; startup verified unpaused WB/Ozon shops can resume; explicit selection clears pause and authorizes when allowed",
+  "executed": {
+    "githubReads": true,
+    "digestVerification": true,
+    "jarZipCrcVerification": true,
+    "staticDecompiler": true,
+    "javapCoreClasses": 7,
+    "coreSelectedClasses": 144,
+    "targetAppExecution": false,
+    "appBuildOrUnitTests": false,
+    "marketplaceOrSuzWrites": false,
+    "paidPurchase": false,
+    "signing": false,
+    "licenseActivation": false,
+    "targetRepositorySourceEdits": false
+  },
+  "limitations": [
+    "Binary/decompiled bytecode behavior, not official source commit binding",
+    "No server API contract proof that separate usage report is required for this light-industry flow",
+    "No Windows/CryptoPro/seller live purchase acceptance",
+    "Version comparison cannot identify current seller failure without exact current pipeline and remote responses"
+  ],
+  "report": "REPORT.md",
+  "uiSigningReport": "ui-signing/REPORT.md",
+  "vnCurrentPrePostDifference": "Global CatalogReadRevision.requireComplete before legacy return; known-permit CatalogPermitEvidence. This is not universal variant/article/color validation at directbuy gate; FBS proofs have separate callers.",
+  "multiShopResumeDifference": "WB boot iterates each eligible verified/unpaused WB/Ozon shop and calls authorizeVerifiedShop before resumeAllPersisted. Current VN Home authorizes only initially selected shop before resumeAllPersisted loops all; other unauthed shops can WAITING, paused/blocked shops are not automatically cleared.",
+  "multiShopStartupBytecodeProof": {
+    "class": "HomeController$21",
+    "method": "call",
+    "iterateAllOffsets": "3–13 list;19–74 loop",
+    "authorizeVerifiedShopOffset": 70,
+    "resumeAllPersistedOffsets": [
+      131,
+      150
+    ],
+    "helperRejects": [
+      "notWB/Ozon",
+      "nullsettings",
+      "signingPaused",
+      "emptycertificate",
+      "nulltestedAt",
+      "BLOCKED",
+      "RECONFIGURING"
+    ],
+    "durablePauseClearedAtStartup": false,
+    "source": "ui-signing/home-resume-all-javap.txt"
+  }
+}

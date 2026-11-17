@@ -1,0 +1,1241 @@
+{
+  "status": "FROZEN_RUNTIME_SOURCE_WITH_TIMESTAMPED_PENDING_DOCUMENTATION_INVENTORY",
+  "atUtc": "2026-11-17T14:30:50.414255+00:00",
+  "head": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "baselineFiles": 3947,
+  "baselineUnchangedFiles": 3892,
+  "baselineChangedFiles": [
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java",
+      "baselineSha256": "33a9679485e001cf100cd03063c12e27bc7a60ea845bce2f25df97b221152b2a",
+      "currentSha256": "c85d219cb32d4654e5ba44aeaa58fe2c51b48b3769f151340229c12f4aa05290"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPurchaseAvailabilityPolicyTest.java",
+      "baselineSha256": "322a8c96a4d21cbd7ce47c8816b9c1ee3af9fe9443bd392007a57f5213e596c0",
+      "currentSha256": "29e9324a256b9e572663b57fe7e75f809fefca8cf4d8694a6c32a91b7532d6e9"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java",
+      "baselineSha256": "85058eaa72711a6aa6d501889f94da7d2d71a0eed4c81cb6601281ec7975c939",
+      "currentSha256": "cf03f1d49eee90bac2aee5660a5a3e07a457015b3e4266c40d74d6c2abfb6541"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+      "baselineSha256": "87029b7c1c84b6e1e13f186ac5bf4e9694e40952b8ab929fd746c1b5e12bcab0",
+      "currentSha256": "0b4d0f0fcae33b7ef123ceabd9aa0bc33ab3875eed5cd459cb3becfd0eb41dac"
+    },
+    {
+      "path": "docs/PROJECT_MEMORY.md",
+      "baselineSha256": "3ccb9234e1db3079befcd75760b7fe3d8fe152627d8922e31d96f35777108895",
+      "currentSha256": "81518b1111672b7b3f3aba4cfc769fd4bc6a49e488e6acb6724603d76cd45b5c"
+    },
+    {
+      "path": "docs/memory/CURRENT.md",
+      "baselineSha256": "7d605d81f906d153fec567a6f5533514a98a4c1442a69aa0d5b13c47d8970dbb",
+      "currentSha256": "50f06f3a5fc2eac3914d4ab63e95a8866fc5b58add23c4926f13aa3bf5dabb31"
+    },
+    {
+      "path": "docs/memory/README.md",
+      "baselineSha256": "27539dfd5bae5e1c655a69a16a1054867a743cf2fa8b9c7b0e488c73e23e6c4e",
+      "currentSha256": "c6234d2391f3e5e95f585a19aa1b96cd50684e516b3bedb8a60d682164dcf69c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/config/Database.java",
+      "baselineSha256": "0689d2b91b6957ed25142c495dc1b9d03f54b457d109579fc4612a8cd38d90d1",
+      "currentSha256": "6c8ec1f72ebb9cb0365828aa93889dc70e079b2aa1a96d05b239ffef25ead0b5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/fbo/FboPurchaseService.java",
+      "baselineSha256": "bdcf8c82ccbcac64d87e9511ac7c74d24a95d6ddd55976c92e2b73fa78a911d6",
+      "currentSha256": "b88b7df4409a90b9729b42908e3db9f974debff1a08fcd4bcdd92fb853109106"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+      "baselineSha256": "de9ef97c4bed03fcde0e2b672c4b55665986bd78525ceeeb3d8c14834b6d213f",
+      "currentSha256": "e7b3efbe3892abd60ede12da08bb99fc8e28d7f6ffab6da02b8bbdd83e28092c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+      "baselineSha256": "7bfa63f03962cf4649a365135b03bdd39be6cedac23ebdccd704a7b05ec1911d",
+      "currentSha256": "49b3007e7164e7ce3cbccc8e118267318613bc9f0e9e4dd37881d98bcba624a7"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+      "baselineSha256": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637",
+      "currentSha256": "125c69104722ac068edf7fbaf6b9c17f7327dcd97ab4cb74d0fc65c410bf419f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+      "baselineSha256": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+      "currentSha256": "e7ae31aa39b657ab2905ae04bc67eeb84706aa9f9ef529a671a2f0971de02099"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+      "baselineSha256": "ef3fa2cbcb01afd9b5c49ddebb346e03a1b71f1b9c1ac24505a8c900e96ba8d6",
+      "currentSha256": "eed0d30f0e7fe4881eb4c1717f43303e61af39bfc514290fb1221e2fb44d7433"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+      "baselineSha256": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210",
+      "currentSha256": "5966a5080535129edbbdc93f789a00b6f894234ba47ea231f5ae1fddf7935395"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+      "baselineSha256": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb",
+      "currentSha256": "15300a064178701992de0c617e993ac4841a900bec8c16a68276fbd055378ec5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+      "baselineSha256": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f",
+      "currentSha256": "a1e694bbeb071eda8a022f53de9000308f48fb9d52fa5630ba3c206940cd65f1"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+      "baselineSha256": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0",
+      "currentSha256": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackModels.java",
+      "baselineSha256": "ede78033c39b2d8fbd2d83836891652409a208e24a907bd5db3a9a895acbe975",
+      "currentSha256": "77acca249ba8e8a65976772865c0f1fb4be392be2718d3b6ac10065635e2313b"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java",
+      "baselineSha256": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc",
+      "currentSha256": "1a5fe985b43017b8beb01554ad99028f06263667e580033385778135af8e27e7"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "baselineSha256": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071",
+      "currentSha256": "08d87189b6f9015a15e5053c5c198b9dcc65a1ac0ff60bb703a8f700e5ea79dd"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+      "baselineSha256": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37",
+      "currentSha256": "caaca9ed9f76ffdc0970de14600de7246e57a983ee78e99b12f641bb4d8174f1"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java",
+      "baselineSha256": "9c1a423b9dab1e2f55a508c095eba762504d25f77164835af958365d7c02c519",
+      "currentSha256": "cc55f05ec0bf20ba37c267bf8049b47001ad2df802337f018191d53c4110ae58"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+      "baselineSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+      "currentSha256": "4a3da75dbc316d674fb8b9f314af477e35ab30c539c8d7a476f2d822871f022d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProErrorCode.java",
+      "baselineSha256": "4df9df223ce27ba185c1cb847a68b5602d17dcd25606e24b8f1d35f1255274c7",
+      "currentSha256": "20fbaf014f59ebf83604472359be5a22e7822f373a4a1516c284dd691d6053cd"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+      "baselineSha256": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da",
+      "currentSha256": "97a8ef45163afe6c3000b3148b22089491c2e9c03120b4f88851f3316f8fc0db"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/signature/ZnackSignatureProvider.java",
+      "baselineSha256": "d3a813595e3d586d1877a093b75806ab2d4a323d64212be5b8403083bce029fc",
+      "currentSha256": "0e52b93579037e03f51e00fe9119b85793b3e1c717041f3bfa0f85b06623bd81"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+      "baselineSha256": "8195d4c643293e2d8235bb7d7db0f7cf58221b255b5d059f2a577fa09ad21b01",
+      "currentSha256": "529d67698e0c70bdad7fb403c2163109346f162ee5936e3dce154fead3366f4a"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+      "baselineSha256": "ef4f9611c051cfdc3a2f7f3a9652681dca459d17ae7276321f2ddabe058ca5b4",
+      "currentSha256": "a5374307ebc5ce3630d9def825de4e6c7eb01b5c8d85f4c8cb7c3bd39cf926ca"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "baselineSha256": "88be94b8fbcddde4e197a6c4c54209164758e5731bfca7fff83733eedbf6ba12",
+      "currentSha256": "96b107ec5a31271d90021ef6a623311f5be9f9e17b1f082d663610ac528d374f"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "baselineSha256": "8840d29be6f0f3073a9831f19c2390e57d50b3d4d5b7220b3ebe62133c600fb4",
+      "currentSha256": "419d2f643e46227effc578f8dd4a7d8a1a787f8bfdd7d2d96565fe5ad1b56bb1"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "baselineSha256": "7e22b01ac4c85d127e4ebe6592334817dbb34188ea93b20b111de2bcd48431c3",
+      "currentSha256": "9cbc9735ed58ebdcc60da1d910380a9479071964ec821c3b08b25aa9c4411f15"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "baselineSha256": "ccf51f90e5b4625e6861ddefc551f6d8cfac6d006cd45bdbf58d0993bc9c84b6",
+      "currentSha256": "0cd70dd4978c82f3d15db98b0bfc4356a7bae80a5ff41f74a9e03b90d0c59870"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/CatalogKeyPendingIdentityTest.java",
+      "baselineSha256": "738485af6c3e825d8f5d57d30d7233ce21b324e21b3f112330c9b316c6d91bef",
+      "currentSha256": "0016a8936ee1d656090364278fc85037d253b6863671018490e24aefc2499809"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPendingIdentityTest.java",
+      "baselineSha256": "400102ba2e46057c57e596a5e1df5dc564ee1bbbc9ed3cc5cf36354657e7fab2",
+      "currentSha256": "52ba4d0f44ba187795fa0f84ba207f85a86a1997322860f7d87fa16652b76fb9"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPrintPurchaseSessionTest.java",
+      "baselineSha256": "8c5ef80ca63402778123a60778892fda1f7d7e58f46723b50648ecf8eb0d03ed",
+      "currentSha256": "b2835047258789352bc3e30d0813af6947d4714a3f37c99cad36be42ce3ed4e9"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPurchasePermitEvidenceTest.java",
+      "baselineSha256": "556ab175d3134cc64d3a04a069f1d93ca8271125c60adc7c128261abf3613268",
+      "currentSha256": "4fbd4d97b84d0ab5697f2299d6814e34f814859beb27602982757f10a98e52e1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizStockReplenisherTest.java",
+      "baselineSha256": "e926b04427b4a424c3a8b172b08337fd85faebf89021e02733fe346025d2f379",
+      "currentSha256": "bc099eb863f2dd3e9cfe4ee6e6acc838e0861e4f872778df74e0e8ed0cbf0770"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCertificateSettingsRepositoryTest.java",
+      "baselineSha256": "1fdff54c6aca3167485c881bbd3731fa82172170c1143c1edde2d6d6da16481c",
+      "currentSha256": "442604c1a6f6b0b1dd38fa612ea65b20cee158edb0da56b125a5104500f22323"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java",
+      "baselineSha256": "471ac9c8a44c3f194699760453d6420506518a6446f0cc6b6f3d806390b553c0",
+      "currentSha256": "f53f20b5175462582742df5af5da20cbdc1b74fbdd2ceb87781d90fd539a6365"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackErrorMessagesTest.java",
+      "baselineSha256": "1c78a0c079e1037ad5d708830b46faf3b6c758668408ab1d6e82c39dab54da64",
+      "currentSha256": "c868d1b5c683930bd2898e53f7e4430e01d94dcb80fccc00a6f8f2649987b4cb"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "baselineSha256": "92973f7bcba066d88f285435d15b96f8142f98f56af461dffcd2314a625a888a",
+      "currentSha256": "8f41889bfd2a5af5d6a0ad5438c1e9f20eeb62458a7255b80c919028473386a4"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+      "baselineSha256": "73f40cd2e0f8a454a2d0b860969ff5700b1c400fcfcebc6c9a6e54360ec10d61",
+      "currentSha256": "62bc9faa09d2a2e412cddd7fa76d4f4c7e45d66db50d410df4c63ee68a9814ce"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "baselineSha256": "fdc9302fabe2f3d2929a8ebb7e4949dc020792a7684a388fad4e9cf28f816950",
+      "currentSha256": "15e58b8f86e9dba2f1d8d1d78ffd99b885554e883542c62615bd6b0b0255c517"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionSubmissionOutcomeTest.java",
+      "baselineSha256": "764341a52955f4c1508489f847ee6f303b766b34a95081ae1bd4833400b84126",
+      "currentSha256": "505fd8670a19b06be359354e17d4aad497d6c38d4a3b819f21282886831f7f45"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackKizPurchaseReadbackTest.java",
+      "baselineSha256": "8dcc418fda565d2888cf8aba729877e4c918397b31259956ebc0cce98205644e",
+      "currentSha256": "e82d9cd5cbbde34624f4fc14614e87a83c8eaf3e33893a82d73f2f92231eec81"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackLicenseBoundaryTest.java",
+      "baselineSha256": "81b61f9fa700c40ab3af0187bd9634aa8481448ec67816331689062ce583b5fe",
+      "currentSha256": "61564aad7b01c9f2fca13ad95dbc779c7697956e3e9e91587476e52094a611ea"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "baselineSha256": "8e78c03fadf3f69648e9a6badb1ead511829a7f72905756728fdad052f3d4748",
+      "currentSha256": "677b64288d09832233386267efb50740e6d8d3d8aa2b14d01918aded78fef1ff"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java",
+      "baselineSha256": "b56fff75b407174d38fe63fc6b987809e1c2285cc398a202ea3eb0d741adb4a2",
+      "currentSha256": "198ea5af68e49ca36bf446eb6c1cdfc06d42b0b29fe569aabb25df84f276148f"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackSettingsAreaRepositoryTest.java",
+      "baselineSha256": "132dff1237709ab45c54a9a58ec2db99158bb86db06ab5c7dfbfc176ca582f6a",
+      "currentSha256": "bcf0a9e46e9f3ad1a92f03c2ccb8e5bc61aa5dab382d4a4d0d02464c42f46cc1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackSigningRecoveryTest.java",
+      "baselineSha256": "22bc69fa2bc986e6be42eba5be2cd22bb852d4ccb8881aff91f6daee3aa5c4ad",
+      "currentSha256": "225c266393a6c9697528f8494edb61c0f4ca2502823e60fefac03c2e1d143d0c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackSigningSessionTest.java",
+      "baselineSha256": "92b968112cc303876cf2cd164972e59237a81296c914e4ede0c4a1974f461ad6",
+      "currentSha256": "be1bb34fdc63cba9965ed9c2a0ee196dc1f5cbf79242eb205c4954ccc2969c0a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+      "baselineSha256": "b7413ba8ed77975c28b994bb1fe6c517c8ba38d017776543029fded126caecb7",
+      "currentSha256": "b0f356de55c39cafdf9757c10c607afb8ebf5058f5afadb3110bb12cbbcdc033"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java",
+      "baselineSha256": "02ff559dfdfed4b042c279e235aeafab38b88b2f6bdc396f94b5a5a20c58a99b",
+      "currentSha256": "810b267c414f6f3c1b73435f0f1cd40094ef47b06304497394a68e6020a8fa02"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/workspace/HomeControllerStartupRecoveryTest.java",
+      "baselineSha256": "3744357924cdab890a50dbfaee51d00ad7782b892fac5f63d3bd966408096b52",
+      "currentSha256": "f558cc83b0022b6c1a5a4b172821f9c1a6174d77effb35cbf024028a138efb34"
+    }
+  ],
+  "baselineMissingFiles": [],
+  "newGitVisibleFilesSinceBaseline": [
+    "docs/validation/wb1326-purchase-replacement-20261117/FINAL-RECEIPT.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/PARITY-CHECKLIST.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/PLAN.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/README.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/REPORT.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/actual-launcher-workspace.png",
+    "docs/validation/wb1326-purchase-replacement-20261117/affected-result.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/artifact-launcher-result.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/baseline-backup.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/engine-freeze.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/engine.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/exhausted-freeze-final.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/exhausted-freeze.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/legacy-engine-fixtures.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/legacy-readback-freeze.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/message-freeze.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/persistence-freeze.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/persistence-tests.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/protocol-freeze.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/protocol.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/scale-1000.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/signing-recovery-fixtures.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/signing-tests.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/signing.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/theme-isolation.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/theme-isolation.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/components/ui-fixture-adaptation.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/ecc-validator-result.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/entrypoints-baseline-audit.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/entrypoints.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/final-build-result.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/initial-broad-result.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/jar-integrity.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/old-binary-schema-proof.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/parity-review.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/parity-review.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/production-parity.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/purchase-flow.mmd",
+    "docs/validation/wb1326-purchase-replacement-20261117/source-preservation-review.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/source-preservation-review.md",
+    "docs/validation/wb1326-purchase-replacement-20261117/test-modernization-review.json",
+    "docs/validation/wb1326-purchase-replacement-20261117/test-modernization-review.md",
+    "src/main/java/com/vncode/app/integration/znack/SuzRequestPacing.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackProductGroup.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseContext.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseMethod.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePermitResolver.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreferences.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreflight.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseProtocolContext.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseSchema.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackSigningPauseStore.java",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProKeyPresence.java",
+    "src/test/java/com/vncode/app/features/kiz/Wb1326PurchaseIdentityGatewayTest.java",
+    "src/test/java/com/vncode/app/features/kiz/Wb1326PurchaseProducerBatchTest.java",
+    "src/test/java/com/vncode/app/integration/znack/OwnerBBatchEngineTest.java",
+    "src/test/java/com/vncode/app/integration/znack/OwnerBCoordinatorBatchStateTest.java",
+    "src/test/java/com/vncode/app/integration/znack/OwnerBPurchaseQueueTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326AuthIsolationRegressionTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326AuthSessionTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326CodeDownloadTargetTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326DownloadAvailabilityTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326IntroductionMethodTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326OrderMigrationTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326PermitResolverTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326ProtocolApiRoutingTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326PurchasePersistenceTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326SettingsPolicyTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326SharedOrderDownloadTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326SigningAdmissionTest.java",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326SuzPacingTest.java",
+    "src/test/java/com/vncode/app/integration/znack/signature/Wb1326KeyPresenceTest.java",
+    "src/test/java/com/vncode/app/ui/workspace/Wb1326StartupAdmissionTest.java",
+    "src/test/java/com/vncode/app/ui/znack/Wb1326PurchasePreferencesUiTest.java"
+  ],
+  "summary": {
+    "baselinePendingFromHEAD": {
+      "files": 270,
+      "groups": {
+        "ECC instructions and validators": {
+          "count": 26,
+          "files": [
+            ".agents/skills/vncode-ecc-review/SKILL.md",
+            ".agents/skills/vncode-ecc-security/SKILL.md",
+            ".agents/skills/vncode-ecc-tdd-verification/SKILL.md",
+            "docs/engineering/ecc/LICENSE.upstream.txt",
+            "docs/engineering/ecc/README.md",
+            "docs/engineering/ecc/integration-manifest.json",
+            "docs/engineering/ecc/review.md",
+            "docs/engineering/ecc/security.md",
+            "docs/engineering/ecc/verification.md",
+            "docs/validation/ecc-codex-web-20261115/REPORT.md",
+            "docs/validation/ecc-codex-web-20261115/behavior-review.md",
+            "docs/validation/ecc-codex-web-20261115/current-launcher-receipt.json",
+            "docs/validation/ecc-codex-web-20261115/current-launcher-smoke.json",
+            "docs/validation/ecc-codex-web-20261115/file-inventory.json",
+            "docs/validation/ecc-codex-web-20261115/final-current-build-input-proof.json",
+            "docs/validation/ecc-codex-web-20261115/focused-result.json",
+            "docs/validation/ecc-codex-web-20261115/full-result.json",
+            "docs/validation/ecc-codex-web-20261115/receipt.json",
+            "docs/validation/ecc-codex-web-20261115/scope-preservation.json",
+            "docs/validation/ecc-codex-web-20261115/ui-review.md",
+            "docs/validation/ecc-codex-web-20261115/validator-independent-review.json",
+            "docs/validation/ecc-codex-web-20261115/znack-empty-after.png",
+            "docs/validation/ecc-codex-web-20261115/znack-empty-before.png",
+            "tools/validate-ecc-integration.mjs",
+            "tools/validate-ecc-integration.test.mjs",
+            "AGENTS.md"
+          ]
+        },
+        "First public VNCode and WBCode purchase research": {
+          "count": 73,
+          "files": [
+            "docs/research/kiz-purchase-20261116/REPORT.md",
+            "docs/research/kiz-purchase-20261116/current/CURRENT-AUDIT.md",
+            "docs/research/kiz-purchase-20261116/current/SOURCE-COMPARISON.json",
+            "docs/research/kiz-purchase-20261116/diagrams/vn-comparison-summary.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/vn-current-full.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/vn-signing-pause-resume.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/wbcode-full.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/wbcode-signing.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/wbcode-summary.mmd",
+            "docs/research/kiz-purchase-20261116/latest-public/VERSION-RECEIPT.json",
+            "docs/research/kiz-purchase-20261116/latest-public/purchase-source-proof.json",
+            "docs/research/kiz-purchase-20261116/preservation.json",
+            "docs/research/kiz-purchase-20261116/validation.json",
+            "docs/research/kiz-purchase-20261116/verification/README.md",
+            "docs/research/kiz-purchase-20261116/verification/RESULT.json",
+            "docs/research/kiz-purchase-20261116/verification/command.json",
+            "docs/research/kiz-purchase-20261116/verification/input-proof.json",
+            "docs/research/kiz-purchase-20261116/verification/run.log",
+            "docs/research/kiz-purchase-20261116/versions.json",
+            "docs/research/kiz-purchase-20261116/vn130/FINAL-RECEIPT.json",
+            "docs/research/kiz-purchase-20261116/vn130/REPORT.md",
+            "docs/research/kiz-purchase-20261116/vn130/STATIC-CHECKS.json",
+            "docs/research/kiz-purchase-20261116/vn130/THREE-WAY-FILE-COMPARISON.json",
+            "docs/research/kiz-purchase-20261116/vn130/VERSION-RECEIPT.json",
+            "docs/research/kiz-purchase-20261116/vn130/bancapnhat-version-api-checks.json",
+            "docs/research/kiz-purchase-20261116/vn130/linked-repo-README.md",
+            "docs/research/kiz-purchase-20261116/vn130/purchase-v130-vs-public-latest.mmd",
+            "docs/research/kiz-purchase-20261116/vn130/purchase-v130.mmd",
+            "docs/research/kiz-purchase-20261116/vn130/remote-tags.txt",
+            "docs/research/kiz-purchase-20261116/wbcode/REPORT.md",
+            "docs/research/kiz-purchase-20261116/wbcode/cfr-provenance.json",
+            "docs/research/kiz-purchase-20261116/wbcode/download-verification.json",
+            "docs/research/kiz-purchase-20261116/wbcode/extraction-provenance.json",
+            "docs/research/kiz-purchase-20261116/wbcode/extractor-provenance.json",
+            "docs/research/kiz-purchase-20261116/wbcode/javap/provenance.json",
+            "docs/research/kiz-purchase-20261116/wbcode/observations.json",
+            "docs/research/kiz-purchase-20261116/wbcode/report-integrity.json",
+            "docs/research/kiz-purchase-20261116/wbcode/ui-signing/REPORT.md",
+            "docs/research/kiz-purchase-20261116/wbcode/ui-signing/evidence-inputs.json",
+            "docs/research/kiz-purchase-20261116/wbcode/ui-signing/home-resume-all-javap.txt",
+            "docs/validation/kiz-first-public-20261116/FINAL-RECEIPT.json",
+            "docs/validation/kiz-first-public-20261116/REPORT.md",
+            "docs/validation/kiz-first-public-20261116/baseline-backup.json",
+            "docs/validation/kiz-first-public-20261116/circulation-fixtures.json",
+            "docs/validation/kiz-first-public-20261116/circulation-implementation.md",
+            "docs/validation/kiz-first-public-20261116/circulation-result.json",
+            "docs/validation/kiz-first-public-20261116/combined-result.json",
+            "docs/validation/kiz-first-public-20261116/download-result.json",
+            "docs/validation/kiz-first-public-20261116/fbs-resume-implementation.md",
+            "docs/validation/kiz-first-public-20261116/fbs-resume-result.json",
+            "docs/validation/kiz-first-public-20261116/handoff-integrity.json",
+            "docs/validation/kiz-first-public-20261116/independent-artifact-review.json",
+            "docs/validation/kiz-first-public-20261116/independent-review.json",
+            "docs/validation/kiz-first-public-20261116/independent-review.md",
+            "docs/validation/kiz-first-public-20261116/jar-integrity.json",
+            "docs/validation/kiz-first-public-20261116/launcher-result.json",
+            "docs/validation/kiz-first-public-20261116/original/REPORT.md",
+            "docs/validation/kiz-first-public-20261116/original/first-release-build-info.json",
+            "docs/validation/kiz-first-public-20261116/original/latest-public-release.json",
+            "docs/validation/kiz-first-public-20261116/original/purchase-source-comparison.json",
+            "docs/validation/kiz-first-public-20261116/original/release-provenance.json",
+            "docs/validation/kiz-first-public-20261116/original/suz-issuance-contract.json",
+            "docs/validation/kiz-first-public-20261116/pause-result.json",
+            "docs/validation/kiz-first-public-20261116/red-evidence-index.json",
+            "docs/validation/kiz-first-public-20261116/shared-implementation.md",
+            "docs/validation/kiz-first-public-20261116/shared-source-sha256.json",
+            "docs/validation/kiz-first-public-20261116/source-delta.json",
+            "docs/validation/kiz-first-public-20261116/source-freeze.json",
+            "docs/validation/kiz-first-public-20261116/summary-implementation.md",
+            "docs/validation/kiz-first-public-20261116/summary-result.json",
+            "docs/validation/kiz-first-public-20261116/unknown-download-implementation.md",
+            "docs/validation/kiz-first-public-20261116/unknown-download-result.json",
+            "docs/validation/kiz-first-public-20261116/verification-command.json"
+          ]
+        },
+        "KIZ purchase, protocol, circulation and signing engine": {
+          "count": 12,
+          "files": [
+            "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackDownloadRecoveryMessagesTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackNormalDownloadIdentityTest.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java"
+          ]
+        },
+        "Localized purchase and key-wait messages": {
+          "count": 4,
+          "files": [
+            "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_zh.properties"
+          ]
+        },
+        "Other shared safeguards or documentation": {
+          "count": 1,
+          "files": [
+            "src/main/java/com/vncode/app/shared/FriendlyErrorService.java"
+          ]
+        },
+        "Ozon paid-code acceptance, replacement and combined PDF": {
+          "count": 30,
+          "files": [
+            "docs/validation/ozon-znack-orders-20261116/FINAL-RECEIPT.json",
+            "docs/validation/ozon-znack-orders-20261116/REPORT.md",
+            "docs/validation/ozon-znack-orders-20261116/backup-receipt.json",
+            "docs/validation/ozon-znack-orders-20261116/combined-result.json",
+            "docs/validation/ozon-znack-orders-20261116/handoff-integrity.json",
+            "docs/validation/ozon-znack-orders-20261116/independent-artifact-review.json",
+            "docs/validation/ozon-znack-orders-20261116/independent-result.json",
+            "docs/validation/ozon-znack-orders-20261116/independent-review.md",
+            "docs/validation/ozon-znack-orders-20261116/jar-integrity.json",
+            "docs/validation/ozon-znack-orders-20261116/launcher-result.json",
+            "docs/validation/ozon-znack-orders-20261116/preservation.json",
+            "docs/validation/ozon-znack-orders-20261116/preservation.md",
+            "docs/validation/ozon-znack-orders-20261116/purchase-implementation.md",
+            "docs/validation/ozon-znack-orders-20261116/purchase-source-sha256.json",
+            "docs/validation/ozon-znack-orders-20261116/registration-implementation.md",
+            "docs/validation/ozon-znack-orders-20261116/registration-result.json",
+            "docs/validation/ozon-znack-orders-20261116/verification-command.json",
+            "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizAssignment.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizStock.java",
+            "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedKizReplacementTest.java",
+            "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedPrintAssignmentTest.java",
+            "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedStockPolicyTest.java",
+            "src/test/java/com/vncode/app/integration/ozon/OzonRejectedPurchasedDemandTest.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizReplacement.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizService.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceStockReplenishment.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJobRepository.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonExemplarService.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonStockReplenishment.java"
+          ]
+        },
+        "Ozon registration entry and WB-style FBS layout": {
+          "count": 106,
+          "files": [
+            "docs/validation/ozon-fbs-wb-layout-20261116/FINAL-RECEIPT-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/FINAL-RECEIPT.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/REPORT.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/absolute-geometry-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/after-capture-summary.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/after-capture.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/after-image-index.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/baseline-backup.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/before-capture-preservation.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/before-capture-summary.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/before-capture.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/combined-result-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/combined-result.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/final-capture-summary.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/final-capture.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/final-image-index.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/final-visual-check.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/focused-ui-result-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/focused-ui-result.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/handoff-integrity.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-sort-popup-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-sort-popup-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab0-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab0-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab1-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab1-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab2-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab2-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab3-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab3-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab4-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab4-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-before-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-before-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-sort-popup-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-sort-popup-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab0-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab0-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab1-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab1-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab2-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab2-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab3-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab3-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab4-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab4-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-before-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-before-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-before-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-before-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/implementation-final.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/implementation-notes.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-artifact-review-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-artifact-review.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-review-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-review-final.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-review.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-review.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-source-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/jar-integrity-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/jar-integrity.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/launcher-result-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/launcher-result.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/popup-diagnostic.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/preservation-contract.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/previous-evidence-preservation-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/same-jar-table-geometry-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/selector-review.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/source-freeze-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/source-freeze.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/test-selection-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/test-selection.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/thumbnail-geometry-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/thumbnail-geometry-red.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/vertical-geometry-fix.md",
+            "src/test/java/com/vncode/app/ui/ozon/OzonRegistrationEntryUiTest.java",
+            "src/test/java/com/vncode/app/ui/ozon/OzonWbPackingParityTest.java",
+            "src/test/java/com/vncode/app/ui/workspace/OzonRegistrationNavigationTest.java",
+            "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+            "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+            "src/test/java/com/vncode/app/ui/ozon/OzonDashboardControllerTest.java",
+            "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java"
+          ]
+        },
+        "Project memory": {
+          "count": 3,
+          "files": [
+            "docs/PROJECT_MEMORY.md",
+            "docs/memory/CURRENT.md",
+            "docs/memory/README.md"
+          ]
+        },
+        "Purchase shortage consent, stock policy, mapping and signing resume": {
+          "count": 10,
+          "files": [
+            "src/main/java/com/vncode/app/features/kiz/KizPurchaseAvailability.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPurchaseAvailabilityPolicyTest.java",
+            "src/test/java/com/vncode/app/integration/znack/KizSigningSummaryRecoveryTest.java",
+            "src/test/java/com/vncode/app/ui/kizmapping/FbsKizSigningResumeUiTest.java",
+            "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+            "src/main/java/com/vncode/app/features/kiz/KizPurchasePendingException.java",
+            "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+            "src/main/java/com/vncode/app/features/kizmapping/KizMappingRepository.java",
+            "src/main/java/com/vncode/app/ui/supply/SupplyDetailController.java"
+          ]
+        },
+        "Registration and shop navigation preservation": {
+          "count": 3,
+          "files": [
+            "src/main/java/com/vncode/app/ui/shop/ShopSidebarController.java",
+            "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+            "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml"
+          ]
+        },
+        "Startup recovery and UI inspection": {
+          "count": 2,
+          "files": [
+            "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+            "tools/UiLayoutProbe.java"
+          ]
+        }
+      }
+    },
+    "newEditsSinceBaseline": {
+      "files": 55,
+      "groups": {
+        "KIZ purchase, protocol, circulation and signing engine": {
+          "count": 33,
+          "files": [
+            "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackModels.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+            "src/main/java/com/vncode/app/integration/znack/signature/CryptoProErrorCode.java",
+            "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+            "src/main/java/com/vncode/app/integration/znack/signature/ZnackSignatureProvider.java",
+            "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackCertificateSettingsRepositoryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackErrorMessagesTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionSubmissionOutcomeTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackKizPurchaseReadbackTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackLicenseBoundaryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackSettingsAreaRepositoryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackSigningRecoveryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackSigningSessionTest.java"
+          ]
+        },
+        "Localized purchase and key-wait messages": {
+          "count": 4,
+          "files": [
+            "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_zh.properties"
+          ]
+        },
+        "Other shared safeguards or documentation": {
+          "count": 3,
+          "files": [
+            "src/main/java/com/vncode/app/features/fbo/FboPurchaseService.java",
+            "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+            "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java"
+          ]
+        },
+        "Project memory": {
+          "count": 3,
+          "files": [
+            "docs/PROJECT_MEMORY.md",
+            "docs/memory/CURRENT.md",
+            "docs/memory/README.md"
+          ]
+        },
+        "Purchase shortage consent, stock policy, mapping and signing resume": {
+          "count": 9,
+          "files": [
+            "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPurchaseAvailabilityPolicyTest.java",
+            "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+            "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+            "src/test/java/com/vncode/app/features/kiz/CatalogKeyPendingIdentityTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPendingIdentityTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPrintPurchaseSessionTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPurchasePermitEvidenceTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizStockReplenisherTest.java"
+          ]
+        },
+        "Schema 6 to 7 downgrade fence": {
+          "count": 1,
+          "files": [
+            "src/main/java/com/vncode/app/config/Database.java"
+          ]
+        },
+        "Startup recovery and UI inspection": {
+          "count": 2,
+          "files": [
+            "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+            "src/test/java/com/vncode/app/ui/workspace/HomeControllerStartupRecoveryTest.java"
+          ]
+        }
+      }
+    },
+    "currentGitPendingFromHEAD": {
+      "files": 380,
+      "groups": {
+        "ECC instructions and validators": {
+          "count": 26,
+          "files": [
+            "AGENTS.md",
+            ".agents/skills/vncode-ecc-review/SKILL.md",
+            ".agents/skills/vncode-ecc-security/SKILL.md",
+            ".agents/skills/vncode-ecc-tdd-verification/SKILL.md",
+            "docs/engineering/ecc/LICENSE.upstream.txt",
+            "docs/engineering/ecc/README.md",
+            "docs/engineering/ecc/integration-manifest.json",
+            "docs/engineering/ecc/review.md",
+            "docs/engineering/ecc/security.md",
+            "docs/engineering/ecc/verification.md",
+            "docs/validation/ecc-codex-web-20261115/REPORT.md",
+            "docs/validation/ecc-codex-web-20261115/behavior-review.md",
+            "docs/validation/ecc-codex-web-20261115/current-launcher-receipt.json",
+            "docs/validation/ecc-codex-web-20261115/current-launcher-smoke.json",
+            "docs/validation/ecc-codex-web-20261115/file-inventory.json",
+            "docs/validation/ecc-codex-web-20261115/final-current-build-input-proof.json",
+            "docs/validation/ecc-codex-web-20261115/focused-result.json",
+            "docs/validation/ecc-codex-web-20261115/full-result.json",
+            "docs/validation/ecc-codex-web-20261115/receipt.json",
+            "docs/validation/ecc-codex-web-20261115/scope-preservation.json",
+            "docs/validation/ecc-codex-web-20261115/ui-review.md",
+            "docs/validation/ecc-codex-web-20261115/validator-independent-review.json",
+            "docs/validation/ecc-codex-web-20261115/znack-empty-after.png",
+            "docs/validation/ecc-codex-web-20261115/znack-empty-before.png",
+            "tools/validate-ecc-integration.mjs",
+            "tools/validate-ecc-integration.test.mjs"
+          ]
+        },
+        "First public VNCode and WBCode purchase research": {
+          "count": 73,
+          "files": [
+            "docs/research/kiz-purchase-20261116/REPORT.md",
+            "docs/research/kiz-purchase-20261116/current/CURRENT-AUDIT.md",
+            "docs/research/kiz-purchase-20261116/current/SOURCE-COMPARISON.json",
+            "docs/research/kiz-purchase-20261116/diagrams/vn-comparison-summary.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/vn-current-full.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/vn-signing-pause-resume.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/wbcode-full.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/wbcode-signing.mmd",
+            "docs/research/kiz-purchase-20261116/diagrams/wbcode-summary.mmd",
+            "docs/research/kiz-purchase-20261116/latest-public/VERSION-RECEIPT.json",
+            "docs/research/kiz-purchase-20261116/latest-public/purchase-source-proof.json",
+            "docs/research/kiz-purchase-20261116/preservation.json",
+            "docs/research/kiz-purchase-20261116/validation.json",
+            "docs/research/kiz-purchase-20261116/verification/README.md",
+            "docs/research/kiz-purchase-20261116/verification/RESULT.json",
+            "docs/research/kiz-purchase-20261116/verification/command.json",
+            "docs/research/kiz-purchase-20261116/verification/input-proof.json",
+            "docs/research/kiz-purchase-20261116/verification/run.log",
+            "docs/research/kiz-purchase-20261116/versions.json",
+            "docs/research/kiz-purchase-20261116/vn130/FINAL-RECEIPT.json",
+            "docs/research/kiz-purchase-20261116/vn130/REPORT.md",
+            "docs/research/kiz-purchase-20261116/vn130/STATIC-CHECKS.json",
+            "docs/research/kiz-purchase-20261116/vn130/THREE-WAY-FILE-COMPARISON.json",
+            "docs/research/kiz-purchase-20261116/vn130/VERSION-RECEIPT.json",
+            "docs/research/kiz-purchase-20261116/vn130/bancapnhat-version-api-checks.json",
+            "docs/research/kiz-purchase-20261116/vn130/linked-repo-README.md",
+            "docs/research/kiz-purchase-20261116/vn130/purchase-v130-vs-public-latest.mmd",
+            "docs/research/kiz-purchase-20261116/vn130/purchase-v130.mmd",
+            "docs/research/kiz-purchase-20261116/vn130/remote-tags.txt",
+            "docs/research/kiz-purchase-20261116/wbcode/REPORT.md",
+            "docs/research/kiz-purchase-20261116/wbcode/cfr-provenance.json",
+            "docs/research/kiz-purchase-20261116/wbcode/download-verification.json",
+            "docs/research/kiz-purchase-20261116/wbcode/extraction-provenance.json",
+            "docs/research/kiz-purchase-20261116/wbcode/extractor-provenance.json",
+            "docs/research/kiz-purchase-20261116/wbcode/javap/provenance.json",
+            "docs/research/kiz-purchase-20261116/wbcode/observations.json",
+            "docs/research/kiz-purchase-20261116/wbcode/report-integrity.json",
+            "docs/research/kiz-purchase-20261116/wbcode/ui-signing/REPORT.md",
+            "docs/research/kiz-purchase-20261116/wbcode/ui-signing/evidence-inputs.json",
+            "docs/research/kiz-purchase-20261116/wbcode/ui-signing/home-resume-all-javap.txt",
+            "docs/validation/kiz-first-public-20261116/FINAL-RECEIPT.json",
+            "docs/validation/kiz-first-public-20261116/REPORT.md",
+            "docs/validation/kiz-first-public-20261116/baseline-backup.json",
+            "docs/validation/kiz-first-public-20261116/circulation-fixtures.json",
+            "docs/validation/kiz-first-public-20261116/circulation-implementation.md",
+            "docs/validation/kiz-first-public-20261116/circulation-result.json",
+            "docs/validation/kiz-first-public-20261116/combined-result.json",
+            "docs/validation/kiz-first-public-20261116/download-result.json",
+            "docs/validation/kiz-first-public-20261116/fbs-resume-implementation.md",
+            "docs/validation/kiz-first-public-20261116/fbs-resume-result.json",
+            "docs/validation/kiz-first-public-20261116/handoff-integrity.json",
+            "docs/validation/kiz-first-public-20261116/independent-artifact-review.json",
+            "docs/validation/kiz-first-public-20261116/independent-review.json",
+            "docs/validation/kiz-first-public-20261116/independent-review.md",
+            "docs/validation/kiz-first-public-20261116/jar-integrity.json",
+            "docs/validation/kiz-first-public-20261116/launcher-result.json",
+            "docs/validation/kiz-first-public-20261116/original/REPORT.md",
+            "docs/validation/kiz-first-public-20261116/original/first-release-build-info.json",
+            "docs/validation/kiz-first-public-20261116/original/latest-public-release.json",
+            "docs/validation/kiz-first-public-20261116/original/purchase-source-comparison.json",
+            "docs/validation/kiz-first-public-20261116/original/release-provenance.json",
+            "docs/validation/kiz-first-public-20261116/original/suz-issuance-contract.json",
+            "docs/validation/kiz-first-public-20261116/pause-result.json",
+            "docs/validation/kiz-first-public-20261116/red-evidence-index.json",
+            "docs/validation/kiz-first-public-20261116/shared-implementation.md",
+            "docs/validation/kiz-first-public-20261116/shared-source-sha256.json",
+            "docs/validation/kiz-first-public-20261116/source-delta.json",
+            "docs/validation/kiz-first-public-20261116/source-freeze.json",
+            "docs/validation/kiz-first-public-20261116/summary-implementation.md",
+            "docs/validation/kiz-first-public-20261116/summary-result.json",
+            "docs/validation/kiz-first-public-20261116/unknown-download-implementation.md",
+            "docs/validation/kiz-first-public-20261116/unknown-download-result.json",
+            "docs/validation/kiz-first-public-20261116/verification-command.json"
+          ]
+        },
+        "KIZ purchase, protocol, circulation and signing engine": {
+          "count": 66,
+          "files": [
+            "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackModels.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+            "src/main/java/com/vncode/app/integration/znack/signature/CryptoProErrorCode.java",
+            "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+            "src/main/java/com/vncode/app/integration/znack/signature/ZnackSignatureProvider.java",
+            "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackCertificateSettingsRepositoryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackErrorMessagesTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionSubmissionOutcomeTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackKizPurchaseReadbackTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackLicenseBoundaryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackSettingsAreaRepositoryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackSigningRecoveryTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackSigningSessionTest.java",
+            "src/main/java/com/vncode/app/integration/znack/SuzRequestPacing.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackProductGroup.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseContext.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseMethod.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePermitResolver.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreferences.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreflight.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseProtocolContext.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseSchema.java",
+            "src/main/java/com/vncode/app/integration/znack/ZnackSigningPauseStore.java",
+            "src/main/java/com/vncode/app/integration/znack/signature/CryptoProKeyPresence.java",
+            "src/test/java/com/vncode/app/integration/znack/OwnerBBatchEngineTest.java",
+            "src/test/java/com/vncode/app/integration/znack/OwnerBCoordinatorBatchStateTest.java",
+            "src/test/java/com/vncode/app/integration/znack/OwnerBPurchaseQueueTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326AuthIsolationRegressionTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326AuthSessionTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326CodeDownloadTargetTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326DownloadAvailabilityTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326IntroductionMethodTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326OrderMigrationTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326PermitResolverTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326ProtocolApiRoutingTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326PurchasePersistenceTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326SettingsPolicyTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326SharedOrderDownloadTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326SigningAdmissionTest.java",
+            "src/test/java/com/vncode/app/integration/znack/Wb1326SuzPacingTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackDownloadRecoveryMessagesTest.java",
+            "src/test/java/com/vncode/app/integration/znack/ZnackNormalDownloadIdentityTest.java",
+            "src/test/java/com/vncode/app/integration/znack/signature/Wb1326KeyPresenceTest.java",
+            "src/test/java/com/vncode/app/ui/znack/Wb1326PurchasePreferencesUiTest.java"
+          ]
+        },
+        "Localized purchase and key-wait messages": {
+          "count": 4,
+          "files": [
+            "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+            "src/main/resources/com/vncode/app/i18n/messages_zh.properties"
+          ]
+        },
+        "Other shared safeguards or documentation": {
+          "count": 5,
+          "files": [
+            "src/main/java/com/vncode/app/features/fbo/FboPurchaseService.java",
+            "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+            "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+            "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java",
+            "src/test/java/com/vncode/app/ui/workspace/Wb1326StartupAdmissionTest.java"
+          ]
+        },
+        "Ozon paid-code acceptance, replacement and combined PDF": {
+          "count": 30,
+          "files": [
+            "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizReplacement.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizService.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceStockReplenishment.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJobRepository.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonExemplarService.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonStockReplenishment.java",
+            "docs/validation/ozon-znack-orders-20261116/FINAL-RECEIPT.json",
+            "docs/validation/ozon-znack-orders-20261116/REPORT.md",
+            "docs/validation/ozon-znack-orders-20261116/backup-receipt.json",
+            "docs/validation/ozon-znack-orders-20261116/combined-result.json",
+            "docs/validation/ozon-znack-orders-20261116/handoff-integrity.json",
+            "docs/validation/ozon-znack-orders-20261116/independent-artifact-review.json",
+            "docs/validation/ozon-znack-orders-20261116/independent-result.json",
+            "docs/validation/ozon-znack-orders-20261116/independent-review.md",
+            "docs/validation/ozon-znack-orders-20261116/jar-integrity.json",
+            "docs/validation/ozon-znack-orders-20261116/launcher-result.json",
+            "docs/validation/ozon-znack-orders-20261116/preservation.json",
+            "docs/validation/ozon-znack-orders-20261116/preservation.md",
+            "docs/validation/ozon-znack-orders-20261116/purchase-implementation.md",
+            "docs/validation/ozon-znack-orders-20261116/purchase-source-sha256.json",
+            "docs/validation/ozon-znack-orders-20261116/registration-implementation.md",
+            "docs/validation/ozon-znack-orders-20261116/registration-result.json",
+            "docs/validation/ozon-znack-orders-20261116/verification-command.json",
+            "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizAssignment.java",
+            "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizStock.java",
+            "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedKizReplacementTest.java",
+            "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedPrintAssignmentTest.java",
+            "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedStockPolicyTest.java",
+            "src/test/java/com/vncode/app/integration/ozon/OzonRejectedPurchasedDemandTest.java"
+          ]
+        },
+        "Ozon registration entry and WB-style FBS layout": {
+          "count": 106,
+          "files": [
+            "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+            "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+            "src/test/java/com/vncode/app/ui/ozon/OzonDashboardControllerTest.java",
+            "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java",
+            "docs/validation/ozon-fbs-wb-layout-20261116/FINAL-RECEIPT-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/FINAL-RECEIPT.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/REPORT.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/absolute-geometry-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/after-capture-summary.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/after-capture.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/after-image-index.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/baseline-backup.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/before-capture-preservation.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/before-capture-summary.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/before-capture.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/combined-result-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/combined-result.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/final-capture-summary.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/final-capture.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/final-image-index.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/final-visual-check.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/focused-ui-result-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/focused-ui-result.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/handoff-integrity.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-sort-popup-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-sort-popup-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab0-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab0-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab1-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab1-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab2-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab2-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab3-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab3-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab4-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/ozon-tab4-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/packing-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/final/znack-registration-ozon-final-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-before-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-before-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-sort-popup-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-sort-popup-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab0-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab0-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab1-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab1-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab2-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab2-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab3-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab3-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab4-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/ozon-tab4-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-before-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/packing-before-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-dark-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-light-1200x720.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-after-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-before-dark-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/images/znack-registration-ozon-before-light-1600x1000.png",
+            "docs/validation/ozon-fbs-wb-layout-20261116/implementation-final.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/implementation-notes.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-artifact-review-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-artifact-review.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-review-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-review-final.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-review.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-review.md",
+            "docs/validation/ozon-fbs-wb-layout-20261116/independent-source-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/jar-integrity-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/jar-integrity.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/launcher-result-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/launcher-result.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/popup-diagnostic.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/preservation-contract.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/previous-evidence-preservation-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/same-jar-table-geometry-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/selector-review.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/source-freeze-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/source-freeze.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/test-selection-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/test-selection.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/thumbnail-geometry-final.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/thumbnail-geometry-red.json",
+            "docs/validation/ozon-fbs-wb-layout-20261116/vertical-geometry-fix.md",
+            "src/test/java/com/vncode/app/ui/ozon/OzonRegistrationEntryUiTest.java",
+            "src/test/java/com/vncode/app/ui/ozon/OzonWbPackingParityTest.java",
+            "src/test/java/com/vncode/app/ui/workspace/OzonRegistrationNavigationTest.java"
+          ]
+        },
+        "Project memory": {
+          "count": 3,
+          "files": [
+            "docs/PROJECT_MEMORY.md",
+            "docs/memory/CURRENT.md",
+            "docs/memory/README.md"
+          ]
+        },
+        "Purchase shortage consent, stock policy, mapping and signing resume": {
+          "count": 18,
+          "files": [
+            "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+            "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+            "src/main/java/com/vncode/app/features/kiz/KizPurchasePendingException.java",
+            "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+            "src/main/java/com/vncode/app/features/kizmapping/KizMappingRepository.java",
+            "src/main/java/com/vncode/app/ui/supply/SupplyDetailController.java",
+            "src/test/java/com/vncode/app/features/kiz/CatalogKeyPendingIdentityTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPendingIdentityTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPrintPurchaseSessionTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPurchasePermitEvidenceTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizStockReplenisherTest.java",
+            "src/main/java/com/vncode/app/features/kiz/KizPurchaseAvailability.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java",
+            "src/test/java/com/vncode/app/features/kiz/KizPurchaseAvailabilityPolicyTest.java",
+            "src/test/java/com/vncode/app/features/kiz/Wb1326PurchaseIdentityGatewayTest.java",
+            "src/test/java/com/vncode/app/features/kiz/Wb1326PurchaseProducerBatchTest.java",
+            "src/test/java/com/vncode/app/integration/znack/KizSigningSummaryRecoveryTest.java",
+            "src/test/java/com/vncode/app/ui/kizmapping/FbsKizSigningResumeUiTest.java"
+          ]
+        },
+        "Registration and shop navigation preservation": {
+          "count": 3,
+          "files": [
+            "src/main/java/com/vncode/app/ui/shop/ShopSidebarController.java",
+            "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+            "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml"
+          ]
+        },
+        "Schema 6 to 7 downgrade fence": {
+          "count": 1,
+          "files": [
+            "src/main/java/com/vncode/app/config/Database.java"
+          ]
+        },
+        "Startup recovery and UI inspection": {
+          "count": 3,
+          "files": [
+            "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+            "src/test/java/com/vncode/app/ui/workspace/HomeControllerStartupRecoveryTest.java",
+            "tools/UiLayoutProbe.java"
+          ]
+        },
+        "WBCode 1.3.26 replacement evidence": {
+          "count": 42,
+          "files": [
+            "docs/validation/wb1326-purchase-replacement-20261117/FINAL-RECEIPT.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/PARITY-CHECKLIST.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/PLAN.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/README.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/REPORT.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/actual-launcher-workspace.png",
+            "docs/validation/wb1326-purchase-replacement-20261117/affected-result.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/artifact-launcher-result.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/baseline-backup.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/engine-freeze.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/engine.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/exhausted-freeze-final.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/exhausted-freeze.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/legacy-engine-fixtures.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/legacy-readback-freeze.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/message-freeze.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/persistence-freeze.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/persistence-tests.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/protocol-freeze.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/protocol.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/scale-1000.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/signing-recovery-fixtures.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/signing-tests.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/signing.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/theme-isolation.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/theme-isolation.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/components/ui-fixture-adaptation.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/ecc-validator-result.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/entrypoints-baseline-audit.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/entrypoints.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/final-build-result.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/initial-broad-result.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/jar-integrity.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/old-binary-schema-proof.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/parity-review.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/parity-review.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/production-parity.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/purchase-flow.mmd",
+            "docs/validation/wb1326-purchase-replacement-20261117/source-preservation-review.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/source-preservation-review.md",
+            "docs/validation/wb1326-purchase-replacement-20261117/test-modernization-review.json",
+            "docs/validation/wb1326-purchase-replacement-20261117/test-modernization-review.md"
+          ]
+        }
+      }
+    }
+  },
+  "scope": "Full current source including ALL prior working changes; before WB1326 KIZ replacement.",
+  "note": "Prior dirty work is preserved as literal source outside approved replacement files. Replaced old purchase internals and obsolete policy assertions are intentional semantic changes. Final memory/report updates may change documentation counts."
+}

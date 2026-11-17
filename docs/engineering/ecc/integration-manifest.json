@@ -1,0 +1,225 @@
+{
+  "schemaVersion": 1,
+  "upstream": {
+    "repository": "https://github.com/affaan-m/ECC",
+    "commit": "d2ef2680594f9a17526a6e1a2e18b3d242c5d17b",
+    "license": "MIT",
+    "licenseFile": "docs/engineering/ecc/LICENSE.upstream.txt",
+    "sources": [
+      {
+        "path": "agents/code-reviewer.md",
+        "sha256": "9dd23be23d65f18126e10f7680fc1eb2576ec54a427d076ff2f870bd0bafd5d2"
+      },
+      {
+        "path": "skills/change-impact/SKILL.md",
+        "sha256": "b8d8a11417af8b84e93983a8eb682e3b9a16d04f926778eb635c96e90019bf18"
+      },
+      {
+        "path": "skills/module-regression/SKILL.md",
+        "sha256": "5c3db104f8e4aec868d010fa9354ec64b4c138557a59d13d7355fc9eacdcc846"
+      },
+      {
+        "path": "skills/security-review/SKILL.md",
+        "sha256": "b9eb6416eebc8dda046674f0a2dbb3be88aff526d182b60a0f55998d3d6d0d8d"
+      },
+      {
+        "path": "skills/mcp-dependency-review/SKILL.md",
+        "sha256": "766536baa981710a85c8f761675f6a57f58600fff42b23ccf6171606180f4c12"
+      },
+      {
+        "path": "skills/tdd-workflow/SKILL.md",
+        "sha256": "b6a8dd3e5215641cd9c33a46eae1d2b87508a07bc451e2c2fe25591f33a6b519"
+      },
+      {
+        "path": "skills/verification-loop/SKILL.md",
+        "sha256": "9ee288d426660b0c785f534a003a4960fb4d8083a21302d8a4fd9b035b2edbb1"
+      },
+      {
+        "path": "skills/agent-introspection-debugging/SKILL.md",
+        "sha256": "0cdbfe3c822ff50d21df8cd0e20c72407a6f5658089edc0e96e79a03927cb956"
+      },
+      {
+        "path": "skills/frontend-design-direction/SKILL.md",
+        "sha256": "71a40f7bc4a28da01b54527fe5590f6055c93adc630e6ceee8c892b35c980893"
+      },
+      {
+        "path": "skills/unified-memory/SKILL.md",
+        "sha256": "c42e96155783a44a50f13ab63e9d7f33c9d03b7a1f30777ef434401469c1630a"
+      },
+      {
+        "path": "LICENSE",
+        "sha256": "326146379f01bb137c0a5d3c54770c1aa31076705c8b88a7f6b26a460f6221b2"
+      }
+    ]
+  },
+  "skills": [
+    {
+      "name": "vncode-ecc-review",
+      "path": ".agents/skills/vncode-ecc-review/SKILL.md"
+    },
+    {
+      "name": "vncode-ecc-security",
+      "path": ".agents/skills/vncode-ecc-security/SKILL.md"
+    },
+    {
+      "name": "vncode-ecc-tdd-verification",
+      "path": ".agents/skills/vncode-ecc-tdd-verification/SKILL.md"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "AGENTS.md",
+      "sources": [
+        "agents/code-reviewer.md",
+        "skills/verification-loop/SKILL.md"
+      ],
+      "adaptations": [
+        "Append scoped routing only; preserve all existing VNCode rules.",
+        "Direct skill reading is an explicit fallback, not proof of native host discovery."
+      ]
+    },
+    {
+      "path": ".agents/skills/vncode-ecc-review/SKILL.md",
+      "sources": [
+        "agents/code-reviewer.md",
+        "skills/change-impact/SKILL.md",
+        "skills/module-regression/SKILL.md",
+        "skills/agent-introspection-debugging/SKILL.md"
+      ],
+      "adaptations": [
+        "Thin namespaced skill with name/description metadata only; no runtime registration.",
+        "Use repository commands and existing project authority; do not execute upstream helpers or add dependencies."
+      ]
+    },
+    {
+      "path": ".agents/skills/vncode-ecc-security/SKILL.md",
+      "sources": [
+        "skills/security-review/SKILL.md",
+        "skills/mcp-dependency-review/SKILL.md"
+      ],
+      "adaptations": [
+        "Thin namespaced skill with name/description metadata only; no runtime registration.",
+        "Use repository commands and existing project authority; do not execute upstream helpers or add dependencies."
+      ]
+    },
+    {
+      "path": ".agents/skills/vncode-ecc-tdd-verification/SKILL.md",
+      "sources": [
+        "skills/tdd-workflow/SKILL.md",
+        "skills/verification-loop/SKILL.md",
+        "skills/frontend-design-direction/SKILL.md",
+        "skills/module-regression/SKILL.md"
+      ],
+      "adaptations": [
+        "Thin namespaced skill with name/description metadata only; no runtime registration.",
+        "Use repository commands and existing project authority; do not execute upstream helpers or add dependencies."
+      ]
+    },
+    {
+      "path": "docs/engineering/ecc/README.md",
+      "sources": [
+        "agents/code-reviewer.md",
+        "skills/change-impact/SKILL.md",
+        "skills/module-regression/SKILL.md",
+        "skills/security-review/SKILL.md",
+        "skills/mcp-dependency-review/SKILL.md",
+        "skills/tdd-workflow/SKILL.md",
+        "skills/verification-loop/SKILL.md",
+        "skills/agent-introspection-debugging/SKILL.md",
+        "skills/frontend-design-direction/SKILL.md",
+        "skills/unified-memory/SKILL.md",
+        "LICENSE"
+      ],
+      "adaptations": [
+        "Document compatibility, pinned provenance, excluded runtime components and observed host limits.",
+        "Route debugging, UI and memory through existing VNCode systems; preserve project configuration."
+      ]
+    },
+    {
+      "path": "docs/engineering/ecc/review.md",
+      "sources": [
+        "agents/code-reviewer.md",
+        "skills/change-impact/SKILL.md",
+        "skills/module-regression/SKILL.md",
+        "skills/agent-introspection-debugging/SKILL.md",
+        "skills/frontend-design-direction/SKILL.md",
+        "skills/unified-memory/SKILL.md"
+      ],
+      "adaptations": [
+        "Evidence-based impact/caller review and sanitized handoff; preserve Code Doctor, current UI skills and Git memory.",
+        "Do not impose mechanical line-count, architecture or all-change test mandates."
+      ]
+    },
+    {
+      "path": "docs/engineering/ecc/security.md",
+      "sources": [
+        "skills/security-review/SKILL.md",
+        "skills/mcp-dependency-review/SKILL.md"
+      ],
+      "adaptations": [
+        "Apply selected canonical guidance to Java/SQLite/CryptoPro/DPAPI and the actual Cloudflare portal.",
+        "Retain existing security gates; omit permissive CSP examples from stale Codex mirrors and automatic scanner installation."
+      ]
+    },
+    {
+      "path": "docs/engineering/ecc/verification.md",
+      "sources": [
+        "skills/tdd-workflow/SKILL.md",
+        "skills/verification-loop/SKILL.md",
+        "skills/frontend-design-direction/SKILL.md",
+        "skills/module-regression/SKILL.md"
+      ],
+      "adaptations": [
+        "Meaningful RED/GREEN and actual Maven/JUnit/Node runner selection; no global coverage threshold.",
+        "Distinguish observed mock/Linux/Windows/real API evidence; no purchases, signing or release as default verification."
+      ]
+    },
+    {
+      "path": "docs/engineering/ecc/LICENSE.upstream.txt",
+      "sources": [
+        "LICENSE"
+      ],
+      "adaptations": [
+        "Retain upstream MIT notice verbatim."
+      ]
+    },
+    {
+      "path": "tools/validate-ecc-integration.mjs",
+      "sources": [],
+      "adaptations": [
+        "Original dependency-free VNCode integration validator/tests; upstream scripts are not imported or executed.",
+        "Static checks and negative controls do not certify runtime support, security or app business completion."
+      ]
+    },
+    {
+      "path": "tools/validate-ecc-integration.test.mjs",
+      "sources": [],
+      "adaptations": [
+        "Original dependency-free VNCode integration validator/tests; upstream scripts are not imported or executed.",
+        "Static checks and negative controls do not certify runtime support, security or app business completion."
+      ]
+    }
+  ],
+  "excluded": [
+    {
+      "component": "Claude hooks, slash commands, agent tool/model registration",
+      "reason": "Claude-specific runtime is not registered by Markdown or supported by this Web integration."
+    },
+    {
+      "component": "Codex CLI/App plugin/config/native hooks and global Git hooks",
+      "reason": "External host/runtime configuration is outside this selected Web package; Web support is not inferred from CLI docs."
+    },
+    {
+      "component": "Memory Vault CLI/MCP and continuous-learning observers",
+      "reason": "Keep existing Git memory; do not install runtimes, collect transcripts or create a competing store."
+    },
+    {
+      "component": "AgentShield, auto-fix installers, external UI services and model review CLIs",
+      "reason": "No automatic dependency installation, external execution or private source/screenshot upload."
+    },
+    {
+      "component": "Blanket 80% coverage, mandatory stage commits and Spring/React recipes",
+      "reason": "Use meaningful risk-based JUnit/Node checks and preserve JavaFX architecture, existing project rules and approved UI."
+    }
+  ]
+}

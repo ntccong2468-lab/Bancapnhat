@@ -1,0 +1,203 @@
+{
+  "status": "DESIGN_ONLY",
+  "sourceEdits": false,
+  "referenceJarSha256": "d10efde1c0ef6e6f8cf3e850e1dd7615966b0aa1e83082181f6c8dd26380f1b6",
+  "reference": "WBCode1.3.26observedbinarybehavior",
+  "items": [
+    {
+      "id": "PUR-01",
+      "topic": "new-intent",
+      "contract": "Allnormalnewpurchase settings/queue forcecirculation; legacyrawsnapshotcapturedbefore normalization",
+      "priority": "MUST",
+      "owners": "ZnackModels/Repository/PurchaseContext",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-02",
+      "topic": "preflight",
+      "contract": "Localpermitbeforepurchase; noglobalCatalogrevisiongateinCoordinator ORFBSrequire callback; purevariantchecksremain",
+      "priority": "MUST",
+      "owners": "Coordinator/KizPurchaseMappingProof/localpolicy",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-03",
+      "topic": "entrypoints",
+      "contract": "13paths/18facademethods retain onecentralengine; nohiddenolddefault",
+      "priority": "MUST",
+      "owners": "Coordinator/entrypointaudit",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-04",
+      "topic": "batch",
+      "contract": "Durablehomogeneousidentity+group+method batches max10distinctGTIN, perGTINlocalIDs",
+      "priority": "MUST",
+      "owners": "BatchStore/Repository/OrderService",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-05",
+      "topic": "groups",
+      "contract": "LPtemplate10 andfootwear6401–6405→shoestemplate1, persistedgroup andAPIpg",
+      "priority": "MUST",
+      "owners": "ProductGroup/OrderService/API",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-06",
+      "topic": "method",
+      "contract": "PRODUCTION andCOMMISSION context/payload/doc types; old defaultPRODUCTION; visiblepurchasepreference",
+      "priority": "MUST",
+      "owners": "PurchaseMethod/Settings/Intro/UI",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-07",
+      "topic": "queue",
+      "contract": "CREATE4/RETRIEVE2/INTRODUCE2 shopworkers, sameGTINserialized acrosstages",
+      "priority": "MUST",
+      "owners": "Queue/Coordinator",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-08",
+      "topic": "send",
+      "contract": "Canonicalpayload/hash+attemptstate durable beforeactualPOST, lease/generationchecks atmutation",
+      "priority": "MUST",
+      "owners": "BatchStore/OrderService/SigningSession",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-09",
+      "topic": "reconcile",
+      "contract": "Ambiguouscreate exactsameaccount+creationwindow+entireGTINquantityset, uniqueconfirmedmatchonly",
+      "priority": "MUST",
+      "owners": "OrderService/BatchStore",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-10",
+      "topic": "quota",
+      "contract": "3350 durableaccountcapacityhold30s, retrievalcontinues, nonewrequestapproval/rebuy",
+      "priority": "MUST",
+      "owners": "BatchStore/Coordinator",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-11",
+      "topic": "credential-recovery",
+      "contract": "Onlydefinite no-created evidence; bounded3attempts0/5/15min, approvedremainingdemand; unknownno-rebuy",
+      "priority": "MUST",
+      "owners": "BatchStore/Auth/OrderService",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-12",
+      "topic": "download",
+      "contract": "Remainingqty/sharedstatus/recoverblocks; preserveVNwholepackage/WAL/fullCISidentity/cardinality/consumed",
+      "priority": "MUST",
+      "owners": "CodeService/OrderService",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-13",
+      "topic": "readiness",
+      "contract": "APPLIEDstatusExblank/EMPTY orINTRODUCED, cardflags,EMITTEDwait; retainstrictownertruth",
+      "priority": "MUST",
+      "owners": "Readiness/CisReadback",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-14",
+      "topic": "introduction",
+      "contract": "Registryafterdownload forPRODUCTION, properCOMMISSIONdoc, saveID/reconcileunknown/no-secondsubmit",
+      "priority": "MUST",
+      "owners": "Introduction/API/Repository",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-15",
+      "topic": "completion",
+      "contract": "OnlyactualperCISlegalconfirmationIN_CIRCULATION; noHTTP200/downloadfalsecomplete",
+      "priority": "MUST",
+      "owners": "Readiness/Introduction/Inventory",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-16",
+      "topic": "startup",
+      "contract": "GrantallverifiedWB/Ozonshopsunpaused/unblocked/unreconfiguring thenresume, scopedconsent",
+      "priority": "MUST",
+      "owners": "Home/SigningSession",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-17",
+      "topic": "signing",
+      "contract": "Durablepausecause+generation+explicitresume+keypresence; retain sharedfingerprintqueue/challengeonlyauth",
+      "priority": "MUST",
+      "owners": "SigningSession/Auth",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-18",
+      "topic": "legacy",
+      "contract": "Originalsettings/requestkeys/orderIDs/CISstates/docs survive; no automaticneworder/doc atstartup",
+      "priority": "MUST",
+      "owners": "Schema/Repository/BatchStore",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-19",
+      "topic": "external-ID",
+      "contract": "ResolveUNIQUEshop/externalconstraint; retainrealIDsfor3Ozonclasses4SQLsites orcorrectalladapters",
+      "priority": "MUST",
+      "owners": "Schema/BatchStore/Repository",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-20",
+      "topic": "Ozon-preservation",
+      "contract": "Exactslotpaidacceptance/sourcepolicy/mapping/GTIN/PDF unchangedoutsidenecessaryadapter",
+      "priority": "MUST",
+      "owners": "Ozonpreservationreview",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    },
+    {
+      "id": "PUR-21",
+      "topic": "projection",
+      "contract": "StaticUI/readmodel APIs andoldpipelineSQL projectnewbatch stateatomically; injectedconstructorsrunthesamenewengine,nolegacy mutationfallback",
+      "priority": "MUST",
+      "owners": "Coordinator/BatchStore/Repository/Inventoryfacade",
+      "implementation": "PENDING",
+      "verification": "NOT_RUN"
+    }
+  ],
+  "transparentQualityAdaptations": [
+    "VNwholeCIS/GTIN/owner/legalproof kept",
+    "VNconsumingGETWAL retained",
+    "Ozonexactmarketplaceacceptance retained",
+    "legacyrawconsent/profilepreserved ratherthansilentnewsigning"
+  ]
+}

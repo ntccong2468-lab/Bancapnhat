@@ -1,0 +1,69 @@
+{
+  "status": "PASS",
+  "execution": "Native JavaFX under cached Xvfb, JDK25, offline Maven; isolated SQLite fixture; no marketplace writes/API/signing/license calls",
+  "sourceHashesStillMatch": true,
+  "suites": [
+    {
+      "name": "OzonWbPackingParityTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timeSeconds": 31.347
+    },
+    {
+      "name": "OzonFbsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timeSeconds": 19.775
+    },
+    {
+      "name": "OzonDashboardControllerTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timeSeconds": 0.011
+    }
+  ],
+  "total": {
+    "tests": 22,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "newTestSha256": "ad91c7814357089beb6bce6e6c2251b2d6a9567449eafe915f4fc8b3c5efa1a8",
+  "baselineRed": {
+    "tests": 9,
+    "failures": 7,
+    "errors": 0,
+    "skipped": 0
+  },
+  "renderedWidths": {
+    "viewport": "1200x720",
+    "tableWidth": 1158,
+    "WB": [
+      46,
+      228,
+      127,
+      594,
+      159
+    ],
+    "OzonBeforeCorrection": [
+      46,
+      160,
+      70,
+      300,
+      100
+    ],
+    "OzonFinal": [
+      46,
+      228,
+      127,
+      594,
+      159
+    ]
+  }
+}

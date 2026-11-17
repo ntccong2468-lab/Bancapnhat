@@ -1,0 +1,17 @@
+flowchart TD
+    A[WAITING_INTRODUCTION_READINESS\nWaiting for the user to select this shop before signing] --> B[Marker do SigningSession trong VN tạo\nkhông phải lỗi response SUZ POST order]
+    B --> C{Shop/lô được cấp ký và chưa bị pause?}
+    C -- Không --> D[Không gọi signer\nGiữ orderId, mã và stage hiện tại]
+    D --> E[Coordinator schedule dừng\nkhông có nextCheckAt; kho lưu thông vẫn 0]
+    E --> F[Chọn shop rõ ràng hoặc Tiếp tục đúng pipeline]
+    F --> G{Hồ sơ gốc tồn tại, signer đã test,\nquyền KIZ và danh tính còn hợp lệ?}
+    G -- Không --> H[Báo chính xác cấu hình gốc/khóa thiếu\nkhông mượn OMS/chứng thư hiện tại để đổi chủ]
+    G -- Có --> I[authorizePipelineResumption chỉ lô này]
+    I --> J[Ký lại rồi tiếp tục stage cũ\nkhông tạo mua mới]
+    J --> K{True API và tài liệu đã đủ bằng chứng lưu thông?}
+    K -- Chưa --> L[Chờ đối soát có lịch, giữ nguyên mã]
+    K -- Có --> M[IN_CIRCULATION / kho mua khả dụng]
+    C -- Có nhưng CryptoPro lỗi/cancel --> D
+    E -. Public FBS .-> U[Vòng chờ in cũ có thể còn bận\nđã có đường resume ở KIZ Mapping]
+    E -. Workspace chưa phát hành .-> V[PurchasePaused thoát vòng bận\nFBS WB/Ozon hiện Tiếp tục, ẩn Mua mới]
+    V --> F

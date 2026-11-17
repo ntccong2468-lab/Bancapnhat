@@ -1,0 +1,577 @@
+{
+  "WB": {
+    "thumbnail": {
+      "type": "StackPane",
+      "id": "",
+      "styleClasses": [
+        "image-placeholder"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 307.0,
+      "y": 238.0,
+      "width": 36.0,
+      "height": 48.0,
+      "minWidthProperty": 36.0,
+      "prefWidthProperty": 36.0,
+      "computedMinWidth": 36.0,
+      "computedPrefWidth": 36.0,
+      "minHeightProperty": 48.0,
+      "prefHeightProperty": 48.0,
+      "computedMinHeight": 48.0,
+      "computedPrefHeight": 48.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "alignment": "CENTER"
+    },
+    "cell": {
+      "type": "",
+      "id": "imageTC",
+      "styleClasses": [
+        "cell",
+        "indexed-cell",
+        "table-cell",
+        "table-column"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 297.0,
+      "y": 231.0,
+      "width": 127.0,
+      "height": 70.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": -1.0,
+      "computedMinWidth": 56.0,
+      "computedPrefWidth": 127.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": -1.0,
+      "computedMinHeight": 63.0,
+      "computedPrefHeight": 63.0,
+      "padding": [
+        7.0,
+        10.0,
+        7.0,
+        10.0
+      ],
+      "insets": [
+        7.0,
+        10.0,
+        8.0,
+        10.0
+      ],
+      "text": "",
+      "fontSize": 14.0,
+      "fontFamily": "Inter",
+      "fontStyle": "Regular"
+    },
+    "row": {
+      "type": "TableRow",
+      "id": "",
+      "styleClasses": [
+        "cell",
+        "indexed-cell",
+        "table-row-cell"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 23.0,
+      "y": 231.0,
+      "width": 1154.0,
+      "height": 70.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": -1.0,
+      "computedMinWidth": 0.0,
+      "computedPrefWidth": 1154.0,
+      "minHeightProperty": 70.0,
+      "prefHeightProperty": -1.0,
+      "computedMinHeight": 70.0,
+      "computedPrefHeight": 70.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "",
+      "fontSize": 14.0,
+      "fontFamily": "Inter",
+      "fontStyle": "Regular"
+    },
+    "relativeToCell": [
+      10.0,
+      7.0
+    ],
+    "relativeToRow": [
+      284.0,
+      7.0
+    ],
+    "ancestorChain": [
+      {
+        "type": "StackPane",
+        "id": "",
+        "styleClasses": [
+          "image-placeholder"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 307.0,
+        "y": 238.0,
+        "width": 36.0,
+        "height": 48.0,
+        "minWidthProperty": 36.0,
+        "prefWidthProperty": 36.0,
+        "computedMinWidth": 36.0,
+        "computedPrefWidth": 36.0,
+        "minHeightProperty": 48.0,
+        "prefHeightProperty": 48.0,
+        "computedMinHeight": 48.0,
+        "computedPrefHeight": 48.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "alignment": "CENTER"
+      },
+      {
+        "type": "",
+        "id": "imageTC",
+        "styleClasses": [
+          "cell",
+          "indexed-cell",
+          "table-cell",
+          "table-column"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 297.0,
+        "y": 231.0,
+        "width": 127.0,
+        "height": 70.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 56.0,
+        "computedPrefWidth": 127.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 63.0,
+        "computedPrefHeight": 63.0,
+        "padding": [
+          7.0,
+          10.0,
+          7.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          10.0,
+          8.0,
+          10.0
+        ],
+        "text": "",
+        "fontSize": 14.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      {
+        "type": "TableRow",
+        "id": "",
+        "styleClasses": [
+          "cell",
+          "indexed-cell",
+          "table-row-cell"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 23.0,
+        "y": 231.0,
+        "width": 1154.0,
+        "height": 70.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1154.0,
+        "minHeightProperty": 70.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 70.0,
+        "computedPrefHeight": 70.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "",
+        "fontSize": 14.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      }
+    ]
+  },
+  "Ozon": {
+    "thumbnail": {
+      "type": "StackPane",
+      "id": "",
+      "styleClasses": [
+        "image-placeholder"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 307.0,
+      "y": 238.0,
+      "width": 36.0,
+      "height": 48.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 36.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 36.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 48.0,
+      "computedMinHeight": 2.0,
+      "computedPrefHeight": 48.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "alignment": "CENTER"
+    },
+    "cell": {
+      "type": "",
+      "id": "newOrderImageTC",
+      "styleClasses": [
+        "cell",
+        "indexed-cell",
+        "table-cell",
+        "ozon-thumbnail-cell",
+        "table-column"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 297.0,
+      "y": 231.0,
+      "width": 127.0,
+      "height": 70.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": -1.0,
+      "computedMinWidth": 56.0,
+      "computedPrefWidth": 127.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": -1.0,
+      "computedMinHeight": 69.0,
+      "computedPrefHeight": 69.0,
+      "padding": [
+        7.0,
+        10.0,
+        7.0,
+        10.0
+      ],
+      "insets": [
+        7.0,
+        10.0,
+        8.0,
+        10.0
+      ],
+      "text": "",
+      "fontSize": 14.0,
+      "fontFamily": "Inter",
+      "fontStyle": "Regular"
+    },
+    "row": {
+      "type": "",
+      "id": "",
+      "styleClasses": [
+        "cell",
+        "indexed-cell",
+        "table-row-cell"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 23.0,
+      "y": 231.0,
+      "width": 1154.0,
+      "height": 70.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": -1.0,
+      "computedMinWidth": 0.0,
+      "computedPrefWidth": 1154.0,
+      "minHeightProperty": 70.0,
+      "prefHeightProperty": 70.0,
+      "computedMinHeight": 70.0,
+      "computedPrefHeight": 70.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "text": "",
+      "fontSize": 14.0,
+      "fontFamily": "Inter",
+      "fontStyle": "Regular"
+    },
+    "relativeToCell": [
+      10.0,
+      7.0
+    ],
+    "relativeToRow": [
+      284.0,
+      7.0
+    ],
+    "ancestorChain": [
+      {
+        "type": "StackPane",
+        "id": "",
+        "styleClasses": [
+          "image-placeholder"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 307.0,
+        "y": 238.0,
+        "width": 36.0,
+        "height": 48.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": 36.0,
+        "computedMinWidth": 2.0,
+        "computedPrefWidth": 36.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": 48.0,
+        "computedMinHeight": 2.0,
+        "computedPrefHeight": 48.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "alignment": "CENTER"
+      },
+      {
+        "type": "StackPane",
+        "id": "",
+        "styleClasses": [],
+        "visible": true,
+        "managed": true,
+        "x": 307.0,
+        "y": 238.0,
+        "width": 36.0,
+        "height": 48.0,
+        "minWidthProperty": 36.0,
+        "prefWidthProperty": 36.0,
+        "computedMinWidth": 36.0,
+        "computedPrefWidth": 36.0,
+        "minHeightProperty": 48.0,
+        "prefHeightProperty": 48.0,
+        "computedMinHeight": 48.0,
+        "computedPrefHeight": 48.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      {
+        "type": "StackPane",
+        "id": "",
+        "styleClasses": [],
+        "visible": true,
+        "managed": true,
+        "x": 307.0,
+        "y": 235.0,
+        "width": 36.0,
+        "height": 54.0,
+        "minWidthProperty": 36.0,
+        "prefWidthProperty": 36.0,
+        "computedMinWidth": 36.0,
+        "computedPrefWidth": 36.0,
+        "minHeightProperty": 54.0,
+        "prefHeightProperty": 54.0,
+        "computedMinHeight": 54.0,
+        "computedPrefHeight": 54.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [],
+        "visible": true,
+        "managed": true,
+        "x": 307.0,
+        "y": 235.0,
+        "width": 107.0,
+        "height": 54.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 36.0,
+        "computedPrefWidth": 36.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 54.0,
+        "computedPrefHeight": 54.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "spacing": 8.0,
+        "alignment": "TOP_LEFT"
+      },
+      {
+        "type": "",
+        "id": "newOrderImageTC",
+        "styleClasses": [
+          "cell",
+          "indexed-cell",
+          "table-cell",
+          "ozon-thumbnail-cell",
+          "table-column"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 297.0,
+        "y": 231.0,
+        "width": 127.0,
+        "height": 70.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 56.0,
+        "computedPrefWidth": 127.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 69.0,
+        "computedPrefHeight": 69.0,
+        "padding": [
+          7.0,
+          10.0,
+          7.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          10.0,
+          8.0,
+          10.0
+        ],
+        "text": "",
+        "fontSize": 14.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      {
+        "type": "",
+        "id": "",
+        "styleClasses": [
+          "cell",
+          "indexed-cell",
+          "table-row-cell"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 23.0,
+        "y": 231.0,
+        "width": 1154.0,
+        "height": 70.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1154.0,
+        "minHeightProperty": 70.0,
+        "prefHeightProperty": 70.0,
+        "computedMinHeight": 70.0,
+        "computedPrefHeight": 70.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "",
+        "fontSize": 14.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      }
+    ]
+  }
+}

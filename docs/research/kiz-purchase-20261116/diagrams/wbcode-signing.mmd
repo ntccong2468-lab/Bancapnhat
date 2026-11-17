@@ -1,0 +1,20 @@
+flowchart TD
+    A[Khởi động WBCode] --> B[Đọc cấu hình; autoIntroduction luôn true]
+    B --> C{WB/Ozon, chữ ký đã kiểm và chưa pause?}
+    C -->|Có| D[Cấp quyền shop; khôi phục pipeline đã lưu]
+    C -->|Chưa| E[Giữ tác vụ chờ hoặc pause]
+    F[Seller chọn cửa hàng rõ ràng] --> G[Xóa pause khi được phép; cấp quyền shop]
+    G --> D
+    H[Mua KIZ: chọn GTIN và số lượng] --> I[License và số lượng hợp lệ]
+    I --> J[Enqueue với idempotency key mới]
+    J --> K[Pipeline mua/đọc trạng thái/tải mã]
+    D --> K
+    K --> L[Cần ký đăng nhập hoặc tài liệu lưu thông]
+    L --> M{Đúng generation và có quyền ký?}
+    M -->|Chưa| E
+    M -->|Có| N[Kiểm USB token khi chạy nền; CryptoPro ký]
+    N -->|Key không kết nối| E
+    N -->|Lỗi CryptoPro khác| O[Block shop và lưu pause]
+    N -->|Ký được| P[Tiếp tục các bước API của coordinator]
+    P --> Q[UI hiển thị stage thực tế]
+    Q --> R[Đã tải mã / đang chờ / đã gửi / đã lưu thông]

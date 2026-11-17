@@ -355,7 +355,7 @@ public class ShopSidebarController {
         setAvailable(fboPackingButton, true);
         setAvailable(fboOrdersButton, true);
         setAvailable(kizMappingButton, true);
-        setAvailable(znackRegistrationButton, this.marketplace == Marketplace.WILDBERRIES);
+        setAvailable(znackRegistrationButton, this.marketplace == Marketplace.WILDBERRIES || this.marketplace == Marketplace.OZON);
         applyMarketplaceTexts();
     }
 

@@ -1,0 +1,88 @@
+{
+  "status": "INDEPENDENT_BOUNDED_FINAL_EVIDENCE_PASS",
+  "checkedAtUtc": "2026-11-17T14:28:08.489390+00:00",
+  "reviewerExecutedRuntimeTests": false,
+  "affectedScope": {
+    "suiteCount": 232,
+    "counts": {
+      "tests": 2296,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "currentRunSuites": 231,
+    "finalRunSuites": 4,
+    "overlapSuites": [
+      "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest",
+      "com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest",
+      "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest"
+    ],
+    "reportedCountsMatch": true,
+    "xmlOriginMismatch": [],
+    "singleFullSuitePass": false
+  },
+  "productionCoherence": {
+    "sourceInputs": 821,
+    "sameMaps": true,
+    "compiledEntries": 2119,
+    "compiledMapsMatch": true,
+    "finalLiveBuildFilesCompared": 1471,
+    "finalLiveBuildDrift": [],
+    "testFilesChangedBetweenRuns": [
+      "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+      "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+      "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java"
+    ],
+    "allChangedTestsRerun": true
+  },
+  "artifact": {
+    "jar": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+    "sha256": "f9d623f91e1dcf9e567c82ddc0067a722cc216530ee52b4fb9cb94c8a61926b9",
+    "bytes": 7921339,
+    "reportedHashMatches": true,
+    "badCrcMember": null,
+    "duplicateEntries": 0,
+    "unsafeEntries": [],
+    "classCount": 2077,
+    "compiledEntryMismatch": [],
+    "runtimeLibCount": 74,
+    "runtimeLibMismatch": [],
+    "generatedManifest": {
+      "mainClass": "com.vncode.app.Launcher",
+      "buildJdk": "25",
+      "classpathCount": 74,
+      "classpathMatchesExactLibs": true
+    },
+    "testOrHelperLeakReported": [],
+    "launcherReceipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/final-artifact/RESULT.json",
+    "launcherResult": "PASS",
+    "launcherSeconds": 6.184349299,
+    "realJarOrigins": {
+      "com.vncode.app.Launcher": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+      "com.vncode.app.MainApplication": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+      "com.vncode.app.config.Database": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+      "com.vncode.app.integration.znack.ZnackPurchaseBatchStore": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+      "com.vncode.app.integration.znack.ZnackPurchaseCoordinator": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+      "externalSyntheticLicenseFixture": "file:/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/test-classes/"
+    },
+    "networkBlockedAndSyntheticOnly": true,
+    "schema": {
+      "schemaVersion": 7,
+      "integrityCheck": [
+        [
+          "ok"
+        ]
+      ],
+      "foreignKeyErrors": [],
+      "shopCount": 0
+    },
+    "dataLockReleased": true
+  },
+  "limits": [
+    "Initial full broad run remains FAIL and is not relabeled pass.",
+    "Affected-scope union is latest per-suite verification on exactly identical production inputs and bytecode; it is not one complete all-Java-suite execution.",
+    "No Windows/CryptoPro hardware or actual paid/legal seller API acceptance.",
+    "No Latest publication or installer release performed."
+  ]
+}

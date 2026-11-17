@@ -7,6 +7,15 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {resolveReleaseVersion} from './release-version.mjs';
 const repo='ntccong2468-lab/Bancapnhat';
+/** Historical storage contract shared by native probes and publication validation. */
+export function databaseSchemaForVersion(version){
+ assert.match(version,/^\d+\.\d+\.\d+$/,'Release version must be MAJOR.MINOR.PATCH');
+ const parts=versionParts(`v${version}`);
+ if(!older(parts,[1,6,11]))return 7;
+ if(!older(parts,[1,4,19]))return 6;
+ if(!older(parts,[1,4,0]))return 5;
+ return 4;
+}
 export function requiredAssets(version){
  assert.match(version,/^\d+\.\d+\.\d+$/);
  return [`VN-code-${version}-Windows-x64.exe`,`VN-code-${version}-Windows-x64.msi`,`VN-code-${version}-Windows-x64.sha256`,`VN-code-${version}-Windows-x64.zip`,`VN-code-${version}-source.zip`,`VN-code-${version}-history.bundle`,`VN-code-${version}-verification.zip`,'build-info.json','release-notes.md','native-smoke.json','upgrade-baseline-smoke.json'];
@@ -61,7 +70,10 @@ async function verifyPublic(version,sourceCommit,directory){
  return {release,manifest};
 }
 async function main(){
- const [mode,directoryArg,sourceArg]=process.argv.slice(2),directory=path.resolve(directoryArg||'out'),{version}=await resolveReleaseVersion(),sourceCommit=sourceArg||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+ const [mode,directoryArg,sourceArg]=process.argv.slice(2);
+ // This read-only mode deliberately needs no repository, GitHub access or build output.
+ if(mode==='schema'){process.stdout.write(`${databaseSchemaForVersion(directoryArg)}\n`);return;}
+ const directory=path.resolve(directoryArg||'out'),{version}=await resolveReleaseVersion(),sourceCommit=sourceArg||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
  if(mode==='manifest'){await makeManifest(directory,version,sourceCommit);return;}
  if(mode==='previous'||mode==='previous-current'){
   const r=api('releases/latest');const same=r.tag_name===`v${version}`;assert.ok(older(versionParts(r.tag_name),versionParts(`v${version}`))||mode==='previous-current'&&same,'Current Latest must be older than candidate');const oldVersion=r.tag_name.slice(1),name=`VN-code-${oldVersion}-Windows-x64.exe`,a=r.assets.find(a=>a.name===name);assert.ok(a?.digest?.match(/^sha256:[a-f0-9]{64}$/));

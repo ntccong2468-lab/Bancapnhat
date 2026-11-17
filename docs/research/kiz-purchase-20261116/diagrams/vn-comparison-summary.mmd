@@ -1,0 +1,20 @@
+flowchart TD
+    A["Seller chọn GTIN và số lượng"] --> V{"Phiên bản VN Code"}
+    V -- "1.3.0" --> OLD["Kiểm cấu hình cũ; giữ tùy chọn tự lưu thông"]
+    V -- "1.6.10" --> GATE{"Catalog revision, giấy tờ, cấu hình và quyền KIZ đạt?"}
+    GATE -- "Không" --> STOP["Dừng trước POST; chưa tạo đơn mua"]
+    GATE -- "Có; lô mới luôn tự lưu thông" --> BUY
+    OLD --> BUY["Ký và gửi SUZ order; lưu orderId; poll và tải mã"]
+    BUY --> MODE{"Đã tải đủ mã: có tự lưu thông?"}
+    MODE -- "1.3.0 tắt" --> DL["COMPLETED: đã tải mã, chưa chứng minh lưu thông"]
+    MODE -- "1.3.0 bật hoặc 1.6.10" --> CHECK["Đọc True API: trạng thái CIS và cờ thẻ"]
+    CHECK -- "Chưa sẵn sàng" --> WAIT["Giữ lô cũ, chờ và đọc lại"]
+    WAIT --> CHECK
+    CHECK -- "Đã INTRODUCED đủ" --> DONE["Đã lưu thông theo readback"]
+    CHECK -- "APPLIED và thẻ hợp lệ" --> SIGN{"Chữ ký và giấy tờ sẵn sàng?"}
+    SIGN -- "Chưa được phép ký" --> PAUSE["Chờ đúng shop / Tiếp tục lô; không mua lại"]
+    PAUSE --> SIGN
+    SIGN -- "Có" --> DOC["Ký và gửi hồ sơ lưu thông; lưu documentId"]
+    DOC --> VERIFY["Đọc trạng thái tài liệu và từng mã"]
+    VERIFY -- "Còn xử lý" --> VERIFY
+    VERIFY -- "Đã xác nhận" --> DONE

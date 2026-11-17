@@ -28,6 +28,8 @@ class ZnackIntroductionSubmissionOutcomeTest {
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Fixture','fixture')");}
         repository=new ZnackRepository(new ShopContext(1,"Fixture"));
         repository.upsertProducts(List.of(new Product(GTIN,"Fixture","6201000000",null,null,null,null)));
+        repository.saveSettings(settings());
+        assertTrue(ZnackSigningSession.authorizeShopExplicitly(repository),"Positive synthetic signing fixture must grant the exact shop profile");
         order=repository.createDraft(GTIN,1);
         repository.insertCodes(order,GTIN,new DownloadedCodes(List.of("010460123456789021abcdefghijklm\u001d91ABCD\u001d92synthetic"),"fixture-block"));
     }

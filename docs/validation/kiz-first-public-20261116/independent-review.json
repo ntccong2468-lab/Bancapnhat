@@ -1,0 +1,330 @@
+{
+  "status": "BOUNDED_READ_ONLY_PASS_NO_ADDITIONAL_CONCRETE_BLOCKER",
+  "capturedAtUtc": "2026-11-16T12:32:03.810034+00:00",
+  "baselineFiles": 3767,
+  "currentFiles": 3796,
+  "baselineFilesMissing": [],
+  "canonicalFreeze": "/workspace/kiz-first-release-audit-20261116/source-freeze.json",
+  "canonicalFreezeFileCount": 24,
+  "canonicalFreezeHashMismatch": [],
+  "unexpectedSourceDelta": [],
+  "sourceDelta": [
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+      "beforeSha256": "350f2940de8b0356542b846e404b8ef3964c0a3545c149f0ecbacbce8467f878",
+      "afterSha256": "f060ad4062c4e93e2cc27139d9031d4090ebea8bb73e504854a58c21142de6c5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kizmapping/KizMappingRepository.java",
+      "beforeSha256": "b6a98271b7a2744cadd56b74a013fe99ed9849cc611765a71b62141bcd5400ed",
+      "afterSha256": "78286a1b3313e4aace3e650bd094c502f08dc8042578243c73d96e6e7a1c2e6d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+      "beforeSha256": "4af9ee395b3701d8bf9df858878b5c99c4fe11dee6db3f076d545537e8de6002",
+      "afterSha256": "ef3fa2cbcb01afd9b5c49ddebb346e03a1b71f1b9c1ac24505a8c900e96ba8d6"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+      "beforeSha256": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+      "afterSha256": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+      "beforeSha256": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+      "afterSha256": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+      "beforeSha256": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+      "afterSha256": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "beforeSha256": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935",
+      "afterSha256": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/shared/FriendlyErrorService.java",
+      "beforeSha256": "56e6f348f88044b0925eb81c3e7b03f6d8b77c8ef08e45a3c386de757bcf48dd",
+      "afterSha256": "84a0721f05b3c889792955f2254be9be3f425e5c3fb402f1ba29a39789b4a02c"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+      "beforeSha256": "9263d78a05918e562dd7708a76afbd0bcb940d98a96c33439b363f164e77efa2",
+      "afterSha256": "c4819446b4e50b7d7481912eb64feae39212a781737cae5fc5ed2b741c2deae8"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/supply/SupplyDetailController.java",
+      "beforeSha256": "b752efd304928057fcbda043b9f6dcff9cd36edddbb4c87717146acf0b801d36",
+      "afterSha256": "c53196438b6b8fc05ba45f198cc59e2c4fac57d89fa86ee76bcac68fc5d04acc"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+      "beforeSha256": "37d586ac706e53604ab78d2819ae247383e5cba3ad73e8974c9f8b4a845d1400",
+      "afterSha256": "dfbcd52a1fc1213d8bdf84c5eaf1098ab363aa07d1348e3f09ba29a46281bb03"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+      "beforeSha256": "610722c23e477be8acca9a1512f9c91f0db8317b7f3764446330db10bb1e31ef",
+      "afterSha256": "28b2e071ac81e81a26ae4640cdbb37f87cfac5c1cf1f8101f69ce7f0806e4f9b"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+      "beforeSha256": "65097da8a5561628a6e623c4bef6507008c564c64f323196cbe2f2e47e93977e",
+      "afterSha256": "cc9a5513f3df290be32d8b561d20cf9bff350bcc29031cb3aaa05d575bdfe13b"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+      "beforeSha256": "9c4319f2ba4776c1392a867a998b5af5ff1547f0602934d14a8c6b4d97827d84",
+      "afterSha256": "b88bcdd783c4afdc9de2383e4c68a763d1291e6b67500d826d184ab71766a9c7"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java",
+      "beforeSha256": null,
+      "afterSha256": "33a9679485e001cf100cd03063c12e27bc7a60ea845bce2f25df97b221152b2a"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/KizSigningSummaryRecoveryTest.java",
+      "beforeSha256": null,
+      "afterSha256": "2b2e8205b84d7e3856e5a835f80311048d19e017dccbedf868ff4c135eb525b7"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java",
+      "beforeSha256": null,
+      "afterSha256": "85058eaa72711a6aa6d501889f94da7d2d71a0eed4c81cb6601281ec7975c939"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+      "beforeSha256": null,
+      "afterSha256": "87029b7c1c84b6e1e13f186ac5bf4e9694e40952b8ab929fd746c1b5e12bcab0"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackDownloadRecoveryMessagesTest.java",
+      "beforeSha256": null,
+      "afterSha256": "1c9dc6701613d7e520168d254e6c7a5055171dc4900cd6f7021807d7d623a7e1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "beforeSha256": "ae733467cdeda95f2ba06a5060d3f572c53c2b3d8bf6a953cd163cfcbd3be11e",
+      "afterSha256": "fdc9302fabe2f3d2929a8ebb7e4949dc020792a7684a388fad4e9cf28f816950"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+      "beforeSha256": "21edcb5e99721615c6f849e350046657a21e25560a84e7a5ed3b3cccee58f289",
+      "afterSha256": "fe29853f884788dfcecee9dbcf7196d502c4ccb24c8c811510aceb2b8ff22939"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "beforeSha256": "4afc675150c1b2a8a53ffc59cca7fa682beb9557efc2772824fc8abc0339d112",
+      "afterSha256": "8e78c03fadf3f69648e9a6badb1ead511829a7f72905756728fdad052f3d4748"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackNormalDownloadIdentityTest.java",
+      "beforeSha256": null,
+      "afterSha256": "9508ef943956ec2e10bfb4606023b9a659ddbb19da6d66ac73e2bf2ac4842e3b"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/kizmapping/FbsKizSigningResumeUiTest.java",
+      "beforeSha256": null,
+      "afterSha256": "dcd5e78fef73231727215c46c81402c43817aaecc341c347800c414fd107892b"
+    }
+  ],
+  "protectedPriorCoreHashChanges": [],
+  "productionDdlAddedOrChanged": [],
+  "existingFixtureReview": [
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "assertionCountBefore": 239,
+      "assertionCountAfter": 239,
+      "assertionKindsAndOrderUnchanged": true
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+      "assertionCountBefore": 37,
+      "assertionCountAfter": 37,
+      "assertionKindsAndOrderUnchanged": true
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "assertionCountBefore": 386,
+      "assertionCountAfter": 386,
+      "assertionKindsAndOrderUnchanged": true
+    }
+  ],
+  "newDisabledOrAssumptionBypass": [],
+  "independentSelector": {
+    "classCount": 146,
+    "preparedSelectorMismatch": [],
+    "duplicateSimpleClassNames": [],
+    "selectedPaths": [
+      "src/test/java/com/vncode/app/features/fbo/FboKizPrintPlannerTest.java",
+      "src/test/java/com/vncode/app/features/fbo/FboPurchaseServiceTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizCategoryAllocatorTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizCrossMarketplaceProofTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizImportFormatsTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizPendingIdentityTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizPrintPurchaseSessionTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizPurchaseAvailabilityPolicyTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizPurchaseMappingProofTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizPurchasePermitEvidenceTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizReimportRecoveryTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizServiceScopeTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizServiceTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizStockReplenisherTest.java",
+      "src/test/java/com/vncode/app/features/kiz/KizWarehouseTest.java",
+      "src/test/java/com/vncode/app/features/kiz/SellerKizImportSchemaTest.java",
+      "src/test/java/com/vncode/app/features/kiz/WbShipmentKizRepositoryTest.java",
+      "src/test/java/com/vncode/app/features/kiz/status/Kn3BatchReplacementTest.java",
+      "src/test/java/com/vncode/app/features/kiz/status/Kn3OzonPrintProjectionTest.java",
+      "src/test/java/com/vncode/app/features/kiz/status/Kn3ProtocolTest.java",
+      "src/test/java/com/vncode/app/features/kiz/status/Kn3ReplacementTest.java",
+      "src/test/java/com/vncode/app/features/kizmapping/KizMappingRepositoryTest.java",
+      "src/test/java/com/vncode/app/features/kizmapping/OzonCatalogMappingServiceTest.java",
+      "src/test/java/com/vncode/app/features/kizmapping/VerifiedKizMappingsTest.java",
+      "src/test/java/com/vncode/app/features/ozon/OzonFbsPrintStateTest.java",
+      "src/test/java/com/vncode/app/features/print/KizAttachmentCheckpointRepositoryTest.java",
+      "src/test/java/com/vncode/app/features/print/KizAttachmentCoordinatorTest.java",
+      "src/test/java/com/vncode/app/features/print/KizAttachmentResumeStoreTest.java",
+      "src/test/java/com/vncode/app/features/print/KizCategoryDeletionExportTest.java",
+      "src/test/java/com/vncode/app/features/print/KizPrintHistoryRecoveryTest.java",
+      "src/test/java/com/vncode/app/features/print/OrderExportWorkflowKizPlanningTest.java",
+      "src/test/java/com/vncode/app/features/print/ZnackKizExportServiceTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonAcceptanceKizTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonAcceptanceSourceSnapshotTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonBatchPdfPerformanceTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonCarrierLabelNumbersTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonCombinedLabelRendererTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonDurableReservationTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonExemplarStateMachineTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonExemplarWorkflowTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonFboCombinedPrintTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonLabelPageIdentityTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonLabelServiceTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonOfficialLabelSelectorTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPerUnitPackageTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPerUnitShipServiceTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPrintBatchReadTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPrintBundleRollbackTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPrintBundleServiceTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPrintHistoryServiceTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPrintProductSnapshotTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPrintReadinessServiceTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPrintTimingTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonProductKizPolicyRepositoryTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedKizReplacementTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedPrintAssignmentTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedStockPolicyTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonRejectedPurchasedDemandTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonRequirementAndPackageTest.java",
+      "src/test/java/com/vncode/app/integration/ozon/OzonShipServiceTest.java",
+      "src/test/java/com/vncode/app/integration/znack/CatalogApiAuthorizationTest.java",
+      "src/test/java/com/vncode/app/integration/znack/CatalogCountryDiagnosticsTest.java",
+      "src/test/java/com/vncode/app/integration/znack/CatalogCredentialRepositoryTest.java",
+      "src/test/java/com/vncode/app/integration/znack/CatalogDeviceConnectionTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ChestnyZnakBalanceClientTest.java",
+      "src/test/java/com/vncode/app/integration/znack/KizSigningSummaryRecoveryTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackAccountInfoTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackAmbiguousCodeDownloadTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackCatalogEndpointRoutingTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackCertificateSettingsRepositoryTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackCirculationMessagesTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackCirculationPolicyTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackCisReadbackTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackConnectionReuseTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackDownloadRecoveryMessagesTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackErrorDetailsTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackErrorMessagesTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackGtinInventoryBulkTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionSubmissionOutcomeTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackKizPurchaseReadbackTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackLicenseBoundaryTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackMutationTransportTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackNormalDownloadIdentityTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackOrderReconciliationSafetyTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackOwnedCisReadbackTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackPermitDocumentParserTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackProductLabelMetadataParserTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackProductServicePaginationTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnosticsTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackPurchaseMigrationSafetyTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackSanitizerTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackSettingsAreaRepositoryTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackSigningRecoveryTest.java",
+      "src/test/java/com/vncode/app/integration/znack/ZnackSigningSessionTest.java",
+      "src/test/java/com/vncode/app/integration/znack/signature/BouncyCastleAdvisoryRegressionTest.java",
+      "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryServiceTest.java",
+      "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCertificateRoutingTest.java",
+      "src/test/java/com/vncode/app/integration/znack/signature/CryptoProCommandRunnerTest.java",
+      "src/test/java/com/vncode/app/integration/znack/signature/CryptoProSignatureTest.java",
+      "src/test/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReaderTest.java",
+      "src/test/java/com/vncode/app/integration/znack/signature/WindowsXmlSignatureTest.java",
+      "src/test/java/com/vncode/app/shared/FriendlyErrorCodeTest.java",
+      "src/test/java/com/vncode/app/shared/KizPendingNoticeTest.java",
+      "src/test/java/com/vncode/app/ui/kiz/KizImportDialogTest.java",
+      "src/test/java/com/vncode/app/ui/kiz/KizPrintPurchaseDialogTest.java",
+      "src/test/java/com/vncode/app/ui/kiz/KizWarehousePaneTest.java",
+      "src/test/java/com/vncode/app/ui/kiz/Kn3BatchUiTest.java",
+      "src/test/java/com/vncode/app/ui/kiz/WbShipmentKizPaneTest.java",
+      "src/test/java/com/vncode/app/ui/kizmapping/FbsKizSigningResumeUiTest.java",
+      "src/test/java/com/vncode/app/ui/kizmapping/KizMappingEditorTest.java",
+      "src/test/java/com/vncode/app/ui/kizmapping/KizMappingIssuesDialogTest.java",
+      "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java",
+      "src/test/java/com/vncode/app/ui/kizmapping/KizSigningResumePresentationTest.java",
+      "src/test/java/com/vncode/app/ui/ozon/OzonAcceptanceRetryTest.java",
+      "src/test/java/com/vncode/app/ui/ozon/OzonBulkUiTest.java",
+      "src/test/java/com/vncode/app/ui/ozon/OzonDashboardControllerTest.java",
+      "src/test/java/com/vncode/app/ui/ozon/OzonFbsEnrichmentUiTest.java",
+      "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java",
+      "src/test/java/com/vncode/app/ui/ozon/OzonPrintedQueueUiTest.java",
+      "src/test/java/com/vncode/app/ui/ozon/OzonRegistrationEntryUiTest.java",
+      "src/test/java/com/vncode/app/ui/ozon/OzonShipmentSourcesUiTest.java",
+      "src/test/java/com/vncode/app/ui/supply/SupplyOrderPresentationTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/HomeControllerPageTransitionTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/HomeControllerStartupRecoveryTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/OzonRegistrationNavigationTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/SupplyPrintRequestTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/WorkspaceChromeUiTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/WorkspaceJavaPagesLayoutTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/WorkspaceListAreaTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/WorkspaceNavigationContextTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/WorkspaceNavigationTest.java",
+      "src/test/java/com/vncode/app/ui/workspace/WorkspacePagesLayoutTest.java",
+      "src/test/java/com/vncode/app/ui/znack/SignatureTestFailureTest.java",
+      "src/test/java/com/vncode/app/ui/znack/ZnackAutomationControllerTest.java",
+      "src/test/java/com/vncode/app/ui/znack/ZnackAutomationInformationTest.java",
+      "src/test/java/com/vncode/app/ui/znack/ZnackCertificateDiscoveryUiTest.java",
+      "src/test/java/com/vncode/app/ui/znackregistration/OzonRegistrationPaneTest.java",
+      "src/test/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationControllerTest.java"
+    ],
+    "changedOrNewTestsMissing": []
+  },
+  "concurrencyReview": {
+    "finding": false,
+    "reason": "Only production codes.download caller is Coordinator:684; construction only Coordinator factory:84. All real entry points use advance guarded by static shopId:pipelineId RUNNING; same-GTIN activation uses SQLite BEGIN IMMEDIATE and active-stage check. No separate manual-download producer found; public service calls in tests do not establish a reachable race. No speculative CAS change/test requested."
+  },
+  "MavenExecutedByReviewer": false,
+  "targetEditsByReviewer": false,
+  "realApiOrPaidOrSigningOperations": false,
+  "additionalConcreteBlockers": [],
+  "limits": [
+    "Source/recorded evidence review only; final146-class fresh execution/JAR/Launcher belongs to verifier",
+    "No live commercial or native Windows/CryptoPro acceptance",
+    "Opaque legacy string support is retained; not a certification of arbitrary input as legal KIZ",
+    "Upstream closure/lock or inconsistent block index can remain unresolved without buying or issuing again"
+  ],
+  "freshVerifierSelector": {
+    "path": "/workspace/kiz-first-release-audit-20261116/final-verification/test-selection.json",
+    "classCount": 146,
+    "pathMismatch": [],
+    "all10ChangedOrNewTestsIncluded": true
+  }
+}

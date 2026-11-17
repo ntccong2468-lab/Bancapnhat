@@ -1,0 +1,49 @@
+{
+  "checkedAtUtc": "2026-11-16T20:14:12.931494+00:00",
+  "userLinkedRepo": "ntccong2468-lab/Vncode",
+  "linkedRepoDefaultSource": "c01c5cac03a65310500109613a15032b65bb1d12",
+  "readmeRoutesVersion": "1.3.0 Preview",
+  "actualSourceRepo": "ntccong2468-lab/Bancapnhat",
+  "tag": "v1.3.0-preview.1",
+  "commit": "7858f9c3502980c6e1d3141bbeef719c85493d04",
+  "remoteTagProof": "7858f9c3502980c6e1d3141bbeef719c85493d04\trefs/tags/v1.3.0-preview.1\n",
+  "sourceTarSha256": "f238809fc79d8a733f7cf278c9bbc013679887d0a7b781a6dd343e0db4da2c15",
+  "sourcePath": "/workspace/kiz-v130-wbcode-20261116/vn130/source",
+  "publicReleaseAvailability": [
+    {
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/tags/v1.3.0",
+      "status": 404
+    },
+    {
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/tags/v1.3.0-preview.1",
+      "status": 404
+    },
+    {
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/git/ref/tags/v1.3.0",
+      "status": 404
+    },
+    {
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/git/ref/tags/v1.3.0-preview.1",
+      "status": 200
+    },
+    {
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/actions/runs/38028666240",
+      "status": 200
+    }
+  ],
+  "sourceEvidenceNotRuntimeAcceptance": true,
+  "linkedRepoReadmeSha256": "69cdfd4bf4f67e4fa263ecbba6d70e0719fcde8e5047ce83aea107bfb540be6c",
+  "pomVersion": "1.3.0",
+  "appVersion": "1.3.0",
+  "ciRun": {
+    "id": 38028666240,
+    "headSha": "7858f9c3502980c6e1d3141bbeef719c85493d04",
+    "conclusion": "success",
+    "freshApiStatus": 200
+  },
+  "plain130TagAvailable": false,
+  "previewReleaseApiAvailable": false,
+  "oldInstallerRun": false,
+  "oldInstallerDownloaded": false,
+  "readmeLinkRoute": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.3.0-preview.1"
+}

@@ -1,0 +1,140 @@
+{
+  "status": "PASS",
+  "captures": [
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "robot": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/popup-diagnostic/images/ozon-dark-popup-robot.png",
+      "windows": [
+        {
+          "class": "javafx.scene.control.ContextMenu",
+          "x": 595.0,
+          "y": 295.0,
+          "width": 480.0,
+          "height": 105.0,
+          "sceneFill": "null",
+          "sceneWidth": 480.0,
+          "sceneHeight": 105.0,
+          "rootClass": "javafx.scene.layout.Pane",
+          "rootStyles": [
+            "root",
+            "popup",
+            "workspace-theme",
+            "liquid-glass",
+            "theme-light"
+          ],
+          "rootBounds": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:432.0, height:57.0, depth:0.0, maxX:432.0, maxY:57.0, maxZ:0.0]",
+          "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/popup-diagnostic/images/ozon-dark-popup-scene-0.png"
+        }
+      ],
+      "transparentWindowSupported": false
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "robot": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/popup-diagnostic/images/ozon-light-popup-robot.png",
+      "windows": [
+        {
+          "class": "javafx.scene.control.ContextMenu",
+          "x": 595.0,
+          "y": 295.0,
+          "width": 480.0,
+          "height": 105.0,
+          "sceneFill": "null",
+          "sceneWidth": 480.0,
+          "sceneHeight": 105.0,
+          "rootClass": "javafx.scene.layout.Pane",
+          "rootStyles": [
+            "root",
+            "popup",
+            "workspace-theme",
+            "liquid-glass",
+            "theme-light"
+          ],
+          "rootBounds": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:432.0, height:57.0, depth:0.0, maxX:432.0, maxY:57.0, maxZ:0.0]",
+          "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/popup-diagnostic/images/ozon-light-popup-scene-0.png"
+        }
+      ],
+      "transparentWindowSupported": false
+    },
+    {
+      "route": "packing",
+      "theme": "dark",
+      "robot": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/popup-diagnostic/images/packing-dark-popup-robot.png",
+      "windows": [
+        {
+          "class": "javafx.scene.control.ContextMenu",
+          "x": 595.0,
+          "y": 297.0,
+          "width": 236.0,
+          "height": 105.0,
+          "sceneFill": "null",
+          "sceneWidth": 236.0,
+          "sceneHeight": 105.0,
+          "rootClass": "javafx.scene.layout.Pane",
+          "rootStyles": [
+            "root",
+            "popup",
+            "workspace-theme",
+            "liquid-glass",
+            "theme-light"
+          ],
+          "rootBounds": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:188.0, height:57.0, depth:0.0, maxX:188.0, maxY:57.0, maxZ:0.0]",
+          "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/popup-diagnostic/images/packing-dark-popup-scene-0.png"
+        }
+      ],
+      "transparentWindowSupported": false
+    },
+    {
+      "route": "packing",
+      "theme": "light",
+      "robot": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/popup-diagnostic/images/packing-light-popup-robot.png",
+      "windows": [
+        {
+          "class": "javafx.scene.control.ContextMenu",
+          "x": 595.0,
+          "y": 297.0,
+          "width": 236.0,
+          "height": 105.0,
+          "sceneFill": "null",
+          "sceneWidth": 236.0,
+          "sceneHeight": 105.0,
+          "rootClass": "javafx.scene.layout.Pane",
+          "rootStyles": [
+            "root",
+            "popup",
+            "workspace-theme",
+            "liquid-glass",
+            "theme-light"
+          ],
+          "rootBounds": "BoundingBox [minX:0.0, minY:0.0, minZ:0.0, width:188.0, height:57.0, depth:0.0, maxX:188.0, maxY:57.0, maxZ:0.0]",
+          "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/popup-diagnostic/images/packing-light-popup-scene-0.png"
+        }
+      ],
+      "transparentWindowSupported": false
+    }
+  ],
+  "networkBlocked": true,
+  "sourceEdited": false,
+  "scope": "Rendered production controls and Home-equivalent native shell composition from current JAR on Linux/Xvfb; synthetic24-product/order fixture; not Windows/customer screenshot or API acceptance.",
+  "licenseApiCalls": 0,
+  "jarSha256": "c84f7d94bc9c855a6a878aa01b45a02b1aa885b9e6fa51ad67b9eb33fac97782",
+  "harnessSha256": "3fc0abd3c3b7b95b790888a337fc989ca8d42380573ae3fd16deee516b30e57e",
+  "diagnosticExitCode": 0,
+  "initialAttempt": "External command lacked cached Xvfb bin on PATH; first attempt exit1. Corrected PATH retry exit0. Not an application failure.",
+  "diagnosis": "White popup shadow margin reproduced in unchanged WB category MenuButton. Both popup scenes fill=null, scene larger by 48px, transparentWindowSupported=false on Xvfb; Windows compositing remains unverified.",
+  "imageHashes": {
+    "ozon-dark-popup-scene-0.png": "2cb8a0a9fb3dd1cfc71c06805f4fa2daa771a206063d74b8d57394cace248ec9",
+    "packing-dark-popup-scene-0.png": "2a1fdd37b8df02c6741c83a9964c46aecd648c4a29a1591afbb94a1061ec4d54",
+    "packing-light-popup-scene-0.png": "ef9fd07329662cc047e5e963b6ea5caf4d4b08bc00e1e1665c1c9339f121bdd0",
+    "packing-light-popup-robot.png": "c21a082f6d5a7ccf3899d031c611de39b0f3f0f5c7def8f25f81c37bdc38bafc",
+    "ozon-light-popup-robot.png": "0deb4c86fd10aefef01f71031cc73a113ac0c031f6579ed461af31b8ea922cde",
+    "ozon-light-popup-scene-0.png": "a3d7f2c374e7daee9c11c00cee9a05a5c30192d89ff732749b9585b990823303",
+    "packing-dark-popup-robot.png": "4d72445ccf47d16bedbcb8c69fa5367040e2be2e19c692e1fe760a5a5778f4aa",
+    "ozon-dark-popup-robot.png": "58af8fae1abd2ca0e94977925268143c69806050f1d04f6fa948eef4a3366d9e"
+  },
+  "manuallyViewed": [
+    "ozon-dark-popup-scene-0.png",
+    "packing-dark-popup-robot.png"
+  ]
+}

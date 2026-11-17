@@ -1,0 +1,104 @@
+{
+  "status": "PASS",
+  "backupBeforeImplementation": "/workspace/ozon-znack-orders-20261116/backup-receipt.json",
+  "branch": "feature/ozon-znack-order-kiz-20261116",
+  "command": "PATH=<cached Xvfb>:$PATH flock /workspace/ozon-znack-orders-20261116/maven.lock xvfb-run -a /workspace/toolchains/mvn-vncode -o -Dvncode.appdata.dir=<isolated-profile> -Dtest=HomeControllerPageTransitionTest,OzonFbsUiTest,OzonRegistrationEntryUiTest,OzonRegistrationNavigationTest,OzonRegistrationPaneTest,WorkspaceNavigationContextTest,WorkspacePagesLayoutTest,ZnackCardRegistrationControllerTest test",
+  "exitCode": 0,
+  "suites": [
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "8650c24acb1e884f5cd385a5a4614a5e4a241af87144ba572238edbcc9a88c98"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspacePagesLayoutTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "8132880fb1e55d8a5f4c4c9d634f0dffee44dffb34ffc6fa52e4b98285d15d51"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.HomeControllerPageTransitionTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "1877a1537dcde4c058aec3b4f1302f8629ac61ceac7d277a2cd4c9a245c213e6"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "7a6630ed7b6e8313bdacfe2926e330df3e9e4d389a83ce790f0a44c116d968d6"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.OzonRegistrationNavigationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "98f9786222dc7259c602b35bddcae07c321710f434a7c48ab8086def46011577"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceNavigationContextTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "5f228824ec3c63876689e247672ddbe4e5d17d563589b169c51520f4beaf1423"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "a8c23195b52f167436fb5fbebae69071098866c9c4f080331af13d2a7f7e8824"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonRegistrationEntryUiTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "14da662a454fcddca29d2c8ef0e79c46a0407a25d43ac35949d8b7681d851e86"
+    }
+  ],
+  "counts": {
+    "tests": 100,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "ownedFileHashesBeforeAndAfter": {
+    "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java": "9263d78a05918e562dd7708a76afbd0bcb940d98a96c33439b363f164e77efa2",
+    "src/main/java/com/vncode/app/ui/workspace/HomeController.java": "8195d4c643293e2d8235bb7d7db0f7cf58221b255b5d059f2a577fa09ad21b01",
+    "src/main/java/com/vncode/app/ui/shop/ShopSidebarController.java": "7d81fb59a8a99ec3fb80b9ff29a9323748c9db6416e6dc80cabb42cd3687bf07",
+    "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml": "bb76c6a1a40b10fd1e9bae62fa8cef4d13150749af152026b445ada48465063c",
+    "src/test/java/com/vncode/app/ui/ozon/OzonRegistrationEntryUiTest.java": "afef560b1a9a8c14ade4f8fb1927890c77746b139caec876673aa042c970a8c1",
+    "src/test/java/com/vncode/app/ui/workspace/OzonRegistrationNavigationTest.java": "7307f73f8d206673604236948add0f7b2bad9765b98d6c853e367b20f927fdd4"
+  },
+  "ownedInputsChangedDuringRun": [],
+  "newTests": {
+    "OzonRegistrationEntryUiTest": 6,
+    "OzonRegistrationNavigationTest": 2
+  },
+  "redEvidence": [
+    "red-feature-receipt.json",
+    "red-sidebar-availability-receipt.json",
+    "red-navigation-selector-rendered-receipt.json"
+  ],
+  "scope": "Actual JavaFX FXML widgets, owner-aware callbacks/native registration pane, existing Ozon and WB registration controller regressions, and viewport matrix. Synthetic database and fake APIs; no Catalog creation, purchase, signing or seller acceptance.",
+  "environment": "Cached JDK25.0.4.1/Maven3.8.5; Linux/Xvfb; offline dependency resolution.",
+  "limitations": [
+    "Not native Windows/CryptoPro/live seller acceptance.",
+    "No new Catalog engine: existing durable registration workflow is reused.",
+    "Initial DISPLAY setup error and one temporary test generic-type compile error were fixture/environment work, not feature RED evidence."
+  ]
+}

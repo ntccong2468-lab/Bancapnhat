@@ -1,0 +1,97 @@
+{
+  "status": "BOUNDED_PASS",
+  "createdAtUtc": "2026-11-16T15:11:41.003917+00:00",
+  "reviewScope": "Independent read-only source/contract preservation review, not own Maven execution or whole-app/native/live acceptance.",
+  "sourceFrozen": {
+    "controllerSha256": "c1b3030d8a13d4f6bcd35db0147dcfb4332853b48dd72e1d04a6461fea21e8aa",
+    "fxmlSha256": "35d39c4a08873999fbaa24e2891be2e14081c42cb18453f1a8db4635b125bab0"
+  },
+  "baselineFiles": 3807,
+  "missingBaselineFiles": [],
+  "protectedLexicalChunks": 141,
+  "protectedChunkDrift": [],
+  "protectedProductionFiles": 323,
+  "protectedProductionFileDrift": [],
+  "originalFxmlIds": 77,
+  "currentFxmlIds": 79,
+  "duplicateFxmlIds": false,
+  "missingFxmlIds": [],
+  "originalOnActionChanges": [],
+  "originalNodeTypeChanges": [],
+  "unexpectedModifiedPaths": [],
+  "unexpectedAddedPaths": [],
+  "sourceAndTestDelta": {
+    "uiProductionModified": 2,
+    "localeFilesWithOneNewKeyEach": 4,
+    "existingVisualTestsUpdated": 2,
+    "newNativeParityTest": 1
+  },
+  "legacyTestChanges": "Only old style/visible-STT+barcode/paging placement and70/132row metrics expectations changed to the new requested UI; old rendered identifier/KN3/price/multi-item containment and behavior assertions remain.",
+  "verifiedPresentationRules": [
+    "Uses actual WB Packing UI reference, not SupplyDetail",
+    "Same existing four order tables/five provider tabs, all handlers and native queue/status meanings retained",
+    "Shared original search/footer nodes reparent; no category query/backend/current-page filter added",
+    "Same original four sort checkboxes, defaults/listeners/preferences and hideOnClick=false custom menu",
+    "No API/DB read/write added during render; row-number helper reads in-memory TableViews only",
+    "Full orderText remains in value factory/tooltip/drawer; canonical posting number is the main rendered ID",
+    "Barcodes/GTIN/SKU/variant/quantity/price/category/KIZ rule/KN3 data survive row text/tooltip/accessibility/drawer",
+    "Registration/purchased-KIZ/purchase signing resume and busy/owner/cancel/paging/batch mutation logic byte-identical",
+    "Current order/image column maxima5000 match actual WB default; all four price FXML columns uncapped"
+  ],
+  "candidateDisposition": "An intermediate price-cap suggestion is withdrawn as a final finding after fresh current-file verification. Native width failure was independently investigated/fixed by owner using WB-compatible finite order/image maxima; reviewer did not edit source or claim that candidate as a proven root cause.",
+  "remainingGate": "Parent fresh64-class affected-scope regression/package/capture is separate. Current canonical9 source/test hashes and owner22-case native evidence are verified read-only; reviewer executed no Maven or app.",
+  "reviewerActions": {
+    "targetEdits": false,
+    "mavenExecuted": false,
+    "sellerApiCalls": false,
+    "paidPurchase": false,
+    "signing": false,
+    "licenseActivation": false,
+    "release": false
+  },
+  "finalCanonicalFreezeRecheckedAtUtc": "2026-11-16T15:12:21.180178+00:00",
+  "canonicalFreezeFiles": 9,
+  "canonicalFreezeHashMismatch": [],
+  "ownerNativeVerificationReadAndChecked": {
+    "reportedByOwnerNotExecutedByReviewer": true,
+    "summarySha256": "27f0762bfbbeb7df4436515a1734b1098075837fac4d389cae71737e129ae316",
+    "tests": 22,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "renderedWidthsAt1200x720": [
+      46,
+      228,
+      127,
+      594,
+      159
+    ],
+    "currentEqualsWb": true,
+    "xmlReports": [
+      {
+        "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "sha256": "0e4fa9d2c820e631863d67fb4cc665b9123a59066e8b46860fafbfc761d1f88e"
+      },
+      {
+        "name": "com.vncode.app.ui.ozon.OzonWbPackingParityTest",
+        "tests": 13,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "sha256": "ebaef4b06c372485dab033d43ba4a9aba2d22713e8cd40759a4e0697037ca4a0"
+      },
+      {
+        "name": "com.vncode.app.ui.ozon.OzonDashboardControllerTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "sha256": "c906af5c5fb67e7975853f616b27120e60580bd52991dc83fe8780c083c547fe"
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "status": "FROZEN_GREEN",
+  "scope": "Localized presentation only; exact transient disconnected USB signing-key wait vs durable resume pauses. No protocol change.",
+  "red": {
+    "tests": 30,
+    "failures": 4,
+    "errors": 0,
+    "skipped": 0
+  },
+  "green": {
+    "tests": 30,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "files": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "eed0d30f0e7fe4881eb4c1717f43303e61af39bfc514290fb1221e2fb44d7433",
+    "src/test/java/com/vncode/app/integration/znack/ZnackErrorMessagesTest.java": "c868d1b5c683930bd2898e53f7e4430e01d94dcb80fccc00a6f8f2649987b4cb",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "96b107ec5a31271d90021ef6a623311f5be9f9e17b1f082d663610ac528d374f",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "9cbc9735ed58ebdcc60da1d910380a9479071964ec821c3b08b25aa9c4411f15",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "419d2f643e46227effc578f8dd4a7d8a1a787f8bfdd7d2d96565fe5ad1b56bb1",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "0cd70dd4978c82f3d15db98b0bfc4356a7bae80a5ff41f74a9e03b90d0c59870"
+  },
+  "dedicatedKeyExactlyOnceEachLocale": true,
+  "testClasses": [
+    "ZnackErrorMessagesTest",
+    "ZnackDownloadRecoveryMessagesTest",
+    "ZnackCirculationMessagesTest"
+  ]
+}

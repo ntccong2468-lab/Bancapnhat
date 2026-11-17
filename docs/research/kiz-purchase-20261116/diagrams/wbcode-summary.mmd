@@ -1,0 +1,22 @@
+flowchart TD
+    BOOT["Mở app: cấp quyền cho các shop đã xác minh, chưa pause; khôi phục lô"] --> QUEUE
+    A["Chọn GTIN, số lượng và Áp dụng"] --> B["Kiểm quyền app, OMS, chữ ký, sản phẩm và giấy tờ local"]
+    B --> QUEUE["Lưu pipeline và requestKey; xếp hàng theo shop/GTIN"]
+    QUEUE --> AUTH{"Có quyền ký và khóa sẵn sàng?"}
+    AUTH -- "Chưa" --> PAUSE["Giữ lô chờ; chọn shop hoặc sửa chữ ký"]
+    PAUSE --> AUTH
+    AUTH -- "Có" --> BUY["Đăng nhập bằng chữ ký; ký POST SUZ order"]
+    BUY -- "Chưa rõ đã nhận" --> REC["Đối soát order cũ; không mua lại ngay"]
+    REC -- "Đã khớp đúng order cũ" --> POLL
+    REC -- "Chưa xác minh hoặc mơ hồ" --> HOLD["Giữ chờ/lỗi đối soát; không POST mua lặp"]
+    HOLD -. "Kiểm tra lại khi được phép" .-> REC
+    BUY -- "Có orderId" --> POLL["Poll order/status; tải codes; lưu mã và block"]
+    POLL -- "Chưa đủ; có thể phục hồi block" --> POLL
+    POLL -- "Đủ" --> CIS["True API cises/info; bình thường luôn tự lưu thông"]
+    CIS -- "EMITTED hoặc chưa đủ điều kiện" --> CIS
+    CIS -- "Đủ INTRODUCED" --> DONE["IN_CIRCULATION / Đã lưu thông"]
+    CIS -- "APPLIED; cờ thẻ hợp lệ" --> DOC["Đọc giấy tờ hiện hành; ký/gửi tài liệu theo phương thức mua"]
+    DOC --> STATUS["Đọc doc/info và cises/info"]
+    STATUS -- "Bị từ chối" --> ERROR["Giữ lỗi lưu thông và mã đã mua"]
+    STATUS -- "Đang xử lý" --> STATUS
+    STATUS -- "CHECKED_OK và đủ trạng thái INTRODUCED" --> DONE

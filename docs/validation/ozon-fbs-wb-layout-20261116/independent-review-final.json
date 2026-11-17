@@ -1,0 +1,234 @@
+{
+  "status": "BOUNDED_PASS",
+  "reviewIteration": "v2 review receipt for final combined source iteration3; all v1 artifacts retained",
+  "createdAtUtc": "2026-11-16T15:46:33.829713+00:00",
+  "reviewScope": "Independent read-only source/contract review and audit of owner native test evidence; no Maven, app, seller API or Windows acceptance executed by reviewer.",
+  "canonicalFreeze": {
+    "path": "/workspace/ozon-fbs-wb-layout-20261116/layout-audit/final-ui-source-freeze-iteration3.json",
+    "sha256": "fabf143b9004ad1aba661fa7c89b8f4f5a75d9d4759fd977038e925abc8fe3f1",
+    "files": 9,
+    "hashMismatches": []
+  },
+  "sourceFrozen": {
+    "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java": "eff86ed2598fdfdb5063f37896983d9b74752ae74792bac5428ef48da89e07a0",
+    "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml": "25381572d9e79b952f9ca804e0da41318e34cf52c999d3e963cb3f9b58615c44",
+    "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java": "055fcdfecfe1e7cfb65b23b57fed69831ab5035c59696a7590210af13fe9479d",
+    "src/test/java/com/vncode/app/ui/ozon/OzonDashboardControllerTest.java": "a98adc00ab784b62868d9ad40b80e36022f663b5c199e3ab1fff7af8abcc0f16",
+    "src/test/java/com/vncode/app/ui/ozon/OzonWbPackingParityTest.java": "0350cec33070206364c243206f5c3f0a95496a3c809daabde638b0e3737691f3",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "7e22b01ac4c85d127e4ebe6592334817dbb34188ea93b20b111de2bcd48431c3",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "88be94b8fbcddde4e197a6c4c54209164758e5731bfca7fff83733eedbf6ba12",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "8840d29be6f0f3073a9831f19c2390e57d50b3d4d5b7220b3ebe62133c600fb4",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "ccf51f90e5b4625e6861ddefc551f6d8cfac6d006cd45bdbf58d0993bc9c84b6"
+  },
+  "baselineFiles": 3807,
+  "missingBaselineFiles": [],
+  "protectedLexicalChunks": 141,
+  "byteIdenticalProtectedChunks": 140,
+  "exactAuthorizedPresentationException": {
+    "method": "setBusy(boolean busy,boolean browseWhileWorking)",
+    "baselineStartLine": 1290,
+    "baselineSha256": "aba0b4225ebb8ffe8d7e7d6029c8751f1ca03d256b5a88de892a879b1159f2b0",
+    "before": "loadingIndicator.setManaged(busy);",
+    "after": "loadingIndicator.setManaged(true);",
+    "remainingMethodMatchesBaselineBytes": true,
+    "wholeMethodExcluded": false
+  },
+  "protectedProductionFiles": 323,
+  "protectedProductionFileDrift": [],
+  "originalFxmlIds": 77,
+  "currentFxmlIds": 79,
+  "duplicateFxmlIds": false,
+  "originalNodeTypeOrOnActionDrift": [],
+  "allDeclarativeCallbacksUnchanged": true,
+  "declarativeCallbackCount": 13,
+  "unexpectedBaselineModifications": [],
+  "additionalSourceFiles": [
+    "src/test/java/com/vncode/app/ui/ozon/OzonWbPackingParityTest.java"
+  ],
+  "parentMemoryFilesMayChange": [
+    "docs/PROJECT_MEMORY.md",
+    "docs/memory/CURRENT.md",
+    "docs/memory/README.md"
+  ],
+  "finalDeltaFromV1": {
+    "controller": [
+      "images.setAlignment(Pos.TOP_CENTER) -> Pos.TOP_LEFT",
+      "loadingIndicator.setManaged(busy) -> true"
+    ],
+    "fxml": "Remove unnamed width18 StackPane and use direct native ProgressIndicator matching WB pref/max18; no min36 or padding2px hardcode.",
+    "tests": "Existing photo test strengthened with relative cell/row X/Y; new14th native case checks absolute Y/height in both themes and idle/busy. Old behavior/data assertions retained."
+  },
+  "ownerNativeEvidenceReviewed": {
+    "executedByReviewer": false,
+    "runPath": "/workspace/ozon-fbs-wb-layout-20261116/parity-tests/thumbnail-parity-iteration3/final-green/run.json",
+    "runSha256": "dbc7f9707e407a27a86bbd181d88eb845673a25334c8bcd48046533c45b4a9b6",
+    "exitCode": 0,
+    "counts": {
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "xmlReports": [
+      {
+        "name": "com.vncode.app.ui.ozon.OzonWbPackingParityTest",
+        "sha256": "3103cbbc3f77a8949de29653264a3482be17a4f7d707e44d50272de370bfb5ad",
+        "tests": 14,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+        "sha256": "ea6eb0d1d7980590d859075fceac10ee683591d346fee25716d3ad707db88751",
+        "tests": 4,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.vncode.app.ui.ozon.OzonDashboardControllerTest",
+        "sha256": "491c2573823f8310340a3a688539f8899c8476ffd33ba27d02e325c79fbd8bee",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "inputHashesMatchCanonicalNine": true,
+    "absoluteGeometry": {
+      "dark": {
+        "comparedNodes": [
+          "root",
+          "header",
+          "title",
+          "refresh",
+          "tabs",
+          "tabHeader",
+          "search",
+          "filterRow",
+          "table"
+        ],
+        "yHeightDrift": [],
+        "headerHeight": 44.0,
+        "tableY": 191.0,
+        "tableHeight": 508.0,
+        "spinnerManaged": true,
+        "spinnerVisible": false
+      },
+      "dark-busy": {
+        "comparedNodes": [
+          "root",
+          "header",
+          "title",
+          "refresh",
+          "tabs",
+          "tabHeader",
+          "search",
+          "filterRow",
+          "table"
+        ],
+        "yHeightDrift": [],
+        "headerHeight": 44.0,
+        "tableY": 191.0,
+        "tableHeight": 508.0,
+        "spinnerManaged": true,
+        "spinnerVisible": true
+      },
+      "light": {
+        "comparedNodes": [
+          "root",
+          "header",
+          "title",
+          "refresh",
+          "tabs",
+          "tabHeader",
+          "search",
+          "filterRow",
+          "table"
+        ],
+        "yHeightDrift": [],
+        "headerHeight": 44.0,
+        "tableY": 191.0,
+        "tableHeight": 508.0,
+        "spinnerManaged": true,
+        "spinnerVisible": false
+      },
+      "light-busy": {
+        "comparedNodes": [
+          "root",
+          "header",
+          "title",
+          "refresh",
+          "tabs",
+          "tabHeader",
+          "search",
+          "filterRow",
+          "table"
+        ],
+        "yHeightDrift": [],
+        "headerHeight": 44.0,
+        "tableY": 191.0,
+        "tableHeight": 508.0,
+        "spinnerManaged": true,
+        "spinnerVisible": true
+      }
+    },
+    "thumbnailGeometry": {
+      "WB": {
+        "size": [
+          36.0,
+          48.0
+        ],
+        "relativeToCell": [
+          10.0,
+          7.0
+        ],
+        "relativeToRow": [
+          284.0,
+          7.0
+        ]
+      },
+      "Ozon": {
+        "size": [
+          36.0,
+          48.0
+        ],
+        "relativeToCell": [
+          10.0,
+          7.0
+        ],
+        "relativeToRow": [
+          284.0,
+          7.0
+        ]
+      }
+    },
+    "renderedWidths": [
+      46,
+      228,
+      127,
+      594,
+      159
+    ]
+  },
+  "v1ReceiptsRetainedAndNotOverwritten": {
+    "REPORT.md": "492243841bbab2447206cc9c149dd0e3c176669ccd3f47f1eb88442617091ae0",
+    "final-review-receipt.json": "3b9284deb586abbac5723109de5f51ef9c1cc4add95d299a2b0faa83fac515ab",
+    "final-source-sha256.json": "ed5f831a8e8e37fa106c1ee06e7ff6a00e67280d94f631f94286b432aed83689",
+    "selector-review.json": "1080d718d8bf36901d951284f3eaac94ae8dd7ad91b66a383a3b41ae7576404d"
+  },
+  "limits": [
+    "v1 393/64 and22 results remain historical and are not current final-source acceptance. Parent owns the fresh v2 broad regression/package/Launcher/screenshots.",
+    "Native Xvfb/JavaFX geometry proves measured fixture conditions, not all possible data states, Windows or seller-API acceptance."
+  ],
+  "reviewerActions": {
+    "targetSourceEdits": false,
+    "mavenExecuted": false,
+    "sellerApiCalls": false,
+    "paidPurchase": false,
+    "signing": false,
+    "licenseActivation": false,
+    "release": false
+  }
+}

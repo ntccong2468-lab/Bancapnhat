@@ -1,0 +1,48 @@
+{
+  "tool": "JDK25javap-p-c",
+  "targetExecution": false,
+  "results": [
+    {
+      "class": "ZnackPurchaseCoordinator",
+      "exitCode": 0,
+      "bytes": 383364,
+      "sha256": "33dcd89d7b0a10d007bb48b169be5276d540ffb0b347e23fbdab15239f680760"
+    },
+    {
+      "class": "ZnackIntroductionReadinessService",
+      "exitCode": 0,
+      "bytes": 51405,
+      "sha256": "259208a933101159fb2990a1c323e37a1a07c3f6f487b0305c1a587b1f499fab"
+    },
+    {
+      "class": "ZnackIntroductionService",
+      "exitCode": 0,
+      "bytes": 92582,
+      "sha256": "f225b3c7aaec9dac5f9674e56bb49a9e000d7a9356e3901d812ac04525bd58d9"
+    },
+    {
+      "class": "ZnackKizCodeService",
+      "exitCode": 0,
+      "bytes": 39776,
+      "sha256": "bafb9e397b8d4b32360890ed746705187859dd03b9510b4f7eace40cca9ac137"
+    },
+    {
+      "class": "ZnackKizOrderService",
+      "exitCode": 0,
+      "bytes": 124926,
+      "sha256": "28fc89537d7d53080751bcecdac64a75a73acdcc979486e2d57034800310855f"
+    },
+    {
+      "class": "ZnackApiClient",
+      "exitCode": 0,
+      "bytes": 135902,
+      "sha256": "ca5b736843ac02c2aa86be1997401cdd45826b534648d74505ad98136c3a8d6f"
+    },
+    {
+      "class": "ZnackAuthService",
+      "exitCode": 0,
+      "bytes": 58567,
+      "sha256": "a2121960c117b7b32db49b88abacbcc66a39b9037bdeb3c053775a42f20675bf"
+    }
+  ]
+}

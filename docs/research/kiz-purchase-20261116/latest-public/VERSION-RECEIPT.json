@@ -1,0 +1,44 @@
+{
+  "fetchedAtUtc": "2026-11-16T20:15:35.713335+00:00",
+  "releaseUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.10",
+  "releaseId": 445977967,
+  "tag": "v1.6.10",
+  "publishedAt": "2026-11-15T10:40:34Z",
+  "immutable": true,
+  "targetCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "buildInfoSha256": "f21685a66f40bc5e80e854427ec6fb24941e8c7cd6f3044b5249759f7ce7d6bf",
+  "buildInfo": {
+    "version": "1.6.10",
+    "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "runId": 43641520595,
+    "runAttempt": 1,
+    "workflow": "publish-vncode-baseline.yml",
+    "installer": {
+      "sha256": "2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0",
+      "name": "VN-code-1.6.10-Windows-x64.exe",
+      "bytes": 149539328
+    },
+    "verification": {
+      "java": {
+        "failures": 0,
+        "tests": 4700,
+        "passed": 4698,
+        "errors": 0,
+        "skipped": 2
+      },
+      "legacyUpgradeMatrixRun": false,
+      "liveCatalogWriteVerified": false,
+      "paidKizPurchaseVerified": false,
+      "fullJavaSuiteRun": true,
+      "baselineUpgradeRun": true,
+      "liveMarketplaceWriteVerified": false,
+      "nativeSmokeRun": true
+    }
+  },
+  "publicSourcePath": "/workspace/kiz-v130-wbcode-20261116/latest-public/source",
+  "gitArchiveSha256": "f0657983084454a5d4da37c4f2a4e97aaa2ef4840cb8b054972b730e6b238f2c",
+  "cachedPublishedSourceZip": "/workspace/release-1610-20261115/build/assets/VN-code-1.6.10-source.zip",
+  "cachedPublishedSourceZipSha256": "5cad9f32c94dec31206e35786262990e3779720d9ede98900f0707e55640f93e",
+  "publishedSourceZipDigestMatchesFreshGitHub": true,
+  "scope": "Read-only metadata/source; no install, API mutation, signing or purchase."
+}

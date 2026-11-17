@@ -164,6 +164,11 @@ class ZnackSigningRecoveryTest {
             remove.setLong(1, job.pipeline());
             assertEquals(1, remove.executeUpdate());
         }
+        try (var connection = Database.getConnection();
+             var remove = connection.prepareStatement("DELETE FROM znack_purchase_contexts WHERE shop_id=? AND pipeline_id=?")) {
+            remove.setInt(1,SHOP);remove.setLong(2,job.pipeline());
+            assertEquals(1,remove.executeUpdate(),"The canonical original profile must also be absent in this negative fixture");
+        }
         var harness = new Harness(repository);
         var before = pipeline(job);
 
@@ -437,6 +442,13 @@ class ZnackSigningRecoveryTest {
             update.setLong(2, job.pipeline());
             assertEquals(1, update.executeUpdate());
         }
+        var context=new ZnackPurchaseContext(settings,ZnackProductGroup.LP,ZnackPurchaseMethod.PRODUCTION);
+        try (var connection=Database.getConnection();
+             var update=connection.prepareStatement("UPDATE znack_purchase_contexts SET settings_json=?,identity_key=? WHERE shop_id=? AND pipeline_id=?")) {
+            update.setString(1,ProductJson.GSON.toJson(settings));update.setString(2,context.identity());
+            update.setInt(3,SHOP);update.setLong(4,job.pipeline());
+            assertEquals(1,update.executeUpdate(),"Mutate the canonical original profile, preserving the intended negative case");
+        }
     }
 
     private Settings settings(String oms, String connection, String fingerprint, Instant testedAt, boolean auto) {
@@ -502,6 +514,9 @@ class ZnackSigningRecoveryTest {
                 }
             };
             var orders = new ZnackKizOrderService(null, auth, guarded, repo) {
+                @Override public ZnackPurchaseBatchStore.Batch advanceBatch(Settings settings,long batchId) {
+                    buys.incrementAndGet();throw new AssertionError("Signing recovery cannot submit a purchase batch");
+                }
                 @Override public KizOrder buy(Settings settings, String gtin, int quantity) {
                     buys.incrementAndGet(); throw new AssertionError("Signing recovery cannot buy another order");
                 }
@@ -510,8 +525,14 @@ class ZnackSigningRecoveryTest {
                     repo.updateOrder(id, null, "READY", OrderStatus.CODES_READY, null);
                     return repo.findOrder(id).orElseThrow();
                 }
+                @Override public java.util.OptionalInt availableCodes(long id) {
+                    return java.util.OptionalInt.of(repo.findOrder(id).orElseThrow().quantity());
+                }
             };
             var downloaded = new ZnackKizCodeService(null, auth, repo) {
+                @Override public int download(Settings settings,long id,int available)throws Exception {
+                    return download(settings,id);
+                }
                 @Override public int download(Settings settings, long id) throws Exception {
                     auth.suzToken(settings); downloads.incrementAndGet();
                     return repo.insertCodes(id, GTIN, new DownloadedCodes(ZnackSigningRecoveryTest.codes(id,

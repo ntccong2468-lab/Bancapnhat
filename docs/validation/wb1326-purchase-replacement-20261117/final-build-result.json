@@ -1,0 +1,69 @@
+{
+  "status": "PASS",
+  "exitCode": 0,
+  "elapsedSeconds": 84.05792751900026,
+  "command": [
+    "xvfb-run",
+    "-a",
+    "sh",
+    "/workspace/toolchains/apache-maven-3.8.5/bin/mvn",
+    "-B",
+    "-o",
+    "-s",
+    "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/maven-settings.xml",
+    "-gs",
+    "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/maven-settings.xml",
+    "-Dmaven.repo.local=/workspace/toolchains/m2",
+    "-DforkCount=2",
+    "-Dtest=FxmlSmokeTest,KizPurchaseStatusPresentationTest,ZnackExhaustedBufferRecoveryTest,ZnackExhaustedBufferWorkflowRegressionTest",
+    "clean",
+    "verify"
+  ],
+  "snapshotFileCount": 4010,
+  "counts": {
+    "tests": 92,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "name": "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest",
+      "tests": "27",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "6.267"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.039"
+    },
+    {
+      "name": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": "58",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "36.237"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "7.24"
+    }
+  ],
+  "failures": [],
+  "skips": [],
+  "buildInputDrift": [],
+  "otherSourceDrift": [],
+  "finishedAtUtc": "2026-11-17T14:24:22.520320+00:00",
+  "scope": "Fresh final clean compile/package and4 adjusted test suites. Pair with prior231-suite current-production regression; not a complete Java-suite pass. Synthetic Linux/Xvfb only, not native Windows, CryptoPro hardware or paid acceptance."
+}

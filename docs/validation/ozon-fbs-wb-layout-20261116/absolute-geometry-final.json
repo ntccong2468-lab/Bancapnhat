@@ -1,0 +1,6862 @@
+{
+  "dark": {
+    "WB": {
+      "root": {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [
+          "root",
+          "app-page",
+          "workspace-page",
+          "workspace-sheet",
+          "workspace-theme",
+          "liquid-glass",
+          "theme-dark"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1200.0,
+        "height": 720.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1010.0,
+        "minHeightProperty": 0.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 612.0,
+        "padding": [
+          20.0,
+          20.0,
+          20.0,
+          20.0
+        ],
+        "insets": [
+          21.0,
+          21.0,
+          21.0,
+          21.0
+        ],
+        "spacing": 12.0,
+        "alignment": "TOP_LEFT"
+      },
+      "header": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 21.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 98.0,
+        "computedPrefWidth": 348.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 10.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "title": {
+        "type": "Label",
+        "id": "titleLabel",
+        "styleClasses": [
+          "label",
+          "h2",
+          "page-title"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 31.0,
+        "width": 150.0,
+        "height": 25.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 20.0390625,
+        "computedPrefWidth": 149.23828125,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 25.0,
+        "computedPrefHeight": 25.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "Đóng hàng FBS",
+        "fontSize": 20.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Bold"
+      },
+      "refresh": {
+        "type": "Button",
+        "id": "refreshButton",
+        "styleClasses": [
+          "button"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 209.0,
+        "y": 26.0,
+        "width": 160.0,
+        "height": 34.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 54.2353515625,
+        "computedPrefWidth": 159.6826171875,
+        "minHeightProperty": 34.0,
+        "prefHeightProperty": 28.0,
+        "computedMinHeight": 34.0,
+        "computedPrefHeight": 28.0,
+        "padding": [
+          6.0,
+          11.0,
+          6.0,
+          11.0
+        ],
+        "insets": [
+          7.0,
+          12.0,
+          7.0,
+          12.0
+        ],
+        "text": "Cập nhật đơn hàng",
+        "fontSize": 13.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      "tabs": {
+        "type": "TabPane",
+        "id": "packingTabPane",
+        "styleClasses": [
+          "tab-pane",
+          "packing-tabs",
+          "workspace-tab-strip"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 622.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 514.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "tabHeader": {
+        "type": "TabHeaderArea",
+        "id": "",
+        "styleClasses": [
+          "tab-header-area"
+        ],
+        "visible": true,
+        "managed": false,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 62.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 38.0,
+        "computedPrefWidth": 363.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 44.0,
+        "computedPrefHeight": 62.0,
+        "padding": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      "search": {
+        "type": "TextField",
+        "id": "newOrderSearchField",
+        "styleClasses": [
+          "text-input",
+          "text-field"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 143.0,
+        "width": 320.0,
+        "height": 36.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": 320.0,
+        "computedMinWidth": 22.0,
+        "computedPrefWidth": 320.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": 32.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 32.0,
+        "padding": [
+          6.0,
+          10.0,
+          6.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          11.0,
+          7.0,
+          11.0
+        ]
+      },
+      "filterRow": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "filter-bar",
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 139.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 72.0,
+        "computedPrefWidth": 570.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 8.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "table": {
+        "type": "TableView",
+        "id": "newOrdersTable",
+        "styleClasses": [
+          "table-view",
+          "dense-data-list"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 191.0,
+        "width": 1158.0,
+        "height": 508.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 16.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 42.0,
+        "computedPrefHeight": 400.0,
+        "padding": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "insets": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "headerChildren": [
+        {
+          "type": "Label",
+          "id": "titleLabel",
+          "styleClasses": [
+            "label",
+            "h2",
+            "page-title"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 31.0,
+          "width": 150.0,
+          "height": 25.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 20.0390625,
+          "computedPrefWidth": 149.23828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 25.0,
+          "computedPrefHeight": 25.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đóng hàng FBS",
+          "fontSize": 20.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "ProgressIndicator",
+          "id": "refreshLoading",
+          "styleClasses": [
+            "progress-indicator"
+          ],
+          "visible": false,
+          "managed": true,
+          "x": 181.0,
+          "y": 25.0,
+          "width": 18.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": 18.0,
+          "computedMinWidth": 2.0,
+          "computedPrefWidth": 18.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": 18.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "refreshButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 209.0,
+          "y": 26.0,
+          "width": 160.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 54.2353515625,
+          "computedPrefWidth": 159.6826171875,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Cập nhật đơn hàng",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "rootChildren": [
+        {
+          "type": "HBox",
+          "id": "",
+          "styleClasses": [
+            "workspace-toolbar"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 1158.0,
+          "height": 44.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 98.0,
+          "computedPrefWidth": 348.0,
+          "minHeightProperty": 36.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 44.0,
+          "padding": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "insets": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "spacing": 10.0,
+          "alignment": "CENTER_LEFT"
+        },
+        {
+          "type": "TabPane",
+          "id": "packingTabPane",
+          "styleClasses": [
+            "tab-pane",
+            "packing-tabs",
+            "workspace-tab-strip"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 77.0,
+          "width": 1158.0,
+          "height": 622.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 968.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 514.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "tabLabels": [
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 33.0,
+          "y": 94.0,
+          "width": 53.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 52.3427734375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn mới",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 110.0,
+          "y": 94.0,
+          "width": 93.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 92.07275390625,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang đóng gói",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 227.0,
+          "y": 94.0,
+          "width": 65.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 64.06689453125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang giao",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 316.0,
+          "y": 94.0,
+          "width": 46.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 45.04931640625,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn nợ",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        }
+      ]
+    },
+    "Ozon": {
+      "root": {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [
+          "root",
+          "ozon-fbs-workspace",
+          "app-page",
+          "workspace-page",
+          "workspace-sheet",
+          "workspace-theme",
+          "liquid-glass",
+          "theme-dark"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1200.0,
+        "height": 720.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1084.0,
+        "minHeightProperty": 0.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 612.0,
+        "padding": [
+          20.0,
+          20.0,
+          20.0,
+          20.0
+        ],
+        "insets": [
+          21.0,
+          21.0,
+          21.0,
+          21.0
+        ],
+        "spacing": 12.0,
+        "alignment": "TOP_LEFT"
+      },
+      "header": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 21.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 200.0,
+        "computedPrefWidth": 616.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 10.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "title": {
+        "type": "Label",
+        "id": "titleLabel",
+        "styleClasses": [
+          "label",
+          "h2",
+          "page-title"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 31.0,
+        "width": 150.0,
+        "height": 25.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 20.0390625,
+        "computedPrefWidth": 149.23828125,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 25.0,
+        "computedPrefHeight": 25.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "Đóng hàng FBS",
+        "fontSize": 20.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Bold"
+      },
+      "refresh": {
+        "type": "Button",
+        "id": "refreshButton",
+        "styleClasses": [
+          "button"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 209.0,
+        "y": 26.0,
+        "width": 160.0,
+        "height": 34.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 54.2353515625,
+        "computedPrefWidth": 159.6826171875,
+        "minHeightProperty": 34.0,
+        "prefHeightProperty": 28.0,
+        "computedMinHeight": 34.0,
+        "computedPrefHeight": 28.0,
+        "padding": [
+          6.0,
+          11.0,
+          6.0,
+          11.0
+        ],
+        "insets": [
+          7.0,
+          12.0,
+          7.0,
+          12.0
+        ],
+        "text": "Cập nhật đơn hàng",
+        "fontSize": 13.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      "tabs": {
+        "type": "TabPane",
+        "id": "orderStatusTabs",
+        "styleClasses": [
+          "tab-pane",
+          "packing-tabs",
+          "workspace-tab-strip"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 622.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1042.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 514.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "tabHeader": {
+        "type": "TabHeaderArea",
+        "id": "",
+        "styleClasses": [
+          "tab-header-area"
+        ],
+        "visible": true,
+        "managed": false,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 62.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 38.0,
+        "computedPrefWidth": 594.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 44.0,
+        "computedPrefHeight": 62.0,
+        "padding": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      "search": {
+        "type": "TextField",
+        "id": "postingSearch",
+        "styleClasses": [
+          "text-input",
+          "text-field"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 143.0,
+        "width": 320.0,
+        "height": 36.0,
+        "minWidthProperty": 100.0,
+        "prefWidthProperty": 320.0,
+        "computedMinWidth": 100.0,
+        "computedPrefWidth": 320.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": 32.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 32.0,
+        "padding": [
+          6.0,
+          10.0,
+          6.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          11.0,
+          7.0,
+          11.0
+        ]
+      },
+      "filterRow": {
+        "type": "FlowPane",
+        "id": "postingFiltersBar",
+        "styleClasses": [
+          "filter-bar",
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 139.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 320.0,
+        "computedPrefWidth": 400.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ]
+      },
+      "table": {
+        "type": "TableView",
+        "id": "newOrdersTable",
+        "styleClasses": [
+          "table-view",
+          "dense-data-list"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 191.0,
+        "width": 1158.0,
+        "height": 508.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": 140.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 140.0,
+        "computedPrefHeight": 400.0,
+        "padding": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "insets": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "headerChildren": [
+        {
+          "type": "Label",
+          "id": "titleLabel",
+          "styleClasses": [
+            "label",
+            "h2",
+            "page-title"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 31.0,
+          "width": 150.0,
+          "height": 25.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 20.0390625,
+          "computedPrefWidth": 149.23828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 25.0,
+          "computedPrefHeight": 25.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đóng hàng FBS",
+          "fontSize": 20.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "ProgressIndicator",
+          "id": "loadingIndicator",
+          "styleClasses": [
+            "progress-indicator"
+          ],
+          "visible": false,
+          "managed": true,
+          "x": 181.0,
+          "y": 25.0,
+          "width": 18.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": 18.0,
+          "computedMinWidth": 2.0,
+          "computedPrefWidth": 18.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": 18.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "refreshButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 209.0,
+          "y": 26.0,
+          "width": 160.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 54.2353515625,
+          "computedPrefWidth": 159.6826171875,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Cập nhật đơn hàng",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Region",
+          "id": "",
+          "styleClasses": [],
+          "visible": true,
+          "managed": true,
+          "x": 379.0,
+          "y": 25.0,
+          "width": 542.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 0.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 0.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "cancelSelectionButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 82.89990234375,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Hủy chọn",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Button",
+          "id": "kizInventoryButton",
+          "styleClasses": [
+            "button",
+            "btn-secondary"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 931.0,
+          "y": 26.0,
+          "width": 122.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 121.98876953125,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Kho KIZ / Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Button",
+          "id": "ozonZnackRegistrationButton",
+          "styleClasses": [
+            "button",
+            "btn-secondary"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 1063.0,
+          "y": 26.0,
+          "width": 116.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 115.9775390625,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Đăng ký Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "rootChildren": [
+        {
+          "type": "HBox",
+          "id": "",
+          "styleClasses": [
+            "workspace-toolbar"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 1158.0,
+          "height": 44.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 200.0,
+          "computedPrefWidth": 616.0,
+          "minHeightProperty": 36.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 44.0,
+          "padding": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "insets": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "spacing": 10.0,
+          "alignment": "CENTER_LEFT"
+        },
+        {
+          "type": "Label",
+          "id": "statusLabel",
+          "styleClasses": [
+            "label",
+            "text-muted"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 0.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 18.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Label",
+          "id": "workflowLabel",
+          "styleClasses": [
+            "label",
+            "text-muted"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 12.099609375,
+          "computedPrefWidth": 416.923828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 18.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "1 · Đơn mới → 2 · Xác nhận đóng gói / chờ giao → 3 · Đang giao",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "VBox",
+          "id": "",
+          "styleClasses": [],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 77.0,
+          "width": 1158.0,
+          "height": 622.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 1042.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 514.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "spacing": 8.0,
+          "alignment": "TOP_LEFT"
+        },
+        {
+          "type": "TitledPane",
+          "id": "batchResultsPanel",
+          "styleClasses": [
+            "titled-pane"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 156.0,
+          "computedPrefWidth": 584.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 36.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Kết quả từng đơn",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "tabLabels": [
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 33.0,
+          "y": 94.0,
+          "width": 80.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 79.0537109375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Chờ nhận (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 137.0,
+          "y": 94.0,
+          "width": 71.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 70.8271484375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn mới (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 232.0,
+          "y": 94.0,
+          "width": 118.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 117.57763671875,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang giao hàng (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 374.0,
+          "y": 94.0,
+          "width": 94.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 93.158203125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đã bàn giao (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 492.0,
+          "y": 94.0,
+          "width": 101.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 100.79443359375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Kho KIZ / Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        }
+      ]
+    },
+    "WBrefreshLoading": {
+      "type": "ProgressIndicator",
+      "id": "refreshLoading",
+      "styleClasses": [
+        "progress-indicator"
+      ],
+      "visible": false,
+      "managed": true,
+      "x": 181.0,
+      "y": 25.0,
+      "width": 18.0,
+      "height": 36.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 18.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 18.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 18.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 18.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "OzonLoadingIndicator": {
+      "type": "ProgressIndicator",
+      "id": "loadingIndicator",
+      "styleClasses": [
+        "progress-indicator"
+      ],
+      "visible": false,
+      "managed": true,
+      "x": 181.0,
+      "y": 25.0,
+      "width": 18.0,
+      "height": 36.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 18.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 18.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 18.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 18.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "OzonLoadingHost": {
+      "type": "HBox",
+      "id": "",
+      "styleClasses": [
+        "workspace-toolbar"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 21.0,
+      "y": 21.0,
+      "width": 1158.0,
+      "height": 44.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": -1.0,
+      "computedMinWidth": 200.0,
+      "computedPrefWidth": 616.0,
+      "minHeightProperty": 36.0,
+      "prefHeightProperty": -1.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 44.0,
+      "padding": [
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "insets": [
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "spacing": 10.0,
+      "alignment": "CENTER_LEFT"
+    },
+    "busyRequested": false
+  },
+  "dark-busy": {
+    "WB": {
+      "root": {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [
+          "root",
+          "app-page",
+          "workspace-page",
+          "workspace-sheet",
+          "workspace-theme",
+          "liquid-glass",
+          "theme-dark"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1200.0,
+        "height": 720.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1010.0,
+        "minHeightProperty": 0.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 612.0,
+        "padding": [
+          20.0,
+          20.0,
+          20.0,
+          20.0
+        ],
+        "insets": [
+          21.0,
+          21.0,
+          21.0,
+          21.0
+        ],
+        "spacing": 12.0,
+        "alignment": "TOP_LEFT"
+      },
+      "header": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 21.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 98.0,
+        "computedPrefWidth": 348.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 10.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "title": {
+        "type": "Label",
+        "id": "titleLabel",
+        "styleClasses": [
+          "label",
+          "h2",
+          "page-title"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 31.0,
+        "width": 150.0,
+        "height": 25.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 20.0390625,
+        "computedPrefWidth": 149.23828125,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 25.0,
+        "computedPrefHeight": 25.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "Đóng hàng FBS",
+        "fontSize": 20.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Bold"
+      },
+      "refresh": {
+        "type": "Button",
+        "id": "refreshButton",
+        "styleClasses": [
+          "button"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 209.0,
+        "y": 26.0,
+        "width": 160.0,
+        "height": 34.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 54.2353515625,
+        "computedPrefWidth": 159.6826171875,
+        "minHeightProperty": 34.0,
+        "prefHeightProperty": 28.0,
+        "computedMinHeight": 34.0,
+        "computedPrefHeight": 28.0,
+        "padding": [
+          6.0,
+          11.0,
+          6.0,
+          11.0
+        ],
+        "insets": [
+          7.0,
+          12.0,
+          7.0,
+          12.0
+        ],
+        "text": "Cập nhật đơn hàng",
+        "fontSize": 13.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      "tabs": {
+        "type": "TabPane",
+        "id": "packingTabPane",
+        "styleClasses": [
+          "tab-pane",
+          "packing-tabs",
+          "workspace-tab-strip"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 622.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 514.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "tabHeader": {
+        "type": "TabHeaderArea",
+        "id": "",
+        "styleClasses": [
+          "tab-header-area"
+        ],
+        "visible": true,
+        "managed": false,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 62.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 38.0,
+        "computedPrefWidth": 363.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 44.0,
+        "computedPrefHeight": 62.0,
+        "padding": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      "search": {
+        "type": "TextField",
+        "id": "newOrderSearchField",
+        "styleClasses": [
+          "text-input",
+          "text-field"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 143.0,
+        "width": 320.0,
+        "height": 36.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": 320.0,
+        "computedMinWidth": 22.0,
+        "computedPrefWidth": 320.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": 32.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 32.0,
+        "padding": [
+          6.0,
+          10.0,
+          6.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          11.0,
+          7.0,
+          11.0
+        ]
+      },
+      "filterRow": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "filter-bar",
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 139.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 72.0,
+        "computedPrefWidth": 570.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 8.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "table": {
+        "type": "TableView",
+        "id": "newOrdersTable",
+        "styleClasses": [
+          "table-view",
+          "dense-data-list"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 191.0,
+        "width": 1158.0,
+        "height": 508.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 16.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 42.0,
+        "computedPrefHeight": 400.0,
+        "padding": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "insets": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "headerChildren": [
+        {
+          "type": "Label",
+          "id": "titleLabel",
+          "styleClasses": [
+            "label",
+            "h2",
+            "page-title"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 31.0,
+          "width": 150.0,
+          "height": 25.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 20.0390625,
+          "computedPrefWidth": 149.23828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 25.0,
+          "computedPrefHeight": 25.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đóng hàng FBS",
+          "fontSize": 20.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "ProgressIndicator",
+          "id": "refreshLoading",
+          "styleClasses": [
+            "progress-indicator"
+          ],
+          "visible": false,
+          "managed": true,
+          "x": 181.0,
+          "y": 25.0,
+          "width": 18.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": 18.0,
+          "computedMinWidth": 2.0,
+          "computedPrefWidth": 18.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": 18.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "refreshButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 209.0,
+          "y": 26.0,
+          "width": 160.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 54.2353515625,
+          "computedPrefWidth": 159.6826171875,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Cập nhật đơn hàng",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "rootChildren": [
+        {
+          "type": "HBox",
+          "id": "",
+          "styleClasses": [
+            "workspace-toolbar"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 1158.0,
+          "height": 44.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 98.0,
+          "computedPrefWidth": 348.0,
+          "minHeightProperty": 36.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 44.0,
+          "padding": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "insets": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "spacing": 10.0,
+          "alignment": "CENTER_LEFT"
+        },
+        {
+          "type": "TabPane",
+          "id": "packingTabPane",
+          "styleClasses": [
+            "tab-pane",
+            "packing-tabs",
+            "workspace-tab-strip"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 77.0,
+          "width": 1158.0,
+          "height": 622.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 968.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 514.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "tabLabels": [
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 33.0,
+          "y": 94.0,
+          "width": 53.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 52.3427734375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn mới",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 110.0,
+          "y": 94.0,
+          "width": 93.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 92.07275390625,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang đóng gói",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 227.0,
+          "y": 94.0,
+          "width": 65.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 64.06689453125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang giao",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 316.0,
+          "y": 94.0,
+          "width": 46.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 45.04931640625,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn nợ",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        }
+      ]
+    },
+    "Ozon": {
+      "root": {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [
+          "root",
+          "ozon-fbs-workspace",
+          "app-page",
+          "workspace-page",
+          "workspace-sheet",
+          "workspace-theme",
+          "liquid-glass",
+          "theme-dark"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1200.0,
+        "height": 720.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1084.0,
+        "minHeightProperty": 0.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 612.0,
+        "padding": [
+          20.0,
+          20.0,
+          20.0,
+          20.0
+        ],
+        "insets": [
+          21.0,
+          21.0,
+          21.0,
+          21.0
+        ],
+        "spacing": 12.0,
+        "alignment": "TOP_LEFT"
+      },
+      "header": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 21.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 200.0,
+        "computedPrefWidth": 616.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 10.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "title": {
+        "type": "Label",
+        "id": "titleLabel",
+        "styleClasses": [
+          "label",
+          "h2",
+          "page-title"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 31.0,
+        "width": 150.0,
+        "height": 25.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 20.0390625,
+        "computedPrefWidth": 149.23828125,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 25.0,
+        "computedPrefHeight": 25.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "Đóng hàng FBS",
+        "fontSize": 20.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Bold"
+      },
+      "refresh": {
+        "type": "Button",
+        "id": "refreshButton",
+        "styleClasses": [
+          "button"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 209.0,
+        "y": 26.0,
+        "width": 160.0,
+        "height": 34.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 54.2353515625,
+        "computedPrefWidth": 159.6826171875,
+        "minHeightProperty": 34.0,
+        "prefHeightProperty": 28.0,
+        "computedMinHeight": 34.0,
+        "computedPrefHeight": 28.0,
+        "padding": [
+          6.0,
+          11.0,
+          6.0,
+          11.0
+        ],
+        "insets": [
+          7.0,
+          12.0,
+          7.0,
+          12.0
+        ],
+        "text": "Cập nhật đơn hàng",
+        "fontSize": 13.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      "tabs": {
+        "type": "TabPane",
+        "id": "orderStatusTabs",
+        "styleClasses": [
+          "tab-pane",
+          "packing-tabs",
+          "workspace-tab-strip"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 622.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1042.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 514.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "tabHeader": {
+        "type": "TabHeaderArea",
+        "id": "",
+        "styleClasses": [
+          "tab-header-area"
+        ],
+        "visible": true,
+        "managed": false,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 62.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 38.0,
+        "computedPrefWidth": 594.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 44.0,
+        "computedPrefHeight": 62.0,
+        "padding": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      "search": {
+        "type": "TextField",
+        "id": "postingSearch",
+        "styleClasses": [
+          "text-input",
+          "text-field"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 143.0,
+        "width": 320.0,
+        "height": 36.0,
+        "minWidthProperty": 100.0,
+        "prefWidthProperty": 320.0,
+        "computedMinWidth": 100.0,
+        "computedPrefWidth": 320.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": 32.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 32.0,
+        "padding": [
+          6.0,
+          10.0,
+          6.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          11.0,
+          7.0,
+          11.0
+        ]
+      },
+      "filterRow": {
+        "type": "FlowPane",
+        "id": "postingFiltersBar",
+        "styleClasses": [
+          "filter-bar",
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 139.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 320.0,
+        "computedPrefWidth": 400.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ]
+      },
+      "table": {
+        "type": "TableView",
+        "id": "newOrdersTable",
+        "styleClasses": [
+          "table-view",
+          "dense-data-list"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 191.0,
+        "width": 1158.0,
+        "height": 508.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": 140.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 140.0,
+        "computedPrefHeight": 400.0,
+        "padding": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "insets": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "headerChildren": [
+        {
+          "type": "Label",
+          "id": "titleLabel",
+          "styleClasses": [
+            "label",
+            "h2",
+            "page-title"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 31.0,
+          "width": 150.0,
+          "height": 25.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 20.0390625,
+          "computedPrefWidth": 149.23828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 25.0,
+          "computedPrefHeight": 25.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đóng hàng FBS",
+          "fontSize": 20.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "ProgressIndicator",
+          "id": "loadingIndicator",
+          "styleClasses": [
+            "progress-indicator"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 181.0,
+          "y": 25.0,
+          "width": 18.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": 18.0,
+          "computedMinWidth": 2.0,
+          "computedPrefWidth": 18.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": 18.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "refreshButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 209.0,
+          "y": 26.0,
+          "width": 160.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 54.2353515625,
+          "computedPrefWidth": 159.6826171875,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Cập nhật đơn hàng",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Region",
+          "id": "",
+          "styleClasses": [],
+          "visible": true,
+          "managed": true,
+          "x": 379.0,
+          "y": 25.0,
+          "width": 542.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 0.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 0.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "cancelSelectionButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 82.89990234375,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Hủy chọn",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Button",
+          "id": "kizInventoryButton",
+          "styleClasses": [
+            "button",
+            "btn-secondary"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 931.0,
+          "y": 26.0,
+          "width": 122.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 121.98876953125,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Kho KIZ / Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Button",
+          "id": "ozonZnackRegistrationButton",
+          "styleClasses": [
+            "button",
+            "btn-secondary"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 1063.0,
+          "y": 26.0,
+          "width": 116.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 115.9775390625,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Đăng ký Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "rootChildren": [
+        {
+          "type": "HBox",
+          "id": "",
+          "styleClasses": [
+            "workspace-toolbar"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 1158.0,
+          "height": 44.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 200.0,
+          "computedPrefWidth": 616.0,
+          "minHeightProperty": 36.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 44.0,
+          "padding": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "insets": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "spacing": 10.0,
+          "alignment": "CENTER_LEFT"
+        },
+        {
+          "type": "Label",
+          "id": "statusLabel",
+          "styleClasses": [
+            "label",
+            "text-muted"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 0.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 18.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Label",
+          "id": "workflowLabel",
+          "styleClasses": [
+            "label",
+            "text-muted"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 12.099609375,
+          "computedPrefWidth": 416.923828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 18.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "1 · Đơn mới → 2 · Xác nhận đóng gói / chờ giao → 3 · Đang giao",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "VBox",
+          "id": "",
+          "styleClasses": [],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 77.0,
+          "width": 1158.0,
+          "height": 622.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 1042.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 514.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "spacing": 8.0,
+          "alignment": "TOP_LEFT"
+        },
+        {
+          "type": "TitledPane",
+          "id": "batchResultsPanel",
+          "styleClasses": [
+            "titled-pane"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 156.0,
+          "computedPrefWidth": 584.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 36.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Kết quả từng đơn",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "tabLabels": [
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 33.0,
+          "y": 94.0,
+          "width": 80.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 79.0537109375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Chờ nhận (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 137.0,
+          "y": 94.0,
+          "width": 71.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 70.8271484375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn mới (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 232.0,
+          "y": 94.0,
+          "width": 118.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 117.57763671875,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang giao hàng (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 374.0,
+          "y": 94.0,
+          "width": 94.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 93.158203125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đã bàn giao (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 492.0,
+          "y": 94.0,
+          "width": 101.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 100.79443359375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Kho KIZ / Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        }
+      ]
+    },
+    "WBrefreshLoading": {
+      "type": "ProgressIndicator",
+      "id": "refreshLoading",
+      "styleClasses": [
+        "progress-indicator"
+      ],
+      "visible": false,
+      "managed": true,
+      "x": 181.0,
+      "y": 25.0,
+      "width": 18.0,
+      "height": 36.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 18.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 18.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 18.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 18.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "OzonLoadingIndicator": {
+      "type": "ProgressIndicator",
+      "id": "loadingIndicator",
+      "styleClasses": [
+        "progress-indicator"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 181.0,
+      "y": 25.0,
+      "width": 18.0,
+      "height": 36.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 18.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 18.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 18.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 18.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "OzonLoadingHost": {
+      "type": "HBox",
+      "id": "",
+      "styleClasses": [
+        "workspace-toolbar"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 21.0,
+      "y": 21.0,
+      "width": 1158.0,
+      "height": 44.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": -1.0,
+      "computedMinWidth": 200.0,
+      "computedPrefWidth": 616.0,
+      "minHeightProperty": 36.0,
+      "prefHeightProperty": -1.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 44.0,
+      "padding": [
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "insets": [
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "spacing": 10.0,
+      "alignment": "CENTER_LEFT"
+    },
+    "busyRequested": true
+  },
+  "light": {
+    "WB": {
+      "root": {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [
+          "root",
+          "app-page",
+          "workspace-page",
+          "workspace-sheet",
+          "workspace-theme",
+          "liquid-glass",
+          "theme-light"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1200.0,
+        "height": 720.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1010.0,
+        "minHeightProperty": 0.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 612.0,
+        "padding": [
+          20.0,
+          20.0,
+          20.0,
+          20.0
+        ],
+        "insets": [
+          21.0,
+          21.0,
+          21.0,
+          21.0
+        ],
+        "spacing": 12.0,
+        "alignment": "TOP_LEFT"
+      },
+      "header": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 21.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 98.0,
+        "computedPrefWidth": 348.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 10.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "title": {
+        "type": "Label",
+        "id": "titleLabel",
+        "styleClasses": [
+          "label",
+          "h2",
+          "page-title"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 31.0,
+        "width": 150.0,
+        "height": 25.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 20.0390625,
+        "computedPrefWidth": 149.23828125,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 25.0,
+        "computedPrefHeight": 25.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "Đóng hàng FBS",
+        "fontSize": 20.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Bold"
+      },
+      "refresh": {
+        "type": "Button",
+        "id": "refreshButton",
+        "styleClasses": [
+          "button"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 209.0,
+        "y": 26.0,
+        "width": 160.0,
+        "height": 34.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 54.2353515625,
+        "computedPrefWidth": 159.6826171875,
+        "minHeightProperty": 34.0,
+        "prefHeightProperty": 28.0,
+        "computedMinHeight": 34.0,
+        "computedPrefHeight": 28.0,
+        "padding": [
+          6.0,
+          11.0,
+          6.0,
+          11.0
+        ],
+        "insets": [
+          7.0,
+          12.0,
+          7.0,
+          12.0
+        ],
+        "text": "Cập nhật đơn hàng",
+        "fontSize": 13.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      "tabs": {
+        "type": "TabPane",
+        "id": "packingTabPane",
+        "styleClasses": [
+          "tab-pane",
+          "packing-tabs",
+          "workspace-tab-strip"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 622.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 514.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "tabHeader": {
+        "type": "TabHeaderArea",
+        "id": "",
+        "styleClasses": [
+          "tab-header-area"
+        ],
+        "visible": true,
+        "managed": false,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 62.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 38.0,
+        "computedPrefWidth": 363.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 44.0,
+        "computedPrefHeight": 62.0,
+        "padding": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      "search": {
+        "type": "TextField",
+        "id": "newOrderSearchField",
+        "styleClasses": [
+          "text-input",
+          "text-field"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 143.0,
+        "width": 320.0,
+        "height": 36.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": 320.0,
+        "computedMinWidth": 22.0,
+        "computedPrefWidth": 320.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": 32.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 32.0,
+        "padding": [
+          6.0,
+          10.0,
+          6.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          11.0,
+          7.0,
+          11.0
+        ]
+      },
+      "filterRow": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "filter-bar",
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 139.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 72.0,
+        "computedPrefWidth": 570.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 8.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "table": {
+        "type": "TableView",
+        "id": "newOrdersTable",
+        "styleClasses": [
+          "table-view",
+          "dense-data-list"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 191.0,
+        "width": 1158.0,
+        "height": 508.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 16.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 42.0,
+        "computedPrefHeight": 400.0,
+        "padding": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "insets": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "headerChildren": [
+        {
+          "type": "Label",
+          "id": "titleLabel",
+          "styleClasses": [
+            "label",
+            "h2",
+            "page-title"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 31.0,
+          "width": 150.0,
+          "height": 25.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 20.0390625,
+          "computedPrefWidth": 149.23828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 25.0,
+          "computedPrefHeight": 25.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đóng hàng FBS",
+          "fontSize": 20.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "ProgressIndicator",
+          "id": "refreshLoading",
+          "styleClasses": [
+            "progress-indicator"
+          ],
+          "visible": false,
+          "managed": true,
+          "x": 181.0,
+          "y": 25.0,
+          "width": 18.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": 18.0,
+          "computedMinWidth": 2.0,
+          "computedPrefWidth": 18.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": 18.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "refreshButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 209.0,
+          "y": 26.0,
+          "width": 160.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 54.2353515625,
+          "computedPrefWidth": 159.6826171875,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Cập nhật đơn hàng",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "rootChildren": [
+        {
+          "type": "HBox",
+          "id": "",
+          "styleClasses": [
+            "workspace-toolbar"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 1158.0,
+          "height": 44.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 98.0,
+          "computedPrefWidth": 348.0,
+          "minHeightProperty": 36.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 44.0,
+          "padding": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "insets": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "spacing": 10.0,
+          "alignment": "CENTER_LEFT"
+        },
+        {
+          "type": "TabPane",
+          "id": "packingTabPane",
+          "styleClasses": [
+            "tab-pane",
+            "packing-tabs",
+            "workspace-tab-strip"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 77.0,
+          "width": 1158.0,
+          "height": 622.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 968.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 514.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "tabLabels": [
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 33.0,
+          "y": 94.0,
+          "width": 53.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 52.3427734375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn mới",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 110.0,
+          "y": 94.0,
+          "width": 93.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 92.07275390625,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang đóng gói",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 227.0,
+          "y": 94.0,
+          "width": 65.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 64.06689453125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang giao",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 316.0,
+          "y": 94.0,
+          "width": 46.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 45.04931640625,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn nợ",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        }
+      ]
+    },
+    "Ozon": {
+      "root": {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [
+          "root",
+          "ozon-fbs-workspace",
+          "app-page",
+          "workspace-page",
+          "workspace-sheet",
+          "workspace-theme",
+          "liquid-glass",
+          "theme-light"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1200.0,
+        "height": 720.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1084.0,
+        "minHeightProperty": 0.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 612.0,
+        "padding": [
+          20.0,
+          20.0,
+          20.0,
+          20.0
+        ],
+        "insets": [
+          21.0,
+          21.0,
+          21.0,
+          21.0
+        ],
+        "spacing": 12.0,
+        "alignment": "TOP_LEFT"
+      },
+      "header": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 21.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 200.0,
+        "computedPrefWidth": 616.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 10.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "title": {
+        "type": "Label",
+        "id": "titleLabel",
+        "styleClasses": [
+          "label",
+          "h2",
+          "page-title"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 31.0,
+        "width": 150.0,
+        "height": 25.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 20.0390625,
+        "computedPrefWidth": 149.23828125,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 25.0,
+        "computedPrefHeight": 25.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "Đóng hàng FBS",
+        "fontSize": 20.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Bold"
+      },
+      "refresh": {
+        "type": "Button",
+        "id": "refreshButton",
+        "styleClasses": [
+          "button"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 209.0,
+        "y": 26.0,
+        "width": 160.0,
+        "height": 34.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 54.2353515625,
+        "computedPrefWidth": 159.6826171875,
+        "minHeightProperty": 34.0,
+        "prefHeightProperty": 28.0,
+        "computedMinHeight": 34.0,
+        "computedPrefHeight": 28.0,
+        "padding": [
+          6.0,
+          11.0,
+          6.0,
+          11.0
+        ],
+        "insets": [
+          7.0,
+          12.0,
+          7.0,
+          12.0
+        ],
+        "text": "Cập nhật đơn hàng",
+        "fontSize": 13.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      "tabs": {
+        "type": "TabPane",
+        "id": "orderStatusTabs",
+        "styleClasses": [
+          "tab-pane",
+          "packing-tabs",
+          "workspace-tab-strip"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 622.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1042.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 514.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "tabHeader": {
+        "type": "TabHeaderArea",
+        "id": "",
+        "styleClasses": [
+          "tab-header-area"
+        ],
+        "visible": true,
+        "managed": false,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 62.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 38.0,
+        "computedPrefWidth": 594.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 44.0,
+        "computedPrefHeight": 62.0,
+        "padding": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      "search": {
+        "type": "TextField",
+        "id": "postingSearch",
+        "styleClasses": [
+          "text-input",
+          "text-field"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 143.0,
+        "width": 320.0,
+        "height": 36.0,
+        "minWidthProperty": 100.0,
+        "prefWidthProperty": 320.0,
+        "computedMinWidth": 100.0,
+        "computedPrefWidth": 320.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": 32.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 32.0,
+        "padding": [
+          6.0,
+          10.0,
+          6.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          11.0,
+          7.0,
+          11.0
+        ]
+      },
+      "filterRow": {
+        "type": "FlowPane",
+        "id": "postingFiltersBar",
+        "styleClasses": [
+          "filter-bar",
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 139.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 320.0,
+        "computedPrefWidth": 400.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ]
+      },
+      "table": {
+        "type": "TableView",
+        "id": "newOrdersTable",
+        "styleClasses": [
+          "table-view",
+          "dense-data-list"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 191.0,
+        "width": 1158.0,
+        "height": 508.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": 140.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 140.0,
+        "computedPrefHeight": 400.0,
+        "padding": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "insets": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "headerChildren": [
+        {
+          "type": "Label",
+          "id": "titleLabel",
+          "styleClasses": [
+            "label",
+            "h2",
+            "page-title"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 31.0,
+          "width": 150.0,
+          "height": 25.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 20.0390625,
+          "computedPrefWidth": 149.23828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 25.0,
+          "computedPrefHeight": 25.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đóng hàng FBS",
+          "fontSize": 20.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "ProgressIndicator",
+          "id": "loadingIndicator",
+          "styleClasses": [
+            "progress-indicator"
+          ],
+          "visible": false,
+          "managed": true,
+          "x": 181.0,
+          "y": 25.0,
+          "width": 18.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": 18.0,
+          "computedMinWidth": 2.0,
+          "computedPrefWidth": 18.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": 18.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "refreshButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 209.0,
+          "y": 26.0,
+          "width": 160.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 54.2353515625,
+          "computedPrefWidth": 159.6826171875,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Cập nhật đơn hàng",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Region",
+          "id": "",
+          "styleClasses": [],
+          "visible": true,
+          "managed": true,
+          "x": 379.0,
+          "y": 25.0,
+          "width": 542.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 0.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 0.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "cancelSelectionButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 82.89990234375,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Hủy chọn",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Button",
+          "id": "kizInventoryButton",
+          "styleClasses": [
+            "button",
+            "btn-secondary"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 931.0,
+          "y": 26.0,
+          "width": 122.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 121.98876953125,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Kho KIZ / Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Button",
+          "id": "ozonZnackRegistrationButton",
+          "styleClasses": [
+            "button",
+            "btn-secondary"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 1063.0,
+          "y": 26.0,
+          "width": 116.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 115.9775390625,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Đăng ký Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "rootChildren": [
+        {
+          "type": "HBox",
+          "id": "",
+          "styleClasses": [
+            "workspace-toolbar"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 1158.0,
+          "height": 44.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 200.0,
+          "computedPrefWidth": 616.0,
+          "minHeightProperty": 36.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 44.0,
+          "padding": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "insets": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "spacing": 10.0,
+          "alignment": "CENTER_LEFT"
+        },
+        {
+          "type": "Label",
+          "id": "statusLabel",
+          "styleClasses": [
+            "label",
+            "text-muted"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 0.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 18.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Label",
+          "id": "workflowLabel",
+          "styleClasses": [
+            "label",
+            "text-muted"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 12.099609375,
+          "computedPrefWidth": 416.923828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 18.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "1 · Đơn mới → 2 · Xác nhận đóng gói / chờ giao → 3 · Đang giao",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "VBox",
+          "id": "",
+          "styleClasses": [],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 77.0,
+          "width": 1158.0,
+          "height": 622.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 1042.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 514.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "spacing": 8.0,
+          "alignment": "TOP_LEFT"
+        },
+        {
+          "type": "TitledPane",
+          "id": "batchResultsPanel",
+          "styleClasses": [
+            "titled-pane"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 156.0,
+          "computedPrefWidth": 584.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 36.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Kết quả từng đơn",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "tabLabels": [
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 33.0,
+          "y": 94.0,
+          "width": 80.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 79.0537109375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Chờ nhận (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 137.0,
+          "y": 94.0,
+          "width": 71.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 70.8271484375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn mới (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 232.0,
+          "y": 94.0,
+          "width": 118.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 117.57763671875,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang giao hàng (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 374.0,
+          "y": 94.0,
+          "width": 94.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 93.158203125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đã bàn giao (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 492.0,
+          "y": 94.0,
+          "width": 101.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 100.79443359375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Kho KIZ / Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        }
+      ]
+    },
+    "WBrefreshLoading": {
+      "type": "ProgressIndicator",
+      "id": "refreshLoading",
+      "styleClasses": [
+        "progress-indicator"
+      ],
+      "visible": false,
+      "managed": true,
+      "x": 181.0,
+      "y": 25.0,
+      "width": 18.0,
+      "height": 36.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 18.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 18.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 18.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 18.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "OzonLoadingIndicator": {
+      "type": "ProgressIndicator",
+      "id": "loadingIndicator",
+      "styleClasses": [
+        "progress-indicator"
+      ],
+      "visible": false,
+      "managed": true,
+      "x": 181.0,
+      "y": 25.0,
+      "width": 18.0,
+      "height": 36.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 18.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 18.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 18.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 18.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "OzonLoadingHost": {
+      "type": "HBox",
+      "id": "",
+      "styleClasses": [
+        "workspace-toolbar"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 21.0,
+      "y": 21.0,
+      "width": 1158.0,
+      "height": 44.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": -1.0,
+      "computedMinWidth": 200.0,
+      "computedPrefWidth": 616.0,
+      "minHeightProperty": 36.0,
+      "prefHeightProperty": -1.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 44.0,
+      "padding": [
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "insets": [
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "spacing": 10.0,
+      "alignment": "CENTER_LEFT"
+    },
+    "busyRequested": false
+  },
+  "light-busy": {
+    "WB": {
+      "root": {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [
+          "root",
+          "app-page",
+          "workspace-page",
+          "workspace-sheet",
+          "workspace-theme",
+          "liquid-glass",
+          "theme-light"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1200.0,
+        "height": 720.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1010.0,
+        "minHeightProperty": 0.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 612.0,
+        "padding": [
+          20.0,
+          20.0,
+          20.0,
+          20.0
+        ],
+        "insets": [
+          21.0,
+          21.0,
+          21.0,
+          21.0
+        ],
+        "spacing": 12.0,
+        "alignment": "TOP_LEFT"
+      },
+      "header": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 21.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 98.0,
+        "computedPrefWidth": 348.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 10.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "title": {
+        "type": "Label",
+        "id": "titleLabel",
+        "styleClasses": [
+          "label",
+          "h2",
+          "page-title"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 31.0,
+        "width": 150.0,
+        "height": 25.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 20.0390625,
+        "computedPrefWidth": 149.23828125,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 25.0,
+        "computedPrefHeight": 25.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "Đóng hàng FBS",
+        "fontSize": 20.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Bold"
+      },
+      "refresh": {
+        "type": "Button",
+        "id": "refreshButton",
+        "styleClasses": [
+          "button"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 209.0,
+        "y": 26.0,
+        "width": 160.0,
+        "height": 34.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 54.2353515625,
+        "computedPrefWidth": 159.6826171875,
+        "minHeightProperty": 34.0,
+        "prefHeightProperty": 28.0,
+        "computedMinHeight": 34.0,
+        "computedPrefHeight": 28.0,
+        "padding": [
+          6.0,
+          11.0,
+          6.0,
+          11.0
+        ],
+        "insets": [
+          7.0,
+          12.0,
+          7.0,
+          12.0
+        ],
+        "text": "Cập nhật đơn hàng",
+        "fontSize": 13.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      "tabs": {
+        "type": "TabPane",
+        "id": "packingTabPane",
+        "styleClasses": [
+          "tab-pane",
+          "packing-tabs",
+          "workspace-tab-strip"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 622.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 514.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "tabHeader": {
+        "type": "TabHeaderArea",
+        "id": "",
+        "styleClasses": [
+          "tab-header-area"
+        ],
+        "visible": true,
+        "managed": false,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 62.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 38.0,
+        "computedPrefWidth": 363.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 44.0,
+        "computedPrefHeight": 62.0,
+        "padding": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      "search": {
+        "type": "TextField",
+        "id": "newOrderSearchField",
+        "styleClasses": [
+          "text-input",
+          "text-field"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 143.0,
+        "width": 320.0,
+        "height": 36.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": 320.0,
+        "computedMinWidth": 22.0,
+        "computedPrefWidth": 320.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": 32.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 32.0,
+        "padding": [
+          6.0,
+          10.0,
+          6.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          11.0,
+          7.0,
+          11.0
+        ]
+      },
+      "filterRow": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "filter-bar",
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 139.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 72.0,
+        "computedPrefWidth": 570.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 8.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "table": {
+        "type": "TableView",
+        "id": "newOrdersTable",
+        "styleClasses": [
+          "table-view",
+          "dense-data-list"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 191.0,
+        "width": 1158.0,
+        "height": 508.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 16.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 42.0,
+        "computedPrefHeight": 400.0,
+        "padding": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "insets": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "headerChildren": [
+        {
+          "type": "Label",
+          "id": "titleLabel",
+          "styleClasses": [
+            "label",
+            "h2",
+            "page-title"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 31.0,
+          "width": 150.0,
+          "height": 25.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 20.0390625,
+          "computedPrefWidth": 149.23828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 25.0,
+          "computedPrefHeight": 25.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đóng hàng FBS",
+          "fontSize": 20.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "ProgressIndicator",
+          "id": "refreshLoading",
+          "styleClasses": [
+            "progress-indicator"
+          ],
+          "visible": false,
+          "managed": true,
+          "x": 181.0,
+          "y": 25.0,
+          "width": 18.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": 18.0,
+          "computedMinWidth": 2.0,
+          "computedPrefWidth": 18.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": 18.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "refreshButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 209.0,
+          "y": 26.0,
+          "width": 160.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 54.2353515625,
+          "computedPrefWidth": 159.6826171875,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Cập nhật đơn hàng",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "rootChildren": [
+        {
+          "type": "HBox",
+          "id": "",
+          "styleClasses": [
+            "workspace-toolbar"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 1158.0,
+          "height": 44.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 98.0,
+          "computedPrefWidth": 348.0,
+          "minHeightProperty": 36.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 44.0,
+          "padding": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "insets": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "spacing": 10.0,
+          "alignment": "CENTER_LEFT"
+        },
+        {
+          "type": "TabPane",
+          "id": "packingTabPane",
+          "styleClasses": [
+            "tab-pane",
+            "packing-tabs",
+            "workspace-tab-strip"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 77.0,
+          "width": 1158.0,
+          "height": 622.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 968.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 514.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "tabLabels": [
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 33.0,
+          "y": 94.0,
+          "width": 53.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 52.3427734375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn mới",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 110.0,
+          "y": 94.0,
+          "width": 93.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 92.07275390625,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang đóng gói",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 227.0,
+          "y": 94.0,
+          "width": 65.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 64.06689453125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang giao",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 316.0,
+          "y": 94.0,
+          "width": 46.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 45.04931640625,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn nợ",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        }
+      ]
+    },
+    "Ozon": {
+      "root": {
+        "type": "VBox",
+        "id": "",
+        "styleClasses": [
+          "root",
+          "ozon-fbs-workspace",
+          "app-page",
+          "workspace-page",
+          "workspace-sheet",
+          "workspace-theme",
+          "liquid-glass",
+          "theme-light"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 0.0,
+        "y": 0.0,
+        "width": 1200.0,
+        "height": 720.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1084.0,
+        "minHeightProperty": 0.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 612.0,
+        "padding": [
+          20.0,
+          20.0,
+          20.0,
+          20.0
+        ],
+        "insets": [
+          21.0,
+          21.0,
+          21.0,
+          21.0
+        ],
+        "spacing": 12.0,
+        "alignment": "TOP_LEFT"
+      },
+      "header": {
+        "type": "HBox",
+        "id": "",
+        "styleClasses": [
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 21.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 200.0,
+        "computedPrefWidth": 616.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "spacing": 10.0,
+        "alignment": "CENTER_LEFT"
+      },
+      "title": {
+        "type": "Label",
+        "id": "titleLabel",
+        "styleClasses": [
+          "label",
+          "h2",
+          "page-title"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 31.0,
+        "width": 150.0,
+        "height": 25.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 20.0390625,
+        "computedPrefWidth": 149.23828125,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 25.0,
+        "computedPrefHeight": 25.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "text": "Đóng hàng FBS",
+        "fontSize": 20.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Bold"
+      },
+      "refresh": {
+        "type": "Button",
+        "id": "refreshButton",
+        "styleClasses": [
+          "button"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 209.0,
+        "y": 26.0,
+        "width": 160.0,
+        "height": 34.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 54.2353515625,
+        "computedPrefWidth": 159.6826171875,
+        "minHeightProperty": 34.0,
+        "prefHeightProperty": 28.0,
+        "computedMinHeight": 34.0,
+        "computedPrefHeight": 28.0,
+        "padding": [
+          6.0,
+          11.0,
+          6.0,
+          11.0
+        ],
+        "insets": [
+          7.0,
+          12.0,
+          7.0,
+          12.0
+        ],
+        "text": "Cập nhật đơn hàng",
+        "fontSize": 13.0,
+        "fontFamily": "Inter",
+        "fontStyle": "Regular"
+      },
+      "tabs": {
+        "type": "TabPane",
+        "id": "orderStatusTabs",
+        "styleClasses": [
+          "tab-pane",
+          "packing-tabs",
+          "workspace-tab-strip"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 622.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 1042.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 0.0,
+        "computedPrefHeight": 514.0,
+        "padding": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "tabHeader": {
+        "type": "TabHeaderArea",
+        "id": "",
+        "styleClasses": [
+          "tab-header-area"
+        ],
+        "visible": true,
+        "managed": false,
+        "x": 21.0,
+        "y": 77.0,
+        "width": 1158.0,
+        "height": 62.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 38.0,
+        "computedPrefWidth": 594.0,
+        "minHeightProperty": -1.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 44.0,
+        "computedPrefHeight": 62.0,
+        "padding": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "insets": [
+          0.0,
+          0.0,
+          10.0,
+          0.0
+        ],
+        "alignment": "CENTER"
+      },
+      "search": {
+        "type": "TextField",
+        "id": "postingSearch",
+        "styleClasses": [
+          "text-input",
+          "text-field"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 143.0,
+        "width": 320.0,
+        "height": 36.0,
+        "minWidthProperty": 100.0,
+        "prefWidthProperty": 320.0,
+        "computedMinWidth": 100.0,
+        "computedPrefWidth": 320.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": 32.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 32.0,
+        "padding": [
+          6.0,
+          10.0,
+          6.0,
+          10.0
+        ],
+        "insets": [
+          7.0,
+          11.0,
+          7.0,
+          11.0
+        ]
+      },
+      "filterRow": {
+        "type": "FlowPane",
+        "id": "postingFiltersBar",
+        "styleClasses": [
+          "filter-bar",
+          "workspace-toolbar"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 139.0,
+        "width": 1158.0,
+        "height": 44.0,
+        "minWidthProperty": -1.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 320.0,
+        "computedPrefWidth": 400.0,
+        "minHeightProperty": 36.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 36.0,
+        "computedPrefHeight": 44.0,
+        "padding": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ],
+        "insets": [
+          4.0,
+          0.0,
+          4.0,
+          0.0
+        ]
+      },
+      "table": {
+        "type": "TableView",
+        "id": "newOrdersTable",
+        "styleClasses": [
+          "table-view",
+          "dense-data-list"
+        ],
+        "visible": true,
+        "managed": true,
+        "x": 21.0,
+        "y": 191.0,
+        "width": 1158.0,
+        "height": 508.0,
+        "minWidthProperty": 0.0,
+        "prefWidthProperty": -1.0,
+        "computedMinWidth": 0.0,
+        "computedPrefWidth": 968.0,
+        "minHeightProperty": 140.0,
+        "prefHeightProperty": -1.0,
+        "computedMinHeight": 140.0,
+        "computedPrefHeight": 400.0,
+        "padding": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "insets": [
+          2.0,
+          2.0,
+          2.0,
+          2.0
+        ]
+      },
+      "headerChildren": [
+        {
+          "type": "Label",
+          "id": "titleLabel",
+          "styleClasses": [
+            "label",
+            "h2",
+            "page-title"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 31.0,
+          "width": 150.0,
+          "height": 25.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 20.0390625,
+          "computedPrefWidth": 149.23828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 25.0,
+          "computedPrefHeight": 25.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đóng hàng FBS",
+          "fontSize": 20.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "ProgressIndicator",
+          "id": "loadingIndicator",
+          "styleClasses": [
+            "progress-indicator"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 181.0,
+          "y": 25.0,
+          "width": 18.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": 18.0,
+          "computedMinWidth": 2.0,
+          "computedPrefWidth": 18.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": 18.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "refreshButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 209.0,
+          "y": 26.0,
+          "width": 160.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 54.2353515625,
+          "computedPrefWidth": 159.6826171875,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Cập nhật đơn hàng",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Region",
+          "id": "",
+          "styleClasses": [],
+          "visible": true,
+          "managed": true,
+          "x": 379.0,
+          "y": 25.0,
+          "width": 542.0,
+          "height": 36.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 0.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 0.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "type": "Button",
+          "id": "cancelSelectionButton",
+          "styleClasses": [
+            "button"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 82.89990234375,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Hủy chọn",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Button",
+          "id": "kizInventoryButton",
+          "styleClasses": [
+            "button",
+            "btn-secondary"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 931.0,
+          "y": 26.0,
+          "width": 122.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 121.98876953125,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Kho KIZ / Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Button",
+          "id": "ozonZnackRegistrationButton",
+          "styleClasses": [
+            "button",
+            "btn-secondary"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 1063.0,
+          "y": 26.0,
+          "width": 116.0,
+          "height": 34.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 35.2353515625,
+          "computedPrefWidth": 115.9775390625,
+          "minHeightProperty": 34.0,
+          "prefHeightProperty": 28.0,
+          "computedMinHeight": 34.0,
+          "computedPrefHeight": 28.0,
+          "padding": [
+            6.0,
+            11.0,
+            6.0,
+            11.0
+          ],
+          "insets": [
+            7.0,
+            12.0,
+            7.0,
+            12.0
+          ],
+          "text": "Đăng ký Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "rootChildren": [
+        {
+          "type": "HBox",
+          "id": "",
+          "styleClasses": [
+            "workspace-toolbar"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 21.0,
+          "width": 1158.0,
+          "height": 44.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 200.0,
+          "computedPrefWidth": 616.0,
+          "minHeightProperty": 36.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 44.0,
+          "padding": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "insets": [
+            4.0,
+            0.0,
+            4.0,
+            0.0
+          ],
+          "spacing": 10.0,
+          "alignment": "CENTER_LEFT"
+        },
+        {
+          "type": "Label",
+          "id": "statusLabel",
+          "styleClasses": [
+            "label",
+            "text-muted"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 0.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 18.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "Label",
+          "id": "workflowLabel",
+          "styleClasses": [
+            "label",
+            "text-muted"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 12.099609375,
+          "computedPrefWidth": 416.923828125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 18.0,
+          "computedPrefHeight": 18.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "1 · Đơn mới → 2 · Xác nhận đóng gói / chờ giao → 3 · Đang giao",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        },
+        {
+          "type": "VBox",
+          "id": "",
+          "styleClasses": [],
+          "visible": true,
+          "managed": true,
+          "x": 21.0,
+          "y": 77.0,
+          "width": 1158.0,
+          "height": 622.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 0.0,
+          "computedPrefWidth": 1042.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 0.0,
+          "computedPrefHeight": 514.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "spacing": 8.0,
+          "alignment": "TOP_LEFT"
+        },
+        {
+          "type": "TitledPane",
+          "id": "batchResultsPanel",
+          "styleClasses": [
+            "titled-pane"
+          ],
+          "visible": false,
+          "managed": false,
+          "x": 0.0,
+          "y": 0.0,
+          "width": 0.0,
+          "height": 0.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 156.0,
+          "computedPrefWidth": 584.0,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 36.0,
+          "computedPrefHeight": 36.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Kết quả từng đơn",
+          "fontSize": 14.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Regular"
+        }
+      ],
+      "tabLabels": [
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 33.0,
+          "y": 94.0,
+          "width": 80.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 79.0537109375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Chờ nhận (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 137.0,
+          "y": 94.0,
+          "width": 71.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 70.8271484375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đơn mới (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 232.0,
+          "y": 94.0,
+          "width": 118.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 117.57763671875,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đang giao hàng (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 374.0,
+          "y": 94.0,
+          "width": 94.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 93.158203125,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Đã bàn giao (1)",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        },
+        {
+          "type": "Label",
+          "id": "",
+          "styleClasses": [
+            "tab-label"
+          ],
+          "visible": true,
+          "managed": true,
+          "x": 492.0,
+          "y": 94.0,
+          "width": 101.0,
+          "height": 16.0,
+          "minWidthProperty": -1.0,
+          "prefWidthProperty": -1.0,
+          "computedMinWidth": 13.025390625,
+          "computedPrefWidth": 100.79443359375,
+          "minHeightProperty": -1.0,
+          "prefHeightProperty": -1.0,
+          "computedMinHeight": 16.0,
+          "computedPrefHeight": 16.0,
+          "padding": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "insets": [
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "text": "Kho KIZ / Znack",
+          "fontSize": 13.0,
+          "fontFamily": "Inter",
+          "fontStyle": "Bold"
+        }
+      ]
+    },
+    "WBrefreshLoading": {
+      "type": "ProgressIndicator",
+      "id": "refreshLoading",
+      "styleClasses": [
+        "progress-indicator"
+      ],
+      "visible": false,
+      "managed": true,
+      "x": 181.0,
+      "y": 25.0,
+      "width": 18.0,
+      "height": 36.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 18.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 18.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 18.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 18.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "OzonLoadingIndicator": {
+      "type": "ProgressIndicator",
+      "id": "loadingIndicator",
+      "styleClasses": [
+        "progress-indicator"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 181.0,
+      "y": 25.0,
+      "width": 18.0,
+      "height": 36.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": 18.0,
+      "computedMinWidth": 2.0,
+      "computedPrefWidth": 18.0,
+      "minHeightProperty": -1.0,
+      "prefHeightProperty": 18.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 18.0,
+      "padding": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "insets": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "OzonLoadingHost": {
+      "type": "HBox",
+      "id": "",
+      "styleClasses": [
+        "workspace-toolbar"
+      ],
+      "visible": true,
+      "managed": true,
+      "x": 21.0,
+      "y": 21.0,
+      "width": 1158.0,
+      "height": 44.0,
+      "minWidthProperty": -1.0,
+      "prefWidthProperty": -1.0,
+      "computedMinWidth": 200.0,
+      "computedPrefWidth": 616.0,
+      "minHeightProperty": 36.0,
+      "prefHeightProperty": -1.0,
+      "computedMinHeight": 36.0,
+      "computedPrefHeight": 44.0,
+      "padding": [
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "insets": [
+        4.0,
+        0.0,
+        4.0,
+        0.0
+      ],
+      "spacing": 10.0,
+      "alignment": "CENTER_LEFT"
+    },
+    "busyRequested": true
+  }
+}

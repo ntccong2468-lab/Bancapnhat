@@ -1,0 +1,85 @@
+{
+  "status": "BOUNDED_PASS",
+  "createdAtUtc": "2026-11-16T11:45:42.648250+00:00",
+  "sourceManifest": "/workspace/ozon-znack-orders-20261116/contract-final/source-manifest.json",
+  "sourceSnapshotFiles": 3750,
+  "preTaskFilesMissing": [],
+  "allExistingTestFilesPreserved": true,
+  "wbProductionFilesModified": [],
+  "purchaseOwnerHashMismatch": [],
+  "purchaseInputsChangedDuringIndependentRun": [],
+  "counts": {
+    "tests": 55,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "name": "com.vncode.app.features.kiz.KizPurchaseAvailabilityPolicyTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "4d5d99c306723f4bac7da66731ba4db465fcf93dd23beae8990e94f2e1400c95"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonIndependentTerminalTicketContractTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "e9ba8a85b3dfd0da1bffa0487388bfeec7446552a7430fb0dfd2506cd476f7d1"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPurchasedKizReplacementTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "8b1e5d1fb6685080cd57a702c27edbe362341a9dbcad0dabf41d979dd3fc1459"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPurchasedPrintAssignmentTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "f5908eaa70194816b899922bc0609b40eee233cf70b9543b3535a5e2cff63639"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPurchasedStockPolicyTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "c895ca28af9d346f234a5ea07ae875db12b18ca749c505443b4665b382d89013"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonRejectedPurchasedDemandTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "19c6db6f8bcde2cdd83b335f45064dd12f523e986a8aed7f1805e06817590452"
+    }
+  ],
+  "externalOnlyAdditionalTest": {
+    "path": "src/test/java/com/vncode/app/integration/ozon/OzonIndependentTerminalTicketContractTest.java",
+    "sha256": "22a59f9ab551f4d6ccc7bbea358be24f5f77ea4476e3825a91154abb77eaacee",
+    "targetModified": false,
+    "coverage": "ACCEPTED/CONSUMED paid job with PREPARED/SENDING/AWAITING ticket and exact pending Ozon status remains read-only"
+  },
+  "realApiCalls": false,
+  "paidPurchases": false,
+  "signing": false,
+  "targetEditsByReviewer": false,
+  "limitations": [
+    "Synthetic SQLite/localhost contracts, not live Ozon/Catalog/SUZ commercial acceptance",
+    "No native Windows/CryptoPro proof",
+    "No guarantee all future Ozon states or unrelated functionality are bug-free"
+  ],
+  "remainingConcreteBlockers": [],
+  "allOriginalSnapshotInputsChangedDuringRun": [],
+  "registrationOwnerHashMismatch": []
+}

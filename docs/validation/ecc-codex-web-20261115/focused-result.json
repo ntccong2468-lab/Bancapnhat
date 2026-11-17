@@ -1,0 +1,264 @@
+{
+  "status": "PASS",
+  "sourceBaseCommit": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "sourceScope": "Current working tree frozen copy including two approved cosmetic Znack UI changes; not a pure baseSHA result.",
+  "buildInputManifest": "current-source-copy-manifest.json",
+  "buildInputCount": 1424,
+  "currentOriginalBuildInputDriftAfterSummary": [],
+  "process": {
+    "exitCode": 0,
+    "elapsedSeconds": 291.673,
+    "finishedAtUtc": "2026-11-15T18:41:00.172933+00:00",
+    "changedCurrentBuildInputsDuringRun": [],
+    "changedFrozenCopyBuildInputsDuringRun": []
+  },
+  "suites": 23,
+  "counts": {
+    "tests": 280,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "passed": 280
+  },
+  "nonPassingCases": [],
+  "jar": {
+    "generatedManifest": {
+      "status": "PASS",
+      "reason": "Maven JAR Plugin3.4.1 generates archive manifest per pom.xml archive.manifest configuration; source manifest has onlyVersion/Main-Class and is not a byte-identical packaged input. All nonmanifest entries compared byte-for-byte.",
+      "mainClass": "com.vncode.app.Launcher",
+      "buildJdkSpec": "25",
+      "classPathEntries": 74,
+      "runtimeJarCount": 74,
+      "unsafeEntries": [],
+      "missingRuntimeJars": [],
+      "exactClassPathCoverage": true,
+      "testFixturesInClassPath": false
+    },
+    "file": "VNcode-1.6.10.jar",
+    "bytes": 7774115,
+    "sha256": "4a1b13a71bef839b9eccb1970003d90b0301e56b839aac5e4d4097a6f866355c",
+    "jarEntries": 2158,
+    "compiledEntriesCompared": 2067,
+    "generatedManifestEntriesValidatedSeparately": 1,
+    "compiledEntryMismatches": [],
+    "testFixtureEntries": [],
+    "generatedMavenMetadataEntries": [
+      "META-INF/maven/com.vncode/VNcode/pom.properties",
+      "META-INF/maven/com.vncode/VNcode/pom.xml"
+    ],
+    "unexpectedFileEntries": [],
+    "unexpectedClassEntries": [],
+    "packagedPomMatchesFrozenSource": true
+  },
+  "suiteDetails": [
+    {
+      "name": "com.vncode.app.shared.ThemeServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "2.261",
+      "xmlSha256": "706a8bc31a391f8514041cc4928f33d9404a3d1a220e694d350ec103068ece27"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceAllSurfaceGlassTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "3.927",
+      "xmlSha256": "f01c1da462521407980e974dda0bfe237fd30cd073ead51ad72876910ea1436e"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceBackdropMaterialTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "2.139",
+      "xmlSha256": "1179fa95c17cecef819b51b1b9231a9d80cf6631ddd9c3ac135a36282a847142"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceDialogChromeTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "1.344",
+      "xmlSha256": "2d36e80b584ca46dc952ac7562ddf525600793cabcdcb8ac07b4326cab4bdaca"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceGlobalMotionContractTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "0.357",
+      "xmlSha256": "612981b286a0bbec4e99363ff4b7667d723de82ab61e8e8ed3c89931ae258379"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceInteractionMotionTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "1.858",
+      "xmlSha256": "a51ffeee830d5754e19f6c4a05de2598a7353954621551acef67b3bb0ae6e021"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceMaterialRenderingTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "4.962",
+      "xmlSha256": "e2d62761f6e83f7a63f2f595fb8cca930393a53f10cbf1e0b588974c59e840c4"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceMotionBoundaryTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "0.582",
+      "xmlSha256": "8ffbde34d053a6b351b41bb0f15938aaff7b4a56116b72b249058f04fcc47207"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceRoundedControlClipTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "2.035",
+      "xmlSha256": "085f8244cc09d7f9f33f46c4accb7bb07cbbbe841ae8955b6a534b347cfec262"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceRouteContinuityTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "1.371",
+      "xmlSha256": "0ced3b4ecf6eabcf2e3a44cd4a1b6d59b40f87eb495e44ec5273ec9edbf1fbe9"
+    },
+    {
+      "name": "com.vncode.app.ui.FxmlSmokeTest",
+      "tests": 58,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "19.913",
+      "xmlSha256": "f7f8ab33311cabd5a8f1e88b6bc6642d57bd123ff4b8ef0817571f23d86bdd15"
+    },
+    {
+      "name": "com.vncode.app.ui.ReferenceThemeAccessibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "0.131",
+      "xmlSha256": "271b4df61da791601ae02179318081d19713543eea34325e066b40393de2d2de"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceChromeUiTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "8.514",
+      "xmlSha256": "5842d5593b3e6c4bbb095f126c7b9a9a3ed107be277a58900ba18bedbd355f51"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceJavaPagesLayoutTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "58.636",
+      "xmlSha256": "e0c9da27a922c1e59254a1f7ec5dbfcf1036ce7116996565157487149c7d03be"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceListAreaTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "16.957",
+      "xmlSha256": "4f7f9ef350e86d250e751897b42721c8e67e62a17af0586377cedb7d2b40571e"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceNavigationContextTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "0.353",
+      "xmlSha256": "d3517956135641c143bc84a14837315d1378cf370430f4d05b1d80a9f7122451"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceNavigationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "4.02",
+      "xmlSha256": "a43595cc93c15f27b5d3f8c07b912c529ff1ea352a7d42eee7666f0fd26f1d29"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspacePagesLayoutTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "89.97",
+      "xmlSha256": "80b1f24022baa592948c0890f601ca16e74862094593328c8a458e4c9cf4a039"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.GtinBackgroundStatusTest",
+      "tests": 16,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "1.956",
+      "xmlSha256": "a2aa53ef15459f97ae1f1365e41918aebd98ef613854b1d70fb98dd5754c25b3"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.OzonRegistrationPaneTest",
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "18.355",
+      "xmlSha256": "750eef824c1f3767d61f0631cdc661a8340f726e43117ab2c88d4fdf83a0f416"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.RegistrationSyncReportDialogTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "3.364",
+      "xmlSha256": "dd59d75ceda679a60fbcda8bed1ae0a973eeb98c7ee1b4a76d6799b2bdc98680"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.RegistrationTableTextTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "0.005",
+      "xmlSha256": "5412afee24c3ba5b8268ce8aceaf9bc2f36811831dd5c5b7c79ebe083b33f723"
+    },
+    {
+      "name": "com.vncode.app.ui.znackregistration.ZnackCardRegistrationControllerTest",
+      "tests": 44,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": "23.509",
+      "xmlSha256": "f204065f29a1ed9708badf9ff5f5bb6a49c39e851cd41afb09c3ebf25807228c"
+    }
+  ],
+  "scope": "Focused JavaFX/controller/layout/theme/motion checks on Linux/Xvfb using real widgets and synthetic services; fresh compile and local Jar package. Not Windows/CryptoPro/live seller acceptance.",
+  "finishedAtUtc": "2026-11-15T18:43:14.329112+00:00"
+}

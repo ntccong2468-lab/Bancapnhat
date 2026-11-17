@@ -1,0 +1,48 @@
+{
+  "status": "PASS",
+  "commands": [
+    {
+      "phase": "compile",
+      "exitCode": 0,
+      "elapsedSeconds": 1.3236854110000422,
+      "timeout": false
+    },
+    {
+      "phase": "actualLauncher",
+      "exitCode": 0,
+      "elapsedSeconds": 8.122419571000137,
+      "timeout": false
+    }
+  ],
+  "harnessResult": {
+    "liveSellerMutations": false,
+    "syntheticLicense": true,
+    "outboundNetworkBlocked": true,
+    "actualEntrypoint": "com.vncode.app.Launcher.main",
+    "workspaceVisible": true,
+    "width": 1300,
+    "height": 700,
+    "startupToWorkspaceSeconds": 6.03547408,
+    "launcherReturned": true,
+    "elapsedSeconds": 6.307240197,
+    "startupFailureLogCreated": false,
+    "dataLockReleasedAfterShutdown": true,
+    "result": "PASS"
+  },
+  "database": {
+    "status": "PASS",
+    "integrityCheck": [
+      "ok"
+    ],
+    "foreignKeyViolations": 0,
+    "schemaVersion": 6,
+    "shopCount": 0
+  },
+  "jarSha256": "6a60df306c99179a87230d6878d2d551da6746ea4af33e79159fd6156c76178f",
+  "jarFirst": true,
+  "oldClassesAbsent": true,
+  "sourceBuildInputsChanged": [],
+  "copyBuildInputsChanged": [],
+  "finishedAtUtc": "2026-11-16T12:42:40.293379+00:00",
+  "scope": "Actual production Launcher/JAR, Linux/Xvfb, synthetic license, outbound denied, zero shops. Not native Windows/live seller acceptance."
+}

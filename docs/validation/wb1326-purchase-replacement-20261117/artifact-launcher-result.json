@@ -1,0 +1,73 @@
+{
+  "status": "PASS",
+  "scope": "Actual production JAR Launcher under Linux/Xvfb, unchanged external smoke harness, synthetic license, zero shops, HTTP proxy denies outbound. Not Windows/live seller/paid signing acceptance.",
+  "jarSha256": "f9d623f91e1dcf9e567c82ddc0067a722cc216530ee52b4fb9cb94c8a61926b9",
+  "jarFirst": true,
+  "actualProductionOrigins": {
+    "com.vncode.app.Launcher": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+    "com.vncode.app.MainApplication": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+    "com.vncode.app.config.Database": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+    "com.vncode.app.integration.znack.ZnackPurchaseBatchStore": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+    "com.vncode.app.integration.znack.ZnackPurchaseCoordinator": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/VNcode-1.6.10.jar",
+    "externalSyntheticLicenseFixture": "file:/workspace/kiz-wb1326-replacement-20261117/integration/final-build/source-copy/target/test-classes/"
+  },
+  "harness": {
+    "liveSellerMutations": false,
+    "syntheticLicense": true,
+    "outboundNetworkBlocked": true,
+    "actualEntrypoint": "com.vncode.app.Launcher.main",
+    "workspaceVisible": true,
+    "width": 1300,
+    "height": 700,
+    "startupToWorkspaceSeconds": 6.184349299,
+    "launcherReturned": true,
+    "elapsedSeconds": 6.769105804,
+    "startupFailureLogCreated": false,
+    "dataLockReleasedAfterShutdown": true,
+    "result": "PASS"
+  },
+  "database": {
+    "schemaVersion": 7,
+    "integrityCheck": [
+      [
+        "ok"
+      ]
+    ],
+    "foreignKeyErrors": [],
+    "shopCount": 0
+  },
+  "writerMarkerSchema7": true,
+  "screenshot": "/workspace/kiz-wb1326-replacement-20261117/persistence/final-artifact/actual-launcher-smoke/actual-launcher-workspace.png",
+  "screenshotSha256": "47fd385faa32581dba7bd50816b42713b0f87aa5d7309fddbf3235a7a1cbaec0",
+  "unchangedHarnessSha256": "5f21151ddaf521f9faee0c3099def0970b1166aa09c36ad999b78b07101a5683",
+  "processes": [
+    {
+      "phase": "compile",
+      "exitCode": 0,
+      "seconds": 1.4265652109997973,
+      "timeout": false
+    },
+    {
+      "phase": "actualLauncher",
+      "exitCode": 0,
+      "seconds": 8.256328960999781,
+      "timeout": false
+    }
+  ],
+  "jarIntegrityReceipt": "JAR-INTEGRITY.json",
+  "finishedUtc": "2026-11-17T14:25:16.838289+00:00",
+  "affectedConsumerCandidateProductionParity": {
+    "status": "PASS",
+    "mainSourceAndResourceCount": 820,
+    "compiledMainEntryCount": 2119,
+    "sourceDifferences": [],
+    "compiledMainDifferences": [],
+    "pomByteEqual": true,
+    "scope": "Final JAR production inputs and compiled outputs exactly match previous current-final affected-consumer candidate; test fixture-only adaptations do not change production."
+  },
+  "expectedRuntimeWarnings": [
+    "Denied updater HTTP proxy connection127.0.0.1:1",
+    "Linux read-only font/dconf/shader cache warnings"
+  ],
+  "workspaceScreenshotVisuallyInspected": true
+}

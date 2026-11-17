@@ -36,8 +36,8 @@ class OzonFbsUiTest {
                 fx(()->{((TabPane)loader.getNamespace().get("orderStatusTabs")).getSelectionModel().select((Tab)loader.getNamespace().get(prefix.equals("new")?"newOrdersTab":prefix+"OrdersTab"));return null;});
                 var rendered=new CompletableFuture<Void>();fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==3){stop();rendered.complete(null);}}}.start();return null;});rendered.get(5,TimeUnit.SECONDS);
                 fx(()->{
-                    var table=(TableView<?>)loader.getNamespace().get(prefix+"OrdersTable");table.applyCss();table.layout();assertTrue(table.getStyleClass().contains("supply-orders"));
-                    var columns=table.getVisibleLeafColumns();assertTrue(columns.stream().anyMatch(c->"ozonRowNumber".equals(c.getId())));assertTrue(columns.stream().anyMatch(c->"ozonBarcodes".equals(c.getId())));
+                    var table=(TableView<?>)loader.getNamespace().get(prefix+"OrdersTable");table.applyCss();table.layout();assertTrue(table.getStyleClass().contains("dense-data-list"));assertFalse(table.getStyleClass().contains("supply-orders"));
+                    var columns=table.getVisibleLeafColumns();assertEquals(5,columns.size());assertTrue(columns.stream().noneMatch(c->"ozonRowNumber".equals(c.getId())||"ozonBarcodes".equals(c.getId())));
                     var labels=table.lookupAll(".label").stream().filter(node->node instanceof Label).map(node->((Label)node).getText()).toList();
                     for(String value:List.of("90000000-0001-1","25.10.2026","OZN1000001","04631993764370","KN3"))assertTrue(labels.stream().anyMatch(text->text.contains(value)),prefix+" missing "+value);
                     assertTrue(((Button)loader.getNamespace().get("printAllButton")).isVisible()==prefix.equals("packing"));return null;
@@ -78,7 +78,8 @@ class OzonFbsUiTest {
                         }
                         var paging = (Button) loader.getNamespace().get("nextPageButton");
                         var table = (TableView<?>) loader.getNamespace().get(tab.equals("newOrdersTab") ? "newOrdersTable" : tab.equals("packingOrdersTab") ? "packingOrdersTable" : tab.equals("printedOrdersTab") ? "printedOrdersTable" : "deliveringOrdersTable");
-                        assertTrue(paging.localToScene(paging.getBoundsInLocal()).getMinY() >= table.localToScene(table.getBoundsInLocal()).getMaxY(), "Paging stays in the footer without covering the active table");
+                        assertTrue(paging.localToScene(paging.getBoundsInLocal()).getMaxY() <= table.localToScene(table.getBoundsInLocal()).getMinY(), "Paging stays in the filter toolbar without covering the active table");
+                        assertTrue(table.getHeight() >= 250, "Order list keeps usable height at the smallest supported window");
                         return null;
                     });
         } finally {

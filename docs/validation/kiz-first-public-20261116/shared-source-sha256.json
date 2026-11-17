@@ -1,0 +1,24 @@
+{
+  "status": "SOURCE_FROZEN; ownGREEN51/51+35/35 and independentWAL36/36 passed",
+  "capturedAtUtc": "2026-11-16T12:26:55.337422+00:00",
+  "files": {
+    "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java": "f060ad4062c4e93e2cc27139d9031d4090ebea8bb73e504854a58c21142de6c5",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "ef3fa2cbcb01afd9b5c49ddebb346e03a1b71f1b9c1ac24505a8c900e96ba8d6",
+    "src/main/java/com/vncode/app/shared/FriendlyErrorService.java": "84a0721f05b3c889792955f2254be9be3f425e5c3fb402f1ba29a39789b4a02c",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "cc9a5513f3df290be32d8b561d20cf9bff350bcc29031cb3aaa05d575bdfe13b",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "dfbcd52a1fc1213d8bdf84c5eaf1098ab363aa07d1348e3f09ba29a46281bb03",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "28b2e071ac81e81a26ae4640cdbb37f87cfac5c1cf1f8101f69ce7f0806e4f9b",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "b88bcdd783c4afdc9de2383e4c68a763d1291e6b67500d826d184ab71766a9c7",
+    "src/test/java/com/vncode/app/integration/znack/ZnackNormalDownloadIdentityTest.java": "9508ef943956ec2e10bfb4606023b9a659ddbb19da6d66ac73e2bf2ac4842e3b",
+    "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java": "33a9679485e001cf100cd03063c12e27bc7a60ea845bce2f25df97b221152b2a",
+    "src/test/java/com/vncode/app/integration/znack/ZnackDownloadRecoveryMessagesTest.java": "1c9dc6701613d7e520168d254e6c7a5055171dc4900cd6f7021807d7d623a7e1"
+  },
+  "ownedProductionFiles": 8,
+  "newTestFiles": 3,
+  "existingTestsChanged": false,
+  "baseline": "/workspace/kiz-first-release-audit-20261116/baseline-source-manifest.json",
+  "verifiedAtUtc": "2026-11-16T12:28:43.240019+00:00",
+  "currentSourceDrift": [],
+  "independentWalReceipt": "/workspace/kiz-first-release-audit-20261116/uncertain-download/green-result.json"
+}

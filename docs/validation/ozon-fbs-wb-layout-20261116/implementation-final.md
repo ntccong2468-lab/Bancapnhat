@@ -1,0 +1,16 @@
+# Final Ozon FBS / WB packing presentation scope
+
+The implementation preserves the original five Ozon states, reception, batch printing, official carrier-label behavior, KIZ stock/purchase/resumption, Znack entry point, filtering, paging, cross-page selection and existing callbacks. WB and global CSS remain untouched. Product details, full order/posting identifiers, date offset, quantity, category, all Ozon barcodes, verified GTIN, SKU, actual KN3 and KIZ rule remain available through row content, tooltips/accessibility and the existing drawer.
+
+The actual WB packing reference supplies the page rhythm, title/refresh grouping, tabs before filters, five main table columns and widths, 70 px single-item rows, multi-item sizing and 36×48 photo slots. The old Ozon supply-detail preset and two competing standalone columns are replaced by compact primary cells. Existing sort checkbox nodes/defaults/listeners move into a localized popup; one search/footer node follows the active tab without query changes.
+
+Strict native follow-up identified and resolved two actual presentation differences:
+
+1. The managed native WB loading indicator contributes its skin minimum to header layout, while the former Ozon unmanaged indicator inside an empty host did not. The portable final source directly uses WB's managed pref/max18 indicator. The parent authorized only `setManaged(busy)` → `setManaged(true)` inside the busy setter; `visible` still follows `busy`, and all operation/lock/callback statements remain identical. No Linux-specific skin minimum or compensating padding remains. A strict test confirms equal absolute root/header/title/refresh/tab/filter/table Y and heights in both themes and idle/busy states; the header no longer jumps.
+2. Ozon's multi-photo VBox centered a 36 px slot inside a wider cell, displacing the thumbnail horizontally by 36 px in the native fixture. The final one-token `TOP_CENTER` → `TOP_LEFT` change restores WB's left alignment. Container centering, Y positions, dimensions, padding, item slots and asynchronous owner/generation safeguards remain unchanged. The existing photo test now checks actual relative X/Y as well as dimensions.
+
+All iteration 1 evidence (22 scoped tests / parent's 393-test gate / screenshots) stays historical. Portable vertical-only GREEN is archived separately in `../parity-tests/vertical-parity-iteration2/portable-final/`; the host-minimum experiment is explicitly intermediate. Photo RED and final combined GREEN are under `../parity-tests/thumbnail-parity-iteration3/`. Final nine-file source freeze: `final-ui-source-freeze-iteration3.json`.
+
+Final combined execution result is recorded in the test owner's final receipt after completion. Parent owns the fresh broader gate/JAR/screenshots, memory and final user handoff. No live API write, fee, signing, license activation, version bump or release is part of these UI changes.
+
+Final combined result: **PASS, 23 tests / 3 suites, zero failures/errors/skips, Maven exit 0** (14 native parity + 4 current Ozon UI + 5 controller). This is the final source with portable indicator and left-aligned thumbnails, not the earlier host experiment. Final execution: `../parity-tests/thumbnail-parity-iteration3/final-green/run.log`; frozen nine-file input hashes remain unchanged. No additional source changes are planned.

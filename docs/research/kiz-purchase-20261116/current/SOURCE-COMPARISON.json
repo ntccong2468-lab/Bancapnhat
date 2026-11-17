@@ -1,0 +1,301 @@
+{
+  "atUtc": "2026-11-16T20:19:26.052803+00:00",
+  "scope": "Read-only SHA256 source comparison; absence is recorded, not an execution failure. Release provenance supplied separately by parent/VN130 agent.",
+  "publishedCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+  "workingBase": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e + existing working diff",
+  "roots": {
+    "vn130_preview": "/workspace/kiz-v130-wbcode-20261116/vn130/source",
+    "published_1610": "/workspace/kiz-v130-wbcode-20261116/latest-public/source",
+    "working_unreleased": "/workspace/vncode-ios-motion-20261114"
+  },
+  "files": [
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+      "sha256": {
+        "vn130_preview": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+        "published_1610": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+        "working_unreleased": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53"
+      },
+      "bytes": {
+        "vn130_preview": 4479,
+        "published_1610": 4479,
+        "working_unreleased": 4479
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+      "sha256": {
+        "vn130_preview": "dd0ed9be02d60b55ac249b90cb69018e478ad95f6985a8fe6b6002871578e7e0",
+        "published_1610": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+        "working_unreleased": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db"
+      },
+      "bytes": {
+        "vn130_preview": 5192,
+        "published_1610": 9146,
+        "working_unreleased": 9146
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java",
+      "sha256": {
+        "vn130_preview": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc",
+        "published_1610": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc",
+        "working_unreleased": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc"
+      },
+      "bytes": {
+        "vn130_preview": 2159,
+        "published_1610": 2159,
+        "working_unreleased": 2159
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackSafety.java",
+      "sha256": {
+        "vn130_preview": "04ae0f77575987521644ffe40edd78ab73906a564cb3f0870e97bf24a2d21a1c",
+        "published_1610": "04ae0f77575987521644ffe40edd78ab73906a564cb3f0870e97bf24a2d21a1c",
+        "working_unreleased": "04ae0f77575987521644ffe40edd78ab73906a564cb3f0870e97bf24a2d21a1c"
+      },
+      "bytes": {
+        "vn130_preview": 1155,
+        "published_1610": 1155,
+        "working_unreleased": 1155
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": true
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+      "sha256": {
+        "vn130_preview": "4d53aac4a4ee2bc8a945cd46820d435ad990c1e26307270f6d66627fd7ac9f6f",
+        "published_1610": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0",
+        "working_unreleased": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0"
+      },
+      "bytes": {
+        "vn130_preview": 9490,
+        "published_1610": 13228,
+        "working_unreleased": 13228
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+      "sha256": {
+        "vn130_preview": "193b08fd5453159cc32e833f07726fbbcbabe9faec04434c0696320496b4f767",
+        "published_1610": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+        "working_unreleased": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f"
+      },
+      "bytes": {
+        "vn130_preview": 5446,
+        "published_1610": 12015,
+        "working_unreleased": 18036
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "sha256": {
+        "vn130_preview": "e42f9eca84dce0113f75c210f36403da578a22ed9f4a5ad47f312cd38d646e6c",
+        "published_1610": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935",
+        "working_unreleased": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071"
+      },
+      "bytes": {
+        "vn130_preview": 45550,
+        "published_1610": 60886,
+        "working_unreleased": 60898
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+      "sha256": {
+        "vn130_preview": "f07433cc53fbac3c8b9ce5142ae70d368d862bb3388aa37155f422b48b5e8f92",
+        "published_1610": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37",
+        "working_unreleased": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37"
+      },
+      "bytes": {
+        "vn130_preview": 55515,
+        "published_1610": 75169,
+        "working_unreleased": 75169
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+      "sha256": {
+        "vn130_preview": "f9c97a0e364750b126f50b31c0bbdc8eb9aeb2f9ea7108ce5e619813b8315427",
+        "published_1610": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+        "working_unreleased": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210"
+      },
+      "bytes": {
+        "vn130_preview": 11785,
+        "published_1610": 10816,
+        "working_unreleased": 11545
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+      "sha256": {
+        "vn130_preview": "f793f1cd15dc052f10cd76b6ac3cbf430a97a6d59c1c00ffebb884781b556f47",
+        "published_1610": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+        "working_unreleased": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb"
+      },
+      "bytes": {
+        "vn130_preview": 11718,
+        "published_1610": 13847,
+        "working_unreleased": 14174
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackGtinInventoryService.java",
+      "sha256": {
+        "vn130_preview": "44827b441450565de60d47211067464e800d3974ff00d2f768c79baee8057fec",
+        "published_1610": "9e7aa160888e9b69f01d5a5c9cfaebf160d1f3d1be983dd6827ffd6f027a1502",
+        "working_unreleased": "9e7aa160888e9b69f01d5a5c9cfaebf160d1f3d1be983dd6827ffd6f027a1502"
+      },
+      "bytes": {
+        "vn130_preview": 10989,
+        "published_1610": 20600,
+        "working_unreleased": 20600
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+      "sha256": {
+        "vn130_preview": "e7b87554d0f1d5326600b353f205553e9c50d56cf504493a5ccf74d29f434c10",
+        "published_1610": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637",
+        "working_unreleased": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637"
+      },
+      "bytes": {
+        "vn130_preview": 20386,
+        "published_1610": 37878,
+        "working_unreleased": 37878
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+      "sha256": {
+        "vn130_preview": null,
+        "published_1610": "41fb711495abb6b6af0cd2f78c5f021b3749f448a66da9a2799072b4a88ee6a3",
+        "working_unreleased": "f060ad4062c4e93e2cc27139d9031d4090ebea8bb73e504854a58c21142de6c5"
+      },
+      "bytes": {
+        "vn130_preview": null,
+        "published_1610": 8411,
+        "working_unreleased": 9744
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+      "sha256": {
+        "vn130_preview": null,
+        "published_1610": "4dc19ba93093b3f8d4b479fc80c8c147d9523db025c6d919b4cdd8072c6d8dee",
+        "working_unreleased": "7bfa63f03962cf4649a365135b03bdd39be6cedac23ebdccd704a7b05ec1911d"
+      },
+      "bytes": {
+        "vn130_preview": null,
+        "published_1610": 6868,
+        "working_unreleased": 7590
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+      "sha256": {
+        "vn130_preview": null,
+        "published_1610": "de9ef97c4bed03fcde0e2b672c4b55665986bd78525ceeeb3d8c14834b6d213f",
+        "working_unreleased": "de9ef97c4bed03fcde0e2b672c4b55665986bd78525ceeeb3d8c14834b6d213f"
+      },
+      "bytes": {
+        "vn130_preview": null,
+        "published_1610": 7575,
+        "working_unreleased": 7575
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/kizmapping/KizMappingController.java",
+      "sha256": {
+        "vn130_preview": "e7a7250f02d4dce029322ca7bada03bcee3864164106bf41ded63e6fa30d75f2",
+        "published_1610": "12785db273e7f8b4a92c59d35eedf2d97857ae04bb19239983444521c11c9af6",
+        "working_unreleased": "12785db273e7f8b4a92c59d35eedf2d97857ae04bb19239983444521c11c9af6"
+      },
+      "bytes": {
+        "vn130_preview": 23376,
+        "published_1610": 33508,
+        "working_unreleased": 33508
+      },
+      "publishedEqualsWorking": true,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/supply/SupplyDetailController.java",
+      "sha256": {
+        "vn130_preview": "1fae99864866be573cb5478e57dddaf1ceaefd0f98d07b9d77364132d1f3044b",
+        "published_1610": "b752efd304928057fcbda043b9f6dcff9cd36edddbb4c87717146acf0b801d36",
+        "working_unreleased": "c53196438b6b8fc05ba45f198cc59e2c4fac57d89fa86ee76bcac68fc5d04acc"
+      },
+      "bytes": {
+        "vn130_preview": 45397,
+        "published_1610": 52299,
+        "working_unreleased": 54374
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+      "sha256": {
+        "vn130_preview": "2a22a2431192c5f09e76d3f8e2a60056b2a3b767298ddf49237be53f5e5104b3",
+        "published_1610": "f20bc75738eb1dc3d5f0ac5eddcd7a41dff8c61ad9d47c262d50ea9192438f0d",
+        "working_unreleased": "eff86ed2598fdfdb5063f37896983d9b74752ae74792bac5428ef48da89e07a0"
+      },
+      "bytes": {
+        "vn130_preview": 66497,
+        "published_1610": 139035,
+        "working_unreleased": 144549
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+      "sha256": {
+        "vn130_preview": "868445b59f3ec2457f312e78674e8ce8fcafd08fbd6e33ffd356462f26a013ec",
+        "published_1610": "7ee6a7a5585344c94303fe86e054335ea9cf58916ea7447b7ae7d1a45ee32a5c",
+        "working_unreleased": "8195d4c643293e2d8235bb7d7db0f7cf58221b255b5d059f2a577fa09ad21b01"
+      },
+      "bytes": {
+        "vn130_preview": 96335,
+        "published_1610": 136345,
+        "working_unreleased": 136614
+      },
+      "publishedEqualsWorking": false,
+      "v130EqualsWorking": false
+    }
+  ],
+  "sourceEdits": false,
+  "mavenTestsExecuted": false,
+  "liveApiCalls": false
+}

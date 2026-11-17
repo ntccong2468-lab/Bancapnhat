@@ -47,7 +47,7 @@ class ZnackCirculationPolicyTest {
     }
 
     @ParameterizedTest @ValueSource(booleans={false,true})
-    void everyNewPurchasePinsCirculationWithoutChangingTheGlobalPreference(boolean explicitEntry)throws Exception{
+    void everyNewPurchasePinsMandatoryCirculationAndPreservesOtherSettings(boolean explicitEntry)throws Exception{
         var entered=new CountDownLatch(1);var released=new CountDownLatch(1);
         ZnackPipelineQueueExecutor.submit(1,GTIN,()->{entered.countDown();try{released.await();}catch(InterruptedException stopped){Thread.currentThread().interrupt();}});
         assertTrue(entered.await(5,TimeUnit.SECONDS));
@@ -58,7 +58,7 @@ class ZnackCirculationPolicyTest {
             long id=explicitEntry?coordinator.enqueueForCirculation(original,GTIN,1,UUID.randomUUID().toString())
                     :coordinator.enqueue(original,GTIN,1,UUID.randomUUID().toString());
             assertTrue(repository.pipelineSettings(id).autoIntroduction());
-            assertEquals(original,repository.getSettings(),"One purchase cannot rewrite global or unrelated connection preferences");
+            assertEquals(original.withAutoIntroduction(true),repository.getSettings(),"Mandatory circulation leaves unrelated connection preferences unchanged");
             assertEquals(original.withAutoIntroduction(true),repository.pipelineSettings(id));
         }finally{ZnackPipelineQueueExecutor.shutdownAll();released.countDown();}
     }
@@ -84,7 +84,7 @@ class ZnackCirculationPolicyTest {
         Settings different=settings("new-oms","7800000002",true);repository.saveSettings(different);
         coordinator("INTRODUCED",OWNER).resume(different);
         assertIntroduced(ids);assertEquals(List.of(original),observedProfiles);
-        assertEquals(original,repository.pipelineSettings(ids[0]));assertEquals(different,repository.getSettings());
+        assertEquals(original,repository.pipelineSettings(ids[0]));assertEquals(different.withAutoIntroduction(true),repository.getSettings());
         assertEquals(1,repository.findOrders().size());assertEquals(0,submissions.get());
     }
 
@@ -121,7 +121,7 @@ class ZnackCirculationPolicyTest {
         var different=settings("new-oms","7800000002",false);repository.saveSettings(different);
         long active=repository.enqueuePipeline(GTIN,1,UUID.randomUUID().toString());
         try(var c=Database.getConnection();var p=c.prepareStatement("DELETE FROM znack_pipeline_connections WHERE pipeline_id=?")){p.setLong(1,active);p.executeUpdate();}
-        assertEquals(different,repository.pipelineSettings(active),"Active legacy fallback remains supported");
+        assertEquals(different.withAutoIntroduction(true),repository.pipelineSettings(active),"Active legacy fallback uses the effective mandatory-circulation preference");
         // Retire the unrelated unsent fixture so resume cannot invoke purchase services.
         repository.updatePipeline(active,null,PurchaseStage.FAILED,"synthetic-unsent");
         coordinator("INTRODUCED",OWNER).resume(different);
@@ -162,7 +162,7 @@ class ZnackCirculationPolicyTest {
         }
         else coordinator.resumeEligibleIntroductions(original);
         assertEquals(1,submissions.get());assertEquals(PurchaseStage.POLLING_INTRODUCTION,repository.findPipeline(pipeline).orElseThrow().stage());
-        assertEquals(original,repository.getSettings());assertTrue(repository.pipelineSettings(pipeline).autoIntroduction());
+        assertEquals(original.withAutoIntroduction(true),repository.getSettings());assertTrue(repository.pipelineSettings(pipeline).autoIntroduction());
         assertEquals(0,new ZnackGtinInventoryService().availableCount(1,GTIN));
     }
 
@@ -172,6 +172,8 @@ class ZnackCirculationPolicyTest {
         repository.updatePipeline(pipeline,order,PurchaseStage.WAITING_INTRODUCTION_READINESS,null);
         var coordinator=coordinator("INTRODUCED",OWNER);
         var configured=ZnackPurchaseCoordinator.class.getDeclaredField("serviceSettings");configured.setAccessible(true);configured.set(coordinator,original);
+        var generation=ZnackPurchaseCoordinator.class.getDeclaredField("serviceGeneration");generation.setAccessible(true);
+        generation.setLong(coordinator,ZnackSigningSession.signerGenerationSnapshot(1));
         coordinator.advance(original,pipeline);
         assertEquals(1,readbacks.get(),"Changing only the circulation intent must not discard the configured services/auth session");
         assertEquals(List.of(original.withAutoIntroduction(true)),observedProfiles);assertIntroduced(new long[]{pipeline,order});
@@ -269,6 +271,16 @@ class ZnackCirculationPolicyTest {
         long order=repository.createDraft(GTIN,quantity);repository.updateOrder(order,"synthetic-order-"+order,"READY",OrderStatus.CODES_DOWNLOADED,null);
         long pipeline=circulation?repository.enqueueCirculationPipeline(GTIN,quantity,UUID.randomUUID().toString(),original)
                 :repository.enqueuePipeline(GTIN,quantity,UUID.randomUUID().toString());repository.updatePipeline(pipeline,order,stage,null);
+        if (!circulation) {
+            // Seed the pre-replacement paid profile, whose original false consent
+            // must remain an observer after normal settings become mandatory true.
+            try (var c=Database.getConnection()) {
+                try (var p=c.prepareStatement("UPDATE znack_pipeline_connections SET settings_json=? WHERE pipeline_id=?")) {
+                    p.setString(1,com.vncode.app.features.products.ProductJson.GSON.toJson(original));p.setLong(2,pipeline);p.executeUpdate();
+                }
+                try (var p=c.prepareStatement("DELETE FROM znack_purchase_contexts WHERE pipeline_id=?")) {p.setLong(1,pipeline);p.executeUpdate();}
+            } catch(java.sql.SQLException failure) {throw new IllegalStateException(failure);}
+        }
         if(count>0)insert(order,count);return new long[]{pipeline,order};
     }
     private int insert(long order,int quantity){
@@ -297,8 +309,14 @@ class ZnackCirculationPolicyTest {
         var introduction=new ZnackIntroductionService(null,null,null,repository){
             @Override public long submit(Settings s,KizOrder o,Product p,List<KizCode> codes){submissions.incrementAndGet();if(!permitSubmission)throw new AssertionError("Legacy read-only monitoring cannot submit a document");submitted.countDown();return 1;}
         };
-        var codes=new ZnackKizCodeService(null,null,repository){@Override public int download(Settings s,long id){return insert(id,repository.findOrder(id).orElseThrow().quantity());}};
-        return new ZnackPurchaseCoordinator(repository,null,codes,introduction,new ZnackIntroductionReadinessService(api,auth,repository)){
+        var codes=new ZnackKizCodeService(null,null,repository){
+            @Override public int download(Settings s,long id){return insert(id,repository.findOrder(id).orElseThrow().quantity());}
+            @Override public int download(Settings s,long id,int cap){return download(s,id);}
+        };
+        var orders=new ZnackKizOrderService(null,null,null,repository){
+            @Override public java.util.OptionalInt availableCodes(long id){return java.util.OptionalInt.of(repository.findOrder(id).orElseThrow().quantity());}
+        };
+        return new ZnackPurchaseCoordinator(repository,orders,codes,introduction,new ZnackIntroductionReadinessService(api,auth,repository)){
             @Override void schedule(long ignored){}
         };
     }

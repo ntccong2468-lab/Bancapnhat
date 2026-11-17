@@ -1,0 +1,33 @@
+{
+  "status": "SELECTION_REVIEW_PASS",
+  "atUtc": "2026-11-16T15:13:36.986199+00:00",
+  "source": "/workspace/ozon-fbs-wb-layout-20261116/final-verification/test-selection.json",
+  "sha256": "3c6d5fe76682923f5018bca03faec30c88a7a7ea7eb7cf3388fca41959fb1a4b",
+  "selectedClasses": 64,
+  "requiredUiAndPreservationConsumers": [
+    "FbsKizSigningResumeUiTest",
+    "FbsResponsiveActionsTest",
+    "OzonBulkUiTest",
+    "OzonDashboardControllerTest",
+    "OzonFbsEnrichmentUiTest",
+    "OzonFbsUiTest",
+    "OzonManualSyncUiTest",
+    "OzonPrintedQueueUiTest",
+    "OzonRegistrationEntryUiTest",
+    "OzonRegistrationNavigationTest",
+    "OzonShipmentSourcesUiTest",
+    "OzonWbPackingParityTest",
+    "WorkspaceListAreaTest",
+    "WorkspacePagesLayoutTest"
+  ],
+  "missingRequiredConsumers": [],
+  "changedOrNewTests": [
+    "src/test/java/com/vncode/app/ui/ozon/OzonDashboardControllerTest.java",
+    "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java",
+    "src/test/java/com/vncode/app/ui/ozon/OzonWbPackingParityTest.java"
+  ],
+  "unchangedJavaPageMatrixNotSelected": "WorkspaceJavaPagesLayoutTest; no changed Java-surface implementation/global style, and nativeOzonregistration/navigation/sourceprotection plus fullFXMLmatrix included. Not an additional blocker or request to rerun unrelated scope.",
+  "reviewScope": "Read-onlyselectorcoverage, noMavenexecution/no claimtestscomplete.",
+  "verifierConfirmedScopeDecision": true,
+  "verifierScopeConfirmation": "Java-only pages are unchanged/protected; actual Ozon four-state/locale/theme/narrow matrix, new native parity13, full FXML matrix, list area, WB responsive/reference and material/focus subset selected. No extra Maven rerun for unrelated Java-only matrix."
+}

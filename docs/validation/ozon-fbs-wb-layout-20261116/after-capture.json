@@ -1,0 +1,3222 @@
+{
+  "status": "PASS",
+  "captures": [
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-after-dark-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 381.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            },
+            {
+              "width": 339.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 234.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 140.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 604.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 165.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 175.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 267.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 173.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 635.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 197.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      },
+      "rows": [
+        0,
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "tabIndex": 0,
+      "tab": "Chờ nhận (24)",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab0-after-dark-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 381.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            },
+            {
+              "width": 339.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 234.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 140.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 604.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 165.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 175.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 267.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 173.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 635.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 197.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "tabIndex": 1,
+      "tab": "Đơn mới (24)",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab1-after-dark-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 381.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            },
+            {
+              "width": 339.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 234.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 140.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 604.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 165.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 175.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 630.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 267.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 173.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 635.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 197.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "tabIndex": 2,
+      "tab": "Đang giao hàng (24)",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab2-after-dark-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 381.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            },
+            {
+              "width": 339.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 234.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 140.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 604.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 165.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 175.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 267.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 173.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 635.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 197.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "tabIndex": 3,
+      "tab": "Đã bàn giao (24)",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab3-after-dark-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 381.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            },
+            {
+              "width": 339.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 234.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 140.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 604.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 165.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 175.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 267.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 173.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 635.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 197.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "tabIndex": 4,
+      "tab": "Kho KIZ / Znack",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab4-after-dark-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 381.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            },
+            {
+              "width": 339.0,
+              "id": ""
+            },
+            {
+              "width": 305.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 234.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 140.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 604.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 165.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 175.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 265.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 633.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 195.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 267.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 173.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 635.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 197.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "capture": "JavaFX Robot actual native screen",
+      "theme": "dark",
+      "popup": "sortOptionsMenu",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-sort-popup-after-dark-1600x1000.png"
+    },
+    {
+      "height": 720,
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-after-dark-1200x720.png",
+      "route": "ozon",
+      "geometry": {
+        "sceneWidth": 1200.0,
+        "sceneHeight": 720.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 283.0,
+              "id": ""
+            },
+            {
+              "width": 208.0,
+              "id": ""
+            },
+            {
+              "width": 239.0,
+              "id": ""
+            },
+            {
+              "width": 208.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 462.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 185.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 97.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 403.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 122.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 119.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 462.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 169.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 70.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 539.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 100.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 462.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 169.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 70.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 539.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 100.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 410.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 171.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 70.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 541.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 101.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      },
+      "theme": "dark",
+      "width": 1200
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-after-light-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 380.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            },
+            {
+              "width": 336.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 263.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 177.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 478.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 202.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 198.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 269.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 631.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 201.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      },
+      "rows": [
+        0,
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "tabIndex": 0,
+      "tab": "Chờ nhận (24)",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab0-after-light-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 380.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            },
+            {
+              "width": 336.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 263.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 177.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 478.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 202.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 198.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 269.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 631.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 201.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "tabIndex": 1,
+      "tab": "Đơn mới (24)",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab1-after-light-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 380.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            },
+            {
+              "width": 336.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 263.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 177.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 478.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 202.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 198.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 630.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 269.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 631.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 201.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "tabIndex": 2,
+      "tab": "Đang giao hàng (24)",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab2-after-light-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 380.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            },
+            {
+              "width": 336.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 263.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 177.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 478.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 202.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 198.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 269.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 631.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 201.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "tabIndex": 3,
+      "tab": "Đã bàn giao (24)",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab3-after-light-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 380.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            },
+            {
+              "width": 336.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 263.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 177.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 478.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 202.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 198.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 269.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 631.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 201.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "tabIndex": 4,
+      "tab": "Kho KIZ / Znack",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-tab4-after-light-1600x1000.png",
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 380.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            },
+            {
+              "width": 336.0,
+              "id": ""
+            },
+            {
+              "width": 307.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 690.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 263.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 177.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 478.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 202.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 198.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 267.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 169.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 629.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 199.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 742.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 269.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 171.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 631.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 201.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "route": "ozon",
+      "capture": "JavaFX Robot actual native screen",
+      "theme": "light",
+      "popup": "sortOptionsMenu",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-sort-popup-after-light-1600x1000.png"
+    },
+    {
+      "height": 720,
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/ozon-after-light-1200x720.png",
+      "route": "ozon",
+      "geometry": {
+        "sceneWidth": 1200.0,
+        "sceneHeight": 720.0,
+        "fixedButtonsClipped": [],
+        "shipment-kiz-categories": {
+          "rows": 0,
+          "height": 235.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 325.0,
+          "fixedCellSize": 52.0,
+          "visibleColumns": [
+            {
+              "width": 282.0,
+              "id": ""
+            },
+            {
+              "width": 209.0,
+              "id": ""
+            },
+            {
+              "width": 238.0,
+              "id": ""
+            },
+            {
+              "width": 209.0,
+              "id": ""
+            }
+          ]
+        },
+        "deliveringOrdersTable": {
+          "rows": 24,
+          "height": 462.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 195.0,
+              "id": "deliveringOrderNumberTC"
+            },
+            {
+              "width": 109.0,
+              "id": "deliveringOrderImageTC"
+            },
+            {
+              "width": 361.0,
+              "id": "deliveringOrderItemsTC"
+            },
+            {
+              "width": 134.0,
+              "id": "deliveringOrderPriceTC"
+            },
+            {
+              "width": 127.0,
+              "id": "deliveringOrderStatusTC"
+            }
+          ]
+        },
+        "printedOrdersTable": {
+          "rows": 24,
+          "height": 462.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 169.0,
+              "id": "printedOrderNumberTC"
+            },
+            {
+              "width": 70.0,
+              "id": "printedOrderImageTC"
+            },
+            {
+              "width": 540.0,
+              "id": "printedOrderItemsTC"
+            },
+            {
+              "width": 100.0,
+              "id": "printedOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "printedLabelTC"
+            }
+          ]
+        },
+        "packingOrdersTable": {
+          "rows": 24,
+          "height": 462.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 205.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 169.0,
+              "id": "packingOrderNumberTC"
+            },
+            {
+              "width": 70.0,
+              "id": "packingOrderImageTC"
+            },
+            {
+              "width": 540.0,
+              "id": "packingOrderItemsTC"
+            },
+            {
+              "width": 100.0,
+              "id": "packingOrderPriceTC"
+            },
+            {
+              "width": 54.0,
+              "id": "packingLabelTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 410.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 257.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "newOrderSelectTC"
+            },
+            {
+              "width": 171.0,
+              "id": "newOrderNumberTC"
+            },
+            {
+              "width": 70.0,
+              "id": "newOrderImageTC"
+            },
+            {
+              "width": 542.0,
+              "id": "newOrderItemsTC"
+            },
+            {
+              "width": 100.0,
+              "id": "newOrderPriceTC"
+            }
+          ]
+        }
+      },
+      "theme": "light",
+      "width": 1200
+    },
+    {
+      "route": "packing",
+      "theme": "dark",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/packing-after-dark-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "debtShipmentsTable": {
+          "rows": 0,
+          "height": 698.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 249.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 476.0,
+              "id": "debtShipmentNameTC"
+            },
+            {
+              "width": 301.0,
+              "id": "debtShipmentStatusTC"
+            },
+            {
+              "width": 242.0,
+              "id": "debtShipmentCountTC"
+            },
+            {
+              "width": 311.0,
+              "id": "debtShipmentDateTC"
+            }
+          ]
+        },
+        "debtOrdersTable": {
+          "rows": 0,
+          "height": 0.0,
+          "width": 0.0,
+          "x": 241.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 180.0,
+              "id": "debtOrderDateTC"
+            },
+            {
+              "width": 75.0,
+              "id": "debtImageTC"
+            },
+            {
+              "width": 430.0,
+              "id": "debtProductTC"
+            },
+            {
+              "width": 90.0,
+              "id": "debtPriceTC"
+            },
+            {
+              "width": 210.0,
+              "id": "debtOrderStatusTC"
+            },
+            {
+              "width": 72.0,
+              "id": "debtPrintTC"
+            }
+          ]
+        },
+        "dispatchTable": {
+          "rows": 0,
+          "height": 698.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 439.0,
+              "id": "dispatchSupplyTC"
+            },
+            {
+              "width": 203.0,
+              "id": "dispatchStatusTC"
+            },
+            {
+              "width": 193.0,
+              "id": "dispatchCountTC"
+            },
+            {
+              "width": 272.0,
+              "id": "dispatchCreatedTC"
+            },
+            {
+              "width": 223.0,
+              "id": "dispatchActionTC"
+            }
+          ]
+        },
+        "preparationTable": {
+          "rows": 0,
+          "height": 740.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 493.0,
+              "id": "preparationSupplyTC"
+            },
+            {
+              "width": 259.0,
+              "id": "preparationStatusTC"
+            },
+            {
+              "width": 250.0,
+              "id": "preparationCountTC"
+            },
+            {
+              "width": 328.0,
+              "id": "preparationCreatedTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 688.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 259.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "selectedTC"
+            },
+            {
+              "width": 267.0,
+              "id": "orderDateTC"
+            },
+            {
+              "width": 173.0,
+              "id": "imageTC"
+            },
+            {
+              "width": 635.0,
+              "id": "productTC"
+            },
+            {
+              "width": 197.0,
+              "id": "priceTC"
+            }
+          ]
+        }
+      },
+      "rows": [
+        0,
+        0,
+        0,
+        0,
+        24
+      ]
+    },
+    {
+      "height": 720,
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/packing-after-dark-1200x720.png",
+      "route": "packing",
+      "geometry": {
+        "sceneWidth": 1200.0,
+        "sceneHeight": 720.0,
+        "fixedButtonsClipped": [],
+        "debtShipmentsTable": {
+          "rows": 0,
+          "height": 418.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 249.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 381.0,
+              "id": "debtShipmentNameTC"
+            },
+            {
+              "width": 201.0,
+              "id": "debtShipmentStatusTC"
+            },
+            {
+              "width": 144.0,
+              "id": "debtShipmentCountTC"
+            },
+            {
+              "width": 212.0,
+              "id": "debtShipmentDateTC"
+            }
+          ]
+        },
+        "debtOrdersTable": {
+          "rows": 0,
+          "height": 0.0,
+          "width": 0.0,
+          "x": 233.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 180.0,
+              "id": "debtOrderDateTC"
+            },
+            {
+              "width": 75.0,
+              "id": "debtImageTC"
+            },
+            {
+              "width": 430.0,
+              "id": "debtProductTC"
+            },
+            {
+              "width": 90.0,
+              "id": "debtPriceTC"
+            },
+            {
+              "width": 210.0,
+              "id": "debtOrderStatusTC"
+            },
+            {
+              "width": 72.0,
+              "id": "debtPrintTC"
+            }
+          ]
+        },
+        "dispatchTable": {
+          "rows": 0,
+          "height": 418.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 363.0,
+              "id": "dispatchSupplyTC"
+            },
+            {
+              "width": 124.0,
+              "id": "dispatchStatusTC"
+            },
+            {
+              "width": 114.0,
+              "id": "dispatchCountTC"
+            },
+            {
+              "width": 193.0,
+              "id": "dispatchCreatedTC"
+            },
+            {
+              "width": 144.0,
+              "id": "dispatchActionTC"
+            }
+          ]
+        },
+        "preparationTable": {
+          "rows": 0,
+          "height": 460.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 398.0,
+              "id": "preparationSupplyTC"
+            },
+            {
+              "width": 159.0,
+              "id": "preparationStatusTC"
+            },
+            {
+              "width": 152.0,
+              "id": "preparationCountTC"
+            },
+            {
+              "width": 229.0,
+              "id": "preparationCreatedTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 408.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 259.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "selectedTC"
+            },
+            {
+              "width": 171.0,
+              "id": "orderDateTC"
+            },
+            {
+              "width": 70.0,
+              "id": "imageTC"
+            },
+            {
+              "width": 541.0,
+              "id": "productTC"
+            },
+            {
+              "width": 101.0,
+              "id": "priceTC"
+            }
+          ]
+        }
+      },
+      "theme": "dark",
+      "width": 1200
+    },
+    {
+      "route": "packing",
+      "theme": "light",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/packing-after-light-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "debtShipmentsTable": {
+          "rows": 0,
+          "height": 698.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 249.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 477.0,
+              "id": "debtShipmentNameTC"
+            },
+            {
+              "width": 301.0,
+              "id": "debtShipmentStatusTC"
+            },
+            {
+              "width": 242.0,
+              "id": "debtShipmentCountTC"
+            },
+            {
+              "width": 310.0,
+              "id": "debtShipmentDateTC"
+            }
+          ]
+        },
+        "debtOrdersTable": {
+          "rows": 0,
+          "height": 0.0,
+          "width": 0.0,
+          "x": 241.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 180.0,
+              "id": "debtOrderDateTC"
+            },
+            {
+              "width": 75.0,
+              "id": "debtImageTC"
+            },
+            {
+              "width": 430.0,
+              "id": "debtProductTC"
+            },
+            {
+              "width": 90.0,
+              "id": "debtPriceTC"
+            },
+            {
+              "width": 210.0,
+              "id": "debtOrderStatusTC"
+            },
+            {
+              "width": 72.0,
+              "id": "debtPrintTC"
+            }
+          ]
+        },
+        "dispatchTable": {
+          "rows": 0,
+          "height": 698.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 439.0,
+              "id": "dispatchSupplyTC"
+            },
+            {
+              "width": 203.0,
+              "id": "dispatchStatusTC"
+            },
+            {
+              "width": 193.0,
+              "id": "dispatchCountTC"
+            },
+            {
+              "width": 272.0,
+              "id": "dispatchCreatedTC"
+            },
+            {
+              "width": 223.0,
+              "id": "dispatchActionTC"
+            }
+          ]
+        },
+        "preparationTable": {
+          "rows": 0,
+          "height": 740.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 494.0,
+              "id": "preparationSupplyTC"
+            },
+            {
+              "width": 258.0,
+              "id": "preparationStatusTC"
+            },
+            {
+              "width": 250.0,
+              "id": "preparationCountTC"
+            },
+            {
+              "width": 328.0,
+              "id": "preparationCreatedTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 688.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 259.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "selectedTC"
+            },
+            {
+              "width": 268.0,
+              "id": "orderDateTC"
+            },
+            {
+              "width": 172.0,
+              "id": "imageTC"
+            },
+            {
+              "width": 631.0,
+              "id": "productTC"
+            },
+            {
+              "width": 201.0,
+              "id": "priceTC"
+            }
+          ]
+        }
+      },
+      "rows": [
+        0,
+        0,
+        0,
+        0,
+        24
+      ]
+    },
+    {
+      "height": 720,
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/packing-after-light-1200x720.png",
+      "route": "packing",
+      "geometry": {
+        "sceneWidth": 1200.0,
+        "sceneHeight": 720.0,
+        "fixedButtonsClipped": [],
+        "debtShipmentsTable": {
+          "rows": 0,
+          "height": 418.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 249.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 381.0,
+              "id": "debtShipmentNameTC"
+            },
+            {
+              "width": 202.0,
+              "id": "debtShipmentStatusTC"
+            },
+            {
+              "width": 143.0,
+              "id": "debtShipmentCountTC"
+            },
+            {
+              "width": 212.0,
+              "id": "debtShipmentDateTC"
+            }
+          ]
+        },
+        "debtOrdersTable": {
+          "rows": 0,
+          "height": 0.0,
+          "width": 0.0,
+          "x": 233.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 180.0,
+              "id": "debtOrderDateTC"
+            },
+            {
+              "width": 75.0,
+              "id": "debtImageTC"
+            },
+            {
+              "width": 430.0,
+              "id": "debtProductTC"
+            },
+            {
+              "width": 90.0,
+              "id": "debtPriceTC"
+            },
+            {
+              "width": 210.0,
+              "id": "debtOrderStatusTC"
+            },
+            {
+              "width": 72.0,
+              "id": "debtPrintTC"
+            }
+          ]
+        },
+        "dispatchTable": {
+          "rows": 0,
+          "height": 418.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 363.0,
+              "id": "dispatchSupplyTC"
+            },
+            {
+              "width": 124.0,
+              "id": "dispatchStatusTC"
+            },
+            {
+              "width": 114.0,
+              "id": "dispatchCountTC"
+            },
+            {
+              "width": 193.0,
+              "id": "dispatchCreatedTC"
+            },
+            {
+              "width": 144.0,
+              "id": "dispatchActionTC"
+            }
+          ]
+        },
+        "preparationTable": {
+          "rows": 0,
+          "height": 460.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 207.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 398.0,
+              "id": "preparationSupplyTC"
+            },
+            {
+              "width": 159.0,
+              "id": "preparationStatusTC"
+            },
+            {
+              "width": 152.0,
+              "id": "preparationCountTC"
+            },
+            {
+              "width": 229.0,
+              "id": "preparationCreatedTC"
+            }
+          ]
+        },
+        "newOrdersTable": {
+          "rows": 24,
+          "height": 408.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 259.0,
+          "fixedCellSize": -1.0,
+          "visibleColumns": [
+            {
+              "width": 46.0,
+              "id": "selectedTC"
+            },
+            {
+              "width": 171.0,
+              "id": "orderDateTC"
+            },
+            {
+              "width": 70.0,
+              "id": "imageTC"
+            },
+            {
+              "width": 542.0,
+              "id": "productTC"
+            },
+            {
+              "width": 100.0,
+              "id": "priceTC"
+            }
+          ]
+        }
+      },
+      "theme": "light",
+      "width": 1200
+    },
+    {
+      "route": "znack-registration-ozon",
+      "theme": "dark",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/znack-registration-ozon-after-dark-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "ozonRegistrationTable": {
+          "rows": 24,
+          "height": 659.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 230.0,
+          "fixedCellSize": 71.0,
+          "visibleColumns": [
+            {
+              "width": 48.0,
+              "id": ""
+            },
+            {
+              "width": 64.0,
+              "id": ""
+            },
+            {
+              "width": 231.0,
+              "id": ""
+            },
+            {
+              "width": 157.0,
+              "id": ""
+            },
+            {
+              "width": 107.0,
+              "id": ""
+            },
+            {
+              "width": 92.0,
+              "id": ""
+            },
+            {
+              "width": 107.0,
+              "id": "ozonOriginalSize"
+            },
+            {
+              "width": 212.0,
+              "id": "ozonRawBarcodes"
+            },
+            {
+              "width": 166.0,
+              "id": "ozonRegistrationStatus"
+            },
+            {
+              "width": 134.0,
+              "id": "ozonRegistrationActions"
+            }
+          ]
+        }
+      },
+      "rows": [
+        24
+      ]
+    },
+    {
+      "height": 720,
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/znack-registration-ozon-after-dark-1200x720.png",
+      "route": "znack-registration-ozon",
+      "geometry": {
+        "sceneWidth": 1200.0,
+        "sceneHeight": 720.0,
+        "fixedButtonsClipped": [],
+        "ozonRegistrationTable": {
+          "rows": 24,
+          "height": 370.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 234.0,
+          "fixedCellSize": 71.0,
+          "visibleColumns": [
+            {
+              "width": 48.0,
+              "id": ""
+            },
+            {
+              "width": 64.0,
+              "id": ""
+            },
+            {
+              "width": 160.0,
+              "id": ""
+            },
+            {
+              "width": 100.0,
+              "id": ""
+            },
+            {
+              "width": 70.0,
+              "id": ""
+            },
+            {
+              "width": 60.0,
+              "id": ""
+            },
+            {
+              "width": 90.0,
+              "id": "ozonOriginalSize"
+            },
+            {
+              "width": 135.0,
+              "id": "ozonRawBarcodes"
+            },
+            {
+              "width": 110.0,
+              "id": "ozonRegistrationStatus"
+            },
+            {
+              "width": 134.0,
+              "id": "ozonRegistrationActions"
+            }
+          ]
+        }
+      },
+      "theme": "dark",
+      "width": 1200
+    },
+    {
+      "route": "znack-registration-ozon",
+      "theme": "light",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/znack-registration-ozon-after-light-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "geometry": {
+        "sceneWidth": 1600.0,
+        "sceneHeight": 1000.0,
+        "fixedButtonsClipped": [],
+        "ozonRegistrationTable": {
+          "rows": 24,
+          "height": 659.0,
+          "width": 1330.0,
+          "x": 241.0,
+          "y": 230.0,
+          "fixedCellSize": 71.0,
+          "visibleColumns": [
+            {
+              "width": 48.0,
+              "id": ""
+            },
+            {
+              "width": 64.0,
+              "id": ""
+            },
+            {
+              "width": 209.0,
+              "id": ""
+            },
+            {
+              "width": 150.0,
+              "id": ""
+            },
+            {
+              "width": 119.0,
+              "id": ""
+            },
+            {
+              "width": 110.0,
+              "id": ""
+            },
+            {
+              "width": 140.0,
+              "id": "ozonOriginalSize"
+            },
+            {
+              "width": 184.0,
+              "id": "ozonRawBarcodes"
+            },
+            {
+              "width": 160.0,
+              "id": "ozonRegistrationStatus"
+            },
+            {
+              "width": 134.0,
+              "id": "ozonRegistrationActions"
+            }
+          ]
+        }
+      },
+      "rows": [
+        24
+      ]
+    },
+    {
+      "height": 720,
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-after/images/znack-registration-ozon-after-light-1200x720.png",
+      "route": "znack-registration-ozon",
+      "geometry": {
+        "sceneWidth": 1200.0,
+        "sceneHeight": 720.0,
+        "fixedButtonsClipped": [],
+        "ozonRegistrationTable": {
+          "rows": 24,
+          "height": 370.0,
+          "width": 938.0,
+          "x": 233.0,
+          "y": 234.0,
+          "fixedCellSize": 71.0,
+          "visibleColumns": [
+            {
+              "width": 48.0,
+              "id": ""
+            },
+            {
+              "width": 64.0,
+              "id": ""
+            },
+            {
+              "width": 160.0,
+              "id": ""
+            },
+            {
+              "width": 100.0,
+              "id": ""
+            },
+            {
+              "width": 70.0,
+              "id": ""
+            },
+            {
+              "width": 60.0,
+              "id": ""
+            },
+            {
+              "width": 90.0,
+              "id": "ozonOriginalSize"
+            },
+            {
+              "width": 135.0,
+              "id": "ozonRawBarcodes"
+            },
+            {
+              "width": 110.0,
+              "id": "ozonRegistrationStatus"
+            },
+            {
+              "width": 134.0,
+              "id": "ozonRegistrationActions"
+            }
+          ]
+        }
+      },
+      "theme": "light",
+      "width": 1200
+    }
+  ],
+  "networkBlocked": true,
+  "sourceEdited": false,
+  "scope": "Rendered production controls and Home-equivalent native shell composition from current JAR on Linux/Xvfb; synthetic24-product/order fixture; not Windows/customer screenshot or API acceptance.",
+  "licenseApiCalls": 0,
+  "jarSha256": "c84f7d94bc9c855a6a878aa01b45a02b1aa885b9e6fa51ad67b9eb33fac97782",
+  "harnessSha256": "8f53c499544745e11b44e1fd10d7c980d702a09def7bbd678d4a7c1d6882960c",
+  "imageHashes": {
+    "ozon-after-dark-1200x720.png": "c89a31a7babf1fe5980d89e56c7f8397e3bcaf10c7813c4d3e0cfed3a3788535",
+    "ozon-after-dark-1600x1000.png": "1e19aa5c7207df73411b613f7e7fa8ce262032142add57e285797a64f0ac535d",
+    "ozon-after-light-1200x720.png": "27b5b093022c3cfa0b592c78678f8cecbdd5e7d654adff6e24e9f349e907af22",
+    "ozon-after-light-1600x1000.png": "16e647c2b90af8d3567018600dcfca570b3d69e73ea3cd9961978d05dc7d0b00",
+    "ozon-sort-popup-after-dark-1600x1000.png": "58af8fae1abd2ca0e94977925268143c69806050f1d04f6fa948eef4a3366d9e",
+    "ozon-sort-popup-after-light-1600x1000.png": "6f987e7ff57f4e17c39eea4d17c4677fa13fc86c5d0f50fa08c682174fcebfa1",
+    "ozon-tab0-after-dark-1600x1000.png": "1e19aa5c7207df73411b613f7e7fa8ce262032142add57e285797a64f0ac535d",
+    "ozon-tab0-after-light-1600x1000.png": "b999e59141c10e2f1388d03396fac4e30620012951954784e0f66bed8163faba",
+    "ozon-tab1-after-dark-1600x1000.png": "54ceb0c3187bec9314246bcd5a2de5bedcbb7969fef6d264cf8dab036cc0b4dd",
+    "ozon-tab1-after-light-1600x1000.png": "c5cf4f311a30f49808df8eca4345ecb9c9cd9a94673360ee7e1dbd50b33114ae",
+    "ozon-tab2-after-dark-1600x1000.png": "f6ec065dca2b88a515604550f1089d151e9fcacdc97aca52fc4ef18552267582",
+    "ozon-tab2-after-light-1600x1000.png": "1d69da4937132c53adde05c9d653a3d057fa4b53d186a635be5e93dc32f4af22",
+    "ozon-tab3-after-dark-1600x1000.png": "c45777b061377c0c4bc3b0a328e9009c1614c83ecdac1528eabca05896862dfe",
+    "ozon-tab3-after-light-1600x1000.png": "bd0fff8dd067268c20129c86a385f06799669d8560cc25d582530fb1c471c924",
+    "ozon-tab4-after-dark-1600x1000.png": "8f66ad7aca4a9b1d4a0a4daa7da0b9a75a5b7db896c014f6a1cef68019fe49b1",
+    "ozon-tab4-after-light-1600x1000.png": "2e62cb408538e3da03ef3b136627604c4fe9bd1debdb6830f442d064efa20687",
+    "packing-after-dark-1200x720.png": "d70d94baad3a39c2c6e1a7059d5f7823bb7017b51103ff3506b42ddcada8a4fa",
+    "packing-after-dark-1600x1000.png": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff",
+    "packing-after-light-1200x720.png": "52e64eca876ff34a2e95fb57836d08301fc3f482c866ab6a8e7f0e69e8e8e69e",
+    "packing-after-light-1600x1000.png": "73c69bcb67c35dc7d1a409fea32d4afa912e2f311290edaa53a9ed064ebda954",
+    "znack-registration-ozon-after-dark-1200x720.png": "19ef0868502d94b53fe813a3c0ee0ed32eed84b6cecc56a57d1edf134e9c059f",
+    "znack-registration-ozon-after-dark-1600x1000.png": "55cd2a1b9b79cd58a43b964f6e518cda33c37fc524b2439410692a467e481990",
+    "znack-registration-ozon-after-light-1200x720.png": "693acd2d96bd992444df85b57c3ccd99bcf3f68d819080fc471c31a32d39700d",
+    "znack-registration-ozon-after-light-1600x1000.png": "e2eff6e4291438984a3846a81f0e9d48f74534cd67b2b3eb6ec62679bb4a2b4d"
+  },
+  "manuallyViewed": [
+    "ozon-after-dark-1200x720.png",
+    "ozon-after-dark-1600x1000.png",
+    "ozon-after-light-1200x720.png",
+    "ozon-after-light-1600x1000.png",
+    "ozon-sort-popup-after-dark-1600x1000.png",
+    "ozon-sort-popup-after-light-1600x1000.png",
+    "ozon-tab0-after-dark-1600x1000.png",
+    "ozon-tab0-after-light-1600x1000.png",
+    "ozon-tab1-after-dark-1600x1000.png",
+    "ozon-tab1-after-light-1600x1000.png",
+    "ozon-tab2-after-dark-1600x1000.png",
+    "ozon-tab2-after-light-1600x1000.png",
+    "ozon-tab3-after-dark-1600x1000.png",
+    "ozon-tab3-after-light-1600x1000.png",
+    "ozon-tab4-after-dark-1600x1000.png",
+    "ozon-tab4-after-light-1600x1000.png",
+    "packing-after-dark-1200x720.png",
+    "packing-after-dark-1600x1000.png",
+    "packing-after-light-1200x720.png",
+    "packing-after-light-1600x1000.png",
+    "znack-registration-ozon-after-dark-1200x720.png",
+    "znack-registration-ozon-after-dark-1600x1000.png",
+    "znack-registration-ozon-after-light-1200x720.png",
+    "znack-registration-ozon-after-light-1600x1000.png"
+  ],
+  "captureStatus": "PASS",
+  "visualAuditStatus": "PASS_WITH_LIMITATIONS",
+  "geometryScope": "Scene geometry captured in loop; quick Ozon main pair saved earlier at same 1600x1000 stage. Stateful constrained column layout may redistribute a few pixels after viewport resize. Tab0 per-theme frames include contemporaneous state-loop geometry.",
+  "scopeNotes": [
+    "24 synthetic products and 24 synthetic orders per Ozon status. No live seller API acceptance, purchases, signing or license activation.",
+    "WB new-order tab has 24 fixture rows; other WB states were honest empty views in BEFORE captures. Ozon fake reader reuses IDs across statuses; no real business transition is asserted.",
+    "Native production FXML/controllers, Header, Sidebar, ThemeService and WorkspaceViewport in Home-equivalent composition. Not actual HomeController or Launcher and not customer Windows.",
+    "Process-local ProxySelector blocks outbound HTTP with localhost:1. License requests measured at zero; zero seller calls is not asserted from that counter.",
+    "Actual main Ozon/FBS both themes and 1200x720 manually clear. 1600x1000 Ozon registration remains readable.",
+    "Unchanged Ozon registration at 1200x720: wrapped Other actions toolbar is partially overlapped by table; row action buttons extend inside table viewport. Reported to parent and left unchanged as outside requested FBS edit.",
+    "Native Robot popup white shadow backing reproduced in unchanged WB category menu. TRANSPARENT_WINDOW=false on Xvfb; customer Windows popup rendering not verified.",
+    "No BEFORE images/harnesses/receipts changed. No repository source edits by capture agent."
+  ]
+}

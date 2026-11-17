@@ -9,6 +9,9 @@ import com.vncode.app.integration.znack.ZnackGtinAutoSync;
 import com.vncode.app.integration.znack.ZnackProductService;
 import com.vncode.app.integration.znack.ZnackRepository;
 import com.vncode.app.integration.znack.ZnackSanitizer;
+import com.vncode.app.integration.znack.ZnackSigningSession;
+import com.vncode.app.integration.znack.ZnackPurchaseMethod;
+import com.vncode.app.integration.znack.ZnackPurchasePreferences;
 import com.vncode.app.integration.znack.BalanceSnapshot;
 import com.vncode.app.integration.znack.ChestnyZnakBalanceClient;
 import com.vncode.app.integration.znack.ZnackAccountInfo;
@@ -53,19 +56,21 @@ public class ZnackAutomationController {
     // Unsaved credentials stay in memory and are keyed by the complete store scope.
     private final java.util.Map<String,SettingsDraft> settingsDrafts=new java.util.HashMap<>();
     private record SettingsDraft(String omsId,String connection,String catalogKey,boolean autoIntroduction,
-            CryptoProCertificateInfo certificate,String signer,String metadata,Instant testedAt,String testedKey) { }
+            CryptoProCertificateInfo certificate,String signer,String metadata,Instant testedAt,String testedKey,
+            ZnackPurchaseMethod purchaseMethod) { }
     private String draftScope(){return catalogShop==null?"":com.vncode.app.integration.listing.ListingIdentity.fingerprint(catalogShop);}
     private void rememberSettingsDraft(){
         if(!settingsEditing||catalogShop==null)return;
         settingsDrafts.put(draftScope(),new SettingsDraft(omsIdField.getText(),omsConnectionField.getText(),catalogKeyField.getText(),
-                autoIntroductionCheck.isSelected(),signatureCertificateCombo.getValue(),signerCertificate,certificateMetadata,signerTestedAt,testedConfigurationKey));
+                true,signatureCertificateCombo.getValue(),signerCertificate,certificateMetadata,signerTestedAt,testedConfigurationKey,purchaseMethod()));
     }
     private void restoreSettingsDraft(){
         var draft=settingsDrafts.get(draftScope());settingsEditing=draft!=null;
         if(draft!=null){
             loading=true;
             omsIdField.setText(draft.omsId());omsConnectionField.setText(draft.connection());catalogKeyField.setText(draft.catalogKey());
-            autoIntroductionCheck.setSelected(draft.autoIntroduction());signerCertificate=draft.signer();certificateMetadata=draft.metadata();
+            autoIntroductionCheck.setSelected(true);productionMethodCombo.getSelectionModel().select(draft.purchaseMethod().ordinal());
+            signerCertificate=draft.signer();certificateMetadata=draft.metadata();
             signerTestedAt=draft.testedAt();testedConfigurationKey=draft.testedKey();
             if(draft.certificate()!=null&&!signatureCertificateCombo.getItems().contains(draft.certificate()))signatureCertificateCombo.getItems().add(draft.certificate());
             signatureCertificateCombo.setValue(draft.certificate());loading=false;updateSignatureSummary();
@@ -283,6 +288,7 @@ public class ZnackAutomationController {
             field.textProperty().addListener((o, old, value) -> updateSaveState());
         }
         autoIntroductionCheck.selectedProperty().addListener((o, old, value) -> updateSaveState());
+        productionMethodCombo.getSelectionModel().selectedIndexProperty().addListener((o, old, value) -> updateSaveState());
         signatureCertificateCombo.valueProperty().addListener((o, old, value) -> {
             if (updatingCertificateSelection) return;
             if (value == null) return;
@@ -364,7 +370,9 @@ public class ZnackAutomationController {
         omsConnectionField.setPromptText(tr("znack.oms_connection_prompt"));
         if(repository==null)authStatusLabel.setText(tr("znack.error.select_shop"));
         catalogTitleLabel.setText(tr("znack.settings.catalog_key"));
-        productionMethodCombo.getItems().setAll(tr("znack.settings.production"));productionMethodCombo.getSelectionModel().selectFirst();
+        int selectedMethod=productionMethodCombo.getSelectionModel().getSelectedIndex();
+        productionMethodCombo.getItems().setAll(tr("znack.settings.production"),tr("znack.settings.commission"));
+        productionMethodCombo.getSelectionModel().select(selectedMethod==1?1:0);
         purchaseMethodLabel.setText(tr("znack.settings.purchase_method"));purchaseMethodHint.setText(tr("znack.settings.purchase_hint"));applyEditMode();
         catalogHelpLabel.setText(tr("znack.catalog.help"));
         catalogKeyField.setPromptText(tr("znack.catalog.key_prompt"));
@@ -443,6 +451,7 @@ public class ZnackAutomationController {
         settingsSaveBar.setVisible(settingsEditing);settingsSaveBar.setManaged(settingsEditing);
         if(opening)com.vncode.app.shared.WorkspaceMotion.savedDraft(settingsSaveBar);
         omsIdField.setEditable(settingsEditing);omsConnectionField.setEditable(settingsEditing);catalogKeyField.setEditable(settingsEditing);
+        productionMethodCombo.setDisable(!settingsEditing||repository==null||loading||signatureTestRunning);
         editSettingsButton.setText(tr(settingsEditing?"common.cancel":"znack.settings.edit"));
         catalogActions.setVisible(settingsEditing);catalogActions.setManaged(settingsEditing);saveButton.setVisible(settingsEditing);saveButton.setManaged(settingsEditing);
         boolean catalogFeedback=settingsEditing||catalogStatusKey.contains("failed")||catalogStatusKey.contains("error");catalogStatusLabel.setVisible(catalogFeedback);catalogStatusLabel.setManaged(catalogFeedback);
@@ -485,7 +494,7 @@ public class ZnackAutomationController {
             return;
         }
         try {
-            settings = repository.saveConnectionSettings(settings);
+            settings = repository.saveConnectionSettings(settings,purchaseMethod());
             repository.log("SETTINGS_SAVE", null, "INFO", "SAVED", null);
             loaded = settings;
             settingsDrafts.remove(draftScope());
@@ -870,6 +879,11 @@ public class ZnackAutomationController {
                 signaturePhase.set(SignatureTestFailure.Phase.SAVE_VERIFICATION);
                 ZnackRepository.CertificateVerificationResult result =
                         currentRepository.saveVerifiedCertificate(expectedSettings, verifiedSettings);
+                try { ZnackSigningSession.authorizeShopExplicitly(currentRepository); }
+                catch (IllegalStateException busy) {
+                    if (!"ZNACK_SIGNING_MUTATION_BUSY".equals(busy.getMessage())) throw busy;
+                    // Verification remains valid; an in-flight mutation retains its original lease.
+                }
                 return new SignatureVerification(verifiedSettings, result, api, auth, actualCertificate);
             }
         };
@@ -970,7 +984,8 @@ public class ZnackAutomationController {
         signerTestedAt = loaded.signerTestedAt();
         omsIdField.setText(value(loaded.omsId()));
         omsConnectionField.setText(value(loaded.omsConnection()));
-        autoIntroductionCheck.setSelected(loaded.autoIntroduction());
+        autoIntroductionCheck.setSelected(true);
+        productionMethodCombo.getSelectionModel().select(new ZnackPurchasePreferences(repository.shop().shopId()).method().ordinal());
         signatureCertificateCombo.getItems().clear();
         if (!signerCertificate.isBlank()) {
             CryptoProCertificateInfo stored = storedCertificate();
@@ -1311,7 +1326,7 @@ public class ZnackAutomationController {
                 certificateChanged ? "" : loaded.producerInn(),
                 certificateChanged ? "" : loaded.ownerInn(), loaded.signerExecutable(),
                 selectedCertificate(), loaded.signerArgumentsJson(), loaded.documentNumber(),
-                loaded.documentDate(), loaded.pdfFolder(), autoIntroductionCheck.isSelected(),
+                loaded.documentDate(), loaded.pdfFolder(), true,
                 loaded.certificateListExecutable(), loaded.certificateListArgumentsJson(), certificateMetadata,
                 signerTestedAt, loaded.certmgrPath(), loaded.cryptcpPath(), loaded.csptestPath(),
                 loaded.resolvedCryptoProTimeoutSeconds(), loaded.documentExpiryDate(), loaded.documentType());
@@ -1363,7 +1378,8 @@ public class ZnackAutomationController {
         ordersTable.getItems().clear();
         logsTable.getItems().clear();
         updateProductSelectionState();
-        autoIntroductionCheck.setSelected(false);
+        autoIntroductionCheck.setSelected(true);
+        productionMethodCombo.getSelectionModel().selectFirst();
         signerCertificate = "";
         certificateMetadata = "";
         signerTestedAt = null;
@@ -1451,15 +1467,21 @@ public class ZnackAutomationController {
 
     private String fingerprint() {
         return String.join("\u001f", value(omsIdField.getText()), value(omsConnectionField.getText()), selectedCertificate(),
-                String.valueOf(autoIntroductionCheck.isSelected()),
+                "true",purchaseMethod().name(),
                 value(certificateMetadata), signerTestedAt == null ? "" : signerTestedAt.toString());
     }
 
     private String fingerprint(Settings settings) {
         return String.join("\u001f", value(settings.omsId()), value(settings.omsConnection()),
-                value(settings.signerCertificate()), String.valueOf(settings.autoIntroduction()),
+                value(settings.signerCertificate()), "true",
+                (repository==null?ZnackPurchaseMethod.PRODUCTION:new ZnackPurchasePreferences(repository.shop().shopId()).method()).name(),
                 value(settings.certificateMetadataJson()),
                 settings.signerTestedAt() == null ? "" : settings.signerTestedAt().toString());
+    }
+
+    private ZnackPurchaseMethod purchaseMethod() {
+        return productionMethodCombo.getSelectionModel().getSelectedIndex()==1
+                ? ZnackPurchaseMethod.COMMISSION : ZnackPurchaseMethod.PRODUCTION;
     }
 
     private boolean sameCertificate(String first, String second) {

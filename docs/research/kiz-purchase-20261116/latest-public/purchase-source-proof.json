@@ -1,0 +1,79 @@
+{
+  "status": "PASS_LINE_ENDINGS_NORMALIZED",
+  "files": [
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+      "gitSha256": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935",
+      "zipSha256": "278e3dc516fbb0964deb71bf49a51b686caa5974d5d62bba8f37d29c18a4c248",
+      "exact": false,
+      "zipCrlfCount": 1005,
+      "gitCrlfCount": 0,
+      "normalizedLineEndingsExact": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+      "gitSha256": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0",
+      "zipSha256": "8a269068b74e9faa75509f3badee950d84e7cb37054f2abd9b8268371c11e6f4",
+      "exact": false,
+      "zipCrlfCount": 163,
+      "gitCrlfCount": 0,
+      "normalizedLineEndingsExact": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+      "gitSha256": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+      "zipSha256": "1930e07529ca412bb49a31ce287f399fb063a6c2e409f32d4f95919c4af6ec99",
+      "exact": false,
+      "zipCrlfCount": 191,
+      "gitCrlfCount": 0,
+      "normalizedLineEndingsExact": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+      "gitSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+      "zipSha256": "c73c208f59b00290fd0377bca0eccf2708a8539a02c980b4b7ae9332b8ab05fb",
+      "exact": false,
+      "zipCrlfCount": 186,
+      "gitCrlfCount": 0,
+      "normalizedLineEndingsExact": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+      "gitSha256": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+      "zipSha256": "bbc8630aa432abc0ae0e3443e7524afbb5c789e4759edd2209cfa5e4cc58850a",
+      "exact": false,
+      "zipCrlfCount": 68,
+      "gitCrlfCount": 0,
+      "normalizedLineEndingsExact": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/ZnackCisReadback.java",
+      "gitSha256": "e3d3b75886332b7eb819f1ba093219264ad1adf88e4c4089fcfb3a7965f8bff6",
+      "zipSha256": "3ed475ea9133836fd86a1c35da1e654096d536cb1e2f00d100a54d0bcd45f43b",
+      "exact": false,
+      "zipCrlfCount": 97,
+      "gitCrlfCount": 0,
+      "normalizedLineEndingsExact": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+      "gitSha256": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+      "zipSha256": "590bd605d125841e0dbbd92f3a93db00fc028b4fa45b150ee62cde12090557c6",
+      "exact": false,
+      "zipCrlfCount": 173,
+      "gitCrlfCount": 0,
+      "normalizedLineEndingsExact": true
+    },
+    {
+      "file": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+      "gitSha256": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+      "zipSha256": "434c3babc0ff2225f9f39e93e3381093b370c459ee3510e27bb5b5799caebeaa",
+      "exact": false,
+      "zipCrlfCount": 195,
+      "gitCrlfCount": 0,
+      "normalizedLineEndingsExact": true
+    }
+  ],
+  "scope": "PublishedWindows sourceZip may useCRLF; compareLF-normalizedexactcontent, not rawbyteidentity",
+  "sourceZipSha256": "5cad9f32c94dec31206e35786262990e3779720d9ede98900f0707e55640f93e"
+}

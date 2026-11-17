@@ -1,0 +1,25 @@
+{
+  "status": "FROZEN_GREEN",
+  "initialBroadResult": {
+    "tests": 7,
+    "failures": 3,
+    "errors": 2,
+    "skipped": 0
+  },
+  "finalPrivateResult": {
+    "tests": 9,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "productionChangeOwner": "B; one-line contextForOrder(id, explicitSettings) fallback correction, approved by root. D made no production edits.",
+  "fixtureChanges": "Preserved all seven buffer/GTIN/partial-delivery assertions; added GET-only real loopback request proof for original OMS/order/GTIN/clientToken and selected original certificate; added explicit historical caller override and persisted paid profile precedence over wrong current caller. No skips or weakened expectations.",
+  "hashes": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+    "src/test/java/com/vncode/app/integration/znack/ZnackKizPurchaseReadbackTest.java": "e82d9cd5cbbde34624f4fc14614e87a83c8eaf3e33893a82d73f2f92231eec81"
+  },
+  "matchesVerifiedSnapshot": true,
+  "proof": "final-proof-3/RESULT.json",
+  "initialReport": "INITIAL-FAIL.xml",
+  "limitations": "Private incremental compile of current B OrderService and strengthened test over combined-final verified classes, not a replacement for root whole-current rerun; only synthetic loopback HTTP and isolated SQLite."
+}

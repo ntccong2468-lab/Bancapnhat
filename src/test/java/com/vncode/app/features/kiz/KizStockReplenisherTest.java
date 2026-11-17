@@ -67,6 +67,9 @@ class KizStockReplenisherTest {
             };
             var strict=new KizStockReplenisher(ignored->new KizStockReplenisher.Purchases(){
                 public void validate(String gtin,int quantity){}
+                public void enqueueBatch(java.util.List<com.vncode.app.integration.znack.ZnackPurchaseBatchStore.Approved> approved)throws Exception{
+                    for(var item:approved)enqueue(item.gtin(),item.quantity(),item.requestKey());
+                }
                 public void enqueue(String gtin,int quantity,String key){
                     // Exercise the actual consumer contract and stop before signing or a remote purchase.
                     assertSame(prerequisitesReached,assertThrows(IllegalStateException.class,
@@ -129,6 +132,9 @@ class KizStockReplenisherTest {
     class Buyer implements KizStockReplenisher.Purchases {
         int bought,resumes;
         public void validate(String gtin,int quantity){assertEquals(KizWarehouseTest.GTIN,gtin);assertTrue(quantity>0);}
+        public void enqueueBatch(java.util.List<com.vncode.app.integration.znack.ZnackPurchaseBatchStore.Approved> approved)throws Exception{
+            for(var item:approved)enqueue(item.gtin(),item.quantity(),item.requestKey());
+        }
         public void enqueue(String gtin,int quantity,String key){bought+=quantity;new ZnackRepository(new ZnackModels.ShopContext(1,"WB")).enqueuePipeline(gtin,quantity,key);}
         public void resume(){resumes++;}
     }

@@ -1,0 +1,604 @@
+{
+  "status": "PASS",
+  "exitCode": 0,
+  "elapsedSeconds": 395.3552603199987,
+  "counts": {
+    "tests": 393,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suiteCount": 64,
+  "selectedClassCount": 64,
+  "missingSelectedClasses": [],
+  "issues": [],
+  "suites": [
+    {
+      "name": "com.vncode.app.features.kiz.KizPrintPurchasePauseTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.728,
+      "xmlSha256": "7c7e632f269d89d4be6325d47c50b09f26fe944f16f6b35c54e6c64a8faa33e6"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPrintPurchaseSessionTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.316,
+      "xmlSha256": "f95a2f7b879a8afecfeb43ba810ef389fa0abb541981aec3d5d9ef824b6f893d"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPurchaseAvailabilityPolicyTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.651,
+      "xmlSha256": "4577b0a3a0cfa426de8c4aed3abb172daf1e9e458814ae4904e2c8eebcf83dce"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizStockReplenisherTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.951,
+      "xmlSha256": "3bdc585356ea1a267e834ddc6d5875b98c8f74ac1957da3a54d4d9289a58d52b"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.status.Kn3OzonPrintProjectionTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.528,
+      "xmlSha256": "7940941659392440f3b9e434fcc226e9281acafa695c5dcbc842c1fef332ea6d"
+    },
+    {
+      "name": "com.vncode.app.features.ozon.OzonFbsPrintStateTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.151,
+      "xmlSha256": "6d2c46e0234f0df3037e7cecf86d0eb2e353c85881ea545e52c642755ec52d65"
+    },
+    {
+      "name": "com.vncode.app.features.ozon.OzonFbsSnapshotServiceTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.48,
+      "xmlSha256": "3e8edba3fe5f572fd2b22a0dade361d07b1d552f160b8c98255a0c22aee3bd07"
+    },
+    {
+      "name": "com.vncode.app.features.ozon.OzonPostingSortingServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.012,
+      "xmlSha256": "c605386af58ffa75bd258ee85b0acd222062f684b3fab4e91e7623bf0e9faa87"
+    },
+    {
+      "name": "com.vncode.app.features.packing.WbPackingPartialBatchTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.285,
+      "xmlSha256": "5b3d1b3bd96728fd83f202909b3ee0acdead99ca92005d5704edcb96c87c12d2"
+    },
+    {
+      "name": "com.vncode.app.features.print.OrderExportWorkflowKizPlanningTest",
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.417,
+      "xmlSha256": "b5376c078e307f8274e49b41675ff8ad2559507710cbe9d2d6af01ab7313b147"
+    },
+    {
+      "name": "com.vncode.app.features.supply.OrderSortingServiceTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.003,
+      "xmlSha256": "822373bfe9b42622322fc4c8ba5c2c4468128bd1ea4cb121882ebd3b7cec58d5"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonAcceptanceKizTest",
+      "tests": 45,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 78.572,
+      "xmlSha256": "3a49bf545251f2149ba25adf440bfc5365615217d8af572bb448fb5d1e411f97"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonAcceptanceSourceSnapshotTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.717,
+      "xmlSha256": "6adc9cf92e504cbf8a03e3c2d49a9b266ba8d29ff7fe69f90f4d541e4e9ed8f4"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonBatchPdfPerformanceTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 16.465,
+      "xmlSha256": "276a9759f55b3cbae78b05258213547422f9bb986c21034985ac658d345cc5f6"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonCarrierLabelNumbersTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.131,
+      "xmlSha256": "4a0a537d9ba2fbe5ef8ca0bf565143cf4ec5fb6d73c5936ce889a58ad6c6bdab"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonCombinedLabelRendererTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.201,
+      "xmlSha256": "aa943f4c797c194a3b1cd2de5a013e56ef73de837d809d6448115f584befd72f"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonFilteredSelectionQueryTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.261,
+      "xmlSha256": "d66203f9aab89a626a87ec3becabcb1a4a224e551aba6b6a0b1a1361097e3dd8"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonLabelPageIdentityTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.095,
+      "xmlSha256": "6fab4abe4bb3adb852b1137467c7ec0e972f3cf71048e1bc94d82042b7cfeb26"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPickingListPdfExporterTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.339,
+      "xmlSha256": "33b89eff428a8e5af5c65a8cd3c91db68b0f02192d64f2c42586f9e4f397ef76"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPostingRepositoryTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.239,
+      "xmlSha256": "93dc03c606264f8344beea7e7892ae68f4ee517bcec7f6ebfd9da6ae519bf3c6"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPrintBatchReadTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.295,
+      "xmlSha256": "305cd5494d8687920db04f4c3c64e3f1b6a6b7183bf8fbb8ec9a03f0944f9e10"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPrintBundleRollbackTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.018,
+      "xmlSha256": "a53a82cff5cc14348c725db8112e5e00b37e526bc27a8a3d2c9c8656cc90eaf5"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPrintProductSnapshotTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.73,
+      "xmlSha256": "1f9fac0a83a7f6b86b20e618ebd974e9e44179a96fc1e0ea8ae40e17a6fe1f42"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPurchasedKizReplacementTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.594,
+      "xmlSha256": "772808d35e2940d475486643ecd7e91e911b63fb5d00ee78eaa2e1a2809167ef"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPurchasedPrintAssignmentTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 10.29,
+      "xmlSha256": "762e0a043b671f15c355080bdc1575b7b8a87f5a6c2b9198d3de270706a78b46"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonPurchasedStockPolicyTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.615,
+      "xmlSha256": "ab38aaedc2b70fe7c9611ab372e8ad02230630a56d280b435750e7b8d3b828cc"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonRejectedPurchasedDemandTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.036,
+      "xmlSha256": "53e003f01c50e09b411987692223f527cbfed4b0dd9e63866976cbf41fb2fc3d"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonShipServiceTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.93,
+      "xmlSha256": "cb60c806f7e3859c33103ac0a6319513ded7a5b27f4939d9e8c83a4dbe69414b"
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonSnapshotRevisionTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.744,
+      "xmlSha256": "18abb023b1ac3bf915fc4b04f628d5bd18eb2ec9e780e8563db3f653a34803ad"
+    },
+    {
+      "name": "com.vncode.app.shared.TableRowsFxTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.084,
+      "xmlSha256": "c47777eb1bc37904c6742f2108aba0a438962b6d2c8479bb13e9faafabe50f57"
+    },
+    {
+      "name": "com.vncode.app.shared.TableRowsTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.069,
+      "xmlSha256": "b80199c6180b53b4917ea0ab93e715bef6d1c9682c5b989f3c0665ac85096cd2"
+    },
+    {
+      "name": "com.vncode.app.shared.TableScrollLoaderTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.033,
+      "xmlSha256": "46d72536aec9832851203f2503453849ea4d4f8c37cd9db096fb637bf426fcc4"
+    },
+    {
+      "name": "com.vncode.app.shared.ThemeServiceTest",
+      "tests": 11,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.905,
+      "xmlSha256": "1a0938e3a460c8d701ad8230b653257147efbe7a8cea5255b703199cf774b949"
+    },
+    {
+      "name": "com.vncode.app.shared.WorkspaceMaterialRenderingTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.083,
+      "xmlSha256": "9721ddc3545ba1662be6c040e1b4fc140571b55572149a714e9161db191416ab"
+    },
+    {
+      "name": "com.vncode.app.ui.ReferenceThemeAccessibilityTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.109,
+      "xmlSha256": "a83b102ab856b821f6b141a5e5aed3174b30379d2d5f58a6f50aaac432b7e0fd"
+    },
+    {
+      "name": "com.vncode.app.ui.kiz.KizWarehousePaneTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.16,
+      "xmlSha256": "bf98b7fa878c3cf1d6a442b5f3c596912d9d2004a4aa2a945119f544e73a6504"
+    },
+    {
+      "name": "com.vncode.app.ui.kiz.Kn3BatchUiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.185,
+      "xmlSha256": "f38e770d5b03fe798c7220ba6fd76aed4a38491c683eac17698c4fe5ba5982f8"
+    },
+    {
+      "name": "com.vncode.app.ui.kiz.WbShipmentKizPaneTest",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.436,
+      "xmlSha256": "09c6560aba746701e2ea25adbfc75beb097f6e11739709c9e612825c923a4397"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.FbsKizSigningResumeUiTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.138,
+      "xmlSha256": "b56d1851c111d71dbe25e06f6bd98cc47623b7f71f56fa7ad732837392c6c0ed"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.956,
+      "xmlSha256": "7ebc66c723e336edbaf12d7f30d12e3a10eddfff4aa8c2536d0f4e55e140c0c4"
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.552,
+      "xmlSha256": "f4d37bb1ba70668043b5576d7a7d716610b37a865702ca3c10df2382f13421e4"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonAcceptanceRetryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.005,
+      "xmlSha256": "6d1c3ffb79d6bad838def44c3a25ee71ffbf6483f9d132008f6a30f0e59d0465"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonBulkUiTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 31.699,
+      "xmlSha256": "c6055cfb551d263ddf1d00646d36b39f573fbb9e32f07c8c6e763ba14dd9057e"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonDashboardControllerTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.003,
+      "xmlSha256": "85b572b06f6b3b9af7ba03c3eea5f181362d1e842fae60bbcfcbbc7865385926"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsEnrichmentUiTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.882,
+      "xmlSha256": "265af9906afe097e1afd97b3685445c8c91a86eadc05fe50cdabe6df313f6485"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 11.762,
+      "xmlSha256": "cb450cbaad62bbf52be3fbce93defabd2e10045e60da4be4dc096a1777cd8ebe"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonManualSyncUiTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.294,
+      "xmlSha256": "a0c88e8f3df327492cf2cfd0e8941ac893080e515dce95af49ecec5415ae0ecb"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonPrintedQueueUiTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.232,
+      "xmlSha256": "730f82bb3f4999685977b8bc12cab81325cb784668d5b87ecb6826779e8318dd"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonRegistrationEntryUiTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.744,
+      "xmlSha256": "20abb34124922843f07601b57c5170272f3c9d8ed04b469c0cc0a0e6b7b2dc9c"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonShipmentSourcesUiTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.994,
+      "xmlSha256": "ba79d86c7bc0a65dda4b597b87a618e2a741459d2b618a5081a4b264d0dd3216"
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonWbPackingParityTest",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 28.326,
+      "xmlSha256": "1ffa2ff58bbf506510e116965174cb168a96f5601ad057e22f86cc994b4e248c"
+    },
+    {
+      "name": "com.vncode.app.ui.packing.FbsResponsiveActionsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.996,
+      "xmlSha256": "d6aaff397231f1075c9e13c4853033b48bb352e967364073b075f49e1ebf92f2"
+    },
+    {
+      "name": "com.vncode.app.ui.packing.PackingDebtStatusVisualTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.713,
+      "xmlSha256": "1d9d3d2e26da6a4c9cc17dac8773019d16850956a3bb683f42f29c8494869f90"
+    },
+    {
+      "name": "com.vncode.app.ui.packing.PackingDebtTabTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.006,
+      "xmlSha256": "556ee30c48104179cd0a47f9d31127d691599a7d18567c8ed038b68a0222a6be"
+    },
+    {
+      "name": "com.vncode.app.ui.supply.SupplyOrderPresentationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.001,
+      "xmlSha256": "54dea669bc52be5004548fd42f3f239a4ab2bf1220bd4ca7f21b1bddf595777d"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.HomeControllerPageTransitionTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.181,
+      "xmlSha256": "f00934028dfd4d418faa8653b6d3bdb137abbff8a746700689a8f768718ddadc"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.004,
+      "xmlSha256": "a69bf3b1f305dcc69faa8dbe090b8fc3153246390dbe2d274036461569c53b1b"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.OzonRegistrationNavigationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.361,
+      "xmlSha256": "c21d9d7ed20e1d4641ffbf6ef56c6aab45dc7cebc0995ae5fd569216b5752ccf"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.SupplyPrintRequestTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.002,
+      "xmlSha256": "e8602557c79becf129bdea315b56948b61f16142ba8ac4d72b00b09c12938ba7"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceChromeUiTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 7.925,
+      "xmlSha256": "d35c7478a8dafff11acfbf5706220e01bf9f4edd37cae21952c67f686c1248ec"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceListAreaTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 16.879,
+      "xmlSha256": "0e673af37452bc6d999bbcc1bf79b5842a9f412c77b5cf46aa5c39b7f2b31412"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceNavigationContextTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.144,
+      "xmlSha256": "b0bdda6e1a7f591c88dd51c553b8f5c3e10d4a358e90b43bf8bc3736419275b9"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspaceNavigationTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.074,
+      "xmlSha256": "690956e8f6ee6c5ed84e41b832f0ea2511e7ae61f4e209cd9283fbc34f5668ea"
+    },
+    {
+      "name": "com.vncode.app.ui.workspace.WorkspacePagesLayoutTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 97.752,
+      "xmlSha256": "f52de0c12d3d02c24dd5e201ab61d47459fb743b5efc657611bbb1076050132f"
+    }
+  ],
+  "copiedBuildInputsChanged": [],
+  "sourceBuildInputsChanged": [],
+  "ownerFrozenInputsChanged": [],
+  "inputPathSetIssues": {
+    "addedLiveInputs": [],
+    "missingLiveInputs": [],
+    "addedCopyInputs": [],
+    "missingCopyInputs": []
+  },
+  "finishedAtUtc": "2026-11-16T15:19:03.635800+00:00",
+  "scope": "Fresh UI/presentation affected-scope synthetic Linux/Xvfb regression and package; no real business acceptance"
+}

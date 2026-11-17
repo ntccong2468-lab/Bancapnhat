@@ -1,0 +1,10 @@
+{
+  "status": "PASS",
+  "method": "Verified official portable7zip25.01 read PE\u2192MSI\u2192CAB without runningWBCode",
+  "targetExecuted": false,
+  "extractedEntry": "/workspace/kiz-v130-wbcode-20261116/wbcode/pe-extracted/filef9be61f0d0483de7844b53d65942abb0",
+  "appJar": "/workspace/kiz-v130-wbcode-20261116/wbcode/wbcode-1.3.26-app.jar",
+  "bytes": 5614068,
+  "sha256": "d10efde1c0ef6e6f8cf3e850e1dd7615966b0aa1e83082181f6c8dd26380f1b6",
+  "classCount": 1383
+}

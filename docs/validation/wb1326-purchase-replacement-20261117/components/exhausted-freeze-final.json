@@ -1,0 +1,33 @@
+{
+  "status": "FROZEN_GREEN",
+  "initialBroad": {
+    "recovery": {
+      "tests": 26,
+      "failures": 13,
+      "errors": 6
+    },
+    "workflow": {
+      "tests": 1,
+      "failures": 1,
+      "errors": 0
+    }
+  },
+  "finalPrivate": {
+    "tests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "productionEditsByD": false,
+  "files": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "08d87189b6f9015a15e5053c5c198b9dcc65a1ac0ff60bb703a8f700e5ea79dd",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java": "8f41889bfd2a5af5d6a0ad5438c1e9f20eeb62458a7255b80c919028473386a4",
+    "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java": "62bc9faa09d2a2e412cddd7fa76d4f4c7e45d66db50d410df4c63ee68a9814ce"
+  },
+  "matchesVerifiedSnapshot": true,
+  "preservation": "All original no-rebuy/ordinary-once/restart replay-only/quantity/whole-foreign-list-before-replay/raw-GTIN/OMS/order/block-identity/consumed-stock assertions retained. Proper original profile saved before enqueue; explicit synthetic availability dependency; workflow current capped-download seam; CLOSED positive recovery variant and full raw GS/crypto assertion added.",
+  "scope": "Only isolated synthetic protocol fixtures; no real API/paid/sign/license. Current B OrderService+Coordinator compiled against combined-final classes, then two current test classes; root final whole-current rerun remains authoritative.",
+  "proof": "strengthened-final-proof/RESULT.json",
+  "finalStrengthening": "Three explicit advanceBatch no-rebuy traps added alongside old buy traps; UUID canonical context identity_key recomputed and asserted after original fixture profile setup. Test-only changes; all 28 cases rerun and pass."
+}

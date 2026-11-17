@@ -1,0 +1,38 @@
+{
+  "liveSellerMutations": false,
+  "syntheticLicense": true,
+  "outboundNetworkBlocked": true,
+  "actualEntrypoint": "com.vncode.app.Launcher.main",
+  "launcherCodeSource": "file:/workspace/ecc-integration-20261115/runtime/current-source-copy/target/VNcode-1.6.10.jar",
+  "uiControllerCodeSource": "file:/workspace/ecc-integration-20261115/runtime/current-source-copy/target/VNcode-1.6.10.jar",
+  "workspaceVisible": true,
+  "width": 1300,
+  "height": 700,
+  "startupToWorkspaceSeconds": 6.097488945,
+  "launcherReturned": true,
+  "elapsedSeconds": 6.697633893,
+  "startupFailureLogCreated": false,
+  "dataLockReleasedAfterShutdown": true,
+  "result": "PASS",
+  "databaseReadback": {
+    "integrity": [
+      "ok"
+    ],
+    "foreignKeyViolations": 0,
+    "schemaVersion": 6,
+    "shops": 0
+  },
+  "jarSha256": "4a1b13a71bef839b9eccb1970003d90b0301e56b839aac5e4d4097a6f866355c",
+  "sourceScope": "Current frozen-copy Jar with two approved cosmetic Znack UI changes,1424buildinputs matched original; Linux/Xvfb synthetic authority/network blocked, no nativeWindows or liveAPI acceptance.",
+  "processExitCodeObserved": 0,
+  "evidence": {
+    "launcher-smoke.json": {
+      "bytes": 600,
+      "sha256": "06c2cd23ec27525d33a3ef76d55322ea44e0e2de06bad55ad45c276bc4f3a06e"
+    },
+    "actual-launcher-workspace.png": {
+      "bytes": 147641,
+      "sha256": "47fd385faa32581dba7bd50816b42713b0f87aa5d7309fddbf3235a7a1cbaec0"
+    }
+  }
+}

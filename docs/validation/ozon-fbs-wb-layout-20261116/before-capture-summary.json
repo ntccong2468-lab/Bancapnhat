@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "capturedAtUtc": "2026-11-16T14:51:57.842715+00:00",
+  "scope": "Read-only nativeJavaFX captures from frozen pre-edit JAR; no source modifications.",
+  "primaryReceipt": "capture-result.json",
+  "additionalTabReceipt": "states/capture-result.json",
+  "primaryImages": 6,
+  "additionalImages": 20,
+  "totalPngFiles": 26,
+  "registrationImagesManuallyViewed": 2,
+  "liveSellerMutations": false,
+  "paidPurchases": false,
+  "realSigningOrLicenseActivation": false,
+  "jarSha256": "6a60df306c99179a87230d6878d2d551da6746ea4af33e79159fd6156c76178f"
+}

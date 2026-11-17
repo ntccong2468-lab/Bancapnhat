@@ -1,0 +1,233 @@
+{
+  "review": "independent final validator retest",
+  "checkedAt": "2026-11-15T18:29:55.116Z",
+  "repo": "/workspace/vncode-ios-motion-20261114",
+  "branch": "chore/ecc-codex-web-20261115",
+  "baseCommit": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "fileHashes": {
+    "validator": "2defcace12d3d3abc9839ba487463b94d96522633baac514c7a09a1c3f85d72f",
+    "tests": "9ebc38c2a9c56e80eeac87ce7df6d35e4339bc274a76a774902143bbd03c6681",
+    "manifest": "92221f39410af5a92db1dab3c339a49f66fb35c1d10666a0ac80ff25348912fb"
+  },
+  "filesStableAcrossRetest": true,
+  "results": {
+    "provenance": {
+      "ok": false,
+      "errors": [
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": ".agents/skills/vncode-ecc-review/SKILL.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": ".agents/skills/vncode-ecc-security/SKILL.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": ".agents/skills/vncode-ecc-tdd-verification/SKILL.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/README.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/review.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/security.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/verification.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/LICENSE.upstream.txt"
+        }
+      ],
+      "counts": {
+        "existingSkills": 0,
+        "integratedSkills": 3,
+        "artifacts": 10,
+        "sources": 1,
+        "links": 0
+      },
+      "sourceHashesVerified": false
+    },
+    "frontmatter": {
+      "ok": false,
+      "errors": [
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "missing-required-source",
+          "file": "docs/engineering/ecc/integration-manifest.json"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": ".agents/skills/vncode-ecc-review/SKILL.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": ".agents/skills/vncode-ecc-security/SKILL.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": ".agents/skills/vncode-ecc-tdd-verification/SKILL.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/README.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/review.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/security.md"
+        },
+        {
+          "code": "incomplete-artifact-provenance",
+          "file": "docs/engineering/ecc/verification.md"
+        },
+        {
+          "code": "invalid-frontmatter-scalar",
+          "file": ".agents/skills/vncode-ecc-review/SKILL.md"
+        },
+        {
+          "code": "incomplete-integrated-skills",
+          "file": ".agents/skills"
+        }
+      ],
+      "counts": {
+        "existingSkills": 0,
+        "integratedSkills": 2,
+        "artifacts": 10,
+        "sources": 2,
+        "links": 0
+      },
+      "sourceHashesVerified": false
+    },
+    "local": {
+      "ok": true,
+      "errors": [],
+      "counts": {
+        "existingSkills": 12,
+        "integratedSkills": 3,
+        "artifacts": 11,
+        "sources": 11,
+        "links": 60
+      },
+      "sourceHashesVerified": false
+    },
+    "sourceBytes": {
+      "ok": true,
+      "errors": [],
+      "counts": {
+        "existingSkills": 12,
+        "integratedSkills": 3,
+        "artifacts": 11,
+        "sources": 11,
+        "links": 60
+      },
+      "sourceHashesVerified": true
+    }
+  },
+  "test": {
+    "command": "node --test tools/validate-ecc-integration.test.mjs",
+    "exit": 0,
+    "summary": {
+      "tests": 17,
+      "suites": 0,
+      "pass": 17,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "log": "/workspace/ecc-integration-20261115/validator-independent-review-tests.txt"
+  },
+  "additionalFindingCount": 0,
+  "limits": [
+    "Narrow static metadata/link/provenance validator; not full YAML/CommonMark parser",
+    "Source byte equality is relative to supplied snapshot, not independent GitHub authenticity attestation",
+    "No native Web discovery, Windows or seller API acceptance performed"
+  ],
+  "environment": {
+    "node": "v24.19.0",
+    "os": "Linux"
+  }
+}

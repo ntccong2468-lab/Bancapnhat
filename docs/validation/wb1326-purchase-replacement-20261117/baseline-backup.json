@@ -1,0 +1,12 @@
+{
+  "status": "VERIFIED_BEFORE_EDITS",
+  "sourceFileCount": 3947,
+  "archive": "/workspace/kiz-wb1326-replacement-20261117/VNCode-before-WB1326-purchase-replacement-20261117.zip",
+  "archiveBytes": 107165680,
+  "archiveSha256": "8e73de42982b9e50bc13e9776a4dd4ef4e8074deb11f5b6d177b8faf5e360533",
+  "allEntriesSha256Verified": true,
+  "crcVerified": true,
+  "sourceManifest": "/workspace/kiz-wb1326-replacement-20261117/baseline-source-manifest.json",
+  "head": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "branch": "feature/ozon-znack-order-kiz-20261116"
+}

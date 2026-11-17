@@ -77,6 +77,9 @@ public class SupplyDetailController {
     private final KizMappingRepository gtinRepository = new KizMappingRepository();
     private final ZnackKizInventoryActionService inventoryActions = new ZnackKizInventoryActionService();
     private final Set<String> purchasesStarting = new HashSet<>();
+    @FunctionalInterface interface PurchaseResumer {void resume(ZnackRepository repository,long pipelineId)throws Exception;}
+    private PurchaseResumer purchaseResumer=(repository,pipelineId)->ZnackPurchaseCoordinator.create(repository).resumeSigning(pipelineId);
+    void setPurchaseResumer(PurchaseResumer resumer){purchaseResumer=Objects.requireNonNull(resumer);}
     private List<ZnackGtinInventorySummary> gtinSummaries = List.of();
     private Shop shop;
     private ZnackRepository znackRepository;
@@ -709,24 +712,28 @@ public class SupplyDetailController {
         buy.getStyleClass().addAll("btn-primary", "gtin-buy-button");
         buy.setGraphic(new FontIcon("fth-plus"));
         boolean technicalGtin = GtinNormalizer.isTechnicalRange(summary.gtin());
+        boolean signingPaused = signingPaused(summary);
         buy.setTooltip(new Tooltip(technicalGtin
                 ? tr("supply.gtin_inventory.error.technical_gtin") : tr("supply.gtin_inventory.buy")));
         buy.setAccessibleText(tr("supply.gtin_inventory.buy"));
-        // An existing pipeline no longer blocks a new purchase: the coordinator persists it in a
-        // FIFO queue. Only suppress a rapid double-click while this request is being persisted.
-        buy.setDisable(technicalGtin || purchasesStarting.contains(summary.gtin()));
+        // Normal purchases retain their FIFO queue. A signing-paused lot instead offers
+        // continuation of its original request, without adding another paid intent.
+        buy.setDisable(technicalGtin || signingPaused || purchasesStarting.contains(summary.gtin()));
+        buy.setVisible(!signingPaused);
+        buy.setManaged(!signingPaused);
         buy.setOnAction(event -> showBuy(summary));
 
         HBox header = new HBox(8, identity, mapping, export, archive, buy);
-        if (summary.discardable() > 0
+        if (signingPaused || summary.discardable() > 0
                 && "INTRODUCTION_FAILED".equalsIgnoreCase(value(summary.latestPipelineStage()))) {
             Button retry = new Button();
             retry.getStyleClass().add("btn-icon");
             retry.setGraphic(new FontIcon("fth-rotate-ccw"));
-            retry.setTooltip(new Tooltip(tr("kiz_mapping.action.retry_introduction")));
-            retry.setAccessibleText(tr("kiz_mapping.action.retry_introduction"));
+            String action=tr(signingPaused?"kiz_mapping.action.resume_purchase":"kiz_mapping.action.retry_introduction");
+            retry.setTooltip(new Tooltip(action));
+            retry.setAccessibleText(action);
             retry.setDisable(purchasesStarting.contains(summary.gtin()));
-            retry.setOnAction(event -> startRetryIntroduction(summary.gtin()));
+            retry.setOnAction(event -> {if(signingPaused)startResumePurchase(summary);else startRetryIntroduction(summary.gtin());});
             header.getChildren().add(header.getChildren().indexOf(buy), retry);
         }
         header.setAlignment(Pos.CENTER_LEFT);
@@ -742,7 +749,7 @@ public class SupplyDetailController {
 
         String status = first(summary.latestPipelineStage(), summary.latestOrderStatus());
         if (!status.isBlank()) {
-            Label statusChip = new Label(localizeStatus(status));
+            Label statusChip = new Label(signingPaused?tr("znack.status_value.signing_paused"):localizeStatus(status));
             statusChip.getStyleClass().addAll("badge", statusClass(status));
             statusChip.setMaxWidth(150);
             statusChip.setTooltip(new Tooltip(statusChip.getText()));
@@ -903,6 +910,31 @@ public class SupplyDetailController {
         };
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
         AppTaskExecutor.execute(task, taskFailure);
+    }
+
+    private boolean signingPaused(ZnackGtinInventorySummary summary){
+        return shop!=null&&summary!=null&&ZnackPurchaseCoordinator.isSigningConfirmationPending(
+                shop.getId(),summary.latestPipelineId(),summary.latestPipelineStage(),summary.latestError());
+    }
+
+    /** Continue this existing paid lot; the coordinator restores its original bound profile. */
+    private void startResumePurchase(ZnackGtinInventorySummary summary){
+        if(disposed||znackRepository==null||!signingPaused(summary)||!purchasesStarting.add(summary.gtin()))return;
+        long generation=shopGeneration,pipelineId=summary.latestPipelineId();
+        ZnackRepository currentRepository=znackRepository;
+        renderGtinSummaries(gtinSummaries);
+        Task<Void> task=new Task<>(){
+            @Override protected Void call()throws Exception{purchaseResumer.resume(currentRepository,pipelineId);return null;}
+        };
+        java.util.function.Consumer<Throwable> finished=error->{
+            if(generation!=shopGeneration)return;
+            purchasesStarting.remove(summary.gtin());
+            if(error!=null)AlertService.showError(friendlyError(error));
+            refreshGtinInventory();
+        };
+        task.setOnSucceeded(event->finished.accept(null));
+        task.setOnFailed(event->finished.accept(task.getException()));
+        AppTaskExecutor.execute(task,finished);
     }
 
     private void setGtinLoading(boolean loading) {

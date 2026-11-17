@@ -24,16 +24,19 @@ public class ZnackIntroductionReadinessService {
 
     public Readiness checkCirculation(Settings settings, Product current, List<KizCode> codes) throws Exception {
         if(current==null||!ZnackCisReadback.validRequests(codes,current.gtin(),null))return Readiness.waiting("KIZ_CIRCULATION_IDENTITY_UNVERIFIED");
-        // Authentication uses this purchase's original signer. Never take ownership from the
-        // current shop configuration when observing a saved legacy purchase.
-        String token=auth.trueApiToken(settings);
-        String owner=settings.ownerInn()==null||settings.ownerInn().isBlank()?auth.resolvedParticipantInn(settings):settings.ownerInn();
+        // Authentication and routing use the original paid batch, not changed shop metadata.
+        ZnackPurchaseContext context=ZnackPurchaseProtocolContext.resolve(repository,settings,codes.getFirst().orderId());
+        settings=context.settings();
+        final Settings original=settings;
+        String owner=expectedOwner(settings);
         if(owner==null||!owner.matches("[0-9]{10}|[0-9]{12}"))return Readiness.waiting("KIZ_CIRCULATION_OWNER_UNVERIFIED");
         int introduced=0;String reason=null;
         for(int start=0;start<codes.size();start+=ZnackApiClient.CISES_MAX_CODES_PER_REQUEST){
             var batch=codes.subList(start,Math.min(start+ZnackApiClient.CISES_MAX_CODES_PER_REQUEST,codes.size()));
             var request=new JsonArray();batch.forEach(code->request.add(ZnackCisNormalizer.forTrueApi(code.rawCode())));
-            var result=ZnackCisReadback.inspectOwned(api.cisesInfo(settings.resolvedTrueApiBaseUrl(),token,request),batch,current.gtin(),owner);
+            JsonElement response=auth.readWithTrueApiRecovery(original,token->api.cisesInfo(
+                    original.resolvedTrueApiBaseUrl(),token,request,context.group().apiCode()));
+            var result=ZnackCisReadback.inspectOwned(response,batch,current.gtin(),owner);
             introduced+=result.introduced();if(reason==null&&result.reason()!=null)reason=result.reason();
         }
         if(introduced==codes.size())return Readiness.introduced();
@@ -42,14 +45,18 @@ public class ZnackIntroductionReadinessService {
     }
 
     public Readiness check(Settings settings, Product current, List<KizCode> codes) throws Exception {
-        String token = auth.trueApiToken(settings);
         if (codes == null || codes.isEmpty()) {
             return Readiness.waiting("No downloaded KIZ codes are available for introduction.");
         }
-
+        ZnackPurchaseContext context=ZnackPurchaseProtocolContext.resolve(repository,settings,codes.getFirst().orderId());
+        settings=context.settings();
+        final Settings original=settings;
+        if(current==null)return Readiness.waiting("KIZ_CIRCULATION_IDENTITY_UNVERIFIED");
         if(!ZnackCisReadback.validRequests(codes,current.gtin(),null))return Readiness.waiting("Chưa xác minh đầy đủ từng mã KIZ từ Честный знак; giữ nguyên kết quả đã lưu và chờ đối chiếu.");
         int applied = 0;
         int introduced = 0;
+        int ownedIntroduced = 0;
+        String owner = expectedOwner(settings);
         int pending = 0;
         boolean missingName = false;
         String pendingReason = null;
@@ -58,15 +65,24 @@ public class ZnackIntroductionReadinessService {
                     Math.min(start + ZnackApiClient.CISES_MAX_CODES_PER_REQUEST, codes.size()));
             JsonArray request = new JsonArray();
             batch.forEach(code -> request.add(ZnackCisNormalizer.forTrueApi(code.rawCode())));
-            ZnackCisReadback.Result result = ZnackCisReadback.inspect(api.cisesInfo(settings.resolvedTrueApiBaseUrl(), token, request),
-                    batch, current.gtin());
+            JsonElement response=auth.readWithTrueApiRecovery(original,token->api.cisesInfo(
+                    original.resolvedTrueApiBaseUrl(),token,request,context.group().apiCode()));
+            ZnackCisReadback.Result result = ZnackCisReadback.inspect(response, batch, current.gtin());
             applied += result.applied();
             introduced += result.introduced();
+            if (result.introduced() > 0) {
+                ownedIntroduced += ZnackCisReadback.inspectOwned(response, batch, current.gtin(), owner).introduced();
+            }
             pending += result.pending();
             missingName |= result.missingName();
             if (pendingReason == null && result.reason() != null) pendingReason = result.reason();
         }
-        if (introduced == codes.size()) return Readiness.introduced();
+        if (introduced == codes.size()) {
+            // A circulating code owned by another enterprise is not this purchase's stock.
+            // Reuse the exact response above; no new document, purchase or read is authorized.
+            return ownedIntroduced == codes.size() ? Readiness.introduced()
+                    : Readiness.waiting("KIZ_CIRCULATION_OWNER_UNVERIFIED");
+        }
         if (introduced > 0 && introduced < codes.size() && pendingReason == null) {
             pendingReason = "The batch contains both APPLIED and already introduced KIZ codes.";
         }
@@ -75,7 +91,7 @@ public class ZnackIntroductionReadinessService {
         }
         // The code's authoritative circulation status is sufficient on its own.
         // Catalog readiness is needed only before submitting a new introduction.
-        Product product = refreshProductCard(settings, token, current);
+        Product product = refreshProductCard(settings, current);
         if(product!=null)repository.updateProductReadiness(product);
         if(product==null)return Readiness.waiting("Chưa xác minh được trạng thái thẻ sản phẩm hiện tại; giữ nguyên dữ liệu đã lưu và chờ đối chiếu.");
         if (!product.cardReadyForIntroduction()) {
@@ -89,6 +105,11 @@ public class ZnackIntroductionReadinessService {
         return Readiness.ready(missingName ? "Product name is not available from Znack yet." : null);
     }
 
+    private String expectedOwner(Settings settings) {
+        return settings.ownerInn() == null || settings.ownerInn().isBlank()
+                ? auth.resolvedParticipantInn(settings) : settings.ownerInn();
+    }
+
     private String progressMessage(int total, int applied, int introduced, int pending, String reason) {
         int ready = applied + introduced;
         StringBuilder message = new StringBuilder("True API readiness: ")
@@ -100,8 +121,9 @@ public class ZnackIntroductionReadinessService {
         return message.toString();
     }
 
-    private Product refreshProductCard(Settings settings, String token, Product current) throws Exception {
-        JsonElement response = api.productCards(settings.resolvedTrueApiBaseUrl(), token, current.gtin());
+    private Product refreshProductCard(Settings settings, Product current) throws Exception {
+        JsonElement response=auth.readWithTrueApiRecovery(settings,token->api.productCards(
+                settings.resolvedTrueApiBaseUrl(),token,current.gtin()));
         JsonArray cards = array(response, "result");
         if (cards == null) {
             return null;

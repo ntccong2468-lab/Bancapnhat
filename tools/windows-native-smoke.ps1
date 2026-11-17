@@ -1,5 +1,7 @@
 param([Parameter(Mandatory = $true)][string] $Version)
 $ErrorActionPreference = 'Stop'
+$targetSchema = (node tools/baseline-release.mjs schema $Version).Trim()
+if ($LASTEXITCODE -ne 0 -or $targetSchema -notmatch '^[4-7]$') { throw 'Cannot resolve the native target schema.' }
 . (Join-Path $PSScriptRoot 'windows-smoke-common.ps1')
 $probeRoot = Join-Path $env:RUNNER_TEMP ("vncode-native-" + [guid]::NewGuid())
 $data = Join-Path $probeRoot 'data'
@@ -56,7 +58,7 @@ try {
         version = $Version
         platform = 'windows-x64'
         nativeLauncher = 'passed'
-        schemaMigration = $(if ([version]$Version -ge [version]'1.4.19') {'3 to 6'} else {'3 to 5'})
+        schemaMigration = "3 to $targetSchema"
         historyPreserved = $true
         rollbackSnapshotVerified = $true
         liveMarketplaceMutations = $false

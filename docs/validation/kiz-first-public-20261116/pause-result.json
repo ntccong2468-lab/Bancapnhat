@@ -1,0 +1,68 @@
+{
+  "status": "PASS",
+  "finishedAtUtc": "2026-11-16T12:26:21.987899+00:00",
+  "exitCode": 0,
+  "counts": {
+    "tests": 35,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "name": "com.vncode.app.features.kiz.KizPrintPurchasePauseTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "b3c6f7909d782c2e2b158bd30aac7c2c138300dd19d930c14c8b5a6f85bf8ddb"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackDownloadRecoveryMessagesTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "cc96a173b6ac473a3b96442b8999072b87d71ef90008382a1083661e28a51833"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPrintPurchaseSessionTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "85cfbd286263efa0eb69cf55b13eb40c6ccc935543f99fc2ba377d55097145ed"
+    },
+    {
+      "name": "com.vncode.app.features.kiz.KizPurchaseAvailabilityPolicyTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "7dca63923f8d128285baecdaecc64f331f8229858287b99e671f3d1cee4a626b"
+    }
+  ],
+  "sourceInputs": {
+    "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java": "f060ad4062c4e93e2cc27139d9031d4090ebea8bb73e504854a58c21142de6c5",
+    "src/main/java/com/vncode/app/shared/FriendlyErrorService.java": "84a0721f05b3c889792955f2254be9be3f425e5c3fb402f1ba29a39789b4a02c",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "ef3fa2cbcb01afd9b5c49ddebb346e03a1b71f1b9c1ac24505a8c900e96ba8d6",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java": "6e7be759550586e87801bd0042c8cfd1f860fcaed4530e0ddb011eb0cf1deacd",
+    "src/test/java/com/vncode/app/features/kiz/KizPrintPurchasePauseTest.java": "33a9679485e001cf100cd03063c12e27bc7a60ea845bce2f25df97b221152b2a",
+    "src/test/java/com/vncode/app/integration/znack/ZnackDownloadRecoveryMessagesTest.java": "1c9dc6701613d7e520168d254e6c7a5055171dc4900cd6f7021807d7d623a7e1",
+    "src/main/resources/com/vncode/app/i18n/messages_vi.properties": "cc9a5513f3df290be32d8b561d20cf9bff350bcc29031cb3aaa05d575bdfe13b",
+    "src/main/resources/com/vncode/app/i18n/messages_en.properties": "dfbcd52a1fc1213d8bdf84c5eaf1098ab363aa07d1348e3f09ba29a46281bb03",
+    "src/main/resources/com/vncode/app/i18n/messages_ru.properties": "28b2e071ac81e81a26ae4640cdbb37f87cfac5c1cf1f8101f69ce7f0806e4f9b",
+    "src/main/resources/com/vncode/app/i18n/messages_zh.properties": "b88bcdd783c4afdc9de2383e4c68a763d1291e6b67500d826d184ab71766a9c7"
+  },
+  "testedSessionPresentationInputsChangedInTarget": [],
+  "scope": "Current session/presentation, WB/Ozon signingpause at three stages and older queued/newactive lots, normalnetworkwaitcontrol, allfourlocales, existing12session+7availabilityregression. CodeServiceinthissnapshotwasintermediateWAL; finalCodeServicetestedseparately/parentcombined.",
+  "redEvidence": "pause-red-result.json",
+  "redCounts": {
+    "tests": 14,
+    "failures": 12,
+    "errors": 0,
+    "skipped": 0
+  },
+  "expandedGreenCases": 2,
+  "noLiveCalls": true
+}

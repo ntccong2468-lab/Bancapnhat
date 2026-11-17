@@ -1,0 +1,311 @@
+{
+  "status": "SCOPED_SOURCE_SECURITY_PRESERVATION_AND_BOUNDED_RUNTIME_PASS",
+  "atUtc": "2026-11-17T14:30:50.507692+00:00",
+  "baseline": {
+    "files": 3947,
+    "zip": "/workspace/kiz-wb1326-replacement-20261117/VNCode-before-WB1326-purchase-replacement-20261117.zip",
+    "bytes": 107165680,
+    "sha256": "8e73de42982b9e50bc13e9776a4dd4ef4e8074deb11f5b6d177b8faf5e360533",
+    "crcBadMember": null,
+    "unchangedCurrentFiles": 3892,
+    "modifiedCurrentFiles": 55,
+    "missingFiles": []
+  },
+  "production": {
+    "baselineFiles": 808,
+    "modifiedExistingFiles": [
+      {
+        "path": "src/main/java/com/vncode/app/config/Database.java",
+        "baselineSha256": "0689d2b91b6957ed25142c495dc1b9d03f54b457d109579fc4612a8cd38d90d1",
+        "currentSha256": "6c8ec1f72ebb9cb0365828aa93889dc70e079b2aa1a96d05b239ffef25ead0b5",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/fbo/FboPurchaseService.java",
+        "baselineSha256": "bdcf8c82ccbcac64d87e9511ac7c74d24a95d6ddd55976c92e2b73fa78a911d6",
+        "currentSha256": "b88b7df4409a90b9729b42908e3db9f974debff1a08fcd4bcdd92fb853109106",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java",
+        "baselineSha256": "de9ef97c4bed03fcde0e2b672c4b55665986bd78525ceeeb3d8c14834b6d213f",
+        "currentSha256": "e7b3efbe3892abd60ede12da08bb99fc8e28d7f6ffab6da02b8bbdd83e28092c",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+        "baselineSha256": "7bfa63f03962cf4649a365135b03bdd39be6cedac23ebdccd704a7b05ec1911d",
+        "currentSha256": "49b3007e7164e7ce3cbccc8e118267318613bc9f0e9e4dd37881d98bcba624a7",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+        "baselineSha256": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637",
+        "currentSha256": "125c69104722ac068edf7fbaf6b9c17f7327dcd97ab4cb74d0fc65c410bf419f",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+        "baselineSha256": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+        "currentSha256": "e7ae31aa39b657ab2905ae04bc67eeb84706aa9f9ef529a671a2f0971de02099",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java",
+        "baselineSha256": "ef3fa2cbcb01afd9b5c49ddebb346e03a1b71f1b9c1ac24505a8c900e96ba8d6",
+        "currentSha256": "eed0d30f0e7fe4881eb4c1717f43303e61af39bfc514290fb1221e2fb44d7433",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+        "baselineSha256": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210",
+        "currentSha256": "5966a5080535129edbbdc93f789a00b6f894234ba47ea231f5ae1fddf7935395",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+        "baselineSha256": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb",
+        "currentSha256": "15300a064178701992de0c617e993ac4841a900bec8c16a68276fbd055378ec5",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+        "baselineSha256": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f",
+        "currentSha256": "a1e694bbeb071eda8a022f53de9000308f48fb9d52fa5630ba3c206940cd65f1",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+        "baselineSha256": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0",
+        "currentSha256": "4204c0e4f2687af3501e018152908ebad9278ca2ddc709fbe4305821726ae4c2",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackModels.java",
+        "baselineSha256": "ede78033c39b2d8fbd2d83836891652409a208e24a907bd5db3a9a895acbe975",
+        "currentSha256": "77acca249ba8e8a65976772865c0f1fb4be392be2718d3b6ac10065635e2313b",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java",
+        "baselineSha256": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc",
+        "currentSha256": "1a5fe985b43017b8beb01554ad99028f06263667e580033385778135af8e27e7",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+        "baselineSha256": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071",
+        "currentSha256": "08d87189b6f9015a15e5053c5c198b9dcc65a1ac0ff60bb703a8f700e5ea79dd",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+        "baselineSha256": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37",
+        "currentSha256": "caaca9ed9f76ffdc0970de14600de7246e57a983ee78e99b12f641bb4d8174f1",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java",
+        "baselineSha256": "9c1a423b9dab1e2f55a508c095eba762504d25f77164835af958365d7c02c519",
+        "currentSha256": "cc55f05ec0bf20ba37c267bf8049b47001ad2df802337f018191d53c4110ae58",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+        "baselineSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+        "currentSha256": "4a3da75dbc316d674fb8b9f314af477e35ab30c539c8d7a476f2d822871f022d",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProErrorCode.java",
+        "baselineSha256": "4df9df223ce27ba185c1cb847a68b5602d17dcd25606e24b8f1d35f1255274c7",
+        "currentSha256": "20fbaf014f59ebf83604472359be5a22e7822f373a4a1516c284dd691d6053cd",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+        "baselineSha256": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da",
+        "currentSha256": "97a8ef45163afe6c3000b3148b22089491c2e9c03120b4f88851f3316f8fc0db",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/ZnackSignatureProvider.java",
+        "baselineSha256": "d3a813595e3d586d1877a093b75806ab2d4a323d64212be5b8403083bce029fc",
+        "currentSha256": "0e52b93579037e03f51e00fe9119b85793b3e1c717041f3bfa0f85b06623bd81",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+        "baselineSha256": "8195d4c643293e2d8235bb7d7db0f7cf58221b255b5d059f2a577fa09ad21b01",
+        "currentSha256": "529d67698e0c70bdad7fb403c2163109346f162ee5936e3dce154fead3366f4a",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/java/com/vncode/app/ui/znack/ZnackAutomationController.java",
+        "baselineSha256": "ef4f9611c051cfdc3a2f7f3a9652681dca459d17ae7276321f2ddabe058ca5b4",
+        "currentSha256": "a5374307ebc5ce3630d9def825de4e6c7eb01b5c8d85f4c8cb7c3bd39cf926ca",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_en.properties",
+        "baselineSha256": "88be94b8fbcddde4e197a6c4c54209164758e5731bfca7fff83733eedbf6ba12",
+        "currentSha256": "96b107ec5a31271d90021ef6a623311f5be9f9e17b1f082d663610ac528d374f",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_ru.properties",
+        "baselineSha256": "8840d29be6f0f3073a9831f19c2390e57d50b3d4d5b7220b3ebe62133c600fb4",
+        "currentSha256": "419d2f643e46227effc578f8dd4a7d8a1a787f8bfdd7d2d96565fe5ad1b56bb1",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_vi.properties",
+        "baselineSha256": "7e22b01ac4c85d127e4ebe6592334817dbb34188ea93b20b111de2bcd48431c3",
+        "currentSha256": "9cbc9735ed58ebdcc60da1d910380a9479071964ec821c3b08b25aa9c4411f15",
+        "approvedScope": true
+      },
+      {
+        "path": "src/main/resources/com/vncode/app/i18n/messages_zh.properties",
+        "baselineSha256": "ccf51f90e5b4625e6861ddefc551f6d8cfac6d006cd45bdbf58d0993bc9c84b6",
+        "currentSha256": "0cd70dd4978c82f3d15db98b0bfc4356a7bae80a5ff41f74a9e03b90d0c59870",
+        "approvedScope": true
+      }
+    ],
+    "newFiles": [
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/SuzRequestPacing.java",
+        "sha256": "1db64937b3d88037228aa903dfe4ecbf5c58abea2230cdefd95f0d106650da8b"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackProductGroup.java",
+        "sha256": "4940fea6083e64484b6bce977aa6750c35de1864149c22a8584674f4a4ed0add"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseBatchStore.java",
+        "sha256": "45b38a41f480d81bb66abda6db2f0d2b625d0a1044df4fbc21f4074895729610"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseContext.java",
+        "sha256": "83d76c30291ca257290f74789a26d499fb45fec6a4fbc0a64e5b4e39b42e2423"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseMethod.java",
+        "sha256": "192c9d6caac7eb41a3f01faa4aac4101a32f5d517d64ace7ce03ea14d3dd980c"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePermitResolver.java",
+        "sha256": "6e2407fcae5c5564a1f213a2615f3b2a0f0e90554f3a228f0717aa5ebb329b72"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreferences.java",
+        "sha256": "c6e5502815c26278769861754af71872caf9e754d3fc7a8552d0dbad540c60b1"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePreflight.java",
+        "sha256": "309d722460b7903e9013331e1611960f34f011b9a794d482118c579cc757e442"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseProtocolContext.java",
+        "sha256": "225eb8c348d43adf6a123c40a934b9dbc3368cc321c692fb6553743119386642"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseSchema.java",
+        "sha256": "cf96f27bc3cea57d0e96badc99f90ae8423765898d86e4c8b31c8ad91e494076"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/ZnackSigningPauseStore.java",
+        "sha256": "8dd6ed2e1792eb274aab78673a002a668280250226c0f922d0bd60d05399d2ea"
+      },
+      {
+        "path": "src/main/java/com/vncode/app/integration/znack/signature/CryptoProKeyPresence.java",
+        "sha256": "974feec9b788caf7fc4448626e883b6fec29ebd6f0887fccb5045a857877141c"
+      }
+    ],
+    "unknownExistingChanges": [],
+    "deletedFiles": [],
+    "explicitAdditionalScope": [
+      "src/main/java/com/vncode/app/config/Database.java",
+      "src/main/java/com/vncode/app/integration/znack/signature/CryptoProErrorCode.java",
+      "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java",
+      "src/main/java/com/vncode/app/integration/znack/signature/ZnackSignatureProvider.java",
+      "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java"
+    ],
+    "protectedGroups": {
+      "ozon_paid_acceptance_and_label": {
+        "files": 80,
+        "unchanged": true,
+        "changed": []
+      },
+      "seller_import_and_stock_policy": {
+        "files": 10,
+        "unchanged": true,
+        "changed": []
+      },
+      "catalog_registration": {
+        "files": 113,
+        "unchanged": true,
+        "changed": []
+      },
+      "gtin_sync_and_mapping": {
+        "files": 38,
+        "unchanged": true,
+        "changed": []
+      },
+      "wb_api_orders_products": {
+        "files": 64,
+        "unchanged": true,
+        "changed": []
+      },
+      "ui_glass_styles": {
+        "files": 3,
+        "unchanged": true,
+        "changed": []
+      },
+      "ui_fbs_views": {
+        "files": 3,
+        "unchanged": true,
+        "changed": []
+      },
+      "license_updater": {
+        "files": 11,
+        "unchanged": true,
+        "changed": []
+      }
+    }
+  },
+  "existingInstructionBuildDependencyConfigChangesSinceBaseline": [],
+  "newProductionLinesInspected": 2804,
+  "scopedDangerousLiteralPatternFindings": [],
+  "securityConclusions": [
+    "TLS validation, license/update classes and dependencies are unchanged from the backed-up working baseline.",
+    "Paid order, consuming-code and signed-document calls each have one canonical production send boundary with no implicit mutation replay.",
+    "Signing epochs bind shop, original account, certificate and app-data profile; durable pauses are not cleared by automatic startup.",
+    "Exact CIS/GTIN/quantity/owner checks, original consumption/reservation states and Ozon accepted-slot rules remain.",
+    "New local context/download-target state uses the existing settings security boundary; no API key/token/private key is written by the new context model.",
+    "Destructive uniqueness DDL is transactional with schema7 fence and pre6 snapshot; actual old binary refuses7."
+  ],
+  "replacedOldInternals": [
+    "One-GTIN-only remote emission replaced by durable homogeneous batches of up to10 GTINs.",
+    "Single shared purchase queue replaced by per-shop4/2/2 stage pools with per-GTIN FIFO.",
+    "Global Catalog revision purchase gate replaced by pinned-method local permit validation; pure native variant identity remains.",
+    "Foreground-shop signing prerequisite replaced by verified multi-shop startup admission plus durable pause/key/profile epochs.",
+    "Optional new-purchase circulation replaced by mandatory true; raw historical explicit false consent remains bound.",
+    "Old implicit low-level retry replaced by bounded, evidence-based known-negative recovery; unknown outcomes reconcile."
+  ],
+  "preservedPriorWork": [
+    "ECC skills/instructions/workflows and validation artifacts.",
+    "Ozon registration navigation and WB-style FBS layout.",
+    "Ozon exact paid-code acceptance/replacement, automatic source handling, and combined-label/PDF safeguards.",
+    "Seller-supplied KIZ import/allocation policy and exact mapping/GTIN identity.",
+    "Catalog registration workflow, WB/Ozon product/GTIN synchronization and existing product edit functionality.",
+    "Glass theme/motion/FBS layout resources and license/update code."
+  ],
+  "limits": [
+    "This is a scoped source/security review, not a whole-application runtime acceptance.",
+    "No Maven, paid/live API, Windows private profile, CryptoPro signing or license operation executed by the reviewer.",
+    "Bounded affected regression and actual packaged Launcher smoke passed; final documentation/source ZIP refresh remains with parent."
+  ],
+  "boundedRuntimeReceipt": "/workspace/kiz-wb1326-replacement-20261117/preservation/FINAL-EVIDENCE-REVIEW.json",
+  "singleFullJavaSuitePass": false,
+  "sourceSignoff": "NO_UNRESOLVED_SOURCE_OR_SECURITY_BLOCKER_IN_DECLARED_SCOPE"
+}

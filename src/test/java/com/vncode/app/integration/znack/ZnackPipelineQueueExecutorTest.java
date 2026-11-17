@@ -20,30 +20,50 @@ class ZnackPipelineQueueExecutorTest {
     }
 
     @Test
-    void executesTasksSequentiallyInFifoOrderPerShop() throws Exception {
+    void preservesGtinFifoAfterFailureWhileIndependentGtinCanProgress() throws Exception {
         int shopId = 999;
-        List<String> executed = Collections.synchronizedList(new ArrayList<>());
+        String gtin = "04601234567890";
+        List<String> sameGtin = Collections.synchronizedList(new ArrayList<>());
+        CountDownLatch firstEntered = new CountDownLatch(1);
+        CountDownLatch releaseFirst = new CountDownLatch(1);
+        CountDownLatch independentDone = new CountDownLatch(1);
         CountDownLatch done = new CountDownLatch(3);
 
-        ZnackPipelineQueueExecutor.submit(shopId, "04601234567890", () -> {
-            executed.add("GTIN-1");
-            done.countDown();
+        ZnackPipelineQueueExecutor.submit(shopId, gtin, () -> {
+            sameGtin.add("FIRST");
+            firstEntered.countDown();
+            try {
+                releaseFirst.await();
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+            } finally {
+                done.countDown();
+            }
         });
-        ZnackPipelineQueueExecutor.submit(shopId, "04601234567891", () -> {
-            throw new RuntimeException("Simulated GTIN-2 failure");
-        });
-        ZnackPipelineQueueExecutor.submit(shopId, "04601234567891", () -> {
-            executed.add("GTIN-2-RETRY");
-            done.countDown();
-        });
-        ZnackPipelineQueueExecutor.submit(shopId, "04601234567892", () -> {
-            executed.add("GTIN-3");
-            done.countDown();
-        });
+        try {
+            assertTrue(firstEntered.await(5, TimeUnit.SECONDS));
+            ZnackPipelineQueueExecutor.submit(shopId, gtin, () -> {
+                sameGtin.add("FAILED");
+                done.countDown();
+                throw new RuntimeException("Simulated failure in the same GTIN lane");
+            });
+            ZnackPipelineQueueExecutor.submit(shopId, gtin, () -> {
+                sameGtin.add("RETRY");
+                done.countDown();
+            });
+            ZnackPipelineQueueExecutor.submit(shopId, "04601234567891", independentDone::countDown);
 
-        boolean finished = done.await(5, TimeUnit.SECONDS);
-        assertTrue(finished, "All queued tasks should finish within 5 seconds");
-        assertEquals(List.of("GTIN-1", "GTIN-2-RETRY", "GTIN-3"), executed,
-                "Tasks should execute sequentially in FIFO order even when an intermediate task throws an exception");
+            assertTrue(independentDone.await(5, TimeUnit.SECONDS),
+                    "A blocked GTIN must leave capacity for another GTIN in the same shop");
+            assertEquals(List.of("FIRST"), sameGtin,
+                    "Later work for the blocked GTIN must not overtake its first task");
+        } finally {
+            releaseFirst.countDown();
+        }
+
+        assertTrue(done.await(5, TimeUnit.SECONDS),
+                "The same GTIN lane must continue after the intermediate task fails");
+        assertEquals(List.of("FIRST", "FAILED", "RETRY"), sameGtin,
+                "FIFO is preserved per GTIN, including cleanup after a thrown exception");
     }
 }

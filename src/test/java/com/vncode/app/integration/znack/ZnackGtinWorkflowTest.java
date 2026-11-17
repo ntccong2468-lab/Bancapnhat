@@ -353,19 +353,17 @@ class ZnackGtinWorkflowTest {
     @Test void purchasePipelinePersistsAndRunsRepeatedPurchasesInFifoOrder() throws Exception {
         Settings settings = testedSettings();
         AtomicInteger buys = new AtomicInteger();
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null,null,null,repository) {
-            @Override public KizOrder buy(Settings ignored, String gtin, int quantity) {
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
+            @Override protected ZnackPurchaseBatchStore.Batch submit(long batchId) {
                 buys.incrementAndGet();
-                long id = repository.createDraft(gtin, quantity);
-                repository.updateOrder(id, "external-" + id, "CREATED", OrderStatus.SUBMITTED, null);
-                return repository.findOrder(id).orElseThrow();
+                return acceptFixtureBatch(batchId,"external-"+batchId);
             }
             @Override public KizOrder refresh(Settings ignored, long id) {
                 repository.updateOrder(id, null, "READY", OrderStatus.CODES_READY, null);
                 return repository.findOrder(id).orElseThrow();
             }
         };
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null,null,repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) {
                 KizOrder order = repository.findOrder(id).orElseThrow();
                 int inserted = repository.insertCodes(id, order.gtin(),
@@ -395,7 +393,7 @@ class ZnackGtinWorkflowTest {
         long pipeline = repository.enqueuePipeline(A, 2, null);
         repository.updatePipeline(pipeline, order, PurchaseStage.DOWNLOADING_CODES, null);
         AtomicInteger recoveryCalls = new AtomicInteger();
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null,null,repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) throws Exception {
                 throw new ZnackApiClient.ZnackApiException("Znack API request failed", 400,
                         "{\"globalErrors\":[{\"errorCode\":2090,"
@@ -408,7 +406,10 @@ class ZnackGtinWorkflowTest {
             }
         };
 
-        new ZnackPurchaseCoordinator(repository, null, codeService, null).advance(settings, pipeline);
+        new ZnackPurchaseCoordinator(repository, new WorkflowOrderService(), codeService, null,
+                new ZnackIntroductionReadinessService(null,null,repository){
+                    @Override public Readiness check(Settings s,Product p,List<KizCode> codes){return Readiness.waiting("KIZ_CIRCULATION_STATUS_UNVERIFIED");}
+                }).advance(settings, pipeline);
 
         ZnackPurchasePipelineState completed = repository.findPipeline(pipeline).orElseThrow();
         assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, completed.stage());
@@ -426,7 +427,7 @@ class ZnackGtinWorkflowTest {
         long pipeline = repository.enqueuePipeline(A, 2, null);
         repository.updatePipeline(pipeline, order, PurchaseStage.DOWNLOADING_CODES, null);
         AtomicInteger downloads = new AtomicInteger(), recoveries = new AtomicInteger();
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null,null,repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) throws Exception {
                 downloads.incrementAndGet();
                 throw new ZnackApiClient.ZnackApiException("Znack API request failed", 400,
@@ -440,7 +441,7 @@ class ZnackGtinWorkflowTest {
                                 + "\"error\":\"Неверный статус заказа: CLOSED\"}]}");
             }
         };
-        ZnackPurchaseCoordinator coordinator = new ZnackPurchaseCoordinator(repository, null, codeService, null);
+        ZnackPurchaseCoordinator coordinator = new ZnackPurchaseCoordinator(repository, new WorkflowOrderService(), codeService, null);
 
         coordinator.advance(settings, pipeline);
         ZnackPurchasePipelineState waiting = repository.findPipeline(pipeline).orElseThrow();
@@ -459,19 +460,17 @@ class ZnackGtinWorkflowTest {
     @Test void persistedPurchaseRequestKeyMakesCompletedAndInFlightReplaysIdempotent() throws Exception {
         Settings settings = testedSettings();
         AtomicInteger buys = new AtomicInteger();
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null,null,null,repository) {
-            @Override public KizOrder buy(Settings ignored, String gtin, int quantity) {
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
+            @Override protected ZnackPurchaseBatchStore.Batch submit(long batchId) {
                 buys.incrementAndGet();
-                long id = repository.createDraft(gtin, quantity);
-                repository.updateOrder(id, "external", "CREATED", OrderStatus.SUBMITTED, null);
-                return repository.findOrder(id).orElseThrow();
+                return acceptFixtureBatch(batchId,"external");
             }
             @Override public KizOrder refresh(Settings ignored, long id) {
                 repository.updateOrder(id, null, "READY", OrderStatus.CODES_READY, null);
                 return repository.findOrder(id).orElseThrow();
             }
         };
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null,null,repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) {
                 KizOrder order = repository.findOrder(id).orElseThrow();
                 int inserted = repository.insertCodes(id, order.gtin(), new DownloadedCodes(List.of("idempotent-code"), "b"));
@@ -496,15 +495,13 @@ class ZnackGtinWorkflowTest {
     @Test void ambiguousCreateIsReconciledAndNeverPostedTwice() throws Exception {
         Settings settings = testedSettings();
         AtomicInteger buys = new AtomicInteger();
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null,null,null,repository) {
-            @Override public KizOrder buy(Settings ignored, String gtin, int quantity) throws Exception {
-                buys.incrementAndGet();
-                long id = repository.createDraft(gtin, quantity);
-                repository.updateOrder(id, null, null, OrderStatus.FAILED, "ambiguous network response");
-                throw new ZnackOrderCreationAmbiguousException("ambiguous network response", new java.io.IOException());
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
+            @Override protected ZnackPurchaseBatchStore.Batch submit(long batchId) throws Exception {
+                buys.incrementAndGet();markFixtureReconciling(batchId,"ambiguous network response");
+                throw new ZnackOrderCreationAmbiguousException("ambiguous network response",new java.io.IOException());
             }
-            @Override public OrderReconciliation reconcile(Settings ignored, KizOrder local) {
-                return new OrderReconciliation(ReconciliationStatus.NOT_FOUND, null, 0);
+            @Override public void reconcileBatch(ZnackPurchaseBatchStore.Batch batch) {
+                new ZnackPurchaseBatchStore(repository).markReconciling(batch.id(),"No unique remote order; no repeat POST.");
             }
         };
         ZnackPurchaseCoordinator coordinator = new ZnackPurchaseCoordinator(repository, orderService, null, null);
@@ -518,23 +515,20 @@ class ZnackGtinWorkflowTest {
     @Test void reconciliationRecoversRemoteOrderAndCompletesOriginalPurchase() throws Exception {
         Settings settings = testedSettings();
         AtomicInteger buys = new AtomicInteger();
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null,null,null,repository) {
-            @Override public KizOrder buy(Settings ignored, String gtin, int quantity) throws Exception {
-                buys.incrementAndGet();
-                long id = repository.createDraft(gtin, quantity);
-                repository.updateOrder(id, null, null, OrderStatus.FAILED, "response lost");
-                throw new ZnackOrderCreationAmbiguousException("response lost", new java.io.IOException());
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
+            @Override protected ZnackPurchaseBatchStore.Batch submit(long batchId) throws Exception {
+                buys.incrementAndGet();markFixtureReconciling(batchId,"response lost");
+                throw new ZnackOrderCreationAmbiguousException("response lost",new java.io.IOException());
             }
-            @Override public OrderReconciliation reconcile(Settings ignored, KizOrder local) {
-                return new OrderReconciliation(ReconciliationStatus.MATCHED,
-                        new RemoteOrder("recovered-order", "READY", Instant.now()), 1);
+            @Override public void reconcileBatch(ZnackPurchaseBatchStore.Batch batch) {
+                new ZnackPurchaseBatchStore(repository).acceptRemoteOrder(batch.id(),"recovered-order");
             }
             @Override public KizOrder refresh(Settings ignored, long id) {
                 repository.updateOrder(id, null, "READY", OrderStatus.CODES_READY, null);
                 return repository.findOrder(id).orElseThrow();
             }
         };
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null,null,repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) {
                 KizOrder order = repository.findOrder(id).orElseThrow();
                 return repository.insertCodes(id, order.gtin(),
@@ -546,6 +540,8 @@ class ZnackGtinWorkflowTest {
         assertThrows(ZnackOrderCreationAmbiguousException.class, () -> coordinator.start(settings, A, 1));
         long persisted = repository.findActivePipeline(A).orElseThrow().id();
         coordinator.resume(settings);
+        assertEquals(PurchaseStage.POLLING_ORDER,repository.findPipeline(persisted).orElseThrow().stage());
+        coordinator.resume(settings);
 
         assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(persisted).orElseThrow().stage());
         assertEquals("recovered-order", repository.findOrder(
@@ -554,29 +550,24 @@ class ZnackGtinWorkflowTest {
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
     }
 
-    @Test void confirmedMissingRemoteOrderReleasesNextQueuedPurchase() throws Exception {
+    @Test void unconfirmedMissingRemoteOrderKeepsOriginalAndQueuedPurchaseWithoutAnotherPost() throws Exception {
         Settings settings = testedSettings();
         AtomicInteger buys = new AtomicInteger();
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null,null,null,repository) {
-            @Override public KizOrder buy(Settings ignored, String gtin, int quantity) throws Exception {
-                int attempt = buys.incrementAndGet();
-                long id = repository.createDraft(gtin, quantity);
-                if (attempt == 1) {
-                    repository.updateOrder(id, null, null, OrderStatus.FAILED, "response lost");
-                    throw new ZnackOrderCreationAmbiguousException("response lost", new java.io.IOException());
-                }
-                repository.updateOrder(id, "queued-order", "CREATED", OrderStatus.SUBMITTED, null);
-                return repository.findOrder(id).orElseThrow();
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
+            @Override protected ZnackPurchaseBatchStore.Batch submit(long batchId) throws Exception {
+                int attempt=buys.incrementAndGet();
+                if(attempt==1){markFixtureReconciling(batchId,"response lost");throw new ZnackOrderCreationAmbiguousException("response lost",new java.io.IOException());}
+                return acceptFixtureBatch(batchId,"queued-order");
             }
-            @Override public OrderReconciliation reconcile(Settings ignored, KizOrder local) {
-                return new OrderReconciliation(ReconciliationStatus.NOT_FOUND, null, 0);
+            @Override public void reconcileBatch(ZnackPurchaseBatchStore.Batch batch) {
+                new ZnackPurchaseBatchStore(repository).markReconciling(batch.id(),"No unique remote order; no repeat POST.");
             }
             @Override public KizOrder refresh(Settings ignored, long id) {
                 repository.updateOrder(id, null, "READY", OrderStatus.CODES_READY, null);
                 return repository.findOrder(id).orElseThrow();
             }
         };
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null,null,repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) {
                 KizOrder order = repository.findOrder(id).orElseThrow();
                 return repository.insertCodes(id, order.gtin(),
@@ -595,32 +586,32 @@ class ZnackGtinWorkflowTest {
         }
 
         coordinator.resume(settings);
-        assertEquals(PurchaseStage.FAILED, repository.findPipeline(failedPipeline).orElseThrow().stage());
-        assertEquals(PurchaseStage.POLLING_ORDER, repository.findPipeline(queuedPipeline).orElseThrow().stage());
+        assertEquals(PurchaseStage.RECONCILING_ORDER, repository.findPipeline(failedPipeline).orElseThrow().stage());
+        assertEquals(PurchaseStage.QUEUED, repository.findPipeline(queuedPipeline).orElseThrow().stage());
         coordinator.resume(settings);
 
-        assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS, repository.findPipeline(queuedPipeline).orElseThrow().stage());
-        assertEquals(2, buys.get());
+        assertEquals(PurchaseStage.QUEUED, repository.findPipeline(queuedPipeline).orElseThrow().stage());
+        assertEquals(1, buys.get());
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
     }
 
-    @Test void preRequestPurchaseFailureDoesNotPermanentlyBlockGtin() throws Exception {
+    @Test void preRequestPurchaseFailureRetainsTheApprovedIntentWithoutDuplicateSubmission() throws Exception {
         Settings settings = testedSettings();
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null,null,null,repository) {
-            @Override public KizOrder buy(Settings ignored, String gtin, int quantity) {
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
+            @Override protected ZnackPurchaseBatchStore.Batch submit(long batchId) {
                 throw new IllegalStateException("signature failed before request");
             }
         };
         ZnackPurchaseCoordinator coordinator = new ZnackPurchaseCoordinator(repository, orderService, null, null);
 
         assertThrows(IllegalStateException.class, () -> coordinator.start(settings, A, 1));
-        assertTrue(repository.findActivePipeline(A).isEmpty());
-        assertThrows(IllegalStateException.class, () -> coordinator.start(settings, A, 1));
-        assertTrue(repository.findActivePipeline(A).isEmpty());
+        assertTrue(repository.findActivePipeline(A).isPresent());
+        long queued=coordinator.start(settings,A,1);
+        assertEquals(PurchaseStage.QUEUED,repository.findPipeline(queued).orElseThrow().stage());
         try (Connection c = Database.getConnection(); ResultSet rs = c.createStatement().executeQuery(
                 "SELECT COUNT(*) FROM znack_purchase_pipelines WHERE gtin='" + A + "' AND stage='FAILED'")) {
             assertTrue(rs.next());
-            assertEquals(2, rs.getInt(1));
+            assertEquals(0, rs.getInt(1));
         }
     }
 
@@ -632,20 +623,19 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "");
+        repository.saveSettings(auto);
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DECL-1", "01.09.2026")));
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null,null,null,repository) {
-            @Override public KizOrder buy(Settings ignored, String gtin, int quantity) {
-                long id = repository.createDraft(gtin, quantity);
-                repository.updateOrder(id, "external", "CREATED", OrderStatus.SUBMITTED, null);
-                return repository.findOrder(id).orElseThrow();
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
+            @Override protected ZnackPurchaseBatchStore.Batch submit(long batchId) {
+                return acceptFixtureBatch(batchId,"external");
             }
             @Override public KizOrder refresh(Settings ignored, long id) {
                 repository.updateOrder(id, null, "READY", OrderStatus.CODES_READY, null);
                 return repository.findOrder(id).orElseThrow();
             }
         };
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null,null,repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) {
                 KizOrder order = repository.findOrder(id).orElseThrow();
                 return repository.insertCodes(id, order.gtin(), new DownloadedCodes(
@@ -671,6 +661,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "20.06.2029", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, "21.06.2024"));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "20.06.2024")));
@@ -708,6 +699,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "20.06.2029", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, "21.06.2024"));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "20.06.2024")));
@@ -743,6 +735,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DECL-STALE", "01.09.2026")));
@@ -782,6 +775,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
         // Persist this purchase's own verified profile before its pipeline is created.
         repository.saveSettings(auto);
@@ -824,6 +818,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
         // Persist this purchase's own verified profile before its pipeline is created.
         repository.saveSettings(auto);
@@ -983,6 +978,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
         long order = repository.createDraft(A, 1);
         repository.insertCodes(order, A, new DownloadedCodes(List.of("waiting-code"), "block"));
@@ -1002,7 +998,7 @@ class ZnackGtinWorkflowTest {
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
     }
 
-    @Test void unavailableGtinDocumentsParkIntroductionWithoutLosingCodesOrSchedulingPolls() throws Exception {
+    @Test void unavailableGtinDocumentsKeepPaidCodesAndScheduleBoundedRegistryRecovery() throws Exception {
         Settings base = testedSettings();
         Settings auto = new Settings(base.trueApiBaseUrl(), base.suzBaseUrl(), base.omsId(), base.omsConnection(),
                 base.participantInn(), base.producerInn(), base.ownerInn(), base.signerExecutable(),
@@ -1010,6 +1006,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, null));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DECL-STALE", "01.09.2026")));
@@ -1020,6 +1017,7 @@ class ZnackGtinWorkflowTest {
         ZnackIntroductionService introduction = new ZnackIntroductionService(null, null, null, repository) {
             @Override public long submit(Settings ignored, KizOrder ignoredOrder, Product ignoredProduct,
                                          List<KizCode> ignoredCodes) throws Exception {
+                repository.updateProductDocuments(A,List.of());
                 throw new PermitDocumentsUnavailableException("No active GTIN document; retry automatically.");
             }
         };
@@ -1034,7 +1032,12 @@ class ZnackGtinWorkflowTest {
         assertTrue(repository.findLatestDocument(order).isEmpty());
         assertEquals(0, new ZnackGtinInventoryService().availableCount(1, A));
         coordinator.schedule(pipeline);
-        assertFalse(ZnackPurchaseCoordinator.isScheduledForTests(1, pipeline));
+        assertTrue(ZnackPurchaseCoordinator.isScheduledForTests(1,pipeline));
+        assertTrue(ZnackPurchaseCoordinator.nextCheckAt(1,pipeline).isAfter(Instant.now().plusSeconds(25)));
+        assertEquals(order,repository.findPipeline(pipeline).orElseThrow().orderId());
+        assertEquals(1,repository.findOrders().size());
+        assertEquals(1,repository.findCodes(order).size());
+        assertTrue(repository.findLatestDocument(order).isEmpty());
     }
 
     @Test void parkedIntroductionResumesWithExistingCodesAfterDocumentsAreSynced() throws Exception {
@@ -1099,6 +1102,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "", "");
+        repository.saveSettings(auto);
         long order = repository.createDraft(A, 1);
         repository.insertCodes(order, A, new DownloadedCodes(List.of("manual-code"), "block"));
         long pipeline = repository.createPipeline(A, 1);
@@ -1121,7 +1125,7 @@ class ZnackGtinWorkflowTest {
         Settings settings = testedSettings();
         AtomicInteger downloads = new AtomicInteger();
         ZnackKizOrderService orderService = readyOrderService();
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null, null, repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) {
                 if (downloads.incrementAndGet() == 1) return 0;
                 KizOrder order = repository.findOrder(id).orElseThrow();
@@ -1144,7 +1148,7 @@ class ZnackGtinWorkflowTest {
         Settings settings = testedSettings();
         AtomicInteger downloads = new AtomicInteger();
         ZnackKizOrderService orderService = readyOrderService();
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null, null, repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) throws Exception {
                 if (downloads.incrementAndGet() == 1) {
                     throw new ZnackApiClient.ZnackApiException("Znack API request failed", 400,
@@ -1189,7 +1193,7 @@ class ZnackGtinWorkflowTest {
         AtomicInteger refreshes = new AtomicInteger();
         CountDownLatch entered = new CountDownLatch(1);
         CountDownLatch finish = new CountDownLatch(1);
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null, null, null, repository) {
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
             @Override public KizOrder refresh(Settings ignored, long id) throws Exception {
                 refreshes.incrementAndGet();
                 entered.countDown();
@@ -1324,6 +1328,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "20.06.2029", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, "21.06.2024"));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "20.06.2024")));
@@ -1391,6 +1396,7 @@ class ZnackGtinWorkflowTest {
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "20.06.2029", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);
         repository.updateProductMetadata(new Product(A, "A", "6201000000", null, null, null, "21.06.2024"));
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DOC-1", "20.06.2024")));
@@ -1433,7 +1439,7 @@ class ZnackGtinWorkflowTest {
         repository.updateOrder(order, "external", "PENDING", OrderStatus.WAITING_CODES, null);
         long pipeline = repository.createPipeline(A, 1);
         repository.updatePipeline(pipeline, order, PurchaseStage.POLLING_ORDER, null);
-        ZnackKizOrderService orderService = new ZnackKizOrderService(null, null, null, repository) {
+        ZnackKizOrderService orderService = new WorkflowOrderService() {
             @Override public KizOrder refresh(Settings ignored, long ignoredOrder) {
                 throw new IllegalStateException("temporary polling failure");
             }
@@ -1500,15 +1506,15 @@ class ZnackGtinWorkflowTest {
         repository.updateProductDocuments(A,
                 List.of(new GoodsDocument("CONFORMITY_DECLARATION", "DECL-1", "01.09.2026")));
         ZnackKizOrderService orderService = readyOrderService();
-        ZnackKizCodeService codeService = new ZnackKizCodeService(null, null, repository) {
+        ZnackKizCodeService codeService = new WorkflowCodeService() {
             @Override public int download(Settings ignored, long id) {
                 KizOrder order = repository.findOrder(id).orElseThrow();
                 return repository.insertCodes(id, order.gtin(),
-                        new DownloadedCodes(List.of("current-session-code"), "block"));
+                        new DownloadedCodes(List.of(RAW_CIS), "block"));
             }
         };
         AtomicInteger cryptoProCalls = new AtomicInteger();
-        var guardedSigner = ZnackSigningSession.guard(1, (payload, context) -> {
+        var guardedSigner = ZnackSigningSession.guard(1, auto.signerCertificate(), (payload, context) -> {
             cryptoProCalls.incrementAndGet();
             return new CryptoProSigningResult(new byte[]{1}, "ok");
         });
@@ -1535,11 +1541,9 @@ class ZnackGtinWorkflowTest {
     }
 
     private ZnackKizOrderService readyOrderService() {
-        return new ZnackKizOrderService(null, null, null, repository) {
-            @Override public KizOrder buy(Settings ignored, String gtin, int quantity) {
-                long id = repository.createDraft(gtin, quantity);
-                repository.updateOrder(id, "external", "CREATED", OrderStatus.SUBMITTED, null);
-                return repository.findOrder(id).orElseThrow();
+        return new WorkflowOrderService() {
+            @Override protected ZnackPurchaseBatchStore.Batch submit(long batchId) {
+                return acceptFixtureBatch(batchId,"external");
             }
 
             @Override public KizOrder refresh(Settings ignored, long id) {
@@ -1568,31 +1572,61 @@ class ZnackGtinWorkflowTest {
                 String code = body.getAsJsonArray().get(0).getAsString();
                 String entry = """
                         {"cisInfo":{"requestedCis":"%s","cis":"%s","gtin":"%s","productName":"%s",
-                        "status":"%s","statusEx":"%s"}}
+                        "status":"%s","statusEx":"%s","ownerInn":"7700000001"}}
                         """.formatted(code, code, A, productName, status, statusEx);
                 return JsonParser.parseString(singleObjectResponse ? entry : "[" + entry + "]");
             }
         };
         ZnackAuthService auth = new ZnackAuthService(api, (input, context) -> null) {
             @Override public String trueApiToken(Settings ignored) { return "token"; }
+            @Override public String resolvedParticipantInn(Settings ignored) { return "7700000001"; }
         };
         return new ZnackIntroductionReadinessService(api, auth, repository);
     }
 
     private Settings testedSettings() throws Exception {
         Path cryptcp = executableFixture();
-        return new Settings("", "", "oms", "connection", "", "", "", "", "certificate", "[]",
-                "", "", "", false, "", "[]", "", Instant.now(), "", cryptcp.toString(), "", 60, "");
+        Settings settings = new Settings("", "", "oms", "connection", "", "", "", "", "certificate", "[]",
+                "", "", "", true, "", "[]", "", Instant.parse("2026-01-01T00:00:00Z"), "", cryptcp.toString(), "", 60, "");
+        repository.saveSettings(settings);return settings;
     }
 
     private Settings withAutoIntroduction(Settings base) {
-        return new Settings(base.trueApiBaseUrl(), base.suzBaseUrl(), base.omsId(), base.omsConnection(),
+        Settings auto = new Settings(base.trueApiBaseUrl(), base.suzBaseUrl(), base.omsId(), base.omsConnection(),
                 base.participantInn(), base.producerInn(), base.ownerInn(), base.signerExecutable(),
                 base.signerCertificate(), base.signerArgumentsJson(), "DOC-1", "20.06.2024", "", true,
                 base.certificateListExecutable(), base.certificateListArgumentsJson(), base.certificateMetadataJson(),
                 base.signerTestedAt(), base.certmgrPath(), base.cryptcpPath(), base.csptestPath(),
                 base.cryptoProTimeoutSeconds(), "20.06.2029", "CONFORMITY_DECLARATION");
+        repository.saveSettings(auto);return auto;
     }
+
+
+    /** Explicit synthetic submission/retrieval boundary; the real coordinator and batch store remain active. */
+    private class WorkflowOrderService extends ZnackKizOrderService {
+        WorkflowOrderService(){super(null,null,null,repository);for(String gtin:List.of(A,B)){
+            if(repository.findProduct(gtin).orElseThrow().permitDocuments().isEmpty())
+                repository.updateProductDocuments(gtin,List.of(new GoodsDocument("CONFORMITY_DECLARATION","FIXTURE-PERMIT","01.01.2026")));
+        }}
+        @Override public ZnackPurchaseBatchStore.Batch advanceBatch(Settings settings,long batchId)throws Exception {
+            var store=new ZnackPurchaseBatchStore(repository);var batch=store.find(batchId).orElseThrow();
+            if(batch.state()==ZnackPurchaseBatchStore.State.RECONCILING||batch.state()==ZnackPurchaseBatchStore.State.SUBMITTING){
+                reconcileBatch(batch);return store.find(batchId).orElseThrow();
+            }
+            return submit(batchId);
+        }
+        protected ZnackPurchaseBatchStore.Batch submit(long batchId)throws Exception{return acceptFixtureBatch(batchId,"external-"+batchId);}
+        @Override public void reconcileBatch(ZnackPurchaseBatchStore.Batch batch){new ZnackPurchaseBatchStore(repository).markReconciling(batch.id(),"No unique remote order; no repeat POST.");}
+        @Override public java.util.OptionalInt availableCodes(long orderId){return java.util.OptionalInt.of(repository.findOrder(orderId).orElseThrow().quantity());}
+        @Override public KizOrder refresh(Settings settings,long orderId)throws Exception{repository.updateOrder(orderId,null,"READY",OrderStatus.CODES_READY,null);return repository.findOrder(orderId).orElseThrow();}
+    }
+    private class WorkflowCodeService extends ZnackKizCodeService {
+        WorkflowCodeService(){super(null,null,repository);}
+        @Override public int download(Settings settings,long orderId,int available)throws Exception{return download(settings,orderId);}
+    }
+    private void beginFixtureBatch(long batchId){var store=new ZnackPurchaseBatchStore(repository);var batch=store.find(batchId).orElseThrow();store.savePayload(batchId,Wb1326PurchasePersistenceTest.payload(batch).toString());assertTrue(store.beginSubmission(batchId));}
+    private ZnackPurchaseBatchStore.Batch acceptFixtureBatch(long batchId,String remote){beginFixtureBatch(batchId);var store=new ZnackPurchaseBatchStore(repository);store.acceptRemoteOrder(batchId,remote);return store.find(batchId).orElseThrow();}
+    private void markFixtureReconciling(long batchId,String reason){beginFixtureBatch(batchId);new ZnackPurchaseBatchStore(repository).markReconciling(batchId,reason);}
 
     private int countCodes(String predicate) throws Exception {
         try (Connection connection = Database.getConnection(); Statement statement = connection.createStatement();

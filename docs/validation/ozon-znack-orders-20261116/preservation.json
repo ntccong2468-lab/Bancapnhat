@@ -1,0 +1,249 @@
+{
+  "status": "PRESERVED_WITH_SCOPED_FEATURE_DELTA",
+  "capturedAtUtc": "2026-11-16T11:56:17.825252+00:00",
+  "baselineSourceManifest": "/workspace/artifacts/VNCode-before-ozon-znack-orders-20261116-134914-MSK/source-manifest.json",
+  "baselineFiles": 3740,
+  "currentFiles": 3757,
+  "baselineFilesMissing": [],
+  "newTaskSourceAndTestDeltaCount": 24,
+  "newTaskSourceAndTestDelta": [
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+      "operation": "modified",
+      "beforeSha256": "41fb711495abb6b6af0cd2f78c5f021b3749f448a66da9a2799072b4a88ee6a3",
+      "afterSha256": "350f2940de8b0356542b846e404b8ef3964c0a3545c149f0ecbacbce8467f878"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPurchaseAvailability.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "40022251a2fb0c890d19f5d63f8012eea814c3138004e254adb969f845f15eb5"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizPurchasePendingException.java",
+      "operation": "modified",
+      "beforeSha256": "d9902c61f0a47d3bb12c8054e2ec3bceadee93137f859fdbc23957405acb9e37",
+      "afterSha256": "9dd9610f989a34dec85c01584d8cc624a1faca1c7c848d47b7b4ab1a5a3abec2"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java",
+      "operation": "modified",
+      "beforeSha256": "4dc19ba93093b3f8d4b479fc80c8c147d9523db025c6d919b4cdd8072c6d8dee",
+      "afterSha256": "7bfa63f03962cf4649a365135b03bdd39be6cedac23ebdccd704a7b05ec1911d"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizReplacement.java",
+      "operation": "modified",
+      "beforeSha256": "29b03d50a075cd576b351782c8b80537596b8f7c70022a0cea680e37235ae207",
+      "afterSha256": "f20175dc7e7ea2f72438e494db3eba66085fb4d456b1c22a75b16dd4dc7372ba"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizService.java",
+      "operation": "modified",
+      "beforeSha256": "17b84f8ea71d979cad242457bd78b0a06820032372f92b153d1b1fd2f5027059",
+      "afterSha256": "983bbe6dc95e4f65c497837d5099ffc5067026785ec190698079d0170207e959"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceStockReplenishment.java",
+      "operation": "modified",
+      "beforeSha256": "92452179e59a9e6d0dd1d1b708a41f041f3a1bd8fb667dd5107530a0c535c187",
+      "afterSha256": "18d5fcca086774cdbf473885259b82386f0d780708ed7e001c0bb5f3fda24844"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJobRepository.java",
+      "operation": "modified",
+      "beforeSha256": "afd95a3e7276750e843d8a2b7691957143617ed8b21f14682621500d7d5da698",
+      "afterSha256": "265ede6492f3b67f7876538ed06552125ca94f905c4d241621c4244dc7372e78"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonExemplarService.java",
+      "operation": "modified",
+      "beforeSha256": "965ea95446b170c650b6b082c227cc75224c0d29faf45c41784956297223f854",
+      "afterSha256": "b300a4a4fd19e655fd55753478acb81b988f92ffaeeb29734573bcf644950d62"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java",
+      "operation": "modified",
+      "beforeSha256": "a15db01e5dd05fc7f094535e38ceb19129e528cbf321d6f63862b45e03faf556",
+      "afterSha256": "4ddc745027a547b487304254391bd53102812ea301d04456f2484ac03cfc7d3f"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizAssignment.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "2d88761b93170dd6f9a47f5a97915276a83e3da9381c4b91c7f9d46822341a29"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizStock.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "720ff96b18658f7f5b183cfa6760667db490574f8efc4846c292478d0ef36384"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/integration/ozon/OzonStockReplenishment.java",
+      "operation": "modified",
+      "beforeSha256": "87d4b3f0773ddcf0de9fd2a8af7a914a8325f1ed55b0ef8d8c71a479c9ea211f",
+      "afterSha256": "3ba9f5759053e52440f7bea1c53d382a526c39d5bbd735325942fd94e078eaec"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java",
+      "operation": "modified",
+      "beforeSha256": "f20bc75738eb1dc3d5f0ac5eddcd7a41dff8c61ad9d47c262d50ea9192438f0d",
+      "afterSha256": "9263d78a05918e562dd7708a76afbd0bcb940d98a96c33439b363f164e77efa2"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/shop/ShopSidebarController.java",
+      "operation": "modified",
+      "beforeSha256": "297ae735137a2201beda82c0d220d213e5bd24c4faf2888ecdffb685be4e5ea9",
+      "afterSha256": "7d81fb59a8a99ec3fb80b9ff29a9323748c9db6416e6dc80cabb42cd3687bf07"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/workspace/HomeController.java",
+      "operation": "modified",
+      "beforeSha256": "7ee6a7a5585344c94303fe86e054335ea9cf58916ea7447b7ae7d1a45ee32a5c",
+      "afterSha256": "8195d4c643293e2d8235bb7d7db0f7cf58221b255b5d059f2a577fa09ad21b01"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+      "operation": "modified",
+      "beforeSha256": "c53685fcaa8d9217aad3a558013559c37f3db58537f7560e99d18955321c5115",
+      "afterSha256": "bb76c6a1a40b10fd1e9bae62fa8cef4d13150749af152026b445ada48465063c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPurchaseAvailabilityPolicyTest.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "322a8c96a4d21cbd7ce47c8816b9c1ee3af9fe9443bd392007a57f5213e596c0"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedKizReplacementTest.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "c10e63f2568e887c71306d1dd9324358944bdfb78ae3f5f857473e17a7d5202c"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedPrintAssignmentTest.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "f112e24ce3fe93fa79d7e1148eaf532d088c42ac9e2fc5bd6585d5358d32b64b"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedStockPolicyTest.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "775ec72ddb4c8bef635ff31f3be4659d3a0c3d8236ef954538abd73d47d0db02"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/integration/ozon/OzonRejectedPurchasedDemandTest.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "f8baefb13e915bd088d9c5a8b5b46bf9bec54d563a1e7b2d743241269836ab33"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/ozon/OzonRegistrationEntryUiTest.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "afef560b1a9a8c14ade4f8fb1927890c77746b139caec876673aa042c970a8c1"
+    },
+    {
+      "path": "src/test/java/com/vncode/app/ui/workspace/OzonRegistrationNavigationTest.java",
+      "operation": "added",
+      "beforeSha256": null,
+      "afterSha256": "7307f73f8d206673604236948add0f7b2bad9765b98d6c853e367b20f927fdd4"
+    }
+  ],
+  "modifiedProductionFiles": 14,
+  "addedProductionFiles": 3,
+  "addedTestFiles": 7,
+  "existingTestFilesChanged": [],
+  "priorDirtyFiles": 32,
+  "priorDirtyFilesByteIdentical": 30,
+  "priorDirtyFilesIntentionallyExtendedAsMemory": [
+    "docs/PROJECT_MEMORY.md",
+    "docs/memory/CURRENT.md"
+  ],
+  "priorNonMemoryDirtyHashesUnchanged": true,
+  "priorProtectedHashes": {
+    ".agents/skills/vncode-ecc-review/SKILL.md": "61ba59aaa999ca3f68329e087d36be6057aa19fc2484512f004a2c0093a9a8db",
+    ".agents/skills/vncode-ecc-security/SKILL.md": "9b4eed602db7f1ea7080f00e652b772af38463f35ad4a92f77c6009ad7a60c09",
+    ".agents/skills/vncode-ecc-tdd-verification/SKILL.md": "e8641624ceafdb21d400a8334bbfa7d02e52600c6818ffc01187190d47bd99e8",
+    "AGENTS.md": "571ac5bdce9bc3d450cd96a929258ec262fe19de6b890b873dc32092020d46da",
+    "docs/engineering/ecc/LICENSE.upstream.txt": "326146379f01bb137c0a5d3c54770c1aa31076705c8b88a7f6b26a460f6221b2",
+    "docs/engineering/ecc/README.md": "cb6a5efa79c05adcab8c7aca467839f11457f82a0ef34284328f23a0f1f26021",
+    "docs/engineering/ecc/integration-manifest.json": "92221f39410af5a92db1dab3c339a49f66fb35c1d10666a0ac80ff25348912fb",
+    "docs/engineering/ecc/review.md": "bb64d97a0228a8a8b70d72fcc2549a55830912b74e3ac3232422f0b363647800",
+    "docs/engineering/ecc/security.md": "b2c393fa04511a2aa639c3181ebe56a4f19a1d21ee04549d6be79117d46655aa",
+    "docs/engineering/ecc/verification.md": "7d3c02799b314c16a2c816ae8833d6d614b11d0df5c304f3c619af502edb1efd",
+    "docs/memory/README.md": "ceb7b15e8c3bcc83541fe68633263d0c12a479abd80fd6f8d8f7ea4fc0e91d2b",
+    "docs/validation/ecc-codex-web-20261115/REPORT.md": "195f2f7903ddd651125315a5a71f1db6862041b05a43c869e49b6538e5b86ec0",
+    "docs/validation/ecc-codex-web-20261115/behavior-review.md": "2a33eb21e46a9f2319eb6e283f2d88784d13c719e3f9c7ea3d594b4058f6fece",
+    "docs/validation/ecc-codex-web-20261115/current-launcher-receipt.json": "2f373521d0941d50f5ea1043b63c7b4c34cc8c4b0bfbc1b76a51bf4c7966061d",
+    "docs/validation/ecc-codex-web-20261115/current-launcher-smoke.json": "06c2cd23ec27525d33a3ef76d55322ea44e0e2de06bad55ad45c276bc4f3a06e",
+    "docs/validation/ecc-codex-web-20261115/file-inventory.json": "2831b51e1b34eb494e013756b4c711b61eb3667eaea6c9a1e818d06deffec1c9",
+    "docs/validation/ecc-codex-web-20261115/final-current-build-input-proof.json": "6226ee7619ee1cbb6bc859ed617ebaf1a02c65e8c5a97372a20e4877c8157e73",
+    "docs/validation/ecc-codex-web-20261115/focused-result.json": "52b9ea282abae423c0623a17975299d613cdef342499d46c619e8918c2888241",
+    "docs/validation/ecc-codex-web-20261115/full-result.json": "596c4fdc86dd98d313e9cce87c506e07a38766955a65f89488b8d54f5f9947cc",
+    "docs/validation/ecc-codex-web-20261115/receipt.json": "a4b2fbf22778da7086e9d7e45329b797487146f7309a4ceaceb705c817168257",
+    "docs/validation/ecc-codex-web-20261115/scope-preservation.json": "bf5ab1685d052829f8206523ba8265509bb1ced3dba077e87b50183a8bfeb5fc",
+    "docs/validation/ecc-codex-web-20261115/ui-review.md": "fe751742b84b5ecf7bde805c27fa091c9514a05db2fffe3aaf389a66595e2803",
+    "docs/validation/ecc-codex-web-20261115/validator-independent-review.json": "7e9ce76ae944f9503e7e18d4f53e3ee39a9f7205b1e3a645ace41b505c85db63",
+    "docs/validation/ecc-codex-web-20261115/znack-empty-after.png": "2e37ae3004b4ce46ef5b15c7b3675c61fb40c5052fd345b25f9ff394d8dffe6a",
+    "docs/validation/ecc-codex-web-20261115/znack-empty-before.png": "a7f2cf417491df03fa6ffa0cb2b8616a275f74fd94d66ecbf2c3134d93ed2919",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java": "cd3ac4934302ee52b6a551c295496bc3ffaab365a8492035551ae38e199fae12",
+    "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml": "61cb9499ebfdd84119c48e3246c94c7c8d5ee2b0a0c2f64fafa3955dca843ce9",
+    "tools/UiLayoutProbe.java": "feeedec4b088456ab6d03257738581ed494eb2c4027dbaee65f7ffa24f9d2c91",
+    "tools/validate-ecc-integration.mjs": "2defcace12d3d3abc9839ba487463b94d96522633baac514c7a09a1c3f85d72f",
+    "tools/validate-ecc-integration.test.mjs": "9ebc38c2a9c56e80eeac87ce7df6d35e4339bc274a76a774902143bbd03c6681"
+  },
+  "approvedSharedProductionFiles": [
+    "src/main/java/com/vncode/app/features/kiz/KizPurchaseAvailability.java",
+    "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+    "src/main/java/com/vncode/app/features/kiz/KizPurchasePendingException.java",
+    "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java"
+  ],
+  "actualSharedProductionFiles": [
+    "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java",
+    "src/main/java/com/vncode/app/features/kiz/KizPurchaseAvailability.java",
+    "src/main/java/com/vncode/app/features/kiz/KizPurchasePendingException.java",
+    "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java"
+  ],
+  "sharedScopeExactMatch": true,
+  "forbiddenScopeDelta": {
+    "pomDependencyAndBuild": [],
+    "databaseSchemaAndMigrations": [],
+    "styles": [],
+    "ci": [],
+    "wbSpecificProduction": [],
+    "releaseMetadata": []
+  },
+  "allForbiddenScopeChecksPass": true,
+  "memoryOnlyOtherModifications": [
+    "docs/PROJECT_MEMORY.md",
+    "docs/memory/CURRENT.md"
+  ],
+  "nonSourceOtherAdditions": [
+    "docs/validation/ozon-znack-orders-20261116/backup-receipt.json",
+    "docs/validation/ozon-znack-orders-20261116/independent-result.json",
+    "docs/validation/ozon-znack-orders-20261116/independent-review.md",
+    "docs/validation/ozon-znack-orders-20261116/purchase-implementation.md",
+    "docs/validation/ozon-znack-orders-20261116/purchase-source-sha256.json",
+    "docs/validation/ozon-znack-orders-20261116/registration-implementation.md",
+    "docs/validation/ozon-znack-orders-20261116/registration-result.json"
+  ],
+  "ownerSourceHashChecks": {
+    "purchase": {
+      "files": 18,
+      "mismatches": [],
+      "receipt": "/workspace/ozon-znack-orders-20261116/purchase-tests/final-evidence/source-sha256.json"
+    },
+    "registration": {
+      "files": 6,
+      "mismatches": [],
+      "receipt": "/workspace/ozon-znack-orders-20261116/registration-tests/final-receipt.json"
+    }
+  },
+  "externalIndependentFixtureAbsentFromTarget": true,
+  "reviewerOperations": "Read-only file hashes and manifests; only wrote sanitized reports outside the target; no Maven/API/purchase/signing/release performed in this preservation audit.",
+  "note": "Memory documentation may be updated by parent after this capture; production/test hashes remain the verification boundary.",
+  "productionDdlAddedOrChanged": []
+}

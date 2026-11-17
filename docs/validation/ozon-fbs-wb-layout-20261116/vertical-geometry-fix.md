@@ -1,0 +1,9 @@
+# Exact vertical parity follow-up
+
+Iteration 1 remains historical evidence: 22 focused tests and the parent's 393-test/64-suite gate passed; screenshots still showed an approximately 2 px vertical difference. This follow-up added a strict native geometry assertion rather than treating that difference as explained.
+
+Meaningful RED on the existing isolated `OzonWbPackingParityTest` fixture established the same result in both themes: WB's hidden but managed 18 px ProgressIndicator has a native skin minimum height of 36 px, so WB's header computes to 44 px. Ozon's unmanaged indicator contributed 0×0 inside a sizing host with no intrinsic minimum, so its header computed to 42 px. Root/header Y matched; title/refresh were 1 px higher, and tabs/filter/table were 2 px higher. Table widths and row geometry remained correct. Exact measurements: `../parity-tests/vertical-parity-iteration2/absolute-geometry-red.json`.
+
+The final portable presentation fix removes the unnamed sizing host and uses the same direct managed ProgressIndicator with pref/max dimensions 18 as WB. No native skin minimum is hardcoded. The parent explicitly authorized the only exception inside the otherwise protected busy setter: `loadingIndicator.setManaged(busy)` becomes `loadingIndicator.setManaged(true)`. Visibility remains tied to `busy`; all operation locks, callbacks, selection, tasks, registration and reception/printing logic remain unchanged. The indicator always reserves its native layout space, avoiding a header jump when work starts.
+
+A temporary hardcoded-host experiment was archived separately and is not final source. Iteration 1 source freezes/logs/reports were not overwritten. Final focused GREEN, updated hashes and independent protected-method audit are recorded separately after execution; parent owns the fresh broad gate/JAR/after capture.

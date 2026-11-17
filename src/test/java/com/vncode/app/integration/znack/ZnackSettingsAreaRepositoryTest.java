@@ -45,7 +45,8 @@ class ZnackSettingsAreaRepositoryTest {
         assertEquals("02.02.2026", merged.documentDate());
         assertEquals("31.12.2029", merged.documentExpiryDate());
         assertEquals(merged, first.getSettings());
-        assertEquals(original, second.getSettings());
+        assertEquals(original.withAutoIntroduction(true), second.getSettings(),
+                "Normal settings use mandatory circulation while the other shop's fields stay unchanged");
     }
 
     @Test void connectionThenDocumentPreservesBothAndCreatesMissingSettings() {
@@ -76,13 +77,18 @@ class ZnackSettingsAreaRepositoryTest {
         }
         long existing = first.createPipeline("04600000000001", 1);
         long legacy = first.createPipeline("04600000000002", 1);
-        try (var c = Database.getConnection(); var p = c.prepareStatement("DELETE FROM znack_pipeline_connections WHERE shop_id=1 AND pipeline_id=?")) {
+        try (var c = Database.getConnection(); var p = c.prepareStatement("DELETE FROM znack_pipeline_connections WHERE shop_id=1 AND pipeline_id=?");
+             var s = c.createStatement()) {
+            // An old unsnapshotted pipeline can predate mandatory circulation. Its explicit
+            // stored intent must be frozen before either normal settings area is saved.
+            s.execute("UPDATE znack_settings SET auto_introduction=0 WHERE shop_id=1");
             p.setLong(1, legacy); p.executeUpdate();
         }
 
         first.saveDefaultGoodsDocument("CONFORMITY_CERTIFICATE", "NEW", "02.02.2026", "31.12.2029");
         first.saveConnectionSettings(settings("new-oms", "new-connection"));
-        assertEquals(original, first.pipelineSettings(existing));
+        assertEquals(original.withAutoIntroduction(true), first.pipelineSettings(existing),
+                "The new pipeline retains the effective profile captured when it was created");
         assertEquals(original, first.pipelineSettings(legacy), "A legacy pipeline must be bound before changing settings");
         assertEquals("new-oms", first.getSettings().omsId());
         assertEquals("NEW", first.getSettings().documentNumber());

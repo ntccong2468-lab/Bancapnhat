@@ -12,11 +12,15 @@ import java.util.*;
 /** A user-triggered print can enqueue only the shortage, after stock and pending buys are read. */
 public final class KizStockReplenisher {
     private static final Object[] LOCKS=new Object[64];static{Arrays.setAll(LOCKS,i->new Object());}
-    interface Purchases {void validate(String gtin,int quantity)throws Exception;void enqueue(String gtin,int quantity,String key)throws Exception;void resume();}
+    interface Purchases {
+        void validate(String gtin,int quantity)throws Exception;
+        void enqueueBatch(List<ZnackPurchaseBatchStore.Approved> approved)throws Exception;
+        void resume();
+    }
     private final java.util.function.Function<Shop,Purchases> purchases;
-    public KizStockReplenisher(){this(shop->{var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));var original=repository.getSettings();boolean print=KizPrintPurchaseSession.active();var settings=original.withAutoIntroduction(true);var coordinator=ZnackPurchaseCoordinator.create(repository);return new Purchases(){
+    public KizStockReplenisher(){this(shop->{var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));var original=repository.getSettings();var settings=original.withAutoIntroduction(true);var coordinator=ZnackPurchaseCoordinator.create(repository);return new Purchases(){
         public void validate(String gtin,int quantity)throws Exception{coordinator.validatePrerequisites(settings,gtin,quantity);}
-        public void enqueue(String gtin,int quantity,String key)throws Exception{if(print)coordinator.enqueueForPrint(original,gtin,quantity,key);else coordinator.enqueueForCirculation(original,gtin,quantity,key);}
+        public void enqueueBatch(List<ZnackPurchaseBatchStore.Approved> approved)throws Exception{coordinator.enqueueBatch(original,approved);}
         public void resume(){coordinator.resumeAsync(settings);}
     };});}
     KizStockReplenisher(java.util.function.Function<Shop,Purchases> purchases){this.purchases=purchases;}
@@ -34,7 +38,14 @@ public final class KizStockReplenisher {
     public Result ensurePurchased(Shop shop,Map<String,Integer> quantities,java.util.function.Consumer<Map<String,Integer>> purchaseProof)throws Exception {
         return ensure(shop,quantities,purchaseProof,true);
     }
+    /** An adapter may count only stock its own allocator can actually reserve. */
+    public Result ensurePurchased(Shop shop,Map<String,Integer> quantities,java.util.function.Consumer<Map<String,Integer>> purchaseProof,KizPurchaseAvailability availability)throws Exception {
+        return ensure(shop,quantities,purchaseProof,true,availability);
+    }
     private Result ensure(Shop shop,Map<String,Integer> quantities,java.util.function.Consumer<Map<String,Integer>> purchaseProof,boolean purchasedOnly)throws Exception {
+        return ensure(shop,quantities,purchaseProof,purchasedOnly,null);
+    }
+    private Result ensure(Shop shop,Map<String,Integer> quantities,java.util.function.Consumer<Map<String,Integer>> purchaseProof,boolean purchasedOnly,KizPurchaseAvailability availability)throws Exception {
         if(shop==null||shop.getId()<=0||quantities==null||quantities.size()>10000)throw new IllegalArgumentException("KIZ_QUANTITY_LIMIT");
         var normalized=new TreeMap<String,Integer>();long total=0;for(var entry:quantities.entrySet()){
             if(entry.getValue()==null||entry.getValue()<=0||entry.getValue()>100000)throw new IllegalArgumentException("KIZ_QUANTITY_LIMIT");
@@ -44,7 +55,7 @@ public final class KizStockReplenisher {
             return ShopOperationCoordinator.withActiveShop(shop.getId(),()->{
                 ListingIdentity.require(shop);var warehouse=new KizWarehouseRepository();
                 var inventory=new ZnackGtinInventoryService();
-                var counts=purchasedOnly?inventory.purchasedAvailableCounts(shop.getId(),normalized.keySet()):inventory.availableCounts(shop.getId(),normalized.keySet());
+                var counts=purchasedOnly&&availability!=null?availability.counts(shop,normalized.keySet()):purchasedOnly?inventory.purchasedAvailableCounts(shop.getId(),normalized.keySet()):inventory.availableCounts(shop.getId(),normalized.keySet());
                 var missing=new TreeMap<String,Integer>();normalized.forEach((g,n)->{int shortage=n-counts.getOrDefault(g,0);if(shortage>0)missing.put(g,shortage);});
                 if(missing.isEmpty()||!purchasedOnly&&!warehouse.autoPurchase(shop))return new Result(missing,0,false);
                 LicenseRuntime.require(Permission.KIZ);
@@ -71,13 +82,19 @@ public final class KizStockReplenisher {
                 purchaseProof.accept(Map.copyOf(toBuy));
                 var buyer=purchases.apply(shop);
                 for(var entry:toBuy.entrySet())buyer.validate(entry.getKey(),entry.getValue());
+                // Publish the complete approved demand together so the shared
+                // engine can group up to ten GTINs without racing the next item.
+                purchaseProof.accept(Map.copyOf(toBuy));
+                ListingIdentity.require(shop);
+                var approved=new ArrayList<ZnackPurchaseBatchStore.Approved>();
+                for(var entry:toBuy.entrySet()){
+                    KizPrintPurchaseSession.requesting(entry.getKey(),entry.getValue());
+                    approved.add(new ZnackPurchaseBatchStore.Approved(entry.getKey(),entry.getValue(),UUID.randomUUID().toString()));
+                }
                 int enqueued=0;
                 try{
-                    for(var entry:toBuy.entrySet()){
-                        // Validation may involve I/O; recheck this identity immediately before enqueue.
-                        purchaseProof.accept(Map.of(entry.getKey(),entry.getValue()));
-                        ListingIdentity.require(shop);KizPrintPurchaseSession.requesting(entry.getKey(),entry.getValue());buyer.enqueue(entry.getKey(),entry.getValue(),UUID.randomUUID().toString());enqueued++;
-                    }
+                    buyer.enqueueBatch(List.copyOf(approved));
+                    enqueued=approved.size();
                 }finally{if(enqueued>0)buyer.resume();}
                 return new Result(missing,enqueued,!missing.isEmpty(),"queued");
             });

@@ -1,0 +1,1848 @@
+{
+  "status": "PRE_IMPLEMENTATION_READ_ONLY_CONTRACT",
+  "createdAtUtc": "2026-11-16T14:50:14.597574+00:00",
+  "sourceRoot": "/workspace/vncode-ios-motion-20261114",
+  "controllerSha256": "c4819446b4e50b7d7481912eb64feae39212a781737cae5fc5ed2b741c2deae8",
+  "fxmlSha256": "bb76c6a1a40b10fd1e9bae62fa8cef4d13150749af152026b445ada48465063c",
+  "baselineMethodCount": 152,
+  "protectedMethodCount": 141,
+  "protectedMethods": [
+    {
+      "name": "OzonDashboardController",
+      "startLine": 120,
+      "sha256": "d8a20ccce1fba160c699789cbd543805e9c7d20ad885c4f06492fc2d7b18a8e2",
+      "bytes": 67
+    },
+    {
+      "name": "OzonDashboardController",
+      "startLine": 121,
+      "sha256": "1c9b45c8811c24a3b7d8b95b8c479c2fcec330f56e4d02fff6df1ab119f265bb",
+      "bytes": 132
+    },
+    {
+      "name": "ensure",
+      "startLine": 122,
+      "sha256": "370c2cd12a9de78f2f4b2ab98cd102c814252ee7ce996c11bd285f14d413889d",
+      "bytes": 137
+    },
+    {
+      "name": "setQueueReadiness",
+      "startLine": 124,
+      "sha256": "8afb7625586ffdee4dd5a55982e874797c23f3d5d70364a5409e75b3c8d2243f",
+      "bytes": 103
+    },
+    {
+      "name": "accept",
+      "startLine": 126,
+      "sha256": "fd82a90221f98cfeadf257163d0821c4f06bc8c42326e213a9dc9223d2818fcd",
+      "bytes": 176
+    },
+    {
+      "name": "setPostingAcceptor",
+      "startLine": 128,
+      "sha256": "2e8d93d74652075000b1f352bf09cdee50bea43d0175772ed8680735bdc33455",
+      "bytes": 104
+    },
+    {
+      "name": "setAcceptancePause",
+      "startLine": 130,
+      "sha256": "2301bf5db1df1da3a14de9c93437b0e863190fddbcf687e703ac0a8278db23b7",
+      "bytes": 108
+    },
+    {
+      "name": "setCrossMappingRefresher",
+      "startLine": 137,
+      "sha256": "f602dbeb6e476810fb6d5547bc8a1c3f5bf299789de93c5a79cd0d09703af857",
+      "bytes": 124
+    },
+    {
+      "name": "setAcceptanceStockPurchase",
+      "startLine": 144,
+      "sha256": "18b5d3547b3d2c01797f713d719e72b10219c3779ae11016c023c43d86f182fe",
+      "bytes": 128
+    },
+    {
+      "name": "resume",
+      "startLine": 145,
+      "sha256": "a8ad174fa10cb8507084d95b9e246d3f545b70246a9ef5d7d8702e598d52b870",
+      "bytes": 125
+    },
+    {
+      "name": "setPurchaseResumer",
+      "startLine": 147,
+      "sha256": "deb34e303f1cf3dd13c3b3be8f3ef1a92e3d7fb0acf2be373f5bb93de178e6ca",
+      "bytes": 102
+    },
+    {
+      "name": "open",
+      "startLine": 148,
+      "sha256": "6c9f2f7ab7bfcd6778e6abd60dacaa5d623580a70a974edecc82e82e7c678477",
+      "bytes": 101
+    },
+    {
+      "name": "setExportedFileOpener",
+      "startLine": 150,
+      "sha256": "00d216c0ad7858e318cd19262fcefa9910fc1fff79f4688e968a98db641b7cf5",
+      "bytes": 109
+    },
+    {
+      "name": "onOpenKizInventory",
+      "startLine": 163,
+      "sha256": "90ba2b9f1f1b64ce970d759460be066ebc5684e2d8bb903be2200cd17955af70",
+      "bytes": 129
+    },
+    {
+      "name": "onOpenZnackRegistration",
+      "startLine": 164,
+      "sha256": "b7ac610a589a29aa64465b348e7d6aae24c41882914f0269db6a5061a49761fa",
+      "bytes": 615
+    },
+    {
+      "name": "setImageService",
+      "startLine": 249,
+      "sha256": "5e155726faad34475211a84258a4a746059d695200922236ce8e036895d88235",
+      "bytes": 111
+    },
+    {
+      "name": "setFbsReader",
+      "startLine": 250,
+      "sha256": "6d204f3e18b20d2e274a13bd668389b4d8fcf0c735bdbfa5bca54fc3e369fd10",
+      "bytes": 196
+    },
+    {
+      "name": "currentPageLimit",
+      "startLine": 251,
+      "sha256": "eab776db1dfeddef94a74f5b280a293813337d389203ebe2548f2f3befda76ee",
+      "bytes": 46
+    },
+    {
+      "name": "setShop",
+      "startLine": 303,
+      "sha256": "30a6a28fce1e13173675b075c8b8df7d8ec97b2fa7830a1317e8388fadc65909",
+      "bytes": 1615
+    },
+    {
+      "name": "sync",
+      "startLine": 330,
+      "sha256": "5c41f669600a37dd42b95e8f1a7178cac1934de334301ff61148683f6ac1c082",
+      "bytes": 50
+    },
+    {
+      "name": "sync",
+      "startLine": 333,
+      "sha256": "ff0118825ce82ac9345e091228eb96bf9e9128bbcd7f12ddfb89f33ebc98fdc1",
+      "bytes": 1489
+    },
+    {
+      "name": "setOnBusy",
+      "startLine": 361,
+      "sha256": "aef2fd25a4d08be92c89c6e522d170bd977460cffa523f7e6576704f5b648b2d",
+      "bytes": 153
+    },
+    {
+      "name": "setOnZnackRegistration",
+      "startLine": 366,
+      "sha256": "9ed371cb200aa6a0aea082a7e64b1404a4b3276cf6bd3b507df9dab24fe8dcfe",
+      "bytes": 155
+    },
+    {
+      "name": "updateRegistrationEntry",
+      "startLine": 371,
+      "sha256": "be9c62c3002aac986f814d53ad4f752b5c3cf4f92ee751b7809274272ab26677",
+      "bytes": 516
+    },
+    {
+      "name": "showPackingQueue",
+      "startLine": 380,
+      "sha256": "abd55b773dfd66b08b60b5b6cbb2b921ff232fde5b60d729b5c1d3840aa68a35",
+      "bytes": 129
+    },
+    {
+      "name": "refreshPostings",
+      "startLine": 385,
+      "sha256": "07f69ea38cd7f3675cf2d5a82a587ae96ac6f3801dac3bb20536d7edb67cada1",
+      "bytes": 1061
+    },
+    {
+      "name": "onRefresh",
+      "startLine": 468,
+      "sha256": "60a3eb920b89caa9fe3b4616b7bfea098b438518f843afa3345f1b800154fc49",
+      "bytes": 46
+    },
+    {
+      "name": "onClearSearch",
+      "startLine": 469,
+      "sha256": "ea11ebd0391abfe90f510358bae76f7bd0c7989f1957b0868736c7ff2c9a9f89",
+      "bytes": 65
+    },
+    {
+      "name": "onSelectAll",
+      "startLine": 471,
+      "sha256": "e06e77621d975d5f7f88d201314850b4381c33c878d0cce073c22e707237982a",
+      "bytes": 146
+    },
+    {
+      "name": "onClearBatchSelection",
+      "startLine": 476,
+      "sha256": "b13cb42a351fec29e768c6a303decffa544b2c468c42302e4edbebd019cd1b88",
+      "bytes": 151
+    },
+    {
+      "name": "onSelectFiltered",
+      "startLine": 477,
+      "sha256": "e34bb4e4c6dd8520ccb3df035279a8535b75ea7dfc0ab52342db78610900b579",
+      "bytes": 2280
+    },
+    {
+      "name": "onCancelSelection",
+      "startLine": 493,
+      "sha256": "59fee362d055753d96e62ad014e45cc97faaf4af71389d03e8095b11d7e75bd4",
+      "bytes": 106
+    },
+    {
+      "name": "finishSelectionTask",
+      "startLine": 494,
+      "sha256": "bec87b9611d138ae392cbee77f26dc269297b3058133a49411cefe364e3c6682",
+      "bytes": 199
+    },
+    {
+      "name": "ensureCompleteQueue",
+      "startLine": 496,
+      "sha256": "6f08ae20e77e536b9662294f97179a0c88f38c6ab708c93f68c40c2b56639c99",
+      "bytes": 2421
+    },
+    {
+      "name": "onMoveToPacking",
+      "startLine": 524,
+      "sha256": "60ace5ea5a2c19ad045999b9aadbc76239b1e4cc140a2a9681f4d734650d1efc",
+      "bytes": 12200
+    },
+    {
+      "name": "onPrintAll",
+      "startLine": 670,
+      "sha256": "e6a00d993db0a2f288bb15284f2a6a5f91288b94fdd04d1236a0362dabc680ee",
+      "bytes": 2131
+    },
+    {
+      "name": "selectedKizSources",
+      "startLine": 694,
+      "sha256": "3453083c4ef08e4e1562177bb884ed76423d1172ce673ce9fe6b3d3bbfdf493d",
+      "bytes": 372
+    },
+    {
+      "name": "printKizSources",
+      "startLine": 698,
+      "sha256": "f4bc9da4abaa6a160b3de9361d0e9a6ef8b5427bcab773a36faf39ab362afd03",
+      "bytes": 258
+    },
+    {
+      "name": "refreshMissingCrossMappings",
+      "startLine": 704,
+      "sha256": "111dcf9a5e4b1b702db89d356abbf43873c6e12708fc6eb14857015a35e64100",
+      "bytes": 322
+    },
+    {
+      "name": "refreshMissingCrossMappings",
+      "startLine": 708,
+      "sha256": "78dfaefb2740f321e69944a931f40d6e1dd5b349fcae6f6f46b3e91ed1e04bbe",
+      "bytes": 2521
+    },
+    {
+      "name": "checkBatchReadinessAndExport",
+      "startLine": 736,
+      "sha256": "8718fe99e0e42a6383a6870863b31ef77540456369ff0b984e3240b0169ca682",
+      "bytes": 2230
+    },
+    {
+      "name": "downloadLabel",
+      "startLine": 749,
+      "sha256": "387a915196c6c88fc1129815576ac014e73169750c8e5e77280da2ea8f7028d4",
+      "bytes": 2703
+    },
+    {
+      "name": "chooseSingleTargetAndExport",
+      "startLine": 782,
+      "sha256": "f01f0a233374bc6589219fbe364faf9b9ecdce85419cffc6e1c4b49cc8c716c5",
+      "bytes": 949
+    },
+    {
+      "name": "chooseBatchTargetAndExport",
+      "startLine": 794,
+      "sha256": "3b0c4a4981a8cfa0233e8e12d048ba95b4bee9c9c5606705b6fb9b1f5716d04c",
+      "bytes": 926
+    },
+    {
+      "name": "printSummary",
+      "startLine": 805,
+      "sha256": "48cb3d8959f3bb21cbebcee7ba8ff1c61a8941c932d7d64d0425cc08bc0834d8",
+      "bytes": 271
+    },
+    {
+      "name": "choosePdf",
+      "startLine": 809,
+      "sha256": "3c5936a60989e6935fb823fb61f1a75be7a104fe27784dffe849db9ab8265c2a",
+      "bytes": 670
+    },
+    {
+      "name": "runPrintTask",
+      "startLine": 821,
+      "sha256": "669b4681656340793406c659091bf5a5b4642208944887bd45a8b284b7659df8",
+      "bytes": 242
+    },
+    {
+      "name": "runPrintTask",
+      "startLine": 824,
+      "sha256": "1e948101b5ec8027793953cd3003279b6db17ca70c9ae154798d61439f6fe969",
+      "bytes": 284
+    },
+    {
+      "name": "runPrintTask",
+      "startLine": 827,
+      "sha256": "c71127a2cb1747216d9628894d59528e2d55568dbd5fabf70a2fb0b8a633cd5c",
+      "bytes": 330
+    },
+    {
+      "name": "runPrintTask",
+      "startLine": 831,
+      "sha256": "08b55254dc672f751897b9a1c9b16480c00b077d61b9e8da4dbd4346b3218676",
+      "bytes": 7630
+    },
+    {
+      "name": "printTimingText",
+      "startLine": 894,
+      "sha256": "f8c23549b422bc6a582fc498695bfa62370e5ec89fc7e0705d897d674ae35737",
+      "bytes": 941
+    },
+    {
+      "name": "readinessTimingText",
+      "startLine": 905,
+      "sha256": "7566c915b4e46e87008dc79ffe69bbfbf940990a36acc90e38451a1cc088d6ed",
+      "bytes": 147
+    },
+    {
+      "name": "showReadinessTimingOnFailure",
+      "startLine": 906,
+      "sha256": "19a34bfdec753859ad9db7c8400af3e0f49695febfaa9d7ecba873f8f6c744b8",
+      "bytes": 340
+    },
+    {
+      "name": "seconds",
+      "startLine": 910,
+      "sha256": "3a97ce4cd9626426220eb57542f3994565ee66fb047f300a45ae76036dd8bb2e",
+      "bytes": 102
+    },
+    {
+      "name": "showPrintPill",
+      "startLine": 912,
+      "sha256": "7ff2e61d0812f42cd89fa096513f7ac3e3431f09d6e1a950d5039af119c4d3f5",
+      "bytes": 854
+    },
+    {
+      "name": "clearPrintPill",
+      "startLine": 921,
+      "sha256": "be339b0fc640a6b84daf980f494335c4c73c4afd403d46b3e26f457c836afc04",
+      "bytes": 146
+    },
+    {
+      "name": "run",
+      "startLine": 923,
+      "sha256": "fca384cb5bffe3e8f47b43b75a7321abb95690d696fa36e879086fd47a7216db",
+      "bytes": 119
+    },
+    {
+      "name": "finishFailure",
+      "startLine": 925,
+      "sha256": "0b1847698c404ae1d150db791f0c2dad4d407150627430643534d56bcc254a83",
+      "bytes": 454
+    },
+    {
+      "name": "refreshLocalData",
+      "startLine": 934,
+      "sha256": "5c71dc8926c5cefef9e84f903cd74819596412297bb48fb4dcdaac53a3c9a04c",
+      "bytes": 68
+    },
+    {
+      "name": "loadLocal",
+      "startLine": 935,
+      "sha256": "0a5e4b755ec4013d0e9cceb7d033850a24217a5143aa3c2e5e40d3907a37659b",
+      "bytes": 6326
+    },
+    {
+      "name": "sortFields",
+      "startLine": 974,
+      "sha256": "3eb781b13a0eb26aef598ceb5175111aeedb3351380d3c67a38dce411f320910",
+      "bytes": 298
+    },
+    {
+      "name": "pageQuery",
+      "startLine": 975,
+      "sha256": "10acfd28c8c7eec31f656693f799b01484c3327117f5c5d42bfa1805bcb85ee7",
+      "bytes": 585
+    },
+    {
+      "name": "activeStatus",
+      "startLine": 980,
+      "sha256": "db746a560ff482d06eae78a065a2c6fc4ec7bec08904dea6532266d02c24de3f",
+      "bytes": 341
+    },
+    {
+      "name": "onPreviousPage",
+      "startLine": 981,
+      "sha256": "7e6399afabc58d5d1e10be7eab90c4b45dffbeca0e629e362b050e7e82d1c861",
+      "bytes": 149
+    },
+    {
+      "name": "onNextPage",
+      "startLine": 982,
+      "sha256": "31badf369fb0b71a4daf07807115813e4fb5412441aa420cc9d5c2a89a196fe9",
+      "bytes": 204
+    },
+    {
+      "name": "updatePaging",
+      "startLine": 983,
+      "sha256": "6cf5bede65cc36fc0242b6edf9ec24049c74af198757d21e17aec74d2fd7a40e",
+      "bytes": 380
+    },
+    {
+      "name": "dispose",
+      "startLine": 984,
+      "sha256": "79cfb3a27a59540cd14d4cd3a4e170bb20fda4b203d27dbaa92b53a29b8ea514",
+      "bytes": 464
+    },
+    {
+      "name": "updateTabTitles",
+      "startLine": 986,
+      "sha256": "d3fff7f641a4255ebd447fa12799f028c899ab9c21fd90eb76a6476af010a8a1",
+      "bytes": 632
+    },
+    {
+      "name": "updateEmptyStates",
+      "startLine": 995,
+      "sha256": "77f35ad7c19d4d652b103fcdf744c6734770d334fc3f3cba764f9004d7c86556",
+      "bytes": 367
+    },
+    {
+      "name": "setEmptyState",
+      "startLine": 999,
+      "sha256": "cddda8789075621d5b84519812638f7ae3914e675f59858505f452b2500fd655",
+      "bytes": 139
+    },
+    {
+      "name": "productImageUrl",
+      "startLine": 1173,
+      "sha256": "d746a6ab90d4bc232158ebd2c187be6ee7692b92b69049bf3eaa7f45a3cbd120",
+      "bytes": 231
+    },
+    {
+      "name": "selectionCell",
+      "startLine": 1178,
+      "sha256": "abf7481fc0b36a10b4f4d583472fdffdb0c47e0078934446b9be85e11125fe7e",
+      "bytes": 1148
+    },
+    {
+      "name": "setupSorting",
+      "startLine": 1234,
+      "sha256": "9059a4c5c0f9d532eed996d71f68d415a15505410a6a3d6378d55c117053338a",
+      "bytes": 522
+    },
+    {
+      "name": "sortChanged",
+      "startLine": 1242,
+      "sha256": "4a42acd3b719778362bac34eb6614653c601c7785e2dab94b386d6ffe612d7b3",
+      "bytes": 165
+    },
+    {
+      "name": "getSortOptions",
+      "startLine": 1248,
+      "sha256": "300e1fb5adf740bf2d31441c420a540b53cce305da2671022e7a7dd121d8993d",
+      "bytes": 245
+    },
+    {
+      "name": "setSortOptions",
+      "startLine": 1253,
+      "sha256": "03cff2b668adb6f7f6abe9cb29ccd38abea2c81e1de106e06c085cf512e1fc04",
+      "bytes": 533
+    },
+    {
+      "name": "updateSelectionState",
+      "startLine": 1266,
+      "sha256": "e7fede0185dc2499d5fdeefdef0ca392be07bdb3a4dadd112a94aa9aae697244",
+      "bytes": 1091
+    },
+    {
+      "name": "updatePrintAllState",
+      "startLine": 1282,
+      "sha256": "7037acbe18b9da61dcd71ca3fbe00896ece79621f60f7f6758384d3eb1825a68",
+      "bytes": 146
+    },
+    {
+      "name": "setBusy",
+      "startLine": 1286,
+      "sha256": "ca03d79513e867cb93f503ce5e578e6a383068cdc4dcc0d1447dc467bdb55a6a",
+      "bytes": 75
+    },
+    {
+      "name": "setBusy",
+      "startLine": 1290,
+      "sha256": "aba0b4225ebb8ffe8d7e7d6029c8751f1ca03d256b5a88de892a879b1159f2b0",
+      "bytes": 1132
+    },
+    {
+      "name": "clear",
+      "startLine": 1313,
+      "sha256": "2db8ed5ebcc0779c9974e4635eaea8456e4c60ec3cc80410982cccd1b90b6c67",
+      "bytes": 603
+    },
+    {
+      "name": "setupGtinInventory",
+      "startLine": 1328,
+      "sha256": "3338a5c950c6fc34aa5ac69c881551877a57ae78094781c1171a42fc9fb66efd",
+      "bytes": 942
+    },
+    {
+      "name": "setGtinShop",
+      "startLine": 1345,
+      "sha256": "5784f859be91fdd7166227ca31a6b356ed23aed4ba51ce275753cd2053fc6464",
+      "bytes": 557
+    },
+    {
+      "name": "syncGtinInventoryOnOpen",
+      "startLine": 1359,
+      "sha256": "0661566537e0191132b0376012c288e1d7509b9ea239bf62679a553f0ad3eec6",
+      "bytes": 283
+    },
+    {
+      "name": "onRefreshGtinInventory",
+      "startLine": 1365,
+      "sha256": "7a779e443c1027ab8a90b690af180518119dc6528eadc034f6f8b0050f076d63",
+      "bytes": 74
+    },
+    {
+      "name": "onKizPolicy",
+      "startLine": 1367,
+      "sha256": "e6b7dc07941b375f2101d51ef5fecefe513b2b3538dde6390ffa790cd7d8f4b6",
+      "bytes": 841
+    },
+    {
+      "name": "requestGtinSync",
+      "startLine": 1387,
+      "sha256": "62ddb301ee21da97c962cf45de17c02b90f8e82084f6704224b4b191311e11d6",
+      "bytes": 1197
+    },
+    {
+      "name": "refreshGtinInventory",
+      "startLine": 1418,
+      "sha256": "204c3d29eb51e2e18cb33c74db6767021bc15e16fabc5ab786b7d4ab8d7cefd1",
+      "bytes": 1720
+    },
+    {
+      "name": "renderGtinSummaries",
+      "startLine": 1455,
+      "sha256": "3edf872a138c442622997564e3da9824d2002ee37209516453abde68d9b49813",
+      "bytes": 547
+    },
+    {
+      "name": "createGtinCard",
+      "startLine": 1465,
+      "sha256": "2c7b643ea9f4d1cfb1a8fa107fc04b4289058d032b027b06490bda39e622768e",
+      "bytes": 4041
+    },
+    {
+      "name": "showMapping",
+      "startLine": 1538,
+      "sha256": "f266abb901beddba17b7e36e0966e3b8483db4b0640a77d5ee281a295cf8924e",
+      "bytes": 897
+    },
+    {
+      "name": "showBuy",
+      "startLine": 1558,
+      "sha256": "12b71240a3babb146e4d0690fbca72505466a7b26edca3dbd3f3922a07a07c96",
+      "bytes": 956
+    },
+    {
+      "name": "startPurchase",
+      "startLine": 1581,
+      "sha256": "c062d425ea386c35fc682ec708d8361fa9405977b696dda3f2d8dc8a9095c44a",
+      "bytes": 1134
+    },
+    {
+      "name": "startRetryIntroduction",
+      "startLine": 1602,
+      "sha256": "ca9f78ce16f64017ebbb76ccbbbdcc52824877bfd3fea92c1d83eafdde5723e4",
+      "bytes": 1000
+    },
+    {
+      "name": "signingPaused",
+      "startLine": 1621,
+      "sha256": "7d9caa0ba7a90ff8c1ddc9ee79f13ba5aa729fa2a3ee08c9e122e10b3b0a959a",
+      "bytes": 282
+    },
+    {
+      "name": "startResumePurchase",
+      "startLine": 1627,
+      "sha256": "ed5d6cbd6730cb481703f3ae1e0eacf917d0406ada6f1861970f34f29dc9273d",
+      "bytes": 870
+    },
+    {
+      "name": "finishPurchaseStart",
+      "startLine": 1641,
+      "sha256": "3b396e8cefde90b5a9ea7634823f000c93a15e844fbf2022fbf83f395cc6d5fe",
+      "bytes": 286
+    },
+    {
+      "name": "setGtinLoading",
+      "startLine": 1648,
+      "sha256": "f00deb19caec324413c10c8c34399a302cfea027d7fa725e9528f3c496d7deb7",
+      "bytes": 118
+    },
+    {
+      "name": "setGtinSyncing",
+      "startLine": 1653,
+      "sha256": "7389657308acb119582b3be3d4ff9cca1e3537dbeec3bc926a3471f2e5749235",
+      "bytes": 118
+    },
+    {
+      "name": "updateGtinBusyState",
+      "startLine": 1658,
+      "sha256": "03f15aa7b163a70632b88b9dd18b03f94250b32782071606497c07ea8876d0e2",
+      "bytes": 757
+    },
+    {
+      "name": "updateGtinEmpty",
+      "startLine": 1675,
+      "sha256": "2ad75a234b3fcd22c18d5a5a96108ee96c477eab310863095575c0318b59803c",
+      "bytes": 240
+    },
+    {
+      "name": "startPendingGtinSync",
+      "startLine": 1681,
+      "sha256": "fb5c1d0025d1ca806d644f374f2814801dba3a16dc1a86cdc93b0f566241b84b",
+      "bytes": 305
+    },
+    {
+      "name": "syncProducts",
+      "startLine": 1689,
+      "sha256": "b405c61e9ef867821c21b530191e7d2988f882d5d22bea7b5c67ff7f35a2f5d8",
+      "bytes": 954
+    },
+    {
+      "name": "hasVerifiedSignature",
+      "startLine": 1702,
+      "sha256": "7465766b851761bc890a4972ed0d6ac24c5755c72d82a9f188ff4b1d12e07b21",
+      "bytes": 243
+    },
+    {
+      "name": "isActivePipeline",
+      "startLine": 1707,
+      "sha256": "f3bee43cfd1c0fdef8e3c0162f57e261e0d74f28915d374439bbe190e43d66bc",
+      "bytes": 155
+    },
+    {
+      "name": "statusClass",
+      "startLine": 1711,
+      "sha256": "a944af94b6cfe913566285b0b7abd82bec8f10c48ffd418304b171cc3d400d46",
+      "bytes": 437
+    },
+    {
+      "name": "localizeStatus",
+      "startLine": 1719,
+      "sha256": "3fa8fd9452ee3754fb0f20d229226e4056c7f96959087b420963484f007b7b79",
+      "bytes": 182
+    },
+    {
+      "name": "friendlyError",
+      "startLine": 1723,
+      "sha256": "e2b40d28096fb34000cfee45fa91d698ec71bd4360c97380fe3f7e26379c84a8",
+      "bytes": 108
+    },
+    {
+      "name": "batchReadinessBlockedText",
+      "startLine": 1727,
+      "sha256": "12b279b63783578d529ebf74e7543d9752bf6f223c5fd64890ac7e5a742debad",
+      "bytes": 801
+    },
+    {
+      "name": "printableForBatch",
+      "startLine": 1740,
+      "sha256": "be3573c9d7a4a41459606897a0fb85bc9c401ef7378cfda1ac022403e1796f65",
+      "bytes": 427
+    },
+    {
+      "name": "preflightFailures",
+      "startLine": 1746,
+      "sha256": "0f473b8c2eb2716e43dcaa89a0f7a1ae9543a5f02c6cd3ed80102bc83da9375a",
+      "bytes": 167
+    },
+    {
+      "name": "preflightFailures",
+      "startLine": 1749,
+      "sha256": "1dd1a3a1cdd7cb4eefe3bc171d90dd8718a558e8b9ec57190dc91ca03e922552",
+      "bytes": 177
+    },
+    {
+      "name": "preflightFailures",
+      "startLine": 1752,
+      "sha256": "ea63c519cdf2af231d305bcfaf87176a31048dd2dc20cf4191ff8139cdbcbb6a",
+      "bytes": 1133
+    },
+    {
+      "name": "withCrossIssues",
+      "startLine": 1765,
+      "sha256": "6c426c49b1ab0aa062fd5c00c04210600fbafbf8c8c3f0744ffcfdd7fdfaac60",
+      "bytes": 405
+    },
+    {
+      "name": "crossIssueMessage",
+      "startLine": 1769,
+      "sha256": "b8bdca9fb7340209513dad92d0af6c90447af06892f0fec9bb905156b24e418d",
+      "bytes": 201
+    },
+    {
+      "name": "readinessSummary",
+      "startLine": 1773,
+      "sha256": "1468346856894e598068768b0c44526395d9ba60dad429a4b4482e0885736144",
+      "bytes": 1676
+    },
+    {
+      "name": "readinessBlockedText",
+      "startLine": 1794,
+      "sha256": "fa7a3910d3000ee4fa76139274d1701047b600830159b9b9fcbe9bd1747510fe",
+      "bytes": 287
+    },
+    {
+      "name": "availabilityText",
+      "startLine": 1801,
+      "sha256": "740f4389ae992eef8a7f983605626522bc689c684bdfda04cbb7bf2be1d188c0",
+      "bytes": 462
+    },
+    {
+      "name": "orderText",
+      "startLine": 1809,
+      "sha256": "68c0025a44e9f55badf78f488c165aa9615997e6ed30aa29bf5012d948c653bd",
+      "bytes": 276
+    },
+    {
+      "name": "itemsText",
+      "startLine": 1814,
+      "sha256": "7a8e3ce18846ad258fd242fd9510b7be86e2356a5e06bd6906fce16dd6ad8aab",
+      "bytes": 258
+    },
+    {
+      "name": "shipmentText",
+      "startLine": 1825,
+      "sha256": "ce7c2de257cc1c4dc008bd4c88006c6159bfc6412e728da22ec82f37bb15fdff",
+      "bytes": 425
+    },
+    {
+      "name": "itemText",
+      "startLine": 1855,
+      "sha256": "76bf96e664257858cc23a4ff847cf8ecd338dcd5c00b0ba21a6fb1292d9cdb8b",
+      "bytes": 196
+    },
+    {
+      "name": "statusText",
+      "startLine": 1860,
+      "sha256": "3d61cbed8c2b183c134a5f087576ecc2c8ed84ff4fe0309d9e2fc33a40e779d6",
+      "bytes": 153
+    },
+    {
+      "name": "batchResultText",
+      "startLine": 1864,
+      "sha256": "34c1b8f6e4d2fae0d1300c4fa4d7a9f6c542ab2709cd6b6c0c001991ff3c59c2",
+      "bytes": 955
+    },
+    {
+      "name": "renderTransitionResult",
+      "startLine": 1873,
+      "sha256": "a7d8471a342d786a4ef6f14fd097225c356f246235d5b07c52742f52399c589a",
+      "bytes": 1019
+    },
+    {
+      "name": "reconciliationRequired",
+      "startLine": 1882,
+      "sha256": "90baa390c81aea4b47fbc186c8c9d33947fef5d1f34c700993e2341d48e8e64d",
+      "bytes": 547
+    },
+    {
+      "name": "canPrintLabel",
+      "startLine": 1890,
+      "sha256": "f59a546f11a10d937764d3955019318d070040b2788505dc987a9f1a572e01c6",
+      "bytes": 272
+    },
+    {
+      "name": "selectedPostingNumber",
+      "startLine": 1897,
+      "sha256": "666b07afa77fc94dfde704abff3f3f81e029f758fb6f64e48d37b9b38b80f2d6",
+      "bytes": 234
+    },
+    {
+      "name": "selectPosting",
+      "startLine": 1902,
+      "sha256": "3988ed2c7893ec0c7c5bb42addda9ecd16cd1316905a191e7aaef26dd21c38fb",
+      "bytes": 341
+    },
+    {
+      "name": "isCurrent",
+      "startLine": 1908,
+      "sha256": "84c80819a84ab674e755a723f09aebff925ae384a6d2f1276df927b914cec603",
+      "bytes": 137
+    },
+    {
+      "name": "sameShopContext",
+      "startLine": 1912,
+      "sha256": "9626fce8b0c6aa26a850e5e2083c86cf8fbb8c7d207312d85e6bba8263eb0539",
+      "bytes": 427
+    },
+    {
+      "name": "safeFilename",
+      "startLine": 1920,
+      "sha256": "2a430019e67a90825ca9ed02604c21a1ece3851c23152d37676625f86cf012ac",
+      "bytes": 202
+    },
+    {
+      "name": "safeFailure",
+      "startLine": 1925,
+      "sha256": "cb19dd6b8b23585d09f577a07e9202870bca1449002e984b09c04341dbb19b35",
+      "bytes": 373
+    },
+    {
+      "name": "shippingFailure",
+      "startLine": 1932,
+      "sha256": "916c13b3408deb6be9f72ba72fc208d7882df3bb74e79cd425d16f39a307596f",
+      "bytes": 1124
+    },
+    {
+      "name": "pickingTarget",
+      "startLine": 1943,
+      "sha256": "9c474fef5315d68205150dcb2bfa25cf807697e69094b8dfd89ded04f1c3e72b",
+      "bytes": 319
+    },
+    {
+      "name": "openExportedFiles",
+      "startLine": 1949,
+      "sha256": "6104a1db758f407a0e94ea104179d6c8972114dd02e99b84b6e46ea07bbc3832",
+      "bytes": 564
+    },
+    {
+      "name": "tr",
+      "startLine": 1961,
+      "sha256": "40554dcb774552d243cc2e15eb0916d0bbb655e611e4f7bba329c36c81032c0b",
+      "bytes": 79
+    },
+    {
+      "name": "tr",
+      "startLine": 1962,
+      "sha256": "579140823f141cb674dab615fa2f5101eb07916163444a2ff42ed341b0023281",
+      "bytes": 106
+    },
+    {
+      "name": "first",
+      "startLine": 1963,
+      "sha256": "58ff94e1becba8057d695b6dc53913e84b082031718d6df563433ef85670dfb1",
+      "bytes": 161
+    },
+    {
+      "name": "value",
+      "startLine": 1966,
+      "sha256": "54aa53f8ff8a9f68f307f94094e691582c3871a0c9d33ac3b7ebcbd460f9713f",
+      "bytes": 84
+    },
+    {
+      "name": "findCatalogProduct",
+      "startLine": 2039,
+      "sha256": "abd1d34a17ef4983a25d54f034d2bb787e1ed3c67ecf674871f5c440d6a55ab2",
+      "bytes": 281
+    }
+  ],
+  "presentationMethodAllowlist": [
+    "applyTranslations",
+    "configureImageColumn",
+    "configureOrderColumns",
+    "configurePriceColumn",
+    "configureReferenceTable",
+    "initialize",
+    "labelCell",
+    "orderRowHeight",
+    "resizePostingTable",
+    "setupTables",
+    "showOrderDetails"
+  ],
+  "fxmlIds": [
+    {
+      "id": "titleLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "FBS orders",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "loadingIndicator",
+      "type": "{http://javafx.com/javafx/25}ProgressIndicator",
+      "onAction": null,
+      "text": null,
+      "visible": "false",
+      "managed": "false"
+    },
+    {
+      "id": "cancelSelectionButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onCancelSelection",
+      "text": "%ozon.batch.cancel_selection",
+      "visible": "false",
+      "managed": "false"
+    },
+    {
+      "id": "kizInventoryButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onOpenKizInventory",
+      "text": "%kiz.shipment.title",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "ozonZnackRegistrationButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onOpenZnackRegistration",
+      "text": "%sidebar.znack_registration",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "refreshButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onRefresh",
+      "text": "Refresh",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "statusLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "workflowLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": null,
+      "visible": "false",
+      "managed": "false"
+    },
+    {
+      "id": "postingSearch",
+      "type": "{http://javafx.com/javafx/25}TextField",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "clearSearchButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onClearSearch",
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "kn3StatusHost",
+      "type": "{http://javafx.com/javafx/25}StackPane",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "orderStatusTabs",
+      "type": "{http://javafx.com/javafx/25}TabPane",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "newOrdersTab",
+      "type": "{http://javafx.com/javafx/25}Tab",
+      "onAction": null,
+      "text": "New orders",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "newOrdersTable",
+      "type": "{http://javafx.com/javafx/25}TableView",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "emptyNewOrdersLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "No new orders",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "newOrderSelectTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "newOrderNumberTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Order",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "newOrderShipmentTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Ship by",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "newOrderImageTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "newOrderItemsTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Items",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "newOrderPriceTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Price",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "packingOrdersTab",
+      "type": "{http://javafx.com/javafx/25}Tab",
+      "onAction": null,
+      "text": "Packing",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "sortOptionsBox",
+      "type": "{http://javafx.com/javafx/25}FlowPane",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "sortByProductCheckBox",
+      "type": "{http://javafx.com/javafx/25}CheckBox",
+      "onAction": null,
+      "text": "Product",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "sortByArticleCheckBox",
+      "type": "{http://javafx.com/javafx/25}CheckBox",
+      "onAction": null,
+      "text": "Article",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "sortByColorCheckBox",
+      "type": "{http://javafx.com/javafx/25}CheckBox",
+      "onAction": null,
+      "text": "Color",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "sortBySizeCheckBox",
+      "type": "{http://javafx.com/javafx/25}CheckBox",
+      "onAction": null,
+      "text": "Size",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "packingOrdersTable",
+      "type": "{http://javafx.com/javafx/25}TableView",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "emptyPackingOrdersLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "No packing orders",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "packingOrderNumberTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Order",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "packingOrderShipmentTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Ship by",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "packingOrderImageTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "packingOrderItemsTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Items",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "packingOrderPriceTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Price",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "packingLabelTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printedOrdersTab",
+      "type": "{http://javafx.com/javafx/25}Tab",
+      "onAction": null,
+      "text": "Shipping",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printedHintLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "%ozon.dashboard.printed_hint",
+      "visible": "false",
+      "managed": "false"
+    },
+    {
+      "id": "printedOrdersTable",
+      "type": "{http://javafx.com/javafx/25}TableView",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "emptyPrintedOrdersLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "No packing orders",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printedOrderNumberTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Order",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printedOrderShipmentTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Ship by",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printedOrderImageTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printedOrderItemsTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Items",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printedOrderPriceTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Price",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printedLabelTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "deliveringOrdersTab",
+      "type": "{http://javafx.com/javafx/25}Tab",
+      "onAction": null,
+      "text": "Delivering",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "deliveringOrdersTable",
+      "type": "{http://javafx.com/javafx/25}TableView",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "emptyDeliveringOrdersLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "No delivering orders",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "deliveringOrderNumberTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Order",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "deliveringOrderShipmentTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Ship by",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "deliveringOrderImageTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "deliveringOrderItemsTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Items",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "deliveringOrderPriceTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Price",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "deliveringOrderStatusTC",
+      "type": "{http://javafx.com/javafx/25}TableColumn",
+      "onAction": null,
+      "text": "Status",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "shipmentKizTab",
+      "type": "{http://javafx.com/javafx/25}Tab",
+      "onAction": null,
+      "text": "KIZ stock / Znack",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "shipmentKizHost",
+      "type": "{http://javafx.com/javafx/25}VBox",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "gtinInventoryPanel",
+      "type": "{http://javafx.com/javafx/25}TitledPane",
+      "onAction": null,
+      "text": "GTIN / KIZ",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "gtinInventoryPane",
+      "type": "{http://javafx.com/javafx/25}VBox",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "gtinInventoryTitleLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "GTIN / KIZ",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "kizPolicyButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onKizPolicy",
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "gtinInventoryLoading",
+      "type": "{http://javafx.com/javafx/25}ProgressIndicator",
+      "onAction": null,
+      "text": null,
+      "visible": "false",
+      "managed": "false"
+    },
+    {
+      "id": "gtinInventoryRefreshButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onRefreshGtinInventory",
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "gtinSearchField",
+      "type": "{http://javafx.com/javafx/25}TextField",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "gtinInventoryList",
+      "type": "{http://javafx.com/javafx/25}ListView",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "gtinInventoryEmptyLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "No GTIN",
+      "visible": "false",
+      "managed": "false"
+    },
+    {
+      "id": "batchResultsPanel",
+      "type": "{http://javafx.com/javafx/25}TitledPane",
+      "onAction": null,
+      "text": "Results",
+      "visible": "false",
+      "managed": "false"
+    },
+    {
+      "id": "batchResultsArea",
+      "type": "{http://javafx.com/javafx/25}TextArea",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "orderListFooter",
+      "type": "{http://javafx.com/javafx/25}FlowPane",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "selectionActionBar",
+      "type": "{http://javafx.com/javafx/25}FlowPane",
+      "onAction": null,
+      "text": null,
+      "visible": "false",
+      "managed": "false"
+    },
+    {
+      "id": "selectedCountLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": "0 selected",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "moveToPackingButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onMoveToPacking",
+      "text": "Move to packing",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "selectFilteredButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onSelectFiltered",
+      "text": "Select all filtered",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "clearBatchSelectionButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onClearBatchSelection",
+      "text": "Clear selection",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "pageStatusLabel",
+      "type": "{http://javafx.com/javafx/25}Label",
+      "onAction": null,
+      "text": null,
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "previousPageButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onPreviousPage",
+      "text": "Previous",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "nextPageButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onNextPage",
+      "text": "Next",
+      "visible": null,
+      "managed": null
+    },
+    {
+      "id": "printAllButton",
+      "type": "{http://javafx.com/javafx/25}Button",
+      "onAction": "#onPrintAll",
+      "text": "Print all",
+      "visible": null,
+      "managed": null
+    }
+  ],
+  "requiredDynamicInformation": [
+    "Every posting/order number",
+    "Shipment cutoff with Ozon offset",
+    "All products and per-item quantities",
+    "Seller article/color/size/category",
+    "Native SKU, all Ozon barcodes and verifiedGTIN/unverifiedtext",
+    "KN3/mandatory marking state",
+    "Per-item price/currency",
+    "ExactOzonstatuses andtabcounts"
+  ],
+  "dynamicColumnsMayReflowButInformationCannotDisappear": [
+    "ozonRowNumber",
+    "ozonBarcodes"
+  ],
+  "requiredActions": [
+    "onRefresh",
+    "onClearSearch",
+    "onSelectFiltered",
+    "onClearBatchSelection",
+    "onCancelSelection",
+    "onMoveToPacking",
+    "onPrintAll",
+    "onOpenKizInventory",
+    "onOpenZnackRegistration",
+    "onPreviousPage",
+    "onNextPage",
+    "onRefreshGtinInventory",
+    "onKizPolicy"
+  ],
+  "protectedProductionFiles": {
+    "src/main/java/com/vncode/app/integration/ozon/OzonConnectionCheck.java": "b5e4aa84f9d306dcfdb4844c39d0a70d0d51f304e6e4024293ffeb471c3b4727",
+    "src/main/java/com/vncode/app/integration/ozon/OzonKizLabelAppender.java": "7da7d1239feeca53c46dc72a1bd87a7d071d7d96de5d22c490562667e3e476e3",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarService.java": "b300a4a4fd19e655fd55753478acb81b988f92ffaeeb29734573bcf644950d62",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingTrackingStore.java": "c234659afdbd312abd702f314309036da1f95c9336b3ea51632148770746bbdc",
+    "src/main/java/com/vncode/app/integration/ozon/OzonLabelPageIdentity.java": "23e57d1f75878f244d64677cc08e3a9109878446efac80a4fca7d406c47abc92",
+    "src/main/java/com/vncode/app/integration/ozon/OzonGtinAdapter.java": "7e9b6a2ca8def8de27616281d45bee557559d053b0b9ef47b4a784338c96ca2a",
+    "src/main/java/com/vncode/app/integration/ozon/OzonFboBarcodePdfExporter.java": "37e4b7d9d15abdeabacb9063c9a25c7ef524d6652395006f331acd76d83f6838",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductBarcodePage.java": "2e55750710e0d4172bffbc22722619c6f5cfa053f218609f2ab012132825d4e8",
+    "src/main/java/com/vncode/app/integration/ozon/OzonSyncWorkflow.java": "7cbbccf1eef86f73a25baa2150dac2229b875722cc12d319f81979f2c9f2eccc",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintReceiptRepository.java": "d3540d64c2239fd9a7e1af826659c227eb7c9bb96f141e60f9db1f416304c8ce",
+    "src/main/java/com/vncode/app/integration/ozon/OzonCredentials.java": "b596655a8176422aa48f8000c109564b1b24975cbf082612e4340807ca68f195",
+    "src/main/java/com/vncode/app/integration/ozon/OzonListingAdapter.java": "f81ffaac2bb8f2a45a89bae7f8477d9c18e7a4e630ea4710ca162ad984317d8a",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductKizPolicyRepository.java": "1b99d9e0c55bc0c743f9946c45147dcab9d66fde453514178c1596e1a5060b1c",
+    "src/main/java/com/vncode/app/integration/ozon/OzonStockReplenishment.java": "3ba9f5759053e52440f7bea1c53d382a526c39d5bbd735325942fd94e078eaec",
+    "src/main/java/com/vncode/app/integration/ozon/OzonCatalogSyncService.java": "6745ab1ef712326a27cee255e60a3847e5c0430c475168d6f334b0649f41e3c2",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductLabelBarcode.java": "a9d7c483d7e1100e6e7bfb9d24e4bcce950835269963b28070c3a8bf7decf174",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintReadiness.java": "08423cec813b87f3828b9a11790d6a09671bb9e9ae5a896c6f1b88900fe812fa",
+    "src/main/java/com/vncode/app/integration/ozon/OzonBatchLabelDownloader.java": "8f61e799de0b161f93608381956a72f3e3c3f83663d91ff0749e15812cf17598",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintTiming.java": "1ed35aa8082720395d80fb4b4514e8a36fd0dba64928eec83e126151d7662817",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJobStage.java": "4f2f4745a023345d3f09436e66efd047fdcff7707509a07737f01d35a9ae5f95",
+    "src/main/java/com/vncode/app/integration/ozon/OzonApiException.java": "d2631fbd4d48e10e43837a0ed82b35d3d2753404d60bea5b3f168eb915b3a685",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintReadinessService.java": "97d4e8989ca9c9ecf5b8799cb9c305dc3dcc36e8597416980f8e2b86c3a5b819",
+    "src/main/java/com/vncode/app/integration/ozon/OzonFboProductRepository.java": "8b7a6e6017037a148592647ad28c89e904f7da976fb080ef79a31e039fc42ab0",
+    "src/main/java/com/vncode/app/integration/ozon/OzonFboKizPrintPlanner.java": "8a604f8dab803f7abb0d5afbfbc2f4cbfcdc4e8936b622ea0d727f1c447d5307",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarStateMachine.java": "657505e015fb97496ad52eba916aad4bd167230d4c65ca0c7b29eeb2b3c7ce57",
+    "src/main/java/com/vncode/app/integration/ozon/OzonSyncState.java": "a3fab917cc3ceffb3dc75ad06acc864eee2d1916b6348907d3721bc03b913ee6",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPackageBuilder.java": "ce7788fbf71cd8e3b4251a99040d56330322ac8bdd3a552acb039a5bf31eb210",
+    "src/main/java/com/vncode/app/integration/ozon/OzonSyncReport.java": "b3548f2ca6d3c12820cb6092fc18481175c60b173a1d4d56baa412d08af1b07f",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJob.java": "c9788f0c0722b0dde97d2700f38a50fbe4693442fd108cd8b06cafe5b1af65da",
+    "src/main/java/com/vncode/app/integration/ozon/OzonShopBrand.java": "12bb6ff96c2b79c395819aa23986f458c5cea44766d8bc30a31afd7efc94cd63",
+    "src/main/java/com/vncode/app/integration/ozon/OzonFbsPrintReport.java": "385debac8cd8c50cf86d6be3df0c0725a71d59db957f5c8f3b55b2cd69544096",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductCategoryTree.java": "d93583d1774f25015fa4694d8802a762f34fb60282a30a7f2c2d4da9122dd4b2",
+    "src/main/java/com/vncode/app/integration/ozon/OzonCategoryStock.java": "33e6265238469a5c18d7c5d4402a0c5ef47ea0bbb19109cf1424b4670b484e70",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductDto.java": "81475210f0e199ccac979a4bb48d8baff75e8a3cb87b298159bc42a25fe12750",
+    "src/main/java/com/vncode/app/integration/ozon/OzonBatchPrintReadiness.java": "13c098d54ec3a5db3d598c483192d93ff514226940a4faa3ae1fc43648584333",
+    "src/main/java/com/vncode/app/integration/ozon/OzonApiRateLimiter.java": "25f1d87f131ae084dc8025cfbe802360220f8ea4f1f9f5d23dc829ee0c9b0279",
+    "src/main/java/com/vncode/app/integration/ozon/OzonOfficialLabelSelector.java": "10531905046d83e5f0a6b14c32f7aba1799420f081049085518aab93afd82371",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductGtinMappingRepository.java": "6f2bd34628819d32bbd62cdf2672935da1406618063f955089cbed564cfde8f5",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintHistoryService.java": "4f2079fa56372ba0ec5b92344efb7518218e2c075736ebaa7dddfdba6ee3ae65",
+    "src/main/java/com/vncode/app/integration/ozon/OzonRetryPolicy.java": "68a013bbe9f26e33ce3cc7f367fe3a247f67442a9c07a75e00b3f87ee9085a17",
+    "src/main/java/com/vncode/app/integration/ozon/OzonKizReplacementDeferredException.java": "1ceb8a1dc5d17b93c1c196b032701d1ac3cd4a1477c70395dfb75a0d9b7e438b",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java": "4ddc745027a547b487304254391bd53102812ea301d04456f2484ac03cfc7d3f",
+    "src/main/java/com/vncode/app/integration/ozon/OzonShipResult.java": "22ed759c8809747e01fa47c612242de15a84687872987da8caed90490b801794",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPreparationResult.java": "3183d4584fee0498f044423ec9d03e526680efd6d77022086a09290d847e54f2",
+    "src/main/java/com/vncode/app/integration/ozon/OzonApiClient.java": "64270b6364fa888acdae998b943c745fce29a32fbe4f7f86c80a3f20ab1647bc",
+    "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceStockReplenishment.java": "18d5fcca086774cdbf473885259b82386f0d780708ed7e001c0bb5f3fda24844",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductSnapshotReader.java": "1f6e5f3328c5ac7225e7f869dd3c9f9ade4532e308116c4d0a6cfd6952b937b3",
+    "src/main/java/com/vncode/app/integration/ozon/OzonRegistrationCheckpoint.java": "512eeefdc0b1158293180909fe19511c7a21bcde948db07e32e88a794691479b",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingItemDto.java": "77a3d43102dcb0a364bede792269b54a7ae5092215b7281ae20de15e6a45288a",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingSyncService.java": "6fc6217c6ce7e4573960972e58bbd956a2765f1b6fda2cd0adcfc2a9ea2f221e",
+    "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizService.java": "983bbe6dc95e4f65c497837d5099ffc5067026785ec190698079d0170207e959",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJson.java": "a6c3e143eacef862a75756d61f0fa81a06cd6f09b1c432bb429f00f995e80546",
+    "src/main/java/com/vncode/app/integration/ozon/OzonRequirementGuard.java": "caacce63556ff94a0d42945552157873b36fd2e9f5c8eb2291521f44a7e4ad5e",
+    "src/main/java/com/vncode/app/integration/ozon/OzonCarrierLabelNumbers.java": "857d56ec73bf1d6605ebd354e8d7646286833549d8a2c1018031ab5a73c863b4",
+    "src/main/java/com/vncode/app/integration/ozon/OzonCatalogRepository.java": "5a89579b1ab147b0740da81d5a3a324ac4b6e305ac831db4fcde7579818ad0ef",
+    "src/main/java/com/vncode/app/integration/ozon/OzonProductCardAttributeParser.java": "866d219a18110e5c4fd844e219dcad14800a6e90f412efb2757f8ed3ef984bb7",
+    "src/main/java/com/vncode/app/integration/ozon/OzonUnitShipRepository.java": "bf9e45c9ebda6e1ec45431fed36233e0d9dda6a898a89473595808fa9c35b278",
+    "src/main/java/com/vncode/app/integration/ozon/OzonSyncStateRepository.java": "b94fb9defc8d4317835aebbffcd9a6009c3885be183af3ab219184051faec927",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingRepository.java": "b3674d839bbd87072d637ee62377733db934c75264fba174be485085e5d6d18b",
+    "src/main/java/com/vncode/app/integration/ozon/OzonLabelService.java": "bfb28b13f2bad8f3ac2aab82460d1e22a17b81ccb80abfe72e1d196567cf490a",
+    "src/main/java/com/vncode/app/integration/ozon/OzonSchemaSupport.java": "521298731a55788902c14593d2c6ed4c93899a883a8b3edae5ce92d48c2efbb5",
+    "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizReplacement.java": "f20175dc7e7ea2f72438e494db3eba66085fb4d456b1c22a75b16dd4dc7372ba",
+    "src/main/java/com/vncode/app/integration/ozon/OzonListingImages.java": "a9e36da4d98e2d8d0d9871081fd2692670835732218f03f15ae536ab0a972105",
+    "src/main/java/com/vncode/app/integration/ozon/OzonJson.java": "43193fe982da9d7d7d09a3f77160550ddba21bc9380d99eed74c311efafe5c2e",
+    "src/main/java/com/vncode/app/integration/ozon/OzonGtinProductReader.java": "c49f76f8fa60c98e6efb54ad3de164ad1b7b234820d66ef002694a88a4bcdf44",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPickingListPdfExporter.java": "bc007be679c7ac4db05de31e008bec3e9c3b895906406038d184ae9e6d79ac2f",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizAssignment.java": "2d88761b93170dd6f9a47f5a97915276a83e3da9381c4b91c7f9d46822341a29",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPostingDto.java": "b2e7fa7c530b76dfe5f6915401e36f6ff990760635997756b1a4886893dda2f3",
+    "src/main/java/com/vncode/app/integration/ozon/OzonLabelRepository.java": "6c88d3c892bdd3af05bc08ed871c58ff0a262c70cc5014ad154ae11c2f9ebf7d",
+    "src/main/java/com/vncode/app/integration/ozon/OzonCombinedLabelRenderer.java": "f75ab8360eeee4125ea7ff3cd14f4065265d1a72264dec55b7a61d300801a98a",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJobRepository.java": "265ede6492f3b67f7876538ed06552125ca94f905c4d241621c4244dc7372e78",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintProductSnapshot.java": "0c1527353feebdd3283fb805effa2479b25c3001aa05b01ad20bdba6a53c5483",
+    "src/main/java/com/vncode/app/integration/ozon/OzonRequirements.java": "47c11fa324f16bb535e90767e4a81184e956b8fc6921aad2143a7c393a20dc04",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizStock.java": "720ff96b18658f7f5b183cfa6760667db490574f8efc4846c292478d0ef36384",
+    "src/main/java/com/vncode/app/integration/ozon/OzonKizProgress.java": "a6caf19fa2e8be494022eddbce94ee3d85b1116b818bc48c5b9025b3f3f80839",
+    "src/main/java/com/vncode/app/integration/ozon/OzonUnitShipService.java": "22b84a58fb4c6fc245d27a79d98dd20172d4aaffddeb2d0e1090c2bd2e59dd10",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarRemoteStatus.java": "68a259218afa2f2f01be59cf774a8ba92fcb49e9c002d44516dd9c44ecdf7c36",
+    "src/main/java/com/vncode/app/integration/ozon/OzonShipService.java": "a6be415452fcc0b0ef8fe8ec0ba15c3d9a07ee9cbd6404b3b629b9e5f9cd7ab6",
+    "src/main/java/com/vncode/app/integration/ozon/finance/OzonFinancePage.java": "a8c4f35f8d9a40723e48c0ba37b777f7eeef9b35519934360ed64ff5ec2db097",
+    "src/main/java/com/vncode/app/integration/ozon/finance/OzonFinanceApiException.java": "5e78ed6036b82da93c1dc961db43bfb8b6f45594c6dbe097a45cac65e586c706",
+    "src/main/java/com/vncode/app/integration/ozon/finance/OzonFinanceApiClient.java": "fb1027e8918490c0f2ef4154df4efaa7353dbdc0100d222170ba6d96b52f4706",
+    "src/main/java/com/vncode/app/integration/ozon/finance/OzonFinanceAccrualApiClient.java": "c5c4379a51baf899377c9b8acd760c4e5125532eae41a24b32299e911136b0dc",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071",
+    "src/main/java/com/vncode/app/integration/znack/ZnackModels.java": "ede78033c39b2d8fbd2d83836891652409a208e24a907bd5db3a9a895acbe975",
+    "src/main/java/com/vncode/app/integration/znack/ZnackAccountInfo.java": "7ab6ea0abfd1467eddc6f90b85d54453185ba56e4baf7bfa7781dc987802c6ff",
+    "src/main/java/com/vncode/app/integration/znack/BalanceSnapshot.java": "8807437acb988ac48220d77f9ade235cdacbcc0f4df78afca66fde70b67a2c72",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f",
+    "src/main/java/com/vncode/app/integration/znack/CatalogCredentialRepository.java": "50b93eddf6499ebb33bccb9cbf55dc77804dddf0ee59bdc3370eb7a6ac5d9761",
+    "src/main/java/com/vncode/app/integration/znack/ChestnyZnakBalanceClient.java": "936dc309c349342c72e138ac61af458ff241bc2bb59f59c6612f4d8f2eef1883",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorDetails.java": "ae79c39e003182628fe5ad585c4cda8eefa4f14b11efdb31c8dc6c7649fbee4c",
+    "src/main/java/com/vncode/app/integration/znack/ZnackProductService.java": "fa86315a37556ecb9e196545901ebd10ae7163df11b283e63f628150e0fc1d73",
+    "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+    "src/main/java/com/vncode/app/integration/znack/ZnackProductCardAttributes.java": "3268db9624fb0da8579349a8450ebbe841a6a7c948d046ba2ceae4810ca15aa8",
+    "src/main/java/com/vncode/app/integration/znack/ZnackCardStatus.java": "3688c3010e3d6b4f8100c0aa69aa4e21ef0f81b950fffea4b87bf82031328fc5",
+    "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+    "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37",
+    "src/main/java/com/vncode/app/integration/znack/ZnackGtinInventoryService.java": "9e7aa160888e9b69f01d5a5c9cfaebf160d1f3d1be983dd6827ffd6f027a1502",
+    "src/main/java/com/vncode/app/integration/znack/ZnackSchemaSupport.java": "9c1a423b9dab1e2f55a508c095eba762504d25f77164835af958365d7c02c519",
+    "src/main/java/com/vncode/app/integration/znack/ZnackErrorMessages.java": "ef3fa2cbcb01afd9b5c49ddebb346e03a1b71f1b9c1ac24505a8c900e96ba8d6",
+    "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637",
+    "src/main/java/com/vncode/app/integration/znack/ZnackMappingLifecycle.java": "348386e3812d0c95e18875c90949349e45367a2a7a8f0b7f8417fd2063025926",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPermitDocumentParser.java": "e98ace6872053dfc46d43f741dedfdb5c281275195752aad3224ce9b5dde5e30",
+    "src/main/java/com/vncode/app/integration/znack/ZnackGtinAutoSync.java": "ef7858ad028248b3b2f59af6daf5e901adabbea8d796d2255f20d3cf544c8d25",
+    "src/main/java/com/vncode/app/integration/znack/ZnackCisNormalizer.java": "7040ede2608698c53604f9250a50a0ac3fdeac9bdbdc3f0cb099d47e00426560",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0",
+    "src/main/java/com/vncode/app/integration/znack/ZnackCisReadback.java": "e3d3b75886332b7eb819f1ba093219264ad1adf88e4c4089fcfb3a7965f8bff6",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseDiagnostics.java": "595823f1910438135952ea5544847290d25aa7c531270f8223ae43fa303e33da",
+    "src/main/java/com/vncode/app/integration/znack/BalanceScope.java": "8c5a1fffa00181b64be243e785447279583514024ff4bf9a9b1ea0bb673a5072",
+    "src/main/java/com/vncode/app/integration/znack/ZnackProductLabelMetadataParser.java": "74bca50ab6c8a55adb47a9b7b9e22b8c5dc6971ef30756cbdd8d7d1a1f6a7723",
+    "src/main/java/com/vncode/app/integration/znack/CatalogConnectionService.java": "a9f6d2f1121630f5a7050dc8462bcb7b2471f99e31cd8ac27c9c85160fa7bbe5",
+    "src/main/java/com/vncode/app/integration/znack/GtinNormalizer.java": "cb0b9ebc82c359b2bd807687f963de788800860a41f160e2862ddcaa417e7a30",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java": "189f2a42af62bc88e9d2fbe07fa9289cf9d42381730442643ccf7e640d7e39d9",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc",
+    "src/main/java/com/vncode/app/integration/znack/ZnackSafety.java": "04ae0f77575987521644ffe40edd78ab73906a564cb3f0870e97bf24a2d21a1c",
+    "src/main/java/com/vncode/app/integration/znack/ZnackSanitizer.java": "454f1f6cd16b14c583b3f5cd034c4640e52ad97c7a5c3921e2afc0852c14d96a",
+    "src/main/java/com/vncode/app/integration/znack/ZnackOrderCreationAmbiguousException.java": "de4e0a1a9855e3c281e1444d4f7f4f9a3cdb29a29ac52faab3686827241b20f2",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210",
+    "src/main/java/com/vncode/app/integration/znack/CatalogReadRevision.java": "60166e1b840cf2788e45c6bcffb5e1ca3c1cc74a3895873ae4fe9fdefbaaaa2f",
+    "src/main/java/com/vncode/app/integration/znack/ZnackGtinInventorySummary.java": "384dfb7867032e7eabb70dc859af313530d7c7d7d4a979f50f7045282858e99f",
+    "src/main/java/com/vncode/app/integration/znack/ZnackGtinMappingRule.java": "fb3f070b2c09951998b4aec30b6b94de20c25e060fa4c5995a377227ab7ab728",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogReplacementEvidence.java": "31f31b0d02bc17f49a23b0b698cbca4dd93c886e7cacb03d6d5dac503c98f428",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationValidationException.java": "5f20e850c4966d7eb32c2347f7d4c9958501f92cec33711914467ff78e7c2d76",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationSchema.java": "a0b3a4463be4b4d027094ad42777b8c6cb4707d8bf27504467fad48672beb04a",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogSubmissionGuard.java": "bc7c878b6d19b3c1ba2d97b9ac3dee2c77826403b94d93ad394d74d0ede63385",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogScanCheckpoint.java": "dbb998ed4042600cf094b4859f6a1f107b71d15cd52699aacc2ae3c302dab9e4",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogErrorRepairService.java": "e61378cdedab8b4f2ca6133a560e710a7bbe7772a53d67f6906c8cb849d05eee",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogRepairImageEvidence.java": "4b8cc4afd7bf25c38371fe9afef2633eb79ba9039913b0db2c10eeec656a0f25",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonRegistrationBatchRepository.java": "5f8ca0ffd938356e95a91665ca467dd8409b1c9a61d3ab07bb1846fdf161a438",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationRepository.java": "b82a44b1f80e80452b41156912cb12c394a4643082275b4ecd36a203853f8539",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationAttributeRules.java": "089a88886649498fc2184cd9b95ae8ea416dedcf4359de71fd3f10d9b48788cf",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogVersionCheckpoint.java": "5aa1394a10d717fca7888b02c43bbfd75918fdce48b879e3e1f3063594dc3750",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationTemplate.java": "72d5229fe1ae2ae24f0e1ef591f982cee994c08eab6797e52974505ce380c005",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationPermitValidator.java": "2bb2aeaa10101812499947b2605ee80aff6672edd86bc61df14de4198cf79e2c",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSourceConsent.java": "9781c4f89b6acb4fc7b514ac34d78c597624a23dc1cba9f88821f784017b5c39",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationWorkflow.java": "0aff7c048de51971c458f8e495385bd759a2472a2c2f6455a79797345e00779b",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogAllocationLock.java": "e5594da3e1871a600b9284f60a03551b32a4916670ef139063b59b969d96b1f8",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSourceConsentGuard.java": "a3438f342d0829c91ef5cbacc86dd83dfab2f8f33a7d8e2784b604bafdd71105",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSubmissionApproval.java": "1e0e06663454bcefbcf1ebf6fffb6dbf2cdbc077dcd4d3dbd4f2e90df1807ff8",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationModels.java": "9e5260b57661c6b43382eee4cbe9fa9dc5a02b6ec0d0dc83e7ff240b95469ac9",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationFieldProvenance.java": "5b8ee589f8cff4137ac0ecf06309054e25473bc04bcc72ded3b055360a1d0ae1",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSourcePolicy.java": "6db89df2de898c070c7e16cf8a115d4143e45bf3b6183ae2ea2777ff6b75cd1e",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMarketplaceConsent.java": "27e545a5ce6fe1e96f90b724669b1ce5ce205060faf91ae5a696d21e8846aea7",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationAutomaticDraft.java": "3e1260577834a2935ba51f7af20170349c5e12ea66617cf619da13dc2a8942f9",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationProductInputs.java": "b8a3beda2fc66944ce55d1a24df45347ad9c548f0b51f6b353c5d1114d9d3b6b",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogCardState.java": "806124800c0e30690f386ebf345569c077d6fafaa7fc2ee904dace3337ddab9d",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogRepairFeedEvidence.java": "cae7e6d4a0d8d473a436782e6c1a59a3132f0717e5656cb86a4e409f29f9a36e",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogFeedback.java": "9e59c2a46defa21e3e9dbce863d01aa9d5ec6e33afff21668acf0072e1181b37",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationScope.java": "6bdec602c454e79014f89bf093da7c014b5598d28e665c4e31825bee2bf9d775",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationLifecycleDecision.java": "eeddb0b6648d50fd238abff7057c813bd712b70adf15491051153b21795b7836",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonSourceConsentPolicy.java": "a104bc20f59be79792a644aed916c9b9ba85de4b6d4e81a2755ce311c9aa1433",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationExistingCards.java": "5f7a63a05eb9dd0405e13d1dcb67a1f66339fe20f4c84820147c2518990b67cf",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackCardRegistrationWorkflow.java": "93fd0c95185a7a23651293ab223171e1356410bf9a5284cd9abd23645e431998",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogProductDataParser.java": "7006a1e7acef63a6dca9a38c4c0132d3dfdceb40b082a4de238254e94cf5c027",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationCatalogCooldown.java": "a61796329f2415217a222b5ef4bdb17b0751f49d9c5ba4eb8e1bffb288fc3c78",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationMonitor.java": "9f9ba7903ed47966bbc257a0ae9a12ab415aa57e4afeb3d82cb0adfab1a09b9a",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackWbAttributeMapper.java": "8f4315b8da653934a5ff02c61d0e30ac635c02ec68932d01a831140afd83462f",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogApprovedVariantValues.java": "ea86d4587bff838eb08405187e099fd54f28675675d27a3a92a2b7373c3a66e8",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonRegistrationBatchService.java": "0a712e18f08ca4301239eca4aae62b4a9e8ce83d5a2ade18edc98eb5c3643ffa",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationRepairConsent.java": "130f46354d9131f22ec86bf074dd2c2262f7bec3e5b3ccfa9014efeae34fc483",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonReviewedGtinLinks.java": "9064ed284e63ca0f4f561d6d034b98b9afdd35eb25b1948a0dcc20d9fe23d365",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogPackingPolicy.java": "176625f2a22965d2bee1b72d2b14078e1988d617dcab924d0125c5c7e1cf0403",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationAllocationReceipt.java": "e0b10537a5f31f1a727e2825880b73732fa0e63821ddb0b77a8106d5ece8603b",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackCategoryResolver.java": "49b09c16201f3a94b7ebb8e15faf09af5410a932b10b686a047dbc06d8f23ac2",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSigningReview.java": "d8f09713ba3e2f980ee7a94a3f99fce6628070e113908ae7ca53adfb2d413c3c",
+    "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogGtinSource.java": "a0a9960b87772c371f9efb559f731949a6de3532d9b46ac82f66b03b95309257",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogAutomaticRepairLedger.java": "1ab2e98f13959ff8e9a5521f6a024f66afac7f35921f291fd5c6e023b7133547",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSigningBatchEngine.java": "0fdeb9a6059afa58f2fb216eadb0e5503075e90d605cecc128e422cf59eaf7c4",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogOwnerEvidence.java": "898eb54fc5bc892fa4aac5abec0fcb809df406418812da0fd92229661be7d62b",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogRepairCheckpoint.java": "ccaedcd17e95d96be0076ca51bf05fdacf9ebbea5925c2460c21354f878c66d5",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogCorrectionLifecycle.java": "be66f54eed7e89638d2e29e85f0fdbec57b5a743cab834cfb8aaaaba43422b92",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationReviewedValues.java": "fb3e762a003344f80b7e053d50ace1f25b6dddaa4bc5783daa54e3a68cf8b512",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonExistingCardLinkService.java": "ea4aa4743b30134dc52d72f4ae5874ba66c2924fa79478c011e1153b2d1ceb13",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSnapshotReview.java": "228778f128637b333870f5d687c4079220e066af0e2692b8566f11456cd8e1cc",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonRegistrationAttemptReports.java": "d5a67907d25f54c4ae143d607040da283347a9ced559fd1c9d9cf1108a201248",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogArticleValue.java": "a8c403e750300b8209c108e87bcff5cdcbde8210dd29c388a7fbb6d5a0846bdf",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchStore.java": "caf10ce11a0ec4d5c775dbe45b6d7a74cc32f16d7fdaa67b56182850e11619aa",
+    "src/main/java/com/vncode/app/integration/znack/registration/WbSourceConsentPolicy.java": "64d3e35761265243a295d971163ded1c3ae9a2b705ac8289f89b9f8004092dc2",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogAutomaticRepair.java": "0fba0b769392e2f3377edb8537cfc9f74ce9adf4d03b575b760514995158a3fa",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationDocuments.java": "f1b2c0d4d01453bd40f7602dd8168c089589511f77e54301f01c05e86817fba0",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackRegistrationBatchService.java": "68db1e9a1752159c334e5c6017d159bd84313f2427301d3b558859569bfb441e",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationIntent.java": "e0fca0be8352c125251704025f82c1874f517c1a0f80add23c9db0578a09a892",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationTariffRules.java": "d7a1c3eceb673171b2161fd2c8e05bb84ac8b3abce10a59189e1eb2fda09768e",
+    "src/main/java/com/vncode/app/integration/znack/registration/CatalogFieldCorrections.java": "f8c69ce58a4d76dfc771aadf5108d36ea18f0b7dbde6feac171d892a19d22578",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationPresetNormalizer.java": "010974a549849fd2a628b292273877c433087831d79a692592cc10410bdfdfbc",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSigningConsent.java": "7b07b66997870383796599c223fa1aaa57336ea47ccf1e17e2aab8baef894fda",
+    "src/main/java/com/vncode/app/integration/znack/registration/NationalCatalogVersionSource.java": "34541333ae549e196b8a891de6c2343e42a930609e979580cb1d2219f2b15e57",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationSubmissionEngine.java": "99cbdddfe39db8e9f0b15de22518ed2fb57972376960290c922be0720c69150f",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationConnectionDiagnostics.java": "ea1d209a03653e34c94203539c596deeceb1e65783180d3a9a2937ef3294bf96",
+    "src/main/java/com/vncode/app/integration/znack/registration/TnvedGroupChange.java": "5e0bc4d1f8b7dcbca31769a3da1f44dbcb2a9f360c5ad8ee9f21ece96933851c",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationVerifiedDefaults.java": "e11e3a75eb82cad9c8de95c22f11f0cae3883d5af1eb6cdf854e6508cadabf83",
+    "src/main/java/com/vncode/app/integration/znack/registration/OzonCardRegistrationRepository.java": "4136347cf0fbb22498e5a9bacfc4fb16938534d69fbd9167ae3e6971c7948862",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationDynamicPreflight.java": "9704ceb7a999b7385c85813adef36febd20e0af7e94e2588cd710e74eb393612",
+    "src/main/java/com/vncode/app/integration/znack/registration/RegistrationMonitoringEngine.java": "4e88324d428508669cb7f2f622a353348434982f25cb96bc258aae52f1825e51",
+    "src/main/java/com/vncode/app/integration/znack/registration/ZnackNationalCatalogService.java": "de4ab01bfddac7ea8f4730696b17956570e4f75969b6602d7354b5e240b7f997",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignatureProvider.java": "591814046a2ccfa4bb289996c09299b6485d6c4e3b9c0818ce7f5a85905c80da",
+    "src/main/java/com/vncode/app/integration/znack/signature/CertificateSigningQueue.java": "09d0b2221434e3dafba25c3b0bbb239d8627725222c205815988091540dd50eb",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProErrorCode.java": "4df9df223ce27ba185c1cb847a68b5602d17dcd25606e24b8f1d35f1255274c7",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSignedCertificateReader.java": "fef9cc30e6bdf5668eef409575fad5368342caa298a3603bcf480193d4011717",
+    "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesCertificateDiscovery.java": "fa4f50b40536f1e79a7de258e4be0ce58784504291be981785759683b5e810e1",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCommandRunner.java": "105dec77f9cb5de8311f1e6756a2e4b11fb41b7b69075d6e38f30bdf2f6a6f25",
+    "src/main/java/com/vncode/app/integration/znack/signature/ZnackSignatureContext.java": "a46dc76e60687fd19ccc17ec8a627a4af7e8126ec13b84ec26cf5371db217407",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateDiscoveryService.java": "6fea9f65e8d2af2fb1ddb47dec7f415f3a786ec49530f86d84f2ecbe956fe913",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProCertificateInfo.java": "86e613561f532d9f25701c6b7d0a05aad22f3f973021a5869fc4727fdfa64a37",
+    "src/main/java/com/vncode/app/integration/znack/signature/XmlSignatureProvider.java": "54016c9ed37a8217cca4caf131564fc4633044cedf1208b16e2654c305f51186",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProException.java": "8d4b320ffb407eea08c71c4a4f9f329bd2815854b9d2e8af1f93fda65e7472f7",
+    "src/main/java/com/vncode/app/integration/znack/signature/CsptestSignatureProvider.java": "807ee4e634f0b41af0ae0373f3b6921ce53adfa7056a5cfc8c3dd1ae11721836",
+    "src/main/java/com/vncode/app/integration/znack/signature/CryptoProSigningResult.java": "f49e28c7759cb90fe81b20686a740c33dfc1626a286137cf9dc36082839afe4f",
+    "src/main/java/com/vncode/app/integration/znack/signature/ZnackSignatureProvider.java": "d3a813595e3d586d1877a093b75806ab2d4a323d64212be5b8403083bce029fc",
+    "src/main/java/com/vncode/app/integration/znack/signature/WindowsCadesSignatureProvider.java": "f28a62ab6c16d8897f102e6c53125e997503f988c6f7d1781830d2291c34b565",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationGateway.java": "59859e6f04b1eb4177025b742929fa01c6e4abcde8600f7bf4c7fed6559f8f76",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationCommandJournal.java": "7c80a06a05ffb9b148d90e610595975ccfe33c9d2a6451feb73caa0bdbdb6487",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/CatalogRegistrationGateway.java": "cb65ee3c2b2f7adb8af8015140119a8590a318b7dbc8378e38f843bcdbbd08af",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationState.java": "16b9695e158434120a3bed6370799b8538bca6fde5304ac68392c1b5a37b9948",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/WbRegistrationImport.java": "da486579496424e84a5740ef8bc4b26fa3328953c8d4dd295eab6f67e920b269",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationContractPolicy.java": "2634f8e7548f164aaa8eafe4d0bb20f7a48a627794d32b5f0093012d3f0ccfae",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationJob.java": "f4ffd748a98a1addaf332e05acae0bf7d1ce64d86aade6150b7a1a7a8d25e6e8",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationValidation.java": "2d61bfdec4bf1f9b6918cad883f59f239700548022833e45afeebd7c835f4b30",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationOrchestrator.java": "031b69ee9dbb93e5c1d8309552b19aca045effec9ce3498050ef798c44205061",
+    "src/main/java/com/vncode/app/integration/znack/registration/v3/RegistrationStore.java": "8c98bc9ba5e385ed506ed0d36b9c02e96761db0ad7d72b32acb7810a4783772a",
+    "src/main/java/com/vncode/app/features/kiz/KizCrossMarketplaceProof.java": "7617de30acdede789a7e705a3f4c848d7025425ec047c0d5b6351b1cccbca080",
+    "src/main/java/com/vncode/app/features/kiz/KizWarehouseService.java": "5626ec64d6332563d124a06c1ca1c7a87d968cad91b7e179d0e5264d6abf4232",
+    "src/main/java/com/vncode/app/features/kiz/KizImportInventory.java": "b0aa554cf20b8a50798f93f258fe8ed48df6979ab7be182271ddad985fd64218",
+    "src/main/java/com/vncode/app/features/kiz/KizRegistrationIdentityRepository.java": "55958716a29b36591144a9232fbd42331840d083b25ec8c1b8302891fb9fb402",
+    "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java": "f060ad4062c4e93e2cc27139d9031d4090ebea8bb73e504854a58c21142de6c5",
+    "src/main/java/com/vncode/app/features/kiz/KizStockShortageException.java": "3400ee29ec96e6280eb8bad237ee6f91b9d77933facc1636356819e53c12d4b3",
+    "src/main/java/com/vncode/app/features/kiz/WbShipmentKizRepository.java": "0385e5a9f9b39c2c39ac0c970957be84aceaf32e50485862c0a60db79d9e33fa",
+    "src/main/java/com/vncode/app/features/kiz/KizPurchaseAvailability.java": "40022251a2fb0c890d19f5d63f8012eea814c3138004e254adb969f845f15eb5",
+    "src/main/java/com/vncode/app/features/kiz/KizPurchasePendingException.java": "9dd9610f989a34dec85c01584d8cc624a1faca1c7c848d47b7b4ab1a5a3abec2",
+    "src/main/java/com/vncode/app/features/kiz/KizImportReader.java": "845c3e398e344e9e62040cb96e22c1ffd47bb6752b2c5cc8d46f9df341331b3a",
+    "src/main/java/com/vncode/app/features/kiz/KizRejectedStock.java": "a927f9c7287b9caf87dba8842046a4c38ba0d631e3ba18ec660aa91e8d644356",
+    "src/main/java/com/vncode/app/features/kiz/KizSourceSelection.java": "480279fcb816ee18a19ab4d9cfd151631f22266b5527f9f837de719592d7770f",
+    "src/main/java/com/vncode/app/features/kiz/KizWarehouseSchema.java": "11f5495d66315d6d0d6239ed511fcede7b65e179417171d0d335f7878da57bc8",
+    "src/main/java/com/vncode/app/features/kiz/KizWarehouseRepository.java": "0bfc1b7cd1dcd15d9ae33cd72fb021a5a40308fe3f7ec9911574e01d13e9b687",
+    "src/main/java/com/vncode/app/features/kiz/KizService.java": "8070fadfa51e34781fc4c5d3fedd99255ca2f5391e218a784d3f015a5ceb89fb",
+    "src/main/java/com/vncode/app/features/kiz/KizStockCategoryRepository.java": "766a8aaf666953f535a10fc308a514313135221b1ef9f5161bcf8de310137022",
+    "src/main/java/com/vncode/app/features/kiz/KizMark.java": "5118a0fa37ce1216b211260bb87da76fcdd0d17b3e800a259af3f69ea79c8b96",
+    "src/main/java/com/vncode/app/features/kiz/KizErrorMessages.java": "af0426f36d14d91b0657360630622787f04c9add16a8989147de09efce16fbc9",
+    "src/main/java/com/vncode/app/features/kiz/ShipmentKizRepository.java": "e77264962ae9cde5aa1a8fb79ded0a1ddd10094e38bcac676dad05c67b01fe6b",
+    "src/main/java/com/vncode/app/features/kiz/KizPurchaseMappingProof.java": "de9ef97c4bed03fcde0e2b672c4b55665986bd78525ceeeb3d8c14834b6d213f",
+    "src/main/java/com/vncode/app/features/kiz/KizAssignmentException.java": "6b370a370814d183ced174ae93fb9736ea0eea655284e25eff490d45ac6c8a4c",
+    "src/main/java/com/vncode/app/features/kiz/KizCategoryAllocator.java": "85f963605db884e40b81341c2dbee2df631bd731766a1a8cbd91ea23fae037d6",
+    "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java": "7bfa63f03962cf4649a365135b03bdd39be6cedac23ebdccd704a7b05ec1911d",
+    "src/main/java/com/vncode/app/features/kiz/SellerKizImportSchema.java": "cf5f652f291f20391d33539be07bbc3d551182c22250175a8f0a22dd4d74048d",
+    "src/main/java/com/vncode/app/features/kiz/WbLabelIdentifierRateLimiter.java": "8cc907c45ffcb87b5c8e16d7b57864c5e6b456478ec74030a8a6690de3dad8a0",
+    "src/main/java/com/vncode/app/features/kiz/status/Kn3PrintProjection.java": "04da0d23b390831062a67eee98b4657937ca2f1f22a253991ad6cd5e9af17f4e",
+    "src/main/java/com/vncode/app/features/kiz/status/Kn3Repository.java": "15b64a58ce4b36fd4e7eed08d8de6f9eb4d428cd800fdb7afd9a531d52484fef",
+    "src/main/java/com/vncode/app/features/kiz/status/OzonKn3Protocol.java": "53e21ef63fab0d385c79f43b29c861f6e8cf16f8911536d1c5c3be77873725b0",
+    "src/main/java/com/vncode/app/features/kiz/status/Kn3ReplacementService.java": "5bf25b389446dfab5643dafbe0df136906f3af1c49ac6c5e893050f135d490ed",
+    "src/main/java/com/vncode/app/features/kiz/status/Kn3SyncService.java": "94473ffb50cba7beb5236684e96fedb06d3b2d25500cb4ea829ba435f917465c",
+    "src/main/java/com/vncode/app/features/kiz/status/Kn3Mark.java": "870aa1b75933c0fc772d0146765db0c27a7cd2873aa5bf3d128a69f020416cd9",
+    "src/main/java/com/vncode/app/features/kiz/status/Kn3BatchReplacement.java": "4b5337b484f77b0ef6b94357daeb33e759520421213756f51d7df00579e93ba1",
+    "src/main/java/com/vncode/app/features/kizmapping/WbCatalogMappingService.java": "8fa47dbc7e3cc21c0c6fb1cae8e9ab5d12097af0f0647f06c5d2277744f65b43",
+    "src/main/java/com/vncode/app/features/kizmapping/OzonCatalogMappingService.java": "40b82e44120c29c9b9bc5967c6f416e25eb426523d613201783590e8e71b12a9",
+    "src/main/java/com/vncode/app/features/kizmapping/KizMappingRepository.java": "78286a1b3313e4aace3e650bd094c502f08dc8042578243c73d96e6e7a1c2e6d",
+    "src/main/java/com/vncode/app/features/kizmapping/ZnackKizLabelMetadata.java": "c2fcab44adbcf731f458bc05e930f2a6cc2972f75fced9ec7dde30eaea838341",
+    "src/main/java/com/vncode/app/features/kizmapping/ZnackGtinMappingRepository.java": "7a467a9a4aaa3ee5a2e720d31f44c383533c7e662ea5e06ed27b6ebedfcabb0c",
+    "src/main/java/com/vncode/app/features/kizmapping/VerifiedKizMappings.java": "cf09b98ea3c9f7083eb543125367cffbefda680ca63de40372cc387d52d496eb",
+    "src/main/java/com/vncode/app/features/kizmapping/ZnackGtinMappingSelection.java": "7bbbb9a1e5becfd31e7d1b57742a1a8a29bc4845f772beb1d639ff3318dfca66",
+    "src/main/java/com/vncode/app/features/ozon/OzonPostingSortingService.java": "6280c6d0b3b11ea2af9c4e91d21871bf8b561a8620d93988d9e1acc1be60ac4e",
+    "src/main/java/com/vncode/app/features/ozon/OzonFbsQuery.java": "c57ddf098c6febaf2dd8f52c3c9c73233f4855ae8a6de3ca3974306524b6664a",
+    "src/main/java/com/vncode/app/features/ozon/OzonProductVariant.java": "95bf3da89d71eea6497139decaa0aa368d3307ee7ef9b6dff5eb53b572ed563c",
+    "src/main/java/com/vncode/app/features/ozon/OzonFbsPage.java": "18f0fdee51e8ac6b9c61346604c82b3e56d417ee46e1166fde100ff494f7c056",
+    "src/main/java/com/vncode/app/features/ozon/OzonFbsSnapshotService.java": "150761c193740fefa4337f89663f1d5778fcf9282f858e2f4b73c47bec508b1b",
+    "src/main/java/com/vncode/app/features/print/StickerText.java": "eec02ac94259568959290eff960090ca02722584322dc3e4f007fb742700777e",
+    "src/main/java/com/vncode/app/features/print/SupplyBarcodePdfExporter.java": "6c80fdf585175e1f77853a3555cf7f51d731f7686ca2deb27a9d9aedf42ca646",
+    "src/main/java/com/vncode/app/features/print/BarcodePrintService.java": "6b4fcccae27ef684aeb279733306a8175fc267bb3548f70181862ea07df4d55d",
+    "src/main/java/com/vncode/app/features/print/KizAttachmentResumeStore.java": "49780c98b34a98484bb41694e37d82a275d3ddaa7f5dc0460e3f33279d085253",
+    "src/main/java/com/vncode/app/features/print/PrintTemplateDesignerService.java": "07184f5b45f25c90c424fdf2c8e338b948f5c7b4f6d69c6fa3a55072134e3de5",
+    "src/main/java/com/vncode/app/features/print/PrintFieldKey.java": "9295c19da761d651a1f4949d5b184c2412d30f6109825d078c5497636ea2b22f",
+    "src/main/java/com/vncode/app/features/print/PrintTextAlign.java": "cd7735fb60d76c28ecaf7be6944b0d93bd9f963010769ce5383b7eee9981da2b",
+    "src/main/java/com/vncode/app/features/print/KizAttachmentCoordinator.java": "2468f568bc594c6c9bc090d5983229a42780ac3acfa0f2c77fcf8cef0d95961a",
+    "src/main/java/com/vncode/app/features/print/WbReshipmentLabelService.java": "542bd3a728344f3b9f23c42069f46ddcc40347564cce5066be4212ecc91bad90",
+    "src/main/java/com/vncode/app/features/print/PrintTemplateRepository.java": "6df50fb3c14c2d69033b02233c185342d2c87392dc153a8ddd5364f777048643",
+    "src/main/java/com/vncode/app/features/print/ZnackKizExportService.java": "56938e7e304edff06c5b8eec6e7ab6af36861b3c6aa3de9adb4accecf3014c05",
+    "src/main/java/com/vncode/app/features/print/ZnackKizLabelPdfExporter.java": "3e0ff6c52242d52ebdde008199b1f646ce213ac325aa8780c545112fdae806f9",
+    "src/main/java/com/vncode/app/features/print/PrintPageOrder.java": "01b6069025e55fd25304418427396511c75880d64eef1e224f88c04cec14f6af",
+    "src/main/java/com/vncode/app/features/print/OrderDetailsPdfExporter.java": "ccbfbef2347e015f542dca4168cafa0616c9ba4fe04eb178eea8290dcffaae52",
+    "src/main/java/com/vncode/app/features/print/OrderExportWorkflow.java": "10a6b25dfb69ea222475f6fc77d41b589ff8bda13e25bc6d12f999e5178e1b65",
+    "src/main/java/com/vncode/app/features/print/KizAttachmentCheckpointRepository.java": "6519fe138aa7d56bacac9c80b12fd993a5ba24e7e74c9bd4b49b2b96a7eac816",
+    "src/main/java/com/vncode/app/features/print/PrintOptionsDialogService.java": "36d581fcfaca6bf0c861bf34e854a73d3e5b8b54daafadca1ea88fc62c23c464",
+    "src/main/java/com/vncode/app/features/print/PrintPreferenceService.java": "d3934aaa823ecdb6264e1a9b72c445558c2dbaaef93d54d21505f1cdc857fc1f",
+    "src/main/java/com/vncode/app/features/print/PrintJobOptions.java": "db07a049ae1d8801060c96c8f44cf07b4191485253919f3f3bb35f3461fbea03",
+    "src/main/java/com/vncode/app/features/print/GenerateBarcode.java": "9743c7d654b106a035f2a3bcc3083391618cfdb09137e8dfa4e7522e85d7fe0c",
+    "src/main/java/com/vncode/app/features/print/PrintElementType.java": "2cc4c718fd3fd9e164bc73016092263eeef073c7166f743621035b772b48ede3",
+    "src/main/java/com/vncode/app/features/print/PrintTemplateService.java": "b177f82dd00418f3739daa1a27849e497fea19ae608f14ebb47ddeea6e96f7b5",
+    "src/main/java/com/vncode/app/features/print/PrintTemplate.java": "502ef5899bd829cb62f3d42ea7c888ce3e4a0e70d5e1a8031f18581bf73d7d55",
+    "src/main/java/com/vncode/app/features/print/PrintTemplateElement.java": "15d6bc28cdd6e7054460ca1134b19aaf009fc5aac429450a95a3d417a1963fac",
+    "src/main/java/com/vncode/app/features/print/history/PrintHistoryRepository.java": "c57648c572bdbbd07fb7c9620e1d21c15ad5d787afe2fe256f03a94b6a7ed497",
+    "src/main/java/com/vncode/app/features/print/history/PrintHistoryItem.java": "c4b68c234dd18bced9825327e3d44343d986cb9b70399b6b7f0ce852134552a5",
+    "src/main/java/com/vncode/app/features/print/history/PrintHistoryJobSummary.java": "b9a24c2d961b4213c0607696448e279d3f3428c57880f8db1afb91c09b751bef",
+    "src/main/java/com/vncode/app/features/print/history/PrintHistoryService.java": "e498440d2172aa5c30317c91f935ce1a490fa7b5f423c34b5f582d8a1664915d",
+    "src/main/java/com/vncode/app/features/print/history/ImageCacheRepository.java": "d515585d7aa20d8331386120e10d42daa214976eea8c1cb73eacd6de249b6847",
+    "src/main/java/com/vncode/app/ui/packing/PackingController.java": "ae77668cdcc411e9761257a2d0e6a98eb57b1d1b12d45b154b430aad3182278f",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationConnectionDialog.java": "be803bace23620877f9a404cd146bac6d74a83cdc6844cf8983ca2f62c55b413",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackRegistrationQueryRepository.java": "973da60fd48cf887cac24e097ddd5e71366139c209934dbf50979fc0a65506bb",
+    "src/main/java/com/vncode/app/ui/znackregistration/OzonGtinConflictReview.java": "a1eb13956d7fbf142fe7b6c887bc726f142d9b4590a383ecedf0dba9f3d70ed7",
+    "src/main/java/com/vncode/app/ui/znackregistration/GtinBackgroundStatus.java": "d665749f7f53e4fcddb9e68ca07b29d4815a9da96a4e8ef9c64d5f77d78d49fa",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackGtinReviewDialog.java": "a8263cf7548d97b6b86c982956be76b245809f2324f938d5b1e29fb3971bb669",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationTableText.java": "ca33713ef6dd39a725a000d69b90302cf3866e19673b0e8945cf612752f08259",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDiagnostics.java": "4c771eb0641c035fdb36b08e5cb5a5d8774c74effd8fafaf52b31e31ecbf52b0",
+    "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationPane.java": "039752ce7984152e1ed4cf384c1b3597b9bcdb390db9aee7afe323818df4cc4f",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java": "cd3ac4934302ee52b6a551c295496bc3ffaab365a8492035551ae38e199fae12",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSourceReviewDialog.java": "762de872729ee4538de6db0f3cae39a0c3468bf6275b91084a565d3936d3c2c9",
+    "src/main/java/com/vncode/app/ui/znackregistration/WbOzonGtinLinkDialog.java": "fab35dcdd8d7a4512bb8e6cfcd432af9220811fd39c972acbb6bffa0642d593f",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationStatusPill.java": "b47663b3c13c0924c7e5963866153d3464820e6d704b22e56a8fcd999b181456",
+    "src/main/java/com/vncode/app/ui/znackregistration/OzonCatalogVariantLinkDialog.java": "c8d4d6bd4cf05a4bf6920817f3b24f900b5daeedb47956f3d05d9624a019dde0",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationPreflightCorrections.java": "6794f98e9eeb92c37a0fc8761f6fdc0e03ec08f15a06c016d9c0d4ee68bb251f",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationTextCells.java": "e837bcdde3704df2cb1ac28a2725807d86cd4fc9e898ba5e6d2bc6538820b558",
+    "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationReviewDialog.java": "d4b62c6fc99987ccb81ca4b3ef8f2c8db25a4fa75cc105e83f51a63cd1871b43",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationRepairHistoryDialog.java": "8ccfd10fe137993d680d605f8f9d786657fe8338d933ebf21ddfa2e86360e945",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationCountryDisplay.java": "e5b4911f6b4276da14f001bbeefe15b4042403fa0397c345f6244aa1140d5c3c",
+    "src/main/java/com/vncode/app/ui/znackregistration/CatalogErrorRepairDialog.java": "f4f02d3b731b832f86055e4bb7335e0130c73090ecb0d9a97c011138ad37c841",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationBatchPreflight.java": "6cbbd5bdc4b689191917e10ca691b32435f1f72d2875ab0eacf82eab0369c13b",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSigningReviewDialog.java": "c74852b1b8f9400c2c3f071543d236da2937e740a4752bc8b0d42afcd3c4f334",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDraftCompletionDialog.java": "582d9703da5a016d5ef4a030700d185c5cb84aa935eef7b51080a22f7217cfd1",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationPreflightReport.java": "7d293147b05f27553df26beb162cabf2989e17f8f726f94f83660c232b462eab",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationDocumentConfigDialog.java": "c6cad0fd3576db5d47cb35418263650af9f50c2887cc5349fff8e22d66807e7c",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationProvenanceDialog.java": "9890935b1ac69ee3d6da77c53e8c440378ea7d7ee26ede92b9b2252b306afd96",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationSyncReportDialog.java": "21322fa97f076c469a043d0b7d55bb0be8fa7f29f35415e01432b23379d3d053",
+    "src/main/java/com/vncode/app/ui/znackregistration/OzonRegistrationBatchDialog.java": "1fd04897753d36912b5a3cf39a0b5085dec46103f63476c237edc90344f06f38",
+    "src/main/java/com/vncode/app/ui/znackregistration/RegistrationReportData.java": "64eec21708dc2c0aae541e2494343e017ec9413779b2fd5aaf4066c6ef249a17",
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackMappingReviewDialog.java": "8bee0f8500779a8ee559b9116a24ff163dd40d1cd1f53f8dd8f8d10052c602a5"
+  },
+  "notes": [
+    "No parent source edit or Maven run by reviewer.",
+    "Column styles/geometry can change, but existing action callbacks, owner/busy guards, data queries, remote contracts and import/purchase policies must retain behavior.",
+    "A static method hash cannot establish rendered layout, keyboard or pointer acceptance; actual JavaFX tests remain necessary."
+  ],
+  "inventoryKind": "Lexical top-level method-like units, not a Java AST"
+}

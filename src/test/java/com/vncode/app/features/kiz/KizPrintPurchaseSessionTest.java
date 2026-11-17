@@ -64,7 +64,7 @@ class KizPrintPurchaseSessionTest {
         assertEquals("PDF",session.run(()->{ensure();return "PDF";}));assertEquals(0,buyer.quantity);assertEquals(1,buyer.resumes);
     }
     @Test void changedSettingsWhileProposalIsOpenCannotAuthorizePurchase()throws Exception{
-        var session=session(p->{repository.saveSettings(ZnackModels.Settings.empty().withAutoIntroduction(true));return true;},p->fail());
+        var session=session(p->{repository.saveSettings(ZnackModels.Settings.empty().withDefaultGoodsDocument("CONFORMITY_DECLARATION","CHANGED","01.01.2026"));return true;},p->fail());
         assertEquals("KIZ_OWNER_CHANGED",assertThrows(IllegalStateException.class,()->session.run(()->{ensure();return null;})).getMessage());
         assertEquals(0,buyer.quantity);assertTrue(repository.findActivePipelines().isEmpty());
     }
@@ -90,10 +90,22 @@ class KizPrintPurchaseSessionTest {
     @Test void perPrintCirculationIsDurableAndDoesNotChangeGlobalOrOlderPipelineSettings()throws Exception{
         var original=ZnackModels.Settings.empty();repository.saveSettings(original);
         long previous=repository.enqueuePipeline(gtin,1,UUID.randomUUID().toString());
+        // A real pre-replacement paid intent keeps its original opt-out. New normal
+        // approvals always request circulation, so seed the legacy snapshot explicitly.
+        var legacy=original.withAutoIntroduction(false);
+        try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE znack_pipeline_connections SET settings_json=? WHERE pipeline_id=?")){
+            p.setString(1,com.vncode.app.features.products.ProductJson.GSON.toJson(legacy));p.setLong(2,previous);assertEquals(1,p.executeUpdate());
+        }
+        try(var c=Database.getConnection();var p=c.prepareStatement("DELETE FROM znack_purchase_contexts WHERE pipeline_id=?")){
+            p.setLong(1,previous);p.executeUpdate();
+        }
         long print=repository.enqueuePrintPipeline(gtin,3,UUID.randomUUID().toString(),original);
         assertEquals(original,repository.getSettings());assertFalse(repository.pipelineSettings(previous).autoIntroduction());assertTrue(repository.pipelineSettings(print).autoIntroduction());
         repository.saveSettings(original.withDefaultGoodsDocument("CONFORMITY_DECLARATION","fixture","01.01.2026"));
         assertEquals(original.withAutoIntroduction(true),new ZnackRepository(repository.shop()).pipelineSettings(print));
+        // Metadata can change while the earlier approval keeps its own snapshot;
+        // changing the OMS identity must still reject an approval for the old owner.
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("UPDATE znack_settings SET oms_id='changed-oms' WHERE shop_id=1");}
         assertThrows(ZnackRepository.SettingsConflictException.class,()->repository.enqueuePrintPipeline(gtin,2,UUID.randomUUID().toString(),original));
         try(var c=Database.getConnection();var s=c.createStatement()){
             try(var rows=s.executeQuery("PRAGMA integrity_check")){assertTrue(rows.next());assertEquals("ok",rows.getString(1));}
@@ -109,6 +121,9 @@ class KizPrintPurchaseSessionTest {
     class Buyer implements KizStockReplenisher.Purchases {
         int quantity,resumes;
         public void validate(String g,int n){}
+        public void enqueueBatch(java.util.List<com.vncode.app.integration.znack.ZnackPurchaseBatchStore.Approved> approved)throws Exception{
+            for(var item:approved)enqueue(item.gtin(),item.quantity(),item.requestKey());
+        }
         public void enqueue(String g,int n,String key){quantity+=n;repository.enqueuePipeline(g,n,key);}
         public void resume(){resumes++;}
     }

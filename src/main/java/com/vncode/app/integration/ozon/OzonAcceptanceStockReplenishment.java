@@ -74,9 +74,10 @@ public final class OzonAcceptanceStockReplenishment {
             }
             pending.add(posting);
         }
-        if(pending.isEmpty())return;
+        var rejected=OzonPurchasedKizAssignment.rejectedDemand(shop,postings.values(),sources);
+        if(pending.isEmpty()&&rejected.quantities().isEmpty())return;
         var category=sources.sellerImported()?OzonCategoryStock.coverage(shop.getId(),pending,exempt):Map.<String,Integer>of();
-        var quantities=new TreeMap<String,Integer>();var candidates=new ArrayList<KizPurchaseMappingProof.Product>();
+        var quantities=new TreeMap<String,Integer>(rejected.quantities());var candidates=new ArrayList<KizPurchaseMappingProof.Product>(rejected.candidates());
         try(var connection=Database.getConnection()){
             var products=OzonCategoryStock.verifiedProducts(connection,shop.getId(),pending.stream().flatMap(p->p.items().stream()).toList());
             for(var posting:pending){
@@ -97,8 +98,12 @@ public final class OzonAcceptanceStockReplenishment {
             }
         }
         if(quantities.isEmpty())return;
-        var result=new KizStockReplenisher().ensurePurchased(shop,quantities,missing->KizPurchaseMappingProof.require(shop,candidates,missing.keySet()));
-        if(result.waiting())throw new KizPurchasePendingException(quantities,result);
+        var availability=OzonPurchasedKizStock.forDemand(shop,quantities,rejected);
+        var result=new KizStockReplenisher().ensurePurchased(shop,quantities,missing->{
+            OzonPurchasedKizAssignment.requireUnchangedRejectedDemand(shop,postings.values(),sources,rejected);
+            KizPurchaseMappingProof.require(shop,candidates,missing.keySet());
+        },availability);
+        if(result.waiting())throw new KizPurchasePendingException(quantities,result,availability);
         if(!result.missing().isEmpty())throw new IOException("OZON_ACCEPT_KIZ_STOCK_REQUIRED");
     }
 

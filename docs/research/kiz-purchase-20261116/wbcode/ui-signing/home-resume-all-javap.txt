@@ -1,0 +1,98 @@
+Compiled from "HomeController.java"
+class com.tuandev.fbsbarcode.ui.workspace.HomeController$21 extends javafx.concurrent.Task<java.lang.Void> {
+  final com.tuandev.fbsbarcode.models.Shop val$selectedShop;
+
+  com.tuandev.fbsbarcode.ui.workspace.HomeController$21(com.tuandev.fbsbarcode.ui.workspace.HomeController, com.tuandev.fbsbarcode.models.Shop);
+    Code:
+         0: aload_0
+         1: aload_2
+         2: putfield      #1                  // Field val$selectedShop:Lcom/tuandev/fbsbarcode/models/Shop;
+         5: aload_1
+         6: dup
+         7: invokestatic  #7                  // Method java/util/Objects.requireNonNull:(Ljava/lang/Object;)Ljava/lang/Object;
+        10: pop
+        11: pop
+        12: aload_0
+        13: invokespecial #13                 // Method javafx/concurrent/Task."<init>":()V
+        16: return
+
+  protected java.lang.Void call() throws java.lang.Exception;
+    Code:
+         0: invokestatic  #19                 // Method com/tuandev/fbsbarcode/integration/znack/registration/RegistrationRunner.start:()V
+         3: new           #24                 // class com/tuandev/fbsbarcode/features/shop/ShopRepository
+         6: dup
+         7: invokespecial #26                 // Method com/tuandev/fbsbarcode/features/shop/ShopRepository."<init>":()V
+        10: invokevirtual #27                 // Method com/tuandev/fbsbarcode/features/shop/ShopRepository.findAll:()Ljava/util/List;
+        13: invokeinterface #31,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        18: astore_1
+        19: aload_1
+        20: invokeinterface #37,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        25: ifeq          77
+        28: aload_1
+        29: invokeinterface #43,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        34: checkcast     #47                 // class com/tuandev/fbsbarcode/models/Shop
+        37: astore_2
+        38: new           #49                 // class com/tuandev/fbsbarcode/integration/znack/ZnackRepository
+        41: dup
+        42: new           #51                 // class com/tuandev/fbsbarcode/integration/znack/ZnackModels$ShopContext
+        45: dup
+        46: aload_2
+        47: invokevirtual #53                 // Method com/tuandev/fbsbarcode/models/Shop.getId:()I
+        50: aload_2
+        51: invokevirtual #57                 // Method com/tuandev/fbsbarcode/models/Shop.getName:()Ljava/lang/String;
+        54: invokespecial #61                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackModels$ShopContext."<init>":(ILjava/lang/String;)V
+        57: invokespecial #64                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackRepository."<init>":(Lcom/tuandev/fbsbarcode/integration/znack/ZnackModels$ShopContext;)V
+        60: astore_3
+        61: aload_2
+        62: aload_3
+        63: invokevirtual #67                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackRepository.getSettings:()Lcom/tuandev/fbsbarcode/integration/znack/ZnackModels$Settings;
+        66: aload_3
+        67: invokevirtual #71                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackRepository.isSigningPaused:()Z
+        70: invokestatic  #74                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackSigningSession.authorizeVerifiedShop:(Lcom/tuandev/fbsbarcode/models/Shop;Lcom/tuandev/fbsbarcode/integration/znack/ZnackModels$Settings;Z)Z
+        73: pop
+        74: goto          19
+        77: aload_0
+        78: getfield      #1                  // Field val$selectedShop:Lcom/tuandev/fbsbarcode/models/Shop;
+        81: ifnull        150
+        84: new           #49                 // class com/tuandev/fbsbarcode/integration/znack/ZnackRepository
+        87: dup
+        88: new           #51                 // class com/tuandev/fbsbarcode/integration/znack/ZnackModels$ShopContext
+        91: dup
+        92: aload_0
+        93: getfield      #1                  // Field val$selectedShop:Lcom/tuandev/fbsbarcode/models/Shop;
+        96: invokevirtual #53                 // Method com/tuandev/fbsbarcode/models/Shop.getId:()I
+        99: aload_0
+       100: getfield      #1                  // Field val$selectedShop:Lcom/tuandev/fbsbarcode/models/Shop;
+       103: invokevirtual #57                 // Method com/tuandev/fbsbarcode/models/Shop.getName:()Ljava/lang/String;
+       106: invokespecial #61                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackModels$ShopContext."<init>":(ILjava/lang/String;)V
+       109: invokespecial #64                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackRepository."<init>":(Lcom/tuandev/fbsbarcode/integration/znack/ZnackModels$ShopContext;)V
+       112: astore_1
+       113: aload_1
+       114: invokevirtual #67                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackRepository.getSettings:()Lcom/tuandev/fbsbarcode/integration/znack/ZnackModels$Settings;
+       117: astore_2
+       118: aload_0
+       119: getfield      #1                  // Field val$selectedShop:Lcom/tuandev/fbsbarcode/models/Shop;
+       122: aload_2
+       123: aload_1
+       124: invokevirtual #71                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackRepository.isSigningPaused:()Z
+       127: invokestatic  #74                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackSigningSession.authorizeVerifiedShop:(Lcom/tuandev/fbsbarcode/models/Shop;Lcom/tuandev/fbsbarcode/integration/znack/ZnackModels$Settings;Z)Z
+       130: pop
+       131: invokestatic  #80                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator.resumeAllPersisted:()V
+       134: aload_1
+       135: aload_2
+       136: invokestatic  #85                 // Method com/tuandev/fbsbarcode/ui/workspace/HomeController.syncGtinsForWaitingIntroductions:(Lcom/tuandev/fbsbarcode/integration/znack/ZnackRepository;Lcom/tuandev/fbsbarcode/integration/znack/ZnackModels$Settings;)V
+       139: aload_1
+       140: invokestatic  #91                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator.create:(Lcom/tuandev/fbsbarcode/integration/znack/ZnackRepository;)Lcom/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator;
+       143: aload_2
+       144: invokevirtual #95                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator.resumeEligibleIntroductionsAsync:(Lcom/tuandev/fbsbarcode/integration/znack/ZnackModels$Settings;)V
+       147: goto          153
+       150: invokestatic  #80                 // Method com/tuandev/fbsbarcode/integration/znack/ZnackPurchaseCoordinator.resumeAllPersisted:()V
+       153: aconst_null
+       154: areturn
+
+  protected java.lang.Object call() throws java.lang.Exception;
+    Code:
+         0: aload_0
+         1: invokevirtual #99                 // Method call:()Ljava/lang/Void;
+         4: areturn
+}

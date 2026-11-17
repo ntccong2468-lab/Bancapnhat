@@ -1,0 +1,100 @@
+{
+  "status": "PASS",
+  "capturedAtUtc": "2026-11-16T12:21:04.172236+00:00",
+  "exitCode": 0,
+  "suites": [
+    {
+      "name": "ZnackCirculationOwnerCompletionTest",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "b705d68d13a1a50264ea30045573f6bc528eea88e3441d771b1c7a3d7256869a"
+    },
+    {
+      "name": "ZnackGtinWorkflowTest",
+      "tests": 53,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "8e410f1ebf5d57c6fa1c5cdfd3d5099d2fa2cfee1b73caa83543f78f297bf0b0"
+    },
+    {
+      "name": "ZnackIntroductionIdentityTest",
+      "tests": 29,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "476e53545dbce4ef32484037d423f5b824a319a9a6805ae4444ff0d3d3d584bf"
+    },
+    {
+      "name": "ZnackModuleTest",
+      "tests": 76,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "af3394345b4038e36756367c3a19ca3d22f62c9285aa2cd1d965e6a6161bcdeb"
+    },
+    {
+      "name": "ZnackSigningRecoveryTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "d67ea97ecb62f2872e7df21b61c0b551b2e62448b53acdf853af958b31ebbe97"
+    },
+    {
+      "name": "ZnackCirculationPolicyTest",
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "743d9f6e670790e189ef13bffcbc9cb9b3a9c4eefb163f73f5c94290a49fe407"
+    },
+    {
+      "name": "ZnackOwnedCisReadbackTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "e5987e002b5a27bec51a1f37ae4ea9939319332f0ed71227826300356d0d680d"
+    },
+    {
+      "name": "ZnackCisReadbackTest",
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "xmlSha256": "7c669809a0188c4e4441cdb33471cbfe14151d1cf9b47fe9124eda855a1488b7"
+    }
+  ],
+  "counts": {
+    "tests": 295,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "inputsBeforeAndAfter": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java": "87029b7c1c84b6e1e13f186ac5bf4e9694e40952b8ab929fd746c1b5e12bcab0",
+    "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java": "fe29853f884788dfcecee9dbcf7196d502c4ccb24c8c811510aceb2b8ff22939",
+    "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java": "fdc9302fabe2f3d2929a8ebb7e4949dc020792a7684a388fad4e9cf28f816950",
+    "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java": "8e78c03fadf3f69648e9a6badb1ead511829a7f72905756728fdad052f3d4748"
+  },
+  "inputsChangedDuringRun": [],
+  "ownedFiles": [
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java",
+    "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionIdentityTest.java",
+    "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+    "src/test/java/com/vncode/app/integration/znack/ZnackModuleTest.java"
+  ],
+  "parentOwnedCoordinatorIncluded": true,
+  "realApiCalls": false,
+  "paidPurchases": false,
+  "signing": false,
+  "scope": "Linux/Xvfb, actual shared purchase completion/readiness/confirmation and synthetic API/SQLite, WB and Ozon owner cases; not live seller or native Windows acceptance."
+}

@@ -1,0 +1,32 @@
+{
+  "command": [
+    "flock",
+    "/workspace/kiz-first-release-audit-20261116/final-verification/maven.lock",
+    "/workspace/toolchains/xvfb-current/root/usr/bin/xvfb-run",
+    "-a",
+    "sh",
+    "/workspace/toolchains/apache-maven-3.8.5/bin/mvn",
+    "-B",
+    "-o",
+    "-s",
+    "/workspace/kiz-first-release-audit-20261116/final-verification/maven-settings.xml",
+    "-gs",
+    "/workspace/kiz-first-release-audit-20261116/final-verification/maven-settings.xml",
+    "-Dmaven.repo.local=/workspace/toolchains/m2",
+    "-Dvncode.appdata.dir=/workspace/kiz-first-release-audit-20261116/final-verification/isolated-appdata",
+    "-Dtest=BouncyCastleAdvisoryRegressionTest,CatalogApiAuthorizationTest,CatalogCountryDiagnosticsTest,CatalogCredentialRepositoryTest,CatalogDeviceConnectionTest,ChestnyZnakBalanceClientTest,CryptoProCertificateDiscoveryServiceTest,CryptoProCertificateRoutingTest,CryptoProCommandRunnerTest,CryptoProSignatureTest,CryptoProSignedCertificateReaderTest,FboKizPrintPlannerTest,FboPurchaseServiceTest,FbsKizSigningResumeUiTest,FriendlyErrorCodeTest,HomeControllerPageTransitionTest,HomeControllerStartupRecoveryTest,KizAttachmentCheckpointRepositoryTest,KizAttachmentCoordinatorTest,KizAttachmentResumeStoreTest,KizCategoryAllocatorTest,KizCategoryDeletionExportTest,KizCrossMarketplaceProofTest,KizImportDialogTest,KizImportFormatsTest,KizMappingEditorTest,KizMappingIssuesDialogTest,KizMappingRepositoryTest,KizPendingIdentityTest,KizPendingNoticeTest,KizPrintHistoryRecoveryTest,KizPrintPurchaseDialogTest,KizPrintPurchasePauseTest,KizPrintPurchaseSessionTest,KizPurchaseAvailabilityPolicyTest,KizPurchaseMappingProofTest,KizPurchasePermitEvidenceTest,KizPurchaseStatusPresentationTest,KizReimportRecoveryTest,KizServiceScopeTest,KizServiceTest,KizSigningResumePresentationTest,KizSigningSummaryRecoveryTest,KizStockReplenisherTest,KizWarehousePaneTest,KizWarehouseTest,Kn3BatchReplacementTest,Kn3BatchUiTest,Kn3OzonPrintProjectionTest,Kn3ProtocolTest,Kn3ReplacementTest,OrderExportWorkflowKizPlanningTest,OzonAcceptanceKizTest,OzonAcceptanceRetryTest,OzonAcceptanceSourceSnapshotTest,OzonBatchPdfPerformanceTest,OzonBulkUiTest,OzonCarrierLabelNumbersTest,OzonCatalogMappingServiceTest,OzonCombinedLabelRendererTest,OzonDashboardControllerTest,OzonDurableReservationTest,OzonExemplarStateMachineTest,OzonExemplarWorkflowTest,OzonFboCombinedPrintTest,OzonFbsEnrichmentUiTest,OzonFbsPrintStateTest,OzonFbsUiTest,OzonLabelPageIdentityTest,OzonLabelServiceTest,OzonOfficialLabelSelectorTest,OzonPerUnitPackageTest,OzonPerUnitShipServiceTest,OzonPrintBatchReadTest,OzonPrintBundleRollbackTest,OzonPrintBundleServiceTest,OzonPrintHistoryServiceTest,OzonPrintProductSnapshotTest,OzonPrintReadinessServiceTest,OzonPrintTimingTest,OzonPrintedQueueUiTest,OzonProductKizPolicyRepositoryTest,OzonPurchasedKizReplacementTest,OzonPurchasedPrintAssignmentTest,OzonPurchasedStockPolicyTest,OzonRegistrationEntryUiTest,OzonRegistrationNavigationTest,OzonRegistrationPaneTest,OzonRejectedPurchasedDemandTest,OzonRequirementAndPackageTest,OzonShipServiceTest,OzonShipmentSourcesUiTest,SellerKizImportSchemaTest,SignatureTestFailureTest,SupplyOrderPresentationTest,SupplyPrintRequestTest,VerifiedKizMappingsTest,WbShipmentKizPaneTest,WbShipmentKizRepositoryTest,WindowsXmlSignatureTest,WorkspaceChromeUiTest,WorkspaceJavaPagesLayoutTest,WorkspaceListAreaTest,WorkspaceNavigationContextTest,WorkspaceNavigationTest,WorkspacePagesLayoutTest,ZnackAccountInfoTest,ZnackAmbiguousCodeDownloadTest,ZnackAutomationControllerTest,ZnackAutomationInformationTest,ZnackCardRegistrationControllerTest,ZnackCatalogEndpointRoutingTest,ZnackCertificateDiscoveryUiTest,ZnackCertificateSettingsRepositoryTest,ZnackCirculationMessagesTest,ZnackCirculationOwnerCompletionTest,ZnackCirculationPolicyTest,ZnackCisReadbackTest,ZnackConnectionReuseTest,ZnackDownloadRecoveryMessagesTest,ZnackErrorDetailsTest,ZnackErrorMessagesTest,ZnackExhaustedBufferRecoveryTest,ZnackExhaustedBufferWorkflowRegressionTest,ZnackGtinInventoryBulkTest,ZnackGtinWorkflowTest,ZnackIntroductionIdentityTest,ZnackIntroductionSubmissionOutcomeTest,ZnackKizExportServiceTest,ZnackKizPurchaseReadbackTest,ZnackLicenseBoundaryTest,ZnackModuleTest,ZnackMutationTransportTest,ZnackNormalDownloadIdentityTest,ZnackOrderReconciliationSafetyTest,ZnackOwnedCisReadbackTest,ZnackPermitDocumentParserTest,ZnackPipelineQueueExecutorTest,ZnackProductLabelMetadataParserTest,ZnackProductServicePaginationTest,ZnackPurchaseDiagnosticsTest,ZnackPurchaseMigrationSafetyTest,ZnackSanitizerTest,ZnackSettingsAreaRepositoryTest,ZnackSigningRecoveryTest,ZnackSigningSessionTest",
+    "clean",
+    "verify"
+  ],
+  "cwd": "/workspace/kiz-first-release-audit-20261116/final-verification/source-copy",
+  "startedAtUtc": "2026-11-16T12:31:07.368344+00:00",
+  "sourceHead": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "sourceBranch": "feature/ozon-znack-order-kiz-20261116",
+  "javaRuntime": "/workspace/toolchains/jdk-25.0.4.1",
+  "maven": "3.8.5 cached offline; private user/global settings",
+  "secretEnvironmentRemoved": true,
+  "liveBusinessOperations": false,
+  "testClassCount": 146,
+  "currentChangedOrNewTestFiles": 10,
+  "isolatedTarget": true
+}

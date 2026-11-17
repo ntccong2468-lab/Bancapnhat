@@ -147,7 +147,19 @@ class KizPendingIdentityTest {
         var repository=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName()));
         var captured=new java.util.concurrent.atomic.AtomicReference<com.google.gson.JsonObject>();
         var stop=new com.vncode.app.integration.znack.signature.CryptoProException(com.vncode.app.integration.znack.signature.CryptoProErrorCode.CRYPTOPRO_MISSING,"fixture-stop-before-signing");
-        var service=new ZnackKizOrderService(null,null,(bytes,context)->{captured.set(com.google.gson.JsonParser.parseString(new String(bytes,java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject());throw stop;},repository);
+        var service=new ZnackKizOrderService(null,null,(bytes,context)->{captured.set(com.google.gson.JsonParser.parseString(new String(bytes,java.nio.charset.StandardCharsets.UTF_8)).getAsJsonObject());throw stop;},repository){
+            @Override protected ZnackPurchaseCoordinator createAdmissionCoordinator(){
+                return new ZnackPurchaseCoordinator(repository,this,null,null){
+                    @Override public void validatePrerequisites(ZnackModels.Settings settings,String candidate,int quantity){
+                        assertEquals(PendingKizFixture.GTIN,candidate);assertEquals(3,quantity);
+                        var reviewed=new KizRegistrationIdentityRepository().product(shop.getId(),candidate).orElseThrow();
+                        ZnackPurchasePreflight.requireLocalPermit(settings,reviewed,ZnackPurchaseMethod.PRODUCTION);
+                        // Native CryptoPro availability is supplied by the stopping
+                        // synthetic signer below; this test verifies the real payload.
+                    }
+                };
+            }
+        };
         assertSame(stop,assertThrows(com.vncode.app.integration.znack.signature.CryptoProException.class,()->service.buy(repository.getSettings(),PendingKizFixture.GTIN,3)));
         var item=captured.get().getAsJsonArray("products").get(0).getAsJsonObject();
         assertEquals(PendingKizFixture.GTIN,item.get("gtin").getAsString());assertEquals(3,item.get("quantity").getAsInt());assertEquals("UNIT",item.get("cisType").getAsString());

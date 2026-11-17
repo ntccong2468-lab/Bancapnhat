@@ -1,0 +1,78 @@
+{
+  "tableBoundsStatus": "PASS",
+  "measurements": [
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-final-dark-1600x1000.png",
+      "tableXYWH": {
+        "x": 241.0,
+        "y": 259.0,
+        "width": 1330.0,
+        "height": 688.0
+      },
+      "columnWidths": [
+        46.0,
+        267.0,
+        173.0,
+        635.0,
+        197.0
+      ]
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/ozon-final-light-1600x1000.png",
+      "tableXYWH": {
+        "x": 241.0,
+        "y": 259.0,
+        "width": 1330.0,
+        "height": 688.0
+      },
+      "columnWidths": [
+        46.0,
+        267.0,
+        173.0,
+        635.0,
+        197.0
+      ]
+    },
+    {
+      "route": "packing",
+      "theme": "dark",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/packing-final-dark-1600x1000.png",
+      "tableXYWH": {
+        "x": 241.0,
+        "y": 259.0,
+        "width": 1330.0,
+        "height": 688.0
+      },
+      "columnWidths": [
+        46.0,
+        267.0,
+        173.0,
+        635.0,
+        197.0
+      ]
+    },
+    {
+      "route": "packing",
+      "theme": "light",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-final/images/packing-final-light-1600x1000.png",
+      "tableXYWH": {
+        "x": 241.0,
+        "y": 259.0,
+        "width": 1330.0,
+        "height": 688.0
+      },
+      "columnWidths": [
+        46.0,
+        268.0,
+        172.0,
+        631.0,
+        201.0
+      ]
+    }
+  ],
+  "columnResizeHistoryCaveat": "All four WB/Ozon main theme measurements have identical table x241,y259,w1330,h688. Fresh Ozon pair and WBdark widths [46,267,173,635,197]; WBlight after viewport-resize history redistributes constrained widths [46,268,172,631,201]. Strict fresh native geometry comparison is separately proven by parent23 tests."
+}

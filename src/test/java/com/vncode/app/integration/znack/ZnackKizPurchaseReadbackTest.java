@@ -18,6 +18,8 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,7 +40,7 @@ class ZnackKizPurchaseReadbackTest {
         repository.upsertProducts(List.of(new Product(GTIN,"Fixture product",null,null,null,null,null)));
     }
 
-    @AfterEach void clear(){System.clearProperty("vncode.appdata.dir");}
+    @AfterEach void clear(){ZnackSigningSession.resetForTests();System.clearProperty("vncode.appdata.dir");}
 
     @Test void pendingPurchasedBufferDoesNotInheritAnotherGtinsReadyStatus() throws Exception {
         long order=order(2);
@@ -140,6 +142,40 @@ class ZnackKizPurchaseReadbackTest {
         }
     }
 
+    @Test void historicalOrderUsesExplicitCallerProfileInsteadOfCurrentShopDefaults()throws Exception {
+        long order=order(2);
+        try(var remote=new Remote(exchange->respond(exchange,
+                "[{\"gtin\":\""+GTIN+"\",\"bufferStatus\":\"ACTIVE\",\"availableCodes\":2}]"))){
+            Settings changed=otherProfile();repository.saveSettings(changed);
+            assertTrue(new ZnackPurchaseBatchStore(repository).findByOrder(order).isEmpty());
+            KizOrder result=remote.orders().refresh(remote.settings,order);
+            assertEquals(OrderStatus.CODES_READY,result.localStatus());
+            assertEquals("fixture-order",result.externalOrderId());
+            assertEquals(changed.omsId(),repository.getRawSettings().omsId(),"An explicit historical readback cannot rewrite the current shop profile");
+        }
+    }
+
+    @Test void savedPaidProfileWinsOverDifferentCallerAndCurrentShopDuringReadback()throws Exception {
+        long order=order(2);
+        try(var remote=new Remote(exchange->respond(exchange,
+                "[{\"gtin\":\""+GTIN+"\",\"bufferStatus\":\"ACTIVE\",\"availableCodes\":2}]"))){
+            repository.saveSettings(remote.settings);
+            long pipeline=repository.enqueueCirculationPipeline(GTIN,2,UUID.randomUUID().toString(),remote.settings);
+            repository.updatePipeline(pipeline,order,PurchaseStage.POLLING_ORDER,null);
+            Settings changed=otherProfile();repository.saveSettings(changed);
+            KizOrder result=remote.orders().refresh(changed,order);
+            assertEquals(OrderStatus.CODES_READY,result.localStatus());
+            assertEquals("fixture-order",result.externalOrderId());
+            assertEquals(remote.settings.omsId(),new ZnackPurchaseBatchStore(repository).settingsForOrder(order).omsId());
+            assertEquals(changed.omsId(),repository.getRawSettings().omsId(),"Readback of the paid lot must retain both its pinned profile and the current shop configuration");
+        }
+    }
+
+    private static Settings otherProfile(){
+        return new Settings("","http://127.0.0.1:9","wrong-oms","wrong-connection","","","","",
+                "wrong-certificate","[]","","","",false,"","[]","",Instant.now());
+    }
+
     private long order(int quantity){
         long id=repository.createDraft(GTIN,quantity);
         repository.updateOrder(id,"fixture-order","CREATED",OrderStatus.SUBMITTED,null);
@@ -148,21 +184,41 @@ class ZnackKizPurchaseReadbackTest {
 
     private final class Remote implements AutoCloseable {
         final HttpServer server;
+        final List<CapturedRequest> requests=new CopyOnWriteArrayList<>();
         final ZnackApiClient api=new ZnackApiClient();
         final ZnackAuthService auth=new ZnackAuthService(api,ZnackSignatureProvider.unconfigured()){
-            @Override public String suzToken(Settings ignored){return "fixture-token";}
+            @Override public String suzToken(Settings actual){
+                assertEquals(settings.resolvedSuzBaseUrl(),actual.resolvedSuzBaseUrl(),"Readback authentication must use the selected original profile");
+                assertEquals(settings.omsId(),actual.omsId());assertEquals(settings.omsConnection(),actual.omsConnection());
+                assertEquals(settings.signerCertificate(),actual.signerCertificate());
+                return "fixture-token";
+            }
         };
         final Settings settings;
         Remote(HttpHandler handler) throws IOException {
             server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
-            server.createContext("/",handler);server.start();
+            server.createContext("/",exchange->{
+                requests.add(new CapturedRequest(exchange.getRequestMethod(),exchange.getRequestURI().getPath(),
+                        exchange.getRequestURI().getRawQuery(),exchange.getRequestHeaders().getFirst("clientToken")));
+                handler.handle(exchange);
+            });server.start();
             String base="http://127.0.0.1:"+server.getAddress().getPort();
             settings=new Settings("",base,"fixture-oms","fixture-connection","","","", "",
                     "fixture-certificate","[]","","","",false,"","[]","",Instant.now());
         }
         ZnackKizOrderService orders(){return new ZnackKizOrderService(api,auth,ZnackSignatureProvider.unconfigured(),repository);}
-        @Override public void close(){server.stop(0);}
+        @Override public void close(){
+            server.stop(0);assertFalse(requests.isEmpty(),"A readback fixture must execute the loopback HTTP contract");
+            for(var request:requests){
+                assertEquals("GET",request.method(),"These readback tests must never create a paid order or legal document");
+                assertTrue(List.of("/api/v3/order/status","/api/v3/codes").contains(request.path()));
+                assertEquals("fixture-token",request.token());
+                assertTrue(request.query().startsWith("omsId=fixture-oms&orderId=fixture-order"),"Full original OMS and remote order ID must reach the HTTP request");
+                if(request.path().equals("/api/v3/codes"))assertTrue(request.query().endsWith("&gtin="+GTIN));
+            }
+        }
     }
+    private record CapturedRequest(String method,String path,String query,String token){}
 
     private static void respond(HttpExchange exchange,String body) throws IOException {
         exchange.getRequestBody().readAllBytes();

@@ -1,0 +1,402 @@
+{
+  "status": "READ_ONLY_TEST_MODERNIZATION_REVIEW_PASS_FINAL_AFFECTED_SCOPE_VERIFIED",
+  "reviewedAtUtc": "2026-11-17T14:29:21.967524+00:00",
+  "initialBroadSnapshot": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy",
+  "reviewerExecutedTests": false,
+  "reviewerEditedAppSource": false,
+  "items": [
+    {
+      "name": "KizPurchasePermitEvidenceTest",
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPurchasePermitEvidenceTest.java",
+      "initialSourceSha256": "556ab175d3134cc64d3a04a069f1d93ca8271125c60adc7c128261abf3613268",
+      "currentSourceSha256": "4fbd4d97b84d0ab5697f2299d6814e34f814859beb27602982757f10a98e52e1",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/KizPurchasePermitEvidenceTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest.xml",
+        "sha256": "1195081cb16f0be9256f7665eff64592fb3e0a415d1ab057a2d2500c81a1f71b",
+        "tests": 21,
+        "failures": 16,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "unresolvedRegistryEvidenceClearsProjectedPermitsAndReachesThePaidGuard(String)[1]",
+          "unresolvedRegistryEvidenceClearsProjectedPermitsAndReachesThePaidGuard(String)[2]",
+          "invalidKnownPermitBlocksNewPaidMappingWithoutChangingExistingStockIdentity(Marketplace, String, String)[1]",
+          "invalidKnownPermitBlocksNewPaidMappingWithoutChangingExistingStockIdentity(Marketplace, String, String)[2]",
+          "invalidKnownPermitBlocksNewPaidMappingWithoutChangingExistingStockIdentity(Marketplace, String, String)[3]",
+          "invalidKnownPermitBlocksNewPaidMappingWithoutChangingExistingStockIdentity(Marketplace, String, String)[4]",
+          "invalidKnownPermitBlocksNewPaidMappingWithoutChangingExistingStockIdentity(Marketplace, String, String)[5]",
+          "invalidKnownPermitBlocksNewPaidMappingWithoutChangingExistingStockIdentity(Marketplace, String, String)[6]",
+          "canonicalCatalogAliasesCannotHideKnownInvalidPermitsFromThePaidGuard",
+          "coordinatorRechecksRichEvidenceWhenTheOlderProjectedProductStillHasACompletePermit",
+          "projectionClearsInvalidPermitsAndCoordinatorReportsTheRichReasonBeforeSigning(Marketplace, String, String)[1]",
+          "projectionClearsInvalidPermitsAndCoordinatorReportsTheRichReasonBeforeSigning(Marketplace, String, String)[2]",
+          "projectionClearsInvalidPermitsAndCoordinatorReportsTheRichReasonBeforeSigning(Marketplace, String, String)[3]",
+          "projectionClearsInvalidPermitsAndCoordinatorReportsTheRichReasonBeforeSigning(Marketplace, String, String)[4]",
+          "projectionClearsInvalidPermitsAndCoordinatorReportsTheRichReasonBeforeSigning(Marketplace, String, String)[5]",
+          "projectionClearsInvalidPermitsAndCoordinatorReportsTheRichReasonBeforeSigning(Marketplace, String, String)[6]"
+        ]
+      },
+      "classification": "AUTHORIZED_POLICY_REPLACEMENT",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Global Catalog permit gating moved to pinned-method local admission. Tests retain existing-stock native identity, add wrong-native rejection and PRODUCTION-versus-COMMISSION negatives, retain invalid-rich-evidence cache/projected-local rejection and assertNoPurchase.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/engine/permit-policy-21/RESULT.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "ZnackSettingsAreaRepositoryTest",
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackSettingsAreaRepositoryTest.java",
+      "initialSourceSha256": "132dff1237709ab45c54a9a58ec2db99158bb86db06ab5c7dfbfc176ca582f6a",
+      "currentSourceSha256": "bcf0a9e46e9f3ad1a92f03c2ccb8e5bc61aa5dab382d4a4d0d02464c42f46cc1",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/ZnackSettingsAreaRepositoryTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackSettingsAreaRepositoryTest.xml",
+        "sha256": "feb99db8036d1e3a20d1743a5c854090353fb45a62b3b77b1ea08adee674ca07",
+        "tests": 3,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "documentThenStaleConnectionPreservesBothAreasAndTheOtherShop",
+          "existingAndLegacyPipelinesKeepOriginalConnectionAcrossBothSaves"
+        ]
+      },
+      "classification": "EFFECTIVE_DEFAULT_AND_REAL_LEGACY_FIXTURE",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Only autoIntroduction(true) equality is normalized; old raw=false is seeded before unsnapshotted legacy binding. Other shop, documents, connection fields and original-profile assertions remain.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/settings-area-policy/RESULT.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "ZnackCertificateSettingsRepositoryTest",
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackCertificateSettingsRepositoryTest.java",
+      "initialSourceSha256": "1fdff54c6aca3167485c881bbd3731fa82172170c1143c1edde2d6d6da16481c",
+      "currentSourceSha256": "442604c1a6f6b0b1dd38fa612ea65b20cee158edb0da56b125a5104500f22323",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/ZnackCertificateSettingsRepositoryTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest.xml",
+        "sha256": "794a12f69da507ce417fd8a5f8b6bd8e832c3f80780b4aebe780c51eab0320a8",
+        "tests": 6,
+        "failures": 2,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "verifiedCertificateAndAuditCommitTogetherWhileStaleSnapshotRollsBack",
+          "activeKizWorkKeepsItsOriginalConnectionWhenSettingsChange"
+        ]
+      },
+      "classification": "EFFECTIVE_DEFAULT_AND_REAL_LEGACY_FIXTURE",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Only effective auto flag expectations change. Original false consent is explicitly stored before active legacy pipeline; stale-configuration rollback, atomic audit and old paid profile remain asserted.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/persistence/certificate-policy/RESULT.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "ZnackPipelineQueueExecutorTest",
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutorTest.java",
+      "initialSourceSha256": "b56fff75b407174d38fe63fc6b987809e1c2285cc398a202ea3eb0d741adb4a2",
+      "currentSourceSha256": "198ea5af68e49ca36bf446eb6c1cdfc06d42b0b29fe569aabb25df84f276148f",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/ZnackPipelineQueueExecutorTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackPipelineQueueExecutorTest.xml",
+        "sha256": "df19a76888c498430376b8888fc656e5ad3122add39372b7b41e07e0a6d0e708",
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "executesTasksSequentiallyInFifoOrderPerShop"
+        ]
+      },
+      "classification": "AUTHORIZED_QUEUE_SEMANTICS",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Whole-shop global FIFO is obsolete under CREATE4. New latch-based test proves same-GTIN FIFO after error while independent GTIN progresses; no test skipped.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/engine/queue-compat-12/RESULT.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "ZnackSigningRecoveryTest",
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackSigningRecoveryTest.java",
+      "initialSourceSha256": "22bc69fa2bc986e6be42eba5be2cd22bb852d4ccb8881aff91f6daee3aa5c4ad",
+      "currentSourceSha256": "225c266393a6c9697528f8494edb61c0f4ca2502823e60fefac03c2e1d143d0c",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/ZnackSigningRecoveryTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackSigningRecoveryTest.xml",
+        "sha256": "531d57d55b83c5539d10c2275788ff71973a1c2260d363afad7497e24614ea4e",
+        "tests": 26,
+        "failures": 7,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "oldPreSendStageWithAnAcceptedOrderResumesThatOrderWithoutCreatingAnother(String)[1]",
+          "oldPreSendStageWithAnAcceptedOrderResumesThatOrderWithoutCreatingAnother(String)[2]",
+          "oldPreSendStageWithAnAcceptedOrderResumesThatOrderWithoutCreatingAnother(String)[3]",
+          "invalidOriginalSigningConfigurationCannotBeReplacedOrAuthorized(String)[1]",
+          "invalidOriginalSigningConfigurationCannotBeReplacedOrAuthorized(String)[2]",
+          "invalidOriginalSigningConfigurationCannotBeReplacedOrAuthorized(String)[3]",
+          "missingOriginalConnectionCannotBorrowCurrentSettingsOrGrantConsent"
+        ]
+      },
+      "classification": "CANONICAL_CONTEXT_AND_ADAPTER_FIXTURE",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Negative original-profile corruption/deletion now affects both canonical and legacy stores. Explicit availability and capped-download adapters retain one status read/one delivery; new batch no-rebuy trap supplements old buy trap. All26 assertions/cases retained.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/signing/recovery-fixtures/test-summary.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "ZnackExhaustedBufferRecoveryTest",
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferRecoveryTest.java",
+      "initialSourceSha256": "92973f7bcba066d88f285435d15b96f8142f98f56af461dffcd2314a625a888a",
+      "currentSourceSha256": "8f41889bfd2a5af5d6a0ad5438c1e9f20eeb62458a7255b80c919028473386a4",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/ZnackExhaustedBufferRecoveryTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest.xml",
+        "sha256": "7b0d2bab11b5e98777eb0679e4e046ea047ee73058fa7c69f05dac164ef5b4ad",
+        "tests": 26,
+        "failures": 13,
+        "errors": 6,
+        "skipped": 0,
+        "failedCaseNames": [
+          "unavailableRecoveryKeepsTheOriginalOrderAndDoesNotReissueOrBuy",
+          "legacyListWithoutQuantityReplaysPartiallyPersistedBlockIdempotently",
+          "identityFailureRemainsVisibleAndStillRetainsExhaustedCheckpointAcrossRestart",
+          "foreignOptionalListIdentityIsRejectedBeforeAnyBlockReplay(String)[1]",
+          "foreignOptionalListIdentityIsRejectedBeforeAnyBlockReplay(String)[2]",
+          "foreignOptionalListIdentityIsRejectedBeforeAnyBlockReplay(String)[3]",
+          "foreignOptionalListIdentityIsRejectedBeforeAnyBlockReplay(String)[4]",
+          "foreignOptionalListIdentityIsRejectedBeforeAnyBlockReplay(String)[5]",
+          "foreignOptionalListIdentityIsRejectedBeforeAnyBlockReplay(String)[6]",
+          "aPartialBlockIsReplayedAndAlreadyConsumedCodeIsNotResurrected",
+          "partialRecoveryAndRestartOnlyReplayIssuedBlocks",
+          "laterForeignListGroupIsRejectedBeforeReplayingAnEarlierValidGroup",
+          "uuidCaseAndGtinPaddingStillIdentifyTheSameOriginalRequest",
+          "retryPayloadCannotReplaceTheOriginalIdentity(String)[1]",
+          "retryPayloadCannotReplaceTheOriginalIdentity(String)[2]",
+          "retryPayloadCannotReplaceTheOriginalIdentity(String)[3]",
+          "retryPayloadCannotReplaceTheOriginalIdentity(String)[4]",
+          "retryPayloadCannotReplaceTheOriginalIdentity(String)[5]",
+          "exhaustedStatusReadRecoversWithoutCallingOrdinaryCodeDelivery"
+        ]
+      },
+      "classification": "ORIGINAL_PROFILE_AND_AVAILABILITY_FIXTURE",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Save verified settings before pipeline binding; provide explicit synthetic availability dependency. All no-rebuy, ordinary-once, consumed-code, whole-list prevalidation and foreign raw GTIN/OMS/order/block/quantity negatives remain; CLOSED positive added.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/protocol/exhausted-integration/EXHAUSTED-FREEZE.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "ZnackExhaustedBufferWorkflowRegressionTest",
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackExhaustedBufferWorkflowRegressionTest.java",
+      "initialSourceSha256": "73f40cd2e0f8a454a2d0b860969ff5700b1c400fcfcebc6c9a6e54360ec10d61",
+      "currentSourceSha256": "62bc9faa09d2a2e412cddd7fa76d4f4c7e45d66db50d410df4c63ee68a9814ce",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/ZnackExhaustedBufferWorkflowRegressionTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest.xml",
+        "sha256": "1ff4b39d051405cef0f87995892fe1b2333d5b19019188e72dded284634a88bc",
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "exhausted3390RecoversTheOriginalIssuedBlockInsteadOfRepeatingOrdinaryDelivery"
+        ]
+      },
+      "classification": "CAP_ADAPTER_AND_FULL_RAW_CODE_FIXTURE",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Bridge current capped download to the original synthetic3390 response. Save original profile before enqueue; retain ordinary-once/replay-once/same-order assertions and strengthen full raw GS/crypto payload preservation.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/protocol/exhausted-integration/EXHAUSTED-FREEZE.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "ZnackGtinWorkflowTest",
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackGtinWorkflowTest.java",
+      "initialSourceSha256": "32b080df452179ba20588df8a2dff536045bc70bcf89644746a47cdc3967facb",
+      "currentSourceSha256": "15e58b8f86e9dba2f1d8d1d78ffd99b885554e883542c62615bd6b0b0255c517",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/ZnackGtinWorkflowTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackGtinWorkflowTest.xml",
+        "sha256": "7cba2cde3f8eb9db5cca7581a0655342a4a2199cf8ebb58a5d782e7258b39e39",
+        "tests": 53,
+        "failures": 4,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "reconciliationRecoversRemoteOrderAndCompletesOriginalPurchase",
+          "closedOrderRecoversIssuedBlocksAndWaitsForCirculationWithoutSurfacing2090",
+          "pipelineStartedThisSessionCanKeepSigningAfterTheUserSelectsAnotherShop",
+          "unavailableGtinDocumentsParkIntroductionWithoutLosingCodesOrSchedulingPolls"
+        ]
+      },
+      "classification": "STAGED_PROGRESS_AND_EXPLICIT_CIRCULATION_FIXTURE",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Reconciliation now separately reaches POLLING_ORDER before download. Registry absence schedules bounded recovery instead of old indefinite parking. Existing no-second-purchase, same order/raw codes, zero stock and signer scope assertions remain. Readiness/mock payloads now fit explicit dependencies and real CIS format.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/signing/legacy-engine-fixtures/test-summary.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "ZnackKizPurchaseReadbackTest",
+      "path": "src/test/java/com/vncode/app/integration/znack/ZnackKizPurchaseReadbackTest.java",
+      "initialSourceSha256": "8dcc418fda565d2888cf8aba729877e4c918397b31259956ebc0cce98205644e",
+      "currentSourceSha256": "e82d9cd5cbbde34624f4fc14614e87a83c8eaf3e33893a82d73f2f92231eec81",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/ZnackKizPurchaseReadbackTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest.xml",
+        "sha256": "1d5951862bf373aec28145f135d4746456762fc44e66e2a80a5510c4331b4aa3",
+        "tests": 7,
+        "failures": 3,
+        "errors": 2,
+        "skipped": 0,
+        "failedCaseNames": [
+          "pendingPurchasedBufferDoesNotInheritAnotherGtinsReadyStatus",
+          "readyPurchasedBufferDoesNotInheritAnotherGtinsRejection",
+          "missingPurchasedBufferPreservesCheckpointInsteadOfUsingLastStatus",
+          "duplicatePurchasedBuffersPreserveAcceptedOrderWithoutGuessing",
+          "missingPurchasedBufferStatusPreservesAcceptedOrderForFurtherReadback"
+        ]
+      },
+      "classification": "ACTUAL_PRODUCTION_REGRESSION_FIXED",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "New context lookup ignored explicit caller settings for imported historical orders without pipelines and used current shop defaults. The one-line contextForOrder(id,settings) fix restores explicit fallback while pinned context wins. Added loopback routing/token/OMS/certificate and wrong-current/caller negative controls;9 pass.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/protocol/readback-integration/READBACK-FREEZE.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "KizPendingIdentityTest",
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPendingIdentityTest.java",
+      "initialSourceSha256": "400102ba2e46057c57e596a5e1df5dc564ee1bbbc9ed3cc5cf36354657e7fab2",
+      "currentSourceSha256": "52ba4d0f44ba187795fa0f84ba207f85a86a1997322860f7d87fa16652b76fb9",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/KizPendingIdentityTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPendingIdentityTest.xml",
+        "sha256": "6fdef5625a1f4b54f5b510695b38e9af00507e7e2d5945bb108df1b2057d18f9",
+        "tests": 23,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "reviewedCisTypeReachesTheSyntheticSigningBoundaryWithoutInventingAnActiveProduct"
+        ]
+      },
+      "classification": "NATIVE_CRYPTO_PREFLIGHT_FIXTURE",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Payload test supplies an explicit native-availability substitute while still validating exact reviewed GTIN, quantity and real local production permit. Stopping signer remains the actual observed boundary; no product publication or paid request is claimed.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/integration/root-fixtures-final/RESULT.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "KizPrintPurchaseSessionTest",
+      "path": "src/test/java/com/vncode/app/features/kiz/KizPrintPurchaseSessionTest.java",
+      "initialSourceSha256": "79769774a2ea7c14118ed6b2cbe3ab54b2b40e113463715885087a887da87a32",
+      "currentSourceSha256": "b2835047258789352bc3e30d0813af6947d4714a3f37c99cad36be42ce3ed4e9",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/KizPrintPurchaseSessionTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.features.kiz.KizPrintPurchaseSessionTest.xml",
+        "sha256": "2a057f08aa03efa251d9ff0174cc237bdcbe89b601cf24c15ab0e46a7cb437e3",
+        "tests": 12,
+        "failures": 1,
+        "errors": 0,
+        "skipped": 0,
+        "failedCaseNames": [
+          "perPrintCirculationIsDurableAndDoesNotChangeGlobalOrOlderPipelineSettings"
+        ]
+      },
+      "classification": "AUTHORITY_VERSUS_LOCAL_METADATA_EXPECTATION",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Default document metadata changes no longer invalidate credential identity. The conflict negative now changes OMS and still requires SettingsConflictException; legacy false intent and per-print true snapshots remain.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/integration/root-fixtures-final/RESULT.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "KizPurchaseStatusPresentationTest",
+      "path": "src/test/java/com/vncode/app/ui/kizmapping/KizPurchaseStatusPresentationTest.java",
+      "initialSourceSha256": "02ff559dfdfed4b042c279e235aeafab38b88b2f6bdc396f94b5a5a20c58a99b",
+      "currentSourceSha256": "810b267c414f6f3c1b73435f0f1cd40094ef47b06304497394a68e6020a8fa02",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/KizPurchaseStatusPresentationTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest.xml",
+        "sha256": "4f00e6d27db64cccafbc0f2fc115e7bf9bf1bec3e2fb32a2199980cde9b1f51f",
+        "tests": 6,
+        "failures": 0,
+        "errors": 1,
+        "skipped": 0,
+        "failedCaseNames": [
+          "legacyStoredFlagIsNotAPurchaseChoiceAndLoadingOrEditingDoesNotRewriteIt(boolean)[1]"
+        ]
+      },
+      "classification": "MANDATORY_NEW_UI_INTENT_WITH_RAW_LEGACY_GUARD",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Hidden field projects mandatory true for new purchases, while an explicitly seeded historical false profile and pipeline remain byte-equal after language/edit actions. No mode choice is reintroduced.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/RESULT.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    },
+    {
+      "name": "FxmlSmokeTest",
+      "path": "src/test/java/com/vncode/app/ui/FxmlSmokeTest.java",
+      "initialSourceSha256": "b7413ba8ed77975c28b994bb1fe6c517c8ba38d017776543029fded126caecb7",
+      "currentSourceSha256": "b0f356de55c39cafdf9757c10c607afb8ebf5058f5afadb3110bb12cbbcdc033",
+      "diffFile": "/workspace/kiz-wb1326-replacement-20261117/preservation/modernization-diffs/FxmlSmokeTest.diff",
+      "initialFailureXmlInspected": {
+        "path": "/workspace/kiz-wb1326-replacement-20261117/integration/combined-final/source-copy/target/surefire-reports/TEST-com.vncode.app.ui.FxmlSmokeTest.xml",
+        "sha256": "d27ac3d958b4ecac9710d4e98e578b9ffb8e728d41ec9025d867a43aa9090a6b",
+        "tests": 58,
+        "failures": 0,
+        "errors": 1,
+        "skipped": 0,
+        "failedCaseNames": [
+          "ozonDashboardShouldExposeFbsOrderGroupsSelectionAndPackingLabels"
+        ]
+      },
+      "classification": "PRESERVED_WB_STYLE_OZON_LAYOUT_EXPECTATIONS",
+      "reviewDisposition": "ACCEPT_NO_NEGATIVE_CONTROL_WEAKENING_FOUND",
+      "rationale": "Old assertions demanded columns deliberately removed in the prior approved WB-style Ozon layout. New assertions retain all existing controls, require exactly five visible columns and add keyboard/row-factory coverage; production FXML/controller unchanged in this purchase task.",
+      "ownerReceipt": "/workspace/kiz-wb1326-replacement-20261117/integration/final-build/RESULT.json",
+      "ownerReceiptExists": true,
+      "testOrCaseDeletionDetected": false,
+      "newSkipDirectives": []
+    }
+  ],
+  "newSkipOrDisableDirectives": [],
+  "productionChangesSinceInitialBroadSnapshot": [
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java"
+  ],
+  "productionChangeDisposition": "Only the independently reproduced legacy explicit-profile fallback regression is fixed; policy/fixture modernizations do not change production guards.",
+  "protectedInvariants": [
+    "No second paid order or implicit retry of an unknown mutation",
+    "Exact original account/profile/certificate and native variant",
+    "Whole CIS/GTIN/quantity/list/block identity before stock/replay",
+    "Consumed code state is never resurrected",
+    "No available stock or legal circulation before authoritative owned CIS proof",
+    "Durable signer pause/license denial and missing original authority block mutation"
+  ],
+  "followUp": [
+    "Final affected union2296/232 independently verified on identical production inputs; initial broad FAIL retained.",
+    "ThemeService11/11 isolated unchanged bytecode passed; exact broad popup cause remains unproven.",
+    "Parent final source ZIP/documentation manifest remains outside runtime source signoff."
+  ],
+  "scopeNote": "Only inspected diffs and real owner-run receipts. Synthetic adapters do not prove Windows hardware, live paid SUZ or actual legal introduction.",
+  "boundedRuntimeReceipt": "/workspace/kiz-wb1326-replacement-20261117/preservation/FINAL-EVIDENCE-REVIEW.json"
+}

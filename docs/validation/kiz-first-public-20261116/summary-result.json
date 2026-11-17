@@ -1,0 +1,107 @@
+{
+  "status": "PASS",
+  "capturedAtUtc": "2026-11-16T12:27:17.074371+00:00",
+  "scope": "Only KizMappingRepository +newKizSigningSummaryRecoveryTest; WB/Ozon pause recovery projection, no paidorrealAPIoperation",
+  "counts": {
+    "tests": 97,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suiteCount": 7,
+  "suites": [
+    {
+      "name": "com.vncode.app.features.kiz.KizStockReplenisherTest",
+      "xmlSha256": "de9363b51367bdb492f8c9d4da8d619fbaa4c0a5430ea6f7c3d1f6bd2eaba507",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.features.kizmapping.KizMappingRepositoryTest",
+      "xmlSha256": "7e89d05ebc19e25669a8ba48e2f5f1fabdaf44306b3691cd3877bde6b49aba83",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.integration.ozon.OzonProductGtinMappingRepositoryTest",
+      "xmlSha256": "f35b8ea6c410dfd2f53bacee12713b020f30a13fe36c18f53a792ee93c996e02",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.integration.znack.KizSigningSummaryRecoveryTest",
+      "xmlSha256": "f55a832e76a8ec2c88ec32e3816da9c33427b72030dfe3b12ae46dfcdf1f2781",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackGtinWorkflowTest",
+      "xmlSha256": "c9c2d44efbf82def81824f197739dad5f10abb4924733496d64a4bad37f2565b",
+      "tests": 53,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest",
+      "xmlSha256": "6f057b1428a600ec5312ac01b8f34bc9b1bc6ed4977ca0e808b0e4a75c62b25b",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.ui.kizmapping.KizSigningResumePresentationTest",
+      "xmlSha256": "e8956ae92e12dc3af125184bc2ee9763a4a4c3776e7dfa42edd0c9ad9b6e3aaf",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "process": {
+    "exitCode": 0,
+    "startedAtUtc": "2026-11-16T12:25:36.279122+00:00",
+    "finishedAtUtc": "2026-11-16T12:26:21.799700+00:00",
+    "elapsedSeconds": 45.52060526100013,
+    "ownedSourceHashDrift": [],
+    "snapshotHashDrift": []
+  },
+  "ownedSourceSha256": {
+    "src/main/java/com/vncode/app/features/kizmapping/KizMappingRepository.java": "78286a1b3313e4aace3e650bd094c502f08dc8042578243c73d96e6e7a1c2e6d",
+    "src/test/java/com/vncode/app/integration/znack/KizSigningSummaryRecoveryTest.java": "2b2e8205b84d7e3856e5a835f80311048d19e017dccbedf868ff4c135eb525b7"
+  },
+  "ownedSourceChangedDuringRun": [],
+  "gitDiffCheckExitCode": 0,
+  "behavioralRed": {
+    "tests": 15,
+    "failures": 10,
+    "errors": 0,
+    "skipped": 0,
+    "evidence": "red-result.json",
+    "directExitCodeCaptured": false
+  },
+  "firstGreen": {
+    "tests": 97,
+    "failures": 1,
+    "errors": 0,
+    "exitCode": 1,
+    "evidence": "first-green-result.json",
+    "reason": "newfixtureexpectednullerrorbutZnackSanitizerstoresblank; actualpipelineprojectioncorrect; fixturecorrectedwithoutproductionchange"
+  },
+  "noSchemaDependencyOrInventoryFilterChanges": true,
+  "notPerformed": [
+    "Real API,purchase orsigning",
+    "Newinstaller/publication",
+    "Wholeapplicationtestfullsuite",
+    "Windows/CryptoPro/DPAPI"
+  ]
+}

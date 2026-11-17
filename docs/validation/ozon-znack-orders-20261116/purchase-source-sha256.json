@@ -1,0 +1,23 @@
+{
+  "captured_at_utc": "2026-11-16T11:40:58.986011+00:00",
+  "files": {
+    "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizReplacement.java": "f20175dc7e7ea2f72438e494db3eba66085fb4d456b1c22a75b16dd4dc7372ba",
+    "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceKizService.java": "983bbe6dc95e4f65c497837d5099ffc5067026785ec190698079d0170207e959",
+    "src/main/java/com/vncode/app/integration/ozon/OzonAcceptanceStockReplenishment.java": "18d5fcca086774cdbf473885259b82386f0d780708ed7e001c0bb5f3fda24844",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarJobRepository.java": "265ede6492f3b67f7876538ed06552125ca94f905c4d241621c4244dc7372e78",
+    "src/main/java/com/vncode/app/integration/ozon/OzonExemplarService.java": "b300a4a4fd19e655fd55753478acb81b988f92ffaeeb29734573bcf644950d62",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPrintBundleService.java": "4ddc745027a547b487304254391bd53102812ea301d04456f2484ac03cfc7d3f",
+    "src/main/java/com/vncode/app/integration/ozon/OzonStockReplenishment.java": "3ba9f5759053e52440f7bea1c53d382a526c39d5bbd735325942fd94e078eaec",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizAssignment.java": "2d88761b93170dd6f9a47f5a97915276a83e3da9381c4b91c7f9d46822341a29",
+    "src/main/java/com/vncode/app/integration/ozon/OzonPurchasedKizStock.java": "720ff96b18658f7f5b183cfa6760667db490574f8efc4846c292478d0ef36384",
+    "src/main/java/com/vncode/app/features/kiz/KizPurchaseAvailability.java": "40022251a2fb0c890d19f5d63f8012eea814c3138004e254adb969f845f15eb5",
+    "src/main/java/com/vncode/app/features/kiz/KizStockReplenisher.java": "7bfa63f03962cf4649a365135b03bdd39be6cedac23ebdccd704a7b05ec1911d",
+    "src/main/java/com/vncode/app/features/kiz/KizPurchasePendingException.java": "9dd9610f989a34dec85c01584d8cc624a1faca1c7c848d47b7b4ab1a5a3abec2",
+    "src/main/java/com/vncode/app/features/kiz/KizPrintPurchaseSession.java": "350f2940de8b0356542b846e404b8ef3964c0a3545c149f0ecbacbce8467f878",
+    "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedKizReplacementTest.java": "c10e63f2568e887c71306d1dd9324358944bdfb78ae3f5f857473e17a7d5202c",
+    "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedPrintAssignmentTest.java": "f112e24ce3fe93fa79d7e1148eaf532d088c42ac9e2fc5bd6585d5358d32b64b",
+    "src/test/java/com/vncode/app/integration/ozon/OzonRejectedPurchasedDemandTest.java": "f8baefb13e915bd088d9c5a8b5b46bf9bec54d563a1e7b2d743241269836ab33",
+    "src/test/java/com/vncode/app/integration/ozon/OzonPurchasedStockPolicyTest.java": "775ec72ddb4c8bef635ff31f3be4659d3a0c3d8236ef954538abd73d47d0db02",
+    "src/test/java/com/vncode/app/features/kiz/KizPurchaseAvailabilityPolicyTest.java": "322a8c96a4d21cbd7ce47c8816b9c1ee3af9fe9443bd392007a57f5213e596c0"
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "status": "COMPLETE_SCOPED_SOURCE_IMPLEMENTATION",
+  "clientDate": "2026-11-17 Europe/Moscow",
+  "baseHead": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "branch": "feature/ozon-znack-order-kiz-20261116",
+  "workingTreeIncludesAllPreviousPendingChanges": true,
+  "sourceVersion": "1.6.10",
+  "reference": "WBCode1.3.26",
+  "referenceJarSha256": "d10efde1c0ef6e6f8cf3e850e1dd7615966b0aa1e83082181f6c8dd26380f1b6",
+  "currentAffectedRegression": {
+    "counts": {
+      "tests": 2296,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": 232,
+    "singleFullSuitePass": false,
+    "receipt": "affected-result.json"
+  },
+  "finalFreshCompileAndPackage": {
+    "mainSources": 778,
+    "testSources": 646,
+    "tests": 92,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "exitCode": 0,
+    "receipt": "final-build-result.json"
+  },
+  "initialBroadRegression": {
+    "status": "FAIL_PRESERVED",
+    "tests": 5062,
+    "suites": 620,
+    "failures": 51,
+    "errors": 12,
+    "skips": 2,
+    "receipt": "initial-broad-result.json"
+  },
+  "themeIsolation": {
+    "tests": 11,
+    "passed": 11,
+    "unchangedSourceAndBroadBytecode": true,
+    "causeOfOriginalPopupFailure": "NOT_PROVEN",
+    "receipt": "components/theme-isolation.json"
+  },
+  "artifact": {
+    "sha256": "f9d623f91e1dcf9e567c82ddc0067a722cc216530ee52b4fb9cb94c8a61926b9",
+    "bytes": 7921339,
+    "classes": 2077,
+    "runtimeLibraries": 74,
+    "actualLauncher": "PASS_LINUX_SYNTHETIC_ONLY",
+    "receipt": "artifact-launcher-result.json"
+  },
+  "migrationAndLegacyBinary": "PASS_SYNTHETIC_SCHEMA6_TO7_SAME_APP_VERSION",
+  "scale1000": "PASS_LOCAL_SQLITE_PARTITION_AND_FRESH_JVM_RECOVERY_NOT_API_THROUGHPUT",
+  "sourceArchive": "/workspace/kiz-wb1326-replacement-20261117/VNCode-all-unreleased-WB1326-source-20261117.zip",
+  "archiveChecksum": "External sibling SHA256SUMS.txt and manifest, produced after final repository docs to avoid self-referential digest.",
+  "notPerformed": [
+    "Full Java-suite PASS on final source",
+    "Windows installer/native Windows/CryptoPro hardware",
+    "Paid SUZ purchase or real legal signature",
+    "WB/Ozon/Catalog seller writes",
+    "New CodeQL scan or inherited finding resolution",
+    "License activation/Gmail",
+    "Commit/push/version bump/release/Latest publication"
+  ],
+  "finishedAtUtc": "2026-11-17T14:29:27.512615+00:00"
+}

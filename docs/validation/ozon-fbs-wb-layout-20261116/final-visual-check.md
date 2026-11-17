@@ -1,0 +1,9 @@
+# Read-only final visual check
+
+Viewed same-current-JAR screenshots `capture-after/images/packing-after-dark-1600x1000.png` and `ozon-after-dark-1600x1000.png` directly. Main composition, table columns and row density match the agreed WB reference while retaining Ozon's five tabs and extra actions/data.
+
+The approximately 2 px vertical displacement observed by the parent starts before the tab strip (already present at the title/header) and remains approximately constant through the tabs/filter/table. It is not evidence of different table width allocation or row heights: strict native checks already establish equal five-column widths and 70 px rows. Source inspection found identical tab style classes, tab sizing selectors, root spacing 12 and page insets 16. Ozon retains additional real KIZ/Znack header controls and a different managed-loading wrapper. The exact computed-height contributor was not established, so this note does not assert that status-label intrinsic sizing or any particular control caused the difference.
+
+A tiny external same-JAR measurement helper was attempted without app source/JAR changes. Its first run completed measurement but failed JSON serialization of an undefined baseline offset; the corrected helper reused the synthetic seed directory and failed the fixture's duplicate `shops.id` insert before producing new geometry. Its owned Java process was stopped, and no further diagnostic expansion was performed. This is a diagnostic-fixture failure, not a seller API or product failure; it does not amend the completed 22-test results.
+
+No source edit, rebuild, API call, release or new styling change was made during this read-only follow-up. The remaining approximately 2 px header-origin offset is disclosed as a bounded visual difference, not claimed as pixel-identical or assigned an unverified cause.

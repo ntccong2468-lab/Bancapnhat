@@ -107,12 +107,18 @@ public final class OzonExemplarService {
         return openPrintBatch(shop,null);
     }
     public PrintBatch openPrintBatch(Shop shop,KizSourceSelection sources) {
+        return openPrintBatch(shop,sources,false);
+    }
+    PrintBatch openConfirmedPrintBatch(Shop shop,KizSourceSelection sources){
+        return openPrintBatch(shop,sources,true);
+    }
+    private PrintBatch openPrintBatch(Shop shop,KizSourceSelection sources,boolean confirmed){
         MarketplaceGuard.requireOzon(shop);
         Shop frozenShop = new Shop(shop.getId(), shop.getName(), shop.getMarketplace(),
                 shop.getClientId(), shop.getApiKey());
         return new PrintBatch(frozenShop,
                 sources!=null&&!sources.purchased()?Map.of():mappings.findResolvedBySku(shop.getId()), policies.findExemptSkus(shop.getId()),
-                apiClients.apply(shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey())),sources);
+                apiClients.apply(shop.getId(), new OzonCredentials(shop.getClientId(), shop.getApiKey())),sources,confirmed);
     }
 
     /**
@@ -206,12 +212,13 @@ public final class OzonExemplarService {
         private final Set<String> exemptions;
         private final OzonApiClient api;
         private final KizSourceSelection sources;
+        private final boolean confirmed;
 
-        private PrintBatch(Shop shop, Map<String, String> skuMappings, Set<String> exemptions, OzonApiClient api,KizSourceSelection sources) {
+        private PrintBatch(Shop shop, Map<String, String> skuMappings, Set<String> exemptions, OzonApiClient api,KizSourceSelection sources,boolean confirmed) {
             this.shop = shop;
             this.skuMappings = Map.copyOf(skuMappings);
             this.exemptions = Set.copyOf(exemptions);
-            this.api = api;this.sources=sources;
+            this.api = api;this.sources=sources;this.confirmed=confirmed;
         }
 
         public OzonPreparationResult stageForPrint(String postingNumber) throws IOException {
@@ -224,6 +231,24 @@ public final class OzonExemplarService {
 
         void refreshPrintProducts(java.util.Collection<OzonPostingDto> selected,Map<String,OzonProductDto> products)throws IOException{
             OzonPrintProductSnapshot.refreshMissing(shop,selected,products,api);
+        }
+
+        /** Production paid-source preparation adds Ozon confirmation to the legacy local reservation. */
+        public OzonPreparationResult prepareConfirmedForPrint(String number)throws IOException{
+            var local=stageForPrint(number);return confirmPurchasedForPrint(number,local);
+        }
+        public OzonPreparationResult confirmPurchasedForPrint(String number,OzonPreparationResult local)throws IOException{
+            confirmPurchasedForPrint(number);
+            var job=jobs.find(shop.getId(),number);
+            if(job!=null&&OzonPurchasedKizAssignment.required(shop,job,sources))
+                return new OzonPreparationResult(number,job.stage().name(),jobs.bindings(job.id()).size(),true,false,job.safeErrorCode());
+            return local;
+        }
+        public void confirmPurchasedForPrint(String number)throws IOException{
+            var job=jobs.find(shop.getId(),number);
+            if(!OzonPurchasedKizAssignment.required(shop,job,sources))return;
+            if(OzonPurchasedKizAssignment.acceptedProof(shop,job))return;
+            new OzonAcceptanceKizService(jobs).confirmPurchasedForPrint(shop,readDetail(number),api,sources);
         }
 
         /** Only an observed rejection or a durable replacement intent can start a remote repair. */
@@ -332,7 +357,8 @@ public final class OzonExemplarService {
                             shop.getId(), plan, operation.sources, () -> {
                                 LicenseRuntime.require(Permission.PRINT_NEW);
                                 ListingIdentity.require(shop);
-                            }, () -> OzonRequirementGuard.requireCurrentPurchasedMappings(shop.getId(), plan, operation.sources));
+                            }, () -> OzonRequirementGuard.requireCurrentPurchasedMappings(shop.getId(), plan, operation.sources),
+                            operation.confirmed&&OzonPurchasedKizStock.purchaseIntent(shop,operation.sources));
                     return result(reservation.job(), plan.exemplarCount(), reservation.ready());
                 });
             } finally {

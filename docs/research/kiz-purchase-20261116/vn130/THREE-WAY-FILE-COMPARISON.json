@@ -1,0 +1,134 @@
+[
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackSigningSession.java",
+    "linesOld": 122,
+    "linesPublic": 186,
+    "linesCurrent": 186,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": true,
+    "oldSha256": "dd0ed9be02d60b55ac249b90cb69018e478ad95f6985a8fe6b6002871578e7e0",
+    "publicSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db",
+    "currentSha256": "0a3aca1db5394f08e2d5edfe8f1c4e4e0e63e36955b811ed655d704eacc4a6db"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackAuthService.java",
+    "linesOld": 68,
+    "linesPublic": 68,
+    "linesCurrent": 68,
+    "oldEqualsPublic": true,
+    "publicEqualsCurrent": true,
+    "oldSha256": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+    "publicSha256": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53",
+    "currentSha256": "e51bc1e53e397a14c8da09bcf715de5bfa276b751b5a8c42478e83b0fa78db53"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java",
+    "linesOld": 297,
+    "linesPublic": 519,
+    "linesCurrent": 519,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": true,
+    "oldSha256": "e7b87554d0f1d5326600b353f205553e9c50d56cf504493a5ccf74d29f434c10",
+    "publicSha256": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637",
+    "currentSha256": "a005a5ab534720ef1eacb85cc76102209a1c6f29d53910b4010a1a29cff0f637"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackKizOrderService.java",
+    "linesOld": 124,
+    "linesPublic": 163,
+    "linesCurrent": 163,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": true,
+    "oldSha256": "4d53aac4a4ee2bc8a945cd46820d435ad990c1e26307270f6d66627fd7ac9f6f",
+    "publicSha256": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0",
+    "currentSha256": "269eb345f605f2a6bc82eff9c9e3cea34d9f49dc9a2b20c3d7d234555b1b13f0"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java",
+    "linesOld": 110,
+    "linesPublic": 191,
+    "linesCurrent": 285,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": false,
+    "oldSha256": "193b08fd5453159cc32e833f07726fbbcbabe9faec04434c0696320496b4f767",
+    "publicSha256": "03b42ae457c01c406af3d65a96d20ab69ef4b991d59ee653dc95085da45cb3c0",
+    "currentSha256": "5a421a3edf2865a5fab9f939243a41eab80b298759c585672e5420da5bf8a42f"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java",
+    "linesOld": 240,
+    "linesPublic": 195,
+    "linesCurrent": 210,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": false,
+    "oldSha256": "f9c97a0e364750b126f50b31c0bbdc8eb9aeb2f9ea7108ce5e619813b8315427",
+    "publicSha256": "b9773bcc1352871c42c19dd5b6e416a6fe97b4ce5142083ffb7ab7ef5bc1702a",
+    "currentSha256": "d26d9ee5b499aaac7b9925b305eab309297da3cce024847a25b9a2f64e68e210"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java",
+    "linesOld": 132,
+    "linesPublic": 173,
+    "linesCurrent": 177,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": false,
+    "oldSha256": "f793f1cd15dc052f10cd76b6ac3cbf430a97a6d59c1c00ffebb884781b556f47",
+    "publicSha256": "5d539835d0af9d86f876e4c02df2179ed133e5f153c3e3281c8f49845326d83b",
+    "currentSha256": "f09894c602b7de3e69e411b9be626a4adbe1e84ed6a245a19012371e72bb92eb"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseCoordinator.java",
+    "linesOld": 799,
+    "linesPublic": 1005,
+    "linesCurrent": 1005,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": false,
+    "oldSha256": "e42f9eca84dce0113f75c210f36403da578a22ed9f4a5ad47f312cd38d646e6c",
+    "publicSha256": "8057a977fd76fbe6524c8b028cec999cf68c2fd28ea175d982eecd84222bc935",
+    "currentSha256": "52d2c563b06bc532fd27fbae23b0fdd0a32d298a034d72e88a79da9ea8516071"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePipelineState.java",
+    "linesOld": 18,
+    "linesPublic": 18,
+    "linesCurrent": 18,
+    "oldEqualsPublic": true,
+    "publicEqualsCurrent": true,
+    "oldSha256": "189f2a42af62bc88e9d2fbe07fa9289cf9d42381730442643ccf7e640d7e39d9",
+    "publicSha256": "189f2a42af62bc88e9d2fbe07fa9289cf9d42381730442643ccf7e640d7e39d9",
+    "currentSha256": "189f2a42af62bc88e9d2fbe07fa9289cf9d42381730442643ccf7e640d7e39d9"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackPipelineQueueExecutor.java",
+    "linesOld": 59,
+    "linesPublic": 59,
+    "linesCurrent": 59,
+    "oldEqualsPublic": true,
+    "publicEqualsCurrent": true,
+    "oldSha256": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc",
+    "publicSha256": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc",
+    "currentSha256": "d1fe7c045008a49aae65adc9c781813bda826109e3b06ffbdad2627331d0efdc"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackProductService.java",
+    "linesOld": 265,
+    "linesPublic": 275,
+    "linesCurrent": 275,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": true,
+    "oldSha256": "9a80ce6bc5695557cae312af6196893c80f34fee737d4860bff856454b471690",
+    "publicSha256": "fa86315a37556ecb9e196545901ebd10ae7163df11b283e63f628150e0fc1d73",
+    "currentSha256": "fa86315a37556ecb9e196545901ebd10ae7163df11b283e63f628150e0fc1d73"
+  },
+  {
+    "file": "src/main/java/com/vncode/app/integration/znack/ZnackRepository.java",
+    "linesOld": 672,
+    "linesPublic": 933,
+    "linesCurrent": 933,
+    "oldEqualsPublic": false,
+    "publicEqualsCurrent": true,
+    "oldSha256": "f07433cc53fbac3c8b9ce5142ae70d368d862bb3388aa37155f422b48b5e8f92",
+    "publicSha256": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37",
+    "currentSha256": "11b9fca5eb9aadf1b01738f3657e6974f14bb936a42eed9f950217147a8dea37"
+  }
+]

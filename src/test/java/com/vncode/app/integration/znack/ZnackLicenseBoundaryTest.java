@@ -21,9 +21,12 @@ class ZnackLicenseBoundaryTest {
         System.setProperty("vncode.appdata.dir",temp.toString());Database.initDatabase();
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,api_key) VALUES(1,'Test','fixture')");}
         repository=new ZnackRepository(new ShopContext(1,"Test"));
-        repository.upsertProducts(List.of(new Product(GTIN,"Test",null,null,null,null,null)));
+        repository.upsertProducts(List.of(new Product(GTIN,"Test",null,"CONFORMITY_DECLARATION","FIXTURE-PERMIT","01.01.2026",null)));
+        repository.saveSettings(fixtureSettings());
     }
-    @AfterEach void cleanup(){ZnackPurchaseCoordinator.cancelPendingPolls();System.clearProperty("vncode.appdata.dir");}
+    @AfterEach void cleanup(){ZnackPurchaseCoordinator.cancelPendingPolls();ZnackSigningSession.resetForTests();System.clearProperty("vncode.appdata.dir");}
+
+    private Settings fixtureSettings(){return new Settings("http://127.0.0.1:9","http://127.0.0.1:9","fixture-oms","fixture-connection","7700000001","","","","fixture-certificate","[]","","","",true,"","[]","{}",java.time.Instant.parse("2026-01-01T00:00:00Z"));}
 
     @Test void deniedNewPurchaseDoesNotCreatePipeline()throws Exception {
         var prior=LicenseRuntime.service();
@@ -41,10 +44,10 @@ class ZnackLicenseBoundaryTest {
     @Test void revokedQueuedPurchaseIsPausedUntilExplicitAdvance()throws Exception {
         var buys=new AtomicInteger();
         var orders=new ZnackKizOrderService(null,null,null,repository){
-            @Override public KizOrder buy(Settings s,String gtin,int quantity){
-                buys.incrementAndGet();long id=repository.createDraft(gtin,quantity);
-                repository.updateOrder(id,"accepted-order","CREATED",OrderStatus.SUBMITTED,null);
-                return repository.findOrder(id).orElseThrow();
+            @Override public ZnackPurchaseBatchStore.Batch advanceBatch(Settings settings,long batchId){
+                buys.incrementAndGet();var store=new ZnackPurchaseBatchStore(repository);var batch=store.find(batchId).orElseThrow();
+                store.savePayload(batchId,Wb1326PurchasePersistenceTest.payload(batch).toString());assertTrue(store.beginSubmission(batchId));
+                store.acceptRemoteOrder(batchId,"accepted-order");return store.find(batchId).orElseThrow();
             }
         };
         var coordinator=new ZnackPurchaseCoordinator(repository,orders,null,null){
@@ -56,12 +59,12 @@ class ZnackLicenseBoundaryTest {
         try(var denied=LicenseDomainFixture.denied(temp.resolve("denied-license"))) {
             LicenseRuntime.install(denied);
             try {
-                assertThrows(LicenseDeniedException.class,()->coordinator.advance(Settings.empty(),pipeline));
+                assertThrows(LicenseDeniedException.class,()->coordinator.advance(fixtureSettings(),pipeline));
                 var paused=repository.findPipeline(pipeline).orElseThrow();
                 assertEquals(PurchaseStage.VALIDATING,paused.stage());assertEquals("LICENSE_REQUIRED",paused.errorMessage());
                 assertNull(paused.orderId());assertEquals(0,buys.get());
-                LicenseRuntime.install(prior);coordinator.resume(Settings.empty());assertEquals(0,buys.get());
-                coordinator.advance(Settings.empty(),pipeline);
+                LicenseRuntime.install(prior);coordinator.resume(fixtureSettings());assertEquals(0,buys.get());
+                coordinator.advance(fixtureSettings(),pipeline);
                 assertEquals(1,buys.get());assertEquals(PurchaseStage.POLLING_ORDER,repository.findPipeline(pipeline).orElseThrow().stage());
             }finally{LicenseRuntime.install(prior);}
         }
@@ -77,9 +80,11 @@ class ZnackLicenseBoundaryTest {
                 reads.incrementAndGet();repository.updateOrder(id,null,"READY",OrderStatus.CODES_READY,null);
                 return repository.findOrder(id).orElseThrow();
             }
-            @Override public KizOrder buy(Settings s,String gtin,int quantity){throw new AssertionError("Recovery cannot create an order");}
+            @Override public ZnackPurchaseBatchStore.Batch advanceBatch(Settings s,long batch){throw new AssertionError("Recovery cannot create an order");}
+            @Override public java.util.OptionalInt availableCodes(long id){return java.util.OptionalInt.of(1);}
         };
         var codes=new ZnackKizCodeService(null,null,repository){
+            @Override public int download(Settings s,long id,int available){return download(s,id);}
             @Override public int download(Settings s,long id){
                 int inserted=repository.insertCodes(id,GTIN,new DownloadedCodes(List.of("accepted-code"),"accepted-block"));
                 repository.updateOrder(id,null,"READY",OrderStatus.CODES_DOWNLOADED,null);return inserted;
@@ -90,7 +95,7 @@ class ZnackLicenseBoundaryTest {
         try(var denied=LicenseDomainFixture.denied(temp.resolve("denied-license"))) {
             LicenseRuntime.install(denied);
             try {
-                coordinator.advance(Settings.empty(),pipeline);
+                coordinator.advance(fixtureSettings(),pipeline);
                 assertEquals(1,reads.get());assertEquals(1,repository.findCodes(orderId).size());
                 assertEquals(PurchaseStage.WAITING_INTRODUCTION_READINESS,repository.findPipeline(pipeline).orElseThrow().stage());
                 assertEquals("accepted-order",repository.findOrder(orderId).orElseThrow().externalOrderId());

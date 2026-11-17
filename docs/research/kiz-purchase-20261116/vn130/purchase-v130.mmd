@@ -1,0 +1,27 @@
+flowchart TD
+    A["Seller chọn GTIN và số lượng"] --> B["Kiểm GTIN, OMS, chữ ký; giấy tờ nếu bật tự lưu thông"]
+    B --> C["Lưu SQLite request_key / pipeline; cấp quyền ký cho lô"]
+    C --> D["CryptoPro ký body; SUZ xác thực clientToken"]
+    D --> E["POST /api/v3/order; lưu orderId"]
+    E --> F["GET /api/v3/order/status"]
+    F --> G{"Buffer đã cho tải?"}
+    G -- "Chưa" --> F
+    G -- "Có" --> H["GET /api/v3/codes phần còn thiếu; lưu mã"]
+    H --> I{"Đã đủ số lượng?"}
+    I -- "Chưa" --> F
+    I -- "Đủ" --> J{"autoIntroduction?"}
+    J -- "Tắt" --> K["COMPLETED: chỉ đã tải đủ; chưa chứng minh lưu thông"]
+    J -- "Bật" --> L["True API: thẻ sản phẩm + cises/info"]
+    L --> M{"Trạng thái từng mã"}
+    M -- "Đều INTRODUCED" --> Z["IN_CIRCULATION / INTRODUCED"]
+    M -- "Đều APPLIED, thẻ hợp lệ" --> N["Đọc giấy tờ đang hiệu lực; ký LP_INTRODUCE_GOODS"]
+    M -- "Chưa sẵn sàng" --> W["WAITING_INTRODUCTION_READINESS; kiểm lại 30 giây"]
+    W --> L
+    N --> O["POST documents/create; lưu documentId"]
+    O --> P["Đọc doc/info và cises/info"]
+    P -- "CHECKED_OK + tất cả INTRODUCED" --> Z
+    P -- "Còn xử lý" --> P
+    D -. "Thiếu quyền ký / CryptoPro lỗi" .-> S["Tạm dừng ký, giữ lô cũ; không mua lại"]
+    L -. "Cần xác thực ký" .-> S
+    N -. "Ký bị chặn" .-> S
+    S --> T["Seller chọn lại đúng shop để cho tiếp tục"]

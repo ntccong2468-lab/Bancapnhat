@@ -1,0 +1,24 @@
+flowchart TD
+    A[Manual / WB FBS / Ozon FBS / FBO approved quantities] --> B[Pin purchase method before preflight]
+    B --> C[Registered exact GTIN and local production permit; verified CryptoPro]
+    C --> D[Atomic durable approval, original settings and request key]
+    D --> E[Group at most 10 distinct GTINs by account, product group and purchase method]
+    E --> F[Validate every member signing permission and generation]
+    F --> G[Sign one canonical payload; persist SUBMITTING before one paid POST]
+    G -->|Confirmed order ID| H[One remote order, separate immutable local GTIN lines]
+    G -->|3350 quota| Q[Durable account hold; no credential attempt consumed]
+    G -->|Typed prewire deferral or HTTP 429| R[Durable unsent hold of same approved batch]
+    G -->|Strict 1090 and no-order proof| S[Single-GTIN recovery children; same approval; 0 / 5 / 15 min; at most 3]
+    G -->|Transport ambiguity / 408 / 5xx / bad 200| T[Reconcile exact original GTIN quantities; never blind re-POST]
+    Q --> E
+    R --> E
+    S --> F
+    T -->|Unique matching order| H
+    H --> I[Shared status read; exact GTIN buffer and available quantity]
+    I --> J[Durable issuance target before capped code download]
+    J -->|Lost response / CLOSED / EXHAUSTED| K[Read issued blocks; no new consuming GET]
+    K --> J
+    J --> L[Exact full CIS, approved count and live owner checks]
+    L --> M[Production / Commission introduction with original context]
+    M --> N[Observe every code actually IN_CIRCULATION]
+    N --> O[Publish available stock; Ozon allocation still requires exact accepted codes]

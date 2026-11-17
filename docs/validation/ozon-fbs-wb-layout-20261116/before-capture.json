@@ -1,0 +1,112 @@
+{
+  "status": "PASS",
+  "captures": [
+    {
+      "route": "znack-registration-ozon",
+      "theme": "dark",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-before/images/znack-registration-ozon-before-dark-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "rows": [
+        24
+      ]
+    },
+    {
+      "route": "znack-registration-ozon",
+      "theme": "light",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-before/images/znack-registration-ozon-before-light-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "rows": [
+        24
+      ]
+    },
+    {
+      "route": "packing",
+      "theme": "dark",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-before/images/packing-before-dark-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "rows": [
+        0,
+        0,
+        0,
+        0,
+        24
+      ]
+    },
+    {
+      "route": "packing",
+      "theme": "light",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-before/images/packing-before-light-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "rows": [
+        0,
+        0,
+        0,
+        0,
+        24
+      ]
+    },
+    {
+      "route": "ozon",
+      "theme": "dark",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-before/images/ozon-before-dark-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "rows": [
+        0,
+        24,
+        24,
+        24,
+        24
+      ]
+    },
+    {
+      "route": "ozon",
+      "theme": "light",
+      "image": "/workspace/ozon-fbs-wb-layout-20261116/capture-before/images/ozon-before-light-1600x1000.png",
+      "width": 1600,
+      "height": 1000,
+      "syntheticFixture": true,
+      "rows": [
+        0,
+        24,
+        24,
+        24,
+        24
+      ]
+    }
+  ],
+  "networkBlocked": true,
+  "sourceEdited": false,
+  "scope": "Rendered production controls and Home-equivalent native shell composition from current JAR on Linux/Xvfb; synthetic24-product/order fixture; not Windows/customer screenshot or API acceptance.",
+  "licenseApiCalls": 0,
+  "captureTimestampUtc": "2026-11-16T14:49:43.042934+00:00",
+  "jarSha256": "6a60df306c99179a87230d6878d2d551da6746ea4af33e79159fd6156c76178f",
+  "harnessSha256": "330383de263f99a41c51a2b56bfda2883cf4c8ae3dcf6fa6d1b0f5241c5c3c89",
+  "imageHashes": {
+    "ozon-before-dark-1600x1000.png": "2abab1bcd1051794e76f522613ab25037b9886e8e0f41d7187bf2d6b23e6a2e3",
+    "ozon-before-light-1600x1000.png": "a578eb0586455251a1d3e014470b09b188801cd823ec13c33507e36f74e0a926",
+    "packing-before-dark-1600x1000.png": "30ed783104175e99e0b1ef9116bba65a9941c85ddd501366098cd46b4e6607ff",
+    "packing-before-light-1600x1000.png": "3b0f5e7825a16d2456fcd45b253c9a7b6ffad75055dd8e869ee13382efa28dfa",
+    "znack-registration-ozon-before-dark-1600x1000.png": "b8ab85ca3138076a16756129111021f114ef7a910be818f8068be1a7da0eed36",
+    "znack-registration-ozon-before-light-1600x1000.png": "44180f8071c369bdf8ca45f70f121e08ab423a068e1d7b82a1e2ccc00ee38c76"
+  },
+  "manuallyViewed": [
+    "znack-registration-ozon-before-dark-1600x1000.png",
+    "znack-registration-ozon-before-light-1600x1000.png",
+    "packing-before-dark-1600x1000.png",
+    "ozon-before-dark-1600x1000.png"
+  ],
+  "environmentNotes": [
+    "Initial external harness Proxy import ambiguity corrected before capture; not a production defect.",
+    "Nonfatal read-only desktop font/dconf cache notices; six rendered captures succeeded."
+  ]
+}

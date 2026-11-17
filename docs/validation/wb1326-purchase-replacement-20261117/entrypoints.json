@@ -1,0 +1,202 @@
+{
+  "status": "READONLY_COMPLETE",
+  "checkedAtUtc": "2026-11-17T13:03:32.616050+00:00",
+  "singlePaidPostBoundary": "integration/znack/ZnackKizOrderService.buy -> ZnackApiClient.createOrder",
+  "entrypoints": [
+    {
+      "name": "Manual GTIN purchase",
+      "caller": "ui/kizmapping/KizMappingController.java:322-343",
+      "chain": [
+        "ZnackPurchaseCoordinator.create",
+        "enqueueForCirculation",
+        "enqueue",
+        "advance",
+        "ZnackKizOrderService.buy",
+        "ZnackApiClient.createOrder"
+      ]
+    },
+    {
+      "name": "WB shipment GTIN card",
+      "caller": "ui/supply/SupplyDetailController.java:845-878",
+      "chain": [
+        "ZnackPurchaseCoordinator.create",
+        "enqueue",
+        "enqueueForCirculation",
+        "advance",
+        "ZnackKizOrderService.buy"
+      ]
+    },
+    {
+      "name": "Ozon FBS GTIN card",
+      "caller": "ui/ozon/OzonDashboardController.java:1610-1630",
+      "chain": [
+        "ZnackPurchaseCoordinator.create",
+        "enqueue",
+        "enqueueForCirculation",
+        "advance",
+        "ZnackKizOrderService.buy"
+      ]
+    },
+    {
+      "name": "WB print shortage",
+      "caller": "ui/workspace/HomeController.java:1147-1179 -> features/print/OrderExportWorkflow.java:64-73",
+      "chain": [
+        "KizPrintPurchaseSession.preflight/run",
+        "KizStockReplenisher.ensure/ensurePurchased",
+        "KizPurchaseMappingProof.require",
+        "validatePrerequisites",
+        "enqueueForPrint/enqueueForCirculation",
+        "resumeAsync"
+      ]
+    },
+    {
+      "name": "Ozon print shortage",
+      "caller": "ui/ozon/OzonDashboardController.java:856 -> integration/ozon/OzonStockReplenishment.java:46-55",
+      "chain": [
+        "KizPrintPurchaseSession.run",
+        "KizStockReplenisher.ensure/ensurePurchased",
+        "KizPurchaseMappingProof.require",
+        "validatePrerequisites",
+        "enqueueForPrint/enqueueForCirculation",
+        "resumeAsync"
+      ]
+    },
+    {
+      "name": "Ozon acceptance shortage",
+      "caller": "integration/ozon/OzonAcceptanceStockReplenishment.java:22-27,102-108",
+      "chain": [
+        "KizPrintPurchaseSession.run",
+        "KizStockReplenisher.ensurePurchased",
+        "KizPurchaseMappingProof.require",
+        "validatePrerequisites",
+        "enqueueForPrint/enqueueForCirculation",
+        "resumeAsync"
+      ]
+    },
+    {
+      "name": "FBO confirmed shortage",
+      "caller": "ui/workspace/HomeController.java:759 -> features/fbo/FboPurchaseService.java:10-29",
+      "chain": [
+        "FboPreflightService.inspect",
+        "validatePrerequisites(all GTINs)",
+        "enqueue(per-GTIN deterministic requestKey)",
+        "resumeAsync"
+      ]
+    },
+    {
+      "name": "Startup/background recovery",
+      "caller": "ui/workspace/HomeController.java:1353-1354,1401-1427",
+      "chain": [
+        "authorizeInitialZnackShop",
+        "ZnackPurchaseCoordinator.resumeAllPersisted",
+        "resume",
+        "resumeEligibleIntroductions"
+      ]
+    },
+    {
+      "name": "Explicit shop selection recovery",
+      "caller": "ui/workspace/HomeController.java:1378-1398",
+      "chain": [
+        "ZnackSigningSession.authorizeShop",
+        "ZnackPurchaseCoordinator.resume",
+        "resumeEligibleIntroductions"
+      ]
+    },
+    {
+      "name": "Paused paid lot resume",
+      "caller": "ui/kizmapping/KizMappingController.java:365-372; ui/supply/SupplyDetailController.java:81; ui/ozon/OzonDashboardController.java:146",
+      "chain": [
+        "isSigningConfirmationPending",
+        "resumeSigning(existing pipelineId)",
+        "boundPipelineSettings",
+        "authorizePipelineResumption",
+        "advance",
+        "schedule"
+      ]
+    },
+    {
+      "name": "Rejected introduction retry",
+      "caller": "ui/kizmapping/KizMappingController.java:352-355; ui/supply/SupplyDetailController.java:879-895; ui/ozon/OzonDashboardController.java:1631-1643",
+      "chain": [
+        "retryIntroduction(existing pipeline)",
+        "advance",
+        "schedule"
+      ]
+    },
+    {
+      "name": "Insufficient funds retry",
+      "caller": "ui/znack/ZnackInsufficientFundsDialogService.java:75-76",
+      "chain": [
+        "retryInsufficientFunds(existing pipeline)",
+        "same requestKey and pipeline",
+        "advance"
+      ]
+    },
+    {
+      "name": "Document configuration/sync resumes",
+      "caller": "ui/kizmapping/KizMappingController.java:195,605; ui/supply/SupplyDetailController.java:1020; ui/ozon/OzonDashboardController.java:1728; ui/znack/ZnackAutomationController.java:1618",
+      "chain": [
+        "resumeEligibleIntroductionsAsync",
+        "same original profile and codes"
+      ]
+    }
+  ],
+  "publicFacadeCompatibility": [
+    "create(ZnackRepository)",
+    "start(Settings,String,int[,String])",
+    "enqueue(Settings,String,int,String)",
+    "enqueueForPrint(Settings,String,int,String)",
+    "enqueueForCirculation(Settings,String,int,String)",
+    "validatePrerequisites(Settings,String,int)",
+    "advance(Settings,long)",
+    "resume(Settings)",
+    "resumeAsync(Settings)",
+    "resumeAllPersisted()",
+    "resumeSigning(long)",
+    "retryIntroduction(Settings,String/long)",
+    "retryInsufficientFunds(Settings,long)",
+    "resumeEligibleIntroductions(Settings)",
+    "resumeEligibleIntroductionsAsync(Settings)",
+    "isSigningConfirmationPending(int,Long,String,String)",
+    "nextCheckAt(int,long)",
+    "hasRunningMutation()"
+  ],
+  "gs1PurchaseProducerFound": false,
+  "gs1Scope": "Registration/authentication only in current production call graph",
+  "schema": {
+    "kiz_orders": "One GTIN per local row; UNIQUE(shop_id,id), UNIQUE(shop_id,external_order_id)",
+    "kiz_codes": "FK(shop_id,order_id), FK(shop_id,document_id); stock consumed/reserved states must remain",
+    "znack_documents": "Each local document bound to local order; external_document_id not unique",
+    "znack_purchase_pipelines": "Persisted id/request_key/stage/order_id; GTIN pending/FIFO claim constraints",
+    "znack_pipeline_connections": "Original settings_json snapshot per pipeline; preserve OMS/cert/owner and legacy autoIntroduction consent"
+  },
+  "externalOrderIdSqlConsumers": [
+    {
+      "path": "integration/ozon/OzonPurchasedKizStock.java",
+      "lines": [
+        62
+      ],
+      "contract": "paid external_order_id or issued block proof"
+    },
+    {
+      "path": "integration/ozon/OzonPurchasedKizAssignment.java",
+      "lines": [
+        35
+      ],
+      "contract": "non-imported paid order external ID required"
+    },
+    {
+      "path": "integration/ozon/OzonAcceptanceKizReplacement.java",
+      "lines": [
+        159,
+        189
+      ],
+      "contract": "replacement paid source external ID required"
+    }
+  ],
+  "hiddenPurchasePermitGate": "KizPurchaseMappingProof.require -> requireKnownPermit -> CatalogReadRevision.requireComplete, called by WB/Ozon pre-buy callbacks before Coordinator",
+  "migrationRecommendation": "Do not leave new paid member external_order_id NULL without adapting Ozon SQL. Consider additive batch store plus reviewed unique(shop,external,gtin) migration, one active pipeline/GTIN, preserve local IDs/CIS/FKs and old same-GTIN FIFO. Test legacy migration/backup/restore/integrity/fk checks.",
+  "sourceEdits": false,
+  "testsRun": false,
+  "realApis": false
+}

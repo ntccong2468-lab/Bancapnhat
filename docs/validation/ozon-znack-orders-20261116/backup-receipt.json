@@ -1,0 +1,45 @@
+{
+  "status": "ALL_AVAILABLE_APP_BACKUPS_VERIFIED",
+  "backupDirectory": "/workspace/artifacts/VNCode-before-ozon-znack-orders-20261116-134914-MSK",
+  "sourceArchive": {
+    "path": "/workspace/artifacts/VNCode-before-ozon-znack-orders-20261116-134914-MSK/VNCode-full-source-before-ozon.zip",
+    "bytes": 92551608,
+    "sha256": "e7f3b8eb264b43a9b2d80a8c300c73d00e46f090502f321f4830b14de9dbb10f",
+    "files": 3740,
+    "crcAndEveryArchivedFileHashVerified": true,
+    "sourceUnchangedDuringBackup": true
+  },
+  "sourceHead": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "sourceBranch": "chore/ecc-codex-web-20261115",
+  "allPriorUncommittedChangesPreserved": true,
+  "priorRuntimeFilesModified": [
+    "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+    "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml"
+  ],
+  "businessFilesHaveNotBeenEditedForNewTask": true,
+  "createdAtMoscow": "2026-11-16T13:49:14.782379+03:00",
+  "testedLocalAppArchive": {
+    "path": "/workspace/artifacts/VNCode-before-ozon-znack-orders-20261116-134914-MSK/VNCode-tested-local-Linux-app-before-ozon.zip",
+    "bytes": 87222422,
+    "sha256": "eed1859367210efb8cb57bdfcdd06ebbf01e4458acd2ca1957dba92288a4c79f",
+    "runtimeJars": 74,
+    "jarSha256": "4a1b13a71bef839b9eccb1970003d90b0301e56b839aac5e4d4097a6f866355c",
+    "platform": "Linux/Java25; not Windows installer",
+    "crcAndEntryHashesVerified": true
+  },
+  "publishedWindowsInstallers": [
+    {
+      "path": "/workspace/artifacts/VNCode-before-ozon-znack-orders-20261116-134914-MSK/VN-code-1.6.10-Windows-x64.exe",
+      "bytes": 149539328,
+      "sha256": "2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0",
+      "scope": "Original immutable published1.6.10; new/unreleased source changes are in source ZIP."
+    },
+    {
+      "path": "/workspace/artifacts/VNCode-before-ozon-znack-orders-20261116-134914-MSK/VN-code-1.6.10-Windows-x64.msi",
+      "bytes": 148870409,
+      "sha256": "e12a5983a99d7665d36db0632bd6403301d5f2a658c5d73584d8bc14438d4fd0",
+      "scope": "Original immutable published1.6.10; new/unreleased source changes are in source ZIP."
+    }
+  ],
+  "backupBeforeNewSourceEdits": true
+}

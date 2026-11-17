@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "jsonParsed": 21,
+  "authoredDocLocalLinksChecked": 42,
+  "missingLinks": [],
+  "copiedRawReadmeLinkScope": "OriginalrelativeURLsleftunchangedassourceevidence; notnavigationvalidation",
+  "mermaidSourcesStaticChecked": 8,
+  "mermaidActualRenderExecuted": false,
+  "baselineFilesPreserved": 3907,
+  "appSourceTestConfigChanges": false,
+  "tests": {
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "realPurchase": false,
+  "published": false
+}

@@ -1,0 +1,72 @@
+{
+  "status": "FINAL_PASS",
+  "tests": 23,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "suites": [
+    {
+      "name": "OzonWbPackingParityTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 37.871
+    },
+    {
+      "name": "OzonFbsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 21.065
+    },
+    {
+      "name": "OzonDashboardControllerTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.008
+    }
+  ],
+  "sourceHashesStillMatch": true,
+  "testSha256": "0350cec33070206364c243206f5c3f0a95496a3c809daabde638b0e3737691f3",
+  "absoluteGeometryStates": [
+    "dark",
+    "dark-busy",
+    "light",
+    "light-busy"
+  ],
+  "maxAbsoluteYHeightDifferencePx": 0.0,
+  "columnWidthsWBAndOzon": [
+    46,
+    228,
+    127,
+    594,
+    159
+  ],
+  "photo": {
+    "size": [
+      36,
+      48
+    ],
+    "WB_relativeToCell": [
+      10.0,
+      7.0
+    ],
+    "Ozon_relativeToCell": [
+      10.0,
+      7.0
+    ],
+    "WB_relativeToRow": [
+      284.0,
+      7.0
+    ],
+    "Ozon_relativeToRow": [
+      284.0,
+      7.0
+    ]
+  },
+  "scope": "Native JavaFX with production themes/controllers/FXML, isolated synthetic SQLite rows, no API/fees/signing/license/release."
+}

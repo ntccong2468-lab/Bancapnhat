@@ -1,0 +1,124 @@
+{
+  "status": "PASS",
+  "finishedAtUtc": "2026-11-16T12:44:11.707445+00:00",
+  "sourceHead": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "sourceBranch": "feature/ozon-znack-order-kiz-20261116",
+  "scope": "Fresh affected-scope synthetic Linux/Xvfb tests/build and actual production JAR Launcher for shared WB/Ozon purchase fixes; not whole-app/native/live acceptance",
+  "baselineFiles": 3767,
+  "checks": {
+    "combinedRegressionAndPackage": "PASS",
+    "jarIntegrity": "PASS",
+    "actualJarFirstLauncher": "PASS",
+    "independentArtifactReview": "PASS",
+    "finalInputSetAndHashes": "PASS",
+    "nativeWindowsCryptoProDpapi": "NOT_RUN",
+    "realCatalogSuzMarketplaceTransactions": "NOT_PERFORMED",
+    "newCodeQLScan": "NOT_RUN",
+    "wholeApplicationFullSuite": "NOT_RUN"
+  },
+  "counts": {
+    "tests": 1576,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": 146,
+  "selectedClasses": 146,
+  "combinedExitCode": 0,
+  "combinedElapsedSeconds": 617.0524060130001,
+  "newTestClassCasesAlreadyIncluded": {
+    "KizPrintPurchasePauseTest": 12,
+    "KizSigningSummaryRecoveryTest": 15,
+    "ZnackAmbiguousCodeDownloadTest": 36,
+    "ZnackCirculationOwnerCompletionTest": 30,
+    "ZnackDownloadRecoveryMessagesTest": 4,
+    "ZnackNormalDownloadIdentityTest": 18,
+    "FbsKizSigningResumeUiTest": 14
+  },
+  "newTestClassCount": 7,
+  "newTestClassCaseSubtotal": 129,
+  "modifiedHealthyFixtureClassCasesAlreadyIncluded": {
+    "ZnackGtinWorkflowTest": 53,
+    "ZnackIntroductionIdentityTest": 29,
+    "ZnackModuleTest": 76
+  },
+  "modifiedHealthyFixtureClassCount": 3,
+  "buildInputs": 1441,
+  "ownerFiles": 24,
+  "canonicalFreezeExpectedFilesMatch": true,
+  "finalSourceIssues": {
+    "addedLiveInputs": [],
+    "missingLiveInputs": [],
+    "changedLiveInputs": [],
+    "addedCopyInputs": [],
+    "missingCopyInputs": [],
+    "changedCopyInputs": [],
+    "changedOwnerInputs": []
+  },
+  "jar": {
+    "path": "/workspace/kiz-first-release-audit-20261116/final-verification/source-copy/target/VNcode-1.6.10.jar",
+    "bytes": 7810919,
+    "sha256": "6a60df306c99179a87230d6878d2d551da6746ea4af33e79159fd6156c76178f",
+    "compiledNonmanifestEntries": 2081,
+    "classes": 2040,
+    "runtimeLibraries": 74,
+    "runtimeLibrariesUnchangedFromPreviousVerifiedOzonBuild": true
+  },
+  "launcher": {
+    "liveSellerMutations": false,
+    "syntheticLicense": true,
+    "outboundNetworkBlocked": true,
+    "actualEntrypoint": "com.vncode.app.Launcher.main",
+    "workspaceVisible": true,
+    "width": 1300,
+    "height": 700,
+    "startupToWorkspaceSeconds": 6.03547408,
+    "launcherReturned": true,
+    "elapsedSeconds": 6.307240197,
+    "startupFailureLogCreated": false,
+    "dataLockReleasedAfterShutdown": true,
+    "result": "PASS"
+  },
+  "database": {
+    "status": "PASS",
+    "integrityCheck": [
+      "ok"
+    ],
+    "foreignKeyViolations": 0,
+    "schemaVersion": 6,
+    "shopCount": 0
+  },
+  "screenshotManuallyViewed": true,
+  "screenshotScope": "First actual workspace, empty synthetic profile; not real seller/purchase screenshot",
+  "evidenceSha256": {
+    "command.json": "fbfbf47edbcd66592961b0cadb77cf39fd9fc8d7ace96203f8743523b5c2b823",
+    "combined-result.json": "866820dae7db9d0a4be90850efa180bbc715e9c82e2b206dd816a51fdd564060",
+    "source-copy-manifest.json": "8e0e292a16a265cfd6a4bba7997f318ecfaf6e92e9053412f94095c050054d9b",
+    "owner-manifest-before.json": "fa767c31c7d08dff04ce46ef5a8bf0289049bf04a4a280d54ddeb3365fb4d4a5",
+    "test-selection.json": "e2e1a8967b1ec51e5f3dcfafc35cbd70da5f6d44d1154315e677b675a521c53d",
+    "maven.log": "9ced7ab2c1a3a3a99b6f04b0046ccecff764ecf0842393d524e499e6a92b21d1",
+    "maven-settings.xml": "ee6885c097c2a81b59682d70e2f94843103a476345501b1e66f8f5fa0bdf3719",
+    "jar-integrity.json": "f1ef05a6214e9b8fccb93fbacb59b499bd90a1cb01073ab30430b24f34b0fa0e",
+    "launcher-command.json": "e39e2e38d23ae8ca88dd54415a7972387fb9b955767c31d8ea7d2c1a0983ef48",
+    "launcher-result.json": "ba6b0b6b760385d0d77d322769f4643980474afe0a5f09e90c8c9209bbf39090",
+    "smoke-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "smoke-runtime.log": "adc1ff6fa2ff181dd117cbff2067fc1353c107162b66e4e6a1f08c4a39fe9d61",
+    "independent-artifact-review.json": "3adb39658f2388436460dfd50abc115789e419956cd5b89b6358fdaf0469355e",
+    "actual-launcher-smoke/actual-launcher-workspace.png": "4a0c15982a11e9dd54dc18bf15a07e4ac7730d870b467898e93b295ef8296248"
+  },
+  "notPerformed": [
+    "real API writes/order acceptance",
+    "paid SUZ KIZ purchase",
+    "real digital signing/CryptoPro",
+    "real license activation/Gmail",
+    "native Windows/installer checks",
+    "publication, push or release",
+    "new CodeQL scan",
+    "unrelated whole-app10k-GTIN suite"
+  ],
+  "knownHistoricalLimits": [
+    "Eight existing Java CodeQL findings including one high7.5 remain unresolved; no fresh scanner result.",
+    "Historical GS1 extraction coverage limit remains.",
+    "Synthetic PDF100/1000 and API fixtures do not establish real paid Ozon/SUZ throughput or acceptance."
+  ]
+}

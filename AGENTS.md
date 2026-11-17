@@ -13,3 +13,10 @@
 - Không tự triển khai, merge hoặc xóa bản phát hành/dữ liệu; làm theo yêu cầu cụ thể của người dùng. Lệnh `tools/baseline-release.mjs prune` xóa các release cũ và không thuộc bước xác minh thông thường.
 - Khi dùng OpenQodex để quét hoặc review, đọc skill `.agents/skills/openqodex/SKILL.md` và báo đúng phạm vi scanner/reviewer.
 - Khi cần thao tác desktop Windows để kiểm VN Code, đọc `.agents/skills/windows-mcp-control/SKILL.md` và `tools/windows-mcp/README.md`. Phân biệt MCP client đã cài, worker Windows đã kết nối và app đã kiểm thật; không coi chúng là cùng một trạng thái.
+
+## ECC đã điều chỉnh cho VNCode
+
+- Khi review thay đổi hoặc đánh giá tác động liên module, đọc [vncode-ecc-review](.agents/skills/vncode-ecc-review/SKILL.md).
+- Khi review bảo mật, quyền, dữ liệu nhạy cảm, dependency hoặc MCP, đọc [vncode-ecc-security](.agents/skills/vncode-ecc-security/SKILL.md).
+- Khi tái hiện lỗi, chọn kiểm thử hoặc xác minh build/bàn giao, đọc [vncode-ecc-tdd-verification](.agents/skills/vncode-ecc-tdd-verification/SKILL.md), kết hợp Code Doctor cho điều tra lỗi.
+- Xem [phạm vi tích hợp và tương thích](docs/engineering/ecc/README.md). Các checklist này bổ sung hướng dẫn hiện có; không đăng ký hook/agent/plugin, cấp quyền, thay quy tắc dự án hoặc tạo bộ nhớ/giao diện song song. Chỉ dùng công cụ host thực sự có; nếu host không tự nhận skill, đọc qua các liên kết trên và báo rõ cách sử dụng.

@@ -1,0 +1,139 @@
+{
+  "owner": "D",
+  "status": "FROZEN_GREEN",
+  "asOfUtc": "2026-11-17T13:54:24.917674+00:00",
+  "snapshot": "/workspace/kiz-wb1326-replacement-20261117/protocol/full-checkpoint-7/source-copy",
+  "mainSourcesCompiled": 778,
+  "allTestSourcesCompiled": 646,
+  "testTotals": {
+    "tests": 181,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326DownloadAvailabilityTest",
+      "tests": "11",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.063"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326IntroductionMethodTest",
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.897"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326PermitResolverTest",
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.034"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326ProtocolApiRoutingTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.058"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326SharedOrderDownloadTest",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.679"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.Wb1326SuzPacingTest",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.021"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCirculationMessagesTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.211"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackCirculationOwnerCompletionTest",
+      "tests": "30",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "5.596"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackDownloadRecoveryMessagesTest",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.677"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackIntroductionIdentityTest",
+      "tests": "29",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.629"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackIntroductionSubmissionOutcomeTest",
+      "tests": "30",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.317"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackNormalDownloadIdentityTest",
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.859"
+    },
+    {
+      "name": "com.vncode.app.integration.znack.ZnackPermitDocumentParserTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.008"
+    }
+  ],
+  "ownedFiles": {
+    "src/main/java/com/vncode/app/integration/znack/ZnackApiClient.java": "125c69104722ac068edf7fbaf6b9c17f7327dcd97ab4cb74d0fc65c410bf419f",
+    "src/main/java/com/vncode/app/integration/znack/ZnackKizCodeService.java": "a1e694bbeb071eda8a022f53de9000308f48fb9d52fa5630ba3c206940cd65f1",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionService.java": "15300a064178701992de0c617e993ac4841a900bec8c16a68276fbd055378ec5",
+    "src/main/java/com/vncode/app/integration/znack/ZnackIntroductionReadinessService.java": "5966a5080535129edbbdc93f789a00b6f894234ba47ea231f5ae1fddf7935395",
+    "src/main/java/com/vncode/app/integration/znack/SuzRequestPacing.java": "1db64937b3d88037228aa903dfe4ecbf5c58abea2230cdefd95f0d106650da8b",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchaseProtocolContext.java": "225eb8c348d43adf6a123c40a934b9dbc3368cc321c692fb6553743119386642",
+    "src/main/java/com/vncode/app/integration/znack/ZnackPurchasePermitResolver.java": "6e2407fcae5c5564a1f213a2615f3b2a0f0e90554f3a228f0717aa5ebb329b72",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326ProtocolApiRoutingTest.java": "21c2f654545de16317a1fbbe30ce7f81f9d22a8023ae1c72d83018e3df25afde",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326SuzPacingTest.java": "09f54a2223662d3733ab94c2831e516c2cce4ae22f4e2ab9a7cebc7bf61fa196",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326PermitResolverTest.java": "91d5afa571cf1f50204f502f44fd42ce79ee6d0a7ed88ce5af9ad1d65df7d887",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326DownloadAvailabilityTest.java": "e324de039def3d8f0edbaa6e4dcd2519aa711951db344bd95cd5a8fb1735ca54",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326IntroductionMethodTest.java": "8e1101981b210662de3de4846742bd16f8fe835ac14f13a5f26e76966e162455",
+    "src/test/java/com/vncode/app/integration/znack/Wb1326SharedOrderDownloadTest.java": "ec9468e4697549c88dc5ff690d3338286bc5928e596ef6183726f70226cf9e87",
+    "src/test/java/com/vncode/app/integration/znack/ZnackIntroductionSubmissionOutcomeTest.java": "505fd8670a19b06be359354e17d4aad497d6c38d4a3b819f21282886831f7f45",
+    "src/test/java/com/vncode/app/integration/znack/ZnackCirculationOwnerCompletionTest.java": "0b4d0f0fcae33b7ef123ceabd9aa0bc33ab3875eed5cd459cb3becfd0eb41dac"
+  },
+  "ownedFileDriftSinceSnapshot": [],
+  "scope": "Synthetic loopback HTTP + isolated SQLite only; no real SUZ paid purchase/signature/license or marketplace writes."
+}

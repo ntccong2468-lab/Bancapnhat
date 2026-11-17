@@ -1,0 +1,31 @@
+{
+  "retrievedAtUtc": "2026-11-16T20:14:07.579038+00:00",
+  "releaseId": 446845555,
+  "version": "v1.3.26",
+  "publishedAtUtc": "2026-11-16T10:14:10Z",
+  "releaseUrl": "https://github.com/rupphi/relatest-wcode/releases/tag/v1.3.26",
+  "assets": [
+    {
+      "name": "checksums.sha256",
+      "bytes": 256,
+      "sha256": "5dccf502a1dfbf50e895f0b8f5876685acc4f869a0a505c2828c5f6f6c47fe4c",
+      "officialDigestMatches": true,
+      "assetId": 754371229
+    },
+    {
+      "name": "update-manifest.json",
+      "bytes": 1738,
+      "sha256": "45bdef87dfe79514a5e8b59a6cca4afc333cde637d881e593468b13cb9c9555d",
+      "officialDigestMatches": true,
+      "assetId": 754369895
+    },
+    {
+      "name": "WCode.exe",
+      "bytes": 149650432,
+      "sha256": "afcd6f99f800fa1f1e83f4229ec24223becf72d0f78f90680ceb390a0bfd1d70",
+      "officialDigestMatches": true,
+      "assetId": 754369893
+    }
+  ],
+  "targetExecuted": false
+}

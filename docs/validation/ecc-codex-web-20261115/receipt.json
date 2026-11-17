@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 1,
+  "status": "COMPLETED_WITH_LIMITATIONS",
+  "completedAtUtc": "2026-11-15T19:11:55.352612+00:00",
+  "repository": "https://github.com/ntccong2468-lab/Bancapnhat",
+  "branch": "chore/ecc-codex-web-20261115",
+  "sourceBaseCommit": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "workingTreeChangesNotCommitted": true,
+  "ecc": {
+    "repository": "https://github.com/affaan-m/ECC",
+    "commit": "d2ef2680594f9a17526a6e1a2e18b3d242c5d17b",
+    "license": "MIT",
+    "validation": {
+      "ok": true,
+      "errors": [],
+      "counts": {
+        "existingSkills": 12,
+        "integratedSkills": 3,
+        "artifacts": 11,
+        "sources": 11,
+        "links": 61
+      },
+      "sourceHashesVerified": true
+    },
+    "hostUse": "Explicit AGENTS-linked SKILL.md reading applied to reviews/testing; native Web auto-discovery not verified.",
+    "executorSkillCatalogObserved": [],
+    "upstreamRuntimeOrInstallersExecuted": false
+  },
+  "tests": {
+    "tools": {
+      "command": "node --test tools/*.test.mjs",
+      "exitCode": 0,
+      "tests": 191,
+      "pass": 191,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "validatorSubset": 17
+    },
+    "validatorRedGreen": {
+      "beforeFix": {
+        "tests": 17,
+        "passed": 13,
+        "failed": 4
+      },
+      "afterFix": {
+        "tests": 17,
+        "passed": 17,
+        "failed": 0
+      },
+      "independentRetest": "Both formerly accepted invalid review fixtures rejected; actual target still valid."
+    },
+    "portal": {
+      "command": "node --test test/*.test.js",
+      "exitCode": 0,
+      "tests": 67,
+      "pass": 67,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "syntaxCheckExitCode": 0,
+      "dependencyAudit": {
+        "command": "npm audit --package-lock-only --ignore-scripts --audit-level=high --json --cache <workspace-cache>",
+        "exitCode": 0,
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0,
+          "total": 0
+        },
+        "totalDependencies": 111,
+        "doesNotProve": "Source code security or private seller API acceptance"
+      },
+      "initialEnvironmentFailure": {
+        "command": "node --test test/*.test.js",
+        "exitCode": 1,
+        "passed": 63,
+        "failed": 2,
+        "reason": "Environment missing locked linkedom dependency; two test files failed to load."
+      },
+      "dependencyRestore": {
+        "command": "npm ci --cache /workspace/ecc-integration-20261115/npm-cache --ignore-scripts --no-audit --no-fund",
+        "exitCode": 0,
+        "lockfileChanged": false,
+        "packagesAdded": 60,
+        "resolvedPackagesChecked": 111,
+        "registryHosts": [
+          "registry.npmjs.org"
+        ],
+        "integrity": "sha512 for all resolved package entries",
+        "lifecycleScriptsExecuted": false,
+        "eccRuntimeInstalled": false,
+        "firstAttempt": "Default read-only/unusable npm cache failed; workspace-scoped cache succeeded."
+      }
+    },
+    "baseJava": {
+      "command": "xvfb-run -a /workspace/toolchains/mvn-vncode -o -Dvncode.appdata.dir=<isolated-profile> clean verify",
+      "exitCode": 0,
+      "suites": 585,
+      "tests": 4700,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 4698,
+      "seconds": 3761.781,
+      "skipDetails": [
+        {
+          "class": "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+          "name": "refusesNtfsJunctionDirectoryAndAncestors",
+          "reason": "Disabled on operating system: Linux"
+        },
+        {
+          "class": "com.vncode.app.shared.WindowsSecretProtectorTest",
+          "name": "separatesLicenseAndExistingMailEntropyOnWindows",
+          "reason": "Disabled on operating system: Linux"
+        }
+      ],
+      "scope": "Frozen compiled BASE classes/resources; two cosmetic source edits were separate during run. Not a pure new clean-SHA result."
+    },
+    "currentJavaUi": {
+      "command": "xvfb-run -a mvn -o -Dtest=<23 classes listed in focused-result.json> clean verify (frozen current source copy)",
+      "exitCode": 0,
+      "suites": 23,
+      "tests": 280,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 280,
+      "buildInputs": 1424,
+      "inputDrift": [],
+      "sourceScope": "Current working tree frozen copy including two approved cosmetic Znack UI changes; not a pure baseSHA result."
+    },
+    "doNotSum": "280 current UI cases overlap baseline test definitions; 17 validator tests are included in 191 tool tests."
+  },
+  "currentJar": {
+    "generatedManifest": {
+      "status": "PASS",
+      "reason": "Maven JAR Plugin3.4.1 generates archive manifest per pom.xml archive.manifest configuration; source manifest has onlyVersion/Main-Class and is not a byte-identical packaged input. All nonmanifest entries compared byte-for-byte.",
+      "mainClass": "com.vncode.app.Launcher",
+      "buildJdkSpec": "25",
+      "classPathEntries": 74,
+      "runtimeJarCount": 74,
+      "unsafeEntries": [],
+      "missingRuntimeJars": [],
+      "exactClassPathCoverage": true,
+      "testFixturesInClassPath": false
+    },
+    "file": "VNcode-1.6.10.jar",
+    "bytes": 7774115,
+    "sha256": "4a1b13a71bef839b9eccb1970003d90b0301e56b839aac5e4d4097a6f866355c",
+    "jarEntries": 2158,
+    "compiledEntriesCompared": 2067,
+    "generatedManifestEntriesValidatedSeparately": 1,
+    "compiledEntryMismatches": [],
+    "testFixtureEntries": [],
+    "generatedMavenMetadataEntries": [
+      "META-INF/maven/com.vncode/VNcode/pom.properties",
+      "META-INF/maven/com.vncode/VNcode/pom.xml"
+    ],
+    "unexpectedFileEntries": [],
+    "unexpectedClassEntries": [],
+    "packagedPomMatchesFrozenSource": true
+  },
+  "currentLauncher": {
+    "result": "PASS",
+    "jarSha256": "4a1b13a71bef839b9eccb1970003d90b0301e56b839aac5e4d4097a6f866355c",
+    "launcherCodeSource": "file:/workspace/ecc-integration-20261115/runtime/current-source-copy/target/VNcode-1.6.10.jar",
+    "uiControllerCodeSource": "file:/workspace/ecc-integration-20261115/runtime/current-source-copy/target/VNcode-1.6.10.jar",
+    "workspaceVisible": true,
+    "startupSeconds": 6.097488945,
+    "processExitCode": 0,
+    "dataLockReleased": true,
+    "databaseReadback": {
+      "integrity": [
+        "ok"
+      ],
+      "foreignKeyViolations": 0,
+      "schemaVersion": 6,
+      "shops": 0
+    },
+    "syntheticLicense": true,
+    "networkBoundary": "Process-local outbound-denying proxy in isolated smoke; no seller credentials or production profile."
+  },
+  "uiEvidence": {
+    "helper": {
+      "layouts": 288,
+      "screenshots": 72,
+      "horizontalOverflow": 0,
+      "productionThemeAndSettledCaptureAsserted": true,
+      "appClasses": "Frozen BASE"
+    },
+    "currentSourceOverlay": {
+      "layouts": 72,
+      "screenshots": 72,
+      "exactlyOneEmptyLabelAssertions": 8,
+      "manualImagesReviewed": 18,
+      "productionPackage": false
+    },
+    "limits": "Linux/synthetic mostly-empty routes; not Windows, keyboard traversal, FPS or real seller acceptance."
+  },
+  "security": {
+    "portalDependencyFindings": 0,
+    "freshJavaCodeQl": "NOT_RUN; executable unavailable",
+    "historicalJavaFindings": 8,
+    "historicalJavaHighSeverity": 7.5,
+    "gs1ExtractionCoverageLimited": true,
+    "existingGatesChanged": false
+  },
+  "preservation": {
+    "status": "PASS",
+    "receipt": "scope-preservation.json",
+    "groups": {
+      "runtime": {
+        "files": 805,
+        "changed": [
+          "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+          "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml"
+        ]
+      },
+      "tests": {
+        "files": 614,
+        "changed": []
+      },
+      "businessJavaOutsideUiShared": {
+        "files": 603,
+        "changed": []
+      },
+      "ci": {
+        "files": 27,
+        "changed": []
+      },
+      "portal": {
+        "files": 53,
+        "changed": []
+      },
+      "existingSkills": {
+        "files": 291,
+        "changed": []
+      }
+    },
+    "missingFiles": []
+  },
+  "publication": {
+    "performed": false,
+    "latestObservedAfterWork": {
+      "id": 445977967,
+      "immutable": true,
+      "tag_name": "v1.6.10",
+      "target_commitish": "b74b5edfd46636e8779c94f467eef01c03c50a14"
+    },
+    "newWindowsInstallerCreated": false
+  },
+  "remaining": [
+    "Native skill discovery in a new Codex Web session.",
+    "Windows/CryptoPro/DPAPI and live seller/Catalog/OMS acceptance.",
+    "Eight inherited Java CodeQL findings and GS1 extraction limits; no waiver.",
+    "Ozon intentionally retains reasoned carrier-only fallback when per-order KIZ preparation/rendering fails."
+  ],
+  "evidenceHashes": {
+    "full-result.json": "596c4fdc86dd98d313e9cce87c506e07a38766955a65f89488b8d54f5f9947cc",
+    "focused-result.json": "52b9ea282abae423c0623a17975299d613cdef342499d46c619e8918c2888241",
+    "current-launcher-receipt.json": "2f373521d0941d50f5ea1043b63c7b4c34cc8c4b0bfbc1b76a51bf4c7966061d",
+    "final-current-build-input-proof.json": "6226ee7619ee1cbb6bc859ed617ebaf1a02c65e8c5a97372a20e4877c8157e73",
+    "scope-preservation.json": "bf5ab1685d052829f8206523ba8265509bb1ced3dba077e87b50183a8bfeb5fc",
+    "validator-independent-review.json": "7e9ce76ae944f9503e7e18d4f53e3ee39a9f7205b1e3a645ace41b505c85db63",
+    "znack-empty-before.png": "a7f2cf417491df03fa6ffa0cb2b8616a275f74fd94d66ecbf2c3134d93ed2919",
+    "znack-empty-after.png": "2e37ae3004b4ce46ef5b15c7b3675c61fb40c5052fd345b25f9ff394d8dffe6a"
+  }
+}

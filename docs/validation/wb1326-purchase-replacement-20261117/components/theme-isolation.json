@@ -1,0 +1,16 @@
+{
+  "sourceFilesCompared": 6,
+  "allSourceByteIdenticalToTaskBackup": true,
+  "allSourceIdenticalToRootFrozenSnapshot": true,
+  "compiledClassesCompared": 2,
+  "allCompiledClassesIdentical": true,
+  "isolated": {
+    "name": "com.vncode.app.shared.ThemeServiceTest",
+    "tests": "11",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "8.35"
+  },
+  "rootBroadResult": "FAIL preserved; this isolation does not replace or relabel the broad run"
+}

@@ -1,0 +1,194 @@
+{
+  "sourceBaseCommit": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "branch": "chore/ecc-codex-web-20261115",
+  "selfExcluded": "docs/validation/ecc-codex-web-20261115/file-inventory.json",
+  "reason": "An inventory cannot include its own final checksum without circularity.",
+  "files": [
+    {
+      "path": ".agents/skills/vncode-ecc-review/SKILL.md",
+      "change": "created",
+      "bytes": 2845,
+      "sha256": "61ba59aaa999ca3f68329e087d36be6057aa19fc2484512f004a2c0093a9a8db"
+    },
+    {
+      "path": ".agents/skills/vncode-ecc-security/SKILL.md",
+      "change": "created",
+      "bytes": 2865,
+      "sha256": "9b4eed602db7f1ea7080f00e652b772af38463f35ad4a92f77c6009ad7a60c09"
+    },
+    {
+      "path": ".agents/skills/vncode-ecc-tdd-verification/SKILL.md",
+      "change": "created",
+      "bytes": 2963,
+      "sha256": "e8641624ceafdb21d400a8334bbfa7d02e52600c6818ffc01187190d47bd99e8"
+    },
+    {
+      "path": "AGENTS.md",
+      "change": "modified",
+      "bytes": 4179,
+      "sha256": "571ac5bdce9bc3d450cd96a929258ec262fe19de6b890b873dc32092020d46da"
+    },
+    {
+      "path": "docs/PROJECT_MEMORY.md",
+      "change": "modified",
+      "bytes": 209277,
+      "sha256": "d76e3adafedd8331fc3f73727d30bb6ce014edd21f37e05610a49defacfaa80b"
+    },
+    {
+      "path": "docs/engineering/ecc/LICENSE.upstream.txt",
+      "change": "created",
+      "bytes": 1071,
+      "sha256": "326146379f01bb137c0a5d3c54770c1aa31076705c8b88a7f6b26a460f6221b2"
+    },
+    {
+      "path": "docs/engineering/ecc/README.md",
+      "change": "created",
+      "bytes": 7596,
+      "sha256": "cb6a5efa79c05adcab8c7aca467839f11457f82a0ef34284328f23a0f1f26021"
+    },
+    {
+      "path": "docs/engineering/ecc/integration-manifest.json",
+      "change": "created",
+      "bytes": 8608,
+      "sha256": "92221f39410af5a92db1dab3c339a49f66fb35c1d10666a0ac80ff25348912fb"
+    },
+    {
+      "path": "docs/engineering/ecc/review.md",
+      "change": "created",
+      "bytes": 4505,
+      "sha256": "bb64d97a0228a8a8b70d72fcc2549a55830912b74e3ac3232422f0b363647800"
+    },
+    {
+      "path": "docs/engineering/ecc/security.md",
+      "change": "created",
+      "bytes": 3962,
+      "sha256": "b2c393fa04511a2aa639c3181ebe56a4f19a1d21ee04549d6be79117d46655aa"
+    },
+    {
+      "path": "docs/engineering/ecc/verification.md",
+      "change": "created",
+      "bytes": 5140,
+      "sha256": "7d3c02799b314c16a2c816ae8833d6d614b11d0df5c304f3c619af502edb1efd"
+    },
+    {
+      "path": "docs/memory/CURRENT.md",
+      "change": "modified",
+      "bytes": 49892,
+      "sha256": "c7463e006a6a91f44d803373370480bd511efabbf58ef4b2afdb1f9952ea1ca3"
+    },
+    {
+      "path": "docs/memory/README.md",
+      "change": "modified",
+      "bytes": 17995,
+      "sha256": "ceb7b15e8c3bcc83541fe68633263d0c12a479abd80fd6f8d8f7ea4fc0e91d2b"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/REPORT.md",
+      "change": "created",
+      "bytes": 10422,
+      "sha256": "195f2f7903ddd651125315a5a71f1db6862041b05a43c869e49b6538e5b86ec0"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/behavior-review.md",
+      "change": "created",
+      "bytes": 9320,
+      "sha256": "2a33eb21e46a9f2319eb6e283f2d88784d13c719e3f9c7ea3d594b4058f6fece"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/current-launcher-receipt.json",
+      "change": "created",
+      "bytes": 1434,
+      "sha256": "2f373521d0941d50f5ea1043b63c7b4c34cc8c4b0bfbc1b76a51bf4c7966061d"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/current-launcher-smoke.json",
+      "change": "created",
+      "bytes": 600,
+      "sha256": "06c2cd23ec27525d33a3ef76d55322ea44e0e2de06bad55ad45c276bc4f3a06e"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/final-current-build-input-proof.json",
+      "change": "created",
+      "bytes": 432,
+      "sha256": "6226ee7619ee1cbb6bc859ed617ebaf1a02c65e8c5a97372a20e4877c8157e73"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/focused-result.json",
+      "change": "created",
+      "bytes": 8494,
+      "sha256": "52b9ea282abae423c0623a17975299d613cdef342499d46c619e8918c2888241"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/full-result.json",
+      "change": "created",
+      "bytes": 167186,
+      "sha256": "596c4fdc86dd98d313e9cce87c506e07a38766955a65f89488b8d54f5f9947cc"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/receipt.json",
+      "change": "created",
+      "bytes": 9638,
+      "sha256": "a4b2fbf22778da7086e9d7e45329b797487146f7309a4ceaceb705c817168257"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/scope-preservation.json",
+      "change": "created",
+      "bytes": 2689,
+      "sha256": "bf5ab1685d052829f8206523ba8265509bb1ced3dba077e87b50183a8bfeb5fc"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/ui-review.md",
+      "change": "created",
+      "bytes": 8761,
+      "sha256": "fe751742b84b5ecf7bde805c27fa091c9514a05db2fffe3aaf389a66595e2803"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/validator-independent-review.json",
+      "change": "created",
+      "bytes": 7084,
+      "sha256": "7e9ce76ae944f9503e7e18d4f53e3ee39a9f7205b1e3a645ace41b505c85db63"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/znack-empty-after.png",
+      "change": "created",
+      "bytes": 200967,
+      "sha256": "2e37ae3004b4ce46ef5b15c7b3675c61fb40c5052fd345b25f9ff394d8dffe6a"
+    },
+    {
+      "path": "docs/validation/ecc-codex-web-20261115/znack-empty-before.png",
+      "change": "created",
+      "bytes": 203337,
+      "sha256": "a7f2cf417491df03fa6ffa0cb2b8616a275f74fd94d66ecbf2c3134d93ed2919"
+    },
+    {
+      "path": "src/main/java/com/vncode/app/ui/znackregistration/ZnackCardRegistrationController.java",
+      "change": "modified",
+      "bytes": 107291,
+      "sha256": "cd3ac4934302ee52b6a551c295496bc3ffaab365a8492035551ae38e199fae12"
+    },
+    {
+      "path": "src/main/resources/com/vncode/app/ui/znackregistration/znack-card-registration-view.fxml",
+      "change": "modified",
+      "bytes": 6300,
+      "sha256": "61cb9499ebfdd84119c48e3246c94c7c8d5ee2b0a0c2f64fafa3955dca843ce9"
+    },
+    {
+      "path": "tools/UiLayoutProbe.java",
+      "change": "modified",
+      "bytes": 8693,
+      "sha256": "feeedec4b088456ab6d03257738581ed494eb2c4027dbaee65f7ffa24f9d2c91"
+    },
+    {
+      "path": "tools/validate-ecc-integration.mjs",
+      "change": "created",
+      "bytes": 19176,
+      "sha256": "2defcace12d3d3abc9839ba487463b94d96522633baac514c7a09a1c3f85d72f"
+    },
+    {
+      "path": "tools/validate-ecc-integration.test.mjs",
+      "change": "created",
+      "bytes": 17877,
+      "sha256": "9ebc38c2a9c56e80eeac87ce7df6d35e4339bc274a76a774902143bbd03c6681"
+    }
+  ]
+}

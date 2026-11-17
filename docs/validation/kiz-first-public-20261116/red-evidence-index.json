@@ -1,0 +1,124 @@
+{
+  "note": "Separate meaningful RED runs/checkpoints; never add overlapping counts. Fixture/environment corrections are documented separately in owner reports.",
+  "runs": {
+    "normalIdentity": {
+      "receipt": "shared-audit/download-review/red-result.json",
+      "sha256": "7abfafff06f093d3199c44661934b06a5b36d5cedb979ca4c2be0a16b1c41443",
+      "status": "MEANINGFUL_RED",
+      "tests": 13,
+      "failures": 9,
+      "errors": 0,
+      "skipped": 0
+    },
+    "successBodyBusinessErrors": {
+      "receipt": "shared-audit/download-review/business-red-result.json",
+      "sha256": "ec4c4052f55b9e02e04ee09602e4949c20a7363a9a3a1505583bff5960cd6989",
+      "status": "MEANINGFUL_RED",
+      "counts": {
+        "tests": 5,
+        "failures": 4,
+        "errors": 0,
+        "skipped": 0
+      },
+      "failures": [
+        {
+          "test": "successHttpWithReportedBusinessErrorPreservesTheUncertainDeliveryReceipt(String)[1]",
+          "type": "failure",
+          "message": "Business errors cannot commit a successful normal delivery (4 failures)\n org.opentest4j.AssertionFailedError: Expected java.io.IOException to be thrown, but nothing was thrown.\n org.opentest4j.AssertionFailedError: No code may enter stock from a rejected block ==> expected: <true> but was: <false>\n org.opentest4j.AssertionFailedError: expected: <SUZ_CODE_DOWNLOAD_UNCERTAIN> but was: <>\n org.opentest4j.AssertionFailedError: expected: not equal but was: <CODES_DOWNLOADED>"
+        },
+        {
+          "test": "successHttpWithReportedBusinessErrorPreservesTheUncertainDeliveryReceipt(String)[2]",
+          "type": "failure",
+          "message": "Business errors cannot commit a successful normal delivery (4 failures)\n org.opentest4j.AssertionFailedError: Expected java.io.IOException to be thrown, but nothing was thrown.\n org.opentest4j.AssertionFailedError: No code may enter stock from a rejected block ==> expected: <true> but was: <false>\n org.opentest4j.AssertionFailedError: expected: <SUZ_CODE_DOWNLOAD_UNCERTAIN> but was: <>\n org.opentest4j.AssertionFailedError: expected: not equal but was: <CODES_DOWNLOADED>"
+        },
+        {
+          "test": "successHttpWithReportedBusinessErrorPreservesTheUncertainDeliveryReceipt(String)[3]",
+          "type": "failure",
+          "message": "Business errors cannot commit a successful normal delivery (4 failures)\n org.opentest4j.AssertionFailedError: Expected java.io.IOException to be thrown, but nothing was thrown.\n org.opentest4j.AssertionFailedError: No code may enter stock from a rejected block ==> expected: <true> but was: <false>\n org.opentest4j.AssertionFailedError: expected: <SUZ_CODE_DOWNLOAD_UNCERTAIN> but was: <>\n org.opentest4j.AssertionFailedError: expected: not equal but was: <CODES_DOWNLOADED>"
+        },
+        {
+          "test": "successHttpWithReportedBusinessErrorPreservesTheUncertainDeliveryReceipt(String)[4]",
+          "type": "failure",
+          "message": "Business errors cannot commit a successful normal delivery (4 failures)\n org.opentest4j.AssertionFailedError: Expected java.io.IOException to be thrown, but nothing was thrown.\n org.opentest4j.AssertionFailedError: No code may enter stock from a rejected block ==> expected: <true> but was: <false>\n org.opentest4j.AssertionFailedError: expected: <SUZ_CODE_DOWNLOAD_UNCERTAIN> but was: <>\n org.opentest4j.AssertionFailedError: expected: not equal but was: <CODES_DOWNLOADED>"
+        }
+      ],
+      "scope": "4normalHTTP200businesserrornegativecases + zeroerroremptylistspositivepass; fixturefirstfailure preserved separately"
+    },
+    "signaturePauseAndMessages": {
+      "receipt": "shared-audit/pause-red-result.json",
+      "sha256": "79330aa9c933128bfd30e16c216d8527ac688bbecceb9c53d4c69eb25583d934",
+      "status": "MEANINGFUL_RED",
+      "counts": {
+        "tests": 14,
+        "failures": 12,
+        "errors": 0,
+        "skipped": 0
+      },
+      "exitCode": 1,
+      "scope": "SyntheticSQLite, productionstock/sessionloop, fakepurchaseenqueue; 8signingwait assertions fail bounded ratherthan indefinitehang;4missinglocalizeduncertainty assertions fail;2ordinarynetworkwait controls pass."
+    },
+    "unknownIssuance": {
+      "receipt": "uncertain-download/red-final-result.json",
+      "sha256": "c9007b469cc76204d34e06a1b22e4427a8fc552db116ed13a0425dcea7533219",
+      "status": "RED_REPRODUCED",
+      "counts": {
+        "tests": 24,
+        "failures": 16,
+        "errors": 0,
+        "skipped": 0
+      },
+      "exitCode": 1,
+      "scope": "Synthetic ownedpaidorder SQLite +realproductionCoordinator/CodeService +fakeAPI; actual assertions reproduce ordinaryconsumptive reissue and missingwriteaheadcheckpoint. No realAPI/fees/signing. Initial null-vs-empty oraclefailure corrected separately; allsixdefinite4xx andtwoauthnegativecontrols passnow."
+    },
+    "replayPackage": {
+      "receipt": "uncertain-download/replay-red-result.json",
+      "sha256": "68cc168c64fe62268164bcb6a7532f73ad648e61c6a6d506217914c123f46f53",
+      "status": "RED_REPRODUCED",
+      "counts": {
+        "tests": 12,
+        "failures": 12,
+        "errors": 0,
+        "skipped": 0
+      },
+      "exitCode": 1,
+      "scope": "12 added synthetic WB/Ozon replay-boundary cases; rejects conflictinglogicalCIS/combinedquantityoverflow/typednonstringcodes before anypersist. No realAPI/fees/signing."
+    },
+    "circulationOwner": {
+      "receipt": "circulation-audit/red-result.json",
+      "sha256": "d0d841edcd269c87e56035e0fa8c8077a761dfa2ef5cb407ebfab3c30cc31caa",
+      "tests": 30,
+      "failures": 22,
+      "errors": 0,
+      "skipped": 0
+    },
+    "pendingReason": {
+      "receipt": "circulation-audit/reason-red-result.json",
+      "sha256": "03b8de9a10f0447b1c32457b0c8667f745ebb689035bb7fa36d20e7c1699d10a",
+      "tests": 30,
+      "failures": 10,
+      "errors": 0,
+      "skipped": 0
+    },
+    "fbsResumeUi": {
+      "receipt": "ozon-audit/red-result.json",
+      "sha256": "dba402aaa10d3b8f89c7e725e6f8b6a21e1b6a7a095e369825bb71e0bc16ca1e",
+      "status": "EXPECTED_BEHAVIORAL_RED",
+      "counts": {
+        "tests": 10,
+        "failures": 8,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "summaryProjection": {
+      "receipt": "summary-recovery/red-result.json",
+      "sha256": "587a3e2a7d4c4be0fdda3c358462f89a5500a52b300e080ca087b008ff52e6b5",
+      "status": "EXPECTED_BEHAVIORAL_RED",
+      "tests": 15,
+      "failures": 10,
+      "errors": 0,
+      "skipped": 0,
+      "note": "Parentless detached launcher did not persist direct exit code; RED is established by actual JUnit assertion failures and Maven log, not a guessed exit code."
+    }
+  }
+}

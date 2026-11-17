@@ -1,0 +1,115 @@
+{
+  "status": "PASS",
+  "finishedAtUtc": "2026-11-16T12:01:27.697420+00:00",
+  "sourceHead": "a7c4d008ae450a82b6cfbfbb79e5532eca6bfa1e",
+  "sourceBranch": "feature/ozon-znack-order-kiz-20261116",
+  "scope": "Affected-scope synthetic Linux/Xvfb verification, offline clean verify/package and actual production Launcher; not whole-app/native/live acceptance",
+  "checks": {
+    "combinedRegressionAndPackage": "PASS",
+    "jarIntegrity": "PASS",
+    "actualJarFirstLauncher": "PASS",
+    "independentArtifactReview": "PASS",
+    "finalInputSetAndHashes": "PASS",
+    "nativeWindowsCryptoProDpapi": "NOT_RUN",
+    "realCatalogSuzOzonTransactions": "NOT_PERFORMED",
+    "newCodeQLScan": "NOT_RUN",
+    "wholeApplicationFullSuite": "NOT_RUN"
+  },
+  "counts": {
+    "tests": 1954,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": 189,
+  "selectedClasses": 189,
+  "combinedExitCode": 0,
+  "combinedElapsedSeconds": 939.1447997189998,
+  "newRepositoryTestCasesAlreadyIncluded": {
+    "KizPurchaseAvailabilityPolicyTest": 7,
+    "OzonPurchasedKizReplacementTest": 13,
+    "OzonPurchasedPrintAssignmentTest": 18,
+    "OzonPurchasedStockPolicyTest": 6,
+    "OzonRejectedPurchasedDemandTest": 10,
+    "OzonRegistrationEntryUiTest": 6,
+    "OzonRegistrationNavigationTest": 2
+  },
+  "newRepositoryTestCaseSubtotal": 62,
+  "buildInputs": 1434,
+  "ownerFiles": 24,
+  "finalSourceIssues": {
+    "addedLiveInputs": [],
+    "missingLiveInputs": [],
+    "changedLiveInputs": [],
+    "addedCopyInputs": [],
+    "missingCopyInputs": [],
+    "changedCopyInputs": [],
+    "changedOwnerInputs": []
+  },
+  "jar": {
+    "path": "/workspace/ozon-znack-orders-20261116/final-verification/source-copy/target/VNcode-1.6.10.jar",
+    "bytes": 7798913,
+    "sha256": "5956f0ed009d52d259b594ded6e6b781048ba7187dbae44ec60d4611d51ff553",
+    "compiledNonmanifestEntries": 2074,
+    "classes": 2033,
+    "runtimeLibraries": 74,
+    "runtimeLibrariesUnchangedFromBackup": true
+  },
+  "launcher": {
+    "liveSellerMutations": false,
+    "syntheticLicense": true,
+    "outboundNetworkBlocked": true,
+    "actualEntrypoint": "com.vncode.app.Launcher.main",
+    "workspaceVisible": true,
+    "width": 1300,
+    "height": 700,
+    "startupToWorkspaceSeconds": 6.276030848,
+    "launcherReturned": true,
+    "elapsedSeconds": 6.792058392,
+    "startupFailureLogCreated": false,
+    "dataLockReleasedAfterShutdown": true,
+    "result": "PASS"
+  },
+  "database": {
+    "status": "PASS",
+    "integrityCheck": [
+      "ok"
+    ],
+    "foreignKeyViolations": 0,
+    "schemaVersion": 6,
+    "shopCount": 0
+  },
+  "screenshotManuallyViewed": true,
+  "screenshotScope": "First actual workspace shown, empty synthetic profile; not Ozon order or seller-data acceptance screenshot",
+  "evidenceSha256": {
+    "command.json": "8961f678b6f2997258d1a610269e6e7631e6c4abecc51e41211dc21d5fd863c0",
+    "combined-result.json": "a1518ab949450cb37a920878de13cbd24c4ea6559389b8ca1e0a80e4cd821fea",
+    "source-copy-manifest.json": "8f8b6386e87fcc9ee9b6e896c77dfe3f2d1958e82410d7e16a3a24b39f1b56a3",
+    "owner-manifest-before.json": "6b95db4eea1dfcbc493dedd3e7815de4029c3f134cf20d5f30bea0bf5b168072",
+    "test-selection.json": "c0e9ffc8a29de6f0aaeab6e0bb172b6c52472553ce3c63f613797d73a0139ab7",
+    "maven.log": "eb7e503b7fadcf822877163c1e0aa4ac55b2a88e75f1c22bea4345c2f3197143",
+    "jar-integrity.json": "3c62564232835adbceb7c7f32fe5df6ce510e0b98c912fcfc19ad8ccd980c41b",
+    "launcher-command.json": "68579c701a48bf9fa16ed7cfeed6ac5087c8a9c1c3f2d252f9ffd84967dd8877",
+    "launcher-result.json": "69d14f10bae61f577741bae1c11418eaff852b6238835fa5108e321acf8a880c",
+    "smoke-compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "smoke-runtime.log": "e23896cd7892a749dc900d665891c9be0a0dc973c77f1ed1df5fc529fe41b47f",
+    "independent-review-plan.json": "580da9e3780a3693c756164d8779f1dd278b8ceac10fa1c51ee7bf4dc12a16ee",
+    "independent-artifact-review.json": "7e45a08fc4870c9ce3c0b3e272908df3e4a91dd5fa8d970702222459ec64124b",
+    "actual-launcher-smoke/actual-launcher-workspace.png": "47fd385faa32581dba7bd50816b42713b0f87aa5d7309fddbf3235a7a1cbaec0"
+  },
+  "notPerformed": [
+    "real API writes or order acceptance",
+    "paid SUZ KIZ purchase",
+    "real digital signing/CryptoPro",
+    "real license activation/Gmail",
+    "native Windows or installer checks",
+    "publication, push or release",
+    "new CodeQL scan",
+    "whole-app 10,000-GTIN full suite"
+  ],
+  "knownHistoricalLimits": [
+    "Eight existing Java CodeQL findings including one high7.5 remain unresolved; no fresh scanner result is asserted.",
+    "Historical GS1 extraction coverage limit remains.",
+    "Synthetic PDF100/1000 and API fixtures do not establish paid Ozon production throughput or acceptance."
+  ]
+}
