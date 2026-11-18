@@ -100,6 +100,47 @@ class OzonFbsUiTest {
             com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle(); System.clearProperty("vncode.appdata.dir");
         }
     }
+    @Test void wrappedPagingStaysAboveTheTableAtWindowsClientWidths()throws Exception{
+        System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
+        var previousLanguage=I18nService.getInstance().getCurrentLanguage();var previousTheme=ThemeService.getThemeMode();
+        var stage=new javafx.stage.Stage[1];
+        FXMLLoader loader=fx(()->{
+            I18nService.getInstance().setLanguage(AppLanguage.RU);ThemeService.switchTheme("light");
+            var view=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");
+            var scene=new Scene(view.load(),808,561);ThemeService.applyTheme(scene);
+            // A realistic multi-page counter participates in wrapping, as it does for a loaded shop.
+            ((Label)view.getNamespace().get("pageStatusLabel")).setText("1–100 / 1000");
+            stage[0]=new javafx.stage.Stage();stage[0].setScene(scene);stage[0].sizeToScene();stage[0].show();return view;
+        });
+        OzonDashboardController controller=loader.getController();
+        var metrics=new ArrayList<Map<String,Object>>();
+        try{
+            for(int clientWidth:List.of(808,760)){
+                pulse();fx(()->{var scene=stage[0].getScene();stage[0].setWidth(stage[0].getWidth()+clientWidth-scene.getWidth());return null;});pulse();
+                fx(()->{
+                    var scene=stage[0].getScene();scene.getRoot().applyCss();scene.getRoot().layout();
+                    assertEquals(clientWidth,scene.getWidth(),.5,"Exercise actual client width, excluding native Windows decorations");
+                    var bar=(javafx.scene.layout.FlowPane)loader.getNamespace().get("postingFiltersBar");
+                    var table=(TableView<?>)loader.getNamespace().get("newOrdersTable");
+                    var tableBounds=table.localToScene(table.getBoundsInLocal());
+                    var row=new LinkedHashMap<String,Object>();row.put("clientWidth",scene.getWidth());row.put("clientHeight",scene.getHeight());row.put("barHeight",bar.getHeight());row.put("barPrefHeight",bar.prefHeight(bar.getWidth()));row.put("barMinHeight",bar.minHeight(bar.getWidth()));row.put("barBounds",bar.localToScene(bar.getBoundsInLocal()).toString());row.put("tableBounds",tableBounds.toString());
+                    var children=new ArrayList<Map<String,Object>>();
+                    for(var node:bar.getChildren())if(node.isVisible()&&node.isManaged()){
+                        var item=new LinkedHashMap<String,Object>();item.put("id",Objects.toString(node.getId(),""));item.put("bounds",node.localToScene(node.getBoundsInLocal()).toString());item.put("layoutBounds",node.getLayoutBounds().toString());children.add(item);
+                    }
+                    row.put("children",children);metrics.add(row);
+                    var path=Path.of(System.getProperty("vncode.ozon.wrap.metrics.file",root.resolve("wrapped-toolbar.json").toString()));
+                    java.nio.file.Files.writeString(path,new com.google.gson.GsonBuilder().setPrettyPrinting().create().toJson(metrics));
+                    for(var node:bar.getChildren())if(node.isVisible()&&node.isManaged())
+                        assertTrue(node.localToScene(node.getBoundsInLocal()).getMaxY()<=tableBounds.getMinY(),"RU light client="+clientWidth+" toolbar control must not overlap orders: "+node.getId()+" barHeight="+bar.getHeight()+" pref="+bar.prefHeight(bar.getWidth())+" bounds="+node.localToScene(node.getBoundsInLocal())+" table="+tableBounds);
+                    assertTrue(table.getHeight()>=250,"Wrapped toolbar retains a usable order list at the Windows client size");return null;
+                });
+            }
+        }finally{
+            fx(()->{controller.dispose();stage[0].close();I18nService.getInstance().setLanguage(previousLanguage);ThemeService.switchTheme(previousTheme.getKey());return null;});
+            com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");
+        }
+    }
     @Test void allPostingItemTitlesStayInsideTheirRenderedRow()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'Fixture','OZON','11','fixture')");}
         var window=new java.util.concurrent.atomic.AtomicReference<javafx.stage.Stage>();FXMLLoader loader=fx(()->{var l=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");var scene=new Scene(l.load(),1024,600);ThemeService.applyTheme(scene);var stage=new javafx.stage.Stage();window.set(stage);stage.setScene(scene);stage.show();return l;});OzonDashboardController controller=loader.getController();

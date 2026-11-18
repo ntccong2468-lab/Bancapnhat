@@ -1,0 +1,52 @@
+{
+  "command": [
+    "xvfb-run",
+    "-a",
+    "sh",
+    "/workspace/toolchains/apache-maven-3.8.5/bin/mvn",
+    "-o",
+    "-B",
+    "-Dmaven.repo.local=/workspace/toolchains/m2",
+    "-Dtest=OzonFbsUiTest,OzonWbPackingParityTest,OzonKizOnlyUiTest",
+    "-Dvncode.ozon.wrap.metrics.file=/workspace/release-1611-20261118/ozon-wrap/green-native-metrics.json",
+    "clean",
+    "verify"
+  ],
+  "exitCode": 0,
+  "seconds": 110.76811695098877,
+  "suites": [
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonWbPackingParityTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonKizOnlyUiTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 24,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "base": "3f4ff6513c358236eb9c47ea06b786de173d479b",
+  "changedSourceHashes": {
+    "src/main/resources/com/vncode/app/ui/ozon/ozon-dashboard-view.fxml": "ed7845fbbaa6e84d79adca236cd8f209fa1b6248f7399ec5ae0b97dd0e0c85f6",
+    "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java": "95756738bdb8e186b7c5a2c9613b1de4b5ada3d492064c19a01d2bd7d2c852a9"
+  },
+  "liveSourceMatches": true
+}

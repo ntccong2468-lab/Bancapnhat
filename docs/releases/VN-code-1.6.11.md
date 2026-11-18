@@ -6,7 +6,7 @@ Bản cập nhật kế thừa 1.6.10 và gom các chỉnh sửa mua KIZ, đăng
 - **Mua và lưu thông rõ trạng thái:** kiểm giấy tờ local trước mua, đối soát khi mất phản hồi, xử lý quota/giới hạn tốc độ và lỗi phiên có giới hạn. Tải mã một phần được phục hồi đúng lần cấp; chỉ xác nhận đã lưu thông khi trạng thái từng mã đã được kiểm chứng.
 - **Khôi phục an toàn:** giữ hồ sơ, đơn, số lượng và ý định đã duyệt qua khởi động lại; tách phiên theo OMS/chứng thư. Giữ pause/hủy; tự kiểm tra lại trường hợp USB chữ ký mất kết nối tạm thời.
 - **Znack và KIZ theo đơn Ozon:** mở đăng ký từ sidebar/FBS; mua đúng phần thiếu, thay phần mã bị từ chối theo đúng đơn vị. Chỉ coi mã mua đã gán khi Ozon xác nhận đúng mã/đơn/sản phẩm/vị trí. Giữ quy tắc mã seller nhập, nhãn vận đơn gốc theo lô và nhãn kết hợp.
-- **FBS Ozon theo bố cục WB đã duyệt:** vùng danh sách rộng, giữ năm tab, lựa chọn nhiều trang, nhận/in/tìm kiếm và chi tiết mã; giữ nền sáng/tối, kính và chuyển động hiện có.
+- **FBS Ozon theo bố cục WB đã duyệt:** vùng danh sách rộng, giữ năm tab, lựa chọn nhiều trang, nhận/in/tìm kiếm và chi tiết mã; giữ nền sáng/tối, kính và chuyển động hiện có. Thanh lọc tự tăng chiều cao khi xuống dòng ở cửa sổ nhỏ để phân trang không đè bảng.
 - **GS1 trong app:** hồ sơ gia nhập/đăng ký lại sáu bước, danh mục kiểm tra chính thức, lý do bị từ chối rõ ràng và hướng dẫn từ lỗi đăng ký Znack sang hồ sơ hoặc xin tiền tố.
 - **Thỏa thuận GS1:** tải và xem đúng PDF trước khi đồng ý/ký, theo dõi xác nhận và đối soát khi chưa rõ kết quả; không tự gửi lặp yêu cầu. Có mẫu đơn tiền tố mặc định, giữ mẫu tùy chỉnh đã nhập và trạng thái gửi thư rõ ràng.
 - **Sản phẩm:** lọc nhiều danh mục, giữ năm thao tác chỉnh sửa, tìm kiếm và lựa chọn nhiều trang.

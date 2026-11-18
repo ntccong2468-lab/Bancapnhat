@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 18.11.2026 MSK — sửa chiều cao toolbar Ozon thực sau Windows preflight
+
+Windows3f4/run44254027370 FAIL665ca/1error ởRUlight824×600/newOrdersTab, pager đè bảng10px sau3pulses. ReproduceLinuxactualscene808×561/counter1–100/1000: minCSS36px cho VBox thu FlowPane43px dù pref86px, gây18pxoverlap. Sửa localFXML min-height=-1(computed), không Java/controller/CSS chung/WB/API. Regression mới và fullhẹp24/24 đạt0F/E/skip, gồm14wideWBparity; [receipt](validation/wbcode-guides-gs1-20261118/receipts/ozon-wrap-final.json). Candidate3f4khôngpháthành, cầncommit/Windows/artifact/updater mới; bảo toàn mọi bằng chứng thất bại và không nới test.
+
 ## 18.11.2026 MSK — xác minh cập nhật1.6.10 và hợp nhất GS1/hướng dẫn cho1.6.11
 
 Latest1.6.10/445977967immutable được đọc mới. Updater public1.6.9 nguyên bản trảAVAILABLE1.6.10 quaGET200/TLS1.3, đúngMSI/hash/148.870.409byte; chưa quan sát popup/cài máy seller. [Receipt](validation/vncode-1611-20261118/baseline-check/receipt.json).

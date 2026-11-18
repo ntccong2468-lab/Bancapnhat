@@ -50,7 +50,8 @@
                             <content>
                                 <VBox spacing="8.0">
                                     <children>
-                                        <FlowPane fx:id="postingFiltersBar" hgap="8.0" vgap="8.0" alignment="CENTER_LEFT" styleClass="filter-bar,workspace-toolbar">
+                                        <!-- Preserve computed wrapped height instead of the shared single-row toolbar minimum. -->
+                                        <FlowPane fx:id="postingFiltersBar" hgap="8.0" vgap="8.0" alignment="CENTER_LEFT" styleClass="filter-bar,workspace-toolbar" style="-fx-min-height: -1;">
                                             <TextField fx:id="postingSearch" accessibleText="%ui.search.orders" prefHeight="28.0" prefWidth="320.0" minWidth="100.0"/>
                                             <MenuButton fx:id="sortOptionsMenu" text="%ozon.fbs.sort_options" prefHeight="28.0" prefWidth="200.0">
                                                 <items><CustomMenuItem hideOnClick="false"><content>

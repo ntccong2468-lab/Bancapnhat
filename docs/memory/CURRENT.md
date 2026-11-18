@@ -2,6 +2,12 @@
 
 Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 18.11.2026 — sửa production Ozon wrap sau preflight Windows
+
+- Candidate3f4/run44254027370 FAIL preflight665ca/1error/0skip; chưa fullJava/native/bộ cài. Pager RUlight ở cửa sổ824×600 chồng bảng10px dù đã chờ render; không phải chỉ lỗi timing test. Giữ artifact14405753120 và log/JUnit ở `/workspace/release-1611-20261118/failure-44254027370/`.
+- Đã tái hiện Linux với scene808×561/bộ đếm1–100/1000: toolbar43px/pref86px/min36px, pager đè bảng18px. **Sửa đúng một thuộc tính min-height trongFXML Ozon** về computed size; giữ nguyên Java/controller/CSS chung/WB/API. Sau sửa toolbar86px, bảng cao315px;14ca nativeWBparity vẫn đạt. [24ca cuối0F/E/skip](../validation/wbcode-guides-gs1-20261118/receipts/ozon-wrap-final.json), [hai hash nguồn](../validation/wbcode-guides-gs1-20261118/receipts/ozon-wrap-source.json). Một regression mới kiểm scene808/760 thực, không bỏ/nới assertion.
+- Candidate3f4 KHÔNG được phát hành. Chốt commit mới, fullWindows mới và artifact/updater mới trước Latest. V3local1022/96/1OSskip và security9cảnh báo không mới so4f3 là lịch sử đúng3f4, không gọi fullPASS cho nguồn tiếp. Các chuẩn bị verifier/AFTERprobe đã pin3f4 phải tạo pin/contract mới; không sửa bằng chứng cũ để vượt guard.
+
 ## 18.11.2026 — xác nhận 1.6.10 và gom toàn bộ phần chẩn đoán vào 1.6.11
 
 - Người dùng yêu cầu kiểm tra 1.6.10 đã xuống app chưa, hoàn tất phần còn thiếu đã chẩn đoán và phát hành bản mới. Yêu cầu này thay lựa chọn tách GS1 sang bản kế tiếp trước đó: dùng **1.6.11 chưa từng công bố** để gom các sửa KIZ/Ozon/ECC trước và GS1/Sản phẩm/Ozon từ19hướng dẫn.

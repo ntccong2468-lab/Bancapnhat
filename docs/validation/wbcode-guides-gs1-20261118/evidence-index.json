@@ -276,5 +276,15 @@
       "sha256": "c0bbfa3a2707895ca861a033dfd1ea231b89b17b31b9a153ccd25fc8cac9d2b3",
       "bytes": 1224
     }
+  ],
+  "ozonWrapReceipts": [
+    {
+      "path": "receipts/ozon-wrap-final.json",
+      "sha256": "f6cd3907af5d5cc23edb194d178b45fc342e547f4379a04b4ee9f6c85737a7f9"
+    },
+    {
+      "path": "receipts/ozon-wrap-source.json",
+      "sha256": "0213a224a20930d7b8625cd108f0855d1bdabb566eb0578c6f7ef1fab345415d"
+    }
   ]
 }
