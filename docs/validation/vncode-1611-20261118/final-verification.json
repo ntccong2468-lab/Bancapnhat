@@ -1,0 +1,22 @@
+{
+  "result": "PASS_ROOT_FINAL_PUBLIC_BYTES_AND_UPDATER",
+  "sourceCommit": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+  "releaseId": 449977778,
+  "version": "1.6.11",
+  "buildRun": 44282349988,
+  "publicationRun": 44307702686,
+  "rootIndependentlyRehashedPublicFilesDirectlyAgainstPinnedPackageReview": 16,
+  "packageReviewSha256": "733e69fbe0c5b615622ef1aea16a0741c1c678a097bcc7dd95755e73c46a0bd4",
+  "afterUpdaterResultSha256": "b792c28e06d9156e16abbe657d2ca8c2b17d1ac318643580cc8667946a98a3e1",
+  "actualUpdaterFrom": "1.6.10",
+  "actualUpdaterTo": "1.6.11",
+  "actualUpdaterStatus": "AVAILABLE",
+  "oldReleasesAssetsAndTagsRetained": true,
+  "newInventory": {
+    "releases": 21,
+    "assets": 338,
+    "tags": 50
+  },
+  "customerPopupOrInstallationObserved": false,
+  "verifiedAtUtc": "2026-11-18T12:58:46.231855+00:00"
+}

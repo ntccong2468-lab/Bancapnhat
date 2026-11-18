@@ -1,0 +1,127 @@
+{
+  "status": "SECURITY_WORKFLOW_FAIL_RETAINED_NO_NEW_FINDINGS_VS_ALL_PRIOR_CANDIDATES",
+  "source": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+  "runId": 44282368837,
+  "runAttempt": 1,
+  "workflowId": 403818652,
+  "runConclusion": "failure",
+  "javascript": {
+    "status": "PASS",
+    "findings": 0,
+    "gateExitCode": 0,
+    "findingsAndWarningErrorRecordsMatchAllFourReferences": true,
+    "runId": 44282368837,
+    "source": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+    "runAttempt": 1,
+    "artifactId": 14417267463,
+    "artifactName": "codeql-javascript-typescript",
+    "zipBytes": 137410,
+    "zipSha256": "7a17dad3d43bdd7affcd10a8995fa95b4e5ac025188e8e96fe906e1add5d8420",
+    "sarifSha256": "7ae20e3d34d8a214810e548f4f42e924f015186a149bd87131e2b0d89870f55f",
+    "zipCrc": "PASS",
+    "metadataBeforeAfterIdentity": "PASS",
+    "downloadedAtUtc": "2026-11-18T10:10:01.637418+00:00"
+  },
+  "java": {
+    "status": "FAIL_INHERITED_HIGH_GATE",
+    "findings": 9,
+    "blockedHigh": 1,
+    "gateExitCode": 1,
+    "completeReferenceResolvedRecordsIdenticalTo15856And3f4And4f3": true,
+    "newVersusAllThreeCandidates": 0,
+    "resolvedVersusAllThreeCandidates": 0,
+    "published1610InheritedExactRecords": 8,
+    "additionalMediumSincePublished1610": 1,
+    "warningErrorNotificationsIdenticalToAllFourReferences": true,
+    "extractionLimit": "The existing GS1SignatureInk extraction error remains. Successful extraction notices do not establish universal extractor correctness.",
+    "runId": 44282368837,
+    "source": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+    "runAttempt": 1,
+    "artifactId": 14417932076,
+    "artifactName": "codeql-java-kotlin",
+    "zipBytes": 176704,
+    "zipSha256": "d6db6a454a4d779a11d2f72853b0ae56c5405f18c2ed5842a4d10d0e12239acc",
+    "sarifSha256": "202a39d7f3a473ad7792af3bc5fdd231b00775c479945a8b859779bd5780f674",
+    "zipCrc": "PASS",
+    "metadataBeforeAfterIdentity": "PASS",
+    "downloadedAtUtc": "2026-11-18T10:12:10.372794+00:00"
+  },
+  "coverage": {
+    "successfullyExtractedUniquePaths": 790,
+    "changedJavaSince4f3": 30,
+    "newJavaSince4f3": 12,
+    "changedJavaNotListedSuccessfullyExtracted": [],
+    "newJavaListedSuccessfullyExtracted": [
+      "src/main/java/com/vncode/app/features/gs1/Gs1AgreementService.java",
+      "src/main/java/com/vncode/app/features/gs1/Gs1ApplicationStatus.java",
+      "src/main/java/com/vncode/app/features/gs1/Gs1OfficialPrefixTemplate.java",
+      "src/main/java/com/vncode/app/features/gs1/Gs1PdfResourceGuard.java",
+      "src/main/java/com/vncode/app/integration/ozon/OzonKizOnlyLabelRenderer.java",
+      "src/main/java/com/vncode/app/integration/ozon/OzonKizOnlyPrintService.java",
+      "src/main/java/com/vncode/app/integration/znack/OperatorAgreement.java",
+      "src/main/java/com/vncode/app/integration/znack/OperatorAgreementClient.java",
+      "src/main/java/com/vncode/app/ui/gs1/Gs1AgreementDialog.java",
+      "src/main/java/com/vncode/app/ui/gs1/Gs1JoinChecklist.java",
+      "src/main/java/com/vncode/app/ui/gs1/Gs1JoinFormValidation.java",
+      "src/main/java/com/vncode/app/ui/znackregistration/RegistrationGs1Recovery.java"
+    ],
+    "newMainJavaSincePublished1610": 27,
+    "changedMainJavaSince15856": 0,
+    "all790MainJavaAndAll1508BuildInputsByteIdenticalTo15856": true,
+    "limit": "The existing GS1SignatureInk extraction error remains. Successful extraction notices do not establish universal extractor correctness."
+  },
+  "jobs": [
+    {
+      "name": "lint-and-audit",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "codeql (javascript-typescript, none)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "codeql (java-kotlin, manual)",
+      "status": "completed",
+      "conclusion": "failure"
+    },
+    {
+      "name": "changed-dependencies",
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    {
+      "name": "openqodex-scan",
+      "status": "completed",
+      "conclusion": "skipped"
+    }
+  ],
+  "comparisonMethod": "Validate all actual reference kinds; component/taxon indices retain proved-equal bindings; rule indices resolve to complete descriptors; artifact indices use reviewed Normalizer; retain all other raw fields and array order.",
+  "policyByteIdenticalAllFiveRefs": true,
+  "all1508BuildInputsByteIdenticalToCandidate2": true,
+  "noNewSuppressionWaiverOrGateChange": true,
+  "sourceEditsByThisReview": false,
+  "historicalRawSarifIntegrityReceipt": "HISTORICAL-SARIF-INTEGRITY.json",
+  "sourcePolicyReceipt": "source-policy-review-receipt.json",
+  "actualGateReceipts": [
+    "java-gate-result.json",
+    "javascript-gate-result.json"
+  ],
+  "riskAssessment": "SECURITY-RELEASE-ASSESSMENT.json",
+  "remainingAcceptance": [
+    "Windows 44282349988, native/installer/upgrade/package acceptance and publication are separate parent operations",
+    "No live seller/Catalog/SUZ write, paid purchase, real signing, license activation or mail performed"
+  ],
+  "finishedAtUtc": "2026-11-18T10:14:23.966073+00:00",
+  "earlyWindowsObservation": {
+    "runId": 44282349988,
+    "source": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+    "attempt": 1,
+    "preflight": "PASS",
+    "preflightCompletedAtUtc": "2026-11-18T10:21:35Z",
+    "wholeJavaStatus": "in_progress",
+    "notFullWindowsOrInstallerAcceptance": true,
+    "receipt": "EARLY-WINDOWS-RESULT.json"
+  }
+}

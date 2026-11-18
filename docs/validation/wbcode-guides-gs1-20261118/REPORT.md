@@ -1,5 +1,7 @@
 # VN Code: chẩn đoán theo 19 hướng dẫn WBCode và phạm vi gom bản mới
 
+**Chốt phát hành 18.11.2026 lúc 15:52:03 MSK:** 1.6.11 đã lên Latest immutable, nguồn `cf3d8d69`, Windows 5.283 ca/0F/E/2 OS skip đạt; đủ 16 tệp public và updater 1.6.10→1.6.11 đã kiểm thật. [Bàn giao cuối, bằng chứng và các giới hạn](../vncode-1611-20261118/FINAL-REPORT.md). Những trạng thái chuẩn bị/thất bại theo thời điểm ở dưới được giữ làm lịch sử.
+
 Ngày 18.11.2026, Europe/Moscow. Người dùng yêu cầu kiểm tra bản 1.6.10 đã phát hành, hoàn tất các phần còn thiếu rồi phát hành bản mới. Vì 1.6.11 chưa công bố, các bổ sung GS1, Sản phẩm và Ozon được gom vào nguồn chuẩn bị **1.6.11**, thay cho kế hoạch cũ để chúng ở bản sau 1.6.11. Không thay binary/tag 1.6.10 đã phát hành.
 
 ## Trạng thái phát hành tại thời điểm lập báo cáo

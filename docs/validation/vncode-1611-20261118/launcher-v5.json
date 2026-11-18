@@ -1,0 +1,82 @@
+{
+  "result": "PASS",
+  "verifiedAtUtc": "2026-11-18T10:21:58.442531+00:00",
+  "scope": "Actual final JAR Launcher.main on Linux/Xvfb, unchanged external LauncherSmoke harness, three isolated synthetic-license fixture classes, zero shops, outbound-denying ProxySelector. Not Windows or real seller/paid/signing/license acceptance.",
+  "finalJar": {
+    "path": "/workspace/release-1611-20261118/candidate3/integrated/source-v5/target/VNcode-1.6.11.jar",
+    "bytes": 8052159,
+    "sha256": "8a8ea023718fa625d42a8e7ad3022652d50007c1c21de6650b21cf11909ca3c9"
+  },
+  "productionClassCount": 2126,
+  "allProductionClassOriginsChecked": true,
+  "fullProductionOrTestClassDirectoriesOnClasspath": false,
+  "shadowedProductionClasses": [],
+  "runtimeLibraryCount": 74,
+  "runtimeLibrariesByteIdenticalToPrevious74": true,
+  "jarAndLibrariesUnchangedAfterSmoke": true,
+  "harness": {
+    "liveSellerMutations": false,
+    "syntheticLicense": true,
+    "outboundNetworkBlocked": true,
+    "actualEntrypoint": "com.vncode.app.Launcher.main",
+    "workspaceVisible": true,
+    "width": 1300,
+    "height": 700,
+    "startupToWorkspaceSeconds": 5.585924852,
+    "launcherReturned": true,
+    "elapsedSeconds": 6.244331471,
+    "startupFailureLogCreated": false,
+    "dataLockReleasedAfterShutdown": true,
+    "result": "PASS"
+  },
+  "database": {
+    "schemaVersion": 7,
+    "integrityCheck": [
+      [
+        "ok"
+      ]
+    ],
+    "foreignKeyErrors": [],
+    "shopCount": 0
+  },
+  "writerMarkerSchema7": true,
+  "screenshot": "/workspace/release-1611-20261118/candidate3/launcher-smoke-v5/actual-launcher-smoke/actual-launcher-workspace.png",
+  "screenshotSha256": "47fd385faa32581dba7bd50816b42713b0f87aa5d7309fddbf3235a7a1cbaec0",
+  "unchangedLauncherHarnessSha256": "5f21151ddaf521f9faee0c3099def0970b1166aa09c36ad999b78b07101a5683",
+  "processes": [
+    {
+      "phase": "compile",
+      "exitCode": 0,
+      "timeout": false,
+      "seconds": 1.1678759800015541
+    },
+    {
+      "phase": "launcher",
+      "exitCode": 0,
+      "timeout": false,
+      "seconds": 7.925641224999708
+    }
+  ],
+  "notPerformed": [
+    "Maven/test rerun",
+    "Real license activation/Gmail",
+    "Seller API write",
+    "Real KIZ purchase or certificate signature",
+    "Installation or customer Windows GUI acceptance"
+  ],
+  "sourceCommit": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+  "workspaceScreenshotVisuallyInspected": true,
+  "allNamedJarEntryBytesEqualV4": true,
+  "namedJarEntriesCompared": 2171,
+  "criticalPackagedFxml": {
+    "entry": "com/vncode/app/ui/ozon/ozon-dashboard-view.fxml",
+    "sha256": "ed7845fbbaa6e84d79adca236cd8f209fa1b6248f7399ec5ae0b97dd0e0c85f6",
+    "matchesReviewedV4": true,
+    "renderedInThisBlankProfileLauncherSmoke": false
+  },
+  "expectedRuntimeWarnings": [
+    "Updater loopback connection refused is intentional in this external smoke harness.",
+    "Linux/Xvfb compositor differs from Windows."
+  ],
+  "outboundGuardScope": "Default HTTP ProxySelector denies via 127.0.0.1:1; updater loopback and test-only UnusedApi. Not an OS firewall audit."
+}

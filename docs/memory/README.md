@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| **Latest1.6.11 đã công bố 18.11 15:52:03 MSK: mọi KIZ/Ozon/ECC và bổ sung GS1; Windows5283/644,16public,updater1610→1611 đạt** | [Báo cáo cuối](../validation/vncode-1611-20261118/FINAL-REPORT.md), [receipt](../validation/vncode-1611-20261118/final-release.json), [updater thật](../validation/vncode-1611-20261118/updater-after.json), [hướng dẫn](../validation/vncode-1611-20261118/USER-GUIDE.md) |
 | 18.11: kiểm updater1.6.10 và gom GS1/hướng dẫn cho1.6.11 | [Updater thật](../validation/vncode-1611-20261118/baseline-check/receipt.json), [báo cáo19hướng dẫn](../validation/wbcode-guides-gs1-20261118/REPORT.md), [trạng thái hiện hành](CURRENT.md) |
 | Mua KIZ VN1.3.0 Preview vs Latest1.6.10 và WBCode1.3.26: gate Catalog, tự lưu thông, quyền ký/khôi phục;4fixture đạt, chỉ nghiên cứu | [Báo cáo và sơ đồ](../research/kiz-purchase-20261116/REPORT.md), [WBCode chi tiết](../research/kiz-purchase-20261116/wbcode/REPORT.md), [4ca](../research/kiz-purchase-20261116/verification/RESULT.json), [bảo toàn](../research/kiz-purchase-20261116/preservation.json) |
 | FBS Ozon theo mẫu WB: header/ảnh khớp0px, ảnh Znack trước sửa và FBS cuối tối/sáng; fresh394/64 đạt, giữ nghiệp vụ, chưa phát hành | [Bàn giao và ảnh](../validation/ozon-fbs-wb-layout-20261116/REPORT.md), [kiểm thử](../validation/ozon-fbs-wb-layout-20261116/combined-result-final.json), [bảo toàn](../validation/ozon-fbs-wb-layout-20261116/independent-review-final.json) |

@@ -2,6 +2,15 @@
 
 Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 18.11.2026 — VN Code 1.6.11 đã phát hành Latest
+
+- **Đã công bố lúc 15:52:03 MSK**, immutable release `449977778`/`v1.6.11`, nguồn app `cf3d8d695f7caa3b39d934145b7ff0445c50e194`. Publisher `dfc80824fea88a7f88d7339c65e7c44e0af01bc5`, run `44307702686` SUCCESS. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.11/VN-code-1.6.11-Windows-x64.exe) · [Báo cáo cuối](../validation/vncode-1611-20261118/FINAL-REPORT.md) · [Receipt](../validation/vncode-1611-20261118/final-release.json).
+- Gom toàn bộ mua KIZ WB1326 dùng chung WB/Ozon/FBO, Znack/mua theo đơn Ozon, FBS theo WB, ECC/UI trước và phần thiếu từ 19 hướng dẫn: GS1 trạng thái/wizard/thỏa thuận PDF/ký/đối soát/chống replay/mẫu tiền tố, lọc nhiều danh mục Sản phẩm, Ozon In KIZ riêng và sửa busy. Giữ vận đơn gốc theo lô, nhãn kết hợp, owner/full-CIS/Ozon acceptance và chính sách riêng mã seller nhập.
+- Windows `44282349988` đúng nguồn: **5.283 ca/644 suite, 5.281 đạt, 0 failure/error, 2 OS skip**; native 3→7, DPAPI, cài/gỡ/coexistence và passive 1.6.10 schema6→7 đạt. Review gói thực đạt đủ 16 tệp/4.097 nguồn/2.126 class/74 lib; XML GS1 giữ raw LF đúng hash. Linux V5 1.023 ca/96 suite, 0F/E/1 NTFS skip; Launcher thật đạt. Không cộng các scope chồng lấn.
+- Đã tải và rehash đủ 16 tệp public; giữ nguyên 20 release/322 asset/49 tag cũ, nay 21/338/50. **Updater JAR public1.6.10 thật nhận AVAILABLE1.6.11**, đúng MSI 149.140.745 byte/SHA `6c54e58d…`, HTTP200/TLS1.3. Không chứng minh popup/cài trên máy seller. [Updater](../validation/vncode-1611-20261118/updater-after.json).
+- Security vẫn **FAIL: 9 Java finding (8 từ public1.6.10 + 1 medium lock), JS0/PASS**, không suppression/waiver; lỗi extraction GS1 cũ còn. Giữ ba candidate Windows thất bại và tooling BLOCKED cũ. Pin verifier routing được sửa 38→39 vì enum thêm KEY_NOT_CONNECTED; không sửa test/CI. Lần publisher đầu truyền sai ref dừng ở checkout; lượt đúng đã đạt.
+- Nguồn/tag/16 asset phát hành cố định ở CF; các commit tài liệu sau publisher không đổi app. Schema7 cần snapshot tương thích nếu khôi phục app cũ. Không mua KIZ, ký, gửi GS1/Catalog/mail, nhận/giao seller, kích hoạt license/Gmail thật trong lượt phát hành. Không tự phát hành lại hoặc suy rộng quyền giao dịch từ memory. Các dòng “chưa phát hành” dưới đây là lịch sử.
+
 ## 18.11.2026 — lỗi đóng gói mẫu GS1 trên Windows; chưa công bố 1.6.11
 
 - Nguồn `15856fcd8fb8f836746e6528e2458a246c5ef222`, Windows `44258027875`/attempt 1: **5.283 ca/644 suite, 5.273 đạt, 0 failure, 8 error, 2 OS skip**. Tám lỗi cùng nguyên nhân mẫu tiền tố GS1 không nạp được; bố cục Ozon đã đạt. Không dùng lượt này làm bằng chứng bộ cài. [Receipt](../validation/wbcode-guides-gs1-20261118/receipts/windows-prefix-checkout-failure.json).

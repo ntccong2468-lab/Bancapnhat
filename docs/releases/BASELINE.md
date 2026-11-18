@@ -1,5 +1,15 @@
 # VNCode consolidated baseline
 
+## Latest hiện hành — VN Code 1.6.11
+
+Đã công bố **18.11.2026 lúc 15:52:03 MSK**, immutable `v1.6.11`/release `449977778`, nguồn app `cf3d8d695f7caa3b39d934145b7ff0445c50e194`. Publisher `dfc80824fea88a7f88d7339c65e7c44e0af01bc5`, run `44307702686` SUCCESS. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.11/VN-code-1.6.11-Windows-x64.exe), [báo cáo](../validation/vncode-1611-20261118/FINAL-REPORT.md), [receipt cuối](../validation/vncode-1611-20261118/final-release.json).
+
+Full Windows `44282349988` đúng CF: **5.283 ca/644 suite, 5.281 đạt, 0 failure/error, 2 OS skip**. Native 3→7, DPAPI, cài/gỡ/coexistence và passive upgrade 1.6.10 schema6→7 đạt. Đủ 16 tệp public đã tải/rehash, nguồn 4.097 tệp, JAR 2.126 class, 74 thư viện giữ nguyên; EXE chứa đúng MSI 149.140.745 byte/SHA `6c54e58d…`. Updater public1.6.10 nhận AVAILABLE1.6.11/đúng MSI qua HTTP200/TLS1.3. Giữ nguyên 20 release/322 asset/49 tag cũ; tổng mới21/338/50.
+
+Gom engine WB1326 chung và mọi sửa Ozon/Znack/ECC/UI trước; bổ sung GS1, Sản phẩm và Ozon qua 19 hướng dẫn. **Schema hiện hành là7**, UpgradeCode giữ nguyên; khôi phục app cũ cần snapshot tương thích. Source/tag/assets không đổi sau công bố; commit tài liệu mới hơn publisher chỉ lưu chứng cứ. Security vẫn FAIL/9 Java (8 cũ +1 medium), JS0/PASS/extraction GS1 có giới hạn. Chưa nghiệm thu giao dịch seller/SUZ có phí/chứng thư/mail thật hoặc popup máy khách.
+
+## Checkpoint chuẩn bị trước công bố1.6.11 — lịch sử giữ nguyên
+
 Latest xác minh mới **18.11.2026: VN Code1.6.10**, immutable`v1.6.10`/445977967/source`b74b5edfd46636e8779c94f467eef01c03c50a14`, công bố15.11.2026 13:40:34MSK. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.10/VN-code-1.6.10-Windows-x64.exe), [biên nhận updater public1.6.9 nhận1.6.10](../validation/vncode-1611-20261118/baseline-check/receipt.json).
 
 Đang chuẩn bị1.6.11 gom KIZ/Ozon/ECC và các bổ sungGS1/Sản phẩm/InKIZ từ hướng dẫn. Lượt Windows4f3 cũ FAIL5079/1error, chưa phát hành. Cần chạy và nghiệm thu đúng nguồn mới, không dùng số liệu lịch sử bên dưới thay cho kết quả. [Ghi chú1.6.11](VN-code-1.6.11.md), [báo cáo bổ sung](../validation/wbcode-guides-gs1-20261118/REPORT.md).

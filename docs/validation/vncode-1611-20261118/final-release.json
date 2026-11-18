@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "kind": "SANITIZED_FINAL_RELEASE_ACCEPTANCE_PROJECTION_FROM_EXECUTED_EVIDENCE",
+  "version": "1.6.11",
+  "sourceCommit": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+  "publisherCommit": "dfc80824fea88a7f88d7339c65e7c44e0af01bc5",
+  "releaseId": 449977778,
+  "tag": "v1.6.11",
+  "immutable": true,
+  "publishedAtUtc": "2026-11-18T12:52:03Z",
+  "publishedAtMsk": "2026-11-18T15:52:03+03:00",
+  "buildRun": 44282349988,
+  "buildAttempt": 1,
+  "publicationRun": 44307702686,
+  "windows": {
+    "result": "PASS",
+    "tests": 5283,
+    "passed": 5281,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "suites": 644,
+    "nativeMigration": "3 to 7",
+    "passiveUpgrade": "1.6.10 schema6 to 7",
+    "dpapiInstallCoexistUninstall": "PASS"
+  },
+  "source": {
+    "files": 4097,
+    "mainJava": 790,
+    "resources": 43,
+    "productionClasses": 2126,
+    "unchangedRuntimeLibraries": 74,
+    "original4026FilesRetained": true,
+    "frozen4034FilesRetained": true
+  },
+  "reviewedBuildArtifact": {
+    "id": 14428490396,
+    "bytes": 660665990,
+    "digest": "sha256:e649d58b9c181f8877bf1ca1b7bd4a597a23f971f728d6d426c975ca3f452c41"
+  },
+  "installers": {
+    "exe": {
+      "bytes": 149809664,
+      "sha256": "23034da87254e8b863e09a0c98ba126ebdd8ebf544048b9be0ec373ebd79331f"
+    },
+    "msi": {
+      "bytes": 149140745,
+      "sha256": "6c54e58d9a8b50430f019166645bbbf95201d15e6d4985ec7a2c9998e01bdccb"
+    }
+  },
+  "public": {
+    "result": "PASS_PUBLIC_LATEST_16_BYTES_AND_OLD_RETENTION",
+    "assetsDownloadedAndHashed": 16,
+    "oldReleasesRetained": 20,
+    "oldAssetsRetained": 322,
+    "oldTagsRetained": 49,
+    "allOldIdentitiesUnchanged": true,
+    "newInventory": {
+      "releases": 21,
+      "assets": 338,
+      "tags": 50
+    }
+  },
+  "actualUpdater": {
+    "from": "1.6.10",
+    "to": "1.6.11",
+    "status": "AVAILABLE",
+    "getHttpStatus": 200,
+    "tls": "TLSv1.3",
+    "originalJarsUnchanged": 75,
+    "reviewedMsi": {
+      "bytes": 149140745,
+      "sha256": "6c54e58d9a8b50430f019166645bbbf95201d15e6d4985ec7a2c9998e01bdccb",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.11/VN-code-1.6.11-Windows-x64.msi"
+    },
+    "customerPopupOrInstallationObserved": false
+  },
+  "security": {
+    "result": "FAIL",
+    "runId": 44282368837,
+    "javaFindings": 9,
+    "oldPublic1610": 8,
+    "additionalReviewedMedium": 1,
+    "newVersusPriorCandidates": 0,
+    "javascriptFindings": 0,
+    "noPolicySuppressionWaiverChange": true,
+    "existingGs1ExtractionLimitRetained": true
+  },
+  "evidence": {
+    "windows-package-review.json": {
+      "sha256": "733e69fbe0c5b615622ef1aea16a0741c1c678a097bcc7dd95755e73c46a0bd4",
+      "bytes": 26761
+    },
+    "publication-1.6.11.json": {
+      "sha256": "2a583189b56ac8ef2df5c59006ddf40d8365b717c3f3767132e1d210d49e9991",
+      "bytes": 2862
+    },
+    "public-verification.json": {
+      "sha256": "023cc4eeead15c0838fd21f09561f246bb19284558cbd341bfe66e93f77f40d0",
+      "bytes": 1264
+    },
+    "public-independent-postcheck.json": {
+      "sha256": "595f0c99af5099ad1a186da7dbd60e3527fe40cf0580fcf483373b0352b7dcd9",
+      "bytes": 3279
+    },
+    "updater-after.json": {
+      "sha256": "b792c28e06d9156e16abbe657d2ca8c2b17d1ac318643580cc8667946a98a3e1",
+      "bytes": 1904
+    },
+    "security.json": {
+      "sha256": "985d5b2eb03680cd2ac642c7491931bec53900b1be7fc97334bda73fb6c04a75",
+      "bytes": 5415
+    },
+    "local-verification.json": {
+      "sha256": "f989b7e19e38f33cb13c5f9e5cef8faea2f0a479aaec31254ea8065d0cd8d47f",
+      "bytes": 990
+    },
+    "launcher-v5.json": {
+      "sha256": "56513058ad69d0b1e8b10bfb3fe19e2873f2f63a214ba76032b179d53a6b71cb",
+      "bytes": 3075
+    },
+    "final-verification.json": {
+      "sha256": "e227a6b31ca648e217be0222d42d208672f2a8c4c643595fcc5f4bc333349fcb",
+      "bytes": 829
+    }
+  },
+  "limits": [
+    "No real seller/GS1/Catalog/SUZ writes, paid purchase, certificate signature, mail or license activation in this release task.",
+    "Video review sampled305frames/34sheets; not continuous audio/video viewing.",
+    "No customer popup/install, physical printer/scanner or customer Windows compositor/DPI acceptance."
+  ],
+  "recordedAtUtc": "2026-11-18T13:01:25.377808+00:00"
+}

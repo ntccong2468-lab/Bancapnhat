@@ -1,5 +1,15 @@
 # Bộ nhớ dự án VNCode
 
+## 18.11.2026 MSK — 1.6.11 đã công bố Latest và updater đã nhận
+
+Release immutable `449977778`/`v1.6.11`, nguồn app `cf3d8d695f7caa3b39d934145b7ff0445c50e194`, công bố **15:52:03 MSK**. Publisher `dfc80824fea88a7f88d7339c65e7c44e0af01bc5`/run `44307702686` SUCCESS. [Báo cáo đầy đủ](validation/vncode-1611-20261118/FINAL-REPORT.md), [receipt cuối](validation/vncode-1611-20261118/final-release.json), [hướng dẫn thao tác](validation/vncode-1611-20261118/USER-GUIDE.md).
+
+Gom mọi sửa mua KIZ WB1326 dùng chung, Ozon Znack/mua theo đơn/FBS/ECC/UI và phần bổ sung từ 19 hướng dẫn GS1/Sản phẩm/Ozon. Giữ hồ sơ, dữ liệu, owner/full-CIS và Ozon exact acceptance. Windows `44282349988`: 5.283 ca/644 suite, 5.281 đạt/0F/E/2 OS skip; native/DPAPI/cài-gỡ/coexist/nâng cấp 1.6.10 schema6→7 đạt. Review đủ 16 tệp, nguồn 4.097 tệp và 74 lib giữ nguyên; public download/rehash đạt. Bảo toàn 20 release/322 asset/49 tag cũ. Updater JAR public1.6.10 nhận AVAILABLE1.6.11, đúng MSI/hash/size qua HTTP200/TLS1.3; chưa quan sát máy seller cài.
+
+Giữ bằng chứng ba candidate lỗi; sửa production Ozon toolbar và rule LF cho XML GS1 mà không nới checksum/test. Guard ngoài app sửa đúng routing38→39 theo enum KEY_NOT_CONNECTED mới (test nguồn không đổi), giữ old38 và yêu cầu exact39/source/enum/case identities; actual package review2 đạt. Một lần dispatch publisher sai ref dừng checkout, không ghi release; lượt đúng công bố thành công. Source/tag/asset cố định CF, tài liệu tiếp theo chỉ cập nhật memory/biên nhận.
+
+Security vẫn FAIL/9 Java (8 public1.6.10 + 1 medium lock), JS0/PASS, không suppression/waiver; extraction GS1SignatureInk còn giới hạn. Không nghiệm thu mua SUZ có phí, chữ ký seller, mail, GS1/Catalog/sàn hoặc popup/cài trên máy khách trong lượt này. Video review theo 305 khung/34 sheet, không xem/nghe liên tục. Các trạng thái “chưa phát hành” bên dưới là lịch sử trước yêu cầu công bố mới.
+
 ## 18.11.2026 MSK — sửa đóng gói XML mẫu tiền tố GS1 sau Windows toàn ứng dụng
 
 Windows `44258027875`/nguồn `15856fcd…` chạy đủ 5.283 ca/644 suite: 5.273 đạt, 0 failure, 8 error và 2 OS skip. Bảy lỗi nạp mẫu mặc định và một UI phụ thuộc mẫu có cùng nguyên nhân: Git checkout Windows chuyển LF thành CRLF, làm checksum resource production không khớp. Tái hiện bằng Git thật và class trong JAR V4, không mô phỏng kết quả API. Giữ checksum/validator/Java/XML/test; rule `text eol=lf` chỉ cho resource này. Hai suite lỗi chạy sớm trước danh sách preflight cũ; giữ full unfiltered, native/DPAPI/install/upgrade. [Receipt lỗi](validation/wbcode-guides-gs1-20261118/receipts/windows-prefix-checkout-failure.json). Candidate lỗi không được công bố; nguồn mới vẫn phải qua nghiệm thu Windows và artifact đúng SHA.

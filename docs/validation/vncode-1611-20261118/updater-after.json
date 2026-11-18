@@ -1,0 +1,52 @@
+{
+  "result": "PASS",
+  "verifiedAtUtc": "2026-11-18T12:54:51.908117+00:00",
+  "installedBinaryVersion": "1.6.10",
+  "latestVersion": "1.6.11",
+  "status": "AVAILABLE",
+  "releaseId": 449977778,
+  "sourceCommit": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+  "buildRun": 44282349988,
+  "buildAttempt": 1,
+  "reviewedMsi": {
+    "bytes": 149140745,
+    "sha256": "6c54e58d9a8b50430f019166645bbbf95201d15e6d4985ec7a2c9998e01bdccb",
+    "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.11/VN-code-1.6.11-Windows-x64.msi"
+  },
+  "actualNetworkReads": [
+    {
+      "method": "GET",
+      "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+      "status": 200,
+      "tlsVersion": "TLSv1.3"
+    }
+  ],
+  "all75OriginalJarHashesUnchanged": true,
+  "oldApplicationJarFirst": true,
+  "originalClassOriginsVerified": true,
+  "blankSyntheticProfile": true,
+  "exitCode": 0,
+  "inputs": {
+    "confirmation": {
+      "bytes": 788,
+      "sha256": "f919e47162de91c7e9c331a7a5a5f4ce61cd77118bd0b517b37c3e78d2448679"
+    },
+    "review": {
+      "bytes": 26761,
+      "sha256": "733e69fbe0c5b615622ef1aea16a0741c1c678a097bcc7dd95755e73c46a0bd4"
+    },
+    "publication": {
+      "bytes": 2862,
+      "sha256": "2a583189b56ac8ef2df5c59006ddf40d8365b717c3f3767132e1d210d49e9991"
+    },
+    "latest": {
+      "bytes": 33283,
+      "sha256": "3a3db2ec62e426b2ce57f1ca1463a59fb2252a2a803eaeb085a55a271c9d15e6"
+    }
+  },
+  "observation": {
+    "bytes": 1285,
+    "sha256": "436ac37f648c019892a4af0abde16eed9a158913962443f404916b691bd60721"
+  },
+  "scope": "Actual unchanged public1.6.10 updater through Cloud proxy/verified TLS on Linux; Windows MSI selection only after actual network read. No MainApplication, real license/Gmail/paid purchase/signing/seller write/install/publication; customer popup/installation and anonymous network access not established."
+}

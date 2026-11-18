@@ -1,0 +1,719 @@
+{
+  "kind": "VNCODE_1611_OFFLINE_PACKAGE_AND_READ_ONLY_JAR_SCHEMA_REVIEW",
+  "result": "PASS",
+  "version": "1.6.11",
+  "sourceCommit": "cf3d8d695f7caa3b39d934145b7ff0445c50e194",
+  "ciRun": 44282349988,
+  "workflowId": 392732536,
+  "actionArtifactId": 14428490396,
+  "actionArtifactSha256": "e649d58b9c181f8877bf1ca1b7bd4a597a23f971f728d6d426c975ca3f452c41",
+  "time": "2026-11-18T12:45:29.706425+00:00",
+  "source": {
+    "files": 4097,
+    "onlyExactOrUtf8LineEndings": true,
+    "lineEndingDifferences": 3425
+  },
+  "runtimeInclusion": {
+    "reportedFilesRetained": 4026,
+    "frozenBaseFilesRetained": 4034,
+    "sourceFiles": 4097,
+    "unchangedFrozenFilesByteExact": 3999,
+    "reviewedModifiedFiles": 35,
+    "reviewedAddedFiles": 63,
+    "allNewApplicationChangesExactHashReviewed": true,
+    "reportedApplicationTestsResourcesByteExact": false,
+    "actualSourceDatabaseSchema": 7,
+    "sourceContractSha256": "8a2f10356ac67036d6f2950d382023a41d411dc9d60841564c1da7460a0baafd",
+    "manifestSha256": "cb7b1b3bf70047d905dfe241697e13239fd83bed0f10edeb08763f2f0b19521d",
+    "reportedArchiveSha256": "55cd352ba20a64e6ed322841eadbb5732b54dbe4746027d10b6cf40c8af8c197",
+    "historicalBaselineReleaseOnlyDifferences": [
+      ".github/workflows/publish-vncode-stable.yml",
+      "docs/memory/CURRENT.md",
+      "pom.xml",
+      "tools/baseline-release.mjs",
+      "tools/publish-vncode-windows.mjs",
+      "tools/validate-ecc-integration.mjs",
+      "tools/validate-ecc-integration.test.mjs",
+      "tools/windows-baseline-upgrade-smoke.ps1",
+      "tools/windows-native-smoke.ps1"
+    ],
+    "explicitPreservedSecurityToolHashes": {
+      "tools/validate-ecc-integration.mjs": "468ae12f07f9879793d5b4871ad02b2e2162927465ec5abb9265b1f7caa9bbf4",
+      "tools/validate-ecc-integration.test.mjs": "b9e47a4ff53a23a123a15b73b7a0c6b02ffc8162e77b4eafc8040281e3836f0d"
+    }
+  },
+  "portable": {
+    "path": "VN code/app/VNcode-1.6.11.jar",
+    "sha256": "bc7c85c92aacbe01640b0ab7f277fcc7dbfca324203d7481fb8f3386ef17a841",
+    "classesObserved": 2126,
+    "expectedClassCount": 2126,
+    "runtimeChangesChecked": 86,
+    "classCheckScope": "All790 main Java top-level classes,2126 Java25 class files,43 resources and embedded POM; exact source plus CI provenance. No independent Java recompilation.",
+    "dependencies": 74,
+    "testProfilesAndFixturesAbsent": true
+  },
+  "junit": {
+    "totals": {
+      "tests": 5283,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "suites": 644,
+    "skipIdentities": [
+      [
+        "com.vncode.app.features.gs1.Gs1PrefixTemplateStoreTest",
+        "privatePermissionsAreAppliedWhereSupported"
+      ],
+      [
+        "com.vncode.app.shared.WindowsSecretProtectorTest",
+        "neverFallsBackToPlaintextOffWindows"
+      ]
+    ],
+    "stress": [
+      {
+        "method": "ozonTenThousandGtinUseOneHundredDedicatedBarcodeWrites",
+        "seconds": 1964.394
+      },
+      {
+        "method": "wbTenThousandGtinUseFourWholeCardWritesAndReadBackEveryMember",
+        "seconds": 619.939
+      },
+      {
+        "method": "wbTenThousandDelayedReadbacksKeepDurableReportPendingUntilVerifiedWithoutReplay",
+        "seconds": 651.92
+      },
+      {
+        "method": "tenThousandApprovedVariantsSurvivePageBoundariesAppendAndReopenWithoutDispatchingNetworkWrites",
+        "seconds": 17.128
+      },
+      {
+        "method": "threeHundredWireSubmissionsPreserveEveryReceiptAndIsolateRejectedAndUnknownResultsAfterRestart",
+        "seconds": 282.076
+      }
+    ],
+    "smokesInnerMatch": true,
+    "scope": "Full JUnit evidence including synthetic 300/10000 tests; not real Catalog writes."
+  },
+  "smokes": {
+    "nativeMigration": "3 to 7",
+    "passiveUpgrade": "6 to 7",
+    "upgradeFrom": "1.6.10",
+    "nativeWindowsDpapiInstallUpgradeAttestedByCi": true,
+    "liveBusinessMutations": false
+  },
+  "embeddedMsi": {
+    "result": "PASS",
+    "source": "independent-static-PE-resource-read",
+    "resourceType": 10,
+    "resourceName": "MSI",
+    "resourceBytes": 149140745,
+    "resourceSha256": "6c54e58d9a8b50430f019166645bbbf95201d15e6d4985ec7a2c9998e01bdccb",
+    "exeSha256": "23034da87254e8b863e09a0c98ba126ebdd8ebf544048b9be0ec373ebd79331f",
+    "executedInstaller": false
+  },
+  "assets": {
+    "VN-code-1.6.11-Windows-x64.exe": {
+      "bytes": 149809664,
+      "sha256": "23034da87254e8b863e09a0c98ba126ebdd8ebf544048b9be0ec373ebd79331f"
+    },
+    "VN-code-1.6.11-Windows-x64.msi": {
+      "bytes": 149140745,
+      "sha256": "6c54e58d9a8b50430f019166645bbbf95201d15e6d4985ec7a2c9998e01bdccb"
+    },
+    "VN-code-1.6.11-Windows-x64.sha256": {
+      "bytes": 98,
+      "sha256": "137dd63ba38dd21af4179269bc72aa61f275b3bfb7414109390798e9426af984"
+    },
+    "VN-code-1.6.11-Windows-x64.zip": {
+      "bytes": 148728590,
+      "sha256": "5f9e354e78c36a207277e966ab2a209b20d4cde8f7e0139231537de5ffb39c4c"
+    },
+    "VN-code-1.6.11-source.zip": {
+      "bytes": 109288217,
+      "sha256": "bb9ca553116116d921fee9f38648edabfd831b1cf57b73f6c52420808fb4bddf"
+    },
+    "VN-code-1.6.11-history.bundle": {
+      "bytes": 105783602,
+      "sha256": "4846a77851946ab774adbc205abef36862c575a11f1fcc372902c38e9bf8e63d"
+    },
+    "VN-code-1.6.11-verification.zip": {
+      "bytes": 3605116,
+      "sha256": "9a332a366ff8cadcecc7cf6e0582a8d3df76538557c6f4e97b9df3dc676cc3b2"
+    },
+    "build-info.json": {
+      "bytes": 771,
+      "sha256": "445c25805413680372662376c85a33f3e7a9ec8b6eb04767cb8351560f6d2a82"
+    },
+    "release-notes.md": {
+      "bytes": 4113,
+      "sha256": "d3d6ebc1761274db71ecb793f038efd42f2af5a68814adf2ceee93c8e4a8168f"
+    },
+    "native-smoke.json": {
+      "bytes": 288,
+      "sha256": "f8a502e9738a25d8c71b8e56b781a889e3b0d5d13350d910ca9fbc992dcef711"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 905,
+      "sha256": "33e68c0c0b518880673cac6efd3198cf56994f4ffa97c969e991f2c4cb579c25"
+    },
+    "asset-manifest.json": {
+      "bytes": 1757,
+      "sha256": "ccf47ab9f71a239558e2a10b7c738c9397c4ebc02648760d4a60887686150387"
+    },
+    "SHA256SUMS": {
+      "bytes": 1106,
+      "sha256": "e8465d928ee80bc3dc556e1de034e79be3bd8d4e153939b45c5bbf31c46a3fac"
+    },
+    "gs1-smoke.json": {
+      "bytes": 287,
+      "sha256": "867572dece84e19e56878314b22db5627991e4a7d45c72ee143b546dae9d2e7b"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 411,
+      "sha256": "656ae3da57d39e2f1026817243d34197cb967cfadfb2e848e17bc3616cecf118"
+    },
+    "previous-baseline.json": {
+      "bytes": 286,
+      "sha256": "24e86b4b6f33a389bdcd08b7ff7f89ca6f43f098aa861f58e324b1f6551541b1"
+    }
+  },
+  "helperSha256": "14a790dc658ffdb3f4cdf30259e2b8ef15898b2abd89d7d107f3f6054a1c66b9",
+  "scope": "Read-only downloaded bytes and recorded CI/smoke metadata; no installer execution, seller API, release mutation, or network.",
+  "limitations": [
+    "Class/source linkage relies on exact source archive and CI provenance; no independent recompilation.",
+    "Native installation/upgrade behavior is attested by CI; this verifier independently reads EXE MSI resource bytes without executing them.",
+    "No seller machine, actual KIZ purchase or Catalog write verified.",
+    "Schema probe loads actual Windows JAR on Linux; this does not execute Windows launcher.",
+    "No real SUZ/KIZ purchase, legal signature, seller write or license activation."
+  ],
+  "actionsExtended": {
+    "actualRunAttempt": 1,
+    "requiredStepsPassed": [
+      "Configure transient worker animation for JavaFX verification",
+      "Verify release tools",
+      "Verify fresh JVM motion preferences and original OS accessibility authority",
+      "Verify Windows UI, purchase circulation, product documents and Catalog fixtures",
+      "Verify whole Java application and package",
+      "Build final EXE from verified Java",
+      "Restore pinned baseline after installer packaging",
+      "Verify native migration and startup",
+      "Verify actual Windows data protection",
+      "Verify fresh install, coexistence and uninstall",
+      "Verify passive upgrade from pinned current Latest",
+      "Preserve final MSI before building portable runtime",
+      "Build complete portable runtime from same verified Java",
+      "Restore the original worker desktop preferences",
+      "Package all source, Git history, runtime and verification",
+      "Preserve installer and all rebuild inputs"
+    ],
+    "fullCommandUnfiltered": true,
+    "artifactBeforeAfterExact": true,
+    "rawArtifactSha256": "e649d58b9c181f8877bf1ca1b7bd4a597a23f971f728d6d426c975ca3f452c41",
+    "rawArtifactCrc": "PASS"
+  },
+  "wholeJar": {
+    "mainJavaTopLevelClassesPresent": 790,
+    "allResourcesCompared": 43,
+    "newBatchAndSchema7ClassesPresent": true,
+    "rawPinnedResources": {
+      "com/vncode/app/gs1/gs1-prefix-01.04.01.xml": {
+        "bytes": 4665,
+        "sha256": "601f78ba4474b071991c7bfc89c5d36f09286aa33c08d55699ab0bedb3ad57bb",
+        "runtimeConsumerPinMatched": true
+      }
+    },
+    "rawPinnedResourcesActualJarExact": true,
+    "sourceLinkage": "Exact Git/source archive plus verified CI; no independent Java recompilation."
+  },
+  "runtimeLibraryPreservation": {
+    "unchangedPublished1610Libraries": 74,
+    "baselinePortableSha256": "52b816753d7068069ce076f348b3187c4ecb5b6157453805d0c87daf1a5b4e6f",
+    "everyLibrarySizeAndHashCompared": true,
+    "classpathExactCoverage": true,
+    "note": "Only VN code/app/lib is the application dependency set; runtime/lib/jrt-fs.jar is part of the bundled JRE."
+  },
+  "innerArchiveIntegrity": {
+    "VN-code-1.6.11-Windows-x64.zip": {
+      "safeFileEntries": 371,
+      "CRC": "PASS",
+      "bundledJreVersion": "\"25.0.5.1\"",
+      "bundledJrePlatform": "Windows amd64"
+    },
+    "VN-code-1.6.11-source.zip": {
+      "safeFileEntries": 4097,
+      "CRC": "PASS"
+    },
+    "VN-code-1.6.11-verification.zip": {
+      "safeFileEntries": 1317,
+      "CRC": "PASS"
+    }
+  },
+  "historyBundle": {
+    "completeWithoutPrerequisites": true,
+    "sourceIsBundledHead": true,
+    "sha256": "4846a77851946ab774adbc205abef36862c575a11f1fcc372902c38e9bf8e63d"
+  },
+  "junitExtended": {
+    "changedTestSuitesVerified": [
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1ActionPolicyTest",
+        "cases": 12
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1AgreementServiceTest",
+        "cases": 17
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1AgreementTransportTest",
+        "cases": 2
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1ApplicationCacheTest",
+        "cases": 7
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1ApplicationStatusTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1AutomaticSessionTest",
+        "cases": 10
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1NonMailBoundaryTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1OfficialPrefixTemplateTest",
+        "cases": 7
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1OperatorClaimTest",
+        "cases": 2
+      },
+      {
+        "suite": "com.vncode.app.features.gs1.Gs1PdfResourceGuardTest",
+        "cases": 15
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.CatalogKeyPendingIdentityTest",
+        "cases": 2
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.KizPendingIdentityTest",
+        "cases": 23
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.KizPrintPurchasePauseTest",
+        "cases": 12
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.KizPrintPurchaseSessionTest",
+        "cases": 12
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.KizPurchaseAvailabilityPolicyTest",
+        "cases": 7
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.KizPurchasePermitEvidenceTest",
+        "cases": 21
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.KizStockReplenisherTest",
+        "cases": 10
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.Wb1326PurchaseIdentityGatewayTest",
+        "cases": 6
+      },
+      {
+        "suite": "com.vncode.app.features.kiz.Wb1326PurchaseProducerBatchTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.integration.gs1.Gs1SmtpDeliveryTest",
+        "cases": 16
+      },
+      {
+        "suite": "com.vncode.app.integration.gs1.NationalCatalogGs1ReplayTest",
+        "cases": 6
+      },
+      {
+        "suite": "com.vncode.app.integration.ozon.OzonKizOnlyPrintServiceTest",
+        "cases": 21
+      },
+      {
+        "suite": "com.vncode.app.integration.ozon.OzonPurchasedKizReplacementTest",
+        "cases": 13
+      },
+      {
+        "suite": "com.vncode.app.integration.ozon.OzonPurchasedPrintAssignmentTest",
+        "cases": 18
+      },
+      {
+        "suite": "com.vncode.app.integration.ozon.OzonPurchasedStockPolicyTest",
+        "cases": 6
+      },
+      {
+        "suite": "com.vncode.app.integration.ozon.OzonRejectedPurchasedDemandTest",
+        "cases": 10
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.KizSigningSummaryRecoveryTest",
+        "cases": 15
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.OperatorAgreementClientTest",
+        "cases": 14
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.OperatorAgreementReplayTest",
+        "cases": 2
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.OwnerBBatchEngineTest",
+        "cases": 21
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.OwnerBCoordinatorBatchStateTest",
+        "cases": 4
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.OwnerBPurchaseQueueTest",
+        "cases": 11
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326AuthIsolationRegressionTest",
+        "cases": 2
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326AuthSessionTest",
+        "cases": 4
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326CodeDownloadTargetTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326DownloadAvailabilityTest",
+        "cases": 11
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326IntroductionMethodTest",
+        "cases": 16
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326OrderMigrationTest",
+        "cases": 6
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326PermitResolverTest",
+        "cases": 7
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326ProtocolApiRoutingTest",
+        "cases": 18
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326PurchasePersistenceTest",
+        "cases": 16
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326SettingsPolicyTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326SharedOrderDownloadTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326SigningAdmissionTest",
+        "cases": 13
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.Wb1326SuzPacingTest",
+        "cases": 3
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackAmbiguousCodeDownloadTest",
+        "cases": 36
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackCertificateSettingsRepositoryTest",
+        "cases": 6
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackCirculationOwnerCompletionTest",
+        "cases": 30
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackCirculationPolicyTest",
+        "cases": 27
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackDownloadRecoveryMessagesTest",
+        "cases": 4
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackErrorMessagesTest",
+        "cases": 22
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferRecoveryTest",
+        "cases": 27
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackExhaustedBufferWorkflowRegressionTest",
+        "cases": 1
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackGtinWorkflowTest",
+        "cases": 53
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackIntroductionIdentityTest",
+        "cases": 29
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackIntroductionSubmissionOutcomeTest",
+        "cases": 30
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackKizPurchaseReadbackTest",
+        "cases": 9
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackLicenseBoundaryTest",
+        "cases": 3
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackModuleTest",
+        "cases": 76
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackNormalDownloadIdentityTest",
+        "cases": 18
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackPipelineQueueExecutorTest",
+        "cases": 1
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackSettingsAreaRepositoryTest",
+        "cases": 3
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackSigningRecoveryTest",
+        "cases": 26
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.ZnackSigningSessionTest",
+        "cases": 32
+      },
+      {
+        "suite": "com.vncode.app.integration.znack.signature.Wb1326KeyPresenceTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.shared.DetailedErrorActionTest",
+        "cases": 2
+      },
+      {
+        "suite": "com.vncode.app.ui.FxmlSmokeTest",
+        "cases": 58
+      },
+      {
+        "suite": "com.vncode.app.ui.controls.CategoryFilterMenuLimitTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.ui.gs1.Gs1AgreementDialogTest",
+        "cases": 8
+      },
+      {
+        "suite": "com.vncode.app.ui.gs1.Gs1AgreementPaneTest",
+        "cases": 7
+      },
+      {
+        "suite": "com.vncode.app.ui.gs1.Gs1JoinChecklistTest",
+        "cases": 15
+      },
+      {
+        "suite": "com.vncode.app.ui.gs1.Gs1JoinDialogWorkflowTest",
+        "cases": 10
+      },
+      {
+        "suite": "com.vncode.app.ui.gs1.Gs1JoinFormValidationContractTest",
+        "cases": 16
+      },
+      {
+        "suite": "com.vncode.app.ui.gs1.Gs1PrefixRequestDialogTest",
+        "cases": 11
+      },
+      {
+        "suite": "com.vncode.app.ui.kizmapping.FbsKizSigningResumeUiTest",
+        "cases": 14
+      },
+      {
+        "suite": "com.vncode.app.ui.kizmapping.KizPurchaseStatusPresentationTest",
+        "cases": 6
+      },
+      {
+        "suite": "com.vncode.app.ui.ozon.OzonDashboardControllerTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.ui.ozon.OzonKizOnlyUiTest",
+        "cases": 5
+      },
+      {
+        "suite": "com.vncode.app.ui.ozon.OzonRegistrationEntryUiTest",
+        "cases": 6
+      },
+      {
+        "suite": "com.vncode.app.ui.ozon.OzonWbPackingParityTest",
+        "cases": 14
+      },
+      {
+        "suite": "com.vncode.app.ui.products.ProductCategoryMultiSelectTest",
+        "cases": 4
+      },
+      {
+        "suite": "com.vncode.app.ui.products.ProductReferenceLayoutTest",
+        "cases": 3
+      },
+      {
+        "suite": "com.vncode.app.ui.workspace.HomeControllerStartupRecoveryTest",
+        "cases": 1
+      },
+      {
+        "suite": "com.vncode.app.ui.workspace.OzonRegistrationNavigationTest",
+        "cases": 2
+      },
+      {
+        "suite": "com.vncode.app.ui.workspace.Wb1326StartupAdmissionTest",
+        "cases": 1
+      },
+      {
+        "suite": "com.vncode.app.ui.znack.Wb1326PurchasePreferencesUiTest",
+        "cases": 1
+      },
+      {
+        "suite": "com.vncode.app.ui.znackregistration.RegistrationGs1RecoveryTest",
+        "cases": 4
+      }
+    ],
+    "allChangedSuitesPassedWithoutSkip": true,
+    "gtinBulk14Passed": true,
+    "exactNewWb1326SuiteCaseCounts": {
+      "com.vncode.app.features.kiz.Wb1326PurchaseIdentityGatewayTest": 6,
+      "com.vncode.app.features.kiz.Wb1326PurchaseProducerBatchTest": 5,
+      "com.vncode.app.integration.znack.OwnerBBatchEngineTest": 21,
+      "com.vncode.app.integration.znack.OwnerBCoordinatorBatchStateTest": 4,
+      "com.vncode.app.integration.znack.OwnerBPurchaseQueueTest": 11,
+      "com.vncode.app.integration.znack.Wb1326AuthIsolationRegressionTest": 2,
+      "com.vncode.app.integration.znack.Wb1326AuthSessionTest": 4,
+      "com.vncode.app.integration.znack.Wb1326CodeDownloadTargetTest": 5,
+      "com.vncode.app.integration.znack.Wb1326DownloadAvailabilityTest": 11,
+      "com.vncode.app.integration.znack.Wb1326IntroductionMethodTest": 16,
+      "com.vncode.app.integration.znack.Wb1326OrderMigrationTest": 6,
+      "com.vncode.app.integration.znack.Wb1326PermitResolverTest": 7,
+      "com.vncode.app.integration.znack.Wb1326ProtocolApiRoutingTest": 18,
+      "com.vncode.app.integration.znack.Wb1326PurchasePersistenceTest": 16,
+      "com.vncode.app.integration.znack.Wb1326SettingsPolicyTest": 5,
+      "com.vncode.app.integration.znack.Wb1326SharedOrderDownloadTest": 5,
+      "com.vncode.app.integration.znack.Wb1326SigningAdmissionTest": 13,
+      "com.vncode.app.integration.znack.Wb1326SuzPacingTest": 3,
+      "com.vncode.app.integration.znack.signature.Wb1326KeyPresenceTest": 5,
+      "com.vncode.app.ui.workspace.Wb1326StartupAdmissionTest": 1,
+      "com.vncode.app.ui.znack.Wb1326PurchasePreferencesUiTest": 1
+    },
+    "exactNewFeatureSuiteCaseCounts": {
+      "com.vncode.app.features.gs1.Gs1ActionPolicyTest": 12,
+      "com.vncode.app.features.gs1.Gs1AgreementServiceTest": 17,
+      "com.vncode.app.features.gs1.Gs1AgreementTransportTest": 2,
+      "com.vncode.app.features.gs1.Gs1ApplicationCacheTest": 7,
+      "com.vncode.app.features.gs1.Gs1ApplicationStatusTest": 5,
+      "com.vncode.app.features.gs1.Gs1AutomaticSessionTest": 10,
+      "com.vncode.app.features.gs1.Gs1NonMailBoundaryTest": 5,
+      "com.vncode.app.features.gs1.Gs1OfficialPrefixTemplateTest": 7,
+      "com.vncode.app.features.gs1.Gs1OperatorClaimTest": 2,
+      "com.vncode.app.features.gs1.Gs1PdfResourceGuardTest": 15,
+      "com.vncode.app.integration.gs1.Gs1SmtpDeliveryTest": 16,
+      "com.vncode.app.integration.gs1.NationalCatalogGs1ReplayTest": 6,
+      "com.vncode.app.integration.ozon.OzonKizOnlyPrintServiceTest": 21,
+      "com.vncode.app.integration.znack.OperatorAgreementClientTest": 14,
+      "com.vncode.app.integration.znack.OperatorAgreementReplayTest": 2,
+      "com.vncode.app.shared.DetailedErrorActionTest": 2,
+      "com.vncode.app.ui.controls.CategoryFilterMenuLimitTest": 5,
+      "com.vncode.app.ui.gs1.Gs1AgreementDialogTest": 8,
+      "com.vncode.app.ui.gs1.Gs1AgreementPaneTest": 7,
+      "com.vncode.app.ui.gs1.Gs1JoinChecklistTest": 15,
+      "com.vncode.app.ui.gs1.Gs1JoinDialogWorkflowTest": 10,
+      "com.vncode.app.ui.gs1.Gs1JoinFormValidationContractTest": 16,
+      "com.vncode.app.ui.gs1.Gs1PrefixRequestDialogTest": 11,
+      "com.vncode.app.ui.ozon.OzonFbsUiTest": 5,
+      "com.vncode.app.ui.ozon.OzonKizOnlyUiTest": 5,
+      "com.vncode.app.ui.products.ProductCategoryMultiSelectTest": 4,
+      "com.vncode.app.ui.products.ProductReferenceLayoutTest": 3,
+      "com.vncode.app.ui.znackregistration.RegistrationGs1RecoveryTest": 4
+    },
+    "reviewedRoutingCountCorrection": {
+      "suite": "com.vncode.app.integration.znack.signature.CryptoProCertificateRoutingTest",
+      "legacyPinnedCount": 38,
+      "reviewedExactCount": 39,
+      "actualCount": 39,
+      "testSourceSha256": "7179a0c3b158bfab80f0343ab3818263f93f3f88e906bd9b2f2d6a88fc9de1c0",
+      "enumSourceSha256": "20fbaf014f59ebf83604472359be5a22e7822f373a4a1516c284dd691d6053cd",
+      "all38Public1610CaseNamesRetained": true,
+      "onlyAddedEnum": "KEY_NOT_CONNECTED",
+      "all39ExactCasesPassedWithoutSkip": true,
+      "contractSha256": "068de5a978f0b49a7357d58729900c8e424005a92638a1a1d4f055192dd58f21"
+    },
+    "inventoryBasis": "Previously executed232-suite/2296-case receipt retained in exact source; these are case-inventory expectations, not reused Windows PASS results."
+  },
+  "actualJarSchema": {
+    "status": "PASS",
+    "actualSchema": 7,
+    "actualAppVersion": "1.6.11",
+    "actualPackagedJarSha256": "bc7c85c92aacbe01640b0ab7f277fcc7dbfca324203d7481fb8f3386ef17a841",
+    "productionClassOriginsChecked": 5,
+    "databaseCreated": false,
+    "appLaunched": false,
+    "commands": [
+      [
+        "/workspace/toolchains/jdk-25.0.4.1/bin/javac",
+        "-cp",
+        "/workspace/release-1611-20261118/candidate3/artifact-review/review-run44282349988-attempt1-review2/packaged-app/VN code/app/VNcode-1.6.11.jar:/workspace/release-1611-20261118/candidate3/artifact-review/review-run44282349988-attempt1-review2/packaged-app/VN code/app/lib/*",
+        "-d",
+        "/workspace/release-1611-20261118/candidate3/artifact-review/review-run44282349988-attempt1-review2/probe-classes",
+        "/workspace/release-1611-20261118/candidate3/artifact-review/ArtifactSchemaProbe.java"
+      ],
+      [
+        "/workspace/toolchains/jdk-25.0.4.1/bin/java",
+        "--enable-native-access=ALL-UNNAMED",
+        "-cp",
+        "/workspace/release-1611-20261118/candidate3/artifact-review/review-run44282349988-attempt1-review2/packaged-app/VN code/app/VNcode-1.6.11.jar:/workspace/release-1611-20261118/candidate3/artifact-review/review-run44282349988-attempt1-review2/probe-classes:/workspace/release-1611-20261118/candidate3/artifact-review/review-run44282349988-attempt1-review2/packaged-app/VN code/app/lib/*",
+        "ArtifactSchemaProbe",
+        "/workspace/release-1611-20261118/candidate3/artifact-review/review-run44282349988-attempt1-review2/packaged-app/VN code/app/VNcode-1.6.11.jar",
+        "/workspace/release-1611-20261118/candidate3/artifact-review/review-run44282349988-attempt1-review2/isolated-readonly-profile",
+        "1.6.11"
+      ]
+    ],
+    "processExitCodes": [
+      0,
+      0
+    ],
+    "probeSha256": "005bb150cc4d8cb8edbab0d89049c5daf4abc90701c8673af18b17cb793e6f84",
+    "scope": "Linux loads actual Windows portable JAR; reads two audited static accessors only, secrets removed. Not native Windows execution."
+  },
+  "assetsStableAfterAllExtendedChecks": true,
+  "pinsSha256": "2e948f073c87f8b239654c52620a99dd894878419d417bd940eeaa8926c19a91",
+  "wrapperSha256": "3dd87adbf962fd79152afc86445efcd72f38f4b11a920fd053b7d7297eb7b72c"
+}
