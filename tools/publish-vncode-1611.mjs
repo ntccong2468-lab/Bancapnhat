@@ -12,10 +12,10 @@ import {validateBuild, validateNativeSmoke, validateSideBySideSmoke, validateUpg
 // One owner-requested release. These pins cannot be supplied by CLI, environment or dispatch.
 // PENDING is deliberate: only reviewed, successful full Windows evidence and the
 // actual owner-requested draft creation response may finalize a publisher-only commit.
-export const candidate=Object.freeze({pinsFinalized:false,version:'1.6.11',source:'PENDING',
-  build:'PENDING',buildAttempt:'PENDING',workflow:392732536,baseline:'1.6.10',repo:'ntccong2468-lab/Bancapnhat',releaseId:'PENDING',
-  artifactId:'PENDING',artifactDigest:'PENDING',
-  java:Object.freeze({forecast:true,tests:'PENDING',passed:'PENDING',skipped:'PENDING'}),
+export const candidate=Object.freeze({pinsFinalized:true,version:'1.6.11',source:'cf3d8d695f7caa3b39d934145b7ff0445c50e194',
+  build:44282349988,buildAttempt:1,workflow:392732536,baseline:'1.6.10',repo:'ntccong2468-lab/Bancapnhat',releaseId:449977778,
+  artifactId:14428490396,artifactDigest:'sha256:e649d58b9c181f8877bf1ca1b7bd4a597a23f971f728d6d426c975ca3f452c41',
+  java:Object.freeze({forecast:false,tests:5283,passed:5281,skipped:2}),
   baselineReleaseId:445977967,baselineSource:'b74b5edfd46636e8779c94f467eef01c03c50a14',
   baselineInstallerSha256:'2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0',baselineInstallerBytes:149539328});
 export const assets=Object.freeze([...requiredAssets(candidate.version),'asset-manifest.json','SHA256SUMS',
