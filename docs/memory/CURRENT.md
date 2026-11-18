@@ -2,6 +2,11 @@
 
 Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 18.11.2026 — nút GS1 theo trạng thái cửa hàng
+
+- Tiếp nối `8a05679`. Thẻ thành viên dùng một vị trí chính cho **Đăng ký GS1** khi đủ điều kiện đăng ký và **Xin tiền tố GS1 bổ sung** khi đã xác minh thành viên cùng INN. Hồ sơ đang chờ, cần kiểm tra hoặc cần gia hạn giữ đúng trạng thái và tác vụ tương ứng.
+- Kiểm Java 25/JavaFX trên Linux bằng `-Dtest=*Gs1*Test`. 355/356 ca đạt, 0 lỗi, 1 ca cần NTFS bỏ qua. Riêng màn GS1 14/14. Log trước và sau sửa ở `/workspace/reports/gs1-membership-action-20261118`. Thay đổi chưa phát hành.
+
 ## 18.11.2026 — sửa khởi động và điền hồ sơ GS1, chưa phát hành
 
 - Nhánh cục bộ `fix/startup-backup-20261118` từ `7498536bbdecc506946b299640d5c2ca6d384740`. Người dùng đang gặp chờ ở “Đang chuẩn bị cửa hàng và các chức năng…” ngay khi mở hoặc nâng cấp. Tái hiện được nhãn bước cũ tồn tại khi JavaFX bắt đầu mở workspace. Môi trường Linux với dữ liệu tổng hợp chưa tái hiện kẹt trên máy Windows của người dùng.

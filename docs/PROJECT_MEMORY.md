@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 18.11.2026 MSK — đổi nút chính của thẻ GS1
+
+Sau `8a05679`, thẻ GS1 chọn một tác vụ theo thành viên đã xác minh của cửa hàng đang chọn. **Đăng ký GS1** mở luồng gia nhập khi hồ sơ cho phép. **Xin tiền tố GS1 bổ sung** dùng quy tắc mở đơn hiện tại cho thành viên. Hồ sơ đã nộp tiếp tục hiện trạng thái chờ. Kiểm 356 ca GS1 trên Linux, 355 đạt và một ca NTFS được bỏ qua. Chưa phát hành.
+
 ## 18.11.2026 MSK — tối ưu khởi động và tự điền đơn GS1 sau 1.6.11
 
 Nhánh cục bộ `fix/startup-backup-20261118` từ `7498536`. Tái hiện riêng hai lỗi trước sửa. Nâng schema 6 lên 7 tạo hai snapshot dù rollback updater còn khớp. Màn khởi động vẫn hiện bước chuẩn bị cửa hàng khi vào callback mở workspace. Sửa tái sử dụng ảnh sao lưu với kiểm tra DB/WAL và SHA như cũ, tránh chạy lại init trong cùng session, hiển thị đúng bước và thời gian chờ. Vẫn giữ rollback mới nếu nguồn thay đổi hoặc snapshot sai. Dữ liệu người dùng và bản phát hành không dùng trong kiểm ghi.

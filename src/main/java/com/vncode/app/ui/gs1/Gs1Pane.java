@@ -187,8 +187,12 @@ public final class Gs1Pane extends BorderPane {
     private Login login(Context owner)throws IOException{
         var account=automation.catalogAccount(owner.shop());return new Login(account.session(),owner.certificate(),account.snapshot());
     }
+    private Gs1Membership selectedMembership(){
+        return membership!=null&&inn.equals(membership.inn())&&"production".equals(environment)?membership:null;
+    }
     private Gs1ActionPolicy.Decision decision(){
-        return Gs1ActionPolicy.evaluate("production".equals(environment)?membership:null,applicationForm,List.copyOf(requests.getItems()),dashboard.availability(membership,LocalDate.now(ZoneId.of("Europe/Moscow"))),LocalDate.now(ZoneId.of("Europe/Moscow")),Instant.now(),newApplication);
+        var selected=selectedMembership();var date=LocalDate.now(ZoneId.of("Europe/Moscow"));
+        return Gs1ActionPolicy.evaluate(selected,applicationForm,List.copyOf(requests.getItems()),dashboard.availability(selected,date),date,Instant.now(),newApplication);
     }
     private Gs1ReadinessService.Snapshot readiness(){
         var owner=currentContext;
@@ -274,7 +278,7 @@ public final class Gs1Pane extends BorderPane {
             case JOIN_GS1->joinDisabled(policy)||inn.isBlank();
             case RENEW_MEMBERSHIP->!policy.renewal();
             case RESTORE_MEMBERSHIP->joinDisabled(policy);
-            case REQUEST_PREFIX->!Gs1ActionPolicy.canOpenPrefixRequest(membership,Instant.now(),LocalDate.now(ZoneId.of("Europe/Moscow")));
+            case REQUEST_PREFIX->!Gs1ActionPolicy.canOpenPrefixRequest(selectedMembership(),Instant.now(),LocalDate.now(ZoneId.of("Europe/Moscow")));
             case LOGIN,REFRESH_BALANCE,REFRESH_MEMBERSHIP->inn.isBlank();
             default->false;
         };
@@ -377,10 +381,19 @@ public final class Gs1Pane extends BorderPane {
         var explanation=new Label(tr(assertion==Gs1Membership.Status.ACTIVE||assertion==Gs1Membership.Status.EXPIRING?"gs1.reference.member_ready":"gs1.status."+assertion.name()));explanation.setWrapText(true);
         detail.setText(catalogCheckedAt==null?tr("gs1.not_checked"):tr("gs1.checked_at")+" "+displayTime(catalogCheckedAt));
         detail.setTooltip(new Tooltip(tr("gs1.source_catalog")+"\n"+tr("gs1.sync.catalog_checked")+": "+(catalogCheckedAt==null?"—":displayTime(catalogCheckedAt))+"\n"+tr("gs1.sync.balance_checked")+": "+(balanceCheckedAt==null?"—":displayTime(balanceCheckedAt))+(profileEmail.isBlank()?"":"\nEmail: "+profileEmail)));
-        var policy=decision();var join=button(joinKey(policy),this::join);join.setId("gs1Join");join.setDisable(busy||inn.isBlank()||joinDisabled(policy));var renewal=button("gs1.renew",()->draft(Gs1LettersService.Kind.RENEWAL));renewal.setId("gs1Renew");renewal.setDisable(busy||inn.isBlank()||!policy.renewal());
-        var more=button("gs1.more_codes",()->draft(Gs1LettersService.Kind.MORE_CODES));more.setId("gs1MoreCodes");more.setDisable(busy||inn.isBlank()||!Gs1ActionPolicy.canOpenPrefixRequest(membership,Instant.now(),LocalDate.now(ZoneId.of("Europe/Moscow"))));more.getStyleClass().add("btn-primary");
+        var policy=decision();
+        var selected=selectedMembership();
+        var now=Instant.now();
+        boolean registered=Gs1ActionPolicy.isConfirmedMember(selected,now);
+        var primary=registered?button("gs1.more_codes",()->draft(Gs1LettersService.Kind.MORE_CODES)):button(joinKey(policy),this::join);
+        primary.setId(registered?"gs1MoreCodes":"gs1Join");
+        primary.getStyleClass().add("btn-primary");
+        primary.setDisable(busy||inn.isBlank()||(registered
+                ?!Gs1ActionPolicy.canOpenPrefixRequest(selected,now,LocalDate.now(ZoneId.of("Europe/Moscow")))
+                :joinDisabled(policy)));
+        var renewal=button("gs1.renew",()->draft(Gs1LettersService.Kind.RENEWAL));renewal.setId("gs1Renew");renewal.setDisable(busy||inn.isBlank()||!policy.renewal());
         var issue=button("gs1.catalog_issue",()->draft(Gs1LettersService.Kind.CATALOG_ISSUE));issue.setDisable(busy||inn.isBlank());issue.getStyleClass().add("btn-primary");
-        var actions=new FlowPane(10,8,more,issue,join,renewal);boolean showJoin=policy.joinAction()!=Gs1ActionPolicy.JoinAction.ALREADY_MEMBER;join.setVisible(showJoin);join.setManaged(showJoin);renewal.setVisible(policy.renewal());renewal.setManaged(policy.renewal());
+        var actions=new FlowPane(10,8,primary,issue,renewal);renewal.setVisible(policy.renewal());renewal.setManaged(policy.renewal());
         if(policy.joiningInvoice()){var invoice=button("gs1.joining_invoice",()->draft(Gs1LettersService.Kind.JOINING_INVOICE));invoice.setDisable(busy||inn.isBlank());actions.getChildren().add(invoice);}
         var card=new VBox(10,line,explanation,detail,actions);card.setId("gs1MembershipCard");card.getStyleClass().addAll("feature-card","workspace-sheet");card.setPadding(new Insets(16));return card;
     }

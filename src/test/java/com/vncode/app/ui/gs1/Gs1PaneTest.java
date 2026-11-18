@@ -89,6 +89,41 @@ class Gs1PaneTest {
             return null;
         });
     }
+    @Test void membershipCardSwitchesThePrimaryActionForTheSelectedEnterprise()throws Exception{
+        var i18n=I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+        try{fx(()->{
+            i18n.setLanguage(AppLanguage.VI);
+            var date=LocalDate.now(ZoneId.of("Europe/Moscow"));
+            var prefix=new Gs1Membership.Prefix("4601234",0,List.of());
+            field("applicationForm",JsonParser.parseString("{\"applicant\":{\"inn\":\"7707083893\"},\"isSent\":false}").getAsJsonObject());
+            field("membership",member(false,null,List.of()));render();
+            var register=button("gs1Join");
+            assertEquals("Đăng ký GS1",register.getText());
+            assertFalse(register.isDisabled());
+            assertNull(button("gs1MoreCodes"));
+
+            field("membership",member(true,date.plusYears(1),List.of(prefix)));render();
+            var more=button("gs1MoreCodes");
+            assertEquals("Xin tiền tố GS1 bổ sung",more.getText());
+            assertFalse(more.isDisabled());
+            assertNull(button("gs1Join"));
+            assertSame(more,((javafx.scene.layout.FlowPane)more.getParent()).getChildren().getFirst());
+
+            field("membership",member(true,null,List.of()));render();
+            assertTrue(button("gs1MoreCodes").isDisabled(),"A confirmed member without a usable prefix needs a status check before requesting another");
+            assertNull(button("gs1Join"));
+
+            field("membership",member(true,date.minusDays(1),List.of(prefix)));render();
+            assertTrue(button("gs1MoreCodes").isDisabled());
+            assertFalse(button("gs1Renew").isDisabled());
+            assertNull(button("gs1Join"));
+
+            field("membership",new Gs1Membership("7800000000","Other enterprise",true,false,date.plusYears(1),List.of(prefix),Instant.now(),Gs1Membership.CATALOG_SOURCE));render();
+            assertEquals(i18n.tr("gs1.action.CHECK_STATUS"),button("gs1Join").getText());
+            assertNull(button("gs1MoreCodes"));
+            return null;
+        });}finally{fx(()->{i18n.setLanguage(previous);return null;});}
+    }
     @Test void accountCardsAndInboxUseTheFullWorkspaceWithSixChecksInTwoColumns()throws Exception{
         fx(()->{
             var date=LocalDate.now(ZoneId.of("Europe/Moscow"));field("membership",member(true,date.plusYears(1),List.of(new Gs1Membership.Prefix("4601234",20,List.of("4601234000000")))));render();
@@ -162,7 +197,7 @@ class Gs1PaneTest {
             for(var language:AppLanguage.values()){
                 i18n.setLanguage(language);render();
                 assertTrue(button("gs1Join").isDisabled());assertEquals(i18n.tr("gs1.action.APPLICATION_SUBMITTED"),button("gs1Join").getText());
-                assertTrue(button("gs1MoreCodes").isDisabled());
+                assertNull(button("gs1MoreCodes"));
                 assertNotEquals("gs1.readiness.title",i18n.tr("gs1.readiness.title"));
                 assertNotEquals("gs1.document_source_notice",i18n.tr("gs1.document_source_notice"));
             }return null;

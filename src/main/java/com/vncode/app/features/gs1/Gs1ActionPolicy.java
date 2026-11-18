@@ -22,6 +22,15 @@ public final class Gs1ActionPolicy {
 
     private Gs1ActionPolicy() {}
 
+    public static boolean isConfirmedMember(Gs1Membership membership,Instant now){
+        return isVerified(membership,now)&&Boolean.TRUE.equals(membership.member())&&!membership.excluded();
+    }
+
+    private static boolean isVerified(Gs1Membership membership,Instant now){
+        return membership!=null&&!membership.stale(now)&&!membership.checkedAt().isAfter(now.plusSeconds(60))
+                &&Gs1Membership.CATALOG_SOURCE.equals(membership.source());
+    }
+
     /** Opening the request explains remaining codes; sending has a stricter live-quota boundary. */
     public static boolean canOpenPrefixRequest(Gs1Membership membership,Instant now,LocalDate date){
         return !prefixesForDisplay(membership,now,date).isEmpty();
@@ -29,8 +38,7 @@ public final class Gs1ActionPolicy {
     /** Identifiers remain readable for a sourced member with an unknown membership expiry; this grants no send right. */
     public static List<Gs1Membership.Prefix> prefixesForDisplay(Gs1Membership membership,Instant now,LocalDate date){
         Objects.requireNonNull(now);Objects.requireNonNull(date);
-        if(membership==null||membership.stale(now)||membership.checkedAt().isAfter(now.plusSeconds(60))||!Gs1Membership.CATALOG_SOURCE.equals(membership.source())
-                ||!Boolean.TRUE.equals(membership.member())||membership.excluded())return List.of();
+        if(!isConfirmedMember(membership,now))return List.of();
         var status=membership.status(date);
         if(status==Gs1Membership.Status.ACTIVE||status==Gs1Membership.Status.EXPIRING)return membership.visiblePrefixes(date);
         if(membership.expiry()==null)return membership.prefixes().stream().filter(p->!p.excluded()&&(p.expiry()==null||!p.expiry().isBefore(date))).toList();
@@ -50,8 +58,7 @@ public final class Gs1ActionPolicy {
         Objects.requireNonNull(requests);
         Objects.requireNonNull(date);
         Objects.requireNonNull(now);
-        if (membership == null || membership.stale(now) || membership.checkedAt().isAfter(now.plusSeconds(60))
-                || !Gs1Membership.CATALOG_SOURCE.equals(membership.source())) return none(JoinAction.CHECK_STATUS);
+        if (!isVerified(membership,now)) return none(JoinAction.CHECK_STATUS);
         var owned = requests.stream().filter(r -> r.inn().equals(membership.inn())).toList();
         var status = membership.status(date);
 
