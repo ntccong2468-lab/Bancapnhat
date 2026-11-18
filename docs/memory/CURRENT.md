@@ -1,6 +1,15 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **17.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+
+## 18.11.2026 — xác nhận 1.6.10 và gom toàn bộ phần chẩn đoán vào 1.6.11
+
+- Người dùng yêu cầu kiểm tra 1.6.10 đã xuống app chưa, hoàn tất phần còn thiếu đã chẩn đoán và phát hành bản mới. Yêu cầu này thay lựa chọn tách GS1 sang bản kế tiếp trước đó: dùng **1.6.11 chưa từng công bố** để gom các sửa KIZ/Ozon/ECC trước và GS1/Sản phẩm/Ozon từ19hướng dẫn.
+- Latest đọc mới vẫn **1.6.10**, immutable445977967/source`b74b5edfd46636e8779c94f467eef01c03c50a14`, công bố15.11.2026 13:40:34MSK. **Updater public1.6.9 thật nhận AVAILABLE1.6.10**, đúngMSI/hash/148.870.409byte. [Receipt](../validation/vncode-1611-20261118/baseline-check/receipt.json). Không chứng minh máy seller đã cài hoặc popup đã hiện.
+- LượtWindows1.6.11 cũ `44128536997`/4f3 hoàn tất FAIL:5.079ca/621suite,0failure/1error/2OSskip; lỗi kiểm hình học trongOzonFbsUiTest, native/DPAPI/install/package chưa chạy. Không phát hành. Giữ log/JUnit ngoàirepo `/workspace/release-1611-20261118/failure-44128536997/`; không dùng kết quả này như fullPASS.
+- Đối chiếu19hướng dẫn/19MP4:305khung hình/34contactsheet, mỗi4giây+cuối, không xem/nghe liên tục. Đã bổ sung GS1 hồ sơ/cache/từ chối/gia nhập lại, thỏa thuậnPDF/consent/ký/đối soát/chống replay, mẫu tiền tố, điều hướng lỗi166/quota; lọc nhiều danh mục Sản phẩm; OzonInKIZ riêng giữ luồng kết hợp. [Báo cáo](../validation/wbcode-guides-gs1-20261118/REPORT.md).
+- Nguồn hợp nhất source-v2 kiểmLinux/Xvfb **1.000ca/94suite,0F/E,1namedOSskip**, Node244/244. 112ảnh GS1 thật/4theme-kích thước; ảnh dùng dữ liệu tổng hợp. Các sửa cuối captionĐóng, retryGS1 sau xác nhậnDRAFT(52ca), busyOzonA→B→A(42ca) và đồng bộ layout testOzon(18ca) đã kiểm hẹp; cleanverify hợp nhất mới/fullWindows còn phải xác nhận. Không cộng trùng các lượt kiểm hẹp.
+- Công việc hiện hành `/workspace/vncode-wb-guides-gs1-20261117`, kế thừa4f3; khi nguồn chốt sẽ fast-forward nhánhrelease/vn-code-1.6.11 và chạyWindows mới. Bằng chứng `/workspace/release-1611-20261118`. Phải đúngSHA, kiểm artifact đủ16tệp/native/upgrade6→7/DPAPI/install, rồi publisherLatest và actualupdaterreadback. Chưa có quyền mua KIZ/ký pháp lý/gửi GS1/mail/ghi seller/activation/Gmail thật từ việc phát hành này.
 
 ## Đang chuẩn bị phát hành 1.6.11 — người dùng đã yêu cầu Latest
 

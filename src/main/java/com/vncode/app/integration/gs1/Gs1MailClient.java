@@ -9,6 +9,9 @@ import jakarta.mail.*;
 import jakarta.mail.internet.*;
 import jakarta.mail.search.*;
 import jakarta.activation.*;
+import org.eclipse.angus.mail.smtp.SMTPAddressFailedException;
+import org.eclipse.angus.mail.smtp.SMTPSendFailedException;
+import org.eclipse.angus.mail.smtp.SMTPSenderFailedException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.Charset;
@@ -16,6 +19,14 @@ import java.util.*;
 import java.util.regex.*;
 
 public final class Gs1MailClient {
+    @FunctionalInterface interface TransportFactory {Transport open(Session session)throws MessagingException;}
+    @FunctionalInterface interface PasswordReader {String reveal(String protectedPassword)throws IOException;}
+    private final TransportFactory transports;
+    private final PasswordReader passwords;
+    public Gs1MailClient(){this(session->session.getTransport("smtps"),value->new WindowsSecretProtector().reveal(value));}
+    Gs1MailClient(TransportFactory transports,PasswordReader passwords){
+        this.transports=Objects.requireNonNull(transports);this.passwords=Objects.requireNonNull(passwords);
+    }
     public static final int MAX_ATTACHMENT=10*1024*1024;
     public record Attachment(String name,String type,byte[] bytes){
         public Attachment {
@@ -53,8 +64,8 @@ public final class Gs1MailClient {
         try{
             Session session=Session.getInstance(properties());
             MimeMessage message=message(session,account.from(),letter);
-            try(Transport transport=session.getTransport("smtps")){
-                transport.connect(account.smtpHost(),account.smtpPort(),account.username(),new WindowsSecretProtector().reveal(account.protectedPassword()));
+            try(Transport transport=transports.open(session)){
+                transport.connect(account.smtpHost(),account.smtpPort(),account.username(),passwords.reveal(account.protectedPassword()));
                 LicenseRuntime.require(Permission.GS1);
                 beforeSend.check();
                 started=true;
@@ -65,10 +76,38 @@ public final class Gs1MailClient {
             throw denial;
         }catch(MessagingException|IOException|RuntimeException error){
             if(accepted)return; // A disconnect failure cannot undo the SMTP acceptance already received.
-            if(!started)throw new NotSentException();
+            if(!started||confirmedRejection(error,letter.recipient(),account.from()))throw new NotSentException();
             throw new IOException("GS1 mail delivery could not be confirmed; check the mailbox before sending again");
         }
     }
+    /** Only structured negative acknowledgments for this one unsent recipient permit another attempt.
+     * Missing/positive final responses and transport failures remain uncertain, regardless of error prose.
+     */
+    private static boolean confirmedRejection(Throwable error,String recipient,String from){
+        if(!(error instanceof SendFailedException delivery)||count(delivery.getValidSentAddresses())!=0)return false;
+        Address[] unsent=delivery.getValidUnsentAddresses(),invalid=delivery.getInvalidAddresses();
+        if(count(unsent)+count(invalid)!=1||!sameAddress(count(unsent)==1?unsent[0]:invalid[0],recipient))return false;
+        if(delivery instanceof SMTPSendFailedException smtp){
+            if(!negativeReply(smtp.getReturnCode()))return false;
+            String command=Objects.requireNonNullElse(smtp.getCommand(),"");
+            Exception detail=smtp.getNextException();
+            if(command.equals("DATA")||command.equals("."))return detail==null;
+            if(command.startsWith("MAIL FROM:<")&&!command.contains("\r")&&!command.contains("\n")){
+                if(detail==null)return true;
+                return detail instanceof SMTPSenderFailedException sender&&sender.getNextException()==null
+                        &&sameAddress(sender.getAddress(),from)&&command.equals(sender.getCommand())
+                        &&smtp.getReturnCode()==sender.getReturnCode();
+            }
+            return false;
+        }
+        // Angus wraps an all-rejected RCPT command in SendFailedException, with the exact address failure.
+        return delivery.getNextException() instanceof SMTPAddressFailedException refused
+                &&refused.getNextException()==null&&sameAddress(refused.getAddress(),recipient)
+                &&negativeReply(refused.getReturnCode())&&("RCPT TO:<"+recipient+">").equals(refused.getCommand());
+    }
+    private static int count(Address[] addresses){return addresses==null?0:addresses.length;}
+    private static boolean sameAddress(Address address,String expected){return address instanceof InternetAddress internet&&expected.equalsIgnoreCase(internet.getAddress());}
+    private static boolean negativeReply(int code){return code>=400&&code<=599;}
     public byte[] export(String from,Letter letter)throws IOException{
         try{var out=new ByteArrayOutputStream();message(Session.getInstance(properties()),from,letter).writeTo(out);return out.toByteArray();}
         catch(MessagingException error){throw new IOException("Could not export the GS1 letter");}

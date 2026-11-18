@@ -124,6 +124,29 @@ class Gs1PrefixRequestDialogTest {
             return null;
         });
     }
+    @Test void FirstUseLoadsTheSafeOfficialFormAndCanGenerateAReviewedSignedPdfWithoutImport()throws Exception{
+        var editor=create(snapshot(0,0));fx(()->{invoke(editor,"loadSavedTemplate");return null;});awaitIdle(editor);
+        fx(()->{
+            assertFalse(button(editor,"gs1PrefixDownloadWord").isDisabled());assertFalse(button(editor,"gs1PrefixPreviewWord").isDisabled());assertTrue(next(editor).isDisabled());
+            var ink=(Gs1SignatureInk)field(editor,"ink");drawSignature(ink);invoke(editor,"updateButtons");button(editor,"gs1PrefixCreateSignedPdf").fire();return null;
+        });awaitIdle(editor);
+        fx(()->{
+            var document=(Gs1MailClient.Attachment)field(editor,"document");assertNotNull(document);assertNotNull(image(editor).getImage());
+            try(var pdf=Loader.loadPDF(document.bytes())){String text=new PDFTextStripper().getText(pdf);assertTrue(text.contains("01.04.01"));assertTrue(text.contains(DEFAULTS.legalName()));assertTrue(text.contains(INN));}
+            assertTrue(next(editor).isDisabled(),"Creating the PDF does not grant seller review consent");return null;
+        });
+    }
+    @Test void AnImportedSellerTemplateKeepsPriorityOverTheBuiltInDefault()throws Exception{
+        byte[] custom=template();new com.vncode.app.features.gs1.Gs1PrefixTemplateStore().save(INN,"production",custom);
+        var editor=create(snapshot(0,0));fx(()->{invoke(editor,"loadSavedTemplate");return null;});awaitIdle(editor);
+        fx(()->{assertArrayEquals(custom,(byte[])field(editor,"template"));return null;});
+    }
+    @Test void ACorruptImportedTemplateFailsInsteadOfSilentlySelectingAnotherForm()throws Exception{
+        new com.vncode.app.features.gs1.Gs1PrefixTemplateStore().save(INN,"production",template());
+        try(var files=java.nio.file.Files.walk(directory.resolve("gs1-prefix-templates"))){var custom=files.filter(java.nio.file.Files::isRegularFile).findFirst().orElseThrow();java.nio.file.Files.writeString(custom,"corrupt synthetic template");}
+        var editor=create(snapshot(0,0));fx(()->{invoke(editor,"loadSavedTemplate");return null;});awaitIdle(editor);
+        fx(()->{assertNull(field(editor,"template"));assertTrue(button(editor,"gs1PrefixDownloadWord").isDisabled());assertTrue(next(editor).isDisabled());return null;});
+    }
 
     @Test void positiveAndUnknownAggregateQuotaBlockProgressDespiteAReviewedSignedDocument() throws Exception {
         var signed = signedDocument();

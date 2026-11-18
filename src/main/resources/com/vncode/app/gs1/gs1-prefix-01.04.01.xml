@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Independent inert adaptation of the visible GS1 RUS form, not the original DOCX.
+  Official source: https://gs1ru.org/downloads/documents/F01_0401.docx
+  Original SHA256: 79406c129a9efa6a32220c18228a0249d7f471741235e6846400ea35404429ed
+  Retrieved: 2026-11-17. Printed source revision: 01.04.01 – 2010.07.02.
+  Preserve the required visible form text and its order. Sample watermarks, active
+  drawings, mailto relationship, header/footer parts and unused Word metadata are
+  absent. Header/footer labels are ordinary paragraphs; Times New Roman replaces
+  Tahoma for the existing supported renderer. INN/date are explicit profile additions.
+  Quantity remains in the reviewed request email because the official form has no
+  capacity field. The seller still reviews letterhead, signature and stamp requirements.
+-->
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:body>
+    <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/></w:rPr><w:t>Форма 01.04.01</w:t></w:r></w:p>
+    <w:p><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:sz w:val="24"/></w:rPr><w:t>НА БЛАНКЕ ПРЕДПРИЯТИЯ</w:t></w:r></w:p>
+    <w:p/>
+    <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>Генеральному директору</w:t></w:r></w:p>
+    <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>Ассоциации автоматической</w:t></w:r></w:p>
+    <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>идентификации «ЮНИСКАН/ГС1 РУС»</w:t></w:r></w:p>
+    <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>г-ну Насонову Г.К.</w:t></w:r></w:p>
+    <w:p/>
+    <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:b/><w:sz w:val="32"/></w:rPr><w:t>ЗАЯВЛЕНИЕ</w:t></w:r></w:p>
+    <w:p/>
+    <w:p><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>${companyName} (ИНН ${inn}, номер предприятия в ЮНИСКАН/ГС1 РУС: ${gs1Codes})</w:t></w:r></w:p>
+    <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="18"/></w:rPr><w:t>(наименование организации/предприятия, номер предприятия в ЮНИСКАН/ГС1 РУС)</w:t></w:r></w:p>
+    <w:p><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>просит предоставить дополнительный префикс в связи с окончанием ранее присвоенного диапазона.</w:t></w:r></w:p>
+    <w:p/>
+    <w:p><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>Дата: ${date}</w:t></w:r></w:p>
+    <w:p/>
+    <w:p><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>РУКОВОДИТЕЛЬ ${signerName}    _______________________</w:t></w:r></w:p>
+    <w:p><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/></w:rPr><w:t xml:space="preserve">Фамилия, имя, отчество                           подпись</w:t></w:r></w:p>
+    <w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="24"/></w:rPr><w:t>М.П.</w:t></w:r></w:p>
+    <w:p><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="20"/></w:rPr><w:t>Документ может быть направлен: по ЭДО (Диадок, СБИС), по e-mail mail@gs1ru.org</w:t></w:r></w:p>
+    <w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman"/><w:sz w:val="18"/></w:rPr><w:t>01.04.01 – 2010.07.02</w:t></w:r></w:p>
+    <w:sectPr><w:pgSz w:w="11907" w:h="16840"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1418"/></w:sectPr>
+  </w:body>
+</w:document>

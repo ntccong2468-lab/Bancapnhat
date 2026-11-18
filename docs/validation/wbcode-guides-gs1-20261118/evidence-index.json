@@ -1,0 +1,280 @@
+{
+  "createdUtc": "2026-11-18T06:41:02.463910+00:00",
+  "purpose": "Sanitized research, local test and UI evidence for consolidation of unpublished changes into VN Code1.6.11 requested18Nov2026",
+  "baselineCommit": "4f3b71aa108008c49e865652159ca5377ddb22f8",
+  "targetVersion": "1.6.11",
+  "publicationStatus": "Not certified here; actual Windows/package/public/updater receipts must be recorded by publisher after success",
+  "guides": [
+    {
+      "id": "3",
+      "url": "https://wbcode.pro/guides/3",
+      "videoCount": 1
+    },
+    {
+      "id": "1",
+      "url": "https://wbcode.pro/guides/1",
+      "videoCount": 0
+    },
+    {
+      "id": "2",
+      "url": "https://wbcode.pro/guides/2",
+      "videoCount": 2
+    },
+    {
+      "id": "4",
+      "url": "https://wbcode.pro/guides/4",
+      "videoCount": 1
+    },
+    {
+      "id": "5",
+      "url": "https://wbcode.pro/guides/5",
+      "videoCount": 1
+    },
+    {
+      "id": "6",
+      "url": "https://wbcode.pro/guides/6",
+      "videoCount": 1
+    },
+    {
+      "id": "7",
+      "url": "https://wbcode.pro/guides/7",
+      "videoCount": 1
+    },
+    {
+      "id": "8",
+      "url": "https://wbcode.pro/guides/8",
+      "videoCount": 1
+    },
+    {
+      "id": "9",
+      "url": "https://wbcode.pro/guides/9",
+      "videoCount": 1
+    },
+    {
+      "id": "10",
+      "url": "https://wbcode.pro/guides/10",
+      "videoCount": 1
+    },
+    {
+      "id": "17",
+      "url": "https://wbcode.pro/guides/17",
+      "videoCount": 1
+    },
+    {
+      "id": "11",
+      "url": "https://wbcode.pro/guides/11",
+      "videoCount": 1
+    },
+    {
+      "id": "12",
+      "url": "https://wbcode.pro/guides/12",
+      "videoCount": 1
+    },
+    {
+      "id": "13",
+      "url": "https://wbcode.pro/guides/13",
+      "videoCount": 1
+    },
+    {
+      "id": "14",
+      "url": "https://wbcode.pro/guides/14",
+      "videoCount": 1
+    },
+    {
+      "id": "15",
+      "url": "https://wbcode.pro/guides/15",
+      "videoCount": 1
+    },
+    {
+      "id": "16",
+      "url": "https://wbcode.pro/guides/16",
+      "videoCount": 1
+    },
+    {
+      "id": "20018",
+      "url": "https://wbcode.pro/guides/20018",
+      "videoCount": 1
+    },
+    {
+      "id": "20019",
+      "url": "https://wbcode.pro/guides/20019",
+      "videoCount": 1
+    }
+  ],
+  "reviewMethod": {
+    "articles": 19,
+    "mp4Files": 19,
+    "totalDurationSeconds": 1122.38,
+    "decodedFrames": 305,
+    "contactSheets": 34,
+    "sampling": "every four seconds plus final frame; no continuous playback/listening claim",
+    "asr": "executed for19, unreliable music/hallucinations; not used as factual source"
+  },
+  "officialReferences": [
+    {
+      "url": "https://docs.crpt.ru/gismt/True_API/",
+      "scope": "Operator agreement list/PDF/signature/EDO official contract"
+    },
+    {
+      "url": "https://docs.crpt.ru/gismt/API_%D0%9D%D0%9A/",
+      "scope": "National Catalog registration contract"
+    }
+  ],
+  "localReceipts": [
+    "receipts/combined-v2.json",
+    "receipts/node-command.json",
+    "receipts/node-summary.json",
+    "receipts/ui-summary.json",
+    "receipts/report-close-capture.json",
+    "receipts/source-preservation-checkpoint.json"
+  ],
+  "researchProvenance": [
+    {
+      "evidencePath": "inventory/VALIDATION.json",
+      "sha256": "cdf0fe892686f67c97d8d31ee83d6aa31772e35080ab7896eb9039ca8bbc8a81",
+      "bytes": 552,
+      "rawCopied": false
+    },
+    {
+      "evidencePath": "core-audit/verification-result.json",
+      "sha256": "74027c8e6f7f4bc15f230c0face1d30b164402a73216475a2504c314dcc4305e",
+      "bytes": 1276,
+      "rawCopied": false
+    },
+    {
+      "evidencePath": "vn-audit/OWN-FINAL-RECEIPT.json",
+      "sha256": "874133f7aaae4ab40864670b39724bd078c1849e5b56b6e873c4da39ac374732",
+      "bytes": 3752,
+      "rawCopied": false
+    },
+    {
+      "evidencePath": "wb-audit/verification/RESULT.json",
+      "sha256": "f235e78d17c29836d2b8bd80c6311e20d55ad66fcd2afa6b1841485d7626404b",
+      "bytes": 6502,
+      "rawCopied": false
+    },
+    {
+      "evidencePath": "products-category/green-v3.json",
+      "sha256": "1b5d4fccf3fa70959126675e53496a397d491aa93ab4812761eb8e73cc11ff3e",
+      "bytes": 1808,
+      "rawCopied": false
+    },
+    {
+      "evidencePath": "final-review/gs1-form-replay/GREEN.json",
+      "sha256": "7c38b6da0a89275149274e75ce9787b74e17993fb00204d310d58fa7f9f3152f",
+      "bytes": 905,
+      "rawCopied": false
+    },
+    {
+      "evidencePath": "ozon-independent-review/FINAL-RECEIPT.json",
+      "sha256": "13a9ac0d41806bb2ed15546b8a154bcd60cd5330a974a59dfd00650ab642b63f",
+      "bytes": 2676,
+      "rawCopied": false
+    },
+    {
+      "evidencePath": "integrated/source-v2-manifest.json",
+      "sha256": "e0b0e7f9d71a90adcfbdc6e541a83b841581f9bfc7eec1a297e905a141de3993",
+      "bytes": 567393,
+      "rawCopied": false
+    },
+    {
+      "evidencePath": "wb-audit/latest-1327/download-verification.json",
+      "sha256": "790743d463d5e0a16d4d873f3272a845f8a04bd77623fddafeee819cc11ade7c",
+      "bytes": 407,
+      "rawCopied": false
+    }
+  ],
+  "screenshots": [
+    {
+      "path": "screenshots/gs1-wizard-dark.png",
+      "sourceEvidencePath": "final-ui/captures-final-v3/dark-1366x768/gs1-wizard-step4-bottom.png",
+      "sha256": "3fd419531e967f26771902e4185d900c78aa565804ae0e0160b26d07f9d26b92",
+      "bytes": 174798,
+      "syntheticOnly": true
+    },
+    {
+      "path": "screenshots/gs1-address-light-small.png",
+      "sourceEvidencePath": "final-ui/captures-final-v3/light-1024x720/gs1-wizard-step3-bottom.png",
+      "sha256": "cce1b9be77fa3950cfdf367104a7c385ddbea1f2de9c2a223f2c87227a0beb6c",
+      "bytes": 132607,
+      "syntheticOnly": true
+    },
+    {
+      "path": "screenshots/gs1-agreement-dark.png",
+      "sourceEvidencePath": "final-ui/captures-final-v3/dark-1366x768/gs1-agreement-preview-readable.png",
+      "sha256": "d900cb9de11cae68d088554e2b39f8fb64b7bd9f23b0fa38a8c0dc8c42741dda",
+      "bytes": 160394,
+      "syntheticOnly": true
+    },
+    {
+      "path": "screenshots/gs1-agreement-light-consent.png",
+      "sourceEvidencePath": "final-ui/captures-final-v3/light-1024x720/gs1-agreement-consent-readable.png",
+      "sha256": "12773cb0790b349cbd8e45292b99f6a735530010d02e39459ea118eed328ad41",
+      "bytes": 97277,
+      "syntheticOnly": true
+    },
+    {
+      "path": "screenshots/gs1-prefix-default.png",
+      "sourceEvidencePath": "final-ui/captures-final-v3/light-1366x768/gs1-prefix-default-pdf.png",
+      "sha256": "36992462c21e712ab72f816a25e77d053a7352651ef63300bcef651b774d3871",
+      "bytes": 191720,
+      "syntheticOnly": true
+    },
+    {
+      "path": "screenshots/products-dark-categories.png",
+      "sourceEvidencePath": "products-category/captures/products-categories-dark-menu.png",
+      "sha256": "1980f430f019d122e269bdc83a69ce061f7c53998b780b557d51830fd19db7ff",
+      "bytes": 160204,
+      "syntheticOnly": true
+    },
+    {
+      "path": "screenshots/products-light.png",
+      "sourceEvidencePath": "products-category/captures/products-categories-light.png",
+      "sha256": "637dfc0728c618497c8d210310fa33f8107b7dcdd273ff5ea7a546c97985f653",
+      "bytes": 163345,
+      "syntheticOnly": true
+    },
+    {
+      "path": "screenshots/gs1-report-close-vi.png",
+      "sourceEvidencePath": "final-ui/report-close-delta/captures/light-1366x768/gs1-source-report-close-vi.png",
+      "sha256": "5c25415f2d7360e0a145b7087f6e03a7a3f6287bc71bed0900c6bd8c33b5d2e8",
+      "bytes": 161393,
+      "syntheticOnly": true
+    }
+  ],
+  "exclusions": [
+    "No seller data, credentials, private keys or KIZ payloads",
+    "No raw videos/articles/transcripts or foreign binary/decompiled source",
+    "No synthetic profile/cache/license database",
+    "No claim of live GS1/Catalog/marketplace, CryptoPro, mail or paid purchase acceptance",
+    "Overlapping focused test counts are not summed"
+  ],
+  "finalAcceptanceRequired": [
+    "Updated exact source commit and source manifest",
+    "Focused verification for the two P2 behavior fixes and old layout test failure",
+    "Fresh complete Windows build and native/schema/DPAPI/install tests",
+    "Independent package review, public asset hash verification and actual updater readback"
+  ],
+  "finalFixReceipts": [
+    {
+      "path": "receipts/gs1-retry-final.json",
+      "sha256": "6e1b7eaa1af0f38210610f7326254eb407009f6fe036053411a9412f2a8907d3",
+      "bytes": 1567
+    },
+    {
+      "path": "receipts/ozon-busy-final.json",
+      "sha256": "b7cb9b9e9b0645a435d8387836ac46e81ca4889482a6b000b3e5a476979a8f2c",
+      "bytes": 1163
+    },
+    {
+      "path": "receipts/ozon-ui-geometry-final.json",
+      "sha256": "8380db4fe057462244efa17a24868d0f11e8a5a230e700077c22fda25866d819",
+      "bytes": 915
+    },
+    {
+      "path": "receipts/ozon-ui-test-scope.json",
+      "sha256": "c0bbfa3a2707895ca861a033dfd1ea231b89b17b31b9a153ccd25fc8cac9d2b3",
+      "bytes": 1224
+    }
+  ]
+}

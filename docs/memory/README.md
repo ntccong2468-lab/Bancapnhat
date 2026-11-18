@@ -10,6 +10,7 @@ Bộ nhớ này được lưu cùng mã nguồn trong Git. AI mở repository/nh
 
 | Chủ đề | Tài liệu gốc |
 | --- | --- |
+| 18.11: kiểm updater1.6.10 và gom GS1/hướng dẫn cho1.6.11 | [Updater thật](../validation/vncode-1611-20261118/baseline-check/receipt.json), [báo cáo19hướng dẫn](../validation/wbcode-guides-gs1-20261118/REPORT.md), [trạng thái hiện hành](CURRENT.md) |
 | Mua KIZ VN1.3.0 Preview vs Latest1.6.10 và WBCode1.3.26: gate Catalog, tự lưu thông, quyền ký/khôi phục;4fixture đạt, chỉ nghiên cứu | [Báo cáo và sơ đồ](../research/kiz-purchase-20261116/REPORT.md), [WBCode chi tiết](../research/kiz-purchase-20261116/wbcode/REPORT.md), [4ca](../research/kiz-purchase-20261116/verification/RESULT.json), [bảo toàn](../research/kiz-purchase-20261116/preservation.json) |
 | FBS Ozon theo mẫu WB: header/ảnh khớp0px, ảnh Znack trước sửa và FBS cuối tối/sáng; fresh394/64 đạt, giữ nghiệp vụ, chưa phát hành | [Bàn giao và ảnh](../validation/ozon-fbs-wb-layout-20261116/REPORT.md), [kiểm thử](../validation/ozon-fbs-wb-layout-20261116/combined-result-final.json), [bảo toàn](../validation/ozon-fbs-wb-layout-20261116/independent-review-final.json) |
 | Đối chiếu muaKIZ publicđầu1.1.33: sửa download/WAL/owner/pause/summary choWB+Ozon; fresh1576/146 đạt, actualJARđạt; chưa API thật/Windows/phát hành | [Bàn giao](../validation/kiz-first-public-20261116/REPORT.md), [bản đầu](../validation/kiz-first-public-20261116/original/REPORT.md), [kiểm thử](../validation/kiz-first-public-20261116/combined-result.json), [source24file](../validation/kiz-first-public-20261116/source-delta.json) |

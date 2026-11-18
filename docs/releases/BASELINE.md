@@ -1,5 +1,11 @@
 # VNCode consolidated baseline
 
+Latest xác minh mới **18.11.2026: VN Code1.6.10**, immutable`v1.6.10`/445977967/source`b74b5edfd46636e8779c94f467eef01c03c50a14`, công bố15.11.2026 13:40:34MSK. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.10/VN-code-1.6.10-Windows-x64.exe), [biên nhận updater public1.6.9 nhận1.6.10](../validation/vncode-1611-20261118/baseline-check/receipt.json).
+
+Đang chuẩn bị1.6.11 gom KIZ/Ozon/ECC và các bổ sungGS1/Sản phẩm/InKIZ từ hướng dẫn. Lượt Windows4f3 cũ FAIL5079/1error, chưa phát hành. Cần chạy và nghiệm thu đúng nguồn mới, không dùng số liệu lịch sử bên dưới thay cho kết quả. [Ghi chú1.6.11](VN-code-1.6.11.md), [báo cáo bổ sung](../validation/wbcode-guides-gs1-20261118/REPORT.md).
+
+## Các checkpoint bản nền trước — lịch sử giữ nguyên
+
 Latest hiện là **VN Code1.6.8**, immutable `v1.6.8`, nguồn **38906a2108501029d9609ed1d071ee987c8b2637**, release **440439895**, công bố **10.11.2026 18:34:37MSK/15:34:37UTC**. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.8/VN-code-1.6.8-Windows-x64.exe), [ghi chú](VN-code-1.6.8.md), [bàn giao](../validation/2026-11-10-vncode-168-release-handoff.md), [receipt](../validation/vncode-168-20261110/final-release.json).
 
 FullWindows42828436446SUCCESS4254ca/554lớp,4252đạt/0failure/error/2namedOSskip. Đủ5stress300/10.000, native/migration/DPAPI/install/coexist/uninstall/passiveupgrade167→168. Node166app/174publisher, khôngcộngscope. Publisher1a19377/run42845466246;16publicfiles tải/đối chiếu, sourceZIP3086/JAR1994/18runtime/no fixture. MSI đọc độc lập từEXE khớp148739333bytes/SHA8dbfd5e6eb91c4635a1f535640e77b147254944cb11fe0998a367348f76a41cf.

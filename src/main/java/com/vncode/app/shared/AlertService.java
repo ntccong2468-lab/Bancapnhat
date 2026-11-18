@@ -46,6 +46,11 @@ public final class AlertService {
 
     /** Shows diagnostics in full and keeps the dialog open while its Copy button is used. */
     public static void showDetailedError(String summary, String details) {
+        showDetailedError(summary, details, null, null);
+    }
+
+    /** An optional explicit action keeps diagnostics available and runs only after the dialog closes. */
+    public static void showDetailedError(String summary, String details, String actionLabel, Runnable action) {
         I18nService i18n = I18nService.getInstance();
         Dialog<Void> dialog = new Dialog<>();
         applyTheme(dialog);
@@ -70,6 +75,15 @@ public final class AlertService {
         ButtonType copyType = new ButtonType(i18n.tr("common.copy"), ButtonBar.ButtonData.OTHER);
         ButtonType closeType = new ButtonType(i18n.tr("common.close"), ButtonBar.ButtonData.CANCEL_CLOSE);
         dialog.getDialogPane().getButtonTypes().setAll(copyType, closeType);
+        ButtonType actionType = action != null && actionLabel != null && !actionLabel.isBlank()
+                ? new ButtonType(actionLabel, ButtonBar.ButtonData.OTHER) : null;
+        if (actionType != null) dialog.getDialogPane().getButtonTypes().add(0, actionType);
+        boolean[] requested = {false};
+        if (actionType != null) {
+            Button actionButton = (Button) dialog.getDialogPane().lookupButton(actionType);
+            actionButton.setId("detailedErrorAction");
+            actionButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> requested[0] = true);
+        }
         Button copyButton = (Button) dialog.getDialogPane().lookupButton(copyType);
         copyButton.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
             ClipboardContent clipboardContent = new ClipboardContent();
@@ -78,6 +92,7 @@ public final class AlertService {
             event.consume();
         });
         dialog.showAndWait();
+        if (requested[0]) action.run();
     }
 
     public static void showWarning(String title, String header, String content) {

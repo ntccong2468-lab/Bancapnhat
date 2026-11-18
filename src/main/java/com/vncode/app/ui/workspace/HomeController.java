@@ -432,7 +432,11 @@ public class HomeController implements Initializable {
                 ZnackCardRegistrationController.class, "znack-card-registration-view.fxml");
         znackRegistrationView = FxmlViewLoader.load(znackRegistrationLoader);
         znackRegistrationController = znackRegistrationLoader.getController();
-        znackRegistrationController.setOzonRegistrationFactory(com.vncode.app.ui.znackregistration.OzonRegistrationPane::new);
+        znackRegistrationController.setOnGs1Recovery(this::showGs1Recovery);
+        znackRegistrationController.setOzonRegistrationFactory(shop->{
+            var pane=new com.vncode.app.ui.znackregistration.OzonRegistrationPane(shop);
+            pane.setOnGs1Recovery(action->{if(sameOwner(shop))showGs1Recovery(action);});return pane;
+        });
 
             return znackRegistrationView;
         });
@@ -1900,6 +1904,7 @@ public class HomeController implements Initializable {
         return gs1Pane;
     }
     private void showGs1(){clearKizDraft();var pane=gs1Pane();pane.setShop(state.getSelectedShop());pane.setOnSyncRequested(()->{var shop=state.getSelectedShop();if(shop!=null&&syncRuntime!=null)syncRuntime.request(shop,com.vncode.app.features.sync.SyncCoordinator.Stream.GS1);});workspaceNavigator.show("gs1");if(state.getSelectedShop()!=null&&syncRuntime!=null)syncRuntime.request(state.getSelectedShop(),com.vncode.app.features.sync.SyncCoordinator.Stream.GS1);}
+    private void showGs1Recovery(com.vncode.app.ui.gs1.Gs1Pane.RecoveryAction action){showGs1();gs1Pane().openRecovery(action);}
 
     private void initializeSupplyViews() {
         FXMLLoader supplyListLoader = FxmlViewLoader.loader(SupplyListController.class, "supply-list-view.fxml");

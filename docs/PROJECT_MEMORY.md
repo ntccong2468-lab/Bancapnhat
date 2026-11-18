@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## 18.11.2026 MSK — xác minh cập nhật1.6.10 và hợp nhất GS1/hướng dẫn cho1.6.11
+
+Latest1.6.10/445977967immutable được đọc mới. Updater public1.6.9 nguyên bản trảAVAILABLE1.6.10 quaGET200/TLS1.3, đúngMSI/hash/148.870.409byte; chưa quan sát popup/cài máy seller. [Receipt](validation/vncode-1611-20261118/baseline-check/receipt.json).
+
+Người dùng yêu cầu thêm các phần chẩn đoán còn thiếu rồi phát hành bản mới; gom vào1.6.11 chưa từng công bố, kế thừa4f3 và mọi sửa KIZ/Ozon/ECC trước. Thêm GS1 trạng thái hồ sơ, wizard, thỏa thuậnPDF/ký/đối soát/chống gửi trùng, mẫu tiền tố và điều hướng lỗi; Sản phẩm lọc nhiều danh mục; OzonInKIZ riêng cùng sửa busy/retryGS1. [Báo cáo19hướng dẫn](validation/wbcode-guides-gs1-20261118/REPORT.md). Video được kiểm qua305khung/34sheet mỗi4giây+cuối; không gọi xem/nghe liên tục.
+
+Windows cũ44128536997/4f3FAIL5079ca/621suite/1errorOzonFbsUiTest/2OSskip, không có bộ cài/nghiệm thu native. Giữ nguyên evidence và kiểm mới đúng nguồn sau sửa; không bỏ assertion/test hoặc tắt gate. Linux source-v2 1000/94,0F/E/1OSskip và Node244 là phạm vi liên quan, không thay fullWindows. Không mua/ký/gửi thư/ghi seller/activation/Gmail thật. Trạng thái công bố cuối phải đọcGitHub/receipt mới; các mốc chuẩn bị không phải release thành công.
+
 ## 14.11.2026 MSK — audit vì sao UI chưa giống iOS27 sau khi hoàn tất GTIN
 
 [Báo cáo](validation/ios-ui-audit-20261114/REPORT.md), [so ảnh](validation/ios-ui-audit-20261114/comparison/index.html), [receipt](validation/ios-ui-audit-20261114/receipt.json). Taste app-screen và Impeccable đọc hai prompt gốc: glass alpha-only trên ground phẳng; bảng/sheet cố ý đục; native cell/filter khác cấu trúc HTML mẫu; motion chỉ incoming và thiếu exit/shared-element/đóng đảo chiều. Không thấy bằng chứng CSS bị bỏ khỏi build:7UIfile so byte-equal1.6.9, phần GTIN không redesignUI. Không đổ lỗi cho việc người dùng đã duyệt hướng thiết kế; đó không phải xác nhận từng chi tiết native sau triển khai.

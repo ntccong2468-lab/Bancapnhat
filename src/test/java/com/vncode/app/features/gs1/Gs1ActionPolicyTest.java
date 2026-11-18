@@ -78,4 +78,38 @@ class Gs1ActionPolicyTest {
         for(var state:List.of(Gs1Repository.State.SENDING,Gs1Repository.State.RECONCILE_REQUIRED,Gs1Repository.State.SUBMITTED))
             assertEquals(RECONCILE_DELIVERY,Gs1ActionPolicy.evaluate(nonmember,blank,List.of(request("JOIN",state)),ZERO,TODAY,NOW,true).joinAction());
     }
+    @Test void excludedEnterpriseCanReviewAndResubmitAnEditableOrRejectedOldForm(){
+        var excluded=member(false,true,null);
+        var editable=decision(excluded,form(false),List.of(),ZERO);
+        assertEquals(JOIN,editable.joinAction());assertFalse(editable.restoration());
+        var rejected=form(true);rejected.addProperty("errorText","Fixture correction required");
+        assertEquals(JOIN,decision(excluded,rejected,List.of(),ZERO).joinAction());
+        assertEquals(RESTORE_MEMBERSHIP,decision(excluded,form(true),List.of(),ZERO).joinAction(),"A still-submitted remote form requires the separate restoration letter");
+    }
+    @Test void exclusionNeverOverridesUnknownOrAnotherEnterprisesForm(){
+        var excluded=member(false,true,null);
+        assertEquals(CHECK_STATUS,decision(excluded,null,List.of(),ZERO).joinAction());
+        var foreign=form(false);foreign.getAsJsonObject("applicant").addProperty("inn","7811089030");
+        assertEquals(CHECK_STATUS,decision(excluded,foreign,List.of(),ZERO).joinAction());
+        var missing=form(false);missing.remove("isSent");assertEquals(CHECK_STATUS,decision(excluded,missing,List.of(),ZERO).joinAction());
+        for(String key:List.of("isSent","errorText")){
+            var malformed=form(true);malformed.add(key,new com.google.gson.JsonArray());
+            assertEquals(CHECK_STATUS,decision(excluded,malformed,List.of(),ZERO).joinAction());
+        }
+    }
+    @Test void excludedRejoiningKeepsEveryUncertainSubmissionAndRestorationGuard(){
+        var excluded=member(false,true,null);
+        for(var state:List.of(Gs1Repository.State.SENDING,Gs1Repository.State.RECONCILE_REQUIRED)){
+            for(boolean sent:List.of(false,true)){
+                assertEquals(RECONCILE_DELIVERY,decision(excluded,form(sent),List.of(request("JOIN",state)),ZERO).joinAction());
+                assertEquals(RECONCILE_DELIVERY,decision(excluded,form(sent),List.of(request("RESTORE_MEMBERSHIP",state)),ZERO).joinAction());
+            }
+        }
+        assertEquals(RECONCILE_DELIVERY,decision(excluded,form(false),List.of(request("JOIN",Gs1Repository.State.SUBMITTED)),ZERO).joinAction());
+        assertEquals(RESTORATION_REQUESTED,decision(excluded,form(false),List.of(request("RESTORE_MEMBERSHIP",Gs1Repository.State.SENT)),ZERO).joinAction());
+        var rejected=form(true);rejected.addProperty("errorText","Fixture rejected");
+        assertEquals(RECONCILE_DELIVERY,decision(excluded,rejected,List.of(request("JOIN",Gs1Repository.State.SUBMITTED)),ZERO).joinAction());
+        var foreign=new Gs1Repository.Request(UUID.randomUUID().toString(),"7811089030","JOIN","mail@gs1ru.org","Fixture","Fixture",Gs1Repository.State.SENDING,NOW);
+        assertEquals(JOIN,decision(excluded,form(false),List.of(foreign),ZERO).joinAction());
+    }
 }

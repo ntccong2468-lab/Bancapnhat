@@ -185,6 +185,10 @@ public final class OzonDashboardController {
     @FXML private ProgressIndicator loadingIndicator;
     @FXML private Button cancelSelectionButton;
     private Task<List<String>> activeSelectionTask;
+    private Task<?> activeKizOnlyTask;
+    private com.vncode.app.integration.ozon.OzonKizOnlyPrintService.Cancellation activeKizOnlyCancellation;
+    /** Busy inherited from a batch which was already running when this shop was reopened. */
+    private long leaseWaitRequestToken = -1;
     @FXML private Button refreshButton;
     @FXML private TabPane orderStatusTabs;
     @FXML private Tab newOrdersTab;
@@ -227,6 +231,7 @@ public final class OzonDashboardController {
     @FXML private CheckBox sortByColorCheckBox;
     @FXML private CheckBox sortBySizeCheckBox;
     @FXML private Button printAllButton;
+    @FXML private Button printKizOnlyButton;
     @FXML private Button selectFilteredButton,clearBatchSelectionButton;
     @FXML private Label gtinInventoryTitleLabel;
     @FXML private Label gtinInventoryEmptyLabel;
@@ -308,6 +313,7 @@ public final class OzonDashboardController {
         if (!sameContext) {
             orderDetailDrawer.clear();
             if(activeSelectionTask!=null){activeSelectionTask.cancel(true);activeSelectionTask=null;cancelSelectionButton.setVisible(false);cancelSelectionButton.setManaged(false);}
+            if(activeKizOnlyTask!=null){cancelKizOnlyTask();activeKizOnlyTask=null;activeKizOnlyCancellation=null;cancelSelectionButton.setDisable(false);cancelSelectionButton.setVisible(false);cancelSelectionButton.setManaged(false);}
             clearPrintPill();
             requestToken++;
             setBusy(false);
@@ -324,7 +330,10 @@ public final class OzonDashboardController {
             return;
         }
         loadLocal();
-        if(com.vncode.app.shared.ShopBatchRegistry.hasShop(selected.getId()))setBusy(true);
+        if(com.vncode.app.shared.ShopBatchRegistry.hasShop(selected.getId())&&!busy){
+            setBusy(true);
+            leaseWaitRequestToken=requestToken;
+        }
         if(gtinInventoryPanel.isExpanded())refreshGtinInventory();
         if (syncRemote) sync(false);
     }
@@ -429,6 +438,8 @@ public final class OzonDashboardController {
         updateTabTitles();
         moveToPackingButton.setText(i18n.tr("ozon.dashboard.move_to_packing"));
         printAllButton.setText(i18n.tr("ozon.dashboard.print_all"));
+        printKizOnlyButton.setText(i18n.tr("ozon.kiz_only.action"));
+        printKizOnlyButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("ozon.kiz_only.help")));
         selectFilteredButton.setText(i18n.tr("ozon.batch.select_filtered"));clearBatchSelectionButton.setText(i18n.tr("ozon.batch.clear_selection"));
         for (var button : List.of(selectFilteredButton,clearBatchSelectionButton)) {
             button.setAccessibleText(button.getText());button.setTooltip(new Tooltip(button.getText()));
@@ -499,7 +510,14 @@ public final class OzonDashboardController {
         AppTaskExecutor.execute(task,failed);
     }
 
-    @FXML private void onCancelSelection(){if(activeSelectionTask!=null)activeSelectionTask.cancel(true);}
+    @FXML private void onCancelSelection(){if(activeSelectionTask!=null)activeSelectionTask.cancel(true);cancelKizOnlyTask();}
+    private void cancelKizOnlyTask() {
+        if (activeKizOnlyCancellation != null) {
+            activeKizOnlyCancellation.request();
+            // Keep the task and output lease alive until its true result is known.
+            cancelSelectionButton.setDisable(true);
+        } else if (activeKizOnlyTask != null) activeKizOnlyTask.cancel(true);
+    }
     private void finishSelectionTask(Task<List<String>> task){if(activeSelectionTask==task){activeSelectionTask=null;cancelSelectionButton.setVisible(false);cancelSelectionButton.setManaged(false);}}
 
     private void ensureCompleteQueue(Shop selected,java.util.function.BooleanSupplier stopped)throws Exception {
@@ -698,6 +716,127 @@ public final class OzonDashboardController {
         java.util.function.Consumer<Throwable> taskFailure = rejection -> finishFailure(token, selected, rejection);
         task.setOnFailed(event -> taskFailure.accept(task.getException()));
         AppTaskExecutor.execute(task, taskFailure);
+    }
+
+    /** Separate local fallback; normal carrier/combined printing keeps its original path. */
+    @FXML private void onPrintKizOnly() {
+        Shop selected = shop;
+        String key = activeStatus();
+        if (selected == null || busy || !Set.of("awaiting_deliver", "printed_awaiting_deliver").contains(key)) return;
+        var owner = new Shop(selected.getId(), selected.getName(), selected.getMarketplace(), selected.getClientId(), selected.getApiKey());
+        String text = postingSearch.getText(), sort = sortFields();
+        long epoch = pageGeneration, token = ++requestToken;
+        Task<com.vncode.app.integration.ozon.OzonKizOnlyPrintService.Plan> task = new Task<>() {
+            @Override protected com.vncode.app.integration.ozon.OzonKizOnlyPrintService.Plan call() throws Exception {
+                var numbers = postings.freezeFilteredNumbers(pageQuery(owner.getId(), key, text, sort, 0, 100), 10000);
+                if (numbers.isEmpty()) return null;
+                return new com.vncode.app.integration.ozon.OzonKizOnlyPrintService().inspect(owner, numbers);
+            }
+        };
+        beginKizOnlyTask(task);
+        task.setOnSucceeded(event -> {
+            finishKizOnlyTask(task);
+            if (disposed || token != requestToken || !isCurrent(owner)) return;
+            setBusy(false);
+            if (epoch != pageGeneration || !text.equals(postingSearch.getText()) || !key.equals(activeStatus())) return;
+            var plan = task.getValue();
+            if (plan == null) return;
+            showKizOnlyReport(plan.postingNumbers(), plan.failures(), plan.orderingUncertain());
+            if (plan.postingNumbers().isEmpty()) { statusLabel.setText(tr("ozon.kiz_only.not_ready")); return; }
+            var review = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION,
+                    MessageFormat.format(tr("ozon.kiz_only.review"), plan.postingNumbers().size(), plan.labelCount(), plan.failures().size())
+                            + "\n\n" + tr("ozon.kiz_only.help") + "\n\n"
+                            + tr(plan.orderingUncertain() ? "ozon.kiz_only.order_uncertain" : "ozon.kiz_only.order"),
+                    javafx.scene.control.ButtonType.YES, javafx.scene.control.ButtonType.NO);
+            AlertService.applyTheme(review); review.setTitle(tr("ozon.kiz_only.action")); review.setHeaderText(owner.getName());
+            if (packingOrdersTable.getScene() != null) review.initOwner(packingOrdersTable.getScene().getWindow());
+            if (review.showAndWait().orElse(javafx.scene.control.ButtonType.NO) != javafx.scene.control.ButtonType.YES
+                    || disposed || !isCurrent(owner) || busy || epoch != pageGeneration) return;
+            File target = choosePdf("OZON-" + owner.getId() + "-KIZ-" + LocalDate.now() + ".pdf");
+            if (target != null && !disposed && isCurrent(owner) && !busy) startKizOnlyExport(owner, plan, target);
+        });
+        java.util.function.Consumer<Throwable> failed = failure -> {
+            finishKizOnlyTask(task);
+            if (!disposed && token == requestToken && isCurrent(owner)) {
+                setBusy(false); statusLabel.setText(tr("ozon.kiz_only.failed"));
+                AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(failure));
+            }
+        };
+        task.setOnFailed(event -> failed.accept(task.getException()));
+        task.setOnCancelled(event -> { finishKizOnlyTask(task); if (!disposed && token == requestToken && isCurrent(owner)) { setBusy(false); statusLabel.setText(tr("kiz.print.cancelled")); } });
+        AppTaskExecutor.executePrint(task, failed);
+    }
+
+    private void startKizOnlyExport(Shop owner, com.vncode.app.integration.ozon.OzonKizOnlyPrintService.Plan plan, File target) {
+        var lease = com.vncode.app.shared.ShopBatchRegistry.claim(owner, "ozon-kiz-only", List.of(target.toPath())).orElse(null);
+        if (lease == null) { statusLabel.setText(tr("ozon.batch.target_busy")); return; }
+        long token = ++requestToken;
+        var cancellation = new com.vncode.app.integration.ozon.OzonKizOnlyPrintService.Cancellation();
+        Task<com.vncode.app.integration.ozon.OzonKizOnlyPrintService.Result> task = new Task<>() {
+            @Override protected com.vncode.app.integration.ozon.OzonKizOnlyPrintService.Result call() throws Exception {
+                try {
+                    lease.requireOwner(owner);
+                    return new com.vncode.app.integration.ozon.OzonKizOnlyPrintService().export(owner, plan, target, cancellation);
+                } finally { lease.close(); }
+            }
+        };
+        beginKizOnlyTask(task);
+        activeKizOnlyCancellation = cancellation;
+        task.setOnSucceeded(event -> {
+            finishKizOnlyExport(owner, lease, task);
+            if (disposed || token != requestToken || !isCurrent(owner)) return;
+            setBusy(false);
+            var result = task.getValue();
+            statusLabel.setText(MessageFormat.format(tr("ozon.kiz_only.done"), result.postingNumbers().size(), result.labels()));
+            showKizOnlyReport(result.postingNumbers(), result.failures(), result.orderingUncertain());
+            // No carrier print receipt, tab transition, refresh/ship request or purchase session.
+            Task<Void> open = new Task<>() { @Override protected Void call() throws IOException { exportedFileOpener.open(List.of(target)); return null; } };
+            AppTaskExecutor.execute(open, ignored -> {});
+        });
+        java.util.function.Consumer<Throwable> failed = failure -> {
+            finishKizOnlyExport(owner, lease, task);
+            if (!disposed && token == requestToken && isCurrent(owner)) {
+                setBusy(false);
+                boolean cancelled = "OZON_KIZ_ONLY_CANCELLED".equals(failure == null ? null : failure.getMessage());
+                statusLabel.setText(tr(cancelled ? "kiz.print.cancelled" : "ozon.kiz_only.failed"));
+                if (!cancelled) AlertService.showError(com.vncode.app.shared.FriendlyErrorService.format(failure));
+            }
+        };
+        task.setOnFailed(event -> failed.accept(task.getException()));
+        AppTaskExecutor.executePrint(task, failed);
+    }
+
+    void finishKizOnlyExport(Shop owner, com.vncode.app.shared.ShopBatchRegistry.Lease lease, Task<?> task) {
+        lease.close();
+        boolean released = !com.vncode.app.shared.ShopBatchRegistry.hasShop(owner.getId());
+        boolean inheritedWait = !disposed && isCurrent(owner) && busy && leaseWaitRequestToken == requestToken;
+        boolean newerLocalOperation = !disposed && isCurrent(owner) && busy && !inheritedWait && activeKizOnlyTask != task;
+        if (released && !newerLocalOperation) onBusy.accept(owner.getId(), false);
+        finishKizOnlyTask(task);
+        if (released && inheritedWait) setBusy(false);
+    }
+
+    private void beginKizOnlyTask(Task<?> task) {
+        activeKizOnlyTask = task; activeKizOnlyCancellation = null; setBusy(true);
+        cancelSelectionButton.setDisable(false);
+        cancelSelectionButton.setText(tr("common.cancel")); cancelSelectionButton.setVisible(true); cancelSelectionButton.setManaged(true);
+        statusLabel.setText(tr("ozon.kiz_only.preparing"));
+    }
+
+    private void finishKizOnlyTask(Task<?> task) {
+        if (activeKizOnlyTask == task) {
+            activeKizOnlyTask = null; activeKizOnlyCancellation = null; cancelSelectionButton.setDisable(false); cancelSelectionButton.setText(tr("ozon.batch.cancel_selection"));
+            cancelSelectionButton.setVisible(false); cancelSelectionButton.setManaged(false);
+        }
+    }
+
+    private void showKizOnlyReport(List<String> numbers,
+            Map<String, com.vncode.app.integration.ozon.OzonKizOnlyPrintService.Issue> failures, boolean uncertain) {
+        var report = new StringBuilder(tr("ozon.kiz_only.help")).append('\n')
+                .append(tr(uncertain ? "ozon.kiz_only.order_uncertain" : "ozon.kiz_only.order")).append("\n\n");
+        for (int i = 0; i < numbers.size(); i++) report.append('#').append(i + 1).append(" · ").append(numbers.get(i)).append('\n');
+        failures.forEach((number, issue) -> report.append(number).append(" · ").append(tr("ozon.kiz_only.issue." + issue.name())).append('\n'));
+        batchResultsArea.setText(report.toString()); batchResultsPanel.setVisible(true); batchResultsPanel.setManaged(true); batchResultsPanel.setExpanded(true);
     }
 
     private KizSourceSelection selectedKizSources(){
@@ -990,7 +1129,7 @@ public final class OzonDashboardController {
     @FXML private void onPreviousPage(){String status=activeStatus();offsets.put(status,Math.max(0,offsets.getOrDefault(status,0)-100));loadLocal();}
     @FXML private void onNextPage(){String status=activeStatus();if(offsets.getOrDefault(status,0)+100<totals.getOrDefault(status,0L)){offsets.put(status,offsets.getOrDefault(status,0)+100);loadLocal();}}
     private void updatePaging(){if(pageStatusLabel==null)return;String status=activeStatus();long total=totals.getOrDefault(status,0L);int offset=offsets.getOrDefault(status,0);pageStatusLabel.setText((total==0?0:offset+1)+"–"+Math.min(offset+100,total)+" / "+total);previousPageButton.setDisable(shop==null||offset==0);nextPageButton.setDisable(shop==null||offset+100>=total);}
-    public void dispose(){if(orderDetailDrawer!=null)orderDetailDrawer.clear();if(activeSelectionTask!=null)activeSelectionTask.cancel(true);clearPrintPill();shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();}
+    public void dispose(){if(orderDetailDrawer!=null)orderDetailDrawer.clear();if(activeSelectionTask!=null)activeSelectionTask.cancel(true);cancelKizOnlyTask();clearPrintPill();shipmentKizPane.dispose();disposed=true;pageGeneration++;requestToken++;shopGeneration++;postingDebounce.stop();if(gtinRefreshTimer!=null)gtinRefreshTimer.stop();if(gtinRefreshSpin!=null)gtinRefreshSpin.stop();productsBySku=Map.of();verifiedGtinsBySku=Map.of();catalogProducts=List.of();kn3Marks=Map.of();}
 
     private void updateTabTitles() {
         I18nService i18n = I18nService.getInstance();
@@ -1011,12 +1150,15 @@ public final class OzonDashboardController {
     }
 
     private void setupTables() {
-        orderListFooter.visibleProperty().bind(selectionActionBar.visibleProperty().or(printAllButton.visibleProperty()));
+        orderListFooter.visibleProperty().bind(selectionActionBar.visibleProperty().or(printAllButton.visibleProperty()).or(printKizOnlyButton.visibleProperty()));
         orderListFooter.managedProperty().bind(orderListFooter.visibleProperty());
         orderStatusTabs.getSelectionModel().selectedItemProperty().addListener((ignored,oldTab,newTab)->placeOrderControls(newTab));
         placeOrderControls(newOrdersTab);
         printAllButton.visibleProperty().bind(orderStatusTabs.getSelectionModel().selectedItemProperty().isEqualTo(packingOrdersTab));
         printAllButton.managedProperty().bind(printAllButton.visibleProperty());
+        printKizOnlyButton.visibleProperty().bind(orderStatusTabs.getSelectionModel().selectedItemProperty().isEqualTo(packingOrdersTab)
+                .or(orderStatusTabs.getSelectionModel().selectedItemProperty().isEqualTo(printedOrdersTab)));
+        printKizOnlyButton.managedProperty().bind(printKizOnlyButton.visibleProperty());
         for (var column : List.of(newOrderShipmentTC, packingOrderShipmentTC, printedOrderShipmentTC, deliveringOrderShipmentTC)){
             column.setCellValueFactory(data -> new SimpleStringProperty(shipmentText(data.getValue())));
             column.setVisible(false);
@@ -1310,6 +1452,8 @@ public final class OzonDashboardController {
 
     private void updatePrintAllState() {
         printAllButton.setDisable(busy || shop == null || packingOrdersTable.getItems().isEmpty());
+        String key = activeStatus();
+        printKizOnlyButton.setDisable(busy || shop == null || totals.getOrDefault(key, 0L) == 0);
     }
 
     private void setBusy(boolean busy) {
@@ -1317,6 +1461,7 @@ public final class OzonDashboardController {
     }
 
     private void setBusy(boolean busy,boolean browseWhileWorking) {
+        leaseWaitRequestToken=-1;
         this.busy = busy;operationBusy.set(busy);shipmentKizPane.setLocked(busy);
         if (busy) {
             busyShopId = shop == null ? null : shop.getId();

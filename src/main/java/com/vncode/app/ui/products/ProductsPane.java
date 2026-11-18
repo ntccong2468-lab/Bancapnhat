@@ -59,7 +59,9 @@ public final class ProductsPane extends BorderPane {
         editListener=(o,old,value)->{updateButtons();if(value)progressDismiss.stop();else dismiss.run();};editor.backgroundRunning().addListener(editListener);if(!editor.backgroundRunning().get())dismiss.run();updateButtons();
     }
     private final TextField search=new TextField();
-    private final ComboBox<String> category=new ComboBox<>();
+    private final MenuButton category=new MenuButton();
+    private final com.vncode.app.ui.controls.CategoryFilterMenu categoryFilter=new com.vncode.app.ui.controls.CategoryFilterMenu(category,this::categoryChanged,100);
+    private boolean categoriesLoaded;
     private final ComboBox<DocumentState> document=new ComboBox<>();
     private final ComboBox<ProductIssueFilter> issue=new ComboBox<>();
     private Map<ProductIssueFilter,Long> issueCounts=Map.of();
@@ -96,7 +98,6 @@ public final class ProductsPane extends BorderPane {
         search.setId("productSearch");search.setMinWidth(180);search.setPrefWidth(375);
         category.setPrefWidth(134);document.setPrefWidth(263);
         category.setId("productCategoryFilter");document.setId("productDocumentFilter");
-        category.setConverter(new StringConverter<>(){public String toString(String value){return value==null?tr("products.categories"):value;}public String fromString(String value){return value;}});
         document.getItems().add(null);document.getItems().addAll(DocumentState.values());
         document.setConverter(new StringConverter<>(){public String toString(DocumentState value){return value==null?tr("products.documents_all"):doc(value);}public DocumentState fromString(String value){return null;}});
         issue.setId("productIssueFilter");issue.getItems().setAll(ProductIssueFilter.values());issue.setValue(ProductIssueFilter.ALL);issue.setPrefWidth(250);
@@ -142,7 +143,7 @@ public final class ProductsPane extends BorderPane {
         var bottom=new BorderPane(bulk,null,more,null,null);BorderPane.setAlignment(more,Pos.CENTER_RIGHT);BorderPane.setMargin(more,new Insets(0,0,0,10));bottom.managedProperty().bind(bulk.managedProperty());bottom.visibleProperty().bind(bottom.managedProperty());setBottom(bottom);
         reload.setOnAction(e->synchronize());more.setOnAction(e->load(true));
         debounce.setOnFinished(e->filterChanged());search.textProperty().addListener((o,a,b)->{if(!updating){searchDirty=true;selection.clear();updateSelection();debounce.playFromStart();}});
-        category.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});document.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});issue.valueProperty().addListener((o,a,b)->{refreshIssueCells();if(!updating)filterChanged();});missing.setOnAction(e->filterChanged());
+        document.valueProperty().addListener((o,a,b)->{if(!updating)filterChanged();});issue.valueProperty().addListener((o,a,b)->{refreshIssueCells();if(!updating)filterChanged();});missing.setOnAction(e->filterChanged());
         pageSelection.setOnAction(e->{if(pageSelection.isSelected())selectAllResults();else{selection.clear();updateSelection();}});
         clear.setOnAction(e->{selection.clear();updateSelection();});copy.setOnAction(e->{if(onCopy!=null&&!loading&&!syncing&&!selecting&&!searchDirty)onCopy.accept(selection.freeze());});
         all.setOnAction(e->selectAllResults());applyTranslations();setShop(null);
@@ -212,11 +213,13 @@ public final class ProductsPane extends BorderPane {
         if(!changed)return;
         if(syncFailureDialog!=null)syncFailureDialog.close();
         detailDrawer.clear();generation++;syncTicket++;syncing=false;loading=false;selecting=false;searchDirty=false;lastSync=null;issueCounts=Map.of();shopScope=scope;shop=value;debounce.stop();selection.clear();selection.switchShop(value==null?0:value.getId(),value==null?null:value.getMarketplace());
-        updating=true;search.clear();category.getItems().clear();category.getItems().add(null);category.setValue(null);document.setValue(null);issue.setValue(ProductIssueFilter.ALL);missing.setSelected(false);updating=false;
+        updating=true;search.clear();categoryFilter.clear();categoryFilter.rebuildExact(List.of());categoriesLoaded=false;document.setValue(null);issue.setValue(ProductIssueFilter.ALL);missing.setSelected(false);updating=false;
         rows.getItems().clear();displayedTotal=0;count.setText(java.text.MessageFormat.format(tr("products.total"),0));cursor="";installProgress(backgroundEdits.get(shopScope));updateSelection();updateSyncDetails();refresh();
     }
-    private void filterChanged(){debounce.stop();searchDirty=false;selection.clear();updateSelection();refresh();}
-    public void refresh(){if(disposed)return;selecting=false;generation++;cursor="";displayedQuery=null;all.setDisable(true);load(false);}
+    private void categoryChanged(){if(!updating)filterChanged();}
+    private void filterChanged(){debounce.stop();searchDirty=false;selection.clear();updateSelection();refreshFiltered();}
+    public void refresh(){if(disposed)return;categoriesLoaded=false;refreshFiltered();}
+    private void refreshFiltered(){if(disposed)return;selecting=false;generation++;cursor="";displayedQuery=null;all.setDisable(true);load(false);}
     private void synchronize(){
         if(disposed||shop==null||syncing)return;
         var selected=shop;var owner=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
@@ -230,7 +233,7 @@ public final class ProductsPane extends BorderPane {
             lastSync=report;updateSyncDetails();refresh();
         }));
     }
-    private ProductQuery query(String next){return new ProductQuery(shop.getId(),shop.getMarketplace(),search.getText(),category.getValue()==null?List.of():List.of(category.getValue()),document.getValue(),missing.isSelected(),next,100,issue.getValue());}
+    private ProductQuery query(String next){return new ProductQuery(shop.getId(),shop.getMarketplace(),search.getText(),categoryFilter.selectedCategories().stream().sorted().toList(),document.getValue(),missing.isSelected(),next,100,issue.getValue());}
     private void installScrollPaging(){
         for(var node:rows.lookupAll(".scroll-bar"))if(node instanceof ScrollBar bar&&bar.getOrientation()==Orientation.VERTICAL&&!Boolean.TRUE.equals(bar.getProperties().putIfAbsent("productPaging",true)))
             bar.valueProperty().addListener((o,a,b)->{if(b.doubleValue()>=bar.getMax()*.90&&cursor!=null&&!cursor.isEmpty()&&!loading&&!syncing&&!selecting)load(true);});
@@ -249,8 +252,11 @@ public final class ProductsPane extends BorderPane {
             cursor=page.nextCursor();displayedTotal=page.total();count.setText(java.text.MessageFormat.format(tr("products.total"),page.total()));more.setVisible(cursor!=null&&!cursor.isEmpty());more.setManaged(more.isVisible());status.setText(syncing?tr("products.loading"):syncStatus());updateSelection();
             RuntimeDiagnostics.afterNextPulse("products-render",started);
         }));
-        if(!append&&category.getItems().size()==1)reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-categories",owner.getMarketplace().name()),()->repository.categories(owner.getId(),owner.getMarketplace())).whenComplete((values,error)->Platform.runLater(()->{
-            if(disposed||epoch!=generation||error!=null)return;updating=true;category.getItems().setAll((String)null);category.getItems().addAll(values);updating=false;
+        if(!append&&!categoriesLoaded)reads.submitLocal(new ShopReadCoordinator.Key(owner.getId(),"product-categories",owner.getMarketplace().name()),()->repository.categories(owner.getId(),owner.getMarketplace())).whenComplete((values,error)->Platform.runLater(()->{
+            if(disposed||epoch!=generation)return;
+            if(error!=null){status.setText(tr("products.categories")+": "+tr("products.read_failed"));updateButtons();return;}
+            var prior=categoryFilter.selectedCategories();updating=true;try{categoryFilter.rebuildExact(values);categoriesLoaded=true;}finally{updating=false;}
+            if(!prior.equals(categoryFilter.selectedCategories())){selection.clear();updateSelection();refreshFiltered();}else updateButtons();
         }));
     }
     private void selectAllResults() {
@@ -262,7 +268,7 @@ public final class ProductsPane extends BorderPane {
         }));
     }
     private void updateSelection(){int n=selection.size();WorkspaceMotion.selection(selected);selected.setText(java.text.MessageFormat.format(tr("products.selected_count"),n));bulk.setVisible(!pickerMode);bulk.setManaged(!pickerMode);boolean allSelected=n>0&&n==displayedTotal;pageSelection.setSelected(allSelected);pageSelection.setIndeterminate(n>0&&!allSelected);updateButtons();}
-    private void updateButtons(){boolean blocked=shop==null||loading||syncing||selecting||searchDirty||currentEdit!=null&&currentEdit.backgroundRunning().get();boolean empty=selection.isEmpty();copy.setDisable(blocked||empty||onCopy==null);pageSelection.setDisable(blocked);clear.setDisable(blocked);all.setDisable(blocked||displayedQuery==null);for(var n:bulkActions.getChildren())if(n instanceof Button b&&b.getUserData()!=null)b.setDisable(blocked||empty||onEdit==null);updateVisibleChecks();}
+    private void updateButtons(){boolean blocked=shop==null||loading||syncing||selecting||searchDirty||!categoriesLoaded&&!categoryFilter.selectedCategories().isEmpty()||currentEdit!=null&&currentEdit.backgroundRunning().get();boolean empty=selection.isEmpty();copy.setDisable(blocked||empty||onCopy==null);pageSelection.setDisable(blocked);clear.setDisable(blocked);all.setDisable(blocked||displayedQuery==null);for(var n:bulkActions.getChildren())if(n instanceof Button b&&b.getUserData()!=null)b.setDisable(blocked||empty||onEdit==null);updateVisibleChecks();}
     /** Updating selection must not recreate virtual cells or clear their already loaded images. */
     private void updateVisibleChecks(){for(var node:rows.lookupAll(".list-cell"))if(node instanceof ProductsPane.ProductCell cell)cell.updateCheck();}
     private void details(ProductRow row) {
@@ -369,6 +375,6 @@ public final class ProductsPane extends BorderPane {
         };
     }
     private void refreshIssueCells(){issue.setCellFactory(list->issueCell());issue.setButtonCell(issueCell());issueChips.forEach((kind,chip)->{chip.setText(tr("products.issue."+kind.name())+" ("+(issueCounts.containsKey(kind)?issueCounts.get(kind):"—")+")");chip.setSelected(issue.getValue()==kind);});}
-    public void applyTranslations(){refreshColumnHeadings();syncDetails.setText(tr("products.sync_details"));syncDetails.setAccessibleText(tr("products.sync_details_header"));syncDetails.setTooltip(new Tooltip(tr("products.sync_details_header")));updateSyncDetails();if(shop!=null&&!syncing&&lastSync!=null)status.setText(syncStatus());needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));search.setAccessibleText(tr("products.search"));category.setAccessibleText(tr("products.categories"));document.setAccessibleText(tr("products.documents_all"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();category.setButtonCell(new ListCell<>(){@Override protected void updateItem(String item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.categories"):item);}});rows.refresh();}
+    public void applyTranslations(){refreshColumnHeadings();syncDetails.setText(tr("products.sync_details"));syncDetails.setAccessibleText(tr("products.sync_details_header"));syncDetails.setTooltip(new Tooltip(tr("products.sync_details_header")));updateSyncDetails();if(shop!=null&&!syncing&&lastSync!=null)status.setText(syncStatus());needsFix.setText(tr("products.needs_fix"));clear.setTooltip(new Tooltip(tr("products.clear_selection")));clear.setAccessibleText(tr("products.clear_selection"));refreshIssueCells();if(shop==null)status.setText(tr("products.select_shop"));document.setButtonCell(new ListCell<>(){@Override protected void updateItem(DocumentState item,boolean empty){super.updateItem(item,empty);setText(item==null?tr("products.documents_all"):doc(item));}});title.setText(tr("products.title"));reload.setText(tr("products.refresh"));reload.setTooltip(new Tooltip(tr("products.sync_help")));more.setText(tr("products.more"));all.setText(tr("products.all_results"));pageSelection.setText(tr("products.select_all"));missing.setText(tr("products.missing_gtin"));search.setPromptText(tr("products.search"));search.setAccessibleText(tr("products.search"));category.setAccessibleText(tr("products.categories"));category.setTooltip(new Tooltip(tr("products.category_limit")));categoryFilter.setTexts(tr("products.categories"),tr("znack.filter.no_category"),tr("znack.filter.clear"));document.setAccessibleText(tr("products.documents_all"));copy.setText(tr("products.copy"));for(var child:bulkActions.getChildren())if(child instanceof Button b&&b.getUserData()!=null)b.setText(tr("products.edit_"+b.getUserData()));updateSelection();rows.refresh();}
     public void dispose(){if(disposed)return;if(syncFailureDialog!=null)syncFailureDialog.close();detailDrawer.clear();disposed=true;generation++;syncTicket++;progressDismiss.stop();debounce.stop();thumbnails.close();}
 }

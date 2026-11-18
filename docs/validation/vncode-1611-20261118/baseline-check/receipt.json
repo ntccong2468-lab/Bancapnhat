@@ -1,0 +1,122 @@
+{
+  "result": "PASS",
+  "verifiedAtUtc": "2026-11-18T06:39:54.747877+00:00",
+  "release": {
+    "id": 445977967,
+    "tag": "v1.6.10",
+    "sourceCommit": "b74b5edfd46636e8779c94f467eef01c03c50a14",
+    "immutable": true,
+    "publishedAtUtc": "2026-11-15T10:40:34Z",
+    "publishedAtMsk": "2026-11-15T13:40:34+03:00"
+  },
+  "actualPublishedOldUpdater": {
+    "installedBinaryVersion": "1.6.9",
+    "status": "AVAILABLE",
+    "latestVersion": "1.6.10",
+    "selectedMsiUrl": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.10/VN-code-1.6.10-Windows-x64.msi",
+    "selectedMsiSha256": "e12a5983a99d7665d36db0632bd6403301d5f2a658c5d73584d8bc14438d4fd0",
+    "selectedMsiBytes": 148870409,
+    "networkReads": [
+      {
+        "method": "GET",
+        "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+        "status": 200,
+        "tlsVersion": "TLSv1.3"
+      }
+    ],
+    "all75OriginalJarHashesUnchanged": true,
+    "applicationJarFirst": true,
+    "productionClassOriginsVerified": true,
+    "blankSyntheticProfile": true,
+    "exitCode": 0,
+    "originalAppJar": {
+      "bytes": 7665594,
+      "sha256": "da4bf48b8ed32e29f8fb786b344e219a1479e981d3f3219939de9564c111637f"
+    },
+    "probeClass": {
+      "bytes": 10730,
+      "sha256": "f3faee2407a7b65e5c811f2e7dd01f279662eee9f3010f20ac742c0f80126759"
+    },
+    "probeSource": {
+      "bytes": 6231,
+      "sha256": "6901618642d4b571ba249f3aeea26214ef59854bb3f72cca0ce6761ab261ae85"
+    }
+  },
+  "publicDownloadAvailability": {
+    "exe": {
+      "method": "HEAD",
+      "followRedirects": true,
+      "finalHttpStatus": 200,
+      "contentType": "application/octet-stream",
+      "seconds": 0.518384,
+      "verifiedTls": true
+    },
+    "msi": {
+      "method": "HEAD",
+      "followRedirects": true,
+      "finalHttpStatus": 200,
+      "contentType": "application/octet-stream",
+      "seconds": 0.601727,
+      "verifiedTls": true
+    }
+  },
+  "cachedPublishedInstallerFilesComparedToFreshApi": [
+    {
+      "name": "VN-code-1.6.10-Windows-x64.exe",
+      "bytes": 149539328,
+      "sha256": "2fcb4916119fd8971487778d760b47c2a281582427f1db77c2137a7dcf365bf0",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.10/VN-code-1.6.10-Windows-x64.exe",
+      "cachedPublicFile": "/workspace/release-1610-20261115/public/after/payloads/VN-code-1.6.10-Windows-x64.exe",
+      "freshDownload": false
+    },
+    {
+      "name": "VN-code-1.6.10-Windows-x64.msi",
+      "bytes": 148870409,
+      "sha256": "e12a5983a99d7665d36db0632bd6403301d5f2a658c5d73584d8bc14438d4fd0",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.10/VN-code-1.6.10-Windows-x64.msi",
+      "cachedPublicFile": "/workspace/release-1610-20261115/public/after/payloads/VN-code-1.6.10-Windows-x64.msi",
+      "freshDownload": false
+    }
+  ],
+  "evidence": {
+    "latest-before.json": {
+      "bytes": 31913,
+      "sha256": "a7481e2e330d4b968e7e076cef6bb82fa07574c71f690e08fb7e912e89e71156"
+    },
+    "latest-after.json": {
+      "bytes": 31913,
+      "sha256": "a7481e2e330d4b968e7e076cef6bb82fa07574c71f690e08fb7e912e89e71156"
+    },
+    "actual-169-updater.json": {
+      "bytes": 1282,
+      "sha256": "24e251ea30f8e5e351d55f36cbd91a5857f82899f968f39720df72d82c298a36"
+    },
+    "probe-command.json": {
+      "bytes": 6280,
+      "sha256": "e2f0e2446dd97d35416f2039ef56a9701c97f0e829a6794114b8edd160640e53"
+    },
+    "probe.log": {
+      "bytes": 1282,
+      "sha256": "24e251ea30f8e5e351d55f36cbd91a5857f82899f968f39720df72d82c298a36"
+    },
+    "exe-head.txt": {
+      "bytes": 38,
+      "sha256": "ebea0deb9b432258c3456e94bb4aa426d429b895299ae488da7a5f92c0ae397b"
+    },
+    "msi-head.txt": {
+      "bytes": 38,
+      "sha256": "b5f06797fe72c8595f93c70aa88c693b8a2eda347f2c0b2e02ce104cc20bab94"
+    },
+    "cached-installer-hashes.json": {
+      "bytes": 839,
+      "sha256": "0d41d3abe804cb8d1ed4e93b4580c592b4f5e272e3e400da477bcf1e513c6c12"
+    }
+  },
+  "limitations": [
+    "Original published 1.6.9 updater executed on Linux; Windows MSI selection happens only after actual network read.",
+    "Inherited Cloud proxy and verified CA; anonymous access is not independently established.",
+    "EXE/MSI HEAD requests are fresh; full installer hashes are recomputed from retained published downloads and match fresh immutable release metadata.",
+    "No seller Windows popup, current installed version or actual installation was observed.",
+    "No MainApplication, license activation, Gmail, seller API write, paid KIZ, certificate signature or publication call was performed."
+  ]
+}

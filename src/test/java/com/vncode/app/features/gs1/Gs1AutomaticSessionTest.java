@@ -26,6 +26,7 @@ class Gs1AutomaticSessionTest {
     final java.util.concurrent.CountDownLatch held=new java.util.concurrent.CountDownLatch(1),release=new java.util.concurrent.CountDownLatch(1);
     final AtomicBoolean expireCatalog=new AtomicBoolean(),expireCash=new AtomicBoolean(),denyCatalog=new AtomicBoolean();
     final AtomicReference<Instant> now=new AtomicReference<>(Instant.now());
+    final AtomicReference<String> formResponse=new AtomicReference<>("{\"applicant\":{\"inn\":\"7700000000\",\"companyName\":\"Synthetic\",\"email\":\"source@example.invalid\"},\"isSent\":true}");
     @BeforeEach void init()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();shop=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
         server=new MockWebServer();server.setDispatcher(new Dispatcher(){
@@ -39,7 +40,7 @@ class Gs1AutomaticSessionTest {
                         assertEquals("catalog=fixture",request.getHeader("Cookie"));assertEquals("fixture-csrf",request.getHeader("X-Csrf-Token"));assertNull(request.getHeader("Authorization"));
                         yield denyCatalog.get()||expireCatalog.getAndSet(false)?new MockResponse().setResponseCode(401):json("{\"gcps\":[{\"gcp\":\"4601234\",\"gtinsLeft\":50,\"glns\":[]}],\"expiryDate\":\"2027-10-01\"}");
                     }
-                    case "/catalog/gs1/form"->json("{\"applicant\":{\"inn\":\"7700000000\",\"companyName\":\"Synthetic\",\"email\":\"source@example.invalid\"},\"isSent\":true}");
+                    case "/catalog/gs1/form"->json(formResponse.get());
                     case "/bff-elk/api/v1/auth/key"->json("{\"uuid\":\"fixture-uuid\",\"data\":\"fixture-challenge\"}");
                     case "/bff-elk/v1/united-auth/login"->{cashLogins.incrementAndGet();yield json("{\"access_token\":\"fixture-elk-token\"}");}
                     case "/bff-elk/v1/profile/organisation"->{
@@ -113,5 +114,15 @@ class Gs1AutomaticSessionTest {
     @Test void cacheExpiryRequiresFreshAuthentication()throws Exception{
         service.refresh(shop);now.set(now.get().plusSeconds(601));assertTrue(service.refresh(shop).complete());
         assertEquals(2,catalogLogins.get());assertEquals(2,cashLogins.get());
+    }
+    @Test void realHttpAdapterRetainsRejectionPrecedenceAndSanitizedReasonAcrossReopen()throws Exception{
+        var form=com.google.gson.JsonParser.parseString(formResponse.get()).getAsJsonObject();form.addProperty("errorText","Applicant position is missing; token=synthetic-token-value");formResponse.set(form.toString());
+        assertTrue(service.refresh(shop).complete());Database.initDatabase();var cached=new Gs1AutomaticSyncService().cached(shop).orElseThrow();
+        assertEquals(Gs1ApplicationStatus.State.REJECTED,cached.application().state());assertTrue(cached.application().reason().contains("Applicant position is missing"));assertFalse(cached.application().reason().contains("synthetic-token-value"));
+        assertEquals(cached.application(),Gs1ApplicationStatus.read(cached.application().form(cached.inn(),cached.email()),cached.newApplication()));assertEquals(1,catalogLogins.get());
+    }
+    @Test void realHttpMalformedErrorCannotTurnASentBitIntoAConfirmedApplication()throws Exception{
+        var form=com.google.gson.JsonParser.parseString(formResponse.get()).getAsJsonObject();form.add("errorText",new com.google.gson.JsonArray());formResponse.set(form.toString());
+        assertTrue(service.refresh(shop).complete());var cached=service.cached(shop).orElseThrow();assertEquals(Boolean.TRUE,cached.applicationSent());assertEquals(Gs1ApplicationStatus.State.UNKNOWN,cached.application().state());assertNull(cached.application().form(cached.inn(),cached.email()));
     }
 }

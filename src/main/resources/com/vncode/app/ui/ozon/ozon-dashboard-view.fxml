@@ -196,5 +196,8 @@
             <Button fx:id="printAllButton" disable="true" mnemonicParsing="false" onAction="#onPrintAll" prefHeight="28.0" styleClass="btn-success" text="Print all">
                                                     <graphic><FontIcon iconLiteral="fth-printer" iconSize="16"/></graphic>
                                                 </Button>
+            <Button fx:id="printKizOnlyButton" disable="true" mnemonicParsing="false" onAction="#onPrintKizOnly" prefHeight="28.0" styleClass="btn-secondary" text="%ozon.kiz_only.action">
+                <graphic><FontIcon iconLiteral="fth-grid" iconSize="16"/></graphic>
+            </Button>
                 </FlowPane></children>
 </VBox>

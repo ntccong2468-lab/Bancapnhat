@@ -1,0 +1,26 @@
+{
+  "scope": "Synthetic native JavaFX components on Linux/Xvfb; historical capture snapshot, not installer acceptance",
+  "environment": {
+    "os": "Linux/Xvfb",
+    "jdk": "25.0.4.1",
+    "javafx": "25.0.2",
+    "renderer": "Prism software",
+    "language": "vi-VN",
+    "themes": [
+      "DARK",
+      "LIGHT"
+    ],
+    "glassEnabled": true,
+    "glassTransparency": 55,
+    "reducedMotion": true
+  },
+  "imageCount": 112,
+  "renderProcessExitCodesAllZero": true,
+  "footerButtonBoundsChecked": 364,
+  "footerButtonBoundsOutsideScreen": 0,
+  "keyboardTabCasesPassed": 4,
+  "sourceReceiptSha256": "e42a8cac2d45d23c25be094cbc595b71c445d69b926d5729d450eb5aefd615f8",
+  "sourceManifestSha256": "f0a4c300b1e19d589ad2c41a57e13cc1903281ddefdf78ea6f7fe8281c93e9df",
+  "syntheticOnly": true,
+  "limitation": "Reduced motion; no Windows compositor/DPI/Narrator or real signing/mail/API acceptance. Post-capture behavior fixes require their own tests."
+}

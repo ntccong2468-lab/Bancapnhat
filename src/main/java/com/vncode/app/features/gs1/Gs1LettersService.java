@@ -15,6 +15,18 @@ public final class Gs1LettersService {
     private final Sender sender;
     public Gs1LettersService(Gs1Repository repository){this(repository,new Gs1MailClient()::send);}
     public Gs1LettersService(Gs1Repository repository,Sender sender){this.repository=Objects.requireNonNull(repository);this.sender=Objects.requireNonNull(sender);}
+    /** The shared journal also holds XML/operator signing operations; those are never email. */
+    public static boolean mailKind(String kind){
+        if(rootMailKind(kind))return true;
+        if(kind==null||!(kind.startsWith("PAYMENT_PROOF:")||kind.startsWith("REMINDER:")))return false;
+        String parent=kind.substring(kind.indexOf(':')+1);
+        try{return UUID.fromString(parent).toString().equalsIgnoreCase(parent);}catch(IllegalArgumentException invalid){return false;}
+    }
+    private static boolean rootMailKind(String kind){return Arrays.stream(Kind.values()).anyMatch(value->value.name().equals(kind));}
+    private Gs1Repository.Request requireMail(Gs1Repository.Request request){
+        if(!mailKind(request.kind())||child(request)&&!rootMailKind(repository.request(request.inn(),parent(request)).kind()))throw new IllegalStateException("gs1.non_mail_operation");
+        return request;
+    }
     public Gs1Repository.Request draft(String inn,String legalName,Kind kind,Integer requested,String comment){
         return draft(inn,legalName,kind,requested,comment,List.of());
     }
@@ -40,7 +52,7 @@ public final class Gs1LettersService {
         return repository.createRequestWithAttachments(inn,kind.name(),recipient,subject,body,attachments);
     }
     public void send(Gs1MailAccount account,String inn,String id)throws IOException{
-        var request=repository.request(inn,id);
+        var request=requireMail(repository.request(inn,id));
         if(request.kind().equals(Kind.MORE_CODES.name()))throw new IllegalStateException("gs1.prefix.review_required");
         String parent=parent(request);
         if(request.kind().startsWith("PAYMENT_PROOF:")&&!repository.hasConfirmedInvoice(inn,parent))throw new IllegalStateException("Confirm the invoice in this request before sending payment proof");
@@ -69,23 +81,25 @@ public final class Gs1LettersService {
         }
     }
     public Gs1MailClient.Letter letter(Gs1Repository.Request request){
+        requireMail(request);
         return new Gs1MailClient.Letter(request.id(),parent(request),request.recipient(),request.subject(),request.body(),repository.attachments(request.inn(),request.id(),"draft"));
     }
     public Gs1ReminderPolicy.Result reminderStatus(String inn,String parentId,java.time.Instant now,boolean optedIn){
         var original=repository.request(inn,parentId);
+        if(!rootMailKind(original.kind()))return Gs1ReminderPolicy.Result.UNSUPPORTED_REQUEST;
         return Gs1ReminderPolicy.evaluate(original,repository.messages(inn,parentId),repository.requests(inn),now,optedIn);
     }
     /** Prepares one correlated reminder after an explicit opt-in; never sends it automatically. */
     public Gs1Repository.Request prepareReminder(String inn,String parentId,java.time.Instant now,boolean optedIn){
         LicenseRuntime.require(Permission.GS1);
-        var original=repository.request(inn,parentId);
+        var original=requireMail(repository.request(inn,parentId));
         if(reminderStatus(inn,parentId,now,optedIn)!=Gs1ReminderPolicy.Result.READY)throw new IllegalStateException("GS1 reminder is not ready; check delivery, mailbox replies and the waiting period");
         LicenseRuntime.require(Permission.GS1);
         return repository.createReminder(inn,parentId,"Напоминание — "+original.subject(),"Здравствуйте!\n\nНапоминаем о ранее направленном обращении по дополнительным кодам GTIN. Просим сообщить статус рассмотрения.\n\n"+original.body()).orElseThrow(()->new IllegalStateException("A reminder for this request was already prepared"));
     }
     public Gs1Repository.Request preparePaymentProof(String inn,String parentId,Gs1MailClient.Attachment proof){
         LicenseRuntime.require(Permission.GS1);
-        var original=repository.request(inn,parentId);
+        var original=requireMail(repository.request(inn,parentId));
         if(!canPreparePaymentProof(inn,parentId))throw new IllegalStateException("Verify this invoice and reconcile any previous payment proof before preparing another send");
         var invoice=repository.verifiedInvoice(inn,parentId).orElseThrow();
         LicenseRuntime.require(Permission.GS1);
@@ -94,11 +108,11 @@ public final class Gs1LettersService {
     }
     public boolean canPreparePaymentProof(String inn,String parentId){
         var original=repository.request(inn,parentId);
-        return !original.kind().equals("JOIN")&&!child(original)&&repository.hasConfirmedInvoice(inn,parentId)&&!repository.hasBlockingOperation(inn,"PAYMENT_PROOF:"+parentId);
+        return rootMailKind(original.kind())&&repository.hasConfirmedInvoice(inn,parentId)&&!repository.hasBlockingOperation(inn,"PAYMENT_PROOF:"+parentId);
     }
     /** Operator supplies a copy from Sent. Exact matching proves identity, not SMTP status itself. */
     public Gs1Repository.State reconcileSent(Gs1MailAccount account,String inn,String id,byte[] evidence)throws IOException{
-        var request=repository.request(inn,id);
+        var request=requireMail(repository.request(inn,id));
         if(request.state()!=Gs1Repository.State.SENDING&&request.state()!=Gs1Repository.State.RECONCILE_REQUIRED)throw new IllegalStateException("Only an unconfirmed delivery can be reconciled");
         var letter=letter(request);
         if(!new Gs1MailClient().matchesSentEvidence(evidence,account,letter))throw new IllegalArgumentException("Sent copy does not match this reviewed letter");
@@ -110,7 +124,7 @@ public final class Gs1LettersService {
         return Gs1Repository.State.SENT;
     }
     public int refresh(Gs1MailAccount account,String inn)throws IOException{
-        Set<String> ids=new LinkedHashSet<>();repository.requests(inn).stream().filter(r->!r.kind().equals("JOIN")&&!child(r)).forEach(r->ids.add(r.id()));
+        Set<String> ids=new LinkedHashSet<>();repository.requests(inn).stream().filter(r->rootMailKind(r.kind())).forEach(r->ids.add(r.id()));
         for(var reply:new Gs1MailClient().read(account,inn,ids)){
             repository.addMessage(inn,reply.requestId(),reply.id(),false,reply.sender(),reply.body(),true);
             for(var attachment:reply.attachments())repository.addAttachment(inn,reply.requestId(),reply.id(),attachment);

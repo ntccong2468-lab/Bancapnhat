@@ -19,7 +19,7 @@ final class Gs1SyncReportDialog {
     static void show(Window window,Shop selected){
         if(selected==null)return;var shop=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
         var dialog=new Dialog<Void>();if(window!=null)dialog.initOwner(window);AlertService.applyTheme(dialog);dialog.setTitle(tr("gs1.sync.report")+" · "+shop.getName());
-        var report=new Report(shop);dialog.getDialogPane().getStyleClass().add("workspace-overlay");dialog.getDialogPane().setContent(report);dialog.getDialogPane().setPrefSize(920,580);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);dialog.setOnHidden(e->report.dispose());dialog.show();
+        var report=new Report(shop);dialog.getDialogPane().getStyleClass().add("workspace-overlay");dialog.getDialogPane().setContent(report);dialog.getDialogPane().setPrefSize(920,580);dialog.getDialogPane().getButtonTypes().add(new ButtonType(tr("common.close"),ButtonBar.ButtonData.CANCEL_CLOSE));dialog.setOnHidden(e->report.dispose());dialog.show();
     }
     static final class Report extends VBox {
         private final Shop shop;private final SyncRunRepository reports=new SyncRunRepository();

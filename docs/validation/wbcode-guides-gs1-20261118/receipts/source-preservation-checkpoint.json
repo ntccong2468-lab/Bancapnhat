@@ -1,0 +1,9 @@
+{
+  "checkedUtc": "2026-11-18T06:41:02.463910+00:00",
+  "baselineCommit": "4f3b71aa108008c49e865652159ca5377ddb22f8",
+  "baselineTrackedFiles": 4034,
+  "missingFiles": [],
+  "status": "PASS for file retention only; not behavioral compatibility proof",
+  "workingTree": "Existing guide edits preserved; two P2 fixes and layout regression verification still in progress by parent at this checkpoint",
+  "notFinalCommitOrInstaller": true
+}

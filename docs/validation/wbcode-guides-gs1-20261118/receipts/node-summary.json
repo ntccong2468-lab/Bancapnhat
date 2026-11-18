@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "tests": 244,
+  "failed": 0,
+  "sourceLogSha256": "bd4074ba78fcae122b127a74ed01b8a374dbd10ba5bd801f9e69e64478fe2dfb",
+  "sourceCommandReceiptSha256": "3ac05cfb378b6cc9f87b9ed416bc85472cc739e5569cf69192a5767f38b6a43c",
+  "source": "tools/*.test.mjs on17Nov; no new JS in guide features",
+  "liveApi": false
+}

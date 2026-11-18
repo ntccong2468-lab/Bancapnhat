@@ -95,7 +95,7 @@ class ProductReferenceLayoutTest {
                 pane.setShop(new Shop(1,"Fixture shop","fixture"));return null;});
             await(()->Math.abs(stage.getScene().getWidth()-1331)<1);
             await(()->!((Button)pane.lookup("#productSync")).isDisabled());
-            fx(()->{((ComboBox<String>)pane.lookup("#productCategoryFilter")).setValue("Suits");return null;});
+            fx(()->{var categories=(MenuButton)pane.lookup("#productCategoryFilter");categories.getItems().stream().filter(CustomMenuItem.class::isInstance).map(CustomMenuItem.class::cast).map(CustomMenuItem::getContent).filter(CheckBox.class::isInstance).map(CheckBox.class::cast).filter(check->check.getText().equals("Suits")).findFirst().orElseThrow().fire();return null;});
             await(()->!((Button)pane.lookup("#productSync")).isDisabled());
             assertEquals(100,fx(()->((ListView<?>)pane.lookup("#productRows")).getItems().size()));
             var actions=new ArrayList<String>();

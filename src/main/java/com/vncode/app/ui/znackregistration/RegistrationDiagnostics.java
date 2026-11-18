@@ -86,7 +86,18 @@ final class RegistrationDiagnostics {
         return CatalogFeedback.display(value);
     }
     static void show(String article,String gtin,String feed,String status,String error){
-        AlertService.showDetailedError(article+" · "+status,text(article,gtin,feed,status,error));
+        show(article,gtin,feed,status,error,null);
+    }
+    static void show(String article,String gtin,String feed,String status,String error,
+                     java.util.function.Consumer<RegistrationGs1Recovery.Action> recovery){
+        showFailure(article+" · "+status,text(article,gtin,feed,status,error),error,recovery);
+    }
+    static void showFailure(String summary,String details,String failure,
+                            java.util.function.Consumer<RegistrationGs1Recovery.Action> recovery){
+        var action=recovery==null?java.util.Optional.<RegistrationGs1Recovery.Action>empty():RegistrationGs1Recovery.detect(failure);
+        if(action.isEmpty()){AlertService.showDetailedError(summary,details);return;}
+        String key=action.get()==RegistrationGs1Recovery.Action.PREFIX?"gs1.recovery.prefix":"gs1.recovery.membership";
+        AlertService.showDetailedError(summary,details,I18nService.getInstance().tr(key),()->recovery.accept(action.get()));
     }
     static boolean confirmCancelPending(){
         var i18n=I18nService.getInstance();var alert=new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION,i18n.tr("znack.registration.confirm_cancel_pending"),javafx.scene.control.ButtonType.OK,javafx.scene.control.ButtonType.CANCEL);

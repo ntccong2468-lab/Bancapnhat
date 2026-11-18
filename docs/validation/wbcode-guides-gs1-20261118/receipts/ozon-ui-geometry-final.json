@@ -1,0 +1,41 @@
+{
+  "command": [
+    "xvfb-run",
+    "-a",
+    "sh",
+    "/workspace/toolchains/apache-maven-3.8.5/bin/mvn",
+    "-o",
+    "-B",
+    "-Dmaven.repo.local=/workspace/toolchains/m2",
+    "-Dtest=OzonFbsUiTest,OzonWbPackingParityTest",
+    "test"
+  ],
+  "exitCode": 0,
+  "seconds": 105.45538854598999,
+  "suites": [
+    {
+      "name": "com.vncode.app.ui.ozon.OzonFbsUiTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "name": "com.vncode.app.ui.ozon.OzonWbPackingParityTest",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  ],
+  "totals": {
+    "tests": 18,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "testSourceSha256": "0de42a46fd04af1b3870e1c6db1b31f3f7469c600b8fba6072cbf0f55a6a4fb8",
+  "baseAppSource": "4f3b71aa108008c49e865652159ca5377ddb22f8",
+  "appSourceChanged": false,
+  "liveSourceMatches": true
+}

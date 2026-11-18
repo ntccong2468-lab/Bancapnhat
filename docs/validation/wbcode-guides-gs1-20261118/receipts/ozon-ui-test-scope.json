@@ -1,0 +1,25 @@
+{
+  "file": "src/test/java/com/vncode/app/ui/ozon/OzonFbsUiTest.java",
+  "base": "4f3b71aa108008c49e865652159ca5377ddb22f8",
+  "beforeSha256": "055fcdfecfe1e7cfb65b23b57fed69831ab5035c59696a7590210af13fe9479d",
+  "afterSha256": "0de42a46fd04af1b3870e1c6db1b31f3f7469c600b8fba6072cbf0f55a6a4fb8",
+  "beforeTestMethods": [
+    "wbStyleColumnsKeepOrderDateBarcodeGtinAndKn3VisibleOnEveryOrderTab",
+    "allFourOrderTabsKeepActionsAndPagingVisibleAcrossLanguagesThemesAndSmallWindows",
+    "allPostingItemTitlesStayInsideTheirRenderedRow",
+    "oldShopResultCannotUpdateTable"
+  ],
+  "afterTestMethods": [
+    "wbStyleColumnsKeepOrderDateBarcodeGtinAndKn3VisibleOnEveryOrderTab",
+    "allFourOrderTabsKeepActionsAndPagingVisibleAcrossLanguagesThemesAndSmallWindows",
+    "allPostingItemTitlesStayInsideTheirRenderedRow",
+    "oldShopResultCannotUpdateTable"
+  ],
+  "beforeAssertionCalls": 17,
+  "afterAssertionCalls": 18,
+  "disabledAdded": false,
+  "timeoutsIncreased": false,
+  "productionChangesByAgent": [],
+  "reason": "Native layout is measured after three actual pulses; queued FX result is awaited explicitly, preserving original geometry and stale-shop assertions.",
+  "originalCoordinatorIdleConditionRetained": true
+}

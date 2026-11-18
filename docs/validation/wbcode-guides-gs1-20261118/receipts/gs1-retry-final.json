@@ -1,0 +1,46 @@
+{
+  "result": "PASS",
+  "scope": "GS1 agreement pre-POST cancellation retry and unknown-submission no-replay UI",
+  "sourceBase": "4f3b71aa108008c49e865652159ca5377ddb22f8 plus existing feature working tree",
+  "ownedFiles": {
+    "src/main/java/com/vncode/app/ui/gs1/Gs1AgreementDialog.java": "053bb4c7cb103b61127fbbadd8cc47825a380ecfc3052307fb488c9e553e2807",
+    "src/test/java/com/vncode/app/ui/gs1/Gs1AgreementDialogTest.java": "f704b4d3b7d03db1686766a889a8826b4297aa39e2ed8cca3a78aea398174c82"
+  },
+  "verifiedCopyMatchesOwned": true,
+  "red": {
+    "exitCode": 1,
+    "totals": {
+      "tests": 8,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0
+    },
+    "reason": "ExecutionException wrapping the new UI AssertionFailedError: fresh durable DRAFT proof must release stale local submission marker"
+  },
+  "green": {
+    "exitCode": 0,
+    "totals": {
+      "tests": 52,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "suites": 7,
+    "seconds": 63.68682646751404
+  },
+  "existingUiTestsPreserved": 7,
+  "addedUiTests": [
+    "cancellingBeforePostCanRetryTheExactDurableDraftOnlyAfterReopeningAndFreshConsent"
+  ],
+  "guardsPreserved": [
+    "explicit PDF open and fresh consent",
+    "durable DRAFT authority, no generic-error unlock",
+    "uncertain submission read-only reconciliation",
+    "current account and original document identity",
+    "service claimSend and no transport replay"
+  ],
+  "liveApi": false,
+  "realSigningOrMailOrPurchase": false,
+  "windowsAcceptance": "NOT PERFORMED",
+  "newDependencies": false
+}

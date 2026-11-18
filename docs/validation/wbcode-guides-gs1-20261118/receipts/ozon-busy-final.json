@@ -1,0 +1,34 @@
+{
+  "atUtc": "2026-11-18T06:43:34.083180+00:00",
+  "status": "PASS_LOCAL_REGRESSION",
+  "ownedFiles": {
+    "src/main/java/com/vncode/app/ui/ozon/OzonDashboardController.java": "3309c4c54aeed4b6a3922c8c91f6fb0b716e2b4b09196cea8d71c8e5ed8f047e",
+    "src/test/java/com/vncode/app/ui/ozon/OzonKizOnlyUiTest.java": "30994447a3f5ae59c186a4f4c88c3e2010a063ec96afa9637a02a7b8ca326b97"
+  },
+  "parentBase": "4f3b71aa108008c49e865652159ca5377ddb22f8",
+  "workingTree": "/workspace/vncode-wb-guides-gs1-20261117",
+  "source": "GREEN-source.json",
+  "red": "RED.json",
+  "green": "GREEN.json",
+  "redTests": {
+    "tests": 5,
+    "failures": 2,
+    "errors": 0,
+    "skipped": 0
+  },
+  "greenTests": {
+    "tests": 42,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "priorWrappedAssertions": "RED-wrapped-assertions.json",
+  "liveSellerApi": false,
+  "windows": false,
+  "gitMutation": false,
+  "frozenPreviousReleaseModified": false,
+  "remainingLimits": [
+    "Full parent integration and Windows installer acceptance are separate.",
+    "Another active batch retains its lock; this fix does not change the separate normal-print batch completion path."
+  ]
+}

@@ -6,12 +6,14 @@ import okhttp3.*;
 import java.io.IOException;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Independent adapter for the official Catalog web contract documented in docs/research. */
 public final class NationalCatalogGs1Client {
     public static final String PROFILE_URL = "https://xn--j1ab.xn----7sbabas4ajkhfocclk9d3cvfsa.xn--p1ai/profile";
     private static final int LIMIT = 524288;
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
+    private static final class WriteAttempt { private final AtomicBoolean sent = new AtomicBoolean(); }
     private final OkHttpClient transport;
     private final HttpUrl root;
     public NationalCatalogGs1Client() {
@@ -73,6 +75,14 @@ public final class NationalCatalogGs1Client {
                     cookies.removeIf(c -> c.expiresAt() <= System.currentTimeMillis());
                     return cookies.stream().filter(c -> c.matches(url)).toList();
                 }
+            }).addNetworkInterceptor(chain -> {
+                guard.run();
+                // OkHttp can follow 503/421 responses even with connection retries disabled.
+                // Read the original Call tag: a follow-up request may have lost its tags.
+                WriteAttempt attempt = chain.call().request().tag(WriteAttempt.class);
+                if (attempt != null && !attempt.sent.compareAndSet(false, true))
+                    throw new IOException("Catalog GS1 automatic replay blocked; reconcile the application");
+                return chain.proceed(chain.request());
             }).build();
         }
         private void authenticate() throws IOException {
@@ -211,6 +221,8 @@ public final class NationalCatalogGs1Client {
             Request.Builder request=new Request.Builder().url(url).header("Accept","application/json");
             if(csrf!=null&&!csrf.isBlank())request.header("X-Csrf-Token",csrf);
             if(body!=null)request.post(RequestBody.create(body.toString(),JSON));
+            if(body!=null&&(url.equals(root.resolve("gs1/form"))||url.equals(root.resolve("gs1/sign-form"))))
+                request.tag(WriteAttempt.class,new WriteAttempt());
             try(Response response=http.newCall(request.build()).execute()) {
                 guard.run();
                 if(response.code()==401||response.code()==403)throw new AuthenticationException();

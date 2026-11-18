@@ -48,6 +48,7 @@ class OzonFbsUiTest {
     @Test void allFourOrderTabsKeepActionsAndPagingVisibleAcrossLanguagesThemesAndSmallWindows() throws Exception {
         System.setProperty("vncode.appdata.dir", root.toString()); Database.initDatabase();
         var originalLanguage = I18nService.getInstance().getCurrentLanguage();
+        var originalTheme = ThemeService.getThemeMode();
         var stage = new javafx.stage.Stage[1];
         var loader = fx(() -> {
             var view = FxmlViewLoader.loader(OzonDashboardController.class, "ozon-dashboard-view.fxml");
@@ -59,31 +60,43 @@ class OzonFbsUiTest {
         try {
             for (var language : AppLanguage.values()) for (var theme : List.of("theme-dark", "theme-light"))
                 for (var size : List.of(new int[]{824, 600}, new int[]{1140, 768}))
-                    for (var tab : List.of("newOrdersTab", "packingOrdersTab", "printedOrdersTab", "deliveringOrdersTab")) fx(() -> {
+                    for (var tab : List.of("newOrdersTab", "packingOrdersTab", "printedOrdersTab", "deliveringOrdersTab")) {
+                    fx(() -> {
                         I18nService.getInstance().setLanguage(language); controller.applyTranslations();
                         var scene = stage[0].getScene(); var content = scene.getRoot();
                         ThemeService.switchTheme(theme.substring("theme-".length())); ThemeService.applyTheme(scene);
                         stage[0].setWidth(size[0]); stage[0].setHeight(size[1]);
                         ((TabPane) loader.getNamespace().get("orderStatusTabs")).getSelectionModel().select((Tab) loader.getNamespace().get(tab));
+                        content.applyCss(); content.layout(); return null;
+                    });
+                    // Native resize and TabPane skin updates finish on rendering pulses, after this FX callback.
+                    // Measure the resulting visible layout, rather than the previous tab's transient coordinates.
+                    pulse();
+                    fx(() -> {
+                        var scene = stage[0].getScene(); var content = scene.getRoot();
                         content.applyCss(); content.layout();
+                        String state = language + " " + theme + " " + size[0] + "x" + size[1] + " " + tab;
                         for (var node : content.lookupAll(".button")) {
                             boolean visible = true;
                             for (var parent = node; parent != null; parent = parent.getParent()) visible &= parent.isVisible();
                             if (!visible || !node.isManaged()) continue;
                             var bounds = node.localToScene(node.getBoundsInLocal());
                             assertTrue(bounds.getMinX() >= -1 && bounds.getMaxX() <= scene.getWidth() + 1,
-                                    language + " " + tab + " clipped horizontally: " + node.getId());
+                                    state + " clipped horizontally: " + node.getId());
                             assertTrue(bounds.getMinY() >= -1 && bounds.getMaxY() <= scene.getHeight() + 1,
-                                    language + " " + tab + " clipped vertically: " + node.getId());
+                                    state + " clipped vertically: " + node.getId());
                         }
                         var paging = (Button) loader.getNamespace().get("nextPageButton");
                         var table = (TableView<?>) loader.getNamespace().get(tab.equals("newOrdersTab") ? "newOrdersTable" : tab.equals("packingOrdersTab") ? "packingOrdersTable" : tab.equals("printedOrdersTab") ? "printedOrdersTable" : "deliveringOrdersTable");
-                        assertTrue(paging.localToScene(paging.getBoundsInLocal()).getMaxY() <= table.localToScene(table.getBoundsInLocal()).getMinY(), "Paging stays in the filter toolbar without covering the active table");
-                        assertTrue(table.getHeight() >= 250, "Order list keeps usable height at the smallest supported window");
+                        var pagingBounds = paging.localToScene(paging.getBoundsInLocal());
+                        var tableBounds = table.localToScene(table.getBoundsInLocal());
+                        assertTrue(pagingBounds.getMaxY() <= tableBounds.getMinY(), state + " paging stays in the filter toolbar without covering the active table: paging=" + pagingBounds + " table=" + tableBounds);
+                        assertTrue(table.getHeight() >= 250, state + " order list keeps usable height at the smallest supported window");
                         return null;
                     });
+                    }
         } finally {
-            fx(() -> { controller.dispose(); stage[0].close(); I18nService.getInstance().setLanguage(originalLanguage); return null; });
+            fx(() -> { controller.dispose(); stage[0].close(); I18nService.getInstance().setLanguage(originalLanguage); ThemeService.switchTheme(originalTheme.getKey()); return null; });
             com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle(); System.clearProperty("vncode.appdata.dir");
         }
     }
@@ -121,13 +134,20 @@ class OzonFbsUiTest {
             }
         }finally{fx(()->{controller.dispose();window.get().close();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }
+    private static void pulse()throws Exception{
+        var rendered=new CompletableFuture<Void>();fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==3){stop();rendered.complete(null);}}}.start();return null;});rendered.get(5,TimeUnit.SECONDS);
+    }
     @Test void oldShopResultCannotUpdateTable()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,marketplace,client_id,api_key) VALUES(1,'First','OZON','11','fixture'),(2,'Second','OZON','22','fixture')");}
         var gate=new CountDownLatch(1);var entered=new CountDownLatch(1);FXMLLoader loader=fx(()->{var l=FxmlViewLoader.loader(OzonDashboardController.class,"ozon-dashboard-view.fxml");new Scene(l.load(),1024,600);return l;});OzonDashboardController controller=loader.getController();
         try{
             fx(()->{controller.setFbsReader(q->{if(q.shopId()==1){entered.countDown();try{gate.await(5,TimeUnit.SECONDS);}catch(InterruptedException e){Thread.currentThread().interrupt();}}return new OzonFbsPage(List.of(new OzonPostingDto("shop-"+q.shopId(),"","",q.status(),"","","","","","",new OzonRequirements(List.of(),List.of(),List.of()),List.of(),false,List.of())),1001,Map.of());});controller.setShop(new Shop(1,"First",Marketplace.OZON,"11","fixture"),false);return null;});assertTrue(entered.await(3,TimeUnit.SECONDS));
             fx(()->{controller.setShop(new Shop(2,"Second",Marketplace.OZON,"22","fixture"),false);return null;});gate.countDown();
-            for(int i=0;i<500;i++){Thread.sleep(10);if(ShopReadCoordinator.shared().activeCount()==0&&ShopReadCoordinator.shared().pendingCount()==0)break;}fx(()->{var table=(TableView<OzonPostingDto>)loader.getNamespace().get("newOrdersTable");assertEquals("shop-2",table.getItems().getFirst().postingNumber());assertTrue(((Tab)loader.getNamespace().get("newOrdersTab")).getText().contains("1001"));assertEquals(100,controller.currentPageLimit());return null;});
+            // Coordinator completion can precede its Platform.runLater consumer. Wait for the actual UI result.
+            long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);boolean rendered=false;
+            while(System.nanoTime()<deadline){boolean idle=ShopReadCoordinator.shared().activeCount()==0&&ShopReadCoordinator.shared().pendingCount()==0;rendered=idle&&fx(()->{var table=(TableView<OzonPostingDto>)loader.getNamespace().get("newOrdersTable");return !table.getItems().isEmpty()&&table.getItems().getFirst().postingNumber().equals("shop-2")&&((Tab)loader.getNamespace().get("newOrdersTab")).getText().contains("1001");});if(rendered)break;Thread.sleep(10);}
+            assertTrue(rendered,"The second shop's complete result must reach the visible table and totals");
+            fx(()->{var table=(TableView<OzonPostingDto>)loader.getNamespace().get("newOrdersTable");assertEquals("shop-2",table.getItems().getFirst().postingNumber());assertTrue(((Tab)loader.getNamespace().get("newOrdersTab")).getText().contains("1001"));assertEquals(100,controller.currentPageLimit());return null;});
         }finally{gate.countDown();fx(()->{controller.dispose();return null;});for(int i=0;i<500&&(AppTaskExecutor.hasRunningTasks()||ShopReadCoordinator.shared().activeCount()>0);i++)Thread.sleep(10);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }
 }

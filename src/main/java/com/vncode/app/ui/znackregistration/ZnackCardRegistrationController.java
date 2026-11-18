@@ -119,6 +119,7 @@ public final class ZnackCardRegistrationController {
     private final java.util.Map<Long,ZnackRegistrationQueryRepository.Details> rowDetails=new java.util.HashMap<>();
     private ZnackRegistrationQueryRepository.Summary summary;
     private java.util.function.Function<Shop,javafx.scene.Node> ozonRegistrationFactory;
+    private java.util.function.Consumer<com.vncode.app.ui.gs1.Gs1Pane.RecoveryAction> onGs1Recovery;
     @FXML private VBox wbRegistrationContent;
     @FXML private StackPane ozonRegistrationHost;
 
@@ -214,6 +215,14 @@ public final class ZnackCardRegistrationController {
 
     public void setOzonRegistrationFactory(java.util.function.Function<Shop,javafx.scene.Node> factory) {
         ozonRegistrationFactory=Objects.requireNonNull(factory);
+    }
+    public void setOnGs1Recovery(java.util.function.Consumer<com.vncode.app.ui.gs1.Gs1Pane.RecoveryAction> callback){
+        onGs1Recovery=Objects.requireNonNull(callback);
+    }
+    private java.util.function.Consumer<RegistrationGs1Recovery.Action> recoveryAction(){
+        if(onGs1Recovery==null||shop==null)return null;
+        var expected=shop;long epoch=shopEpoch;var callback=onGs1Recovery;
+        return action->{if(isCurrent(expected,epoch))callback.accept(com.vncode.app.ui.gs1.Gs1Pane.RecoveryAction.valueOf(action.name()));};
     }
 
     private String displayedShopScope="";
@@ -546,7 +555,7 @@ public final class ZnackCardRegistrationController {
 
     private void stopReviewedBatch(RegistrationAttemptReports batch){
         Task<Void> task=new Task<>(){protected Void call(){batch.stopPending("ZNACK_REGISTRATION_REVIEW_CANCELLED",true);return null;}};
-        task.setOnFailed(e->showError(task.getException()));AppTaskExecutor.execute(task,ZnackCardRegistrationController::showError);
+        task.setOnFailed(e->showError(task.getException()));AppTaskExecutor.execute(task,this::showError);
     }
     @FXML private void onNewCardsSelected() {
         if(shop==null||!ready()||loading||preparing)return;var ids=selectedRows().stream().map(Sku::chrtId).collect(java.util.stream.Collectors.toSet());if(ids.isEmpty())return;
@@ -945,7 +954,7 @@ public final class ZnackCardRegistrationController {
 
     private void recordBlocked(RegistrationAttemptReports.Attempt attempt,String code) {
         Task<Void> task=new Task<>(){protected Void call(){attempt.blocked(code);return null;}};
-        task.setOnFailed(e->showError(task.getException()));AppTaskExecutor.execute(task,ZnackCardRegistrationController::showError);
+        task.setOnFailed(e->showError(task.getException()));AppTaskExecutor.execute(task,this::showError);
     }
 
     private void replaceCard(Sku sku) {
@@ -1294,17 +1303,18 @@ public final class ZnackCardRegistrationController {
     private static String value(String value) { return value == null ? "" : value; }
     private static String reason(String code){String key="znack.registration.reason."+code;String text=tr(key);return text.equals(key)?code:text;}
     private static String tr(String key) { return I18nService.getInstance().tr(key); }
-    private static void showError(Throwable error) {
-        AlertService.showDetailedError(ZnackErrorDetails.summary(error), ZnackErrorDetails.format(error));
+    private void showError(Throwable error) {
+        var details=ZnackErrorDetails.format(error);
+        RegistrationDiagnostics.showFailure(ZnackErrorDetails.summary(error),details,details,recoveryAction());
     }
-    private static void showWorkflowError(String detail) {
+    private void showWorkflowError(String detail) {
         String full = ZnackErrorDetails.formatStored(detail);
         String summary = detail == null || detail.isBlank() ? "Unknown error"
                 : detail.lines().filter(line -> !line.isBlank()).findFirst().orElse(detail).replaceFirst("^Summary:\\s*", "");
-        AlertService.showDetailedError(summary, full);
+        RegistrationDiagnostics.showFailure(summary,full,detail,recoveryAction());
     }
     private String observation(Sku row){return RegistrationDiagnostics.observation(row.status(),cardIndex==null?java.util.Optional.empty():cardIndex.observation(view(row)),latestReadUnknown);}
-    private void showRegistrationReport(Sku sku){RegistrationDiagnostics.show(sku.vendorCode(),first(view(sku).gtin(),sku.gtin()),sku.feedId(),registrationStatus(sku),observation(sku)+"\n"+RegistrationDiagnostics.activeReason(view(sku),sku.errorMessage()));}
+    private void showRegistrationReport(Sku sku){RegistrationDiagnostics.show(sku.vendorCode(),first(view(sku).gtin(),sku.gtin()),sku.feedId(),registrationStatus(sku),observation(sku)+"\n"+RegistrationDiagnostics.activeReason(view(sku),sku.errorMessage()),recoveryAction());}
     private static void showWarning(String message) { Alert alert = new Alert(Alert.AlertType.WARNING, message, ButtonType.OK); com.vncode.app.shared.ThemeService.applyThemeDialog(alert); alert.setHeaderText(null); alert.showAndWait(); }
     private static void showInfo(String message) { Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK); com.vncode.app.shared.ThemeService.applyThemeDialog(alert); alert.setHeaderText(null); alert.showAndWait(); }
 

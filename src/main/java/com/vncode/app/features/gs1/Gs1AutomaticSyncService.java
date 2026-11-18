@@ -17,14 +17,16 @@ import java.util.*;
 
 /** Read-only enterprise synchronization. No browser, business form submission or email send. */
 public final class Gs1AutomaticSyncService {
-    public record Result(Gs1Membership membership,String email,List<BalanceSnapshot> balances,String catalogError,String balanceError,Boolean applicationSent,boolean newApplication) {
+    public record Result(Gs1Membership membership,String email,List<BalanceSnapshot> balances,String catalogError,String balanceError,Boolean applicationSent,boolean newApplication,Gs1ApplicationStatus application) {
         public Result(Gs1Membership membership,String email,List<BalanceSnapshot> balances,String catalogError,String balanceError){this(membership,email,balances,catalogError,balanceError,null,false);}
-        public Result {balances=List.copyOf(balances);catalogError=Objects.requireNonNullElse(catalogError,"");balanceError=Objects.requireNonNullElse(balanceError,"");}
+        public Result(Gs1Membership membership,String email,List<BalanceSnapshot> balances,String catalogError,String balanceError,Boolean applicationSent,boolean newApplication){this(membership,email,balances,catalogError,balanceError,applicationSent,newApplication,Gs1ApplicationStatus.fromFlags(applicationSent,newApplication));}
+        public Result {balances=List.copyOf(balances);catalogError=Objects.requireNonNullElse(catalogError,"");balanceError=Objects.requireNonNullElse(balanceError,"");application=Objects.requireNonNullElseGet(application,Gs1ApplicationStatus::unknown);}
         public boolean complete(){return catalogError.isBlank()&&balanceError.isBlank();}
         @Override public String toString(){return "Gs1SyncResult[complete="+complete()+"]";}
     }
-    public record Cached(String inn,String email,Instant checkedAt,String catalogError,String balanceError,Boolean applicationSent,boolean newApplication,Gs1Membership membership,List<BalanceSnapshot> balances,Instant catalogCheckedAt,Instant balanceCheckedAt) {
-        public Cached {balances=List.copyOf(balances);}
+    public record Cached(String inn,String email,Instant checkedAt,String catalogError,String balanceError,Boolean applicationSent,boolean newApplication,Gs1Membership membership,List<BalanceSnapshot> balances,Instant catalogCheckedAt,Instant balanceCheckedAt,Gs1ApplicationStatus application) {
+        public Cached(String inn,String email,Instant checkedAt,String catalogError,String balanceError,Boolean applicationSent,boolean newApplication,Gs1Membership membership,List<BalanceSnapshot> balances,Instant catalogCheckedAt,Instant balanceCheckedAt){this(inn,email,checkedAt,catalogError,balanceError,applicationSent,newApplication,membership,balances,catalogCheckedAt,balanceCheckedAt,Gs1ApplicationStatus.unknown());}
+        public Cached {balances=List.copyOf(balances);application=Objects.requireNonNullElseGet(application,Gs1ApplicationStatus::unknown);}
         @Override public String toString(){return "Gs1Cached[redacted]";}
     }
     @FunctionalInterface interface Source {Result read(Shop shop,ZnackModels.Settings settings,RegisteredGtinProof.Scope scope)throws Exception;}
@@ -46,6 +48,7 @@ public final class Gs1AutomaticSyncService {
         try(var s=c.createStatement()){
             if(!columns.contains("application_sent"))s.execute("ALTER TABLE gs1_sync_status ADD COLUMN application_sent INTEGER");
             if(!columns.contains("application_new"))s.execute("ALTER TABLE gs1_sync_status ADD COLUMN application_new INTEGER NOT NULL DEFAULT 0");
+            if(!columns.contains("application_status_json"))s.execute("ALTER TABLE gs1_sync_status ADD COLUMN application_status_json TEXT");
             for(String column:List.of("membership_json","balances_json","catalog_checked_at","balance_checked_at"))
                 if(!columns.contains(column))s.execute("ALTER TABLE gs1_sync_status ADD COLUMN "+column+" TEXT");
         }
@@ -67,7 +70,7 @@ public final class Gs1AutomaticSyncService {
         var settings=new ZnackRepository(new ZnackModels.ShopContext(shop.getId(),shop.getName())).getSettings();
         var scope=RegisteredGtinProof.scope(shop,settings,Instant.now());RegisteredGtinProof.requireProduction(scope);
         var result=source instanceof Remote remote?remote.read(shop,settings,scope,progress):source.read(shop,settings,scope);
-        if(result.membership()==null&&result.catalogError().isBlank())result=new Result(null,result.email(),result.balances(),"GS1_CATALOG_RESPONSE_INCOMPLETE",result.balanceError(),result.applicationSent(),result.newApplication());
+        if(result.membership()==null&&result.catalogError().isBlank())result=new Result(null,result.email(),result.balances(),"GS1_CATALOG_RESPONSE_INCOMPLETE",result.balanceError(),result.applicationSent(),result.newApplication(),result.application());
         ListingIdentity.require(shop);
         if(!scope.source().equals(RegisteredGtinProof.current(shop).source()))throw new IllegalStateException("GS1_ACCOUNT_CHANGED");
         if(result.membership()!=null&&!scope.inn().equals(result.membership().inn()))throw new SecurityException("GS1_FOREIGN_ENTERPRISE");
@@ -76,13 +79,14 @@ public final class Gs1AutomaticSyncService {
         if(result.membership()!=null&&result.catalogError().isBlank()){repository.saveMembership(result.membership(),"production");repository.completeMembershipRequests(result.membership(),"production");}
         var balances=new Gs1BalanceRepository();if(result.balanceError().isBlank())for(var balance:result.balances())balances.save(balance);
         try(var c=Database.getConnection();var p=c.prepareStatement("""
-            INSERT INTO gs1_sync_status(shop_id,owner,registry_source,inn,profile_email,checked_at,catalog_error,balance_error,application_sent,application_new,membership_json,balances_json,catalog_checked_at,balance_checked_at)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id) DO UPDATE SET owner=excluded.owner,registry_source=excluded.registry_source,
+            INSERT INTO gs1_sync_status(shop_id,owner,registry_source,inn,profile_email,checked_at,catalog_error,balance_error,application_sent,application_new,membership_json,balances_json,catalog_checked_at,balance_checked_at,application_status_json)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) ON CONFLICT(shop_id) DO UPDATE SET owner=excluded.owner,registry_source=excluded.registry_source,
             inn=excluded.inn,profile_email=CASE WHEN excluded.catalog_error='' THEN excluded.profile_email
               WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.profile_email ELSE '' END,
             checked_at=excluded.checked_at,catalog_error=excluded.catalog_error,balance_error=excluded.balance_error,
             application_sent=CASE WHEN excluded.catalog_error='' THEN excluded.application_sent WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.application_sent ELSE NULL END,
             application_new=CASE WHEN excluded.catalog_error='' THEN excluded.application_new WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.application_new ELSE 0 END,
+            application_status_json=CASE WHEN excluded.catalog_error='' THEN excluded.application_status_json WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.application_status_json ELSE NULL END,
             membership_json=CASE WHEN excluded.catalog_error='' THEN excluded.membership_json WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.membership_json ELSE NULL END,
             balances_json=CASE WHEN excluded.balance_error='' THEN excluded.balances_json WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.balances_json ELSE NULL END,
             catalog_checked_at=CASE WHEN excluded.catalog_error='' THEN excluded.catalog_checked_at WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.catalog_checked_at ELSE NULL END,
@@ -91,7 +95,7 @@ public final class Gs1AutomaticSyncService {
             p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,scope.source());p.setString(4,scope.inn());
             p.setString(5,safeEmail(result.email()));p.setString(6,Instant.now().toString());p.setString(7,safeCode(result.catalogError()));p.setString(8,safeCode(result.balanceError()));if(result.applicationSent()==null)p.setNull(9,Types.INTEGER);else p.setInt(9,result.applicationSent()?1:0);p.setInt(10,result.newApplication()?1:0);
             p.setString(11,result.membership()==null?null:Gs1CacheJson.JSON.toJson(result.membership()));p.setString(12,Gs1CacheJson.JSON.toJson(result.balances()));
-            p.setString(13,result.catalogError().isBlank()?Instant.now().toString():null);p.setString(14,result.balanceError().isBlank()?Instant.now().toString():null);p.executeUpdate();
+            Instant observedAt=Instant.now();p.setString(13,result.catalogError().isBlank()?observedAt.toString():null);p.setString(14,result.balanceError().isBlank()?observedAt.toString():null);p.setString(15,result.catalogError().isBlank()?result.application().stored(observedAt):null);p.executeUpdate();
         }
         return result;
     }
@@ -105,6 +109,7 @@ public final class Gs1AutomaticSyncService {
               profile_email=CASE WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.profile_email ELSE '' END,
               application_sent=CASE WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.application_sent ELSE NULL END,
               application_new=CASE WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.application_new ELSE 0 END,
+              application_status_json=CASE WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.application_status_json ELSE NULL END,
               membership_json=CASE WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.membership_json ELSE NULL END,
               balances_json=CASE WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.balances_json ELSE NULL END,
               catalog_checked_at=CASE WHEN gs1_sync_status.registry_source=excluded.registry_source THEN gs1_sync_status.catalog_checked_at ELSE NULL END,
@@ -119,7 +124,7 @@ public final class Gs1AutomaticSyncService {
             try(var c=Database.getConnection();var p=c.prepareStatement("SELECT * FROM gs1_sync_status WHERE shop_id=? AND owner=? AND registry_source=?")){
                 p.setInt(1,shop.getId());p.setString(2,ListingIdentity.fingerprint(shop));p.setString(3,scope.source());try(var r=p.executeQuery()){
                     return r.next()?Optional.of(new Cached(r.getString("inn"),r.getString("profile_email"),Instant.parse(r.getString("checked_at")),r.getString("catalog_error"),r.getString("balance_error"),r.getObject("application_sent")==null?null:r.getInt("application_sent")!=0,r.getInt("application_new")!=0,
-                        Gs1CacheJson.JSON.fromJson(r.getString("membership_json"),Gs1Membership.class),cachedBalances(r.getString("balances_json")),instant(r.getString("catalog_checked_at")),instant(r.getString("balance_checked_at")))):Optional.empty();
+                        Gs1CacheJson.JSON.fromJson(r.getString("membership_json"),Gs1Membership.class),cachedBalances(r.getString("balances_json")),instant(r.getString("catalog_checked_at")),instant(r.getString("balance_checked_at")),Gs1ApplicationStatus.restore(r.getString("application_status_json"),instant(r.getString("catalog_checked_at"))))):Optional.empty();
                 }
             }
         }catch(SQLException e){throw new IllegalStateException("GS1_SYNC_STORAGE",e);}
@@ -206,11 +211,12 @@ public final class Gs1AutomaticSyncService {
             var phases=new HashMap<String,String>();
             java.util.function.Consumer<Progress> tracked=value->{phases.put(value.source(),value.step());progress.accept(value);};
             try{lock(entry);locked=true;resetExpired(entry);
-                Gs1Membership member=null;String email="",catalogError="",balanceError="";Boolean applicationSent=null;boolean newApplication=false;
+                Gs1Membership member=null;String email="",catalogError="",balanceError="";Boolean applicationSent=null;boolean newApplication=false;var application=Gs1ApplicationStatus.unknown();
                 try{
                     var snapshot=account(entry,shop,settings,scope,tracked);guard(shop,scope);
                     member=snapshot.membership();email=profileEmail(snapshot.form());newApplication=snapshot.newApplication();
                     var sent=snapshot.form().get("isSent");applicationSent=sent!=null&&sent.isJsonPrimitive()&&sent.getAsJsonPrimitive().isBoolean()?sent.getAsBoolean():null;
+                    application=Gs1ApplicationStatus.read(snapshot.form(),newApplication);
                     tracked.accept(new Progress("CATALOG","CATALOG_COMPLETE","SUCCEEDED",""));
                 }catch(Exception unavailable){interrupted(unavailable);entry.catalog=null;catalogError=com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code();tracked.accept(new Progress("CATALOG",phases.getOrDefault("CATALOG","CHECKING_SETTINGS"),"FAILED",catalogError));}
                 try{
@@ -220,9 +226,9 @@ public final class Gs1AutomaticSyncService {
                     List<BalanceSnapshot> values;
                     try{values=cashClient.readAccounts(entry.cash);}
                     catch(ChestnyZnakBalanceClient.AuthenticationException expired){tracked.accept(new Progress("BALANCE","REAUTHENTICATING_BALANCE","RUNNING",""));entry.cash=cashClient.authenticate(scope.inn(),scope.fingerprint(),signer);values=cashClient.readAccounts(entry.cash);}
-                    guard(shop,scope);tracked.accept(new Progress("BALANCE","BALANCE_COMPLETE","SUCCEEDED",""));return new Result(member,email,values,catalogError,"",applicationSent,newApplication);
+                    guard(shop,scope);tracked.accept(new Progress("BALANCE","BALANCE_COMPLETE","SUCCEEDED",""));return new Result(member,email,values,catalogError,"",applicationSent,newApplication,application);
                 }catch(Exception unavailable){interrupted(unavailable);entry.cash=null;balanceError=com.vncode.app.features.sync.SyncFailure.of(unavailable,0).code();tracked.accept(new Progress("BALANCE",phases.getOrDefault("BALANCE","CHECKING_SETTINGS"),"FAILED",balanceError));}
-                return new Result(member,email,List.of(),catalogError,balanceError,applicationSent,newApplication);
+                return new Result(member,email,List.of(),catalogError,balanceError,applicationSent,newApplication,application);
             }finally{if(locked)entry.lock.unlock();release(entry);if(previous==null)DEADLINE.remove();else DEADLINE.set(previous);}
         }
         private static void interrupted(Exception error)throws Exception {

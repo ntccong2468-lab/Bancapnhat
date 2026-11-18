@@ -55,12 +55,21 @@ public final class Gs1ActionPolicy {
         var owned = requests.stream().filter(r -> r.inn().equals(membership.inn())).toList();
         var status = membership.status(date);
 
-        // An old submitted joining application belongs to a different operation from restoration.
+        // An excluded enterprise may rejoin through an editable old form. A remote form
+        // that is still submitted instead requires the independent restoration operation.
         if (status == Gs1Membership.Status.EXCLUDED) {
+            if(!ownedForm(membership.inn(),form))return none(JoinAction.CHECK_STATUS);
+            var application=Gs1ApplicationStatus.read(form,newApplication);
+            if(application.state()==Gs1ApplicationStatus.State.UNKNOWN)return none(JoinAction.CHECK_STATUS);
+            var joins=owned.stream().filter(r->r.kind().equals("JOIN")).toList();
             var restoration = owned.stream().filter(r -> r.kind().equals(Gs1LettersService.Kind.RESTORE_MEMBERSHIP.name())).toList();
-            if (restoration.stream().anyMatch(r -> UNCERTAIN.contains(r.state()))) return none(JoinAction.RECONCILE_DELIVERY);
+            if (restoration.stream().anyMatch(r -> UNCERTAIN.contains(r.state()))||joins.stream().anyMatch(r->UNCERTAIN.contains(r.state()))) return none(JoinAction.RECONCILE_DELIVERY);
             if (restoration.stream().anyMatch(r -> Set.of(Gs1Repository.State.SENT, Gs1Repository.State.SUBMITTED).contains(r.state())))
                 return none(JoinAction.RESTORATION_REQUESTED);
+            if(application.state()!=Gs1ApplicationStatus.State.SUBMITTED){
+                if(joins.stream().anyMatch(r->r.state()==Gs1Repository.State.SUBMITTED))return none(JoinAction.RECONCILE_DELIVERY);
+                return none(JoinAction.JOIN);
+            }
             return new Decision(JoinAction.RESTORE_MEMBERSHIP, false, false, false, true);
         }
         if (status == Gs1Membership.Status.ACTIVE || status == Gs1Membership.Status.EXPIRING || status == Gs1Membership.Status.EXPIRED) {

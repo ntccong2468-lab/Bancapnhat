@@ -91,7 +91,7 @@ public final class Gs1PrefixRequestDialog {
         var previewBox=new VBox(8,previewNotice,preview);previewBox.setPadding(new Insets(10));
         var previewScroll=new ScrollPane(previewBox);previewScroll.setFitToWidth(true);previewScroll.setPrefViewportWidth(465);previewScroll.setPrefViewportHeight(650);
         var body=new SplitPane(editorScroll,previewScroll);body.setDividerPositions(.51);
-        dialog.getDialogPane().setContent(body);dialog.getDialogPane().setPrefSize(1000,760);dialog.getDialogPane().getButtonTypes().addAll(next,ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(body);dialog.getDialogPane().setPrefSize(1000,760);dialog.getDialogPane().getButtonTypes().addAll(next,new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
         importWord.setId("gs1PrefixImportWord");downloadWord.setId("gs1PrefixDownloadWord");previewWord.setId("gs1PrefixPreviewWord");sign.setId("gs1PrefixCreateSignedPdf");attach.setId("gs1PrefixAttachSigned");
         importWord.setOnAction(e->chooseWord());downloadWord.setOnAction(e->exportWord());previewWord.setOnAction(e->generate(false));
         sign.setOnAction(e->generate(true));attach.setOnAction(e->chooseSigned());clear.setOnAction(e->{ink.clear();invalidate(true);drawInk();});
@@ -123,11 +123,14 @@ public final class Gs1PrefixRequestDialog {
         try{mail.setText(Gs1PrefixRequestService.body(profile(),(Quantity)quantity.getSelectedToggle().getUserData(),comment.getText()));}
         catch(RuntimeException incomplete){mail.setText(tr("gs1.prefix.complete_fields"));}
     }
-    private record Loaded(byte[] bytes, Gs1WordPrefixService.TemplateDescription description){}
+    private record Loaded(byte[] bytes, Gs1WordPrefixService.TemplateDescription description, boolean officialDefault){
+        Loaded(byte[] bytes,Gs1WordPrefixService.TemplateDescription description){this(bytes,description,false);}
+    }
     private void loadSavedTemplate(){
         run(new Task<Optional<Loaded>>(){@Override protected Optional<Loaded> call()throws Exception{
-            var saved=templates.load(defaults.inn(),"production");if(saved.isEmpty())return Optional.empty();
-            var bytes=saved.get();try{return Optional.of(new Loaded(bytes,words.inspect(bytes)));}catch(Exception failure){Arrays.fill(bytes,(byte)0);throw failure;}
+            var saved=templates.load(defaults.inn(),"production");
+            // Only an absent seller template selects the inert built-in default. An invalid import still fails.
+            var bytes=saved.isPresent()?saved.get():Gs1OfficialPrefixTemplate.defaultTemplate();try{return Optional.of(new Loaded(bytes,words.inspect(bytes),saved.isEmpty()));}catch(Exception failure){Arrays.fill(bytes,(byte)0);throw failure;}
         }},value->value.ifPresent(this::acceptTemplate),()->{});
     }
     private void chooseWord(){
@@ -140,7 +143,7 @@ public final class Gs1PrefixRequestDialog {
     }
     private void acceptTemplate(Loaded loaded){
         if(template!=null)Arrays.fill(template,(byte)0);template=loaded.bytes();invalidate(true);
-        templateStatus.setText(tr("gs1.prefix.template_loaded").replace("{0}",loaded.description().sha256().substring(0,12)));
+        templateStatus.setText(loaded.officialDefault()?tr("gs1.prefix.official_default"):tr("gs1.prefix.template_loaded").replace("{0}",loaded.description().sha256().substring(0,12)));
     }
     private void exportWord(){
         if(template==null)return;Gs1WordPrefixService.Fields fields;

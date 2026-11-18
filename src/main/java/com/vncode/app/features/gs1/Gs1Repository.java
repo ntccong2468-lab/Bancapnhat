@@ -232,13 +232,13 @@ public final class Gs1Repository {
                   SELECT 1 FROM gs1_requests other WHERE other.inn=gs1_requests.inn
                   AND other.kind=gs1_requests.kind AND other.id!=gs1_requests.id
                   AND (other.state IN('SENDING','SUBMITTED','RECONCILE_REQUIRED')
-                    OR ((gs1_requests.kind LIKE 'PAYMENT_PROOF:%' OR gs1_requests.kind LIKE 'REMINDER:%'
+                    OR ((gs1_requests.kind LIKE 'PAYMENT_PROOF:%' OR gs1_requests.kind LIKE 'REMINDER:%' OR substr(gs1_requests.kind,1,19)='OPERATOR_AGREEMENT:'
                       OR gs1_requests.kind IN('JOINING_INVOICE','RESTORE_MEMBERSHIP')) AND other.state='SENT'
                       AND NOT EXISTS(SELECT 1 FROM gs1_membership_request_resolutions resolved WHERE resolved.inn=other.inn AND resolved.request_id=other.id))))
                 """,inn,id)==1;
     }
     public boolean hasBlockingOperation(String inn,String kind){
-        return requests(inn).stream().anyMatch(r->r.kind().equals(kind)&&(Set.of(State.SENDING,State.SUBMITTED,State.RECONCILE_REQUIRED).contains(r.state())||((kind.startsWith("PAYMENT_PROOF:")||kind.startsWith("REMINDER:")||Set.of("JOINING_INVOICE","RESTORE_MEMBERSHIP").contains(kind))&&r.state()==State.SENT)));
+        return requests(inn).stream().anyMatch(r->r.kind().equals(kind)&&(Set.of(State.SENDING,State.SUBMITTED,State.RECONCILE_REQUIRED).contains(r.state())||((kind.startsWith("PAYMENT_PROOF:")||kind.startsWith("REMINDER:")||kind.startsWith("OPERATOR_AGREEMENT:")||Set.of("JOINING_INVOICE","RESTORE_MEMBERSHIP").contains(kind))&&r.state()==State.SENT)));
     }
     public void setState(String inn,String id,State state){
         if(state==State.RESOLVED)throw new IllegalArgumentException("Membership resolution requires a sourced active membership assertion");
