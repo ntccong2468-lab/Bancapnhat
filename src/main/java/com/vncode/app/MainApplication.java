@@ -29,7 +29,7 @@ public class MainApplication extends Application {
     public void start(Stage stage) throws IOException {
         stage.getIcons().add(new Image(MainApplication.class.getResourceAsStream("/com/vncode/app/assets/images/logo.png")));
         com.vncode.app.ui.StartupProgress.show(stage,phase->{
-            Launcher.prepareDataSession(phase,()->restoreWindow(stage));phase.accept("INITIALIZING_DATA");return HomeController.prepareLocalData();
+            var session=Launcher.prepareDataSession(phase,()->restoreWindow(stage));phase.accept("INITIALIZING_DATA");return HomeController.prepareLocalData(session);
         },prepared->{
             try{openWorkspace(stage,prepared);}catch(IOException failure){throw new java.io.UncheckedIOException(failure);}
         },failure->Launcher.writeStartupLog("startup-data",failure));

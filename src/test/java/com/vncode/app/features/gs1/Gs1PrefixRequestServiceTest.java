@@ -31,7 +31,7 @@ class Gs1PrefixRequestServiceTest {
     private LicenseService denied;
     private Gs1Repository repository(){var repository=new Gs1Repository(directory.resolve("fixture.db"));repository.saveMailAccount(INN,account());return repository;}
     private Gs1MailAccount account(){return new Gs1MailAccount("smtp.fixture",465,"imap.fixture",993,"fixture","sender@fixture.test","dpapi:fixture");}
-    private Profile profile(){return new Profile("Fixture company",INN,GCPS,"contact@fixture.test","+7 000 000-00-00","Fixture Signer");}
+    private Profile profile(){return new Profile("Fixture company",INN,GCPS,"contact@fixture.test","+7 000 000-00-00","Fixture Signer","",List.of());}
     private NationalCatalogGs1Client.AccountSnapshot source(Integer... remaining){
         var prefixes=new ArrayList<Gs1Membership.Prefix>();for(int i=0;i<remaining.length;i++)prefixes.add(new Gs1Membership.Prefix(GCPS.get(i),remaining[i],List.of()));
         var member=new Gs1Membership(INN,"Fixture company",true,false,LocalDate.of(2027,3,1),prefixes,NOW,Gs1Membership.CATALOG_SOURCE);
@@ -70,6 +70,31 @@ class Gs1PrefixRequestServiceTest {
         var unknown=new Gs1Membership(INN,"Fixture company",true,false,null,positive.membership().prefixes(),NOW,Gs1Membership.CATALOG_SOURCE);
         assertTrue(Gs1ActionPolicy.canOpenPrefixRequest(unknown,NOW,LocalDate.of(2026,10,13)));assertEquals(3,Gs1ActionPolicy.prefixesForDisplay(unknown,NOW,LocalDate.of(2026,10,13)).size());
         assertEquals(Gs1PrefixRequestService.Block.NOT_ACTIVE,service.preflight(INN,source(unknown),NOW).block());assertEquals(GCPS,service.defaults(source(unknown),null).gcps());
+    }
+    @Test void reviewedLetterIncludesRegistrationAndGlnsFromTheSelectedCatalogEnterprise() throws Exception {
+        var repo=repository();
+        var service=new Gs1PrefixRequestService(repo,(a,l,g)->fail("Draft preparation must not send email"),CLOCK);
+        var glns=java.util.stream.IntStream.rangeClosed(1,101).mapToObj(i->String.format(Locale.ROOT,"4601%09d",i)).toList();
+        var member=new Gs1Membership("770000000001","Fixture sole proprietor",true,false,LocalDate.of(2027,3,1),
+                List.of(new Gs1Membership.Prefix("4601000",0,glns)),NOW,Gs1Membership.CATALOG_SOURCE);
+        var form=source(member).form();
+        form.getAsJsonObject("applicant").addProperty("ogrn","321770000000001");
+        var snapshot=new NationalCatalogGs1Client.AccountSnapshot(member,form,false);
+        var defaults=service.defaults(snapshot,null);
+        assertEquals(glns,defaults.glns());
+        var profile=new Profile(defaults.legalName(),defaults.inn(),defaults.gcps(),defaults.email(),defaults.phone(),
+                "Fixture Signer",defaults.registrationNumber(),defaults.glns());
+        var draft=new RequestDraft(profile,Quantity.EXTENDED,"",document(false));
+        var letter=service.preview(draft);
+        assertTrue(letter.subject().endsWith(member.inn()));
+        assertTrue(letter.body().contains("ОГРНИП: 321770000000001"));
+        assertTrue(letter.body().contains("GLN: "+String.join(", ",glns)));
+        assertTrue(letter.body().contains("99999"));
+        form.getAsJsonObject("applicant").addProperty("ogrn","321770000000002");
+        var changed=new NationalCatalogGs1Client.AccountSnapshot(member,form,false);
+        assertEquals(Gs1PrefixRequestService.Block.REVIEW_SOURCE_CHANGED,
+                assertThrows(Gs1PrefixRequestService.BlockedException.class,()->service.prepare(draft,changed,true)).preflight().block());
+        assertEquals(letter.body(),service.prepare(draft,snapshot,true).body());
     }
     @Test void frozenPdfMailBodyAndReviewedMetadataSurviveReopenAndMatchPreview()throws Exception{
         var repo=repository();var service=new Gs1PrefixRequestService(repo,(a,l,g)->{},CLOCK);var reviewed=draft();var preview=service.preview(reviewed);

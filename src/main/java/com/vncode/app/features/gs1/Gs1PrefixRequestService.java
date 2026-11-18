@@ -51,8 +51,10 @@ public final class Gs1PrefixRequestService {
         }
         String signer=certificate==null?"":certificate.signerFullName();
         if(signer.isBlank())signer=(text(applicant,"lastName")+" "+text(applicant,"firstName")).strip();
-        var now=clock.instant();var identifiers=Gs1ActionPolicy.prefixesForDisplay(member,now,now.atZone(ZoneId.of("Europe/Moscow")).toLocalDate()).stream().map(Gs1Membership.Prefix::gcp).distinct().toList();
-        return new ProfileDefaults(name,member.inn(),identifiers,email,phone,signer);
+        var now=clock.instant();
+        var prefixes=Gs1ActionPolicy.prefixesForDisplay(member,now,now.atZone(ZoneId.of("Europe/Moscow")).toLocalDate());
+        var identifiers=prefixes.stream().map(Gs1Membership.Prefix::gcp).distinct().toList();
+        return new ProfileDefaults(name,member.inn(),identifiers,email,phone,signer,registrationNumber(member.inn(),applicant),glns(prefixes));
     }
     public Preflight preflight(String expectedInn,NationalCatalogGs1Client.AccountSnapshot source,Instant now){
         Gs1Membership.requireInn(expectedInn);Objects.requireNonNull(now);
@@ -80,8 +82,14 @@ public final class Gs1PrefixRequestService {
     public Gs1Repository.Request prepare(RequestDraft reviewed,NationalCatalogGs1Client.AccountSnapshot source,boolean confirmed)throws IOException{
         LicenseRuntime.require(Permission.GS1);Objects.requireNonNull(reviewed);
         if(!confirmed)throw new IllegalArgumentException("gs1.prefix.confirm_required");
-        var profile=reviewed.profile();require(preflight(profile.inn(),source,clock.instant()));
-        if(!new HashSet<>(profile.gcps()).equals(new HashSet<>(activeGcps(source.membership(),clock.instant()))))throw new BlockedException(blocked(Block.REVIEW_SOURCE_CHANGED));
+        var profile=reviewed.profile();
+        var now=clock.instant();
+        require(preflight(profile.inn(),source,now));
+        var prefixes=source.membership().visiblePrefixes(now.atZone(ZoneId.of("Europe/Moscow")).toLocalDate());
+        if(!new HashSet<>(profile.gcps()).equals(new HashSet<>(activeGcps(source.membership(),now)))
+                ||!new HashSet<>(profile.glns()).equals(new HashSet<>(glns(prefixes)))
+                ||!profile.registrationNumber().equals(registrationNumber(profile.inn(),applicant(source.form()))))
+            throw new BlockedException(blocked(Block.REVIEW_SOURCE_CHANGED));
         if(repository.hasBlockingOperation(profile.inn(),"MORE_CODES"))throw new IllegalStateException("gs1.prefix.delivery_unconfirmed");
         validateDocument(reviewed.reviewedDocument());
         var letter=preview(reviewed);String id=letter.id();
@@ -92,14 +100,19 @@ public final class Gs1PrefixRequestService {
     /** The dialog and persisted checkpoint share one exact mail template; preview never writes or sends. */
     public Gs1MailClient.Letter preview(RequestDraft reviewed){
         Objects.requireNonNull(reviewed);String id=UUID.randomUUID().toString();
-        return new Gs1MailClient.Letter(id,id,RECIPIENT,"Заявление на дополнительный префикс ГС1 РУС",body(reviewed.profile(),reviewed.quantity(),reviewed.comment()),List.of(reviewed.reviewedDocument()));
+        return new Gs1MailClient.Letter(id,id,RECIPIENT,"Заявление на дополнительный префикс — ИНН "+reviewed.profile().inn(),
+                body(reviewed.profile(),reviewed.quantity(),reviewed.comment()),List.of(reviewed.reviewedDocument()));
     }
     public static String body(Profile profile,Quantity quantity,String comment){
         Objects.requireNonNull(profile);Objects.requireNonNull(quantity);comment=Objects.requireNonNullElse(comment,"").strip();
         if(comment.length()>20000)throw new IllegalArgumentException("gs1.prefix.invalid_profile");
-        return "Здравствуйте!\n\nОрганизация: "+profile.legalName()+"\nИНН: "+profile.inn()+"\nКоды предприятия ГС1 РУС (GCP): "+String.join(", ",profile.gcps())+
-                "\nE-mail: "+profile.email()+"\nТелефон: "+profile.phone()+"\nПодписант: "+profile.signerName()+
-                "\n\nПросим предоставить дополнительный префикс с возможностью генерации "+quantity.value()+" кодов GTIN. Заявление по форме 01.04.01 прилагается.\n\n"+comment;
+        String registration=profile.registrationNumber().isEmpty()?"":"\n"+(profile.inn().length()==12?"ОГРНИП":"ОГРН")+": "+profile.registrationNumber();
+        String gln=profile.glns().isEmpty()?"":"\nGLN: "+String.join(", ",profile.glns());
+        return "Добрый день!\n\n"+profile.legalName()+" просит предоставить дополнительный префикс в связи с окончанием ранее присвоенного диапазона."
+                +"\n\nДанные участника:\nНаименование: "+profile.legalName()+"\nИНН: "+profile.inn()+registration
+                +"\nGCP: "+String.join(", ",profile.gcps())+gln+"\nE-mail в профиле: "+profile.email()+"\nТелефон: "+profile.phone()
+                +"\n\nЗапрашиваемый диапазон для генерации "+quantity.value()+" кодов GTIN. Заявление по форме 01.04.01 прилагается."
+                +(comment.isEmpty()?"":"\n\n"+comment)+"\n\nС уважением,\n"+profile.signerName();
     }
     public void send(Gs1MailAccount account,String inn,String id,FreshSnapshotReader fresh,boolean confirmed)throws IOException{
         LicenseRuntime.require(Permission.GS1);Objects.requireNonNull(account);Objects.requireNonNull(fresh);
@@ -157,6 +170,13 @@ public final class Gs1PrefixRequestService {
         if(dark<150||max-min<30)throw new IllegalArgumentException("gs1.prefix.document_blank");
     }
     private static List<String> activeGcps(Gs1Membership member,Instant now){return member.visiblePrefixes(now.atZone(ZoneId.of("Europe/Moscow")).toLocalDate()).stream().map(Gs1Membership.Prefix::gcp).distinct().toList();}
+    private static List<String> glns(List<Gs1Membership.Prefix> prefixes){
+        return prefixes.stream().flatMap(prefix->prefix.glns().stream()).distinct().toList();
+    }
+    private static String registrationNumber(String inn,JsonObject applicant){
+        String number=text(applicant,"ogrn").strip();
+        return validRegistrationNumber(inn,number)?number:"";
+    }
     private static JsonObject applicant(JsonObject form){return form.has("applicant")&&form.get("applicant").isJsonObject()?form.getAsJsonObject("applicant"):new JsonObject();}
     private static String text(JsonObject object,String key){var value=object.get(key);return value!=null&&value.isJsonPrimitive()&&value.getAsJsonPrimitive().isString()?value.getAsString():"";}
     private static Preflight blocked(Block block){return new Preflight(block,OptionalLong.empty());}

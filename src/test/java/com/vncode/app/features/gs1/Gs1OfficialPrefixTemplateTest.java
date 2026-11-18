@@ -57,7 +57,8 @@ class Gs1OfficialPrefixTemplateTest {
         }
     }
     @Test void bothCapacityChoicesRetainActualFormPdfAndExactReviewedMailQuantity()throws Exception{
-        var profile=new Gs1PrefixRequestModels.Profile(fields.legalName(),fields.inn(),fields.gs1Codes(),"seller@fixture.ru","+70000000000",fields.signerName());
+        var profile=new Gs1PrefixRequestModels.Profile(fields.legalName(),fields.inn(),fields.gs1Codes(),
+                "seller@fixture.ru","+70000000000",fields.signerName(),"",List.of());
         for(var quantity:Gs1PrefixRequestModels.Quantity.values()){
             var preview=words.previewPdf(Gs1OfficialPrefixTemplate.defaultTemplate(),fields);
             try(var document=Loader.loadPDF(preview.pdf())){

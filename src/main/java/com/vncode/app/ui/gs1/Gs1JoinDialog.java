@@ -65,7 +65,9 @@ final class Gs1JoinDialog {
         for(String[] group:new String[][]{{"implementationMethods","selling-ways"},{"distributionChannels","distribution-channels"}}){JsonObject data=section(company,group[0]);business.getChildren().add(objectChecklist(data,"fields",group[1]));business.getChildren().add(text(data,"moreText",false));}tab("gs1.business",business);
         JsonArray contacts=form.has("contacts")&&form.get("contacts").isJsonArray()?form.getAsJsonArray("contacts"):new JsonArray();form.add("contacts",contacts);if(contacts.isEmpty())contacts.add(new JsonObject());contactCount.set(contacts.size());VBox contactFields=new VBox(16);for(JsonElement item:contacts)if(item.isJsonObject())contactFields.getChildren().add(contact(item.getAsJsonObject()));
         Button add=new Button(tr("gs1.add_contact"));add.setOnAction(e->{JsonObject value=new JsonObject();contacts.add(value);contactCount.set(contacts.size());contactFields.getChildren().add(contact(value));});VBox contactsBox=new VBox(12,contactFields,add);tab("gs1.contacts",contactsBox);
-        review.setWrapText(true);review.setEditable(false);review.setPrefRowCount(18);tab("gs1.review",new VBox(10,new Label(tr("gs1.submit_notice")),review));
+        var applyNotice=new Label(tr("gs1.prepare_document_notice"));applyNotice.setId("gs1JoinApplyNotice");applyNotice.setWrapText(true);
+        var submitNotice=new Label(tr("gs1.submit_notice"));submitNotice.setWrapText(true);
+        review.setWrapText(true);review.setEditable(false);review.setPrefRowCount(18);tab("gs1.review",new VBox(10,applyNotice,submitNotice,review));
         steps.getSelectionModel().selectedIndexProperty().addListener((o,a,b)->{errors.setText("");refreshReview();});errors.setWrapText(true);errors.getStyleClass().add("text-danger");errors.managedProperty().bind(errors.textProperty().isNotEmpty());errors.visibleProperty().bind(errors.managedProperty());
         steps.setMinHeight(0);steps.setPrefHeight(400);VBox.setVgrow(steps,Priority.ALWAYS);
         var body=new VBox(12,steps,errors);body.setMinHeight(0);
@@ -74,7 +76,8 @@ final class Gs1JoinDialog {
         body.prefHeightProperty().bind(javafx.beans.binding.Bindings.max(120,dialog.getDialogPane().maxHeightProperty().subtract(160)));
         dialog.getDialogPane().setContent(body);
         ButtonType back=new ButtonType(tr("gs1.wizard.back"),ButtonBar.ButtonData.BACK_PREVIOUS),next=new ButtonType(tr("gs1.wizard.next"),ButtonBar.ButtonData.NEXT_FORWARD);
-        ButtonType saveDraft=new ButtonType(tr("gs1.save_draft"),ButtonBar.ButtonData.OTHER),submit=new ButtonType(tr("gs1.sign_submit"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().addAll(back,next,saveDraft,submit,new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
+        ButtonType saveDraft=new ButtonType(tr("gs1.save_draft"),ButtonBar.ButtonData.OTHER),submit=new ButtonType(tr("gs1.wizard.apply"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().addAll(back,next,saveDraft,submit,new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
+        dialog.getDialogPane().lookupButton(submit).setId("gs1JoinApply");
         Button backButton=(Button)dialog.getDialogPane().lookupButton(back),nextButton=(Button)dialog.getDialogPane().lookupButton(next);
         backButton.setId("gs1JoinBack");nextButton.setId("gs1JoinNext");
         backButton.disableProperty().bind(owner.busyProperty().or(steps.getSelectionModel().selectedIndexProperty().isEqualTo(0)));
@@ -88,6 +91,9 @@ final class Gs1JoinDialog {
                 refreshReview();save.accept(form.deepCopy(),signing);
             });
         }
+        refreshReview();
+        var missing=Gs1JoinFormValidation.first(form,inn);
+        if(missing.isEmpty())steps.getSelectionModel().selectLast();else showFailure(missing.get());
     }
     void show(){refreshReview();dialog.showAndWait();}
     private Node contact(JsonObject contact){

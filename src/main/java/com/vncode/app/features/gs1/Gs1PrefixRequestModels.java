@@ -14,20 +14,30 @@ public final class Gs1PrefixRequestModels {
         public int value(){return value;}
         public static Quantity fromValue(int value){for(var quantity:values())if(quantity.value==value)return quantity;throw new IllegalArgumentException("gs1.prefix.invalid_quantity");}
     }
-    public record ProfileDefaults(String legalName,String inn,List<String> gcps,String email,String phone,String signerName){
-        public ProfileDefaults{gcps=List.copyOf(gcps);}
+    public record ProfileDefaults(String legalName,String inn,List<String> gcps,String email,String phone,String signerName,
+                                  String registrationNumber,List<String> glns){
+        public ProfileDefaults{gcps=List.copyOf(gcps);glns=List.copyOf(glns);}
         @Override public String toString(){return "Gs1PrefixDefaults[redacted]";}
     }
-    public record Profile(String legalName,String inn,List<String> gcps,String email,String phone,String signerName){
+    public record Profile(String legalName,String inn,List<String> gcps,String email,String phone,String signerName,
+                          String registrationNumber,List<String> glns){
         public Profile{
             legalName=text(legalName,500);Gs1Membership.requireInn(inn);gcps=List.copyOf(gcps);
             if(gcps.isEmpty()||gcps.size()>100||new HashSet<>(gcps).size()!=gcps.size()||gcps.stream().anyMatch(p->!p.matches("[0-9]{4,12}")))throw new IllegalArgumentException("gs1.prefix.invalid_profile");
             email=text(email,254);phone=text(phone,80);signerName=text(signerName,200);
+            registrationNumber=Objects.requireNonNull(registrationNumber);
+            glns=List.copyOf(glns);
+            if((!registrationNumber.isEmpty()&&!validRegistrationNumber(inn,registrationNumber))
+                    ||new HashSet<>(glns).size()!=glns.size()||glns.stream().anyMatch(gln->!gln.matches("[0-9]{13}")))
+                throw new IllegalArgumentException("gs1.prefix.invalid_profile");
             if(!email.matches("[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,63}")
                     ||!phone.matches("[+0-9() .-]+")||phone.replaceAll("[^0-9]","").length()<7||phone.replaceAll("[^0-9]","").length()>20)
                 throw new IllegalArgumentException("gs1.prefix.invalid_profile");
         }
         @Override public String toString(){return "Gs1PrefixProfile[redacted]";}
+    }
+    static boolean validRegistrationNumber(String inn,String number){
+        return number.matches(inn.length()==12?"[0-9]{15}":"[0-9]{13}");
     }
     public record RequestDraft(Profile profile,Quantity quantity,String comment,Gs1MailClient.Attachment reviewedDocument){
         public RequestDraft{

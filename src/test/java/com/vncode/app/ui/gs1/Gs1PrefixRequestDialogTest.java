@@ -70,7 +70,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class Gs1PrefixRequestDialogTest {
     private static final String INN = "7707083893";
     private static final ProfileDefaults DEFAULTS = new ProfileDefaults("Catalog Fixture Company", INN,
-            List.of("4601234", "4605678"), "catalog@fixture.ru", "+7 (900) 123-45-67", "Certificate Fixture Signer");
+            List.of("4601234", "4605678"), "catalog@fixture.ru", "+7 (900) 123-45-67", "Certificate Fixture Signer", "", List.of());
     @TempDir Path directory;
     private final List<Gs1PrefixRequestDialog> opened = new ArrayList<>();
     private Gs1PrefixRequestService service;
@@ -252,7 +252,8 @@ class Gs1PrefixRequestDialogTest {
         var repository = new Gs1Repository(); var signed = signedDocument();
         repository.saveMailAccount(INN, new Gs1MailAccount("smtp.fixture", 465, "imap.fixture", 993,
                 "fixture", "owner@fixture.ru", "dpapi:fixture"));
-        var profile = new Profile(DEFAULTS.legalName(), INN, DEFAULTS.gcps(), DEFAULTS.email(), DEFAULTS.phone(), DEFAULTS.signerName());
+        var profile = new Profile(DEFAULTS.legalName(), INN, DEFAULTS.gcps(), DEFAULTS.email(), DEFAULTS.phone(), DEFAULTS.signerName(),
+                DEFAULTS.registrationNumber(), DEFAULTS.glns());
         var prepared = service.prepare(new RequestDraft(profile, Quantity.STANDARD, "Reviewed fixture", signed), snapshot(0, 0), true);
         var legacy = repository.createRequestWithAttachments(INN, "MORE_CODES", Gs1PrefixRequestService.RECIPIENT,
                 "Legacy fixture", "Old unchecked draft", List.of(signed));

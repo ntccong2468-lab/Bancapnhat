@@ -89,13 +89,15 @@ public final class LocalDataMigrationGate {
                     : writerId + "-writer-"
                             + appVersion.toLowerCase(Locale.ROOT).replace('_', '-');
             phase.accept("CREATING_BACKUP");
-            LocalDataSnapshotService.Snapshot snapshot = existingSchemaVersion==currentSchemaVersion
-                    ?UpdateSnapshotHandoff.reusable(ownership,appVersion,currentSchemaVersion,snapshots):null;
+            // A verified update rollback belongs to the unchanged source schema, including
+            // when this binary is about to migrate that schema to a newer version.
+            LocalDataSnapshotService.Snapshot snapshot =
+                    UpdateSnapshotHandoff.reusable(ownership,appVersion,existingSchemaVersion,snapshots);
             if(snapshot==null)snapshot=snapshots.create(ownership,appVersion,existingSchemaVersion,reason);
             String snapshotChecksum = snapshot.sha256();
 
             phase.accept("INITIALIZING_DATA");
-            Database.initDatabase();
+            session.initializeDatabase();
             if (readSchemaVersion(database) != currentSchemaVersion) {
                 throw new IOException("The VN code database schema migration did not complete safely.");
             }
@@ -220,11 +222,24 @@ public final class LocalDataMigrationGate {
         private final Path appDataDir;
         private final Object activationLock=new Object();
         private AppInstanceActivation activation;
+        private boolean databaseInitialized;
 
         private Session(AppDataLock ownership, String appVersion, Path appDataDir) {
             this.ownership = ownership;
             this.appVersion = appVersion;
             this.appDataDir = appDataDir;
+        }
+
+        /** Share the gate's completed initialization with startup recovery, under ownership. */
+        public synchronized void initializeDatabase() throws IOException {
+            Path ownedDirectory = ownership.requireOwnedAppDataDir();
+            if (!ownedDirectory.equals(AppPaths.appDataDir().toAbsolutePath().normalize())) {
+                throw new IOException("The VN code app-data directory changed during startup.");
+            }
+            if (!databaseInitialized) {
+                Database.initDatabase();
+                databaseInitialized = true;
+            }
         }
 
         public void startActivation(java.util.function.Supplier<? extends java.util.concurrent.CompletionStage<Void>> restore)throws IOException {

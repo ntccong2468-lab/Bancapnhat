@@ -79,22 +79,65 @@ class StartupProgressTest {
         assertInstanceOf(IllegalStateException.class,failed.get(5,TimeUnit.SECONDS));
         fx(()->{assertTrue(stage.isShowing());assertTrue(((Label)stage.getScene().lookup("#startupPhase")).getText().contains("STARTUP_WORKSPACE"));((Button)stage.getScene().lookup("#startupCopyDiagnostics")).fire();String report=Clipboard.getSystemClipboard().getString();assertTrue(report.contains("Startup phase: OPENING_WORKSPACE"));assertFalse(report.contains("workspace-private-value"));return null;});
     }
+    @Test void openingWorkspaceReplacesThePreparationLabelBeforeTheWorkspaceCallback()throws Exception{
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);
+        var preparingVisible=new CompletableFuture<Void>();var labelAtWorkspace=new CompletableFuture<String>();
+        var fxTurnBeforeWorkspace=new AtomicBoolean();
+        String preparing=messages().getString("startup.phase.INITIALIZING_DATA");
+        String opening=messages().getString("startup.phase.OPENING_WORKSPACE");
+        try{
+            fx(()->{stage=new Stage();StartupProgress.show(stage,phase->{phase.accept("INITIALIZING_DATA");entered.countDown();if(!release.await(5,TimeUnit.SECONDS))throw new TimeoutException();return 42;},ignored->{assertTrue(fxTurnBeforeWorkspace.get(),"The opening phase must be rendered after returning to the FX event loop");labelAtWorkspace.complete(((Label)stage.getScene().lookup("#startupPhase")).getText());},labelAtWorkspace::completeExceptionally);
+                var label=(Label)stage.getScene().lookup("#startupPhase");label.textProperty().addListener((o,a,b)->{if(preparing.equals(b))preparingVisible.complete(null);if(opening.equals(b))Platform.runLater(()->fxTurnBeforeWorkspace.set(true));});if(preparing.equals(label.getText()))preparingVisible.complete(null);return null;});
+            assertTrue(entered.await(5,TimeUnit.SECONDS));preparingVisible.get(5,TimeUnit.SECONDS);
+            release.countDown();
+            assertEquals(opening,labelAtWorkspace.get(5,TimeUnit.SECONDS),"Workspace loading must not keep displaying the previous database/shop preparation phase");
+        }finally{release.countDown();}
+    }
+    @Test void closingDuringTheRenderedWorkspacePhaseNeverOpensTheWorkspace()throws Exception{
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var closed=new CompletableFuture<Boolean>();var opened=new AtomicBoolean();
+        try{
+            fx(()->{stage=new Stage();stage.showingProperty().addListener((o,a,b)->{if(a&&!b)closed.complete(true);});
+                StartupProgress.show(stage,phase->{entered.countDown();if(!release.await(5,TimeUnit.SECONDS))throw new TimeoutException();return 42;},ignored->opened.set(true),closed::completeExceptionally);
+                ((Label)stage.getScene().lookup("#startupPhase")).textProperty().addListener((o,a,b)->{if(messages().getString("startup.phase.OPENING_WORKSPACE").equals(b)){var request=new javafx.stage.WindowEvent(stage,javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST);stage.fireEvent(request);if(!request.isConsumed())stage.close();}});return null;});
+            assertTrue(entered.await(5,TimeUnit.SECONDS));release.countDown();assertTrue(closed.get(5,TimeUnit.SECONDS));
+            fx(()->{assertFalse(stage.isShowing());assertFalse(opened.get());return null;});
+        }finally{release.countDown();}
+    }
+    @Test void aSlowPreparationShowsElapsedSafeLiveDiagnosticsAndKeepsUpdatingItsPhase()throws Exception{
+        System.setProperty("vncode.appdata.dir",data.resolve("live-diagnostic-only").toString());
+        var clock=new AtomicLong();var entered=new CountDownLatch(1);var nextPhase=new CountDownLatch(1);var release=new CountDownLatch(1);
+        var actionsVisible=new CompletableFuture<Void>();var phaseUpdated=new CompletableFuture<Void>();var done=new CompletableFuture<Integer>();
+        String privateThreadName="private-credential-827 C:\\Users\\SellerPrivate";
+        try{
+            fx(()->{stage=new Stage();StartupProgress.show(stage,phase->{Thread.currentThread().setName(privateThreadName);phase.accept("INITIALIZING_DATA");entered.countDown();if(!nextPhase.await(5,TimeUnit.SECONDS))throw new TimeoutException();phase.accept("CHECKING_BACKUP");if(!release.await(5,TimeUnit.SECONDS))throw new TimeoutException();return 42;},done::complete,done::completeExceptionally,clock::get);
+                var copy=(Button)stage.getScene().lookup("#startupCopyDiagnostics");copy.getParent().visibleProperty().addListener((o,a,b)->{if(b)actionsVisible.complete(null);});
+                ((Label)stage.getScene().lookup("#startupPhase")).textProperty().addListener((o,a,b)->{if(messages().getString("startup.phase.CHECKING_BACKUP").equals(b))phaseUpdated.complete(null);});return null;});
+            assertTrue(entered.await(5,TimeUnit.SECONDS));clock.set(TimeUnit.SECONDS.toNanos(16));actionsVisible.get(5,TimeUnit.SECONDS);
+            nextPhase.countDown();phaseUpdated.get(5,TimeUnit.SECONDS);
+            fx(()->{String expected=new java.text.MessageFormat(messages().getString("startup.elapsed"),messages().getLocale()).format(new Object[]{16L});assertEquals(expected,((Label)stage.getScene().lookup("#startupElapsed")).getText());
+                ((Button)stage.getScene().lookup("#startupCopyDiagnostics")).fire();String report=Clipboard.getSystemClipboard().getString();assertTrue(report.contains("Startup phase: CHECKING_BACKUP"));assertTrue(report.contains("STARTUP_IN_PROGRESS"));assertTrue(report.contains("Elapsed seconds: 16"));assertTrue(report.contains("Data worker state:"));assertTrue(report.contains("com.vncode.app."));assertFalse(report.contains(privateThreadName));assertFalse(report.contains("SellerPrivate"));assertFalse(report.contains("ERROR CHAIN"));return null;});
+            assertFalse(done.isDone());assertFalse(Files.exists(data.resolve("live-diagnostic-only/database.db")));release.countDown();assertEquals(42,done.get(5,TimeUnit.SECONDS));
+        }finally{nextPhase.countDown();release.countDown();}
+    }
     @Test void everyStartupFailureAndCopyActionHasAllSupportedTranslations(){
         for(String language:new String[]{"vi","en","ru","zh"}){
             var bundle=java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",java.util.Locale.forLanguageTag(language));
-            for(String key:new String[]{"startup.copy_diagnostics","startup.diagnostics_copied","startup.diagnostics_copy_failed","startup.failure.already_running","startup.failure.access_denied","startup.failure.database_busy","startup.failure.database","startup.failure.workspace","startup.failure.preparation"})assertFalse(bundle.getString(key).isBlank(),language+": "+key);
+            for(String key:new String[]{"startup.copy_diagnostics","startup.diagnostics_copied","startup.diagnostics_copy_failed","startup.failure.already_running","startup.failure.access_denied","startup.failure.database_busy","startup.failure.database","startup.failure.workspace","startup.failure.preparation","startup.phase.OPENING_WORKSPACE","startup.elapsed"})assertFalse(bundle.getString(key).isBlank(),language+": "+key);
         }
     }
     private static java.util.ResourceBundle messages(){String language=java.util.Locale.getDefault().getLanguage();if(!java.util.Set.of("vi","en","ru","zh").contains(language))language="en";return java.util.ResourceBundle.getBundle("com.vncode.app.i18n.messages",java.util.Locale.forLanguageTag(language));}
     @Test void closeWaitsForDataWorkerToReleaseOwnershipAndNeverOpensWorkspace()throws Exception{
         var entered=new CountDownLatch(1);var release=new CountDownLatch(1);var opened=new AtomicBoolean();
+        Path ownedData=data.resolve("close-ownership");
         try{
-            fx(()->{stage=new Stage();StartupProgress.show(stage,phase->{entered.countDown();boolean released=false;while(!released)try{released=release.await(5,TimeUnit.SECONDS);}catch(InterruptedException requested){/* A disk operation is still completing. */}return 42;},ignored->opened.set(true),failure->{});return null;});
+            fx(()->{stage=new Stage();StartupProgress.show(stage,phase->{try(var owner=com.vncode.app.shared.AppDataLock.acquire(ownedData,"slow-startup")){entered.countDown();boolean released=false;while(!released)try{released=release.await(5,TimeUnit.SECONDS);}catch(InterruptedException requested){/* A disk operation is still completing. */}return 42;}},ignored->opened.set(true),failure->{});return null;});
             assertTrue(entered.await(5,TimeUnit.SECONDS));
-            fx(()->{var event=new javafx.stage.WindowEvent(stage,javafx.stage.WindowEvent.WINDOW_CLOSE_REQUEST);stage.fireEvent(event);assertTrue(event.isConsumed());assertTrue(stage.isShowing());return null;});
+            fx(()->{((Button)stage.getScene().lookup("#startupClose")).fire();assertTrue(stage.isShowing());assertEquals(messages().getString("startup.closing"),((Label)stage.getScene().lookup("#startupPhase")).getText());return null;});
+            assertThrows(com.vncode.app.shared.AppDataLock.AlreadyRunningException.class,()->com.vncode.app.shared.AppDataLock.acquire(ownedData,"competing-startup"));
             assertFalse(opened.get());release.countDown();
             long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);while(fx(()->stage.isShowing())&&System.nanoTime()<until)Thread.sleep(10);
             assertFalse(fx(()->stage.isShowing()));assertFalse(opened.get());
+            try(var releasedOwner=com.vncode.app.shared.AppDataLock.acquire(ownedData,"after-safe-close")){assertNotNull(releasedOwner);}
         }finally{release.countDown();}
     }
 }

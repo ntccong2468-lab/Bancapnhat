@@ -163,7 +163,15 @@ public class HomeController implements Initializable {
     }
     /** Disk recovery runs once off FX on normal startup; direct FXML loads retain it. */
     public static PreparedLocalData prepareLocalData(){
-        Database.initDatabase();ThemeService.initializeAppearance();
+        Database.initDatabase();
+        return recoverLocalData();
+    }
+    public static PreparedLocalData prepareLocalData(com.vncode.app.shared.LocalDataMigrationGate.Session session)throws IOException {
+        java.util.Objects.requireNonNull(session).initializeDatabase();
+        return recoverLocalData();
+    }
+    private static PreparedLocalData recoverLocalData(){
+        ThemeService.initializeAppearance();
         new com.vncode.app.features.products.ProductEditRepository().recoverIncomplete();
         new com.vncode.app.features.gtinsync.GtinSyncRepository().recoverInterrupted();
         new com.vncode.app.features.print.history.PrintHistoryRepository().recoverInterruptedFboJobs();

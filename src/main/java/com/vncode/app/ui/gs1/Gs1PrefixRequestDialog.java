@@ -62,8 +62,20 @@ public final class Gs1PrefixRequestDialog {
         phone=input(defaults.phone(),"gs1PrefixPhone");signer=input(defaults.signerName(),"gs1PrefixSigner");
         var inn=input(defaults.inn(),"gs1PrefixInn");inn.setEditable(false);
         var gcps=input(String.join(", ",defaults.gcps()),"gs1PrefixGcps");gcps.setEditable(false);
-        inputs=new VBox(7,labeled("gs1.legal_name",company),labeled("gs1.field.inn",inn),labeled("gs1.prefix.gcp",gcps),
-                labeled("gs1.prefix.email",email),labeled("gs1.prefix.phone",phone),labeled("gs1.document_field.signer_name",signer),labeled("gs1.document_field.date",date));
+        inputs=new VBox(7,labeled("gs1.legal_name",company),labeled("gs1.field.inn",inn));
+        if(!defaults.registrationNumber().isEmpty()){
+            var registration=input(defaults.registrationNumber(),"gs1PrefixRegistrationNumber");
+            registration.setEditable(false);
+            inputs.getChildren().add(labeled("gs1.field.ogrn",registration));
+        }
+        inputs.getChildren().add(labeled("gs1.prefix.gcp",gcps));
+        if(!defaults.glns().isEmpty()){
+            var glns=input(String.join(", ",defaults.glns()),"gs1PrefixGlns");
+            glns.setEditable(false);
+            inputs.getChildren().add(labeled("gs1.prefix.gln",glns));
+        }
+        inputs.getChildren().addAll(labeled("gs1.prefix.email",email),labeled("gs1.prefix.phone",phone),
+                labeled("gs1.document_field.signer_name",signer),labeled("gs1.document_field.date",date));
         Label source=new Label(tr("gs1.prefix.profile_source"));source.setWrapText(true);
         Label recipient=new Label(tr("gs1.to")+": "+Gs1PrefixRequestService.RECIPIENT);recipient.setId("gs1PrefixRecipient");
         var radios=new VBox(7);
@@ -115,7 +127,8 @@ public final class Gs1PrefixRequestDialog {
                                               Gs1PrefixRequestService.Preflight preflight) {
         return new Gs1PrefixRequestDialog(owner,defaults,service,preflight).dialog.showAndWait();
     }
-    private Profile profile(){return new Profile(company.getText(),defaults.inn(),defaults.gcps(),email.getText(),phone.getText(),signer.getText());}
+    private Profile profile(){return new Profile(company.getText(),defaults.inn(),defaults.gcps(),email.getText(),phone.getText(),signer.getText(),
+            defaults.registrationNumber(),defaults.glns());}
     private Gs1WordPrefixService.Fields fields(){return new Gs1WordPrefixService.Fields(company.getText(),defaults.inn(),defaults.gcps(),date.getValue(),signer.getText());}
     private RequestDraft draft(){return new RequestDraft(profile(),(Quantity)quantity.getSelectedToggle().getUserData(),comment.getText(),Objects.requireNonNull(document));}
     private void updateMail(){

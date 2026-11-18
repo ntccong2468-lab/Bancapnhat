@@ -49,6 +49,25 @@ public record CryptoProCertificateInfo(String selector, String thumbprint, Strin
 
     public String organizationName() { return attribute("O", "2.5.4.10"); }
 
+    /** Exact enterprise registration attribute; a representative's other registration is not a fallback. */
+    public String enterpriseRegistrationNumber() {
+        String[] names;
+        String format;
+        if (inn != null && inn.matches("[0-9]{10}")) {
+            names = new String[]{"OGRN", "ОГРН", "1.2.643.100.1"}; format = "[0-9]{13}";
+        } else if (inn != null && inn.matches("[0-9]{12}")) {
+            names = new String[]{"OGRNIP", "ОГРНИП", "1.2.643.100.5"}; format = "[0-9]{15}";
+        } else return "";
+        var values = attributes(subject); String selected = "";
+        for (String name : names) {
+            String candidate = values.get(normalize(name));
+            if (candidate == null || candidate.isBlank()) continue;
+            if (!candidate.matches(format) || !selected.isBlank() && !selected.equals(candidate)) return "";
+            selected = candidate;
+        }
+        return selected;
+    }
+
     public String signerFullName() {
         String surname = attribute("SN", "SURNAME", "2.5.4.4");
         String given = attribute("G", "GN", "GIVENNAME", "2.5.4.42");

@@ -48,9 +48,10 @@ class Gs1JoinDialogWorkflowTest {
         fx(()->{
             var original=completeForm();var before=original.deepCopy();var saved=new java.util.concurrent.atomic.AtomicReference<JsonObject>();
             var editor=new Gs1JoinDialog(new Gs1Pane(),"7701234567",original,Map.of(),q->List.of(),(form,sign)->{assertTrue(sign);saved.set(form);});
-            var pane=dialog(editor).getDialogPane();var submit=pane.getButtonTypes().stream().filter(t->t.getText().equals(com.vncode.app.shared.I18nService.getInstance().tr("gs1.sign_submit"))).findFirst().orElseThrow();
-            assertTrue(pane.lookupButton(submit).isDisabled());
-            for(int index=0;index<5;index++){button(editor,"gs1JoinNext").fire();assertEquals(index+1,steps(editor).getSelectionModel().getSelectedIndex());}
+            var pane=dialog(editor).getDialogPane();var submit=pane.getButtonTypes().stream().filter(t->t.getText().equals(com.vncode.app.shared.I18nService.getInstance().tr("gs1.wizard.apply"))).findFirst().orElseThrow();
+            assertEquals(5,steps(editor).getSelectionModel().getSelectedIndex());assertNull(saved.get(),"A ready profile is reviewed before Apply; opening it must not save or sign");
+            button(editor,"gs1JoinBack").fire();assertEquals(4,steps(editor).getSelectionModel().getSelectedIndex());assertTrue(pane.lookupButton(submit).isDisabled());
+            button(editor,"gs1JoinNext").fire();assertEquals(5,steps(editor).getSelectionModel().getSelectedIndex());
             assertFalse(pane.lookupButton(submit).isDisabled());((Button)pane.lookupButton(submit)).fire();assertNotNull(saved.get());
             assertEquals("unchanged",saved.get().getAsJsonObject("retainedServerField").get("value").getAsString());assertEquals(before,original);return null;
         });

@@ -2,6 +2,14 @@
 
 Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 18.11.2026 — sửa khởi động và điền hồ sơ GS1, chưa phát hành
+
+- Nhánh cục bộ `fix/startup-backup-20261118` từ `7498536bbdecc506946b299640d5c2ca6d384740`. Người dùng đang gặp chờ ở “Đang chuẩn bị cửa hàng và các chức năng…” ngay khi mở hoặc nâng cấp. Tái hiện được nhãn bước cũ tồn tại khi JavaFX bắt đầu mở workspace. Môi trường Linux với dữ liệu tổng hợp chưa tái hiện kẹt trên máy Windows của người dùng.
+- Tái sử dụng bản sao lưu xác minh của updater cho schema nguồn cũ khi đích cập nhật, DB, WAL, lý do snapshot và SHA đều khớp. Khi dữ liệu đổi, vẫn tạo rollback mới. Chia sẻ lần khởi tạo SQLite đã hoàn tất trong cùng session khởi động, giữ init ở lần mở có READY. Hiển thị bước mở workspace trước lượt dựng JavaFX, thời gian chờ và chẩn đoán giới hạn sau 15 giây. Hủy vẫn đợi công việc nhả khóa dữ liệu.
+- GS1 gia nhập dùng biểu mẫu điện tử **01.01.01**, xử lý qua phiên National Catalog đúng INN. Giữ hồ sơ Catalog và bổ sung tên pháp nhân, OGRN/OGRNIP còn thiếu nếu có trường tương ứng từ chứng thư phù hợp. Hồ sơ đủ dữ liệu mở ở màn duyệt để **Áp dụng**, hồ sơ thiếu mở tại trường cần xử lý. Ký và gửi XML đã duyệt vẫn là thao tác riêng. [Mẫu gia nhập](https://app.gs1ru.org/) · [Thủ tục](https://gs1ru.org/join/join_order/)
+- Xin thêm tiền tố dùng **01.04.01**. Giữ người nhận và điều kiện quota hiện tại, thêm OGRN/OGRNIP, GLN lấy cùng INN vào nội dung thư đã duyệt. Đọc được file Word người dùng gửi bằng lớp ở JAR 1.6.11 và điền đủ năm trường trên bản bố cục với dữ liệu giả. PDF thử một trang có nét vẽ đúng vùng ký. Mẫu tải lên chứa dữ liệu seller và không nằm trong Git. [Word công khai](https://gs1ru.org/downloads/documents/F01_0401.docx)
+- Kiểm chung Linux/Xvfb 425 ca trong 58 suite, 424 đạt và 1 ca chuyển quyền NTFS được bỏ qua đúng hệ điều hành. Sau khi bỏ giới hạn GLN không có trong nguồn Catalog, chạy lại phạm vi thư, dialog và mẫu Word: 33 ca đều đạt, bao gồm hồ sơ có 101 GLN. Launcher từ mã vừa biên dịch mở được workspace và giải phóng khóa khi đóng trên hồ sơ giả. Bằng chứng cục bộ ở `/workspace/startup-backup-fix-20261118` và `/workspace/reports/gs1-prefix-20261118`. Ký/nộp GS1, email và máy Windows của seller còn chờ nghiệm thu. Latest kiểm lại vẫn 1.6.11 đã phát hành bên dưới.
+
 ## 18.11.2026 — VN Code 1.6.11 đã phát hành Latest
 
 - **Đã công bố lúc 15:52:03 MSK**, immutable release `449977778`/`v1.6.11`, nguồn app `cf3d8d695f7caa3b39d934145b7ff0445c50e194`. Publisher `dfc80824fea88a7f88d7339c65e7c44e0af01bc5`, run `44307702686` SUCCESS. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.11/VN-code-1.6.11-Windows-x64.exe) · [Báo cáo cuối](../validation/vncode-1611-20261118/FINAL-REPORT.md) · [Receipt](../validation/vncode-1611-20261118/final-release.json).

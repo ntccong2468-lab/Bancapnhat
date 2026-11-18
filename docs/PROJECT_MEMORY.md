@@ -1,5 +1,13 @@
 # Bộ nhớ dự án VNCode
 
+## 18.11.2026 MSK — tối ưu khởi động và tự điền đơn GS1 sau 1.6.11
+
+Nhánh cục bộ `fix/startup-backup-20261118` từ `7498536`. Tái hiện riêng hai lỗi trước sửa. Nâng schema 6 lên 7 tạo hai snapshot dù rollback updater còn khớp. Màn khởi động vẫn hiện bước chuẩn bị cửa hàng khi vào callback mở workspace. Sửa tái sử dụng ảnh sao lưu với kiểm tra DB/WAL và SHA như cũ, tránh chạy lại init trong cùng session, hiển thị đúng bước và thời gian chờ. Vẫn giữ rollback mới nếu nguồn thay đổi hoặc snapshot sai. Dữ liệu người dùng và bản phát hành không dùng trong kiểm ghi.
+
+Phân biệt [mẫu gia nhập 01.01.01](https://app.gs1ru.org/) với [mẫu xin thêm tiền tố 01.04.01](https://gs1ru.org/downloads/documents/F01_0401.docx). Gia nhập dùng dữ liệu đã xác minh cùng INN, điền thêm từ trường chứng thư phù hợp và mở duyệt trực tiếp khi hồ sơ đủ. Áp dụng chuẩn bị đúng XML, seller vẫn xác nhận ký/nộp. Thư xin thêm tiền tố dùng mã đăng ký và GLN từ Catalog ở thời điểm duyệt. Hai luồng giữ riêng trạng thái nộp/đã gửi và trạng thái thành viên/được cấp tiền tố. Quota thiếu vẫn để chưa xác minh và giữ rào gửi hiện tại.
+
+Kiểm chung Java 25/Linux/Xvfb 425 ca, 0 lỗi và 1 ca chỉ chạy trên NTFS. Chạy lại 33 ca thuộc phạm vi thư/mẫu sau lần sửa giới hạn GLN, tất cả đạt. Launcher smoke dùng hồ sơ tổng hợp và mạng ngoài bị chặn. Các mốc test/bằng chứng cục bộ nêu trong [điểm tiếp tục](memory/CURRENT.md). Chưa phát hành sửa, chưa kiểm máy Windows cụ thể, ký/nộp hồ sơ hay gửi thư thật.
+
 ## 18.11.2026 MSK — 1.6.11 đã công bố Latest và updater đã nhận
 
 Release immutable `449977778`/`v1.6.11`, nguồn app `cf3d8d695f7caa3b39d934145b7ff0445c50e194`, công bố **15:52:03 MSK**. Publisher `dfc80824fea88a7f88d7339c65e7c44e0af01bc5`/run `44307702686` SUCCESS. [Báo cáo đầy đủ](validation/vncode-1611-20261118/FINAL-REPORT.md), [receipt cuối](validation/vncode-1611-20261118/final-release.json), [hướng dẫn thao tác](validation/vncode-1611-20261118/USER-GUIDE.md).

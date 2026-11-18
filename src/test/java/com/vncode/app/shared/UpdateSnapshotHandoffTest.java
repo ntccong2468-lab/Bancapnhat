@@ -145,6 +145,88 @@ class UpdateSnapshotHandoffTest {
         }
     }
 
+    @Test void schemaUpgradeReusesTheUnchangedVerifiedPreUpgradeRollback() throws Exception {
+        var rollback = prepareSchemaUpgradeRollback();
+        long completedRollbackCount = snapshotCount();
+        try (var session = LocalDataMigrationGate.prepare(data, "1.6.12", "javafx")) {
+            assertEquals(completedRollbackCount, snapshotCount(),
+                    "A schema upgrade must reuse the verified rollback of the unchanged old schema");
+            assertEquals(Database.currentSchemaVersion(), schemaVersion(data.resolve("database.db")));
+            assertEquals(Database.currentSchemaVersion() - 1, schemaVersion(rollback.database()));
+            assertTrue(new LocalDataSnapshotService().verify(rollback));
+            assertTrue(Files.readString(data.resolve("writer-state/javafx-1.6.12.ready"))
+                    .contains("snapshotSha256=" + rollback.sha256()));
+            assertFalse(Files.exists(data.resolve(".vncode-update-snapshot.properties")));
+            assertShopSurvives(51, "Upgrade sentinel");
+        }
+        try (var session = LocalDataMigrationGate.prepare(data, "1.6.12", "javafx")) {
+            assertEquals(completedRollbackCount, snapshotCount(),
+                    "The ready marker must retain its pre-upgrade rollback on the next launch");
+        }
+    }
+
+    @Test void schemaUpgradeStillTakesAFreshRollbackAfterDataChanges() throws Exception {
+        prepareSchemaUpgradeRollback();
+        long count = snapshotCount();
+        try (var connection = Database.getConnection(); var statement = connection.createStatement()) {
+            statement.execute("INSERT INTO shops(id,name,api_key) VALUES(52,'Changed after download','fixture-only')");
+        }
+        try (var session = LocalDataMigrationGate.prepare(data, "1.6.12", "javafx")) {
+            assertEquals(count + 1, snapshotCount());
+            assertShopSurvives(52, "Changed after download");
+            assertEquals(Database.currentSchemaVersion(), schemaVersion(data.resolve("database.db")));
+        }
+    }
+
+    @Test void schemaUpgradeRejectsACorruptedUpdateRollback() throws Exception {
+        var rollback = prepareSchemaUpgradeRollback();
+        long count = snapshotCount();
+        Files.write(rollback.database(), new byte[] {1}, StandardOpenOption.APPEND);
+        try (var session = LocalDataMigrationGate.prepare(data, "1.6.12", "javafx")) {
+            assertEquals(count + 1, snapshotCount(), "A corrupt handoff never authorizes migration");
+            assertShopSurvives(51, "Upgrade sentinel");
+            assertEquals(Database.currentSchemaVersion(), schemaVersion(data.resolve("database.db")));
+        }
+    }
+
+    private LocalDataSnapshotService.Snapshot prepareSchemaUpgradeRollback() throws Exception {
+        configureAppData();
+        Database.initDatabase();
+        int oldSchema = Database.currentSchemaVersion() - 1;
+        try (var connection = Database.getConnection(); var statement = connection.createStatement()) {
+            statement.execute("INSERT INTO shops(id,name,api_key) VALUES(51,'Upgrade sentinel','fixture-only')");
+            statement.execute("PRAGMA user_version=" + oldSchema);
+        }
+        try (var owner = AppDataLock.acquire(data, "update-test")) {
+            var snapshots = new LocalDataSnapshotService();
+            var before = UpdateSnapshotHandoff.capture(owner);
+            var snapshot = snapshots.create(owner, "1.6.11", oldSchema, "signed-update-install");
+            UpdateSnapshotHandoff.record(owner, "1.6.12", snapshot, before, UpdateSnapshotHandoff.capture(owner));
+            assertEquals(snapshot, UpdateSnapshotHandoff.reusable(owner, "1.6.12", oldSchema, snapshots));
+            return snapshot;
+        }
+    }
+
+    private void assertShopSurvives(int id, String name) throws Exception {
+        try (var connection = Database.getConnection();
+             var statement = connection.prepareStatement("SELECT name,api_key FROM shops WHERE id=?")) {
+            statement.setInt(1, id);
+            try (var result = statement.executeQuery()) {
+                assertTrue(result.next());
+                assertEquals(name, result.getString(1));
+                assertEquals("fixture-only", result.getString(2));
+            }
+        }
+    }
+
+    private static int schemaVersion(Path database) throws Exception {
+        try (var connection = DriverManager.getConnection("jdbc:sqlite:" + database);
+             var statement = connection.createStatement(); var result = statement.executeQuery("PRAGMA user_version")) {
+            assertTrue(result.next());
+            return result.getInt(1);
+        }
+    }
+
     private void configureAppData() {
         previousDataDirectory = System.getProperty("vncode.appdata.dir");
         System.setProperty("vncode.appdata.dir", data.toString());

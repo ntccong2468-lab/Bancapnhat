@@ -29,10 +29,10 @@ public class Launcher {
         }
     }
     /** The visible startup scene precedes recovery; no application writer opens first. */
-    static void prepareDataSession(java.util.function.Consumer<String> phase)throws Exception {
-        prepareDataSession(phase,null);
+    static LocalDataMigrationGate.Session prepareDataSession(java.util.function.Consumer<String> phase)throws Exception {
+        return prepareDataSession(phase,null);
     }
-    static void prepareDataSession(java.util.function.Consumer<String> phase,
+    static LocalDataMigrationGate.Session prepareDataSession(java.util.function.Consumer<String> phase,
                                    java.util.function.Supplier<? extends java.util.concurrent.CompletionStage<Void>> restore)throws Exception {
         LocalDataMigrationGate.Session session;
         try{session=LocalDataMigrationGate.prepare(AppPaths.appDataDir(),BuildConfig.getAppVersion(),"javafx",phase,restore);}
@@ -47,6 +47,7 @@ public class Launcher {
         synchronized(SESSION_LOCK){
             if(exiting||Thread.currentThread().isInterrupted()){session.close();throw new java.io.InterruptedIOException("STARTUP_CANCELLED");}
             dataSession=session;
+            return session;
         }
     }
     static void stopInstanceActivation(){

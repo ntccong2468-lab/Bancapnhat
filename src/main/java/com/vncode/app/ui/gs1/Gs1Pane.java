@@ -418,13 +418,11 @@ public final class Gs1Pane extends BorderPane {
             currentContext=owner;signedCertificate=application.certificate();membership=application.snapshot().membership();applicationForm=application.snapshot().form();newApplication=application.snapshot().newApplication();render();
             if(application.decision().joinAction()==Gs1ActionPolicy.JoinAction.RESTORE_MEMBERSHIP){draft(Gs1LettersService.Kind.RESTORE_MEMBERSHIP);return;}
             if(application.decision().joinAction()!=Gs1ActionPolicy.JoinAction.JOIN){status.setText(tr(joinKey(application.decision())));return;}
-            var editable=application.snapshot().form();var applicant=editable.getAsJsonObject("applicant");
-            if(applicant!=null&&NationalCatalogGs1Client.text(applicant,"companyName").isBlank()&&!signedCertificate.organizationName().isBlank())applicant.addProperty("companyName",signedCertificate.organizationName());
+            var editable=Gs1JoinAutofill.prepare(owner.inn(),application.snapshot(),signedCertificate,Instant.now());
             new Gs1JoinDialog(this,owner.inn(),editable,application.dictionaries(),
                 query->application.session().addresses(query),
                 (form,submit)->{
                     if(submit){
-                        if(!confirm("gs1.confirm_save",tr("gs1.prepare_document_notice")))return;
                         run(()->new Gs1ApplicationService(repository).prepareSigning(application.session(),form),prepared->{reloadRequests();reviewSigningDocument(owner,application.session(),prepared);});
                     }else{
                         if(!confirm("gs1.confirm_save",tr("gs1.save_notice")))return;
