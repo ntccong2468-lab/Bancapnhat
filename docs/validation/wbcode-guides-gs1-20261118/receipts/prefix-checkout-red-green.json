@@ -1,0 +1,33 @@
+{
+  "status": "PASS_SCOPED_CHECKOUT_FIX_GIT_AND_PRODUCTION_CLASS",
+  "baseSource": "15856fcd8fb8f836746e6528e2458a246c5ef222",
+  "resource": "src/main/resources/com/vncode/app/gs1/gs1-prefix-01.04.01.xml",
+  "rawIntegrityGuardUnchanged": true,
+  "red": {
+    "checkoutBytes": 4704,
+    "checkoutSha256": "d61b8c75b24609138aee07ec58d1e26a8ea1caa95ea49993c6387f7f05c41691",
+    "crlfCount": 39,
+    "productionExitCode": 1,
+    "message": "GS1 official default template is unavailable or altered"
+  },
+  "green": {
+    "checkoutBytes": 4665,
+    "checkoutSha256": "601f78ba4474b071991c7bfc89c5d36f09286aa33c08d55699ab0bedb3ad57bb",
+    "crlfCount": 0,
+    "productionExitCode": 0,
+    "strictInspector": {
+      "paragraphs": 21,
+      "fields": 5
+    }
+  },
+  "scopedAttribute": "src/main/resources/com/vncode/app/gs1/gs1-prefix-01.04.01.xml text eol=lf",
+  "gitattributesSha256": "3019a9cee55a3105292ceda45c1d021e7ba675d4745ad8db96b7968c7af5b539",
+  "unchangedJavaXmlTests": {
+    "src/main/java/com/vncode/app/features/gs1/Gs1OfficialPrefixTemplate.java": "38d11c437d426e2e6ba76b97366e20e10ee587f36120e2715f75d54070148664",
+    "src/main/resources/com/vncode/app/gs1/gs1-prefix-01.04.01.xml": "601f78ba4474b071991c7bfc89c5d36f09286aa33c08d55699ab0bedb3ad57bb",
+    "src/test/java/com/vncode/app/features/gs1/Gs1OfficialPrefixTemplateTest.java": "5d75b9a587d3e35b6541bbe00d80c7aa2baf89eb4c4af20cf6f9113ad6629aac",
+    "src/test/java/com/vncode/app/ui/gs1/Gs1PrefixRequestDialogTest.java": "b4937a1c263664f72ea0e99f36c8f93fe1dd63256dede4f776e8062df14d20fe"
+  },
+  "rootIndependentGitFilterVerification": true,
+  "scope": "Real Git Windows-style checkout plus unchanged production class from V4 Linux JAR with exact resource overlay. Not a successful Windows run or installer acceptance."
+}

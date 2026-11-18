@@ -2,6 +2,12 @@
 
 Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 18.11.2026 — lỗi đóng gói mẫu GS1 trên Windows; chưa công bố 1.6.11
+
+- Nguồn `15856fcd8fb8f836746e6528e2458a246c5ef222`, Windows `44258027875`/attempt 1: **5.283 ca/644 suite, 5.273 đạt, 0 failure, 8 error, 2 OS skip**. Tám lỗi cùng nguyên nhân mẫu tiền tố GS1 không nạp được; bố cục Ozon đã đạt. Không dùng lượt này làm bằng chứng bộ cài. [Receipt](../validation/wbcode-guides-gs1-20261118/receipts/windows-prefix-checkout-failure.json).
+- Đã tái hiện bằng Git checkout `core.autocrlf=true` và class production từ JAR V4: XML LF 4.665 byte/SHA `601f78ba…` bị đổi thành CRLF 4.704 byte/SHA `d61b8c…`, gây đúng lỗi `defaultTemplate:54`. Sửa thuộc tính checkout cho đúng tệp XML; giữ checksum, validator, Java, XML và toàn bộ assertion. Thêm hai suite lỗi vào đầu preflight; toàn bộ `clean verify` và native/install/upgrade vẫn giữ nguyên.
+- Candidate 15856 không phát hành; Latest vẫn 1.6.10. Cần nguồn mới, Windows mới, kiểm raw XML trong JAR, toàn bộ artifact và updater sau công bố. Bằng chứng lỗi nằm ngoài repo tại `/workspace/release-1611-20261118/candidate2/failure-Windows-44258027875/`; công việc tiếp theo ở `candidate3`, không sửa bằng chứng cũ để vượt gate.
+
 ## 18.11.2026 — sửa production Ozon wrap sau preflight Windows
 
 - Candidate3f4/run44254027370 FAIL preflight665ca/1error/0skip; chưa fullJava/native/bộ cài. Pager RUlight ở cửa sổ824×600 chồng bảng10px dù đã chờ render; không phải chỉ lỗi timing test. Giữ artifact14405753120 và log/JUnit ở `/workspace/release-1611-20261118/failure-44254027370/`.

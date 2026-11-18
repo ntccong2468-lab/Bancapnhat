@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 18.11.2026 MSK — sửa đóng gói XML mẫu tiền tố GS1 sau Windows toàn ứng dụng
+
+Windows `44258027875`/nguồn `15856fcd…` chạy đủ 5.283 ca/644 suite: 5.273 đạt, 0 failure, 8 error và 2 OS skip. Bảy lỗi nạp mẫu mặc định và một UI phụ thuộc mẫu có cùng nguyên nhân: Git checkout Windows chuyển LF thành CRLF, làm checksum resource production không khớp. Tái hiện bằng Git thật và class trong JAR V4, không mô phỏng kết quả API. Giữ checksum/validator/Java/XML/test; rule `text eol=lf` chỉ cho resource này. Hai suite lỗi chạy sớm trước danh sách preflight cũ; giữ full unfiltered, native/DPAPI/install/upgrade. [Receipt lỗi](validation/wbcode-guides-gs1-20261118/receipts/windows-prefix-checkout-failure.json). Candidate lỗi không được công bố; nguồn mới vẫn phải qua nghiệm thu Windows và artifact đúng SHA.
+
 ## 18.11.2026 MSK — sửa chiều cao toolbar Ozon thực sau Windows preflight
 
 Windows3f4/run44254027370 FAIL665ca/1error ởRUlight824×600/newOrdersTab, pager đè bảng10px sau3pulses. ReproduceLinuxactualscene808×561/counter1–100/1000: minCSS36px cho VBox thu FlowPane43px dù pref86px, gây18pxoverlap. Sửa localFXML min-height=-1(computed), không Java/controller/CSS chung/WB/API. Regression mới và fullhẹp24/24 đạt0F/E/skip, gồm14wideWBparity; [receipt](validation/wbcode-guides-gs1-20261118/receipts/ozon-wrap-final.json). Candidate3f4khôngpháthành, cầncommit/Windows/artifact/updater mới; bảo toàn mọi bằng chứng thất bại và không nới test.

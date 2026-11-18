@@ -1,3 +1,6 @@
 # Keep the reviewed Windows setup ZIP and its source hashes identical on every checkout.
 tools/windows-mcp/** text eol=lf
 tools/windows-mcp/*.zip binary
+
+# Preserve the raw bytes verified by the bundled GS1 template checksum on Windows.
+src/main/resources/com/vncode/app/gs1/gs1-prefix-01.04.01.xml text eol=lf

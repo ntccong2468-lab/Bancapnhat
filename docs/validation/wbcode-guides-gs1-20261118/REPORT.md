@@ -125,6 +125,12 @@ Các scope tập trung có chồng lấn, không cộng thành tổng duy nhất
 
 Các scope hẹp trên có chồng lấn, không cộng vào1.000ca source-v2. Nguồn sau sửa production sẽ chạy cleanverify hợp nhất và Windows mới/native/migration/DPAPI/install cùng reviewpackage. Hai lượt Windows thất bại được giữ làm lịch sử, không dùng cho công bố. Biên nhận cuối phải gắn đúng commit và run, kiểm đủ16asset public và updater sau công bố; không dùng checkpoint này thay nghiệm thu bộ cài. Latest1.6.10 ở đầu báo cáo là lịch sử đọc ngày18.11, không phải lệnh ghi đè release cũ.
 
+## Lỗi đóng gói GS1 phát hiện trong Windows toàn ứng dụng
+
+Run `44258027875`, nguồn `15856fcd8fb8f836746e6528e2458a246c5ef222`, attempt 1 đã hoàn tất **FAIL: 5.283 ca/644 suite, 5.273 đạt, 0 failure, 8 error, 2 OS skip**. Bố cục Ozon sau sửa đã đạt. Tám lỗi gồm bảy ca `Gs1OfficialPrefixTemplateTest` và một ca first-use trong `Gs1PrefixRequestDialogTest`; đều bắt nguồn từ mẫu mặc định không nạp được. [Receipt nguồn/run/artifact và lỗi](receipts/windows-prefix-checkout-failure.json).
+
+Đã tái hiện bằng Git checkout thật với `core.autocrlf=true`: XML từ 4.665 byte LF/SHA `601f78ba…` thành 4.704 byte CRLF/SHA `d61b8c…`. Production class từ chính JAR V4 đọc resource đó và ném đúng lỗi ở `defaultTemplate:54`. Sau rule `.gitattributes` đúng tệp, cùng phép thử Git và production class giữ nguyên 4.665 byte/hash và nạp mẫu qua strict Word inspector thành công. [RED/GREEN](receipts/prefix-checkout-red-green.json). Đây là lỗi đóng gói Windows, không phải phản hồi từ chối GS1. Không đổi checksum, validator, nội dung mẫu, Java hoặc assertion. Hai suite lỗi được chạy trước trong preflight để phát hiện sớm; full `clean verify`, native, DPAPI, install và upgrade giữ nguyên. Nguồn sửa phải chạy Windows mới; không dùng lượt thất bại này hoặc phép thử Git/Linux làm nghiệm thu Windows sau sửa.
+
 ## Ảnh đại diện
 
 - [Wizard/checklist tối](screenshots/gs1-wizard-dark.png), [địa chỉ sản xuất sáng ở màn nhỏ](screenshots/gs1-address-light-small.png).

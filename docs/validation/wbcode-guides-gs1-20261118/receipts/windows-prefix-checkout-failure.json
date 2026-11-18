@@ -1,0 +1,24 @@
+{
+  "status": "ACTUAL_WINDOWS_FULL_JAVA_FAILED_NOT_PUBLISHED",
+  "sourceCommit": "15856fcd8fb8f836746e6528e2458a246c5ef222",
+  "runId": 44258027875,
+  "runAttempt": 1,
+  "jobId": 134644336197,
+  "artifactId": 14415494828,
+  "artifactBytes": 3202673,
+  "artifactSha256": "a0166b4b311b4ea9dc0dcc20b02c9f7e7018152c87ba28e51caefae76f359076",
+  "artifactCrcVerified": true,
+  "suites": 644,
+  "java": {"tests": 5283, "passed": 5273, "failures": 0, "errors": 8, "skipped": 2},
+  "errors": [
+    {"suite": "Gs1OfficialPrefixTemplateTest", "count": 7, "message": "GS1 official default template is unavailable or altered", "productionLocation": "Gs1OfficialPrefixTemplate.defaultTemplate:54"},
+    {"suite": "Gs1PrefixRequestDialogTest", "count": 1, "test": "FirstUseLoadsTheSafeOfficialFormAndCanGenerateAReviewedSignedPdfWithoutImport", "effect": "default template action remains disabled"}
+  ],
+  "skipped": [
+    "Gs1PrefixTemplateStoreTest.privatePermissionsAreAppliedWhereSupported (POSIX only)",
+    "WindowsSecretProtectorTest.neverFallsBackToPlaintextOffWindows (non-Windows only)"
+  ],
+  "nativePackagingAcceptance": "NOT RUN after full Java failure",
+  "published": false,
+  "scope": "Actual Windows test artifact. No paid purchase, legal signature, mail, activation or seller mutation. Git/production-class reproduction and corrected-source acceptance are separate evidence."
+}
