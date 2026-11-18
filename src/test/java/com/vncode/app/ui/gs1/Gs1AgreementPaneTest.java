@@ -4,6 +4,7 @@ import com.vncode.app.config.Database;
 import com.vncode.app.models.Shop;
 import com.vncode.app.features.gs1.Gs1ReadinessService;
 import com.vncode.app.features.gs1.Gs1Repository;
+import com.vncode.app.features.gs1.Gs1AgreementService;
 import com.vncode.app.features.gtinsync.GtinWriteTestFixture;
 import com.vncode.app.features.gtinsync.RegisteredGtinProof;
 import com.vncode.app.integration.marketplace.Marketplace;
@@ -21,6 +22,9 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -78,6 +82,54 @@ class Gs1AgreementPaneTest {
             pane.setShop(null);assertEquals(Gs1ReadinessService.State.UNKNOWN,agreementState());assertEquals(0,pane.activeTaskCount());return null;
         });
     }
+    @Test void anAgreementReadFailureHasItsOwnSafeScopedCodeAndFreshSuccessClearsIt()throws Exception{
+        Shop owner=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
+        AtomicReference<Exception> failure=new AtomicReference<>(new java.io.IOException("GS1_AGREEMENT_HTTP_403"));
+        AtomicInteger reads=new AtomicInteger();
+        var signed=new OperatorAgreement("11","Synthetic agreement","agreement.pdf","2026-11-17",2,1,4);
+        var service=readOnlyAgreements(()->{reads.incrementAndGet();if(failure.get()!=null)throw failure.get();return List.of(signed);});
+        fx(()->{
+            install(owner);field("agreements",service);
+            field("agreementEvidence",new Gs1Pane.AgreementEvidence(owner.getId(),RegisteredGtinProof.current(owner).source(),Instant.now(),List.of(signed)));
+            assertEquals(Gs1ReadinessService.State.READY,agreementState());invoke("refreshAgreements",new Class<?>[]{boolean.class},false);return null;
+        });
+        await(()->agreementErrorUnchecked().equals("GS1_AGREEMENT_HTTP_403"));
+        fx(()->{assertEquals(Gs1ReadinessService.State.UNKNOWN,agreementState(),"A failed recheck must not retain the previous green proof");return null;});
+        failure.set(null);fx(()->{invoke("refreshAgreements",new Class<?>[]{boolean.class},false);return null;});
+        await(()->agreementStateUnchecked()==Gs1ReadinessService.State.READY&&agreementErrorUnchecked().isEmpty());
+        assertEquals(2,reads.get());
+        failure.set(new java.io.IOException("Untrusted response containing seller@example.invalid"));
+        fx(()->{invoke("refreshAgreements",new Class<?>[]{boolean.class},false);return null;});
+        await(()->agreementErrorUnchecked().equals("NETWORK_OR_RESPONSE"));
+        fx(()->{
+            assertFalse(agreementErrorUnchecked().contains("@"));
+            GtinWriteTestFixture.saveSettings(owner,"B".repeat(40),com.vncode.app.integration.znack.ZnackModels.PRODUCTION_TRUE_API);install(owner);
+            assertEquals("",agreementErrorUnchecked(),"An error observed for the old certificate must not be reused for the new scope");
+            pane.setShop(null);assertEquals("",agreementErrorUnchecked());return null;
+        });
+    }
+    @Test void manualCheckAllWaitsForTheLocalContextThenReadsAgreementsOnce()throws Exception{
+        Shop owner=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);AtomicInteger requested=new AtomicInteger(),reads=new AtomicInteger();
+        var service=readOnlyAgreements(()->{reads.incrementAndGet();return List.of();});
+        fx(()->{
+            install(owner);field("agreements",service);field("currentContext",null);pane.setOnSyncRequested(requested::incrementAndGet);
+            invoke("checkAll",new Class<?>[]{});invoke("checkAll",new Class<?>[]{});
+            assertEquals(2,requested.get());assertEquals(0,reads.get());assertEquals(Boolean.TRUE,value("agreementCheckPending"));
+            pane.refreshFromCache();return null;
+        });
+        await(()->reads.get()==1&&agreementStateUnchecked()==Gs1ReadinessService.State.READY);
+        fx(()->{assertEquals(Boolean.FALSE,value("agreementCheckPending"));assertEquals("",agreementErrorUnchecked());return null;});
+    }
+    @Test void changingShopsCancelsAnAgreementCheckWaitingForContext()throws Exception{
+        Shop owner=GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);AtomicInteger reads=new AtomicInteger();
+        var service=readOnlyAgreements(()->{reads.incrementAndGet();return List.of();});
+        fx(()->{
+            install(owner);field("agreements",service);field("currentContext",null);pane.setOnSyncRequested(()->{});
+            invoke("checkAll",new Class<?>[]{});assertEquals(Boolean.TRUE,value("agreementCheckPending"));
+            pane.setShop(null);assertEquals(Boolean.FALSE,value("agreementCheckPending"));invoke("dispatchAgreementCheck",new Class<?>[]{});
+            assertEquals(0,reads.get());assertEquals(0,pane.activeTaskCount());return null;
+        });
+    }
     @Test void openingRecoveryWithoutAnAccountNeverStartsASignatureOrMailTask()throws Exception{
         fx(()->{pane.setShop(null);pane.openRecovery(Gs1Pane.RecoveryAction.MEMBERSHIP);pane.openRecovery(Gs1Pane.RecoveryAction.PREFIX);assertEquals(0,pane.activeTaskCount());return null;});
     }
@@ -115,6 +167,26 @@ class Gs1AgreementPaneTest {
     private Gs1ReadinessService.State agreementState()throws Exception{
         var method=Gs1Pane.class.getDeclaredMethod("readiness");method.setAccessible(true);
         return ((Gs1ReadinessService.Snapshot)method.invoke(pane)).check(Gs1ReadinessService.Kind.AGREEMENT).state();
+    }
+    private Gs1ReadinessService.State agreementStateUnchecked(){try{return agreementState();}catch(Exception failure){throw new AssertionError(failure);}}
+    private String agreementErrorUnchecked(){try{return (String)invoke("agreementError",new Class<?>[]{});}catch(Exception failure){throw new AssertionError(failure);}}
+    private Object value(String name)throws Exception{var field=Gs1Pane.class.getDeclaredField(name);field.setAccessible(true);return field.get(pane);}
+    private Object invoke(String name,Class<?>[] parameters,Object... arguments)throws Exception{var method=Gs1Pane.class.getDeclaredMethod(name,parameters);method.setAccessible(true);return method.invoke(pane,arguments);}
+    private void await(BooleanSupplier condition)throws Exception{
+        long end=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);
+        while(System.nanoTime()<end){if(fx(condition::getAsBoolean))return;Thread.sleep(10);}
+        fail("Expected scoped agreement read result was not reached");
+    }
+    /** Exercise the real durable service/context boundary without authenticating or signing. */
+    private Gs1AgreementService readOnlyAgreements(Callable<List<OperatorAgreement>> read)throws Exception{
+        Class<?> backend=Class.forName(Gs1AgreementService.class.getName()+"$Backend"),factory=Class.forName(Gs1AgreementService.class.getName()+"$BackendFactory");
+        Object source=java.lang.reflect.Proxy.newProxyInstance(backend.getClassLoader(),new Class<?>[]{backend},(proxy,method,arguments)->{
+            if(method.getName().equals("list"))return read.call();
+            throw new AssertionError("A readiness check cannot request a PDF, sign, or submit a document: "+method.getName());
+        });
+        Object opener=java.lang.reflect.Proxy.newProxyInstance(factory.getClassLoader(),new Class<?>[]{factory},(proxy,method,arguments)->source);
+        var constructor=Gs1AgreementService.class.getDeclaredConstructor(Gs1Repository.class,factory);constructor.setAccessible(true);
+        return constructor.newInstance(new Gs1Repository(),opener);
     }
     private void field(String name,Object value)throws Exception{var field=Gs1Pane.class.getDeclaredField(name);field.setAccessible(true);field.set(pane,value);}
     private void render()throws Exception{var method=Gs1Pane.class.getDeclaredMethod("render");method.setAccessible(true);method.invoke(pane);pane.applyCss();pane.layout();}

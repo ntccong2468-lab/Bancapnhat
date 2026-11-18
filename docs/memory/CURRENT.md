@@ -2,6 +2,12 @@
 
 Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 18.11.2026 — trạng thái và chi tiết kiểm tra tài khoản GS1
+
+- Nguồn tiếp nối `1f06cc0`. Tái hiện ô cấu hình True API trống dùng đúng URL mặc định ở lớp đồng bộ, trong khi màn GS1 đọc giá trị thô thành `unsupported`. Dùng chung URL đã xác định ở màn GS1, ghi kết quả và kiểm scope. Giữ yêu cầu kiểm thỏa thuận nếu người dùng bấm **Kiểm tra** khi hồ sơ cửa hàng còn tải.
+- Hiện nhãn Sẵn sàng, Cần xử lý, Chưa xác minh cho sáu mục, kèm kết quả theo nguồn ở bên dưới. Giữ mã lỗi Catalog và số dư ngay cả lần kiểm đầu thất bại. Lỗi thỏa thuận có mã riêng cùng scope, xóa khi đọc thành công hoặc đổi tài khoản. Trạng thái xác minh tiếp tục dựa trên bằng chứng thật và thời hạn hiện có.
+- Java 25/Linux/Xvfb `-Dtest=*Gs1*Test` có 361 ca, 360 đạt và 1 ca cần NTFS bỏ qua. Hai suite JavaFX trực tiếp đạt 26/26. Kiểm ảnh JavaFX 1366×768 và 1024×600 với dữ liệu tổng hợp. Bằng chứng cục bộ ở `/workspace/reports/gs1-readiness-20261118`. Chưa phát hành, chưa kiểm tài khoản GS1 thật của người dùng.
+
 ## 18.11.2026 — nút GS1 theo trạng thái cửa hàng
 
 - Tiếp nối `8a05679`. Thẻ thành viên dùng một vị trí chính cho **Đăng ký GS1** khi đủ điều kiện đăng ký và **Xin tiền tố GS1 bổ sung** khi đã xác minh thành viên cùng INN. Hồ sơ đang chờ, cần kiểm tra hoặc cần gia hạn giữ đúng trạng thái và tác vụ tương ứng.

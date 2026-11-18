@@ -575,10 +575,6 @@
 }
 .workspace-theme .product-issue-chip:selected, .workspace-theme #productsPane .product-issue-chip:selected,
 .workspace-theme#productsPane .product-issue-chip:selected { -fx-background-color: -warning-surface; -fx-border-color: -warning; -fx-text-fill: -warning; }
-.workspace-theme .gs1-readiness-dot { -fx-background-radius: 999; -fx-min-width: 10; -fx-pref-width: 10; -fx-max-width: 10; -fx-min-height: 10; -fx-pref-height: 10; -fx-max-height: 10; }
-.workspace-theme .gs1-readiness-dot.ready { -fx-background-color: -success; }
-.workspace-theme .gs1-readiness-dot.error { -fx-background-color: -danger; }
-.workspace-theme .gs1-readiness-dot.unknown { -fx-background-color: -text-muted; }
 .workspace-theme .kiz-category-icon-primary .ikonli-font-icon { -fx-icon-color: -accent-text; }
 .workspace-theme .kiz-category-icon-warning .ikonli-font-icon { -fx-icon-color: -warning; }
 .workspace-theme .kiz-category-icon-danger .ikonli-font-icon { -fx-icon-color: -danger; }

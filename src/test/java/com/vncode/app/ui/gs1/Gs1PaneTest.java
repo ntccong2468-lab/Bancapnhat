@@ -53,6 +53,42 @@ class Gs1PaneTest {
             capture("gs1-ready",1366,768);capture("gs1-ready-small",1024,600);return null;
         });
     }
+    @Test void defaultProductionSettingsShowVerifiedStatesAndDetails()throws Exception{
+        var owner=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+        com.vncode.app.features.gtinsync.GtinWriteTestFixture.saveSettings(owner,"A".repeat(40),"");
+        com.vncode.app.features.gs1.Gs1UiTestFixture.sync(owner,true);
+        fx(()->{pane.setShop(owner);return null;});awaitCache("source@example.invalid");
+        fx(()->{
+            pane.applyCss();pane.layout();
+            var env=Gs1Pane.class.getDeclaredField("environment");env.setAccessible(true);
+            assertEquals("production",env.get(pane),"The GS1 UI must use the same default URL as the sync service");
+            for(String name:List.of("SIGNATURE","LOGIN","BALANCE","MEMBERSHIP","GTIN")){
+                var state=(Label)pane.lookup("#gs1ReadinessState"+name);
+                assertTrue(state.isVisible()&&state.isManaged(),name+" must have a readable status");
+                assertTrue(state.getStyleClass().contains("badge-green"),name+" must show verified readiness");
+                var detail=(Label)pane.lookup("#gs1ReadinessDetail"+name);
+                assertTrue(detail.isVisible()&&!detail.getText().isBlank(),name+" must show details");
+            }
+            var agreement=(Label)pane.lookup("#gs1ReadinessStateAGREEMENT");
+            assertTrue(agreement.isVisible()&&agreement.getStyleClass().contains("badge-gray"));
+            assertTrue(((Label)pane.lookup("#gs1ReadinessDetailBALANCE")).getText().contains("4737.09 RUB"));
+            assertTrue(((Label)pane.lookup("#gs1ReadinessDetailGTIN")).getText().contains("735 GTIN"));
+            return null;
+        });
+    }
+    @Test void firstFailedReadShowsEachSourceErrorEvenWithoutAPreviousSuccessfulRead()throws Exception{
+        var owner=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
+        com.vncode.app.features.gs1.Gs1UiTestFixture.sync(owner,false);
+        fx(()->{pane.setShop(owner);return null;});
+        awaitStatus("NETWORK_TIMEOUT");
+        fx(()->{
+            pane.applyCss();pane.layout();
+            assertTrue(((Label)pane.lookup("#gs1ReadinessDetailMEMBERSHIP")).getText().contains("NETWORK_TIMEOUT"));
+            assertTrue(((Label)pane.lookup("#gs1ReadinessDetailBALANCE")).getText().contains("NETWORK_DNS"));
+            assertTrue(((Label)pane.lookup("#gs1ReadinessStateLOGIN")).getStyleClass().contains("badge-gray"));
+            return null;
+        });
+    }
     @Test void failedRefreshKeepsTheCorrectScopedDataAndExposesTheError()throws Exception{
         var owner=com.vncode.app.features.gtinsync.GtinWriteTestFixture.shop(com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES);
         com.vncode.app.features.gs1.Gs1UiTestFixture.sync(owner,true);fx(()->{pane.setShop(owner);return null;});awaitCache("source@example.invalid");
