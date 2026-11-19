@@ -1,6 +1,14 @@
 # VNCode consolidated baseline
 
-## Latest hiện hành — VN Code 1.6.11
+## Latest hiện hành — VN Code 1.6.12
+
+Đã công bố **19.11.2026 lúc 13:28:03 MSK**, release immutable `451181790`, nguồn `0a7ee7cd9005d13f35d43005812687d7127efacd`, publisher `9d3be43015f9e7a3b42a0471818ab4c5e06a23ae`/run `44505611028`. Toàn bộ ba commit khởi động và GS1 sau 1.6.11 có trong tag. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.12/VN-code-1.6.12-Windows-x64.exe) · [Ghi chú](VN-code-1.6.12.md) · [Biên nhận](../validation/vncode-1612-20261119/release-receipt.json).
+
+Windows `44378660977` đạt 5.308/5.310 ca trong 647 suite, hai ca bỏ qua đúng hệ điều hành và 0 lỗi. Đạt kiểm native, DPAPI, cài/gỡ, coexistence và nâng cấp từ Latest 1.6.11 với schema 7→7. So SHA-256 và kích thước cả 16 tệp tải công khai, bảo toàn 21 release/338 asset/50 tag trước đó. Updater từ JAR 1.6.11 đã phát hành trả **AVAILABLE 1.6.12**, đúng MSI tải công khai. Chưa quan sát popup/cài trên máy seller.
+
+Security CodeQL Java còn 9 phát hiện trùng 1.6.11 và workflow vẫn báo FAIL. JavaScript 0 phát hiện, lint đạt. [Báo cáo phát hành](../validation/vncode-1612-20261119/REPORT.md).
+
+## Bản nền trước — VN Code 1.6.11
 
 Đã công bố **18.11.2026 lúc 15:52:03 MSK**, immutable `v1.6.11`/release `449977778`, nguồn app `cf3d8d695f7caa3b39d934145b7ff0445c50e194`. Publisher `dfc80824fea88a7f88d7339c65e7c44e0af01bc5`, run `44307702686` SUCCESS. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.11/VN-code-1.6.11-Windows-x64.exe), [báo cáo](../validation/vncode-1611-20261118/FINAL-REPORT.md), [receipt cuối](../validation/vncode-1611-20261118/final-release.json).
 

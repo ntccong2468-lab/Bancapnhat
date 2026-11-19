@@ -1,0 +1,117 @@
+{
+  "version": "1.6.12",
+  "latest": true,
+  "immutable": true,
+  "sourceCommit": "0a7ee7cd9005d13f35d43005812687d7127efacd",
+  "releaseId": 451181790,
+  "publishedAt": "2026-11-19T10:28:03Z",
+  "publisherRun": 44505611028,
+  "publisherCommit": "9d3be43015f9e7a3b42a0471818ab4c5e06a23ae",
+  "windowsRun": 44378660977,
+  "windowsAttempt": 1,
+  "windowsJUnit": {
+    "tests": 5310,
+    "passed": 5308,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "suites": 647
+  },
+  "publicAssets": {
+    "VN-code-1.6.12-Windows-x64.exe": {
+      "bytes": 149821952,
+      "sha256": "4abbace43ab8dc7173f46b4b2a0e3edb4f070e00cd6527d8e9d50792e9b0dae5"
+    },
+    "VN-code-1.6.12-Windows-x64.msi": {
+      "bytes": 149153033,
+      "sha256": "6bfdd72b1561a2babea6160ea5a963500af9ea0e99d3827f222bf61633bbf35d"
+    },
+    "VN-code-1.6.12-Windows-x64.sha256": {
+      "bytes": 98,
+      "sha256": "a9e16a3c5dbf96399709ff486064082c6e572cca1a7dabb4c6e5246c237f6fcb"
+    },
+    "VN-code-1.6.12-Windows-x64.zip": {
+      "bytes": 148740252,
+      "sha256": "0eb8b8f62e52e1f7a7801540fadb84fd4a1e36320b357abe16f7e97756c3a8be"
+    },
+    "VN-code-1.6.12-source.zip": {
+      "bytes": 109566521,
+      "sha256": "383832c1d0dd839e5db2b812f6bb5b726b7c10175c085aa2d63d7d03d5709d5b"
+    },
+    "VN-code-1.6.12-history.bundle": {
+      "bytes": 105985432,
+      "sha256": "ab56c5fc7453658517914a349976d9ee066d68f5f272f3d4b21895edf4208b32"
+    },
+    "VN-code-1.6.12-verification.zip": {
+      "bytes": 3590994,
+      "sha256": "a7846356b02841e758d0595cc69082abba28842ac063782962b29ef78971a50f"
+    },
+    "build-info.json": {
+      "bytes": 771,
+      "sha256": "26ec7f53bd83186595fab9398a7a27b99e65774b0d7618b954233173fede209d"
+    },
+    "release-notes.md": {
+      "bytes": 1645,
+      "sha256": "7d47ec525fd0d0606a16db2a485ddfe985f4e77d9568bb9f452562a7b922965d"
+    },
+    "native-smoke.json": {
+      "bytes": 288,
+      "sha256": "dff3d24928a82d205ab13ff9bd98a10cb0beb2d0d348085886f7ba47142f7f82"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 905,
+      "sha256": "cbe59cf675bc5fdf3f8e557c945bb7245f5a1849cc12f217b3f4ccc0e550bd07"
+    },
+    "asset-manifest.json": {
+      "bytes": 1757,
+      "sha256": "76ad2f8a143d37ed8cff20677b4a1bb788bd4ca5ed811f7e826b9d7e7b938b57"
+    },
+    "SHA256SUMS": {
+      "bytes": 1106,
+      "sha256": "e41d74dffc196a9a796427d936304378959ea8d0f6d2da9ea8db7f221ba4e382"
+    },
+    "gs1-smoke.json": {
+      "bytes": 287,
+      "sha256": "a5da1740d219bc4a1370bae1b5a42486532177b8b6c0e367b35f97ad35d15c13"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 411,
+      "sha256": "c6db20b83905e128f8629907e788d9124ab3783c391bb4436f9e45edb51b1b05"
+    },
+    "previous-baseline.json": {
+      "bytes": 286,
+      "sha256": "9694eae0b1d9bf24b0f27f56f8a445ec1f593032bd17031e783a17d782ad3421"
+    }
+  },
+  "preservation": {
+    "previousReleases": 21,
+    "previousAssets": 338,
+    "previousTags": 50
+  },
+  "updater": {
+    "from": "1.6.11",
+    "result": "AVAILABLE",
+    "to": "1.6.12",
+    "msi": {
+      "bytes": 149153033,
+      "sha256": "6bfdd72b1561a2babea6160ea5a963500af9ea0e99d3827f222bf61633bbf35d",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.12/VN-code-1.6.12-Windows-x64.msi"
+    },
+    "networkReads": [
+      {
+        "method": "GET",
+        "url": "https://api.github.com/repos/ntccong2468-lab/Bancapnhat/releases/latest",
+        "status": 200,
+        "tlsVersion": "TLSv1.3"
+      }
+    ]
+  },
+  "security": {
+    "run": 44375079415,
+    "java": "FAIL",
+    "findingsMatchingBaseline": 9,
+    "newFindings": 0,
+    "javascriptFindings": 0
+  },
+  "sellerAcceptance": "Not performed"
+}

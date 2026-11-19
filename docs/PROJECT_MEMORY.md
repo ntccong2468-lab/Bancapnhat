@@ -1,5 +1,11 @@
 # Bộ nhớ dự án VNCode
 
+## 19.11.2026 MSK — 1.6.12 đã công bố Latest và updater đã nhận
+
+Immutable release `451181790` lúc 13:28:03 MSK. Source `0a7ee7cd9005d13f35d43005812687d7127efacd` gồm `8a05679`, `1f06cc0`, `c3391fb`. Windows build `44378660977`, 5.310 ca/647 suite, 5.308 đạt và hai OS skip. Kiểm gói/native/DPAPI/cài-gỡ và nâng cấp 7→7 đạt. Publisher `44505611028` SUCCESS và đủ 16 assets công khai đã tải lại kiểm hash. Giữ 21 bản cũ, 338 asset và 50 tag.
+
+Updater từ JAR đã phát hành 1.6.11 qua mạng nhận AVAILABLE 1.6.12 và đúng MSI, chưa quan sát popup hoặc cài trên máy seller. Lượt Windows đầu timeout PowerShell và bản cùng nguồn chạy lại thành công. CodeQL Java gate vẫn FAIL với 9 phát hiện trùng 1.6.11 theo phép đối chiếu, JS 0 và lint đạt. Không có kiểm giao dịch seller/GS1 thật. [Báo cáo](validation/vncode-1612-20261119/REPORT.md) · [Biên nhận](validation/vncode-1612-20261119/release-receipt.json).
+
 ## 18.11.2026 MSK — GS1 hiển thị trạng thái có nguồn và chi tiết
 
 Sau `1f06cc0`, tái hiện UI nhận nhầm URL True API mặc định thành môi trường chưa hỗ trợ và che mã lỗi khi hai nguồn chưa từng thành công. Sửa dùng URL đã xác định, hiển thị badge và chi tiết cho sáu mục. Lỗi thỏa thuận lưu theo shop/scope và lượt kiểm không rơi khi context đang tải. Giữ điều kiện chứng minh, quota và thời hạn xác minh. Kiểm JavaFX `-Dtest=*Gs1*Test` 361 ca, 360 đạt và một ca NTFS bỏ qua trên Linux. Bản sửa chưa phát hành. [Điểm tiếp tục](memory/CURRENT.md)

@@ -1,6 +1,12 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **19.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+
+## 19.11.2026 — VN Code 1.6.12 đã phát hành Latest
+
+- Release immutable `451181790`/v1.6.12 lúc **13:28:03 MSK**, nguồn `0a7ee7cd9005d13f35d43005812687d7127efacd`. Publisher run `44505611028` SUCCESS. Gồm đủ `8a05679`, `1f06cc0`, `c3391fb` về khởi động/sao lưu, tự điền gia nhập và thư tiền tố, nút theo thành viên, sáu trạng thái GS1 và sửa URL mặc định/kiểm thỏa thuận. Phân tích hộp thư ở lượt trước không thay đổi runtime.
+- Windows `44378660977` trên đúng nguồn đạt 5.308/5.310 ca, 0 lỗi, 2 ca OS skip, 647 suite. Native, DPAPI, cài/gỡ/coexistence và passive upgrade 1.6.11→1.6.12 schema 7→7 đạt. Lượt trước `44375079414` lỗi timeout PowerShell trong một test và được chạy lại cùng nguồn.
+- Kiểm đủ 16 tệp public, giữ 21 release/338 asset/50 tag cũ. Updater thực của JAR public 1.6.11 nhận AVAILABLE 1.6.12 và chọn đúng MSI 149.153.033 byte. Kiểm Linux tập trung 430/431 ca và Node publisher 262/262. CodeQL Java gate FAIL, 9 phát hiện trùng baseline và 0 mới theo đối chiếu; JS 0. Chưa nghiệm thu ký/gửi GS1, mail hoặc cập nhật trên máy seller. [Báo cáo](../validation/vncode-1612-20261119/REPORT.md) · [Biên nhận](../validation/vncode-1612-20261119/release-receipt.json).
 
 ## 18.11.2026 — trạng thái và chi tiết kiểm tra tài khoản GS1
 
