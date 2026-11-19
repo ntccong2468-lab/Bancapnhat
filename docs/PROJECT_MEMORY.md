@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 19.11.2026 MSK — 1.6.13 đã công bố Latest
+
+Release `451407450`/source `3f679a1df43c0f143a1bb62c97d33fde7cec3cab` immutable. Windows `44511666052` kiểm 5.315 ca, 0 lỗi và 2 bỏ qua theo môi trường. Cài mới và nâng cấp 1.6.12 schema 7 → 7 đạt với dữ liệu thử. Publisher `44537057186` thành công. Kiểm đủ 16 tệp public và bảo toàn 22 release cũ. Updater gốc 1.6.12 nhận 1.6.13 và xác minh tải MSI trong 3,777 giây ở môi trường kiểm thử. Portal chưa triển khai. [Biên nhận](validation/vncode-1613-20261119/release-receipt.json)
+
 ## 19.11.2026 MSK — sửa chuẩn bị tải cập nhật và phiên license
 
 Tiếp nối nguồn Latest 1.6.12 `0a7ee7c`. MSI gốc đúng SHA, hàm tải ở JAR công khai 1.6.11 tải và kiểm đủ 149.153.033 byte trong 5,875 giây trên Cloud. Tái hiện kiểm phiên bản giữ hàng đợi tải, nhãn chuẩn bị che tiến độ chunked và bước hiện tại. Sửa riêng lượt tải và hiển thị. Desktop tự kiểm lại lỗi xác minh còn khả năng phục hồi, giữ trạng thái thu hồi và hướng dẫn kích hoạt lại khi phiên hết hạn. Portal gia hạn phiên còn hiệu lực sau chứng minh thiết bị và cấp quyền mới. Chưa phát hành desktop, chưa triển khai Portal. [Bằng chứng và phạm vi](validation/2026-11-19-update-download-license.md).

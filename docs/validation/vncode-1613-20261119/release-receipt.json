@@ -1,0 +1,155 @@
+{
+  "version": "1.6.13",
+  "sourceCommit": "3f679a1df43c0f143a1bb62c97d33fde7cec3cab",
+  "releaseId": 451407450,
+  "publishedAt": "2026-11-19T13:50:04Z",
+  "immutable": true,
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.13",
+  "windowsRun": 44511666052,
+  "windowsAttempt": 1,
+  "windowsJob": 135517185739,
+  "artifactId": 14535119965,
+  "artifactDigest": "sha256:addd962a0c6ee834796ee376f5bdd4eabf0ea5422dce670425a3c01d04080103",
+  "packageReviewSha256": "16aa175a8f3897d0900cb56c4389a6144473ec55c1b76eaf1fe4521b47ad5a61",
+  "windowsTests": {
+    "tests": 5315,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "windowsSuites": 647,
+  "upgrade": {
+    "from": "1.6.12",
+    "to": "1.6.13",
+    "schema": "7 to 7",
+    "verified": true
+  },
+  "publisherRun": 44537057186,
+  "publisherCommit": "59df33e393ad7bf0bddf0182cb7a9d1c29cbb971",
+  "security": {
+    "run": 44511666978,
+    "javaGate": "failure_existing_findings",
+    "javaPrevious": 9,
+    "javaAdded": 0,
+    "javascript": 0
+  },
+  "assets": {
+    "build-info.json": {
+      "assetId": 767869196,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/build-info.json",
+      "bytes": 771,
+      "sha256": "7e3d6afe737859e2d9748877241eac40dd95018e426a85b759a62e0d9caf2a46"
+    },
+    "native-smoke.json": {
+      "assetId": 767869374,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/native-smoke.json",
+      "bytes": 288,
+      "sha256": "164ce0bba4ef706f06fed2916d53ed18dd5d7cec5d7b8b16005c8db4632333ee"
+    },
+    "asset-manifest.json": {
+      "assetId": 767869531,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/asset-manifest.json",
+      "bytes": 1756,
+      "sha256": "d5115d3e0e0ef7e105efd85b8bf07b4be7d544a6240a78051e4a529b8b52a32d"
+    },
+    "gs1-smoke.json": {
+      "assetId": 767869693,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/gs1-smoke.json",
+      "bytes": 287,
+      "sha256": "649b66ec5a04f6311ef66a6bc41a5806f373f8c7cce50389737912e1be880e4d"
+    },
+    "release-notes.md": {
+      "assetId": 767869297,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/release-notes.md",
+      "bytes": 726,
+      "sha256": "e4e6ba8179d89d6d65585d26b2f49cb24464ce2389721f5ab16c86b7b8caf7cb"
+    },
+    "previous-baseline.json": {
+      "assetId": 767869829,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/previous-baseline.json",
+      "bytes": 286,
+      "sha256": "e4d43d63bab5d7d1628d966aaf5c6c7704e0e430da4a5ff800fcf1556bed2ad0"
+    },
+    "SHA256SUMS": {
+      "assetId": 767869607,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/SHA256SUMS",
+      "bytes": 1106,
+      "sha256": "897bc972bf6d9e86a469001739f649889f4c6d31d3546233bd4281f06ace74a5"
+    },
+    "side-by-side-smoke.json": {
+      "assetId": 767869751,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/side-by-side-smoke.json",
+      "bytes": 411,
+      "sha256": "c5af21a6ae94c88d4db93ab0ef55f45c31b499167f0a1b6ec41667e824ee6c2f"
+    },
+    "upgrade-baseline-smoke.json": {
+      "assetId": 767869452,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/upgrade-baseline-smoke.json",
+      "bytes": 905,
+      "sha256": "7e709b10126680dabf6a91c6f700396e11b0abbc89252034e369674a74ddd10d"
+    },
+    "VN-code-1.6.13-verification.zip": {
+      "assetId": 767869072,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/VN-code-1.6.13-verification.zip",
+      "bytes": 3670662,
+      "sha256": "a5f6fd2cd31d5b34b7c048716c601e3e846eb74620c297b190b8a0070680fcc6"
+    },
+    "VN-code-1.6.13-Windows-x64.msi": {
+      "assetId": 767867607,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/VN-code-1.6.13-Windows-x64.msi",
+      "bytes": 149153033,
+      "sha256": "9573635c89bdf4cb8f037bb78bc96c9d374e2e981621f024189af7d2aeaeeccd"
+    },
+    "VN-code-1.6.13-history.bundle": {
+      "assetId": 767868712,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/VN-code-1.6.13-history.bundle",
+      "bytes": 106043228,
+      "sha256": "a0a26d61ffc1def0d4b2d16cf97c8a30d86cfb103fa489feb8cff4d07898ecb2"
+    },
+    "VN-code-1.6.13-Windows-x64.sha256": {
+      "assetId": 767867903,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/VN-code-1.6.13-Windows-x64.sha256",
+      "bytes": 98,
+      "sha256": "b46494a17f754073a901219398d991d45dc99968e050f34cf1dde516fcbaaf3f"
+    },
+    "VN-code-1.6.13-Windows-x64.exe": {
+      "assetId": 767867264,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/VN-code-1.6.13-Windows-x64.exe",
+      "bytes": 149821952,
+      "sha256": "3262b871acdd998b8fd5c1d185e2b6241262bba511234e226edaf7dec00bd5c0"
+    },
+    "VN-code-1.6.13-source.zip": {
+      "assetId": 767868466,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/VN-code-1.6.13-source.zip",
+      "bytes": 109574292,
+      "sha256": "f0bbc159921e615ec44b3ba7b0468c041b5d126871c3588063a7a7aedf27c1a0"
+    },
+    "VN-code-1.6.13-Windows-x64.zip": {
+      "assetId": 767868003,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/VN-code-1.6.13-Windows-x64.zip",
+      "bytes": 148740895,
+      "sha256": "67541b77c145121fafea206b1a0a04e98cea224a6c0a1affa90e07421b0d4d92"
+    }
+  },
+  "preservation": {
+    "allUnchanged": true,
+    "priorReleases": 22,
+    "priorAssets": 354,
+    "priorTags": 51,
+    "currentReleases": 23,
+    "currentTags": 52
+  },
+  "updater": {
+    "installed": "1.6.12",
+    "latest": "1.6.13",
+    "status": "AVAILABLE",
+    "msi": {
+      "bytes": 149153033,
+      "sha256": "9573635c89bdf4cb8f037bb78bc96c9d374e2e981621f024189af7d2aeaeeccd",
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.13/VN-code-1.6.13-Windows-x64.msi"
+    },
+    "downloadElapsedMs": 3777,
+    "scope": "Actual public 1.6.12 updater download and hash verification through inherited proxy on Linux with verified MSI selection; no GUI or install"
+  },
+  "portalDeployed": false
+}

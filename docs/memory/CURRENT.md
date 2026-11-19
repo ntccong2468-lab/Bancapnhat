@@ -2,7 +2,13 @@
 
 Cập nhật: **19.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
-## 19.11.2026 — tải cập nhật và phiên license sau 1.6.12
+## 19.11.2026 — VN Code 1.6.13 đã lên Latest
+
+- Công bố lúc 16:50:04 MSK. Release immutable `451407450`/`v1.6.13`, source `3f679a1df43c0f143a1bb62c97d33fde7cec3cab`. Gom các sửa tải cập nhật và xác minh license đã cấp. Code gia hạn phiên Portal nằm trong nguồn và chưa triển khai lên Worker.
+- Windows `44511666052` kiểm 5.315 ca trong 647 bộ kiểm thử, 5.313 đạt, 0 lỗi, 2 bỏ qua theo hệ điều hành. Cài mới, gỡ, DPAPI, native, coexistence và nâng cấp 1.6.12 → 1.6.13 schema 7 → 7 đạt trên hồ sơ thử nghiệm. Publisher `44537057186` thành công. CodeQL giữ 9 cảnh báo Java cũ, 0 phát hiện mới và JS 0.
+- Cả 16 tệp công khai đã tải và khớp SHA-256. 22 release, 354 asset và 51 tag trước đó được bảo toàn. Updater gốc 1.6.12 báo `AVAILABLE 1.6.13`, tải và xác minh MSI 149.153.033 byte trong 3,777 giây từ môi trường kiểm thử. Chưa nghiệm thu license thật hoặc popup trên máy seller. [Biên nhận phát hành](../validation/vncode-1613-20261119/release-receipt.json).
+
+## 19.11.2026 — sửa tải và license trước khi phát hành 1.6.13
 
 - Mã tiếp nối `0a7ee7cd9005d13f35d43005812687d7127efacd`. Latest đã xác minh là 1.6.12, immutable release `451181790`. Không phát hành phần sửa mới. Đo tải 149.153.033 byte và xác minh SHA từ hàm tải của JAR công khai 1.6.11 trong 5,875 giây từ Cloud. Mạng và hồ sơ Windows của người dùng chưa được đo.
 - Tái hiện lượt tải đã xác nhận phải xếp hàng chờ kiểm phiên bản, phản hồi chunked không hiện tỷ lệ, và nhãn chuẩn bị lặp lại ở các bước không có tỷ lệ. Sửa luồng tải độc lập, tiến độ theo dung lượng đã xác minh và hiển thị pha cụ thể. Giữ xác minh gói và điểm lưu an toàn.

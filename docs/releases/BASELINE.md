@@ -1,6 +1,14 @@
 # VNCode consolidated baseline
 
-## Latest hiện hành — VN Code 1.6.11
+## Latest hiện hành — VN Code 1.6.13
+
+Đã công bố **19.11.2026 lúc 16:50:04 MSK**, immutable `v1.6.13`/release `451407450`, nguồn `3f679a1df43c0f143a1bb62c97d33fde7cec3cab`. Windows `44511666052` đạt cài mới và nâng cấp từ 1.6.12 schema 7 → 7, 5.313/5.315 ca đạt, 2 ca bỏ qua theo OS. Publisher `44537057186` thành công. Updater từ JAR 1.6.12 nhận đúng Latest và tải MSI trong 3,777 giây ở môi trường kiểm thử. [Ghi chú](VN-code-1.6.13.md) · [Biên nhận](../validation/vncode-1613-20261119/release-receipt.json)
+
+## Bản nền trước — VN Code 1.6.12
+
+Công bố **19.11.2026 lúc 13:28:03 MSK**, immutable `v1.6.12`/release `451181790`, nguồn `0a7ee7cd9005d13f35d43005812687d7127efacd`. Windows `44378660977` kiểm 5.310 ca và 2 ca bỏ qua theo OS. Đây là bộ cài nền được dùng để kiểm tra nâng lên 1.6.13. [Ghi chú](VN-code-1.6.12.md)
+
+## Bản nền trước — VN Code 1.6.11
 
 Đã công bố **18.11.2026 lúc 15:52:03 MSK**, immutable `v1.6.11`/release `449977778`, nguồn app `cf3d8d695f7caa3b39d934145b7ff0445c50e194`. Publisher `dfc80824fea88a7f88d7339c65e7c44e0af01bc5`, run `44307702686` SUCCESS. [EXE](https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.11/VN-code-1.6.11-Windows-x64.exe), [báo cáo](../validation/vncode-1611-20261118/FINAL-REPORT.md), [receipt cuối](../validation/vncode-1611-20261118/final-release.json).
 
