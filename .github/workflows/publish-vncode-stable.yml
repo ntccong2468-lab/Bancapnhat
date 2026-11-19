@@ -20,7 +20,7 @@ on:
         required: true
         default: prepare
         type: choice
-        options: [prepare, publish, owner-approved-1416, owner-approved-1418, owner-approved-1419, owner-requested-150, owner-requested-151, owner-requested-152, owner-requested-153, owner-requested-154, owner-requested-155, owner-requested-157, owner-requested-158, owner-requested-161, owner-requested-162, owner-requested-163, owner-requested-164, owner-requested-165, owner-requested-166, owner-requested-167, owner-requested-168, owner-requested-1611, owner-requested-169, owner-requested-1610]
+        options: [prepare, publish, owner-approved-1416, owner-approved-1418, owner-approved-1419, owner-requested-150, owner-requested-151, owner-requested-152, owner-requested-153, owner-requested-154, owner-requested-155, owner-requested-157, owner-requested-158, owner-requested-161, owner-requested-162, owner-requested-163, owner-requested-164, owner-requested-165, owner-requested-166, owner-requested-167, owner-requested-168, owner-requested-1611, owner-requested-1612, owner-requested-1613, owner-requested-169, owner-requested-1610]
 permissions:
   contents: write
   actions: read
@@ -68,6 +68,10 @@ jobs:
             node tools/publish-vncode-168.mjs
           elif [ "$RELEASE_MODE" = "owner-requested-1611" ]; then
             node tools/publish-vncode-1611.mjs
+          elif [ "$RELEASE_MODE" = "owner-requested-1612" ]; then
+            node tools/publish-vncode-1612.mjs
+          elif [ "$RELEASE_MODE" = "owner-requested-1613" ]; then
+            node tools/publish-vncode-1613.mjs
           elif [ "$RELEASE_MODE" = "owner-requested-169" ]; then
             node tools/publish-vncode-169.mjs
           elif [ "$RELEASE_MODE" = "owner-requested-1610" ]; then
@@ -151,4 +155,20 @@ jobs:
         with:
           name: VN-code-1.6.11-publication
           path: publication-1.6.11.json
+          if-no-files-found: error
+
+      - name: Preserve 1.6.12 publication receipt
+        if: inputs.mode == 'owner-requested-1612'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VN-code-1.6.12-publication
+          path: publication-1.6.12.json
+          if-no-files-found: error
+
+      - name: Preserve 1.6.13 publication receipt
+        if: inputs.mode == 'owner-requested-1613'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: VN-code-1.6.13-publication
+          path: publication-1.6.13.json
           if-no-files-found: error
