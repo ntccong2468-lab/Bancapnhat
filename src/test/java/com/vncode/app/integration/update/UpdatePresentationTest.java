@@ -56,5 +56,26 @@ class UpdatePresentationTest {
             return null;
         });
     }
+    @Test void progressDialogShowsOneActualPhaseAndOnlyDisplaysPercentWhenKnown() throws Exception {
+        class ControlledTask extends javafx.concurrent.Task<Void> {
+            protected Void call(){return null;}
+            void phase(String value){updateMessage(value);}
+            void progress(double completed,double total){updateProgress(completed,total);}
+        }
+        fx(()->{
+            var task=new ControlledTask();var info=new UpdateInfo();info.setVersion("1.6.13");
+            var dialog=new UpdateDialogService().showDownloadProgressDialog(info,task);
+            var content=(VBox)dialog.getDialogPane().getContent();
+            var percent=(Label)content.getChildren().get(1);var phase=(Label)content.getChildren().get(2);
+            assertFalse(percent.isVisible());assertFalse(percent.isManaged());
+            assertEquals(I18nService.getInstance().tr("update.progress.preparing"),phase.getText());
+            task.phase("Checking installer");
+            assertEquals("Checking installer",phase.getText());assertFalse(percent.isVisible());
+            task.progress(40,100);assertTrue(percent.isVisible());assertTrue(percent.isManaged());assertEquals("40%",percent.getText());
+            task.phase("Backing up data");task.progress(-1,1);
+            assertEquals("Backing up data",phase.getText());assertFalse(percent.isVisible());assertFalse(percent.isManaged());
+            return null;
+        });
+    }
     private static <T>T fx(Callable<T> action)throws Exception{var task=new FutureTask<>(action);Platform.runLater(task);return task.get(15,TimeUnit.SECONDS);}
 }

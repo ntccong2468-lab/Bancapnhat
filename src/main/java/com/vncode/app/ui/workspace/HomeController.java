@@ -858,8 +858,18 @@ public class HomeController implements Initializable {
             1,1,0,java.util.concurrent.TimeUnit.MILLISECONDS,new java.util.concurrent.ArrayBlockingQueue<>(2),
             action->{Thread thread=new Thread(action,"vncode-updater");thread.setDaemon(true);return thread;},
             new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
+    // A slow automatic version check must not keep an already confirmed
+    // installer download queued behind it while the dialog says preparing.
+    private final java.util.concurrent.ThreadPoolExecutor updateDownloadExecutor=new java.util.concurrent.ThreadPoolExecutor(
+            1,1,0,java.util.concurrent.TimeUnit.MILLISECONDS,new java.util.concurrent.ArrayBlockingQueue<>(1),
+            action->{Thread thread=new Thread(action,"vncode-updater-download");thread.setDaemon(true);return thread;},
+            new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
     private void executeUpdateTask(Task<?> task,java.util.function.Consumer<Throwable> failure) {
         try{updateExecutor.execute(task);}
+        catch(java.util.concurrent.RejectedExecutionException rejected){task.cancel(false);failure.accept(rejected);}
+    }
+    private void executeUpdateDownload(Task<?> task,java.util.function.Consumer<Throwable> failure) {
+        try{updateDownloadExecutor.execute(task);}
         catch(java.util.concurrent.RejectedExecutionException rejected){task.cancel(false);failure.accept(rejected);}
     }
 
@@ -881,12 +891,16 @@ public class HomeController implements Initializable {
         };
         updateCheckTask=task;
         java.util.function.Consumer<Throwable> failed=error->{
-            checkingUpdate=false;if(disposed)return;
+            if(updateCheckTask!=task)return;
+            updateCheckTask=null;
+            checkingUpdate=false;if(disposed||updateDownloadRunning){pendingManualCheck=false;return;}
             if(pendingManualCheck)AlertService.showError(i18nService.tr("version.check_failed"));pendingManualCheck=false;
         };
         task.setOnFailed(event->failed.accept(task.getException()));
         task.setOnSucceeded(event->{
-            checkingUpdate=false;if(disposed)return;
+            if(updateCheckTask!=task)return;
+            updateCheckTask=null;
+            checkingUpdate=false;if(disposed||updateDownloadRunning){pendingManualCheck=false;return;}
             boolean userRequested=pendingManualCheck;pendingManualCheck=false;
             var result=task.getValue();
             if(result.status()==UpdateService.Status.AVAILABLE
@@ -974,6 +988,11 @@ public class HomeController implements Initializable {
 
     private void startInstallerUpdate(UpdateInfo info,boolean downloadOnly) {
         if(disposed||updateDownloadRunning)return;
+        // Invalidate a previous check before starting the confirmed download. Its
+        // network read may return later, even after cancellation, so callbacks
+        // must no longer be allowed to reopen a stale update prompt.
+        var oldCheck=updateCheckTask;updateCheckTask=null;checkingUpdate=false;pendingManualCheck=false;
+        if(oldCheck!=null&&!oldCheck.isDone())oldCheck.cancel(true);
         updateDownloadRunning=true;
         var preparing=new java.util.concurrent.atomic.AtomicBoolean();
         var installing=new java.util.concurrent.atomic.AtomicBoolean();
@@ -1059,7 +1078,7 @@ public class HomeController implements Initializable {
             if(downloadOnly)AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),task.getValue().toAbsolutePath().toString());
             else exitAfterUpdate.run();
         });
-        progressDialog.show();executeUpdateTask(task,failed);
+        progressDialog.show();executeUpdateDownload(task,failed);
     }
 
     private synchronized void resumeUpdateWork() {
@@ -2494,6 +2513,7 @@ public class HomeController implements Initializable {
         if(updateCheckTask!=null)updateCheckTask.cancel(true);
         if(updateDownloadTask!=null)updateDownloadTask.cancel(true);
         updateExecutor.shutdownNow();
+        updateDownloadExecutor.shutdownNow();
         if (licensePane != null) licensePane.dispose();
         if (overviewDashboardController != null) overviewDashboardController.setShop(null, false);
         if (financeDashboardController != null) financeDashboardController.dispose();

@@ -155,8 +155,44 @@ class LicenseServiceTest {
         }
     }
     @Test void explicitDenialSurvivesRestartAndLaterNetworkError()throws Exception {
-        var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("DEVICE_REVOKED",403);s.refresh().get();assertFalse(s.allows(Permission.GTIN));api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);s.refresh().get();assertFalse(s.allows(Permission.GTIN));}
+        var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("DEVICE_REVOKED",403);s.refresh().get();assertFalse(s.allows(Permission.GTIN));api.failure=new LicenseApi.Failure("LICENSE_NETWORK",0);s.refresh().get();assertFalse(s.allows(Permission.GTIN));assertEquals(Status.DENIED,s.snapshot().status());assertEquals("DEVICE_REVOKED",s.snapshot().errorCode());}
         try(var restarted=service(api,true)){assertEquals(Status.DENIED,restarted.snapshot().status());assertFalse(restarted.allows(Permission.GTIN));}
+    }
+    @Test void restartAutomaticallyRechecksSavedVerificationErrorBeforeRestoringRights()throws Exception {
+        var api=new Api();
+        try(var original=service(api,true)){
+            active(original,api);
+            api.failure=new LicenseApi.Failure("LICENSE_PROTOCOL_INVALID",0);
+            original.refresh().get(5,TimeUnit.SECONDS);
+            assertFalse(original.allows(Permission.GTIN));
+        }
+        api.failure=null;
+        api.entered=new CountDownLatch(1);
+        api.release=new CountDownLatch(1);
+        try(var restarted=service(api,true)){
+            assertTrue(api.entered.await(2,TimeUnit.SECONDS));
+            assertFalse(restarted.allows(Permission.GTIN));
+            var renewal=restarted.refresh();
+            api.release.countDown();
+            assertEquals(Status.ACTIVE,renewal.get(5,TimeUnit.SECONDS).status());
+            assertEquals(1,api.activations);
+            assertTrue(restarted.allows(Permission.GTIN));
+        }
+    }
+    @Test void expiredAccessSessionShowsReactivationAndRetainsDeviceIdentity()throws Exception {
+        var api=new Api();
+        try(var s=service(api,true)){
+            active(s,api);
+            String deviceKey=LicenseDomainFixture.store(directory).load().orElseThrow().publicKey();
+            api.failure=new LicenseApi.Failure("AUTH_REQUIRED",401);
+            var expired=s.refresh().get(5,TimeUnit.SECONDS);
+            assertEquals(Status.UNVERIFIED,expired.status());
+            assertEquals("SESSION_EXPIRED",expired.errorCode());
+            assertFalse(s.allows(Permission.GTIN));
+            api.failure=null;
+            assertEquals(Status.ACTIVE,s.activate(LicenseDomainFixture.CODE).get(5,TimeUnit.SECONDS).status());
+            assertEquals(deviceKey,LicenseDomainFixture.store(directory).load().orElseThrow().publicKey());
+        }
     }
     @Test void transportAndEdgeFailuresKeepOnlyExistingSignedOfflineRights()throws Exception {
         for(String code:List.of("LICENSE_TLS","LICENSE_DNS","LICENSE_TIMEOUT","LICENSE_EDGE_CHALLENGE")) {
@@ -196,7 +232,7 @@ class LicenseServiceTest {
     }
     @Test void signedConfigurationRefusalPersistsAcrossRestart()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.failure=new LicenseApi.Failure("SIGNING_NOT_CONFIGURED",503);s.refresh().get();assertFalse(s.allows(Permission.SELLER_API));}
-        try(var restarted=service(api,true)){assertFalse(restarted.allows(Permission.SELLER_API));assertEquals(Status.DENIED,restarted.snapshot().status());}
+        try(var restarted=service(api,true)){assertFalse(restarted.allows(Permission.SELLER_API));assertEquals(Status.UNVERIFIED,restarted.snapshot().status());}
     }
     @Test void clockSkewNeverFallsBackToCachedRightsAndRequiresOnlineProofAfterRestart()throws Exception {
         var api=new Api();

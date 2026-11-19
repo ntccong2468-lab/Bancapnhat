@@ -52,14 +52,19 @@ khóa đã redeem đúng account không cộng thời gian lần nữa. Retry c�
 Máy đã thu hồi không được hồi sinh bằng khóa cũ. Máy khác chỉ nhận slot khi có chỗ.
 
 Trả `{access_token,expires_in:2592000,user,device_id,lease,online_valid_until}`.
-Access token thiết bị 30 ngày; hết hạn cần đăng ký lại hoặc nhập khóa và kích hoạt lại cùng
+Access token thiết bị ban đầu có hạn 30 ngày; khi còn không quá 7 ngày, một lần
+renew hợp lệ sẽ kéo dài session tới 30 ngày tính từ lần renew đó. Các lần kiểm
+tra thường xuyên khi còn hơn 7 ngày không ghi lại session. Session đã hết hạn
+không được hồi sinh: cần đăng ký lại hoặc nhập khóa và kích hoạt lại cùng
 khóa/device. Token đăng ký không dùng để renew. Khóa không được lưu/log plaintext.
 
 ## Kiểm tra lại
 
 POST `/api/client/license/renew`, Bearer access_token thiết bị,
 `{challenge_id,public_key,signature}` lấy từ challenge action renew.
-Trả user/device_id/lease/online_valid_until (không tạo token mới).
+Trả user/device_id/lease/online_valid_until (không tạo token mới). Việc kéo dài
+session chỉ xảy ra sau khi chữ ký challenge được xác minh, lease mới đã được ký,
+và session, thiết bị, hạn thuê bao cùng revision chính sách vẫn còn hợp lệ.
 
 Server giới hạn kích hoạt/gia hạn **30 lần/giờ/mỗi token**, challenge 60 lần/giờ.
 Client tự gia hạn mỗi 150–180 giây, có jitter giữa các máy và backoff khi lỗi;

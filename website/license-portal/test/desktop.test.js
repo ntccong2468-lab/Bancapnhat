@@ -77,6 +77,144 @@ test('direct Gmail registration, owner approval, one-use key, signed lease and r
  ctx.env.sqlite.close();
 });
 
+test('an actively renewed device session extends only near expiry without changing the subscription or device',async()=>{
+ const ctx=await setup(),reg=await register(ctx),d=await device(),code=await approve(ctx,reg,{days:180});
+ try {
+  const activated=await activate(ctx,reg,d,code);assert.equal(activated.status,200);
+  const auth={authorization:'Bearer '+activated.data.access_token},deviceId=activated.data.device_id;
+  const readSession=()=>ctx.env.sqlite.prepare('SELECT expires_at FROM desktop_sessions WHERE device_id=?').get(deviceId).expires_at;
+  const originalExpiration=activated.data.user.expires_at,originalSession=readSession();
+  let writes=0;const prepare=ctx.env.DB.prepare.bind(ctx.env.DB);
+  ctx.env.DB.prepare=sql=>{
+   const statement=prepare(sql);
+   if(sql.startsWith('UPDATE desktop_sessions SET expires_at=MAX')){
+    const run=statement.run.bind(statement);statement.run=()=>{writes++;return run();};
+   }
+   return statement;
+  };
+  const first=await req(ctx.env,'/api/client/license/renew','POST',await proof(ctx,auth,d,'renew'),'',auth);
+  assert.equal(first.status,200);assert.equal(writes,0,'No session write while more than seven days remain');
+  assert.equal(readSession(),originalSession);
+  for(let cycle=0;cycle<2;cycle++){
+   const now=Math.floor(Date.now()/1000),near=now+2*86400;
+   ctx.env.sqlite.prepare('UPDATE desktop_sessions SET expires_at=? WHERE device_id=?').run(near,deviceId);
+   const renewed=await req(ctx.env,'/api/client/license/renew','POST',await proof(ctx,auth,d,'renew'),'',auth);
+   assert.equal(renewed.status,200,JSON.stringify(renewed.data));
+   assert.ok(readSession()>=now+29*86400,'The same active session gets approximately 30 days');
+   assert.equal(renewed.data.access_token,undefined,'Renewal must not issue or rotate a bearer token');
+   assert.equal(renewed.data.device_id,deviceId);assert.equal(renewed.data.user.expires_at,originalExpiration);
+   assert.equal(await crypto.subtle.verify('Ed25519',ctx.keys.publicKey,Buffer.from(renewed.data.lease.signature,'base64url'),Buffer.from(renewed.data.lease.payload,'base64url')),true);
+  }
+  assert.equal(writes,2);
+  const stable=readSession(),again=await req(ctx.env,'/api/client/license/renew','POST',await proof(ctx,auth,d,'renew'),'',auth);
+  assert.equal(again.status,200);assert.equal(readSession(),stable);assert.equal(writes,2,'The next frequent poll does not write the session again');
+  assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_devices').get().n,1);
+  assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_redemptions').get().n,1);
+  assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM desktop_sessions').get().n,1);
+ }finally{ctx.env.sqlite.close();}
+});
+
+test('simultaneous valid renewals near expiry keep one device and one session',async()=>{
+ const ctx=await setup(),reg=await register(ctx),d=await device(),code=await approve(ctx,reg,{days:180});
+ try {
+  const activated=await activate(ctx,reg,d,code);assert.equal(activated.status,200);
+  const auth={authorization:'Bearer '+activated.data.access_token},deviceId=activated.data.device_id,now=Math.floor(Date.now()/1000);
+  ctx.env.sqlite.prepare('UPDATE desktop_sessions SET expires_at=? WHERE device_id=?').run(now+2*86400,deviceId);
+  const first=await proof(ctx,auth,d,'renew'),second=await proof(ctx,auth,d,'renew');
+  const replies=await Promise.all([first,second].map(body=>req(ctx.env,'/api/client/license/renew','POST',body,'',auth)));
+  assert.deepEqual(replies.map(x=>x.status),[200,200]);
+  for(const reply of replies){assert.equal(reply.data.device_id,deviceId);assert.equal(reply.data.user.expires_at,activated.data.user.expires_at);}
+  assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM desktop_sessions').get().n,1);
+  assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_devices').get().n,1);
+  assert.equal(ctx.env.sqlite.prepare('SELECT COUNT(*) n FROM license_redemptions').get().n,1);
+  assert.ok(ctx.env.sqlite.prepare('SELECT expires_at FROM desktop_sessions WHERE device_id=?').get(deviceId).expires_at>=now+29*86400);
+ }finally{ctx.env.sqlite.close();}
+});
+
+test('session expiry or deletion during signing blocks a grant even when extension was not due',async()=>{
+ for(const kind of ['expired','deleted']){
+  const ctx=await setup(),reg=await register(ctx),d=await device(),code=await approve(ctx,reg,{days:180});
+  try {
+   const activated=await activate(ctx,reg,d,code);assert.equal(activated.status,200);
+   const auth={authorization:'Bearer '+activated.data.access_token},deviceId=activated.data.device_id;
+   const body=await proof(ctx,auth,d,'renew'),prepare=ctx.env.DB.prepare.bind(ctx.env.DB);let extensions=0;
+   ctx.env.DB.prepare=sql=>{
+    const statement=prepare(sql);
+    if(sql.startsWith('UPDATE desktop_sessions SET expires_at=MAX'))extensions++;
+    if(sql.startsWith('UPDATE license_devices SET last_seen_at=')){
+     const run=statement.run.bind(statement);statement.run=()=>{
+      if(kind==='expired')ctx.env.sqlite.prepare('UPDATE desktop_sessions SET expires_at=1 WHERE device_id=?').run(deviceId);
+      else ctx.env.sqlite.prepare('DELETE FROM desktop_sessions WHERE device_id=?').run(deviceId);
+      return run();
+     };
+    }
+    return statement;
+   };
+   const result=await req(ctx.env,'/api/client/license/renew','POST',body,'',auth);
+   assert.equal(result.status,403,kind);assert.equal(result.data.error,'LICENSE_CHANGED',kind);
+   assert.equal(result.data.lease,undefined,kind);assert.equal(extensions,0,kind);
+   const row=ctx.env.sqlite.prepare('SELECT expires_at FROM desktop_sessions WHERE device_id=?').get(deviceId);
+   if(kind==='expired')assert.equal(row.expires_at,1);else assert.equal(row,undefined);
+  }finally{ctx.env.sqlite.close();}
+ }
+});
+
+test('expired sessions, revoked devices and invalid renewal proof cannot be extended',async()=>{
+ for(const kind of ['expired-before-challenge','expired-after-challenge','invalid-proof','device-revoked','subscription-expired','signer-missing']){
+  const ctx=await setup(),reg=await register(ctx),d=await device(),code=await approve(ctx,reg,{days:180});
+  try {
+   const activated=await activate(ctx,reg,d,code);assert.equal(activated.status,200);
+   const auth={authorization:'Bearer '+activated.data.access_token},deviceId=activated.data.device_id;
+   const near=Math.floor(Date.now()/1000)+2*86400;
+   ctx.env.sqlite.prepare('UPDATE desktop_sessions SET expires_at=? WHERE device_id=?').run(near,deviceId);
+   if(kind==='expired-before-challenge'){
+    ctx.env.sqlite.prepare('UPDATE desktop_sessions SET expires_at=1 WHERE device_id=?').run(deviceId);
+    const challenge=await req(ctx.env,'/api/client/license/challenge','POST',{action:'renew',public_key:d.public_key},'',auth);
+    assert.equal(challenge.status,401);assert.equal(ctx.env.sqlite.prepare('SELECT expires_at FROM desktop_sessions WHERE device_id=?').get(deviceId).expires_at,1);continue;
+   }
+   const body=await proof(ctx,auth,d,'renew');
+   if(kind==='expired-after-challenge')ctx.env.sqlite.prepare('UPDATE desktop_sessions SET expires_at=1 WHERE device_id=?').run(deviceId);
+   if(kind==='invalid-proof')body.signature=encode(new Uint8Array(64));
+   if(kind==='device-revoked')ctx.env.sqlite.prepare('UPDATE license_devices SET revoked=1 WHERE id=?').run(deviceId);
+   if(kind==='subscription-expired')ctx.env.sqlite.prepare('UPDATE users SET license_expires_at=1 WHERE id=?').run(reg.id);
+   if(kind==='signer-missing')delete ctx.env.LICENSE_SIGNING_KEY;
+   const result=await req(ctx.env,'/api/client/license/renew','POST',body,'',auth);
+   assert.equal(result.status,kind==='expired-after-challenge'?401:kind==='signer-missing'?503:403,kind);
+   assert.equal(result.data.lease,undefined,kind);
+   assert.equal(ctx.env.sqlite.prepare('SELECT expires_at FROM desktop_sessions WHERE device_id=?').get(deviceId).expires_at,kind==='expired-after-challenge'?1:near,kind);
+  }finally{ctx.env.sqlite.close();}
+ }
+});
+
+test('revocation, expiry or policy change during session extension never returns a grant or revives a session',async()=>{
+ for(const kind of ['device-revoked','subscription-expired','session-expired','policy-changed']){
+  const ctx=await setup(),reg=await register(ctx),d=await device(),code=await approve(ctx,reg,{days:180});
+  try {
+   const activated=await activate(ctx,reg,d,code);assert.equal(activated.status,200);
+   const auth={authorization:'Bearer '+activated.data.access_token},deviceId=activated.data.device_id;
+   const near=Math.floor(Date.now()/1000)+2*86400;
+   ctx.env.sqlite.prepare('UPDATE desktop_sessions SET expires_at=? WHERE device_id=?').run(near,deviceId);
+   const body=await proof(ctx,auth,d,'renew'),prepare=ctx.env.DB.prepare.bind(ctx.env.DB);
+   ctx.env.DB.prepare=sql=>{
+    const statement=prepare(sql);
+    if(sql.startsWith('UPDATE desktop_sessions SET expires_at=MAX')){
+     const run=statement.run.bind(statement);statement.run=()=>{
+      if(kind==='device-revoked')ctx.env.sqlite.prepare('UPDATE license_devices SET revoked=1 WHERE id=?').run(deviceId);
+      if(kind==='subscription-expired')ctx.env.sqlite.prepare('UPDATE users SET license_expires_at=1 WHERE id=?').run(reg.id);
+      if(kind==='session-expired')ctx.env.sqlite.prepare('UPDATE desktop_sessions SET expires_at=1 WHERE device_id=?').run(deviceId);
+      if(kind==='policy-changed')ctx.env.sqlite.prepare('UPDATE license_policy SET revision=revision+1 WHERE user_id=?').run(reg.id);
+      return run();
+     };
+    }
+    return statement;
+   };
+   const result=await req(ctx.env,'/api/client/license/renew','POST',body,'',auth);
+   assert.equal(result.status,403,kind);assert.equal(result.data.error,'LICENSE_CHANGED',kind);assert.equal(result.data.lease,undefined,kind);
+   assert.equal(ctx.env.sqlite.prepare('SELECT expires_at FROM desktop_sessions WHERE device_id=?').get(deviceId).expires_at,kind==='session-expired'?1:near,kind);
+  }finally{ctx.env.sqlite.close();}
+ }
+});
+
 test('Gmail required, email unavailable, OTP attempts and expiry, no anonymous status lookup',async()=>{
  const ctx=await setup();assert.equal((await req(ctx.env,'/api/client/registration/start','POST',{email:'a@example.com'})).status,400);
  const mail=ctx.env.EMAIL;delete ctx.env.EMAIL;assert.equal((await req(ctx.env,'/api/client/registration/start','POST',{email:'a@gmail.com'})).status,503);ctx.env.EMAIL=mail;

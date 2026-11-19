@@ -105,10 +105,12 @@ public class UpdateDialogService {
 
         Label percentLabel = new Label();
         percentLabel.getStyleClass().add("update-progress-percent");
+        percentLabel.visibleProperty().bind(task.progressProperty().greaterThanOrEqualTo(0));
+        percentLabel.managedProperty().bind(percentLabel.visibleProperty());
         percentLabel.textProperty().bind(Bindings.createStringBinding(() -> {
             double progress = task.getProgress();
             if (progress < 0) {
-                return i18n.tr("update.progress.preparing");
+                return "";
             }
             return String.format("%.0f%%", Math.max(0, Math.min(100, progress * 100)));
         }, task.progressProperty()));
@@ -119,7 +121,7 @@ public class UpdateDialogService {
         messageLabel.textProperty().bind(Bindings.createStringBinding(() -> {
             String message = task.getMessage();
             return message == null || message.isBlank()
-                    ? i18n.tr("update.progress.downloading")
+                    ? i18n.tr("update.progress.preparing")
                     : message;
         }, task.messageProperty()));
 

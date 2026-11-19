@@ -71,6 +71,10 @@ public class UpdateInstallerService {
             long totalBytes = response.body().contentLength();
             long expected=info.getBestDownloadSize();
             if(totalBytes>=0&&totalBytes!=expected)throw new IOException("UPDATE_SIZE_MISMATCH");
+            // A chunked response can omit Content-Length even though the verified
+            // release metadata already supplies the exact expected byte count.
+            // Keep the same size and SHA checks below; use it only for progress.
+            if(totalBytes<0)totalBytes=expected;
             var digest=java.security.MessageDigest.getInstance("SHA-256");
             if (progressListener != null) {
                 progressListener.onPhase(Phase.DOWNLOADING);

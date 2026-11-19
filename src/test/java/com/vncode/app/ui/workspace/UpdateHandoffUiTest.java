@@ -96,6 +96,29 @@ class UpdateHandoffUiTest {
         assertEquals(data.resolve("downloaded-installer.exe"), handedOff.get());
         assertFalse(fx(() -> (boolean) field("updateDownloadRunning")));
     }
+    @Test void aSlowVersionCheckCannotKeepConfirmedDownloadQueued() throws Exception {
+        var entered=new CountDownLatch(1);var release=new CountDownLatch(1);
+        var executor=fx(()->(ThreadPoolExecutor)field("updateExecutor"));
+        // An interrupted network read may not unwind until its socket timeout.
+        // Keep this synthetic check blocked even after Task.cancel(true).
+        var check=new javafx.concurrent.Task<Void>() {
+            protected Void call(){
+                entered.countDown();
+                while(release.getCount()>0)try{release.await(15,TimeUnit.SECONDS);}catch(InterruptedException ignored){/* deliberately delayed close */}
+                return null;
+            }
+        };
+        try {
+            fx(()->{setField("updateCheckTask",check);setField("checkingUpdate",true);setField("pendingManualCheck",true);return null;});
+            executor.execute(check);
+            assertTrue(entered.await(5,TimeUnit.SECONDS));
+            start();
+            long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(5);
+            while(!reached100.get()&&System.nanoTime()<until)Thread.sleep(10);
+            assertTrue(reached100.get(),"The confirmed download must start while an older update check is still blocked.");
+            fx(()->{assertTrue(check.isCancelled());assertNull(field("updateCheckTask"));assertFalse((boolean)field("checkingUpdate"));assertFalse((boolean)field("pendingManualCheck"));return null;});
+        } finally {release.countDown();}
+    }
     @Test void busyApplicationStillDownloadsAndAutomaticallyInstallsAfterTheSavedBoundary() throws Exception {
         var entered=new CountDownLatch(1);var finish=new CountDownLatch(1);
         try(var executor=Executors.newSingleThreadExecutor()) {
@@ -180,6 +203,7 @@ class UpdateHandoffUiTest {
         });
     }
     private Object field(String name) throws Exception { Field f = HomeController.class.getDeclaredField(name); f.setAccessible(true); return f.get(home); }
+    private void setField(String name,Object value)throws Exception { Field f=HomeController.class.getDeclaredField(name);f.setAccessible(true);f.set(home,value); }
     private List<ProgressBar> progressBars(){return Window.getWindows().stream().filter(Window::isShowing).flatMap(w->w.getScene().getRoot().lookupAll(".progress-bar").stream()).filter(ProgressBar.class::isInstance).map(ProgressBar.class::cast).toList();}
     private List<String> labels(){return Window.getWindows().stream().filter(Window::isShowing).flatMap(w->w.getScene().getRoot().lookupAll(".label").stream()).filter(Label.class::isInstance).map(Label.class::cast).map(Label::getText).toList();}
     private String diagnostics() {

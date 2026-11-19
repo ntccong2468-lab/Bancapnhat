@@ -34,6 +34,20 @@ class UpdateDownloadVerificationTest {
         Path arbitrary=root.resolve("not-downloaded.exe");Files.writeString(arbitrary,"binary");
         assertEquals("UPDATE_CHECKSUM_MISMATCH",assertThrows(java.io.IOException.class,()->service.launchInstallerAfterExit(arbitrary)).getMessage());
     }
+    @Test void chunkedDownloadReportsKnownVerifiedSizeAndRejectsTruncation()throws Exception {
+        var i=info("verified-installer");
+        var updates=new ArrayList<long[]>();
+        server.enqueue(new MockResponse().setChunkedBody("verified-installer",3));
+        Path file=service.downloadInstaller(i,(downloaded,total)->updates.add(new long[]{downloaded,total}));
+        assertEquals("verified-installer",Files.readString(file));
+        assertFalse(updates.isEmpty());
+        assertTrue(updates.stream().allMatch(value->value[1]=="verified-installer".length()),
+                "A response without Content-Length must use the verified metadata size for progress.");
+        assertEquals("verified-installer".length(),updates.getLast()[0]);
+        server.enqueue(new MockResponse().setChunkedBody("short",3));
+        assertEquals("UPDATE_SIZE_MISMATCH",assertThrows(java.io.IOException.class,()->service.downloadInstaller(i,null)).getMessage());
+        Files.delete(file);Files.delete(file.getParent());
+    }
     @Test void downloadReportsVerificationAndPreparationNeverClaimsInstallerStartedBeforeBackup()throws Exception {
         var phases=new ArrayList<UpdateInstallerService.Phase>();var i=info("verified-installer");server.enqueue(new MockResponse().setBody("verified-installer"));
         Path file=service.downloadInstaller(i,new UpdateInstallerService.ProgressListener(){

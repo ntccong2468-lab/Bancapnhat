@@ -47,7 +47,7 @@ public final class LicenseService implements AutoCloseable {
             if(saved==null){keys=LicenseDeviceKeys.create();clock=new LicenseClock(wall,nanos,0);state=new State(keys.publicKey(),keys.privateKey(),null,null,null,null,clock.now(),0,"");store.save(state);publish(Status.UNREGISTERED,"");}
             else {
                 keys=LicenseDeviceKeys.restore(saved.publicKey(),saved.privateKey());clock=new LicenseClock(wall,nanos,saved.maxObservedEpoch());state=saved;startupCheckPending=!blank(saved.accessToken())&&blank(saved.denialCode());persist();
-                if(!blank(saved.denialCode()))publish(Status.DENIED,saved.denialCode());
+                if(!blank(saved.denialCode()))publishSavedBlock(saved);
                 else if(saved.account()!=null && saved.envelope()!=null) {
                     try { lease=verifier.verify(saved.envelope(),saved.account().id(),keys.hash(),saved.minRevision(),clock.now(),false);if(clock.rollbackDetected())throw new IOException("LICENSE_CLOCK_ROLLBACK");leaseGeneration=generation.get();publish(Status.OFFLINE,""); }
                     catch(IOException failure){publish(failure.getMessage().equals("LICENSE_EXPIRED")?Status.EXPIRED:Status.UNVERIFIED,safeCode(failure));}
@@ -59,13 +59,14 @@ public final class LicenseService implements AutoCloseable {
         }).thenApply(s->{
             boolean shouldRefresh=false;
             synchronized(submissionLock){
-                if(!closed&&generation.get()==expectedGeneration&&state!=null&&!blank(state.accessToken())&&blank(state.denialCode())&&verifier.configured()){
+                if(!closed&&generation.get()==expectedGeneration&&canRenewSavedSession(state)&&verifier.configured()
+                        &&(blank(state.denialCode())||requiresFreshProof(state.denialCode()))){
                     // A verified, device-bound lease explicitly permits offline use until its
                     // signed deadline. Do not delay startup for the network, but retain the
                     // gate for sessions without valid cached offline rights. A later server
                     // refusal still revokes the lease immediately.
                     startupCheckPending=!hasVerifiedOfflineLease();
-                    publish(Status.CHECKING,"");
+                    if(blank(state.denialCode()))publish(Status.CHECKING,"");
                     shouldRefresh=true;
                 }
             }
@@ -127,7 +128,7 @@ public final class LicenseService implements AutoCloseable {
         String normalized=code.strip().toUpperCase(Locale.ROOT);
         return submit(()->withConnectionRecovery(()->{
             requireKeys();if(!verifier.configured())throw new IOException("LICENSE_TRUST_NOT_CONFIGURED");
-            if(blank(state.registrationToken())||state.account()==null||state.account().status().equals("verifying")||"REGISTRATION_EXPIRED".equals(state.denialCode())||"AUTH_REQUIRED".equals(state.denialCode())) {
+            if(blank(state.registrationToken())||state.account()==null||state.account().status().equals("verifying")||"REGISTRATION_EXPIRED".equals(state.denialCode())||isExpiredSession(state.denialCode())) {
                 var registered=api.enroll(normalized);ensureCurrent();
                 if(!"approved".equals(registered.status())||blank(registered.token())||registered.email()==null
                         ||!registered.email().matches("[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@gmail\\.com"))throw LicenseJson.invalid();
@@ -148,7 +149,15 @@ public final class LicenseService implements AutoCloseable {
                 requireKeys();if(state==null||blank(state.accessToken()))throw new IOException("SESSION_EXPIRED");
                 if(!verifier.configured())throw new IOException("LICENSE_TRUST_NOT_CONFIGURED");
                 withConnectionRecovery(()->{
-                    var challenge=api.challenge(state.accessToken(),keys.publicKey(),"renew");validateChallenge(challenge,"renew");
+                    LicenseApi.Challenge challenge;
+                    try {
+                        challenge=api.challenge(state.accessToken(),keys.publicKey(),"renew");
+                    } catch(LicenseApi.Failure failure) {
+                        if(failure.status()==401&&failure.code().equals("AUTH_REQUIRED"))
+                            throw new LicenseApi.Failure("SESSION_EXPIRED",401);
+                        throw failure;
+                    }
+                    validateChallenge(challenge,"renew");
                     accept(api.renew(state.accessToken(),challenge,keys.publicKey(),keys.sign(challenge.message())),false);return snapshot;
                 });successful=true;return snapshot;
             }finally{
@@ -271,13 +280,43 @@ public final class LicenseService implements AutoCloseable {
             if(allows(Permission.SELLER_API)){try{persist();publish(Status.OFFLINE,code);return;}catch(IOException unavailable){code="LICENSE_STORE_INVALID";}}
         }
         boolean denied=failure instanceof LicenseApi.Failure f&&(f.status()==401||f.status()==403);
-        if(denied || code.equals("LICENSE_PROTOCOL_INVALID") || code.equals("LICENSE_CLOCK_ROLLBACK") || code.equals("LICENSE_CLOCK_SKEW") || code.equals("SIGNING_NOT_CONFIGURED") || code.equals("LICENSE_TRUST_NOT_CONFIGURED")) {
+        // A temporary outage cannot replace a known server refusal or expired session.
+        if(transientError&&state!=null&&!blank(state.denialCode())&&!requiresFreshProof(state.denialCode())){
+            publishSavedBlock(state);
+            return;
+        }
+        if(denied || requiresFreshProof(code)) {
             lease=null;onlineDeadline=0;
             if(state!=null){State s=state;state=new State(s.publicKey(),s.privateKey(),s.registrationToken(),s.accessToken(),s.account(),s.envelope(),clock==null?s.maxObservedEpoch():clock.now(),s.minRevision(),code);try{persist();}catch(IOException ignored){try{store.blockCachedRights();}catch(IOException blocked){/* Disk failure remains a visible readiness blocker. */}code="LICENSE_STORE_INVALID";}}
         }
         // OTP/input errors keep the current registration workflow available for retry.
         if(snapshot.status()==Status.VERIFYING_EMAIL||snapshot.status()==Status.PENDING||snapshot.status()==Status.APPROVED)publish(snapshot.status(),code);
-        else {lease=null;onlineDeadline=0;publish(code.equals("LICENSE_EXPIRED")?Status.EXPIRED:denied?Status.DENIED:Status.UNVERIFIED,code);}
+        else {
+            lease=null;onlineDeadline=0;
+            Status status=code.equals("LICENSE_EXPIRED")?Status.EXPIRED:
+                    denied&&!code.equals("SESSION_EXPIRED")?Status.DENIED:Status.UNVERIFIED;
+            publish(status,code);
+        }
+    }
+    private void publishSavedBlock(State saved) {
+        String code=saved.denialCode();
+        // Older versions stored the challenge's AUTH_REQUIRED verbatim.
+        if(!blank(saved.accessToken())&&isExpiredSession(code))publish(Status.UNVERIFIED,"SESSION_EXPIRED");
+        else publish(requiresFreshProof(code)?Status.UNVERIFIED:Status.DENIED,code);
+    }
+    private static boolean requiresFreshProof(String code) {
+        return switch(code){
+            case "LICENSE_RECHECK_REQUIRED","LICENSE_PROTOCOL_INVALID","LICENSE_CLOCK_ROLLBACK",
+                    "LICENSE_CLOCK_SKEW","SIGNING_NOT_CONFIGURED","LICENSE_TRUST_NOT_CONFIGURED" -> true;
+            default -> false;
+        };
+    }
+    private static boolean isExpiredSession(String code) {
+        return "SESSION_EXPIRED".equals(code)||"AUTH_REQUIRED".equals(code);
+    }
+    private static boolean canRenewSavedSession(State saved) {
+        return saved!=null&&!blank(saved.accessToken())&&!isExpiredSession(saved.denialCode())
+                &&!"DEVICE_REVOKED".equals(saved.denialCode());
     }
     private void publish(Status status,String code) {
         Long expected=operationGeneration.get();if(expected!=null&&generation.get()!=expected)return;
@@ -291,7 +330,7 @@ public final class LicenseService implements AutoCloseable {
     private void tick(){
         if(closed)return;
         submit(()->{persist();return snapshot;}).thenAccept(saved->{
-            if(!closed&&state!=null&&!blank(state.accessToken())&&!saved.errorCode().equals("LICENSE_STORE_INVALID")&&refreshCadence.due(nanos.getAsLong()))refresh();
+            if(!closed&&canRenewSavedSession(state)&&!saved.errorCode().equals("LICENSE_STORE_INVALID")&&refreshCadence.due(nanos.getAsLong()))refresh();
         });
     }
     private static String safeCode(Exception error){String code=error.getMessage();return code!=null&&code.matches("[A-Z][A-Z0-9_]{1,80}")?code:"LICENSE_UNAVAILABLE";}

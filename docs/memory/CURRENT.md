@@ -1,6 +1,13 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **18.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **19.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+
+## 19.11.2026 — tải cập nhật và phiên license sau 1.6.12
+
+- Mã tiếp nối `0a7ee7cd9005d13f35d43005812687d7127efacd`. Latest đã xác minh là 1.6.12, immutable release `451181790`. Không phát hành phần sửa mới. Đo tải 149.153.033 byte và xác minh SHA từ hàm tải của JAR công khai 1.6.11 trong 5,875 giây từ Cloud. Mạng và hồ sơ Windows của người dùng chưa được đo.
+- Tái hiện lượt tải đã xác nhận phải xếp hàng chờ kiểm phiên bản, phản hồi chunked không hiện tỷ lệ, và nhãn chuẩn bị lặp lại ở các bước không có tỷ lệ. Sửa luồng tải độc lập, tiến độ theo dung lượng đã xác minh và hiển thị pha cụ thể. Giữ xác minh gói và điểm lưu an toàn.
+- Desktop kiểm lại lỗi xác minh đã lưu ngay khi mở. Hết phiên thiết bị có trạng thái riêng và hướng dẫn dùng khóa đã cấp nếu thuê bao còn hạn. Portal gia hạn phiên còn hiệu lực sau khi xác minh chữ ký và điều kiện cấp quyền. Phiên đã hết hạn vẫn cần kích hoạt lại. Portal chưa triển khai và chưa nghiệm thu nâng cấp có license thật. [Bàn giao và kiểm thử](../validation/2026-11-19-update-download-license.md).
+- Bản mã cuối tạo được JAR và đạt 200/200 ca Java trong 30 bộ kiểm liên quan. Portal đạt 72/72 ca và Wrangler dry run thành công. Chưa chạy toàn bộ desktop hoặc tạo bộ cài Windows mới cho các sửa đổi này.
 
 ## 18.11.2026 — trạng thái và chi tiết kiểm tra tài khoản GS1
 

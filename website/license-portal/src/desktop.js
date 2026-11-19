@@ -25,9 +25,9 @@ async function registration(env,credential) {
  return env.DB.prepare('SELECT * FROM desktop_registrations WHERE token_hash=? AND verified=1 AND expires_at>?').bind(await sha(credential),now()).first();
 }
 async function deviceSession(env,credential) {
- return env.DB.prepare(`SELECT d.* FROM desktop_sessions s JOIN license_devices d ON d.id=s.device_id WHERE s.token_hash=? AND s.expires_at>?`).bind(await sha(credential),now()).first();
+ return env.DB.prepare(`SELECT d.*,s.expires_at session_expires_at FROM desktop_sessions s JOIN license_devices d ON d.id=s.device_id WHERE s.token_hash=? AND s.expires_at>?`).bind(await sha(credential),now()).first();
 }
-async function lease(env,device,authority) {
+async function lease(env,device,authority,renewal=null) {
  const current=await env.DB.prepare(`SELECT u.id account_id,u.email,u.role,u.status,u.email_verified,u.license_expires_at,
   p.max_devices,p.max_shops,p.offline_hours,p.revision,d.id device_id,d.key_hash,d.revoked
   FROM license_devices d JOIN users u ON u.id=d.user_id JOIN license_policy p ON p.user_id=u.id
@@ -40,12 +40,32 @@ async function lease(env,device,authority) {
  const signature=b64(await crypto.subtle.sign('Ed25519',authority.key,bytes));
  // Recheck authority after signing. A simultaneous revoke, expiry or policy change cannot
  // turn the earlier snapshot into a newly returned grant.
- const saved=await env.DB.prepare(`UPDATE license_devices SET last_seen_at=?,last_lease_expires_at=MAX(COALESCE(last_lease_expires_at,0),?)
+ const sessionCheck=renewal?`AND EXISTS(SELECT 1 FROM desktop_sessions s WHERE s.token_hash=? AND s.device_id=license_devices.id
+  AND s.expires_at>CAST(strftime('%s','now') AS INTEGER))`:'';
+ const saveLease=env.DB.prepare(`UPDATE license_devices SET last_seen_at=?,last_lease_expires_at=MAX(COALESCE(last_lease_expires_at,0),?)
   WHERE id=? AND user_id=? AND key_hash=? AND revoked=0 AND EXISTS(
    SELECT 1 FROM users u JOIN license_policy p ON p.user_id=u.id
    WHERE u.id=? AND u.role IN ('user','admin') AND u.status='approved'
-   AND u.license_expires_at=? AND u.license_expires_at>? AND p.revision=?)`)
-  .bind(issuedAt,expiresAt,current.device_id,current.account_id,current.key_hash,current.account_id,current.license_expires_at,now(),current.revision).run();
+   AND u.license_expires_at=? AND u.license_expires_at>CAST(strftime('%s','now') AS INTEGER) AND p.revision=?) ${sessionCheck}`)
+  .bind(issuedAt,expiresAt,current.device_id,current.account_id,current.key_hash,current.account_id,current.license_expires_at,current.revision,...(renewal?[renewal.tokenHash]:[]));
+ let saved;
+ // A recently authenticated device session remains active while the seller uses
+ // it. Only authenticated renewal with a fresh signed lease can extend it, and
+ // no database write is added during the first 23 days of its 30-day lifetime.
+ if(renewal && device.session_expires_at<=issuedAt+7*86400) {
+  const extendSession=env.DB.prepare(`UPDATE desktop_sessions SET expires_at=MAX(expires_at,?)
+   WHERE token_hash=? AND device_id=? AND expires_at>CAST(strftime('%s','now') AS INTEGER)
+   AND EXISTS(SELECT 1 FROM license_devices d JOIN users u ON u.id=d.user_id
+    JOIN license_policy p ON p.user_id=u.id WHERE d.id=desktop_sessions.device_id
+    AND d.user_id=? AND d.key_hash=? AND d.revoked=0 AND u.role IN ('user','admin')
+    AND u.status='approved' AND u.license_expires_at=?
+    AND u.license_expires_at>CAST(strftime('%s','now') AS INTEGER) AND p.revision=?)`)
+   .bind(issuedAt+30*86400,renewal.tokenHash,current.device_id,current.account_id,current.key_hash,current.license_expires_at,current.revision);
+  const [leaseResult,sessionResult]=await env.DB.batch([saveLease,extendSession]);saved=leaseResult;
+  // The token may have expired, or authority changed, while the lease was being
+  // signed. A failed conditional extension never returns the signed lease.
+  if(!saved.meta?.changes||!sessionResult.meta?.changes)return error('LICENSE_CHANGED',403);
+ } else saved=await saveLease.run();
  if(!saved.meta?.changes)return error('LICENSE_CHANGED',403);
  return {user:{id:current.account_id,email:current.email,status:current.status,active:true,expires_at:current.license_expires_at},device_id:current.device_id,lease:{key_id:authority.keyId,payload:b64(bytes),signature},online_valid_until:Math.min(current.license_expires_at,issuedAt+300)};
 }
@@ -170,7 +190,7 @@ export async function desktopApi(request,env,h,admin=null) {
   if(action==='renew') {
    const device=await deviceSession(env,credential);if(!device)return error('SESSION_EXPIRED',401);
    if(device.revoked||device.public_key!==b.public_key)return error('DEVICE_REVOKED',403);
-   const out=await lease(env,device,key);return out instanceof Response?out:reply(out);
+   const out=await lease(env,device,key,{tokenHash:await sha(credential)});return out instanceof Response?out:reply(out);
   }
   const reg=await registration(env,credential);if(!reg)return error('REGISTRATION_EXPIRED',401);
   const user=await env.DB.prepare('SELECT * FROM users WHERE id=?').bind(reg.user_id).first();

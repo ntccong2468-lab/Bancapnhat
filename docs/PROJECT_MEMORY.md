@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 19.11.2026 MSK — sửa chuẩn bị tải cập nhật và phiên license
+
+Tiếp nối nguồn Latest 1.6.12 `0a7ee7c`. MSI gốc đúng SHA, hàm tải ở JAR công khai 1.6.11 tải và kiểm đủ 149.153.033 byte trong 5,875 giây trên Cloud. Tái hiện kiểm phiên bản giữ hàng đợi tải, nhãn chuẩn bị che tiến độ chunked và bước hiện tại. Sửa riêng lượt tải và hiển thị. Desktop tự kiểm lại lỗi xác minh còn khả năng phục hồi, giữ trạng thái thu hồi và hướng dẫn kích hoạt lại khi phiên hết hạn. Portal gia hạn phiên còn hiệu lực sau chứng minh thiết bị và cấp quyền mới. Chưa phát hành desktop, chưa triển khai Portal. [Bằng chứng và phạm vi](validation/2026-11-19-update-download-license.md).
+
 ## 18.11.2026 MSK — GS1 hiển thị trạng thái có nguồn và chi tiết
 
 Sau `1f06cc0`, tái hiện UI nhận nhầm URL True API mặc định thành môi trường chưa hỗ trợ và che mã lỗi khi hai nguồn chưa từng thành công. Sửa dùng URL đã xác định, hiển thị badge và chi tiết cho sáu mục. Lỗi thỏa thuận lưu theo shop/scope và lượt kiểm không rơi khi context đang tải. Giữ điều kiện chứng minh, quota và thời hạn xác minh. Kiểm JavaFX `-Dtest=*Gs1*Test` 361 ca, 360 đạt và một ca NTFS bỏ qua trên Linux. Bản sửa chưa phát hành. [Điểm tiếp tục](memory/CURRENT.md)
