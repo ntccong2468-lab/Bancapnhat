@@ -23,6 +23,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
@@ -50,6 +51,7 @@ public class FboPackingController {
     @FXML private Button printButton;
     @FXML private Label emptyStateLabel;
     @FXML private Label loadingLabel;
+    @FXML private Label printScopeLabel;
     @FXML private TableView<FboProductRow> productTable;
     @FXML private TableColumn<FboProductRow, FboProductRow> imageColumn;
     @FXML private TableColumn<FboProductRow, String> nameColumn;
@@ -215,6 +217,11 @@ public class FboPackingController {
         boolean ozon = marketplace == Marketplace.OZON;
         titleLabel.setText(i18n.tr(ozon ? "ozon.fbo.title" : "fbo.title"));
         searchField.setPromptText(i18n.tr(ozon ? "ozon.fbo.search" : "fbo.search"));
+        searchField.setAccessibleText(i18n.tr(ozon ? "ozon.fbo.search" : "fbo.search"));
+        clearFiltersButton.setAccessibleText(i18n.tr("znack.filter.clear"));
+        clearFiltersButton.setTooltip(new Tooltip(i18n.tr("znack.filter.clear")));
+        printScopeLabel.setText(i18n.tr("fbo.print_scope"));
+        printButton.setTooltip(new Tooltip(i18n.tr("fbo.print_scope")));
         emptyStateLabel.setText(i18n.tr("fbo.empty"));
         loadingLabel.setText(i18n.tr("fbo.loading"));
         imageColumn.setText(i18n.tr("fbo.column.image"));
@@ -227,6 +234,7 @@ public class FboPackingController {
         quickPrintColumn.setText(i18n.tr("fbo.column.print"));
         updateCategoryText();
         updateClearFiltersVisibility();
+        productTable.refresh();
     }
 
     @FXML
@@ -335,6 +343,8 @@ public class FboPackingController {
                 .mapToInt(row -> Math.max(0, row.getQuantity()))
                 .sum();
         printButton.setDisable(totalQuantity == 0);
+        printScopeLabel.setVisible(totalQuantity > 0);
+        printScopeLabel.setManaged(totalQuantity > 0);
         String printText = I18nService.getInstance().tr("fbo.print");
         printButton.setText(totalQuantity > 0 ? printText + " (" + totalQuantity + ")" : printText);
     }
@@ -357,10 +367,12 @@ public class FboPackingController {
 
     private static class QuantityCell extends TableCell<FboProductRow, FboProductRow> {
         private final TextField field = new TextField();
+        private final Tooltip tooltip = new Tooltip();
         private FboProductRow currentRow;
         private boolean updating;
 
         QuantityCell() {
+            field.setTooltip(tooltip);
             field.getStyleClass().add("fbo-quantity-field");
             field.setAlignment(Pos.CENTER);
             field.setPrefWidth(56);
@@ -388,6 +400,8 @@ public class FboPackingController {
             updating = true;
             field.setText(row.getQuantity() <= 0 ? "" : String.valueOf(row.getQuantity()));
             updating = false;
+            String label=java.text.MessageFormat.format(I18nService.getInstance().tr("fbo.quantity_accessible"), accessibleProduct(row.product()));
+            field.setAccessibleText(label);tooltip.setText(label);
             setGraphic(field);
         }
 
@@ -405,9 +419,11 @@ public class FboPackingController {
 
     private class QuickPrintCell extends TableCell<FboProductRow, FboProductRow> {
         private final Button button = new Button();
+        private final Tooltip tooltip = new Tooltip();
         private FboProductRow currentRow;
 
         QuickPrintCell() {
+            button.setTooltip(tooltip);
             button.getStyleClass().addAll("button", "btn-icon", "fbo-row-print-button");
             button.setGraphic(new FontIcon("fth-printer:15:white"));
             button.setOnAction(event -> {
@@ -421,7 +437,17 @@ public class FboPackingController {
         protected void updateItem(FboProductRow row, boolean empty) {
             super.updateItem(row, empty);
             currentRow = row;
+            if (!empty && row != null) {
+                String label=java.text.MessageFormat.format(I18nService.getInstance().tr("fbo.quick_print_accessible"), accessibleProduct(row.product()));
+                button.setAccessibleText(label);tooltip.setText(label);
+            }
             setGraphic(empty || row == null ? null : button);
         }
+    }
+
+    private static String accessibleProduct(FboProductSku product) {
+        return java.util.stream.Stream.of(product.title(), product.vendorCode(), product.color(), product.size(), product.catalogSku())
+                .filter(value -> value != null && !value.isBlank()).map(String::strip)
+                .collect(java.util.stream.Collectors.joining(" · "));
     }
 }

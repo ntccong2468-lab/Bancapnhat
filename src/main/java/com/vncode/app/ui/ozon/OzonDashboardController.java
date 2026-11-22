@@ -454,6 +454,7 @@ public final class OzonDashboardController {
         gtinInventoryTitleLabel.setText(i18n.tr("supply.gtin_inventory.title"));
         gtinInventoryEmptyLabel.setText(i18n.tr("supply.gtin_inventory.empty"));
         gtinInventoryRefreshButton.setTooltip(new Tooltip(i18n.tr("supply.gtin_inventory.refresh")));
+        gtinInventoryRefreshButton.setAccessibleText(i18n.tr("supply.gtin_inventory.refresh"));
         String kizPolicyTooltip = i18n.tr("ozon.kiz_policy.tooltip");
         kizPolicyButton.setText(null);
         kizPolicyButton.setAccessibleText(kizPolicyTooltip);
@@ -479,6 +480,7 @@ public final class OzonDashboardController {
         printedHintLabel.setText(i18n.tr("ozon.dashboard.printed_hint"));emptyPrintedOrdersLabel.setText(i18n.tr("ozon.dashboard.empty.printed"));printedOrdersTable.setPlaceholder(emptyPrintedOrdersLabel);
         printedOrderNumberTC.setText(i18n.tr("packing.col.order_id"));printedOrderItemsTC.setText(i18n.tr("packing.col.product"));printedOrderImageTC.setText(i18n.tr("packing.col.photo"));
         updateSelectionState();
+        updatePrintAllState();
         renderGtinSummaries(gtinSummaries);
         newOrdersTable.refresh();
         packingOrdersTable.refresh();printedOrdersTable.refresh();
@@ -1349,7 +1351,9 @@ public final class OzonDashboardController {
     private TableCell<OzonPostingDto, Boolean> selectionCell() {
         return new TableCell<>() {
             private final CheckBox checkBox = new CheckBox();
+            private final Tooltip tooltip = new Tooltip();
             {
+                checkBox.setTooltip(tooltip);
                 checkBox.disableProperty().bind(operationBusy);
                 checkBox.setOnAction(event -> {
                     OzonPostingDto posting = getTableRow() == null ? null : getTableRow().getItem();
@@ -1366,6 +1370,10 @@ public final class OzonDashboardController {
                     return;
                 }
                 checkBox.setSelected(Boolean.TRUE.equals(selected));
+                OzonPostingDto posting=getTableRow()==null?null:getTableRow().getItem();
+                String name=MessageFormat.format(I18nService.getInstance().tr("packing.select_order"),
+                        posting==null||posting.postingNumber().isBlank()?"—":posting.postingNumber());
+                checkBox.setAccessibleText(name);tooltip.setText(name);
                 setGraphic(checkBox);
             }
         };
@@ -1374,10 +1382,12 @@ public final class OzonDashboardController {
     private TableCell<OzonPostingDto, Void> labelCell() {
         return new TableCell<>() {
             private final Button printButton = new Button();
+            private final Tooltip tooltip = new Tooltip();
             private final SimpleBooleanProperty unavailable = new SimpleBooleanProperty(true);
             {
                 printButton.disableProperty().bind(operationBusy.or(unavailable));
                 printButton.getStyleClass().addAll("button", "btn-icon", "fbo-row-print-button");
+                printButton.setTooltip(tooltip);
                 printButton.setGraphic(new FontIcon("fth-printer"));
                 printButton.setOnAction(event -> {
                     OzonPostingDto posting = getTableRow() == null ? null : getTableRow().getItem();
@@ -1391,9 +1401,9 @@ public final class OzonDashboardController {
                     setGraphic(null);
                     return;
                 }
-                String label = I18nService.getInstance().tr("ozon.dashboard.print_label");
+                String label = I18nService.getInstance().tr("ozon.dashboard.print_label") + " · " + posting.postingNumber();
                 printButton.setText(null);
-                printButton.setTooltip(new Tooltip(label));
+                tooltip.setText(label);
                 printButton.setAccessibleText(label);
                 unavailable.set(!canPrintLabel(posting));
                 setAlignment(Pos.CENTER);
@@ -1452,6 +1462,8 @@ public final class OzonDashboardController {
 
     private void updatePrintAllState() {
         printAllButton.setDisable(busy || shop == null || packingOrdersTable.getItems().isEmpty());
+        String printScope=tr("ozon.batch.print_scope");
+        printAllButton.setAccessibleHelp(printScope);printAllButton.setTooltip(new Tooltip(printScope));
         String key = activeStatus();
         printKizOnlyButton.setDisable(busy || shop == null || totals.getOrDefault(key, 0L) == 0);
     }

@@ -16,7 +16,7 @@ import java.util.*;
 /** One batch review: facts remain unverified until the seller explicitly accepts them. */
 final class RegistrationSourceReviewDialog {
     private record Row(RegistrationDynamicPreflight.Plan plan,RegistrationFieldProvenance.Evidence evidence){}
-    static RegistrationSourceConsent.Prepared show(Window owner,Shop selected,UUID intent,RegistrationDynamicPreflight.Review review,Map<ProductKey,RegistrationSourceConsent.Target> targets){
+    static RegistrationSourceConsent.Prepared show(Window owner,Shop selected,UUID intent,RegistrationDynamicPreflight.Review review,Map<ProductKey,RegistrationSourceConsent.Target> targets,boolean autoSign){
         if(selected==null||review==null||!review.blocked().isEmpty()||!review.missing().isEmpty()||!review.documents().isEmpty())return null;
         Shop shop=new Shop(selected.getId(),selected.getName(),selected.getMarketplace(),selected.getClientId(),selected.getApiKey());
         var dialog=new Dialog<RegistrationSourceConsent.Prepared>();dialog.setResultConverter(type->null);if(owner!=null)dialog.initOwner(owner);dialog.setTitle(tr("znack.source_review.title"));AlertService.applyTheme(dialog);
@@ -38,7 +38,8 @@ final class RegistrationSourceReviewDialog {
         var confirmReplacement=new CheckBox(tr("znack.source_review.confirm_replacement"));confirmReplacement.setWrapText(true);confirmReplacement.setId("registrationSourceConfirmReplacement");confirmReplacement.setVisible(replacing);confirmReplacement.setManaged(replacing);
         var repair=new CheckBox(tr("znack.source_review.repair_opt_in"));repair.setWrapText(true);repair.setId("registrationSourceRepairOptIn");
         for(var check:List.of(confirmValues,confirmReplacement,repair)){check.setMaxWidth(Double.MAX_VALUE);check.setMinHeight(Region.USE_PREF_SIZE);}
-        var content=new VBox(9,info,status,table,confirmValues,confirmReplacement,repair);content.setPadding(new Insets(14));VBox.setVgrow(table,Priority.ALWAYS);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(1020,620);DialogLayout.install(dialog.getDialogPane());
+        var signingMode=new Label(tr(autoSign?"znack.source_review.auto_sign_enabled":"znack.source_review.auto_sign_disabled"));signingMode.setId("registrationSourceAutoSign");signingMode.setWrapText(true);signingMode.setMinHeight(Region.USE_PREF_SIZE);signingMode.setMaxWidth(Double.MAX_VALUE);
+        var content=new VBox(9,info,signingMode,status,table,confirmValues,confirmReplacement,repair);content.setPadding(new Insets(14));VBox.setVgrow(table,Priority.ALWAYS);dialog.getDialogPane().setContent(content);dialog.getDialogPane().setPrefSize(1020,620);DialogLayout.install(dialog.getDialogPane());
         var apply=new ButtonType(tr("znack.source_review.confirm"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(apply,new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE));
         var button=(Button)dialog.getDialogPane().lookupButton(apply);button.setId("registrationSourceReviewApply");button.getStyleClass().add("btn-primary");button.setDisable(true);
         var disposed=new java.util.concurrent.atomic.AtomicBoolean();var loading=new java.util.concurrent.atomic.AtomicBoolean(true);

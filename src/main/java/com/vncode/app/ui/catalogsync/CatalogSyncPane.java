@@ -114,10 +114,15 @@ public final class CatalogSyncPane extends BorderPane {
         var current=values.getOrDefault(row.key(),Map.of()).getOrDefault(name,row.catalog().details().values(name));
         var input=new TextInputDialog(String.join(" | ",current));AlertService.applyTheme(input);input.setTitle(tr("catalogsync.edit_value"));input.setHeaderText(tr("catalogsync.field."+field));input.setContentText(tr("catalogsync.value_hint"));
         input.showAndWait().ifPresent(text->{var proposed=Arrays.stream(text.split("\\|",-1)).map(String::strip).toList();
-            if(proposed.stream().anyMatch(String::isBlank)||field==Field.TNVED&&(proposed.size()!=1||!proposed.getFirst().matches("[0-9]{10}"))){status.setText(tr("catalogsync.select_fields"));return;}
+            String error=valueValidation(field,proposed);if(!error.isBlank()){status.setText(tr(error));return;}
             for(var sibling:selection)if(sibling.key().productId().equals(row.key().productId())){var edited=new LinkedHashMap<>(values.getOrDefault(sibling.key(),Map.of()));edited.put(name,proposed);values.put(sibling.key(),Map.copyOf(edited));}
             fields.get(field).setSelected(true);invalidate();status.setText(tr("catalogsync.value_saved"));
         });
+    }
+    static String valueValidation(Field field,List<String> proposed){
+        if(proposed.isEmpty()||proposed.stream().anyMatch(String::isBlank))return "catalogsync.value_required";
+        if(field==Field.TNVED&&(proposed.size()!=1||!proposed.getFirst().matches("[0-9]{10}")))return "catalogsync.invalid_tnved";
+        return "";
     }
     private void documentOptions(){if(shop==null||busy)return;var owner=shop;read(()->new com.vncode.app.integration.listing.ListingHttpClient(owner).call("v2/product/certification/options",new com.google.gson.JsonObject(),false).toString(),value->{var dialog=new Dialog<Void>();AlertService.applyTheme(dialog);dialog.setTitle(tr("catalogsync.document_options"));var text=new TextArea(optionsDescription(com.google.gson.JsonParser.parseString(value)));text.setEditable(false);text.setWrapText(true);dialog.getDialogPane().setContent(text);dialog.getDialogPane().setPrefSize(780,500);dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);dialog.show();});}
     private static String optionsDescription(com.google.gson.JsonElement value){var out=new StringBuilder();describeOptions(value,"",0,out);return out.toString();}

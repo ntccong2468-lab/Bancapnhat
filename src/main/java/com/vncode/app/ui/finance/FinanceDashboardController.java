@@ -88,6 +88,8 @@ public class FinanceDashboardController {
 
     @FXML
     private void initialize() {
+        fromDateLabel.setLabelFor(fromDatePicker);
+        toDateLabel.setLabelFor(toDatePicker);
         LocalDate today = LocalDate.now();
         fromDatePicker.setValue(today.minusDays(29));
         toDatePicker.setValue(today);

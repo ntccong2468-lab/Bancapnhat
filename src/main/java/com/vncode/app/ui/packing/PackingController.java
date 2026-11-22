@@ -392,6 +392,13 @@ public class PackingController {
         debtOrderStatusTC.setText(i18n.tr("packing.debt.wb_status"));
         if (openDebtShipmentId == null) debtHeading.setText(i18n.tr("packing.debt.shipments"));
         newOrderSearchField.setPromptText(i18n.tr("packing.search_prompt"));
+        newOrderSearchField.setAccessibleText(i18n.tr("packing.search_prompt"));
+        clearFiltersButton.setAccessibleText(i18n.tr("znack.filter.clear"));
+        clearFiltersButton.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("znack.filter.clear")));
+        selectAllCheckBox.setAccessibleText(i18n.tr("packing.select_filtered"));
+        selectAllCheckBox.setTooltip(new javafx.scene.control.Tooltip(i18n.tr("packing.select_filtered")));
+        preparationTable.setAccessibleHelp(i18n.tr("packing.open_shipment_help"));
+        debtShipmentsTable.setAccessibleHelp(i18n.tr("packing.open_shipment_help"));
         emptyNewOrdersLabel.setText(i18n.tr("packing.empty"));
         newShipmentButton.setText(i18n.tr("packing.new_shipment"));
         addToShipmentButton.setText(i18n.tr("packing.add_to_shipment"));
@@ -407,6 +414,11 @@ public class PackingController {
         dispatchStatusTC.setText(i18n.tr("packing.col.status"));
         dispatchCountTC.setText(i18n.tr("packing.col.items"));
         dispatchCreatedTC.setText(i18n.tr("packing.col.date"));
+        newOrdersTable.refresh();
+        preparationTable.refresh();
+        dispatchTable.refresh();
+        debtShipmentsTable.refresh();
+        debtOrdersTable.refresh();
         updateCategoryFilterOptions();
         updateSelectionState();
     }
@@ -437,7 +449,8 @@ public class PackingController {
 
     private void updateSelectionState() {
         int count = selectedOrderIds.size();
-        selectedCountLabel.setText(MessageFormat.format(I18nService.getInstance().tr("packing.selected_count"), count));
+        selectedCountLabel.setText(MessageFormat.format(I18nService.getInstance().tr("packing.selected_count"), count)
+                + " · " + I18nService.getInstance().tr("packing.selected_scope"));
         newShipmentButton.setDisable(count == 0 || !tokenValid);
         addToShipmentButton.setDisable(count == 0 || !tokenValid);
         selectAllCheckBox.setSelected(!newOrdersTable.getItems().isEmpty() && visibleOrderIdsSelected());
@@ -471,7 +484,9 @@ public class PackingController {
         selectedTC.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(selectedOrderIds.contains(data.getValue().getId())));
         selectedTC.setCellFactory(column -> new TableCell<>() {
             private final CheckBox checkBox = new CheckBox();
+            private final javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip();
             {
+                checkBox.setTooltip(tooltip);
                 checkBox.setOnAction(event -> {
                     Order order = getTableRow() == null ? null : getTableRow().getItem();
                     if (order == null || order.getId() == null) {
@@ -494,6 +509,11 @@ public class PackingController {
                     return;
                 }
                 checkBox.setSelected(Boolean.TRUE.equals(selected));
+                Order order = getTableRow() == null ? null : getTableRow().getItem();
+                String name = MessageFormat.format(I18nService.getInstance().tr("packing.select_order"),
+                        order == null || order.getId() == null ? "—" : order.getId().toString());
+                checkBox.setAccessibleText(name);
+                tooltip.setText(name);
                 setGraphic(checkBox);
             }
         });
@@ -607,6 +627,12 @@ public class PackingController {
     }
 
     private void setupSupplyTables() {
+        preparationTable.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER && event.getTarget() == preparationTable) {
+                var selected = preparationTable.getSelectionModel().getSelectedItem();
+                if (selected != null) { openSupplyDetail(selected); event.consume(); }
+            }
+        });
         preparationSupplyTC.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().toString()));
         preparationStatusTC.setCellValueFactory(data -> new SimpleStringProperty(formatSupplyStatus(data.getValue())));
         preparationCountTC.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue().getItemCount()));
@@ -629,6 +655,12 @@ public class PackingController {
     }
 
     private void setupDebtTables() {
+        debtShipmentsTable.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ENTER && event.getTarget() == debtShipmentsTable) {
+                var selected = debtShipmentsTable.getSelectionModel().getSelectedItem();
+                if (selected != null) { showDebtOrders(selected); event.consume(); }
+            }
+        });
         var headingTip = new javafx.scene.control.Tooltip();
         headingTip.textProperty().bind(debtHeading.textProperty());
         debtHeading.setTooltip(headingTip);
@@ -765,14 +797,18 @@ public class PackingController {
     private TableCell<Order, Void> debtPrintCell() {
         return new TableCell<>() {
             private final Button button=new Button();
+            private final javafx.scene.control.Tooltip tooltip=new javafx.scene.control.Tooltip();
             {
                 FontIcon icon=new FontIcon("fth-printer"); icon.setIconSize(15); icon.setIconColor(Color.WHITE);
                 button.setGraphic(icon); button.getStyleClass().add("btn-icon");
-                button.setTooltip(new javafx.scene.control.Tooltip(I18nService.getInstance().tr("packing.debt.print")));
+                button.setTooltip(tooltip);
                 button.setOnAction(event -> { Order order=getTableRow()==null?null:getTableRow().getItem(); if(order!=null) saveDebtLabel(order); });
             }
             @Override protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item,empty); Order order=getTableRow()==null?null:getTableRow().getItem();
+                String label=I18nService.getInstance().tr("packing.debt.print")
+                        +(order==null||order.getId()==null?"":" · "+order.getId());
+                button.setAccessibleText(label);tooltip.setText(label);
                 button.setDisable(order==null || order.getId()==null || pendingDebtPrints.contains(order.getId()) || !tokenValid);
                 setGraphic(empty?null:button);
             }
@@ -854,11 +890,13 @@ public class PackingController {
     private TableCell<WbSupplySummary, Void> dispatchActionCell() {
         return new TableCell<>() {
             private final Button barcodeButton = new Button();
+            private final javafx.scene.control.Tooltip tooltip=new javafx.scene.control.Tooltip();
             {
                 FontIcon icon = new FontIcon("fth-printer");
                 icon.setIconSize(15);
                 icon.setIconColor(Color.WHITE);
                 barcodeButton.setGraphic(icon);
+                barcodeButton.setTooltip(tooltip);
                 barcodeButton.setPrefSize(32, 32);
                 barcodeButton.getStyleClass().add("btn-icon");
                 barcodeButton.setOnAction(e -> {
@@ -872,6 +910,10 @@ public class PackingController {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
+                WbSupplySummary supply=getTableRow()==null?null:getTableRow().getItem();
+                String label=MessageFormat.format(I18nService.getInstance().tr("packing.print_supply_barcode"),
+                        supply==null||supply.getSupplyId()==null?"—":supply.getSupplyId());
+                barcodeButton.setAccessibleText(label);tooltip.setText(label);
                 setGraphic(empty ? null : barcodeButton);
             }
         };

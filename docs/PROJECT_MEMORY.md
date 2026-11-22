@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 22.11.2026 MSK — Unslop giai đoạn 2
+
+Sau `e673016`, đồng bộ cấp chữ và icon, bổ sung nhãn phạm vi in và thao tác bàn phím trên các màn FBS/FBO, Znack, GS1. Cải thiện nhãn lỗi giấy tờ và kiểm tra bản dịch. JavaFX 374 ca hồi quy đạt, Node 280 ca đạt. Tiêu đề Znack được rút ngắn và kiểm đủ 16 tổ hợp bố cục. Chưa phát hành. [Bằng chứng](validation/2026-11-22-unslop-typography-actions.md)
+
 ## 22.11.2026 MSK — giao diện đen phẳng sau duyệt Unslop
 
 Sau `12fbcf5`, thay Liquid Glass bằng nền tối `#000000` và các bề mặt đặc. Sáng và Theo hệ thống có cùng hệ điều khiển phẳng. Bỏ cài đặt kính, giữ hàng đợi nghiệp vụ và chủ quyền dữ liệu. JavaFX 221/221, Node 280/280, 66 ảnh fixture và xác minh JAR. Chưa phát hành hoặc kiểm máy seller. [Báo cáo](validation/2026-11-22-unslop-flat-theme.md)

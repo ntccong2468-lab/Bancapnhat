@@ -18,6 +18,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static com.vncode.app.features.catalogsync.CatalogSyncModels.*;
 
 class CatalogSyncPaneTest {
+    @Test void invalidValuesDescribeTheValueProblemWithoutAskingForAnotherFieldSelection(){
+        assertEquals("catalogsync.value_required",CatalogSyncPane.valueValidation(Field.BRAND,List.of("")));
+        assertEquals("catalogsync.value_required",CatalogSyncPane.valueValidation(Field.MATERIAL,List.of("cotton","")));
+        assertEquals("catalogsync.invalid_tnved",CatalogSyncPane.valueValidation(Field.TNVED,List.of("123456789")));
+        assertEquals("catalogsync.invalid_tnved",CatalogSyncPane.valueValidation(Field.TNVED,List.of("1234567890","6103109000")));
+        assertEquals("catalogsync.invalid_tnved",CatalogSyncPane.valueValidation(Field.TNVED,List.of("61031090AA")));
+        assertEquals("",CatalogSyncPane.valueValidation(Field.TNVED,List.of("6103109000")));
+        assertEquals("",CatalogSyncPane.valueValidation(Field.MATERIAL,List.of("cotton","polyester")));
+    }
     @Test void crossMarketplaceHistoryExplainsWhereToResumeInEveryLocale()throws Exception {
         var previous=I18nService.getInstance().getCurrentLanguage();
         try{var safe=CatalogSyncPane.class.getDeclaredMethod("safe",Throwable.class);safe.setAccessible(true);

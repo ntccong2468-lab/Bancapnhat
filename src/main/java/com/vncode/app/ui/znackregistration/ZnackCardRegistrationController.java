@@ -467,7 +467,7 @@ public final class ZnackCardRegistrationController {
                     ?new RegistrationSourceConsent.Target(RegistrationSourceConsent.Action.REPLACE,row.gtin(),row.goodId())
                     :RegistrationSourceConsent.forIdentity(row.gtin(),row.goodId()));} }
             catch(RuntimeException invalid){preparing=false;updateActionState();showError(invalid);return;}
-            var approved=RegistrationSourceReviewDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,intent,review.dynamic(),targets);
+            var approved=RegistrationSourceReviewDialog.show(productTable.getScene()==null?null:productTable.getScene().getWindow(),owner,intent,review.dynamic(),targets,autoSign);
             if(approved==null||!isCurrent(owner,epoch)){preparing=false;updateActionState();return;}
             Task<String> start=new Task<>(){protected String call(){return batchStarter.start(owner,retained,autoSign,approved);}};
             start.setOnSucceeded(done->{if(!isCurrent(owner,epoch))return;lastRegistrationRun=start.getValue();preparing=false;

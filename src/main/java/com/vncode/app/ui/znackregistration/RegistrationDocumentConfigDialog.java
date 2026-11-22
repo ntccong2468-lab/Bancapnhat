@@ -52,7 +52,7 @@ public final class RegistrationDocumentConfigDialog {
         var expiryNote=new Label(tr("znack.registration.config_expiry_note"));expiryNote.setWrapText(true);expiryNote.setMaxWidth(560);
         var grid=new GridPane();grid.setHgap(12);grid.setVgap(12);
         grid.addRow(0,new Label(tr("znack.registration.document_type")),type);grid.addRow(1,new Label(tr("znack.registration.document_number")),number);grid.addRow(2,new Label(tr("znack.registration.document_date")),date);grid.addRow(3,new Label(tr("znack.document_expiry_date")),expiry);grid.add(expiryNote,0,4,2,1);grid.add(note,0,5,2,1);
-        dialog.getDialogPane().setContent(grid);var apply=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);dialog.getDialogPane().getButtonTypes().setAll(apply,ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(grid);var apply=new ButtonType(tr("common.apply"),ButtonBar.ButtonData.OK_DONE);var cancel=new ButtonType(tr("common.cancel"),ButtonBar.ButtonData.CANCEL_CLOSE);dialog.getDialogPane().getButtonTypes().setAll(apply,cancel);
         var reviewed=new java.util.concurrent.atomic.AtomicReference<ConfiguredDocument>();
         dialog.getDialogPane().lookupButton(apply).addEventFilter(javafx.event.ActionEvent.ACTION,e->{try{
             LocalDate from=parseDate(date.getText(),"znack.registration.invalid_document_date"),until=parseDate(expiry.getText(),"znack.registration.invalid_document_expiry_date");

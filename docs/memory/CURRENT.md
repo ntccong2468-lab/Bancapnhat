@@ -2,6 +2,11 @@
 
 Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 22.11.2026 — Unslop giai đoạn 2
+
+- Tiếp nối nền đen phẳng từ `e673016`. Chuẩn hóa tiêu đề, icon hành động, bản dịch và nhãn trợ năng. WB FBS mở lô bằng Enter, Ozon/FBO giải thích tập in, GS1 có menu tài khoản dùng bàn phím. Trình duyệt lô Znack WB/Ozon hiện chế độ ký đã chọn và báo trường giấy tờ cần sửa.
+- Maven Java 25/Xvfb đạt 374/374 ca hồi quy. Bộ ảnh hai cỡ cửa sổ, hai nền và bốn ngôn ngữ phát hiện chồng tiêu đề Znack tiếng Nga. Rút gọn bản dịch và kiểm lại 16/16 phép đo vị trí đều đạt. Node 280/280. Kiểm bằng hồ sơ tổng hợp, chưa nghiệm thu Windows hoặc phát hành. Bố cục bảng hẹp vẫn thuộc giai đoạn 3. [Báo cáo](../validation/2026-11-22-unslop-typography-actions.md).
+
 ## 22.11.2026 — duyệt nền đen phẳng, hoàn thành giai đoạn 1
 
 - Người dùng duyệt giai đoạn bề mặt và yêu cầu thay Liquid Glass bằng nền đen thuần. Mã tiếp nối audit `12fbcf5`. Nền tối `#000000`, bảng và trang làm việc dùng màu nền chính, các vùng nâng dùng xám đen đặc. Tùy chọn sáng và theo hệ thống dùng bề mặt đặc.

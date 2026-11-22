@@ -40,6 +40,10 @@ class OzonFbsUiTest {
                     var columns=table.getVisibleLeafColumns();assertEquals(5,columns.size());assertTrue(columns.stream().noneMatch(c->"ozonRowNumber".equals(c.getId())||"ozonBarcodes".equals(c.getId())));
                     var labels=table.lookupAll(".label").stream().filter(node->node instanceof Label).map(node->((Label)node).getText()).toList();
                     for(String value:List.of("90000000-0001-1","25.10.2026","OZN1000001","04631993764370","KN3"))assertTrue(labels.stream().anyMatch(text->text.contains(value)),prefix+" missing "+value);
+                    if(prefix.equals("new"))assertTrue(table.lookupAll(".check-box").stream().filter(CheckBox.class::isInstance)
+                            .map(CheckBox.class::cast).anyMatch(check->check.getAccessibleText()!=null&&check.getAccessibleText().contains("90000000-0001-1")),"The per-order selector identifies the exact posting");
+                    if(prefix.equals("packing")||prefix.equals("printed"))assertTrue(table.lookupAll(".fbo-row-print-button").stream().filter(Button.class::isInstance)
+                            .map(Button.class::cast).anyMatch(button->button.getAccessibleText()!=null&&button.getAccessibleText().contains("90000000-0001-1")&&button.getTooltip()!=null),"The per-order print action identifies the exact posting");
                     assertTrue(((Button)loader.getNamespace().get("printAllButton")).isVisible()==prefix.equals("packing"));return null;
                 });
             }

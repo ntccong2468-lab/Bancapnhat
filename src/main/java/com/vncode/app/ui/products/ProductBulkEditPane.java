@@ -123,7 +123,7 @@ public final class ProductBulkEditPane extends BorderPane {
         c.setCellValueFactory(v->new ReadOnlyStringWrapper(text.apply(v.getValue())));
         c.setCellFactory(v->new TableCell<>(){protected void updateItem(String s,boolean empty){super.updateItem(s,empty);setText(empty?null:s);setTooltip(empty||s==null?null:new Tooltip(s));}});results.getColumns().add(c);
     }
-    private HBox line(String key,TextField input){var l=new Label();label(l,key);l.setMinWidth(140);HBox.setHgrow(input,Priority.ALWAYS);return new HBox(8,l,input);}
+    private HBox line(String key,TextField input){var l=new Label();label(l,key);l.setLabelFor(input);l.setMinWidth(140);HBox.setHgrow(input,Priority.ALWAYS);return new HBox(8,l,input);}
     private void label(Labeled widget,String key){labels.put(widget,key);widget.setText(tr(key));}
     public void setOnBack(Runnable callback){onBack=callback;}
     public void setOnSaved(Runnable callback){onSaved=callback;}
@@ -166,17 +166,38 @@ public final class ProductBulkEditPane extends BorderPane {
     private ProductBulkEdit edit(){
         if(compact&&field.equals("material"))commitMaterialPercentages();
         if(!field.equals("documents"))return new ProductBulkEdit(field,Arrays.stream(value.getText().split("\\|",-1)).map(String::strip).toList(),null,field.equals("tnved")?perProductTnved:Map.of(),expectedRevisions);
-        DocumentDateInput.commit(from);if(!endless.isSelected())DocumentDateInput.commit(until);
-        if(number.getText().isBlank()||type.getText().isBlank()||(!existingOzonDocument()&&(from.getValue()==null||(!endless.isSelected()&&until.getValue()==null))))throw new IllegalArgumentException("Document metadata missing");
         var metadata=new HashMap<String,String>(selectedDocument==null?Map.of():selectedDocument.metadata());metadata.put("isEndless",Boolean.toString(endless.isSelected()));metadata.put("certificate_type",type.getText().strip());metadata.put("certificate_country",country.getText().strip());metadata.put("accordance_type",accordance.getText().strip());metadata.put("name",name.getText().strip());metadata.put("product_type",productType.getText().strip());metadata.put("link_to_registry",registry.getText().strip());metadata.put("type",type.getText().strip());
         var existing=selectedDocument;boolean reuse=existing!=null&&number.getText().strip().equals(existing.number())&&documentType(type.getText()).equals(documentType(existing.type()));
         String selectedType=reuse?existing.type():type.getText().strip();metadata.put("type",selectedType);metadata.put("certificate_type",reuse?existing.metadata().getOrDefault("certificate_type",selectedType):selectedType);
         var doc=new ProductDocument(reuse?existing.id():"",selectedType,number.getText().strip(),from.getValue(),endless.isSelected()?null:until.getValue(),existing==null?"":existing.owner(),existing==null?"":existing.scope(),file==null?null:file.toUri(),shop.getMarketplace(),DocumentState.UNVERIFIED,reuse?existing.source():"",reuse?existing.checkedAt():null,metadata);
         return new ProductBulkEdit(field,List.of(),List.of(doc),Map.of());
     }
+    private boolean validateDocumentInput(){
+        if(!commitDate(from,"copy.doc.from")||(!endless.isSelected()&&!commitDate(until,"copy.doc.to")))return false;
+        if(number.getText().isBlank())return missingDocumentField(number,"copy.doc.number");
+        if(type.getText().isBlank())return missingDocumentField(type,"copy.doc.type");
+        if(existingOzonDocument())return true;
+        if(from.getValue()==null)return missingDocumentField(from.getEditor(),"copy.doc.from");
+        if(!endless.isSelected()&&until.getValue()==null)return missingDocumentField(until.getEditor(),"copy.doc.to");
+        return true;
+    }
+    private boolean commitDate(DatePicker picker,String fieldKey){
+        try{DocumentDateInput.commit(picker);return true;}
+        catch(IllegalArgumentException invalid){
+            picker.getEditor().requestFocus();
+            status.setText(java.text.MessageFormat.format(tr("edit.document.invalid_date"),tr(fieldKey)));
+            return false;
+        }
+    }
+    private boolean missingDocumentField(TextInputControl input,String fieldKey){
+        input.requestFocus();
+        status.setText(java.text.MessageFormat.format(tr("edit.document.required"),tr(fieldKey)));
+        return false;
+    }
     private void prepare(){
         if(shop==null||keys.isEmpty()||busy)return;final ProductBulkEdit edit;
-        try{edit=edit();}catch(RuntimeException invalid){status.setText(tr("date.invalid".equals(invalid.getMessage())?"date.invalid":"edit.needs_data"));return;}
+        if(field.equals("documents")&&!validateDocumentInput())return;
+        try{edit=edit();}catch(RuntimeException invalid){status.setText(tr("edit.needs_data"));return;}
         var owner=shop;var selected=keys;long epoch=generation,inputRevision=revision;busy=true;ready=false;status.setText(tr(compact?"bulk.validating":"edit.preview_loading")+" · "+counts(new ProductBulkEditService.Progress("VALIDATING",0,(int)keys.stream().map(ProductKey::cardId).distinct().count())));buttons();
         reads.submit(new ShopReadCoordinator.Key(owner.getId(),"product-edit-preview",UUID.randomUUID().toString()),true,()->service.preview(owner,selected,edit,this::progress)).whenComplete((p,error)->Platform.runLater(()->{
             if(disposed||epoch!=generation)return;busy=false;
@@ -264,6 +285,8 @@ public final class ProductBulkEditPane extends BorderPane {
     public void applyTranslations(){
         labels.forEach((w,k)->w.setText(tr(k)));title.setText(tr("products.edit_"+field)+" · "+keys.size());notice.setText(tr("edit.notice")+(shop==null?"":"\n"+shop.getName()+" · "+shop.getMarketplace()));
         value.setPromptText(tr("edit.value"));history.setPromptText(tr("edit.history"));from.setPromptText(tr("copy.doc.from"));until.setPromptText(tr("copy.doc.to"));
+        from.setAccessibleText(from.getPromptText());until.setAccessibleText(until.getPromptText());
+        from.getEditor().setAccessibleText(from.getPromptText());until.getEditor().setAccessibleText(until.getPromptText());
         for(var c:results.getColumns())c.setText(tr((String)c.getUserData()));results.refresh();
     }
 

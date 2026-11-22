@@ -124,7 +124,7 @@
 .workspace-theme .text-muted, .workspace-theme .muted-label { -fx-text-fill: -text-muted; }
 .workspace-theme .text-secondary { -fx-text-fill: -text-secondary; }
 .workspace-theme .h1, .workspace-theme .page-title, .workspace-theme .welcome-title,
-.workspace-theme #productsPane .h2, .workspace-theme#productsPane .h2 { -fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: -text-primary; }
+.workspace-theme #productsPane .h2, .workspace-theme#productsPane .h2 { -fx-text-fill: -text-primary; }
 .workspace-theme .h2 { -fx-font-size: 20; -fx-font-weight: bold; }
 .workspace-theme .h3, .workspace-theme .section-title { -fx-font-size: 16; -fx-font-weight: bold; }
 .workspace-theme .text-bold, .workspace-theme .text-strong { -fx-font-weight: bold; }
@@ -136,6 +136,13 @@
 .workspace-theme .ikonli-font-icon.document-valid { -fx-icon-color: -success; }
 .workspace-theme .ikonli-font-icon.document-pending { -fx-icon-color: -warning; }
 .workspace-theme .ikonli-font-icon.document-rejected { -fx-icon-color: -danger; }
+/* Direct action graphics share a 16px box. Larger illustrations inside feature
+ * content and icons embedded in rich labels keep their authored size. */
+.workspace-theme .button > .ikonli-font-icon,
+.workspace-theme .toggle-button > .ikonli-font-icon,
+.workspace-theme .menu-button .ikonli-font-icon,
+.workspace-theme .split-menu-button .ikonli-font-icon,
+.context-menu .menu-item .ikonli-font-icon { -fx-icon-size: 16; }
 
 /* Solid navigation surfaces frame the working canvas without optical effects. */
 .workspace-theme .sidebar, .workspace-theme .glass-sidebar,
@@ -667,7 +674,13 @@
 .workspace-theme .workspace-feed .news-card { -fx-min-height: 0; -fx-padding: 16; }
 .workspace-theme .workspace-sheet.feature-card,
 .workspace-theme .gs1-workspace .workspace-sheet.feature-card { -fx-background-radius: 18; -fx-border-radius: 18; -fx-border-width: 1; }
-.workspace-theme .gs1-workspace .page-title, .workspace-theme.gs1-workspace .page-title { -fx-font-size: 24; }
+/* Page titles follow section rules so a legacy h2,page-title combination keeps
+ * the page's level. Domain h2 headings remain 20px and local h3 headings 16px. */
+.workspace-theme .h1, .workspace-theme .page-title, .workspace-theme .h2.page-title,
+.workspace-theme .welcome-title,
+.workspace-theme #productsPane .h2, .workspace-theme#productsPane .h2 {
+    -fx-font-size: 24; -fx-font-weight: bold;
+}
 
 .workspace-theme .workspace-shortcut-list { -fx-spacing: 0; }
 .workspace-theme .workspace-shortcut-row { -fx-min-height: 70; -fx-padding: 12 8; }

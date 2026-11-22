@@ -397,8 +397,9 @@ public final class OzonRegistrationPane extends VBox {
         task.setOnSucceeded(e->{if(disposed)return;registrationPreflightTask=null;selectionPreparing=false;buttons();
             var review=RegistrationBatchPreflight.reviewed(getScene()==null?null:getScene().getWindow(),owner,task.getValue(),existingDraft.get());
             if(review==null||disposed)return;
-            var approved=RegistrationSourceReviewDialog.show(getScene()==null?null:getScene().getWindow(),owner,intent,review.dynamic(),targets.get());
-            if(approved!=null&&!disposed)registerPreparedSelection(allowed.get(),approved);
+            boolean automatic=autoSign.isSelected();
+            var approved=RegistrationSourceReviewDialog.show(getScene()==null?null:getScene().getWindow(),owner,intent,review.dynamic(),targets.get(),automatic);
+            if(approved!=null&&!disposed)registerPreparedSelection(allowed.get(),approved,automatic);
         });
         var notified=new java.util.concurrent.atomic.AtomicBoolean();
         Consumer<Throwable> failed=error->{if(!notified.compareAndSet(false,true)||disposed)return;registrationPreflightTask=null;selectionPreparing=false;buttons();if(error instanceof ConflictCheckpointRequired){status.setText(tr("znack.registration.conflict_checkpoint_missing"));return;}status.setText(FriendlyErrorService.format(error));showGs1AwareError(error);};task.setOnFailed(e->failed.accept(task.getException()));task.setOnCancelled(e->{if(cancelledBySeller.get()){if(!disposed){registrationPreflightTask=null;selectionPreparing=false;buttons();status.setText(tr("znack.registration.preflight.cancelled"));}}else Platform.runLater(()->failed.accept(RegistrationBatchPreflight.readTimeout()));});AppTaskExecutor.executeCatalog(task,failed);
@@ -409,9 +410,9 @@ public final class OzonRegistrationPane extends VBox {
         if(row==null||!new RegistrationCardIndex(owner).ownsOzon(row.owner(),row.scopeJson())||row.goodId()==null||row.goodId()<=0||row.feedId().isBlank()||!com.vncode.app.features.gtinsync.RegisteredGtinProof.sameCode(gtin,row.gtin()))throw new ConflictCheckpointRequired();
         return new RegistrationSourceConsent.Target(RegistrationSourceConsent.Action.REPLACE,row.gtin(),row.goodId(),true);
     }
-    private void registerPreparedSelection(List<ProductKey> selected,RegistrationSourceConsent.Prepared approved){
+    private void registerPreparedSelection(List<ProductKey> selected,RegistrationSourceConsent.Prepared approved,boolean automatic){
         if(selected.isEmpty()||selectionPreparing||batchActive())return;
-        boolean automatic=autoSign.isSelected();selectionPreparing=true;lastActionRun="";buttons();
+        selectionPreparing=true;lastActionRun="";buttons();
         var task=new Task<String>(){protected String call()throws Exception{return batchStarter.start(owner,selected,automatic,approved);}};
         task.setOnSucceeded(e->{if(disposed)return;selectionPreparing=false;lastActionRun=task.getValue();frozen=List.of();table.getSelectionModel().clearSelection();readBatchProgress();buttons();});
         Consumer<Throwable> failed=error->{if(disposed)return;selectionPreparing=false;buttons();status.setText(FriendlyErrorService.format(error));};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.execute(task,failed);

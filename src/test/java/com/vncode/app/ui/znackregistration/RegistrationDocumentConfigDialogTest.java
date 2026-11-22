@@ -42,6 +42,7 @@ class RegistrationDocumentConfigDialogTest {
     private static TextField issue(DialogPane pane){return field(pane,"registrationConfiguredDocumentDate");}
     private static TextField expiry(DialogPane pane){return field(pane,"registrationConfiguredDocumentExpiryDate");}
     private static TextField number(DialogPane pane){return field(pane,"registrationConfiguredDocumentNumber");}
+    private static ButtonType cancel(DialogPane pane){return pane.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();}
     private static ButtonType apply(DialogPane pane){return pane.getButtonTypes().stream().filter(type->type.getButtonData()==ButtonBar.ButtonData.OK_DONE).findFirst().orElseThrow();}
     private static void open(ZnackModels.Settings settings,Shop owner,Runnable saved,java.util.function.Function<DialogPane,ButtonType> choice)throws Exception{
         FxDialogDriver.choose(()->RegistrationDocumentConfigDialog.show(null,owner,settings,saved),
@@ -53,7 +54,7 @@ class RegistrationDocumentConfigDialogTest {
         open(repository.getSettings(),shop,()->{},pane->{
             assertEquals("01.01.2026",issue(pane).getText());
             assertEquals("31.12.2027",expiry(pane).getText(),"The seller must see the stored expiry");
-            return ButtonType.CANCEL;
+            return cancel(pane);
         });
     }
 
@@ -72,7 +73,7 @@ class RegistrationDocumentConfigDialogTest {
         assertEquals(java.time.LocalDate.of(2029,12,31),declaration.validUntil());
         assertEquals(com.vncode.app.features.products.DocumentState.UNVERIFIED,declaration.state(),"Saving the date does not verify registry proof");
         assertEquals("changed-synthetic-oms",current.omsId());assertEquals("changed-synthetic-connection",current.omsConnection());assertEquals(otherBefore,other.getSettings());
-        open(current,shop,()->{},pane->{assertEquals("03.02.2026",issue(pane).getText());assertEquals("31.12.2029",expiry(pane).getText());return ButtonType.CANCEL;});
+        open(current,shop,()->{},pane->{assertEquals("03.02.2026",issue(pane).getText());assertEquals("31.12.2029",expiry(pane).getText());return cancel(pane);});
     }
 
     @Test void emptyExpiryRemainsUnknownAfterApplyAndReopen()throws Exception{
@@ -85,7 +86,7 @@ class RegistrationDocumentConfigDialogTest {
         });
         saved(latch);var actual=repository.getSettings();assertTrue(actual.documentExpiryDate()==null||actual.documentExpiryDate().isBlank());
         assertEquals("01.01.2026",actual.documentDate());
-        open(actual,shop,()->{},pane->{assertEquals("",expiry(pane).getText());return ButtonType.CANCEL;});
+        open(actual,shop,()->{},pane->{assertEquals("",expiry(pane).getText());return cancel(pane);});
     }
 
     @ParameterizedTest(name="Invalid issue {0}, expiry {1}")
@@ -99,15 +100,28 @@ class RegistrationDocumentConfigDialogTest {
             var expected=com.vncode.app.shared.I18nService.getInstance().tr(messageKey);
             assertTrue(pane.lookupAll(".label").stream().anyMatch(n->n instanceof Label label&&label.getText().contains(expected)),"The editor must identify the failing date or ordering rule");
             assertEquals(before,repository.getSettings(),"Invalid values cannot reach SQLite");
-            return ButtonType.CANCEL;
+            return cancel(pane);
         });
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();assertEquals(0,writes.get());assertEquals(before,repository.getSettings());
     }
 
     @Test void cancelLeavesDocumentAndConnectionUnchanged()throws Exception{
         var before=repository.getSettings();var writes=new AtomicInteger();
-        open(before,shop,writes::incrementAndGet,pane->{issue(pane).setText("02.01.2026");expiry(pane).setText("31.12.2029");return ButtonType.CANCEL;});
+        open(before,shop,writes::incrementAndGet,pane->{issue(pane).setText("02.01.2026");expiry(pane).setText("31.12.2029");return cancel(pane);});
         com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();assertEquals(0,writes.get());assertEquals(before,repository.getSettings());
+    }
+    @ParameterizedTest @org.junit.jupiter.params.provider.EnumSource(com.vncode.app.shared.AppLanguage.class)
+    void cancelUsesTheSelectedLanguageAndNeverSaves(com.vncode.app.shared.AppLanguage language)throws Exception{
+        var i18n=com.vncode.app.shared.I18nService.getInstance();var previous=i18n.getCurrentLanguage();
+        var before=repository.getSettings();var writes=new AtomicInteger();
+        try{
+            i18n.setLanguage(language);
+            open(before,shop,writes::incrementAndGet,pane->{
+                assertEquals(i18n.tr("common.cancel"),cancel(pane).getText());
+                number(pane).setText("UNSAVED-FIXTURE");return cancel(pane);
+            });
+            com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();assertEquals(0,writes.get());assertEquals(before,repository.getSettings());
+        }finally{i18n.setLanguage(previous);}
     }
 
     @Test void changedNumberClearsPreviousExpiryAndExplicitReplacementCanBeSaved()throws Exception{
@@ -118,7 +132,7 @@ class RegistrationDocumentConfigDialogTest {
             expiry(pane).setText("2030-12-31");return apply(pane);
         });
         saved(latch);var current=repository.getSettings();assertEquals("FIXTURE-2",current.documentNumber());assertEquals("31.12.2030",current.documentExpiryDate());
-        open(current,shop,()->{},pane->{assertEquals("31.12.2030",expiry(pane).getText());return ButtonType.CANCEL;});
+        open(current,shop,()->{},pane->{assertEquals("31.12.2030",expiry(pane).getText());return cancel(pane);});
     }
 
     @Test void equivalentIdentitySpellingsDoNotEraseExpiry()throws Exception{
@@ -204,7 +218,7 @@ class RegistrationDocumentConfigDialogTest {
             issue(pane).setText("02.01.2026");assertTrue(expiry(pane).getText().isBlank());
             expiry(pane).setText("31.12.2029");
             @SuppressWarnings("unchecked") var type=(ComboBox<String>)pane.lookup(".combo-box");assertNotNull(type);
-            type.setValue("CONFORMITY_CERTIFICATE");assertTrue(expiry(pane).getText().isBlank());return ButtonType.CANCEL;
+            type.setValue("CONFORMITY_CERTIFICATE");assertTrue(expiry(pane).getText().isBlank());return cancel(pane);
         });
         assertEquals("31.12.2027",repository.getSettings().documentExpiryDate());
     }

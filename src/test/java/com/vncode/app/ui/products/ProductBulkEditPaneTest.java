@@ -24,4 +24,27 @@ class ProductBulkEditPaneTest {
     @AfterEach void clear()throws Exception{fx(()->{pane.dispose();return null;});closeAndAwait(reads);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     @Test void shopChangeDropsSelectionAndApproval()throws Exception{fx(()->{pane.open(new Shop(1,"Owner","fixture"),"brand",List.of(new ProductKey(1,Marketplace.WILDBERRIES,"123","1")));assertEquals(1,pane.frozenKeys().size());((CheckBox)pane.lookup("#editConfirm")).setSelected(true);pane.setShop(new Shop(2,"Other","fixture"));assertTrue(pane.frozenKeys().isEmpty());assertFalse(((CheckBox)pane.lookup("#editConfirm")).isSelected());assertTrue(((Button)pane.lookup("#editApply")).isDisabled());return null;});}
     @Test void fieldsAndInlineLookupTranslateInAllLocales()throws Exception{var i=I18nService.getInstance();var old=i.getCurrentLanguage();try{for(var locale:AppLanguage.values())fx(()->{i.setLanguage(locale);pane.open(new Shop(1,"Owner","fixture"),"tnved",List.of(new ProductKey(1,Marketplace.WILDBERRIES,"123","1")));pane.applyTranslations();pane.applyCss();pane.layout();assertEquals(i.tr("edit.preview"),((Button)pane.lookup("#editPreview")).getText());assertFalse(((Button)pane.lookup("#editLookup")).getText().startsWith("edit."));assertTrue(pane.lookup("#editLookup").isVisible());assertTrue(((Button)pane.lookup("#editApply")).isDisabled());return null;});}finally{fx(()->{i.setLanguage(old);return null;});}}
+
+    @Test void documentPreviewIdentifiesMissingAndInvalidFields() throws Exception {
+        fx(() -> {
+            var i18n = I18nService.getInstance();
+            pane.open(new Shop(1, "Owner", "fixture"), "documents",
+                    List.of(new ProductKey(1, Marketplace.WILDBERRIES, "123", "1")));
+            pane.applyCss();
+            pane.layout();
+            var preview = (Button) pane.lookup("#editPreview");
+            var status = (Label) pane.lookup("#editStatus");
+            var from = (DatePicker) pane.lookup("#editDocumentFrom");
+
+            preview.fire();
+            assertEquals(java.text.MessageFormat.format(i18n.tr("edit.document.required"), i18n.tr("copy.doc.number")), status.getText());
+
+            from.getEditor().setText("31.02.2026");
+            preview.fire();
+            assertEquals(java.text.MessageFormat.format(i18n.tr("edit.document.invalid_date"), i18n.tr("copy.doc.from")), status.getText());
+            assertTrue(from.getEditor().getPseudoClassStates().contains(javafx.css.PseudoClass.getPseudoClass("error")));
+            assertTrue(pane.lookup("#editApply").isDisabled());
+            return null;
+        });
+    }
 }

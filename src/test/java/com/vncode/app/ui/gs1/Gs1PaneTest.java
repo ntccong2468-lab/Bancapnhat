@@ -35,6 +35,19 @@ import static org.junit.jupiter.api.Assertions.*;
 class Gs1PaneTest {
     @TempDir Path root;
     private Gs1Pane pane;
+    @Test void accountActionsAreVisibleKeyboardReachableAndUseTheExistingCommands()throws Exception{
+        var configured=new java.util.concurrent.atomic.AtomicInteger();
+        fx(()->{
+            pane.setOnConfigureSignature(configured::incrementAndGet);render();
+            var actions=(javafx.scene.control.MenuButton)pane.lookup("#gs1AccountActions");
+            assertNotNull(actions);assertTrue(actions.isVisible()&&actions.isManaged()&&actions.isFocusTraversable());
+            assertEquals(I18nService.getInstance().tr("gs1.account.actions"),actions.getText());assertEquals(actions.getText(),actions.getAccessibleText());
+            assertEquals(2,actions.getItems().size());assertEquals("gs1ConfigureZnackAction",actions.getItems().getFirst().getId());
+            actions.getItems().getFirst().fire();assertEquals(1,configured.get());
+            var report=actions.getItems().getLast();assertEquals("gs1SyncReportAction",report.getId());assertFalse(report.isDisable());assertNotNull(report.getOnAction());
+            pane.setShop(null);var unavailable=(javafx.scene.control.MenuButton)pane.lookup("#gs1AccountActions");assertTrue(unavailable.getItems().getLast().isDisable());return null;
+        });
+    }
     @BeforeAll static void startFx(){try{Platform.startup(()->Platform.setImplicitExit(false));}catch(IllegalStateException started){}}
     @BeforeEach void setUp()throws Exception{
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();

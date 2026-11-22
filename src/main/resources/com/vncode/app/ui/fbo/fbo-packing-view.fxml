@@ -50,6 +50,7 @@
                 </Button>
             </children>
         </HBox>
+        <Label fx:id="printScopeLabel" visible="false" managed="false" minWidth="0" wrapText="true" styleClass="text-muted"/>
         <TableView fx:id="productTable" prefHeight="520.0" VBox.vgrow="ALWAYS" styleClass="dense-data-list">
             <placeholder><Label fx:id="emptyStateLabel" managed="true" styleClass="text-muted" text="No products" visible="true" wrapText="true" maxWidth="480.0"/>
     </placeholder><columnResizePolicy>

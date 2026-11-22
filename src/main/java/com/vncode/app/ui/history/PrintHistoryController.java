@@ -11,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.Tooltip;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.time.OffsetDateTime;
@@ -49,6 +50,7 @@ public class PrintHistoryController {
         statusTC.setCellValueFactory(cell -> new ReadOnlyStringWrapper(I18nService.getInstance().tr("history.status."+cell.getValue().status())));
         actionTC.setCellFactory(col -> new TableCell<>() {
             private final Button button = new Button();
+            private final Tooltip reprintHint = new Tooltip();
             private final Button reconcile = new Button();
             private final javafx.scene.layout.HBox actions=new javafx.scene.layout.HBox(6,button,reconcile);
             {
@@ -58,6 +60,7 @@ public class PrintHistoryController {
                 button.setMinSize(32, 32);
                 button.setMaxSize(32, 32);
                 button.setGraphic(new FontIcon("fth-printer:14:white"));
+                button.setTooltip(reprintHint);
                 button.setOnAction(event -> {
                     PrintHistoryJobSummary job = getTableRow().getItem();
                     if (job != null && job.canReprint() && onReprint != null) {
@@ -76,6 +79,9 @@ public class PrintHistoryController {
                     setGraphic(null);
                 } else {
                     button.setDisable(!job.canReprint());
+                    String reprintLabel = I18nService.getInstance().tr("history.reprint");
+                    reprintHint.setText(reprintLabel);
+                    button.setAccessibleText(reprintLabel);
                     reconcile.setText(I18nService.getInstance().tr("history.reconcile_kiz"));
                     reconcile.setDisable(!job.canReprint()||job.isFbo()||job.isKizExport()||onReconcile==null);
                     setGraphic(actions);
