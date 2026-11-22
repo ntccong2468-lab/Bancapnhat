@@ -47,23 +47,25 @@
         </VBox>
     </top>
     <center>
-        <SplitPane dividerPositions="0.20,0.60" BorderPane.alignment="CENTER">
+        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="AS_NEEDED" vbarPolicy="NEVER" minHeight="0.0" BorderPane.alignment="CENTER">
+        <content><SplitPane minWidth="680.0" minHeight="0.0" dividerPositions="0.24,0.64">
             <items>
-                <VBox spacing="10.0" minWidth="0.0">
+                <VBox spacing="10.0" minWidth="148.0" prefWidth="165.0">
                     <padding>
                         <Insets bottom="16.0" left="16.0" right="12.0" top="6.0" />
                     </padding>
                     <Label styleClass="text-bold" text="%template.elements" userData="i18n:template.elements"/>
-                    <ComboBox fx:id="addElementComboBox" prefWidth="220.0" minWidth="0.0" maxWidth="1.7976931348623157E308" promptText="%template.add_element_prompt" userData="i18n:template.add_element_prompt"/>
-                    <ListView fx:id="elementListView" prefHeight="560.0" minWidth="0.0" minHeight="0.0" VBox.vgrow="ALWAYS"  styleClass="dense-data-table"/>
+                    <ComboBox fx:id="addElementComboBox" prefWidth="140.0" minWidth="0.0" maxWidth="1.7976931348623157E308" promptText="%template.add_element_prompt" userData="i18n:template.add_element_prompt"/>
+                    <ListView fx:id="elementListView" prefWidth="140.0" prefHeight="560.0" minWidth="0.0" minHeight="0.0" VBox.vgrow="ALWAYS"  styleClass="dense-data-table"/>
                 </VBox>
-                <ScrollPane pannable="true" minWidth="0.0">
+                <VBox minWidth="200.0" spacing="8.0">
+                    <Label styleClass="text-bold" text="%template.preview" userData="i18n:template.preview"/>
+                <ScrollPane pannable="true" minWidth="0.0" minHeight="0.0" VBox.vgrow="ALWAYS">
                     <content>
                 <VBox alignment="TOP_CENTER" spacing="12.0">
                     <padding>
                         <Insets bottom="16.0" left="12.0" right="12.0" top="6.0" />
                     </padding>
-                    <Label styleClass="text-bold" text="%template.preview" userData="i18n:template.preview"/>
                     <HBox alignment="CENTER_LEFT" spacing="8.0">
                         <VBox alignment="TOP_CENTER" spacing="0.0">
                             <children>
@@ -90,7 +92,8 @@
                 </VBox>
                     </content>
                 </ScrollPane>
-                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minWidth="0.0">
+                </VBox>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" minWidth="230.0">
                     <content>
                         <VBox spacing="12.0">
                             <padding>
@@ -140,6 +143,7 @@
                     </content>
                 </ScrollPane>
             </items>
-        </SplitPane>
+        </SplitPane></content>
+        </ScrollPane>
     </center>
 </BorderPane>

@@ -127,6 +127,7 @@ public final class ZnackCardRegistrationController {
     @FXML private Label operationLabel;
     @FXML private VBox extraActions;
     private final ContextMenu extraMenu=new ContextMenu();
+    private boolean compactColumns;
     @FXML private Hyperlink reportLink;
     @FXML private CheckBox allFilteredCheckBox;
     @FXML private TableColumn<Sku,Sku> selectionColumn;
@@ -185,7 +186,9 @@ public final class ZnackCardRegistrationController {
         pauseBatchAction.setOnAction(e->controlBatch("PAUSE"));resumeBatchAction.setOnAction(e->controlBatch("RESUME"));cancelPendingBatchAction.setOnAction(e->{if(cancelPendingConfirmation.getAsBoolean())controlBatch("CANCEL");});
         extraMenu.getItems().addAll(new SeparatorMenuItem(),pauseBatchAction,resumeBatchAction,cancelPendingBatchAction);
         productTable.setContextMenu(extraMenu);
-        productTable.setAccessibleHelp(tr("znack.registration.more_actions_hint"));
+        productTable.setAccessibleHelp(tr("ui.detail.open")+"\n"+tr("znack.registration.more_actions_hint"));
+        productTable.widthProperty().addListener((o,a,b)->adaptColumns());
+        productTable.setOnKeyPressed(event->{if(event.getTarget()==productTable&&event.getCode()==javafx.scene.input.KeyCode.ENTER){var row=productTable.getSelectionModel().getSelectedItem();if(row!=null){showRegistrationReport(row);event.consume();}}});
         com.vncode.app.shared.TableScrollLoader.install(productTable,()->shop!=null&&!loading&&productTable.getItems().size()<filteredCount,this::onLoadMore);
         workflowRefresh.setOnFinished(event->reload());
         batchRefresh.setOnFinished(event->pollBatchProgress());
@@ -263,7 +266,7 @@ public final class ZnackCardRegistrationController {
         refreshButton.setText(i18n.tr("znack.registration.refresh"));
         configButton.setText(i18n.tr("znack.registration.documents"));
         connectionButton.setText(i18n.tr("znack.connection.button"));
-        provenanceButton.setText(i18n.tr("znack.provenance.button"));productTable.setAccessibleHelp(i18n.tr("znack.registration.more_actions_hint"));
+        provenanceButton.setText(i18n.tr("znack.provenance.button"));productTable.setAccessibleHelp(i18n.tr("ui.detail.open")+"\n"+i18n.tr("znack.registration.more_actions_hint"));
         signApprovedButton.setText(i18n.tr("znack.registration.sign_approved"));
         updateWbButton.setText(i18n.tr("znack.registration.update_wb"));
         wbPriceImpactLabel.setText(i18n.tr("gtinsync.wb_price_consent_body"));
@@ -1025,7 +1028,8 @@ public final class ZnackCardRegistrationController {
 
     private void configureColumns() {
         operationLabel.textProperty().addListener((o,a,b)->{boolean shown=b!=null&&!b.isBlank();operationLabel.setVisible(shown);operationLabel.setManaged(shown);});
-        productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        productTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);productTable.setMinWidth(0);
+        actionColumn.setMinWidth(160);actionColumn.setPrefWidth(160);actionColumn.setMaxWidth(180);
         selectionColumn.setCellValueFactory(cell->new ReadOnlyObjectWrapper<>(cell.getValue()));
         selectionColumn.setCellFactory(column->new TableCell<>(){
             private final CheckBox check=new CheckBox();
@@ -1087,7 +1091,7 @@ public final class ZnackCardRegistrationController {
             private final Label name=new Label(),meta=new Label(),code=new Label();
             private final javafx.scene.layout.VBox body=new javafx.scene.layout.VBox(4,name,meta,code);
             {meta.getStyleClass().add("text-muted");code.getStyleClass().add("text-muted");body.setMinWidth(0);body.prefWidthProperty().bind(column.widthProperty().subtract(22));for(var label:List.of(name,meta,code)){label.setMinWidth(0);label.setMaxWidth(Double.MAX_VALUE);label.setTextOverrun(javafx.scene.control.OverrunStyle.ELLIPSIS);}}
-            protected void updateItem(String value,boolean empty){super.updateItem(value,empty);setText(null);if(empty||value==null){setGraphic(null);return;}var lines=value.split("\\n",3);name.setText(lines[0]);meta.setText(lines.length>1?lines[1]:"");code.setText(lines.length>2?lines[2]:"");setTooltip(new Tooltip(value));setGraphic(body);}
+            protected void updateItem(String value,boolean empty){super.updateItem(value,empty);setText(null);if(empty||value==null){setGraphic(null);return;}var lines=value.split("\\n",3);name.setText(lines[0]);meta.setText(lines.length>1?lines[1]:"");code.setText(lines.length>2?lines[2]:"");var row=getTableRow()==null?null:getTableRow().getItem();setTooltip(new Tooltip(row==null?value:rowFacts(row)));setGraphic(body);}
         });
         RegistrationTextCells.wrap(barcodeColumn);RegistrationTextCells.wrap(verifiedGtinColumn);
         verifiedGtinColumn.setCellValueFactory(cell->new ReadOnlyStringWrapper(verifiedGtinText(cell.getValue())));
@@ -1118,7 +1122,8 @@ public final class ZnackCardRegistrationController {
             private final Label waiting = new Label();
             private final MenuButton publishedActions=new MenuButton();
             private final MenuItem newCard=new MenuItem(),switchCard=new MenuItem(),retryOriginal=new MenuItem();
-            { button.setId("znackRegistrationRowAction");publishedActions.setId("znackRegistrationRowActionMenu");button.setWrapText(true);button.setMinWidth(0);button.prefWidthProperty().bind(actionColumn.widthProperty().subtract(24));button.getStyleClass().add("btn-primary");button.setOnAction(event->createCard(getItem()));
+            { button.setId("znackRegistrationRowAction");publishedActions.setId("znackRegistrationRowActionMenu");button.setWrapText(true);button.setMinWidth(0);button.prefWidthProperty().bind(actionColumn.widthProperty().subtract(16));button.getStyleClass().add("btn-primary");button.setOnAction(event->createCard(getItem()));
+              publishedActions.setMinWidth(0);publishedActions.setWrapText(true);publishedActions.prefWidthProperty().bind(actionColumn.widthProperty().subtract(16));waiting.setMinWidth(0);waiting.maxWidthProperty().bind(actionColumn.widthProperty().subtract(16));
               var buttonTooltip=new Tooltip();buttonTooltip.textProperty().bind(button.textProperty());button.setTooltip(buttonTooltip);
               var menuTooltip=new Tooltip();menuTooltip.textProperty().bind(publishedActions.textProperty());publishedActions.setTooltip(menuTooltip);
               publishedActions.getStyleClass().add("btn-secondary");publishedActions.getItems().setAll(newCard,switchCard,retryOriginal);retryOriginal.setOnAction(event->createCard(getItem()));
@@ -1177,9 +1182,16 @@ public final class ZnackCardRegistrationController {
                     var read=new MenuItem(tr("znack.registration.read_status"));read.setOnAction(event->readStatus(item));
                     var report=new MenuItem(tr("znack.registration.report"));report.setOnAction(event->onReport());setContextMenu(new ContextMenu(read,report));
                 } else if(!empty&&item!=null){var error=new MenuItem(tr("znack.registration.report"));error.setOnAction(event->showRegistrationReport(item));setContextMenu(new ContextMenu(error));}else setContextMenu(null);
-                setTooltip(empty || item == null?null:new Tooltip(observation(item)+(value(item.errorMessage()).isBlank()?"":"\n"+RegistrationDiagnostics.reason(item.errorMessage()))));
+                setTooltip(empty || item == null?null:new Tooltip(rowFacts(item)+"\n"+observation(item)+(value(item.errorMessage()).isBlank()?"":"\n"+RegistrationDiagnostics.reason(item.errorMessage()))));setAccessibleText(empty||item==null?"":rowFacts(item));
             }
         });
+    }
+    private void adaptColumns(){
+        double width=productTable.getWidth();if(width<=0)return;
+        // Leave a band for the native scrollbar so resize cannot alternate layouts.
+        boolean compact=width<(compactColumns?1200:1160);if(compact==compactColumns)return;compactColumns=compact;
+        for(var column:List.of(articleColumn,genderColumn,colorColumn,sizeColumn))column.setVisible(!compact);
+        productTable.refresh();
     }
 
     private static String normalizedDocumentDate(String input) {
@@ -1256,9 +1268,14 @@ public final class ZnackCardRegistrationController {
         return String.join(", ",row.barcodes())+(gtin.isBlank()?"":"\nGTIN: "+gtin);
     }
     private String productName(Sku sku) {
+        if(compactColumns)return first(sku.title(),sku.subjectName())+"\n"+value(sku.vendorCode())+"\n"+java.util.stream.Stream.of(sku.color(),sku.size()).filter(v->v!=null&&!v.isBlank()).collect(java.util.stream.Collectors.joining(" · "));
         var detail=rowDetails.get(sku.chrtId());
         return first(sku.title(),sku.subjectName())+"\n"+java.util.stream.Stream.of(sku.brand(),sku.subjectName()).filter(v->v!=null&&!v.isBlank()).collect(java.util.stream.Collectors.joining(" · "))
                 +(detail==null||detail.tnved().isBlank()?"":"\nTN VED: "+detail.tnved());
+    }
+    private String rowFacts(Sku sku){
+        var detail=rowDetails.get(sku.chrtId());
+        return first(sku.title(),sku.subjectName())+"\n"+tr("products.seller_article")+": "+value(sku.vendorCode())+"\n"+java.util.stream.Stream.of(sku.color(),sku.size(),detail==null?"":detail.gender(),sku.brand(),sku.subjectName()).filter(v->v!=null&&!v.isBlank()).collect(java.util.stream.Collectors.joining(" · "))+(detail==null||detail.tnved().isBlank()?"":"\nTN VED: "+detail.tnved());
     }
     private static boolean confirm(String message) {
         Alert alert=new Alert(Alert.AlertType.CONFIRMATION,message,ButtonType.OK,ButtonType.CANCEL);
@@ -1314,7 +1331,7 @@ public final class ZnackCardRegistrationController {
         RegistrationDiagnostics.showFailure(summary,full,detail,recoveryAction());
     }
     private String observation(Sku row){return RegistrationDiagnostics.observation(row.status(),cardIndex==null?java.util.Optional.empty():cardIndex.observation(view(row)),latestReadUnknown);}
-    private void showRegistrationReport(Sku sku){RegistrationDiagnostics.show(sku.vendorCode(),first(view(sku).gtin(),sku.gtin()),sku.feedId(),registrationStatus(sku),observation(sku)+"\n"+RegistrationDiagnostics.activeReason(view(sku),sku.errorMessage()),recoveryAction());}
+    private void showRegistrationReport(Sku sku){RegistrationDiagnostics.show(sku.vendorCode(),first(view(sku).gtin(),sku.gtin()),sku.feedId(),registrationStatus(sku),rowFacts(sku)+"\n"+observation(sku)+"\n"+RegistrationDiagnostics.activeReason(view(sku),sku.errorMessage()),recoveryAction());}
     private static void showWarning(String message) { Alert alert = new Alert(Alert.AlertType.WARNING, message, ButtonType.OK); com.vncode.app.shared.ThemeService.applyThemeDialog(alert); alert.setHeaderText(null); alert.showAndWait(); }
     private static void showInfo(String message) { Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK); com.vncode.app.shared.ThemeService.applyThemeDialog(alert); alert.setHeaderText(null); alert.showAndWait(); }
 

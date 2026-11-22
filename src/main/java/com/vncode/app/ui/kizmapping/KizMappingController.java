@@ -54,6 +54,7 @@ public class KizMappingController {
     private javafx.animation.RotateTransition refreshSpin;
     private boolean loading;
     private boolean syncing;
+    private boolean compactColumns;
     private long shopGeneration;
     private final javafx.animation.PauseTransition syncRetry=new javafx.animation.PauseTransition();
     private record MappingIssue(String article,String size,String sku,String gtin,String reason,String marketplaceColor,String catalogColor){
@@ -65,7 +66,7 @@ public class KizMappingController {
     @FXML
     private void initialize() {
         gtinColumn.setCellValueFactory(v -> new SimpleStringProperty(v.getValue().gtin()));
-        nameColumn.setCellValueFactory(v -> new SimpleStringProperty(value(v.getValue().productName())));
+        nameColumn.setCellValueFactory(v -> new SimpleStringProperty(value(v.getValue().productName())+(compactColumns?"\n"+mappingText(v.getValue()):"")));
         mappingColumn.setCellValueFactory(v -> new SimpleStringProperty(v.getValue().mappingRuleCount() == 0
                 ? tr("kiz_mapping.status.unmapped")
                 : v.getValue().mappingRuleCount() + " " + tr("kiz_mapping.status.rules")));
@@ -74,6 +75,11 @@ public class KizMappingController {
                 ? tr("znack.status_value.signing_paused") : localizeStatus(first(
                 v.getValue().latestPipelineStage(), v.getValue().latestOrderStatus()))));
         mappingColumn.setCellFactory(column -> statusCell("badge-green", "badge-gray"));
+        nameColumn.setCellFactory(column->new TableCell<>(){
+            final Label name=new Label(),mapping=new Label();final VBox body=new VBox(0,name,mapping);
+            {body.setMinWidth(0);body.prefWidthProperty().bind(column.widthProperty().subtract(16));for(var label:List.of(name,mapping)){label.setMinWidth(0);label.setMaxWidth(Double.MAX_VALUE);}mapping.getStyleClass().add("text-muted");}
+            protected void updateItem(String text,boolean empty){super.updateItem(text,empty);setText(null);if(empty||text==null){setGraphic(null);setTooltip(null);return;}var lines=text.split("\\n",2);name.setText(lines[0]);mapping.setText(lines.length>1?lines[1]:"");mapping.setVisible(lines.length>1);mapping.setManaged(mapping.isVisible());setTooltip(new Tooltip(text));setGraphic(body);}
+        });
         pipelineColumn.setCellFactory(this::pipelineStatusCell);
         errorColumn.setCellValueFactory(v -> {
             ZnackGtinInventorySummary summary = v.getValue();
@@ -92,15 +98,15 @@ public class KizMappingController {
                 setTooltip(hasError ? new Tooltip(tr("report.button")) : null);
                 setOnMouseClicked(hasError ? event -> {
                     ZnackGtinInventorySummary row = getTableRow() == null ? null : getTableRow().getItem();
-                    if (row != null && shop != null) {
-                        com.vncode.app.ui.report.ErrorReportDialog.show(
-                                shop.getName(), row.gtin(), "PURCHASE_PIPELINE", ZnackPurchaseDiagnostics.text(row.latestError(),row.latestPipelineStage(),row.latestPipelineId()==null?null:ZnackPurchaseCoordinator.nextCheckAt(shop.getId(),row.latestPipelineId())));
-                    }
+                    showPurchaseReport(row);
                 } : null);
             }
         });
         actionsColumn.setCellValueFactory(v -> new javafx.beans.property.SimpleObjectProperty<>(v.getValue()));
         actionsColumn.setCellFactory(column -> new ActionsCell());
+        gtinTable.setMinWidth(0);gtinTable.widthProperty().addListener((o,a,b)->adaptColumns());gtinTable.setAccessibleHelp(tr("ui.detail.open"));
+        gtinTable.setOnKeyPressed(event->{if(event.getTarget()==gtinTable&&event.getCode()==javafx.scene.input.KeyCode.ENTER){showPurchaseReport(gtinTable.getSelectionModel().getSelectedItem());event.consume();}});
+        gtinTable.setRowFactory(table->new TableRow<>(){protected void updateItem(ZnackGtinInventorySummary row,boolean empty){super.updateItem(row,empty);String facts=empty||row==null?"":rowFacts(row);setTooltip(facts.isBlank()?null:new Tooltip(facts));setAccessibleText(facts);}});
         refreshTimer = new Timeline(new KeyFrame(javafx.util.Duration.seconds(5), event -> {
             if (shop != null && !loading) refresh();
         }));
@@ -116,6 +122,20 @@ public class KizMappingController {
         }
         applyTranslations();
         setLoading(false);
+    }
+    private void adaptColumns(){
+        double width=gtinTable.getWidth();if(width<=0)return;
+        boolean compact=width<(compactColumns?1080:1040);if(compact==compactColumns)return;compactColumns=compact;
+        mappingColumn.setVisible(!compact);errorColumn.setVisible(!compact);
+        gtinColumn.setMinWidth(compact?150:185);gtinColumn.setPrefWidth(compact?155:195);
+        nameColumn.setMinWidth(compact?130:10);availableColumn.setMinWidth(compact?52:10);pipelineColumn.setMinWidth(compact?120:10);
+        actionsColumn.setMinWidth(compact?215:225);actionsColumn.setPrefWidth(compact?225:235);
+        gtinTable.refresh();
+    }
+    private String mappingText(ZnackGtinInventorySummary row){return row.mappingRuleCount()==0?tr("kiz_mapping.status.unmapped"):row.mappingRuleCount()+" "+tr("kiz_mapping.status.rules");}
+    private String rowFacts(ZnackGtinInventorySummary row){return row.gtin()+"\n"+value(row.productName())+"\n"+mappingText(row)+" · "+tr("kiz_mapping.column.available")+": "+row.available()+"\n"+localizeStatus(first(row.latestPipelineStage(),row.latestOrderStatus()))+"\n"+ZnackErrorMessages.displayForPipeline(first(row.latestPipelineStage(),row.latestOrderStatus()),row.latestError());}
+    private void showPurchaseReport(ZnackGtinInventorySummary row){
+        if(row!=null&&shop!=null)com.vncode.app.ui.report.ErrorReportDialog.show(shop.getName(),row.gtin(),"PURCHASE_PIPELINE",rowFacts(row)+"\n"+ZnackPurchaseDiagnostics.text(row.latestError(),row.latestPipelineStage(),row.latestPipelineId()==null?null:ZnackPurchaseCoordinator.nextCheckAt(shop.getId(),row.latestPipelineId())));
     }
 
     public void setShop(Shop selected) {
@@ -165,6 +185,7 @@ public class KizMappingController {
         errorColumn.setText(tr("kiz_mapping.column.error"));
         actionsColumn.setText(tr("kiz_mapping.column.actions"));
         emptyStateLabel.setText(tr("kiz_mapping.empty_gtin"));
+        gtinTable.refresh();
     }
 
     @FXML

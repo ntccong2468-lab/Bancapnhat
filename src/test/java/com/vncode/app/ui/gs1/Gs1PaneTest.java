@@ -190,7 +190,11 @@ class Gs1PaneTest {
     }
     @Test void narrowWorkspaceStacksCardsAndInboxWithoutHidingEitherPanel()throws Exception{
         fx(()->{render();pane.resize(760,850);pane.layout();var split=(SplitPane)pane.lookup("#gs1WorkspaceSplit");
-            assertEquals(Orientation.VERTICAL,split.getOrientation());assertTrue(pane.lookup("#gs1AccountScroll").isVisible());assertTrue(pane.lookup("#gs1InboxPanel").isVisible());assertTrue(pane.lookup("#gs1InboxPanel").getBoundsInLocal().getHeight()>100);return null;
+            assertEquals(Orientation.VERTICAL,split.getOrientation());assertEquals(1,split.getItems().size(),"A short workspace must not reserve half its height for an empty inbox");
+            var scroll=(javafx.scene.control.ScrollPane)pane.lookup("#gs1AccountScroll");assertTrue(scroll.isVisible());
+            var content=(VBox)scroll.getContent();assertEquals("gs1CompactAccountContent",content.getId());
+            assertSame(pane.lookup("#gs1AccountPanel"),content.getChildren().getFirst());assertSame(pane.lookup("#gs1InboxPanel"),content.getChildren().getLast());
+            assertTrue(pane.lookup("#gs1InboxPanel").isVisible());return null;
         });
     }
     @Test void syncButtonQueuesConfiguredBackgroundReadWithoutOpeningBrowserOrDuplicatingMembershipButton()throws Exception{

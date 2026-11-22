@@ -95,7 +95,8 @@ public final class ProductsPane extends BorderPane {
         var headingSpacer=new Region();HBox.setHgrow(headingSpacer,Priority.ALWAYS);
         var heading=new HBox(10,title,count,headingSpacer,copy,reload);heading.getStyleClass().add("workspace-toolbar");heading.setAlignment(Pos.CENTER_LEFT);heading.setMinHeight(36);
         title.getStyleClass().addAll("h2","page-title");count.getStyleClass().add("text-muted");reload.getStyleClass().add("btn-primary");reload.setGraphic(new FontIcon("fth-refresh-cw"));copy.setGraphic(new FontIcon("fth-copy"));
-        search.setId("productSearch");search.setMinWidth(180);search.setPrefWidth(375);
+        search.setId("productSearch");search.setMinWidth(180);
+        var searchHint=new Tooltip();searchHint.textProperty().bind(search.promptTextProperty());search.setTooltip(searchHint);
         category.setPrefWidth(134);document.setPrefWidth(263);
         category.setId("productCategoryFilter");document.setId("productDocumentFilter");
         document.getItems().add(null);document.getItems().addAll(DocumentState.values());
@@ -108,6 +109,13 @@ public final class ProductsPane extends BorderPane {
         // widths an HBox kept the document filter beyond the right edge, so let
         // the controls wrap without shrinking their labels below usable widths.
         var filters=new FlowPane(10,8,pageSelection,search,category,document);filters.setId("productFilters");filters.getStyleClass().add("workspace-toolbar");filters.setAlignment(Pos.CENTER_LEFT);filters.setMinWidth(0);
+        search.prefWidthProperty().bind(javafx.beans.binding.Bindings.createDoubleBinding(() -> {
+            if (filters.getWidth() <= 0) return 375.0;
+            double otherControls = pageSelection.prefWidth(-1) + category.getPrefWidth() + document.getPrefWidth();
+            double available = filters.getWidth() - filters.getInsets().getLeft() - filters.getInsets().getRight()
+                    - 3 * filters.getHgap() - otherControls - 2;
+            return Math.clamp(available, search.getMinWidth(), 375);
+        }, filters.widthProperty(), filters.insetsProperty(), pageSelection.textProperty()));
         needsFix.getStyleClass().add("text-muted");issueBar.getChildren().add(needsFix);issueBar.setAlignment(Pos.CENTER_LEFT);
         for(var kind:List.of(ProductIssueFilter.INVALID_TNVED,ProductIssueFilter.MISSING_BRAND,ProductIssueFilter.MISSING_MATERIAL)){
             var chip=new ToggleButton();chip.setId("productIssue_"+kind.name());chip.getStyleClass().add("product-issue-chip");chip.setOnAction(e->issue.setValue(issue.getValue()==kind?ProductIssueFilter.ALL:kind));issueChips.put(kind,chip);issueBar.getChildren().add(chip);

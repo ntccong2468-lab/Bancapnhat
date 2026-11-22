@@ -20,24 +20,22 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.Priority?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <VBox xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" minWidth="0" minHeight="0" spacing="12.0" styleClass="ozon-fbs-workspace,app-page,workspace-page,workspace-sheet" fx:controller="com.vncode.app.ui.ozon.OzonDashboardController">
     <padding><Insets bottom="16.0" left="16.0" right="16.0" top="16.0"/></padding>
     <children>
-        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="workspace-toolbar">
+        <FlowPane alignment="CENTER_LEFT" hgap="10.0" vgap="8.0" styleClass="workspace-toolbar" style="-fx-min-height: -1;">
             <children>
                 <Label fx:id="titleLabel" styleClass="h2,page-title" text="FBS orders"/>
                 <ProgressIndicator fx:id="loadingIndicator" prefHeight="18.0" prefWidth="18.0" maxHeight="18.0" maxWidth="18.0" visible="false"/>
                 <Button fx:id="refreshButton" prefHeight="28.0" mnemonicParsing="false" onAction="#onRefresh" text="Refresh"><graphic><FontIcon iconLiteral="fth-refresh-cw" iconSize="15"/></graphic></Button>
-                <Region HBox.hgrow="ALWAYS"/>
                 <Button fx:id="cancelSelectionButton" onAction="#onCancelSelection" text="%ozon.batch.cancel_selection" visible="false" managed="false" prefHeight="28.0"/>
                 <Button fx:id="kizInventoryButton" onAction="#onOpenKizInventory" text="%kiz.shipment.title" styleClass="btn-secondary" prefHeight="28.0"/>
                 <Button fx:id="ozonZnackRegistrationButton" onAction="#onOpenZnackRegistration" text="%sidebar.znack_registration" styleClass="btn-secondary" prefHeight="28.0" disable="true"/>
                 </children>
-        </HBox>
+        </FlowPane>
         <Label fx:id="statusLabel" styleClass="text-muted" wrapText="true"/>
         <Label fx:id="workflowLabel" styleClass="text-muted" wrapText="true" visible="false" managed="false"/>
         <VBox spacing="8.0" VBox.vgrow="ALWAYS">

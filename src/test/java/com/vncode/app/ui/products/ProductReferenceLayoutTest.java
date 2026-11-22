@@ -73,6 +73,13 @@ class ProductReferenceLayoutTest {
                         assertTrue(bounds.getMinX()>=-1&&bounds.getMaxX()<=stage.getScene().getWidth()+1,locale+" "+width+" filter extends outside the window: "+child);
                         assertTrue(bounds.getMaxY()<=filterBounds.getMaxY()+1,locale+" "+width+" filter extends below its container: "+child);
                     }
+                    if(locale==AppLanguage.VI&&width==760){
+                        var search=pane.lookup("#productSearch");
+                        var documents=pane.lookup("#productDocumentFilter");
+                        double searchTop=search.localToScene(search.getLayoutBounds()).getMinY();
+                        double documentsTop=documents.localToScene(documents.getLayoutBounds()).getMinY();
+                        assertEquals(searchTop,documentsTop,3,"The document filter fits beside search at the 1000px desktop layout");
+                    }
                     return null;
                 });
             }

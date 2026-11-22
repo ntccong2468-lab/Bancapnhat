@@ -49,6 +49,48 @@ class OzonRegistrationPaneTest {
         fx(()->{button("refresh").fire();return null;});awaitIdle();fx(()->{assertEquals(before,table().getItems().stream().map(ProductRow::key).toList());for(String action:new String[]{"gtin","sign","register","all"})assertTrue(button(action).isDisabled(),action);assertFalse(button("sync").isDisabled());assertFalse(button("documents").isDisabled());var status=OzonRegistrationPane.class.getDeclaredField("status");status.setAccessible(true);assertTrue(((javafx.scene.control.Label)status.get(pane)).getText().contains(com.vncode.app.shared.I18nService.getInstance().tr("znack.registration.latest_read_unknown")));return null;});
         com.vncode.app.testsupport.RegistrationSourceFixture.ready(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"));fx(()->{button("refresh").fire();return null;});awaitRows(300);fx(()->{assertFalse(button("gtin").isDisabled());return null;});
     }
+    @Test void compactOzonColumnsKeepNativeActionsReachableAcrossLanguagesAndRestoreTheWideFacts()throws Exception{
+        var i18n=com.vncode.app.shared.I18nService.getInstance();var language=i18n.getCurrentLanguage();var theme=com.vncode.app.shared.ThemeService.getCurrentTheme();
+        var stage=fx(()->{stopBatchPolling();var sidebar=new javafx.scene.layout.Region();sidebar.setMinWidth(244);sidebar.setPrefWidth(244);sidebar.setMaxWidth(244);var shell=new javafx.scene.layout.BorderPane(pane,null,null,null,sidebar);shell.setMinSize(0,0);var window=new javafx.stage.Stage();window.setScene(new javafx.scene.Scene(shell,1000,650));com.vncode.app.shared.ThemeService.applyTheme(window.getScene());window.show();table().getSelectionModel().selectFirst();return window;});
+        var rows=fx(()->java.util.List.copyOf(table().getItems()));var selected=fx(()->table().getSelectionModel().getSelectedItem());
+        try{
+            for(var locale:java.util.List.of(com.vncode.app.shared.AppLanguage.VI,com.vncode.app.shared.AppLanguage.RU))for(var appearance:com.vncode.app.shared.ThemeService.Theme.values()){
+                String longStatus=i18n.tr("znack.registration.latest_read_unknown")+" · "+("Synthetic detailed status ").repeat(25);
+                fx(()->{i18n.setLanguage(locale);pane.applyTranslations();com.vncode.app.shared.ThemeService.setCurrentTheme(appearance);
+                    @SuppressWarnings("unchecked") var statusColumn=(javafx.scene.control.TableColumn<ProductRow,String>)table().getColumns().stream().filter(column->"ozonRegistrationStatus".equals(column.getId())).findFirst().orElseThrow();
+                    statusColumn.setCellValueFactory(value->new javafx.beans.property.ReadOnlyStringWrapper(longStatus));table().refresh();return null;});
+                for(int width:new int[]{1000,1600,1000}){
+                    fx(()->{stage.setWidth(width);return null;});ZnackCardRegistrationControllerTest.nativeLayoutPulse();
+                    fx(()->{
+                        var root=stage.getScene().getRoot();root.applyCss();root.layout();
+                        com.vncode.app.testsupport.NativeRegistrationActionAssertions.assertFullyRendered(table(),"Ozon "+locale+" "+appearance+" width "+width);
+                        for(String id:java.util.List.of("ozonRegistrationFilters","ozonRegistrationFooter")){
+                            var flow=(javafx.scene.layout.FlowPane)pane.lookup("#"+id);
+                            var reserved=flow.localToScene(new javafx.geometry.BoundingBox(0,0,flow.getWidth(),flow.getHeight()));
+                            for(var child:flow.getChildren())if(child.isVisible()&&child.isManaged())assertInside(child,reserved,id+" must reserve every wrapped row");
+                        }
+                        var filters=(javafx.scene.layout.FlowPane)pane.lookup("#ozonRegistrationFilters");
+                        assertTrue(table().localToScene(0,0).getY()>=filters.localToScene(0,filters.getHeight()).getY(),"The table cannot overlap the second filter row");
+                        int checkedStatuses=0;var viewport=table().localToScene(new javafx.geometry.BoundingBox(0,0,table().getWidth(),table().getHeight()));
+                        for(var node:table().lookupAll(".table-cell"))if(node instanceof javafx.scene.control.TableCell<?,?> cell&&!cell.isEmpty()&&"ozonRegistrationStatus".equals(cell.getTableColumn().getId())){
+                            var actual=cell.localToScene(new javafx.geometry.BoundingBox(0,0,cell.getWidth(),cell.getHeight()));if(actual.getMinY()<viewport.getMinY()||actual.getMaxY()>viewport.getMaxY()-1)continue;
+                            var label=assertInstanceOf(javafx.scene.control.Label.class,cell.getGraphic());assertEquals(longStatus,label.getText());assertEquals(longStatus,label.getAccessibleText());assertEquals(longStatus,cell.getTooltip().getText());
+                            assertTrue(label.getHeight()<=51.1,"Long status must stay within three lines in a 71 px row");assertInside(label,actual,"Status must stay inside its fixed-height row");checkedStatuses++;
+                        }
+                        assertTrue(checkedStatuses>0,"Inspect a real visible long status cell");
+                        assertEquals(rows,table().getItems());assertEquals(selected,table().getSelectionModel().getSelectedItem());assertEquals(71,table().getFixedCellSize());
+                        var size=table().getColumns().stream().filter(column->"ozonOriginalSize".equals(column.getId())).findFirst().orElseThrow();assertEquals(width>1200,size.isVisible());
+                        assertTrue(table().getHeight()>=stage.getScene().getHeight()*.35,"Compacting columns must preserve the working list");return null;
+                    });
+                }
+            }
+        }finally{fx(()->{stage.close();i18n.setLanguage(language);com.vncode.app.shared.ThemeService.setCurrentTheme(theme);return null;});}
+        try(var connection=Database.getConnection();var statement=connection.createStatement();var result=statement.executeQuery("SELECT count(*) FROM ozon_card_registrations")){assertTrue(result.next());assertEquals(0,result.getInt(1),"Resizing and language changes cannot create a Catalog card");}
+    }
+    private static void assertInside(javafx.scene.Node node,javafx.geometry.Bounds reserved,String message){
+        var actual=node.localToScene(node.getBoundsInLocal());
+        assertTrue(actual.getMinX()>=reserved.getMinX()-1&&actual.getMaxX()<=reserved.getMaxX()+1&&actual.getMinY()>=reserved.getMinY()-1&&actual.getMaxY()<=reserved.getMaxY()+1,message+": actual="+actual+" reserved="+reserved);
+    }
     @Test void reopeningAfterAWeekRestoresAllSavedPagesWithoutASourceSync()throws Exception{
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET finished_at=? WHERE kind='registration_sources'")){p.setString(1,java.time.Instant.now().minusSeconds(7*86400).toString());p.executeUpdate();}
         fx(()->{pane.dispose();pane=new OzonRegistrationPane(new Shop(1,"Ozon fixture",Marketplace.OZON,"fixture","synthetic"),gtinOpens::incrementAndGet);return null;});awaitRows(300);

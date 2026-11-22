@@ -38,10 +38,13 @@ public final class GuidesPane extends BorderPane {
             String title=tr("guides."+key+".title"),text=tr("guides."+key+".body");
             if(!searchKey(title+" "+text).contains(query))continue;
             var section=new VBox(12,label(title,"h3"),label(text,"text-secondary"));section.setId("guide_"+key);section.getStyleClass().add("guide-section");section.setMinWidth(0);
-            for(var entry:available)if(entry.guide().equals(key)){if(entry.kind()==GuideMediaRepository.Kind.IMAGE)section.getChildren().add(image(entry));else section.getChildren().add(video(entry));}
-            var choose=new Button(tr("guides.add_media"));choose.setOnAction(e->chooseMedia(key));
+            var entries=available.stream().filter(entry->entry.guide().equals(key)).toList();
+            String mediaAction=entries.isEmpty()?"guides.add_media":"guides.change_media";
+            var choose=new Button(tr(mediaAction));choose.setId("guideMediaAction");choose.setOnAction(e->chooseMedia(key,mediaAction));
             var article=new Button(tr("guides.open_article"));article.setOnAction(e->openArticle(key,title,text,section));
-            section.getChildren().add(new FlowPane(10,8,article,choose));body.getChildren().add(section);
+            section.getChildren().add(new FlowPane(10,8,article,choose));
+            for(var entry:entries)section.getChildren().add(entry.kind()==GuideMediaRepository.Kind.IMAGE?image(entry):video(entry));
+            body.getChildren().add(section);
         }
         if(body.getChildren().isEmpty())body.getChildren().add(label(tr("guides.no_results"),"text-muted"));
     }
@@ -86,8 +89,8 @@ public final class GuidesPane extends BorderPane {
         };
         retry.setOnAction(e->load.run());box.getChildren().setAll(frame,status,new FlowPane(10,8,play,retry,new Label(tr("guides.volume")),volume),seek);load.run();return box;
     }
-    private void chooseMedia(String guide) {
-        var chooser=new FileChooser();chooser.setTitle(tr("guides.add_media"));chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter(tr("guides.media_files"),"*.mp4","*.m4v","*.png","*.jpg","*.jpeg"));
+    private void chooseMedia(String guide,String action) {
+        var chooser=new FileChooser();chooser.setTitle(tr(action));chooser.getExtensionFilters().setAll(new FileChooser.ExtensionFilter(tr("guides.media_files"),"*.mp4","*.m4v","*.png","*.jpg","*.jpeg"));
         var file=chooser.showOpenDialog(getScene()==null?null:getScene().getWindow());if(file==null)return;
         try{String name=file.getName().toLowerCase(Locale.ROOT);media.save(new GuideMediaRepository.Media(guide,name.endsWith(".mp4")||name.endsWith(".m4v")?GuideMediaRepository.Kind.VIDEO:GuideMediaRepository.Kind.IMAGE,file.toPath().toRealPath().toUri()));render();}
         catch(Exception unavailable){body.getChildren().add(label(tr("guides.media_failed"),"text-muted"));}

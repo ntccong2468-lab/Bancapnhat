@@ -118,6 +118,46 @@ class KizSigningResumePresentationTest {
             assertTrue(r.next()); assertEquals(1, r.getInt(1));
         }
     }
+    @Test void compactMappingKeepsAllFiveActionIconsInsideTheTableAndRetainsTheSameRows()throws Exception{
+        var paused=new KizMappingRepository().findGtinSummaries(1).getFirst();
+        var failed=new ZnackGtinInventorySummary("04601234567906","Synthetic long product name","Fixture",2,0,0,1,5,"CODES_DOWNLOADED",paused.latestPipelineId(),"INTRODUCTION_FAILED","ZNACK_REQUIRED_ATTRIBUTES_MISSING",paused.syncedAt());
+        var previousTheme=com.vncode.app.shared.ThemeService.getCurrentTheme();
+        var loaded=fx(()->{
+            var loader=FxmlViewLoader.loader(KizMappingController.class,"kiz-mapping-view.fxml");Parent view=FxmlViewLoader.load(loader);
+            var selected=KizMappingController.class.getDeclaredField("shop");selected.setAccessible(true);selected.set(loader.getController(),new Shop(1,"Synthetic shop","fixture"));
+            @SuppressWarnings("unchecked") var table=(TableView<ZnackGtinInventorySummary>)loader.getNamespace().get("gtinTable");table.getItems().setAll(paused,failed);
+            var sidebar=new javafx.scene.layout.Region();sidebar.setMinWidth(244);sidebar.setPrefWidth(244);sidebar.setMaxWidth(244);
+            var shell=new javafx.scene.layout.BorderPane(view,null,null,null,sidebar);shell.setMinSize(0,0);var window=new Stage();window.setScene(new Scene(shell,1000,650));com.vncode.app.shared.ThemeService.applyTheme(window.getScene());window.show();
+            return new Object[]{loader,table,window};
+        });
+        var loader=(javafx.fxml.FXMLLoader)loaded[0];@SuppressWarnings("unchecked") var table=(TableView<ZnackGtinInventorySummary>)loaded[1];var stage=(Stage)loaded[2];
+        @SuppressWarnings("unchecked") var actions=(TableColumn<ZnackGtinInventorySummary,?>)loader.getNamespace().get("actionsColumn");
+        try{
+            for(var locale:List.of(AppLanguage.VI,AppLanguage.RU))for(var theme:com.vncode.app.shared.ThemeService.Theme.values()){
+                fx(()->{I18nService.getInstance().setLanguage(locale);((KizMappingController)loader.getController()).applyTranslations();com.vncode.app.shared.ThemeService.setCurrentTheme(theme);return null;});
+                for(int width:new int[]{1000,1600,1000}){
+                    fx(()->{stage.setWidth(width);return null;});nativeLayoutPulse();
+                    fx(()->{
+                        var root=stage.getScene().getRoot();root.applyCss();root.layout();assertEquals(List.of(paused,failed),table.getItems());
+                        var bounds=table.localToScene(table.getBoundsInLocal());int checked=0;
+                        for(var node:table.lookupAll(".table-cell"))if(node instanceof TableCell<?,?> cell&&cell.getTableColumn()==actions&&!cell.isEmpty()&&cell.getIndex()==1){
+                            var available=cell.localToScene(cell.getBoundsInLocal());assertTrue(available.getMinX()>=bounds.getMinX()-1&&available.getMaxX()<=bounds.getMaxX()+1,"Actions must remain inside the native table viewport");
+                            assertInstanceOf(HBox.class,cell.getGraphic());int visible=0;
+                            for(var child:((HBox)cell.getGraphic()).getChildren())if(child instanceof Button button&&button.isVisible()&&button.isManaged()){
+                                visible++;var b=button.localToScene(button.getBoundsInLocal());assertTrue(b.getMinX()>=available.getMinX()-1&&b.getMaxX()<=available.getMaxX()+1,"Every action icon must fit its cell");assertFalse(button.getAccessibleText().isBlank());assertNotNull(button.getOnAction());
+                            }assertEquals(5,visible,"The existing retry, mapping, export, archive and buy actions cannot disappear");checked++;
+                        }
+                        assertEquals(1,checked);var mapping=(TableColumn<?,?>)loader.getNamespace().get("mappingColumn");assertEquals(width>1200,mapping.isVisible());
+                        assertTrue(table.getHeight()>=stage.getScene().getHeight()*.55,"Wrapping toolbar controls must keep the list as the primary work area");return null;
+                    });
+                }
+            }
+        }finally{fx(()->{stage.close();com.vncode.app.shared.ThemeService.setCurrentTheme(previousTheme);return null;});}
+        try(var connection=Database.getConnection();var statement=connection.createStatement();var rows=statement.executeQuery("SELECT count(*) FROM kiz_orders")){assertTrue(rows.next());assertEquals(1,rows.getInt(1),"Presentation cannot enqueue another purchase");}
+    }
+    private static void nativeLayoutPulse()throws Exception{
+        var complete=new java.util.concurrent.CompletableFuture<Void>();fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==2){stop();complete.complete(null);}}}.start();return null;});complete.get(8,TimeUnit.SECONDS);
+    }
 
     private void sql(String sql) throws Exception {
         try (var c = Database.getConnection(); var s = c.createStatement()) { s.executeUpdate(sql); }

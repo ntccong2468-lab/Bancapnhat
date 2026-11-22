@@ -421,15 +421,37 @@ public final class Gs1Pane extends BorderPane {
         var inboxMenu=new ContextMenu();var mail=new MenuItem(tr("gs1.mail_settings"));mail.setOnAction(e->mailSettings());var refreshMail=new MenuItem(tr("gs1.inbox_refresh"));refreshMail.setOnAction(e->refreshInbox());inboxMenu.getItems().setAll(mail,refreshMail);inboxTitle.setContextMenu(inboxMenu);
         var requestTitle=new Label(tr("gs1.requests"));requestTitle.setManaged(hasRequests);requestTitle.setVisible(hasRequests);
         var inbox=new VBox(10,inboxTitle,inboxActions,requestTitle,requests,conversationScroll);inbox.setId("gs1InboxPanel");inbox.setPadding(new Insets(16));inbox.setMinWidth(0);inbox.setMinHeight(0);inbox.getStyleClass().addAll("feature-card","workspace-sheet");VBox.setVgrow(conversationScroll,Priority.ALWAYS);
-        SplitPane split=new SplitPane(headerScroll,inbox);split.setId("gs1WorkspaceSplit");split.setDividerPositions(.69);split.widthProperty().addListener((o,a,b)->adaptWorkspace(split,b.doubleValue()));setCenter(split);adaptWorkspace(split,getWidth()-getPadding().getLeft()-getPadding().getRight());
+        var workspace=new AccountWorkspace(headerScroll,left,inbox,conversationScroll,hasRequests);setCenter(workspace.split);workspace.adapt(getWidth()-getPadding().getLeft()-getPadding().getRight());
         status.managedProperty().unbind();status.visibleProperty().unbind();status.managedProperty().bind(status.textProperty().isNotEmpty());status.visibleProperty().bind(status.managedProperty());setBottom(status);BorderPane.setMargin(status,new Insets(8,0,0,0));
         requests.refresh();if(requests.getSelectionModel().getSelectedItem()!=null)showThread(requests.getSelectionModel().getSelectedItem());
     }
     private String membershipName(){var certificate=signedCertificate!=null?signedCertificate:currentContext==null?null:currentContext.certificate();return membership!=null&&!membership.legalName().isBlank()?membership.legalName():certificate==null?(shop==null?"":shop.getName()):certificate.ownerName();}
-    private static void adaptWorkspace(SplitPane split,double width){
-        var orientation=width>0&&width<840?Orientation.VERTICAL:Orientation.HORIZONTAL;
-        if(split.getOrientation()!=orientation)split.setOrientation(orientation);
-        split.setDividerPositions(orientation==Orientation.HORIZONTAL?.69:.56);
+    /** Compact windows use one reading/scrolling order instead of splitting a short viewport. */
+    private static final class AccountWorkspace {
+        private final SplitPane split=new SplitPane();
+        private final ScrollPane scroll,conversation;
+        private final VBox account,inbox,stack=new VBox(12);
+        private final boolean hasRequests;
+        private boolean compact,initialized;
+        private AccountWorkspace(ScrollPane scroll,VBox account,VBox inbox,ScrollPane conversation,boolean hasRequests){
+            this.scroll=scroll;this.account=account;this.inbox=inbox;this.conversation=conversation;this.hasRequests=hasRequests;
+            split.setId("gs1WorkspaceSplit");stack.setId("gs1CompactAccountContent");stack.setMinWidth(0);
+            split.widthProperty().addListener((o,a,b)->adapt(b.doubleValue()));
+        }
+        private void adapt(double width){
+            boolean next=width>0&&width<840;
+            if(initialized&&compact==next)return;
+            split.getItems().clear();scroll.setContent(null);stack.getChildren().clear();
+            if(next){
+                stack.getChildren().setAll(account,inbox);scroll.setContent(stack);split.getItems().setAll(scroll);
+                split.setOrientation(Orientation.VERTICAL);
+                conversation.setMinHeight(hasRequests?100:64);conversation.setPrefViewportHeight(hasRequests?180:64);
+            }else{
+                scroll.setContent(account);split.getItems().setAll(scroll,inbox);split.setOrientation(Orientation.HORIZONTAL);split.setDividerPositions(.69);
+                conversation.setMinHeight(100);conversation.setPrefViewportHeight(0);
+            }
+            compact=next;initialized=true;
+        }
     }
     private VBox membershipCard(){
         var snapshot=readiness();var assertion=snapshot.check(Gs1ReadinessService.Kind.MEMBERSHIP).state()==Gs1ReadinessService.State.UNKNOWN?Gs1Membership.Status.UNKNOWN:membership.status(LocalDate.now(ZoneId.of("Europe/Moscow")));

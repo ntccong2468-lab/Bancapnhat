@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 22.11.2026 MSK — Unslop giai đoạn 3
+
+Sau `c61865e`, chỉnh bố cục FBS/FBO, Sản phẩm, Znack, KIZ, GS1, Tài chính, Lịch sử in, Thiết kế mẫu và Hướng dẫn. Kiểm JavaFX hai kích thước cửa sổ với hồ sơ tổng hợp và giữ hành vi xử lý. Chưa phát hành. [Báo cáo và bằng chứng](validation/2026-11-22-unslop-responsive-layout.md)
+
 ## 22.11.2026 MSK — Unslop giai đoạn 2
 
 Sau `e673016`, đồng bộ cấp chữ và icon, bổ sung nhãn phạm vi in và thao tác bàn phím trên các màn FBS/FBO, Znack, GS1. Cải thiện nhãn lỗi giấy tờ và kiểm tra bản dịch. JavaFX 374 ca hồi quy đạt, Node 280 ca đạt. Tiêu đề Znack được rút ngắn và kiểm đủ 16 tổ hợp bố cục. Chưa phát hành. [Bằng chứng](validation/2026-11-22-unslop-typography-actions.md)

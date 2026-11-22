@@ -53,6 +53,31 @@ class ZnackCardRegistrationControllerTest {
     @Test void statusMenuContainsFourStagesAndTheAllOption()throws Exception{
         fx(()->{var choices=(ComboBox<?>)loader.getNamespace().get("statusFilter");assertEquals(java.util.List.of("ALL","NOT_CREATED","IN_PROGRESS","COMPLETED","ERROR"),choices.getItems().stream().map(value->((Enum<?>)value).name()).toList());return null;});
     }
+    @Test void compactNativeColumnsKeepEveryActionCaptionInsideTheViewportWithoutChangingRowsOrSelection()throws Exception{
+        var language=I18nService.getInstance().getCurrentLanguage();var theme=com.vncode.app.shared.ThemeService.getCurrentTheme();
+        var stage=fx(()->{var sidebar=new javafx.scene.layout.Region();sidebar.setMinWidth(244);sidebar.setPrefWidth(244);sidebar.setMaxWidth(244);var shell=new javafx.scene.layout.BorderPane((javafx.scene.Parent)loader.getRoot(),null,null,null,sidebar);shell.setMinSize(0,0);var window=new javafx.stage.Stage();window.setScene(new javafx.scene.Scene(shell,1000,650));com.vncode.app.shared.ThemeService.applyTheme(window.getScene());window.show();table().getSelectionModel().selectFirst();return window;});
+        var rows=fx(()->java.util.List.copyOf(table().getItems()));var selected=fx(()->table().getSelectionModel().getSelectedItem());
+        try{
+            for(var locale:java.util.List.of(com.vncode.app.shared.AppLanguage.VI,com.vncode.app.shared.AppLanguage.RU))for(var appearance:com.vncode.app.shared.ThemeService.Theme.values()){
+                fx(()->{I18nService.getInstance().setLanguage(locale);((ZnackCardRegistrationController)loader.getController()).applyTranslations();com.vncode.app.shared.ThemeService.setCurrentTheme(appearance);return null;});
+                for(int width:new int[]{1000,1600,1000}){
+                    fx(()->{stage.setWidth(width);return null;});nativeLayoutPulse();
+                    fx(()->{
+                        var root=stage.getScene().getRoot();root.applyCss();root.layout();
+                        com.vncode.app.testsupport.NativeRegistrationActionAssertions.assertFullyRendered(table(),"WB "+locale+" "+appearance+" width "+width);
+                        assertEquals(rows,table().getItems());assertEquals(selected,table().getSelectionModel().getSelectedItem());assertEquals(71,table().getFixedCellSize());
+                        var article=(TableColumn<?,?>)loader.getNamespace().get("articleColumn");assertEquals(width>1200,article.isVisible());
+                        if(width<1200){var name=(TableColumn<Sku,String>)loader.getNamespace().get("nameColumn");assertTrue(name.getCellData(rows.getFirst()).contains(rows.getFirst().vendorCode()));assertTrue(name.getCellData(rows.getFirst()).contains(rows.getFirst().size()));}
+                        assertTrue(table().getHeight()>=stage.getScene().getHeight()*.35,"Compacting columns must not spend the working-list height");
+                        return null;
+                    });
+                }
+            }
+        }finally{fx(()->{stage.close();I18nService.getInstance().setLanguage(language);com.vncode.app.shared.ThemeService.setCurrentTheme(theme);return null;});}
+    }
+    static void nativeLayoutPulse()throws Exception{
+        var complete=new CompletableFuture<Void>();fx(()->{new javafx.animation.AnimationTimer(){int frames;public void handle(long now){if(++frames==2){stop();complete.complete(null);}}}.start();return null;});complete.get(8,TimeUnit.SECONDS);
+    }
     @Test void reopeningAfterAWeekRestoresSavedRowsAndFiltersWithoutASourceSync()throws Exception{
         try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO wb_product_size_skus(shop_id,chrt_id,sku) VALUES(1,3,'04631993764370')");}
         try(var c=Database.getConnection();var p=c.prepareStatement("UPDATE sync_runs SET finished_at=? WHERE kind='registration_sources'")){p.setString(1,java.time.Instant.now().minusSeconds(7*86400).toString());p.executeUpdate();}

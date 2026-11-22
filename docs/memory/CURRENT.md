@@ -2,6 +2,11 @@
 
 Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 22.11.2026 — Unslop giai đoạn 3
+
+- Sau `c61865e`, thanh điều khiển ở FBS/FBO có thể xuống hàng, Sản phẩm dùng phần chiều rộng còn lại cho ô tìm. Znack WB/Ozon và Liên kết KIZ giữ cột thao tác khi bảng hẹp. GS1 cuộn thông tin tài khoản và thư trong một trang hẹp. Tài chính, lịch sử in, thiết kế tem và Hướng dẫn có bố cục dễ truy cập hơn. Hợp đồng chọn, in, mua, đăng ký và ký giữ nguyên.
+- Kiểm trên JavaFX/Linux với hồ sơ tổng hợp, cả hai nền. Nút Znack ở trong bảng 1000 × 650, vùng bảng Sản phẩm tăng 43% → 49% chiều cao cửa sổ. Lượt hồi quy rộng và kiểm lại thành phần có trong báo cáo. Chưa kiểm Windows hoặc phát hành. [Báo cáo](../validation/2026-11-22-unslop-responsive-layout.md).
+
 ## 22.11.2026 — Unslop giai đoạn 2
 
 - Tiếp nối nền đen phẳng từ `e673016`. Chuẩn hóa tiêu đề, icon hành động, bản dịch và nhãn trợ năng. WB FBS mở lô bằng Enter, Ozon/FBO giải thích tập in, GS1 có menu tài khoản dùng bàn phím. Trình duyệt lô Znack WB/Ozon hiện chế độ ký đã chọn và báo trường giấy tờ cần sửa.
