@@ -48,9 +48,10 @@ class OzonReviewedReplacementE2eTest {
     private RegistrationSourceConsent.Prepared reviewReplacement() throws Exception {return reviewReplacement(false);}
     private RegistrationSourceConsent.Prepared reviewReplacement(boolean conflict) throws Exception {
         Class<?> dialog=Class.forName("com.vncode.app.ui.znackregistration.RegistrationSourceReviewDialog");
-        Method show=dialog.getDeclaredMethod("show",Window.class,com.vncode.app.models.Shop.class,UUID.class,RegistrationDynamicPreflight.Review.class,Map.class);show.setAccessible(true);
+        Method show=dialog.getDeclaredMethod("show",Window.class,com.vncode.app.models.Shop.class,UUID.class,RegistrationDynamicPreflight.Review.class,Map.class,boolean.class);
+        show.setAccessible(true);
         var target=new RegistrationSourceConsent.Target(RegistrationSourceConsent.Action.REPLACE,GtinWriteTestFixture.GTIN,91L,conflict);
-        var task=new FutureTask<RegistrationSourceConsent.Prepared>(()->(RegistrationSourceConsent.Prepared)show.invoke(null,null,fixture.shop,UUID.randomUUID(),review,Map.of(fixture.key,target)));
+        var task=new FutureTask<RegistrationSourceConsent.Prepared>(()->(RegistrationSourceConsent.Prepared)show.invoke(null,null,fixture.shop,UUID.randomUUID(),review,Map.of(fixture.key,target),false));
         Platform.runLater(task);long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(20);
         try{while(System.nanoTime()<deadline){var click=new FutureTask<Boolean>(()->{
             for(var window:List.copyOf(Window.getWindows())){if(!window.isShowing()||window.getScene()==null)continue;var root=window.getScene().getRoot();var pane=root instanceof DialogPane d?d:(DialogPane)root.lookup(".dialog-pane");

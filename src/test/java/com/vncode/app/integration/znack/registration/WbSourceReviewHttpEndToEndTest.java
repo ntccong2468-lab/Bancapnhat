@@ -81,13 +81,20 @@ class WbSourceReviewHttpEndToEndTest {
     }
     private RegistrationSourceConsent.Prepared review(boolean approve,RegistrationSourceConsent.Target target)throws Exception{
         var result=new CompletableFuture<RegistrationSourceConsent.Prepared>();
-        Platform.runLater(()->{try{var cls=Class.forName("com.vncode.app.ui.znackregistration.RegistrationSourceReviewDialog");var m=cls.getDeclaredMethod("show",Window.class,Shop.class,UUID.class,RegistrationDynamicPreflight.Review.class,Map.class);m.setAccessible(true);result.complete((RegistrationSourceConsent.Prepared)m.invoke(null,null,shop,UUID.randomUUID(),review,Map.of(key,target)));}catch(Throwable e){result.completeExceptionally(e);}});
+        var dialog=Class.forName("com.vncode.app.ui.znackregistration.RegistrationSourceReviewDialog");
+        var show=dialog.getDeclaredMethod("show",Window.class,Shop.class,UUID.class,RegistrationDynamicPreflight.Review.class,Map.class,boolean.class);
+        show.setAccessible(true);
+        Platform.runLater(()->{
+            try{result.complete((RegistrationSourceConsent.Prepared)show.invoke(null,null,shop,UUID.randomUUID(),review,Map.of(key,target),false));}
+            catch(ReflectiveOperationException failure){result.completeExceptionally(failure);}
+        });
         long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(15);boolean done=false;
-        while(System.nanoTime()<deadline&&!done){done=fx(()->{for(var w:List.copyOf(Window.getWindows())){if(!w.isShowing()||w.getScene()==null)continue;var pane=w.getScene().getRoot().lookup(".dialog-pane");if(pane==null||pane.lookup("#registrationSourceReviewTable")==null)continue;
+        while(System.nanoTime()<deadline&&!done&&!result.isCompletedExceptionally()){done=fx(()->{for(var w:List.copyOf(Window.getWindows())){if(!w.isShowing()||w.getScene()==null)continue;var pane=w.getScene().getRoot().lookup(".dialog-pane");if(pane==null||pane.lookup("#registrationSourceReviewTable")==null)continue;
             assertTrue(((DialogPane)pane).getStylesheets().stream().anyMatch(style->style.endsWith("theme.css")),"The source review must use the app theme");
             var table=(TableView<?>)pane.lookup("#registrationSourceReviewTable");
             assertEquals(target.action()==RegistrationSourceConsent.Action.REPLACE?5:4,table.getColumns().size(),"Only show identity columns relevant to this action");
             if(!approve){((DialogPane)pane).lookupButton(((DialogPane)pane).getButtonTypes().stream().filter(t->t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow()).fireEvent(new javafx.event.ActionEvent());return true;}var box=(CheckBox)pane.lookup("#registrationSourceConfirm");var button=(Button)pane.lookup("#registrationSourceReviewApply");if(!box.isSelected())box.fire();if(!button.isDisabled()){capture(w.getScene());button.fire();return true;}}return false;});if(!done)Thread.sleep(20);}
+        if(result.isCompletedExceptionally())return result.get();
         assertTrue(done,"Source review dialog did not become actionable");return result.get(15,TimeUnit.SECONDS);
     }
     private static <T>T fx(Callable<T> c)throws Exception{var t=new FutureTask<>(c);Platform.runLater(t);return t.get(10,TimeUnit.SECONDS);}

@@ -31,6 +31,8 @@ Nguồn đối chiếu `f42b019` trên nhánh `design/unslop-audit-20261122`. Co
 
 Các bước sửa dùng Code Doctor để giữ ca tái hiện trên nguồn gốc, rồi chạy lại bằng mã đã sửa. Dùng ECC để rà ảnh hưởng giữa các module và OpenQodex để quét thông tin bí mật trong thay đổi. Thư mục chạy quét đặt ngoài repo.
 
+Lượt hồi quy diện rộng phát hiện ba bộ kiểm thử cuối luồng Znack gọi chữ ký năm tham số của hộp thoại duyệt nguồn. Mã ở mốc giao diện đã có tham số chế độ ký thứ sáu. Đã cập nhật cách gọi của các ca WB và Ozon, giữ các kiểm tra nghiệp vụ và chạy lại qua hộp thoại thật trên JavaFX. [Tái hiện](/workspace/reports/vncode-app-audit-20261122/catalog-review-e2e-red.log) · [Chạy lại](/workspace/reports/vncode-app-audit-20261122/catalog-review-e2e-green.log).
+
 ## Tình huống lớn đã xác minh
 
 - Ozon FBS nhận 101 đơn với 101 KIZ khác nhau trong fixture HTTP cục bộ. Các ca xuất PDF đủ 100 và 1.000 đơn, theo đúng thứ tự và có một lần yêu cầu tạo lô cho mỗi lượt. Ca nhãn kết hợp kiểm riêng PDF 100 đơn với 200 trang cho mỗi lượt xuất và không tải từng nhãn. Thời gian đo trong máy kiểm, với ảnh và KIZ tắt trong phép đo tốc độ, là 2,85 giây cho 100 đơn và 17,03–30,20 giây cho 1.000 đơn.
@@ -45,9 +47,11 @@ Các bước sửa dùng Code Doctor để giữ ca tái hiện trên nguồn g�
 | WB/Ozon FBS, FBO và in lô | 244 ca đạt. | [Maven](/workspace/reports/vncode-marketplace-audit-20261122/marketplace-green.log) |
 | Sản phẩm, sao chép và GTIN | 530 ca đạt, cộng 32 ca phân trang dịch vụ WB/Ozon đạt. | [Hồi quy](/workspace/scratch/vncode-products-audit-20261122/green.log) · [Phân trang](/workspace/scratch/vncode-products-audit-final-20261122/pagination.log) |
 | Znack, GS1, OMS và CryptoPro | 236 ca nghiệp vụ và 33 ca Catalog đạt. | [Nghiệp vụ](/workspace/reports/whole-app-audit-20261122/znack/focused-green.log) · [Catalog](/workspace/reports/whole-app-audit-20261122/znack/catalog-cancel-green.log) |
+| Duyệt nguồn WB, tạo và thay thẻ Ozon, lựa chọn chế độ ký | 38 ca đạt sau khi sửa bộ kiểm thử gọi đúng hộp thoại. | [Hồi quy](/workspace/reports/vncode-app-audit-20261122/catalog-review-e2e-green.log) |
+| GTIN lô và phục hồi lỗi | 11 ca của `GtinBulkPipelineTest` đạt, gồm phản hồi một phần, mất kết nối, phản hồi 429, không gửi lại khi kết quả chưa rõ và giữ trạng thái chờ xác nhận. | [Maven](/workspace/reports/vncode-app-audit-20261122/gtin-bulk-faults.log) |
 | License, khởi động, sao lưu và cập nhật | 226 ca đạt trong lượt rộng, 43 ca đạt khi kiểm lại license và cập nhật sau bản sửa cuối. | [Lượt rộng](/workspace/reports/vncode-lifecycle-audit-20261122/lifecycle-tests.log) · [Bản sửa cuối](/workspace/reports/vncode-lifecycle-audit-20261122/queued-download-green.log) |
 | Tài chính, mẫu in, lịch sử, tin tức, hướng dẫn và TN VED | 128 ca đạt. | [JavaFX](/workspace/reports/vncode-full-audit-20261122/tools/expanded-independent.log) |
 | Công cụ phát triển và cổng tài khoản | Node 280 ca đạt. Portal kiểm cú pháp và 72 ca đạt. | [Công cụ](/workspace/reports/vncode-app-audit-20261122/node-tools.log) · [Portal](/workspace/reports/vncode-app-audit-20261122/portal.log) |
 | OpenQodex 0.16.0 | Gitleaks 8.21.2 đã quét 29 tệp chỉnh sửa và không phát hiện bí mật. Semgrep được tắt trong lượt quét ngoại tuyến. | [Log](/workspace/reports/vncode-app-audit-20261122/openqodex-final.log) |
 
-Các lượt theo nhóm có ca trùng nhau. Phạm vi thay đổi gồm 26 tệp Java sản xuất và kiểm thử. Phiên bản và cấu hình phát hành không thay đổi. Dữ liệu kiểm thử là hồ sơ tạm, API cục bộ và dữ liệu tổng hợp. Nghiệm thu trên Windows, nâng cấp MSI, thiết bị in và CryptoPro thật, và giao dịch với tài khoản seller vẫn chưa thực hiện. Mốc này được lưu để dùng cho bản kế tiếp. Chưa tạo bộ cài phát hành hoặc chuyển Latest.
+Các lượt theo nhóm có ca trùng nhau. Phạm vi thay đổi gồm 29 tệp Java sản xuất và kiểm thử. Phiên bản và cấu hình phát hành không thay đổi. Dữ liệu kiểm thử là hồ sơ tạm, API cục bộ và dữ liệu tổng hợp. Nghiệm thu trên Windows, nâng cấp MSI, thiết bị in và CryptoPro thật, và giao dịch với tài khoản seller vẫn chưa thực hiện. Mốc này được lưu để dùng cho bản kế tiếp. Chưa tạo bộ cài phát hành hoặc chuyển Latest.

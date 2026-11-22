@@ -40,8 +40,9 @@ class OzonSellerRegistrationE2eTest {
 
     private RegistrationSourceConsent.Prepared sellerReview(boolean accept) throws Exception {
         Class<?> dialog=Class.forName("com.vncode.app.ui.znackregistration.RegistrationSourceReviewDialog");
-        Method show=dialog.getDeclaredMethod("show",Window.class,com.vncode.app.models.Shop.class,UUID.class,RegistrationDynamicPreflight.Review.class,Map.class);show.setAccessible(true);
-        var task=new FutureTask<RegistrationSourceConsent.Prepared>(()->(RegistrationSourceConsent.Prepared)show.invoke(null,null,fixture.shop,UUID.randomUUID(),review,Map.of(fixture.key,new RegistrationSourceConsent.Target(RegistrationSourceConsent.Action.CREATE,"",null))));
+        Method show=dialog.getDeclaredMethod("show",Window.class,com.vncode.app.models.Shop.class,UUID.class,RegistrationDynamicPreflight.Review.class,Map.class,boolean.class);
+        show.setAccessible(true);
+        var task=new FutureTask<RegistrationSourceConsent.Prepared>(()->(RegistrationSourceConsent.Prepared)show.invoke(null,null,fixture.shop,UUID.randomUUID(),review,Map.of(fixture.key,new RegistrationSourceConsent.Target(RegistrationSourceConsent.Action.CREATE,"",null)),false));
         Platform.runLater(task);long deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(20);
         try {
             while(System.nanoTime()<deadline){
