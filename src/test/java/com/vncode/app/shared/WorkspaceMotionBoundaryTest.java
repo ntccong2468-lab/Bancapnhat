@@ -131,7 +131,8 @@ class WorkspaceMotionBoundaryTest {
             try {
                 WorkspaceMotion.install(popup.getScene()); popup.show(owner, 20, 20);
                 var root = popup.getScene().getRoot();
-                assertTrue(WorkspaceMotion.isAnimating(root));
+                assertFalse(WorkspaceMotion.isAnimating(root));
+                assertTrue(root.getTransforms().isEmpty());
                 popup.hide();
                 assertFalse(WorkspaceMotion.isAnimating(root)); assertTrue(root.getTransforms().isEmpty());
                 assertEquals(1, root.getOpacity()); assertEquals(1, hidden.get());

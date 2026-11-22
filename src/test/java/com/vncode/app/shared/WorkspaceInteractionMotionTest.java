@@ -129,14 +129,15 @@ class WorkspaceInteractionMotionTest {
         });
     }
 
-    @Test void recyclingAnActiveCellRemovesItsFeedbackWithoutWatchingEveryCell() throws Exception {
+    @Test void nativeCellsKeepTheirReadingGeometryWhenPressedAndRecycled() throws Exception {
         fx(() -> {
             var list = new ListView<String>(); list.getItems().setAll("First", "Second");
             list.setCellFactory(ignored -> new RecycledCell());
             show(new StackPane(list), null); list.applyCss(); list.layout();
             var cell = list.lookupAll(".list-cell").stream().filter(RecycledCell.class::isInstance)
                     .map(RecycledCell.class::cast).filter(value -> "First".equals(value.getItem())).findFirst().orElseThrow();
-            press(cell); assertTrue(WorkspaceInteractionMotion.hasFeedback(cell));
+            press(cell); assertFalse(WorkspaceInteractionMotion.hasFeedback(cell));
+            assertTrue(cell.getTransforms().isEmpty());
             cell.reuse("Reused");
             assertFalse(WorkspaceInteractionMotion.hasFeedback(cell));
             assertTrue(cell.getTransforms().isEmpty());
@@ -243,7 +244,8 @@ class WorkspaceInteractionMotionTest {
             ThemeService.applyTheme(popup.getScene());
             popup.show(owner, owner.getX() + 10, owner.getY() + 50);
             var root = popup.getScene().getRoot();
-            assertTrue(WorkspaceMotion.isAnimating(root)); assertEquals(1, shown.get());
+            assertFalse(WorkspaceMotion.isAnimating(root)); assertEquals(1, root.getOpacity());
+            assertTrue(root.getTransforms().isEmpty()); assertEquals(1, shown.get());
             popup.hide();
             assertFalse(WorkspaceMotion.isAnimating(root)); assertTrue(root.getTransforms().isEmpty());
             assertEquals(1, hidden.get());

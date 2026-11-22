@@ -111,7 +111,7 @@ class WorkspaceGlobalMotionContractTest {
         });
     }
 
-    @Test void reportStagesUseTheSameOpeningMotionAndKeepImmediateHiddenCleanup() throws Exception {
+    @Test void reportStagesOpenAtFullSizeAndKeepImmediateHiddenCleanup() throws Exception {
         fx(() -> {
             var owner = show(new StackPane());
             var root = new StackPane(new Button("Synthetic report"));
@@ -126,7 +126,8 @@ class WorkspaceGlobalMotionContractTest {
             report.setOnShown(event -> shown.incrementAndGet());
             report.setOnHidden(event -> hidden.incrementAndGet());
             report.show();
-            assertTrue(WorkspaceMotion.isAnimating(root), "A report Stage cannot be omitted just because its root is not DialogPane");
+            assertFalse(WorkspaceMotion.isAnimating(root), "Dense native report roots show at full size from their first frame");
+            assertTrue(root.getTransforms().isEmpty()); assertEquals(1, root.getOpacity());
             assertEquals(1, shown.get());
             report.hide();
             assertFalse(report.isShowing(), "Animation cannot delay the real window hide");

@@ -41,13 +41,16 @@ public final class MotionBoundary implements AutoCloseable {
         Objects.requireNonNull(host);Objects.requireNonNull(incoming);Objects.requireNonNull(context);
         Node previous=current.get();
         if(previous==incoming&&host.getChildren().contains(incoming))return;
-        WritableImage outgoing=previous!=null&&host.getChildren().contains(previous)?captureVisible(host):null;
+        // Remove the last disposable visual and settle the live page before taking
+        // another picture. A rapid A→B→C must never recapture A through B.
         clearDeparture();
         if(previous!=null)WorkspaceMotion.stop(previous);
+        boolean hierarchy=context==NavigationContext.FORWARD||context==NavigationContext.BACK;
+        WritableImage outgoing=hierarchy&&previous!=null&&host.getChildren().contains(previous)?captureVisible(host):null;
         releaseViewportClip();
         host.getChildren().setAll(incoming);
         current=new WeakReference<>(incoming);
-        // StackPane does not clip children by default. The wrapper's scale/slide
+        // StackPane does not clip children by default. The wrapper's small slide
         // must remain inside the work area and leave the shared chrome untouched.
         boolean contained=WorkspaceMotion.isReduced()||containViewport(host);
         if(!contained)outgoing=null;
@@ -92,15 +95,20 @@ public final class MotionBoundary implements AutoCloseable {
     private void clearDeparture(){if(departure!=null)departure.release();}
 
     private boolean containViewport(StackPane host){
-        if(host.getClip()!=null)return true;
-        if(host.clipProperty().isBound())return false;
-        viewportClip=new ViewportClip(host);return true;
+        if(host.getClip()==null&&host.clipProperty().isBound())return false;
+        viewportClip=new ViewportClip(host,host.getClip()==null);return true;
     }
     private void releaseViewportIfFinished(){if(entryFinished&&departure==null)releaseViewportClip();}
     private void releaseViewportClip(){if(viewportClip!=null){viewportClip.release();viewportClip=null;}}
+    private void settleCurrent(){
+        entryFinished=true;
+        clearDeparture();
+        var node=current.get();if(node!=null)WorkspaceMotion.stop(node);
+        releaseViewportClip();
+    }
     private final class ViewportClip {
         private final WeakReference<StackPane> host;
-        private final Rectangle clip=new Rectangle();
+        private final Rectangle clip;
         private Scene scene;
         private Window window;
         private boolean released;
@@ -109,8 +117,13 @@ public final class MotionBoundary implements AutoCloseable {
         };
         private final ChangeListener<Window> windowChanged=(observable,previous,next)->watchWindow(next);
         private final ChangeListener<Boolean> showingChanged=(observable,previous,next)->{if(previous&&!next)MotionBoundary.this.cancel();};
-        private ViewportClip(StackPane host){
-            this.host=new WeakReference<>(host);clip.widthProperty().bind(host.widthProperty());clip.heightProperty().bind(host.heightProperty());host.setClip(clip);
+        private final ChangeListener<Number> resized=(observable,previous,next)->settleCurrent();
+        private ViewportClip(StackPane host,boolean ownsClip){
+            this.host=new WeakReference<>(host);clip=ownsClip?new Rectangle():null;
+            if(clip!=null){clip.widthProperty().bind(host.widthProperty());clip.heightProperty().bind(host.heightProperty());host.setClip(clip);}
+            // Do not stretch a framebuffer from the old viewport while the user
+            // resizes. The already-mounted route and its state remain live.
+            host.widthProperty().addListener(resized);host.heightProperty().addListener(resized);
             host.sceneProperty().addListener(sceneChanged);watchScene(host.getScene());
         }
         private void watchScene(Scene next){
@@ -124,11 +137,15 @@ public final class MotionBoundary implements AutoCloseable {
         private void release(){
             if(released)return;released=true;
             var owner=host.get();
-            if(owner!=null){owner.sceneProperty().removeListener(sceneChanged);if(!owner.clipProperty().isBound()&&owner.getClip()==clip)owner.setClip(null);}
+            if(owner!=null){
+                owner.widthProperty().removeListener(resized);owner.heightProperty().removeListener(resized);
+                owner.sceneProperty().removeListener(sceneChanged);
+                if(clip!=null&&!owner.clipProperty().isBound()&&owner.getClip()==clip)owner.setClip(null);
+            }
             if(scene!=null)scene.windowProperty().removeListener(windowChanged);
             if(window!=null)window.showingProperty().removeListener(showingChanged);
             scene=null;window=null;
-            clip.widthProperty().unbind();clip.heightProperty().unbind();host.clear();
+            if(clip!=null){clip.widthProperty().unbind();clip.heightProperty().unbind();}host.clear();
         }
     }
 

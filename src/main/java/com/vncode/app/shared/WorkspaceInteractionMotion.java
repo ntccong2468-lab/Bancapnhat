@@ -24,7 +24,6 @@ import javafx.scene.control.ScrollBar;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.control.TitledPane;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -62,7 +61,7 @@ public final class WorkspaceInteractionMotion {
     private static final Set<ExitGhost> GHOSTS = new LinkedHashSet<>();
     private static final int MAX_GHOST_PIXELS = 1_200_000;
     private static final int MAX_INSPECTED_NODES = 12_000;
-    private static final Interpolator ARRIVE = Interpolator.SPLINE(.16, 1, .3, 1);
+    private static final Interpolator ARRIVE = WorkspaceMotionTokens.ARRIVE;
 
     private WorkspaceInteractionMotion() { }
 
@@ -138,14 +137,16 @@ public final class WorkspaceInteractionMotion {
                     || current instanceof Canvas || current.getClass().getName().equals("javafx.scene.web.WebView")) return null;
             if (current.isDisabled() || !current.isVisible()) return null;
             if (current instanceof ButtonBase) return current;
-            if (current instanceof Cell<?>) return current;
+            // Selection, tabs, table headers and disclosure titles already have
+            // native state feedback. Shrinking those surfaces distorts dense text.
+            if (current instanceof Cell<?>) return null;
             var classes = current.getStyleClass();
-            if (classes.contains("menu-item") || classes.contains("tab") || classes.contains("arrow-button")
-                    || classes.contains("increment-arrow-button") || classes.contains("decrement-arrow-button")
-                    || classes.contains("column-header")) return current;
+            if (classes.contains("menu-item") || classes.contains("tab") || classes.contains("column-header")) return null;
+            if (classes.contains("arrow-button") || classes.contains("increment-arrow-button")
+                    || classes.contains("decrement-arrow-button")) return current;
             if (classes.contains("title")) {
                 for (Parent parent = current.getParent(); parent != null; parent = parent.getParent()) {
-                    if (parent instanceof TitledPane) return current;
+                    if (parent instanceof TitledPane) return null;
                 }
             }
         }
@@ -174,11 +175,6 @@ public final class WorkspaceInteractionMotion {
                 if (event.getButton() != MouseButton.PRIMARY || ThemeService.isReducedMotion()) return;
                 var node = target(event.getTarget());
                 if (node != null) {
-                    if (node.getStyleClass().contains("column-header")) {
-                        Point2D point = node.sceneToLocal(event.getSceneX(), event.getSceneY());
-                        double width = node.getLayoutBounds().getWidth();
-                        if (point.getX() < 5 || point.getX() > width - 5) return;
-                    }
                     feedback(node).press();
                 }
             });
@@ -250,9 +246,7 @@ public final class WorkspaceInteractionMotion {
         private void press() {
             if (finished || held) return;
             held = true; releasing = false;
-            boolean broadSurface = node instanceof Cell<?> || node.getStyleClass().contains("column-header")
-                    || node.getStyleClass().contains("title");
-            animate(broadSurface ? .995 : .976, Duration.millis(80));
+            animate(.98, Duration.millis(80));
         }
 
         private void activate() {
@@ -267,8 +261,7 @@ public final class WorkspaceInteractionMotion {
             if (animation != null) animation.stop();
             var timeline = new Timeline(
                     new KeyFrame(Duration.ZERO, new KeyValue(scale.xProperty(), scale.getX()), new KeyValue(scale.yProperty(), scale.getY())),
-                    new KeyFrame(Duration.millis(105), new KeyValue(scale.xProperty(), 1.004, ARRIVE), new KeyValue(scale.yProperty(), 1.004, ARRIVE)),
-                    new KeyFrame(Duration.millis(180), new KeyValue(scale.xProperty(), 1, ARRIVE), new KeyValue(scale.yProperty(), 1, ARRIVE)));
+                    new KeyFrame(Duration.millis(120), new KeyValue(scale.xProperty(), 1, ARRIVE), new KeyValue(scale.yProperty(), 1, ARRIVE)));
             animation = timeline;
             timeline.setOnFinished(event -> finish());
             timeline.play();
@@ -481,9 +474,8 @@ public final class WorkspaceInteractionMotion {
             }
             if (silhouette) {
                 boolean dark = source.getStyleClass().contains("theme-dark") || host.getStyleClass().contains("theme-dark");
-                var shape = new Rectangle(local.getWidth(), local.getHeight(), dark ? Color.rgb(42, 42, 47, .96) : Color.rgb(255, 255, 255, .96));
+                var shape = new Rectangle(local.getWidth(), local.getHeight(), dark ? Color.web("#1b1b1b") : Color.WHITE);
                 shape.setArcWidth(28); shape.setArcHeight(28);
-                shape.setEffect(new DropShadow(18, 0, 4, Color.rgb(0, 0, 0, .16)));
                 content.getChildren().setAll(shape);
             }
             content.getProperties().put(GHOST, silhouette ? "SILHOUETTE" : "SNAPSHOT");

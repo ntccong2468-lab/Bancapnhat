@@ -2,6 +2,11 @@
 
 Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 22.11.2026 — Unslop giai đoạn 4
+
+- Sau `5a78502`, đổi chuyển động sang mờ ngắn và dịch nhẹ theo hướng điều hướng. Giữ cỡ cửa sổ và bảng, bỏ nảy, bỏ ảnh tạm cũ khi resize hoặc đổi trang liên tiếp. Reduce Motion đi đúng hướng mờ và không dịch theo vị trí.
+- Tích hợp giai đoạn 3/4 với JavaFX/Linux 114/114 ca, JAR khớp tài nguyên. Kiểm menu, hộp thoại bằng bàn phím và scale GTK 100/125/150% trên nguồn tích hợp. Windows, dữ liệu thật và phát hành chưa thực hiện. [Báo cáo](../validation/2026-11-22-unslop-motion.md).
+
 ## 22.11.2026 — Unslop giai đoạn 3
 
 - Sau `c61865e`, thanh điều khiển ở FBS/FBO có thể xuống hàng, Sản phẩm dùng phần chiều rộng còn lại cho ô tìm. Znack WB/Ozon và Liên kết KIZ giữ cột thao tác khi bảng hẹp. GS1 cuộn thông tin tài khoản và thư trong một trang hẹp. Tài chính, lịch sử in, thiết kế tem và Hướng dẫn có bố cục dễ truy cập hơn. Hợp đồng chọn, in, mua, đăng ký và ký giữ nguyên.

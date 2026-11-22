@@ -8,7 +8,6 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.transform.Scale;
 import javafx.stage.PopupWindow;
 import javafx.util.Duration;
 import java.util.Collections;
@@ -60,46 +59,41 @@ public final class WorkspaceMotion {
         Objects.requireNonNull(finished);
         install(node);
         switch (context) {
-            case FORWARD -> enterScaled(node, WorkspaceMotionTokens.HIERARCHY, WorkspaceMotionTokens.FORWARD_X, 0, .9, WorkspaceMotionTokens.FORWARD_SCALE, finished);
-            case BACK -> enterScaled(node, WorkspaceMotionTokens.HIERARCHY, WorkspaceMotionTokens.BACK_X, 0, .9, WorkspaceMotionTokens.BACK_SCALE, finished);
-            case TAB -> enterScaled(node, WorkspaceMotionTokens.TAB, 0, 0, .92, WorkspaceMotionTokens.TAB_SCALE, finished);
-            case OVERLAY -> scaled(node,WorkspaceMotionTokens.MODAL_OPEN,.95,null,finished);
-            case SIBLING -> enterScaled(node, WorkspaceMotionTokens.SIBLING, 0, WorkspaceMotionTokens.SIBLING_Y, .92, WorkspaceMotionTokens.SIBLING_SCALE, finished);
+            case FORWARD -> enter(node, WorkspaceMotionTokens.HIERARCHY, WorkspaceMotionTokens.FORWARD_X, 0, .92, finished);
+            case BACK -> enter(node, WorkspaceMotionTokens.HIERARCHY, WorkspaceMotionTokens.BACK_X, 0, .92, finished);
+            case TAB -> enter(node, WorkspaceMotionTokens.TAB, 0, 0, .92, finished);
+            case OVERLAY -> enter(node, WorkspaceMotionTokens.MODAL_OPEN, 0, 4, .92, finished);
+            case SIBLING -> enter(node, WorkspaceMotionTokens.SIBLING, 0, 0, .92, finished);
         }
     }
 
     public static void drawer(Node node, boolean opening, Runnable finished) {
         if (opening) enter(node, WorkspaceMotionTokens.DRAWER_OPEN, WorkspaceMotionTokens.DRAWER_X, 0, .78, finished);
-        else animate(node, WorkspaceMotionTokens.DRAWER_CLOSE, 0, 0, 1, WorkspaceMotionTokens.DRAWER_X, 0, 0, null, finished);
+        else animate(node, WorkspaceMotionTokens.DRAWER_CLOSE, 0, 0, 1, WorkspaceMotionTokens.DRAWER_X, 0, 0, finished);
     }
 
     /** Local appearance for reports, dialogs and popovers; no window/business handlers are replaced. */
     public static void appearance(Node node, boolean popup, Point2D pivot) {
-        scaled(node, popup ? WorkspaceMotionTokens.POPOVER_OPEN : WorkspaceMotionTokens.MODAL_OPEN,
-                popup ? .97 : .95, pivot, NOTHING);
+        enter(node, popup ? WorkspaceMotionTokens.POPOVER_OPEN : WorkspaceMotionTokens.MODAL_OPEN,
+                0, 4, .92, NOTHING);
     }
 
-    /** Scene roots stay opaque: their material amount and reduced-motion choice
-     * must never fade the entire working data or native window. */
+    /** Native scenes have a fixed viewport: show their controls at full size and opacity.
+     * Local content transitions carry context without shrinking a dense window root. */
     public static void appearanceOpaque(Node node,boolean popup,Point2D pivot){
-        var scale=localScale(node,popup?.97:.95,pivot);
-        animate(node,popup?WorkspaceMotionTokens.POPOVER_OPEN:WorkspaceMotionTokens.MODAL_OPEN,
-                0,0,1,0,0,1,scale,1,NOTHING,false,WorkspaceMotionTokens.WINDOW_SPRING);
+        stop(node);
     }
 
     /** Prefer a non-interactive visual copy when the actual window is already closing. */
     public static void disappearance(Node node, boolean popup, Point2D pivot, Runnable finished) {
-        var scale=localScale(node,1,pivot);
         animate(node,popup?WorkspaceMotionTokens.POPOVER_CLOSE:WorkspaceMotionTokens.MODAL_CLOSE,
-                0,0,1,0,0,0,scale,popup?.97:.975,finished);
+                0,0,1,0,0,0,finished);
     }
 
     /** Outgoing bitmap only: the real route has already changed and stays interactive. */
     public static void departure(Node visual, NavigationContext context, Runnable finished) {
-        double x=switch(context){case FORWARD->-14;case BACK->18;default->0;};
-        double targetScale=context==NavigationContext.BACK?1.012:.988;
-        var scale=localScale(visual,1,null);
-        animate(visual,WorkspaceMotionTokens.PAGE_EXIT,0,0,1,x,0,0,scale,targetScale,finished);
+        double x=switch(context){case FORWARD->-8;case BACK->8;default->0;};
+        animate(visual,WorkspaceMotionTokens.PAGE_EXIT,0,0,1,x,0,0,finished);
     }
 
     public static void selection(Node caption) {
@@ -111,85 +105,38 @@ public final class WorkspaceMotion {
     }
 
     private static void enter(Node node, Duration duration, double x, double y, double opacity, Runnable finished) {
-        animate(node, duration, x, y, opacity, 0, 0, 1, null, finished);
-    }
-
-    private static void enterScaled(Node node, Duration duration, double x, double y, double opacity,
-                                    double fromScale, Runnable finished) {
-        var scale=localScale(node,fromScale,null);
-        animate(node,duration,x,y,opacity,0,0,1,scale,finished);
-    }
-
-    private static void scaled(Node node, Duration duration, double fromScale, Point2D pivot, Runnable finished) {
-        var scale = localScale(node,fromScale,pivot);
-        animate(node, duration, 0, 0, .8, 0, 0, 1, scale, finished);
-    }
-
-    private static Scale localScale(Node node,double amount,Point2D pivot){
-        var scale=new Scale(amount,amount);
-        if(pivot==null){
-            scale.pivotXProperty().bind(node.layoutBoundsProperty().map(bounds->bounds.getCenterX()));
-            scale.pivotYProperty().bind(node.layoutBoundsProperty().map(bounds->bounds.getCenterY()));
-        }else{scale.setPivotX(pivot.getX());scale.setPivotY(pivot.getY());}
-        return scale;
-    }
-
-    private static void releaseScale(Scale scale){
-        if(scale!=null){scale.pivotXProperty().unbind();scale.pivotYProperty().unbind();}
+        animate(node, duration, x, y, opacity, 0, 0, 1, finished);
     }
 
     private static void animate(Node node, Duration duration, double fromX, double fromY, double fromOpacity,
-                                double toX, double toY, double toOpacity, Scale scale, Runnable finished) {
-        animate(node,duration,fromX,fromY,fromOpacity,toX,toY,toOpacity,scale,1,finished);
-    }
-
-    private static void animate(Node node, Duration duration, double fromX, double fromY, double fromOpacity,
-                                double toX, double toY, double toOpacity, Scale scale, double toScale, Runnable finished) {
-        animate(node,duration,fromX,fromY,fromOpacity,toX,toY,toOpacity,scale,toScale,finished,true);
-    }
-
-    private static void animate(Node node, Duration duration, double fromX, double fromY, double fromOpacity,
-                                double toX, double toY, double toOpacity, Scale scale, double toScale, Runnable finished,
-                                boolean fadeWhenReduced) {
-        animate(node,duration,fromX,fromY,fromOpacity,toX,toY,toOpacity,scale,toScale,finished,fadeWhenReduced,WorkspaceMotionTokens.SPRING);
-    }
-
-    private static void animate(Node node, Duration duration, double fromX, double fromY, double fromOpacity,
-                                double toX, double toY, double toOpacity, Scale scale, double toScale, Runnable finished,
-                                boolean fadeWhenReduced,Interpolator transformCurve) {
+                                double toX, double toY, double toOpacity, Runnable finished) {
         Objects.requireNonNull(node);
         Objects.requireNonNull(finished);
         stop(node);
         // Respect transforms owned by the application and leave bound properties untouched.
         if (node.opacityProperty().isBound() || node.translateXProperty().isBound() || node.translateYProperty().isBound()) {
-            releaseScale(scale);
             finished.run();
             return;
         }
         boolean reduced = isReduced();
-        if(reduced)releaseScale(scale);
-        var active = new ActiveMotion(node, finished, reduced ? null : scale);
+        var active = new ActiveMotion(node, finished);
         node.getProperties().put(ACTIVE, active);
         ACTIVE_NODES.add(node);
         if (reduced) {
             fromX = fromY = toX = toY = 0;
-            fromOpacity = fadeWhenReduced?.85:1;
-            // Retain state feedback without a spatial exit or scale.
-            toOpacity = 1;
+            // Preserve the direction of a close. Reduced feedback is a short fade,
+            // never a spatial transform or an accidental fade back into view.
+            fromOpacity = toOpacity < fromOpacity ? 1 : .85;
             duration = WorkspaceMotionTokens.REDUCED;
         }
         node.setTranslateX(active.x + fromX);
         node.setTranslateY(active.y + fromY);
         node.setOpacity(active.opacity * fromOpacity);
-        if (active.scale != null) node.getTransforms().add(active.scale);
         var frame = new KeyFrame(duration,
-                new KeyValue(node.translateXProperty(), active.x + toX, transformCurve),
-                new KeyValue(node.translateYProperty(), active.y + toY, transformCurve),
+                new KeyValue(node.translateXProperty(), active.x + toX, WorkspaceMotionTokens.ARRIVE),
+                new KeyValue(node.translateYProperty(), active.y + toY, WorkspaceMotionTokens.ARRIVE),
                 new KeyValue(node.opacityProperty(), active.opacity * toOpacity, WorkspaceMotionTokens.ARRIVE));
         var timeline = new Timeline(frame);
-        if (active.scale != null) timeline.getKeyFrames().add(new KeyFrame(duration,
-                new KeyValue(active.scale.xProperty(), toScale, transformCurve),
-                new KeyValue(active.scale.yProperty(), toScale, transformCurve)));
         active.animation = timeline;
         timeline.setOnFinished(event -> active.finish(true));
         active.watch();
@@ -300,15 +247,14 @@ public final class WorkspaceMotion {
     private static final class ActiveMotion {
         private final Node node;
         private final Runnable finished;
-        private final Scale scale;
         private final double x, y, opacity;
         private Animation animation;
         private boolean done;
         private final ChangeListener<Scene> detached;
         private final ChangeListener<Parent> removed;
 
-        private ActiveMotion(Node node, Runnable finished, Scale scale) {
-            this.node = node; this.finished = finished; this.scale = scale;
+        private ActiveMotion(Node node, Runnable finished) {
+            this.node = node; this.finished = finished;
             x = node.getTranslateX(); y = node.getTranslateY(); opacity = node.getOpacity();
             detached = (observable, previous, next) -> { if (previous != null && next == null) finish(false); };
             removed = (observable, previous, next) -> { if (previous != null && next == null) finish(false); };
@@ -327,7 +273,6 @@ public final class WorkspaceMotion {
             if(!node.translateXProperty().isBound())node.setTranslateX(x);
             if(!node.translateYProperty().isBound())node.setTranslateY(y);
             if(!node.opacityProperty().isBound())node.setOpacity(opacity);
-            if (scale != null) {node.getTransforms().remove(scale);releaseScale(scale);}
             if (complete) finished.run();
         }
     }

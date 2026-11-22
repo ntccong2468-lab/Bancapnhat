@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 22.11.2026 MSK — Unslop giai đoạn 4
+
+Sau `5a78502`, chuyển trang và tab giữ kích thước, resize loại bỏ ảnh tạm, modal đóng đúng với Reduce Motion. Hồi quy tích hợp 114 ca đạt, kiểm bàn phím và render GTK 100/125/150%. Chưa nghiệm thu Windows hoặc phát hành. [Báo cáo](validation/2026-11-22-unslop-motion.md)
+
 ## 22.11.2026 MSK — Unslop giai đoạn 3
 
 Sau `c61865e`, chỉnh bố cục FBS/FBO, Sản phẩm, Znack, KIZ, GS1, Tài chính, Lịch sử in, Thiết kế mẫu và Hướng dẫn. Kiểm JavaFX hai kích thước cửa sổ với hồ sơ tổng hợp và giữ hành vi xử lý. Chưa phát hành. [Báo cáo và bằng chứng](validation/2026-11-22-unslop-responsive-layout.md)

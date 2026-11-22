@@ -193,22 +193,20 @@ class WorkspaceRouteContinuityTest {
         });
     }
 
-    @Test void transformResponseSettlesWithABoundedSpringWhileOpacityStaysBounded(){
-        double max=0;for(int step=0;step<=1000;step++){
-            double fraction=step/1000.0;double value=WorkspaceMotionTokens.SPRING.interpolate(0.0,1.0,fraction);
-            assertTrue(Double.isFinite(value)&&value>=0&&value<=1.02);max=Math.max(max,value);
-            double opacity=WorkspaceMotionTokens.ARRIVE.interpolate(0.0,1.0,fraction);assertTrue(opacity>=0&&opacity<=1);
-            double window=WorkspaceMotionTokens.WINDOW_SPRING.interpolate(0.0,1.0,fraction);assertTrue(window>=0&&window<=1);
+    @Test void feedbackResponseIsMonotonicAndNeverOvershoots(){
+        double previous=0;for(int step=0;step<=1000;step++){
+            double value=WorkspaceMotionTokens.ARRIVE.interpolate(0.0,1.0,step/1000.0);
+            assertTrue(Double.isFinite(value)&&value>=previous&&value<=1);
+            previous=value;
         }
-        assertTrue(max>1,"Transform response should settle instead of using the old one-way cubic curve");
-        assertEquals(0,WorkspaceMotionTokens.SPRING.interpolate(0.0,1.0,0));assertEquals(1,WorkspaceMotionTokens.SPRING.interpolate(0.0,1.0,1));
+        assertEquals(0,WorkspaceMotionTokens.ARRIVE.interpolate(0.0,1.0,0));assertEquals(1,previous);
     }
 
     @Test void sceneRootAppearanceKeepsWorkingDataOpaqueInNormalAndReducedMotion()throws Exception{
         fx(()->{
             var root=new StackPane(new Button("Report"));root.setOpacity(.9);var callerScale=new Scale(1.1,1.1);root.getTransforms().add(callerScale);
             WorkspaceMotion.appearanceOpaque(root,false,null);
-            assertEquals(.9,root.getOpacity());assertTrue(WorkspaceMotion.isAnimating(root));assertEquals(2,root.getTransforms().size());
+            assertEquals(.9,root.getOpacity());assertFalse(WorkspaceMotion.isAnimating(root));assertEquals(java.util.List.of(callerScale),root.getTransforms());
             WorkspaceMotion.stop(root);assertEquals(java.util.List.of(callerScale),root.getTransforms());
             ThemeService.setReducedMotion(true);WorkspaceMotion.appearanceOpaque(root,false,null);
             assertEquals(.9,root.getOpacity());assertEquals(java.util.List.of(callerScale),root.getTransforms());
@@ -216,20 +214,21 @@ class WorkspaceRouteContinuityTest {
         });
     }
 
-    @Test void aWindowRootNeverGrowsPastItsViewportDuringActualPulses()throws Exception{
+    @Test void aWindowRootKeepsItsFullViewportDuringActualPulses()throws Exception{
         var finished=new CompletableFuture<Void>();var stage=new Stage[1];var timer=new AnimationTimer[1];
         try{
             fx(()->{
                 var root=new StackPane();stage[0]=new Stage();stage[0].setScene(new Scene(root,320,240));stage[0].show();
                 WorkspaceMotion.appearanceOpaque(root,false,null);
-                assertTrue(root.getLocalToParentTransform().getMxx()<1);
+                assertEquals(1,root.getLocalToParentTransform().getMxx());
                 timer[0]=new AnimationTimer(){
+                    private int frames;
                     @Override public void handle(long now){
                         try{
                             double scale=root.getLocalToParentTransform().getMxx();
-                            assertTrue(scale>=.95&&scale<=1,"Whole window roots must stay inside their viewport, including the settle phase");
+                            assertEquals(1,scale,"Whole window roots show at full size on every frame");
                             assertEquals(1,root.getOpacity());
-                            if(!WorkspaceMotion.isAnimating(root)){stop();assertEquals(1,scale);finished.complete(null);}
+                            if(++frames==3){stop();assertFalse(WorkspaceMotion.isAnimating(root));finished.complete(null);}
                         }catch(Throwable failure){stop();finished.completeExceptionally(failure);}
                     }
                 };timer[0].start();return null;
