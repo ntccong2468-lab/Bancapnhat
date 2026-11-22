@@ -6,6 +6,7 @@ Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước
 
 - Sau mốc giao diện `439274a`, đã sửa lựa chọn phiên license khi kích hoạt, hủy tải cập nhật khi chờ và khi đang tải, xác minh cửa hàng trước tạo lô WB và đọc lại sau khi sàn xác nhận giao, phân trang và chọn sản phẩm từ truy vấn cũ, kết quả từ chối hoặc 429 khi sao chép bài, múi giờ chứng thư CryptoPro, hủy tác vụ Catalog và spinner sửa thẻ, làm mới Tin tức, giữ mẫu in, báo cáo phạt Ozon và nhấp đúp TN VED.
 - Lượt `mvn -o verify` với ca hồi quy trực tiếp của bản gộp đạt 102 ca. Node 280 và portal 72 đạt. Có kết quả riêng cho WB/Ozon, sản phẩm, Znack/KIZ/GS1, các công cụ và dữ liệu lớn. [Báo cáo và log](../validation/2026-11-22-vncode-app-stability-audit.md).
+- Hồi quy rộng và chạy lại các nhóm bị lỗi dữ liệu thử hoặc tranh tiêu điểm đạt 5.353 ca desktop khác nhau. Hai ca chỉ chạy Windows được bỏ qua. Giữ log lượt đầu, log tái hiện và log chạy lại trong báo cáo.
 - Lưu mã và giao diện vào cùng nhánh `design/unslop-audit-20261122`. Latest kiểm trực tiếp vẫn `v1.6.13`. Chưa nghiệm thu MSI, thiết bị CryptoPro, máy in hoặc giao dịch thật trên Windows seller. Chưa phát hành.
 
 ## 22.11.2026 — lưu giao diện cho bản kế tiếp
