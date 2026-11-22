@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 22.11.2026 MSK — cài Unslop và đề xuất hướng giao diện
+
+Thêm Unslop cấp repo tại `.agents/skills/unslop`, pin `620163e`, nguồn CC BY 4.0 có ghi công. Audit VN Code 1.6.13 theo bản bàn giao `7570360`. Fixture JavaFX xác nhận cột Thao tác Znack bị khuất ở 1000 × 650. Báo cáo ghi ưu tiên, bằng chứng, hướng thiết kế và giai đoạn kiểm thử. Chờ chủ dự án duyệt giao diện. [Audit](validation/2026-11-22-unslop-ui-audit.md)
+
 ## 19.11.2026 MSK — 1.6.13 đã công bố Latest
 
 Release `451407450`/source `3f679a1df43c0f143a1bb62c97d33fde7cec3cab` immutable. Windows `44511666052` kiểm 5.315 ca, 0 lỗi và 2 bỏ qua theo môi trường. Cài mới và nâng cấp 1.6.12 schema 7 → 7 đạt với dữ liệu thử. Publisher `44537057186` thành công. Kiểm đủ 16 tệp public và bảo toàn 22 release cũ. Updater gốc 1.6.12 nhận 1.6.13 và xác minh tải MSI trong 3,777 giây ở môi trường kiểm thử. Portal chưa triển khai. [Biên nhận](validation/vncode-1613-20261119/release-receipt.json)

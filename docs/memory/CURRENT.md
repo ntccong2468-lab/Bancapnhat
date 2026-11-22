@@ -1,6 +1,12 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **19.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+
+## 22.11.2026 — cài Unslop và audit giao diện trước duyệt
+
+- Nhánh `design/unslop-audit-20261122` từ `7570360`, runtime 1.6.13 `3f679a1`. Cài skill CC BY 4.0 của Damir Sokolovsky tại `.agents/skills/unslop/`, ghim upstream `620163eedb3529d9cd23a3994ed8d287d06f760d`. Giữ 15 skill đã có.
+- Audit shell, điều hướng, màn dữ liệu, forms, báo cáo và motion. JavaFX trên fixture xác nhận cột Thao tác Znack bị khuất ở 1000 × 650. Các ưu tiên khác gồm phạm vi chọn/in/mua, tính dễ tìm của tự ký và lệnh GS1, phân cấp kính và chữ, bố cục hẹp của Tài chính và Thiết kế mẫu.
+- JavaFX 133/133, validator ECC 20/20, upstream 31/35 với bốn ca `file://` bị Chromium chặn. Snapshot HTTP fixture đạt. Đã báo cáo hướng thiết kế và thứ tự sửa, chờ phê duyệt trước khi chỉnh UI. [Audit và giai đoạn kiểm thử](../validation/2026-11-22-unslop-ui-audit.md).
 
 ## 19.11.2026 — VN Code 1.6.13 đã lên Latest
 
