@@ -2,6 +2,10 @@
 
 Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 22.11.2026 — lưu giao diện cho bản kế tiếp
+
+- Nguồn đã duyệt `f42b019` gồm bốn giai đoạn Unslop. Đã lưu thư viện và ZIP 122 PNG, 64 màn, tab và hộp thoại. Mốc ghi SHA-256, dữ liệu thử nghiệm và kiểm thư viện trên Chromium. Latest vẫn 1.6.13. [Mốc gom phát hành](../validation/2026-11-22-unslop-release-checkpoint.md).
+
 ## 22.11.2026 — Unslop giai đoạn 4
 
 - Sau `5a78502`, đổi chuyển động sang mờ ngắn và dịch nhẹ theo hướng điều hướng. Giữ cỡ cửa sổ và bảng, bỏ nảy, bỏ ảnh tạm cũ khi resize hoặc đổi trang liên tiếp. Reduce Motion đi đúng hướng mờ và không dịch theo vị trí.

@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 22.11.2026 MSK — lưu bộ giao diện cho bản kế tiếp
+
+Ghim `f42b019` với bốn giai đoạn Unslop và bộ 122 PNG của 64 màn, tab, hộp thoại. Latest xác minh 1.6.13. [Báo cáo checkpoint](validation/2026-11-22-unslop-release-checkpoint.md)
+
 ## 22.11.2026 MSK — Unslop giai đoạn 4
 
 Sau `5a78502`, chuyển trang và tab giữ kích thước, resize loại bỏ ảnh tạm, modal đóng đúng với Reduce Motion. Hồi quy tích hợp 114 ca đạt, kiểm bàn phím và render GTK 100/125/150%. Chưa nghiệm thu Windows hoặc phát hành. [Báo cáo](validation/2026-11-22-unslop-motion.md)
