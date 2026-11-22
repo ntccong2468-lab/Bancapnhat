@@ -1,6 +1,10 @@
 # VNCode consolidated baseline
 
-## Latest hiện hành — VN Code 1.6.13
+## Latest hiện hành — VN Code 1.6.14
+
+Công bố **23.11.2026 lúc 00:37:20 MSK**, immutable `v1.6.14`/release `454767077`, nguồn `33d178f4f85ca110ccacd098ca2c0f41531bbcdc`. Windows `45060398827` đạt 5.356/5.358 ca, 2 ca bỏ qua theo hệ điều hành. Cài mới và nâng cấp từ 1.6.13 giữ schema 7. Publisher `45072965273` công bố đủ 16 tệp đã xác minh checksum. Updater gốc 1.6.13 nhận đúng 1.6.14 và tải MSI đã xác minh từ feed công khai. [Ghi chú](VN-code-1.6.14.md) · [Biên nhận](../validation/vncode-1614-20261122/release-receipt.json)
+
+## Bản nền trước — VN Code 1.6.13
 
 Đã công bố **19.11.2026 lúc 16:50:04 MSK**, immutable `v1.6.13`/release `451407450`, nguồn `3f679a1df43c0f143a1bb62c97d33fde7cec3cab`. Windows `44511666052` đạt cài mới và nâng cấp từ 1.6.12 schema 7 → 7, 5.313/5.315 ca đạt, 2 ca bỏ qua theo OS. Publisher `44537057186` thành công. Updater từ JAR 1.6.12 nhận đúng Latest và tải MSI trong 3,777 giây ở môi trường kiểm thử. [Ghi chú](VN-code-1.6.13.md) · [Biên nhận](../validation/vncode-1613-20261119/release-receipt.json)
 

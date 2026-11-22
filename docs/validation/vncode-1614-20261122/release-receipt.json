@@ -1,0 +1,134 @@
+{
+  "version": "1.6.14",
+  "sourceCommit": "33d178f4f85ca110ccacd098ca2c0f41531bbcdc",
+  "releaseId": 454767077,
+  "publishedAt": "2026-11-22T21:37:20Z",
+  "immutable": true,
+  "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/tag/v1.6.14",
+  "windowsRun": 45060398827,
+  "windowsAttempt": 1,
+  "windowsJob": 137324787584,
+  "artifactId": 14773742802,
+  "artifactDigest": "sha256:142b1d6a4949fba003db45748af17b509178bd7e64facfb72b38d2e8cec66125",
+  "packageReviewSha256": "7e9f8d37732a5c9503cf648fd2774fb83901b6a7eafb3782cee7dd3bc7764065",
+  "windowsTests": {
+    "tests": 5358,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  "windowsSuites": 655,
+  "upgrade": {
+    "from": "1.6.13",
+    "to": "1.6.14",
+    "schema": "7 to 7",
+    "verified": true
+  },
+  "publisherRun": 45072965273,
+  "publisherCommit": "bd1c8f2216cd8ba047669ba89cc2de75fb39a1d5",
+  "security": {
+    "run": 45060398853,
+    "javaGate": "failure_existing_findings",
+    "comparison": {
+      "java.sarif": {
+        "previousCount": 9,
+        "currentCount": 9,
+        "added": [],
+        "removed": []
+      },
+      "javascript.sarif": {
+        "previousCount": 0,
+        "currentCount": 0,
+        "added": [],
+        "removed": []
+      }
+    },
+    "extractionWarningsUnchanged": true
+  },
+  "verifiedPublicAssets": 16,
+  "assets": {
+    "SHA256SUMS": {
+      "bytes": 1106,
+      "sha256": "60c50ae6ee4db4c9e03993b098a5e6fddaed7519bc1e8cae92c15e8a6614e231"
+    },
+    "VN-code-1.6.14-Windows-x64.exe": {
+      "bytes": 149813760,
+      "sha256": "eb4b97819eb294971355c7515c4dd921c51a047a73072c3c477cfa3cdc213a0a"
+    },
+    "VN-code-1.6.14-Windows-x64.msi": {
+      "bytes": 149144841,
+      "sha256": "53b76207bed1aa4834c4e2a7238a38c70bd9b4d08c2c31605faf9e99ef672f9d"
+    },
+    "VN-code-1.6.14-Windows-x64.sha256": {
+      "bytes": 98,
+      "sha256": "adf126874f2bf304e50e70a75a99ba23c58e1d30c964b669eec76b3c50f5eee1"
+    },
+    "VN-code-1.6.14-Windows-x64.zip": {
+      "bytes": 148732742,
+      "sha256": "516b04c6d1c898739a110f3af93917c3a21d9cf10b66cf2f3bec0046b6007a87"
+    },
+    "VN-code-1.6.14-history.bundle": {
+      "bytes": 107786525,
+      "sha256": "2e6b708d56d6f4137335f71c0f3be21d0c76f0733b5cab99b1f2e6ac0c62ee5f"
+    },
+    "VN-code-1.6.14-source.zip": {
+      "bytes": 111038001,
+      "sha256": "1ef0678adad77adfac87cad40eebad4e77ce78ce8c81ad397cf5179de934cbe2"
+    },
+    "VN-code-1.6.14-verification.zip": {
+      "bytes": 3590256,
+      "sha256": "5110103d41d2fffead96335f5079b6b6276606ae52c3590d6412e7aefa4e5c55"
+    },
+    "asset-manifest.json": {
+      "bytes": 1757,
+      "sha256": "afa6156b3b4df44a6e31ef10a627e133f870c325d55ae50203f76fcc00fa7496"
+    },
+    "build-info.json": {
+      "bytes": 771,
+      "sha256": "bd866f41a81a3232046763e88ce3d457ba50950494a238133f69c9bd057323fb"
+    },
+    "gs1-smoke.json": {
+      "bytes": 287,
+      "sha256": "e7b6f48c428bb09d5979fe96b85033180e47ff36339f2065dca7174fd83c17a9"
+    },
+    "native-smoke.json": {
+      "bytes": 288,
+      "sha256": "f0b0fe8692bfb9e976b7b8effb1912576517c0f5a7821cbb080012cf8fe5aa7e"
+    },
+    "previous-baseline.json": {
+      "bytes": 286,
+      "sha256": "2f2f1aa315c2b9115ac483fef595e7e44f9f77495dfc5880c3ebf2ac0f2de9e0"
+    },
+    "release-notes.md": {
+      "bytes": 1328,
+      "sha256": "e83e392cf9dfec45483fb9e1e8ede8626931df68f41fd2714dc006ad37be2e4a"
+    },
+    "side-by-side-smoke.json": {
+      "bytes": 411,
+      "sha256": "54853b284e245579d61652250a73a43eb19d13df5df329807d760b06f514b36e"
+    },
+    "upgrade-baseline-smoke.json": {
+      "bytes": 905,
+      "sha256": "31b8a001662bd353c1af7d08adae2a91c37f4e452fb6df4f75b59da7e61eacf8"
+    }
+  },
+  "preservation": {
+    "allUnchanged": true,
+    "priorReleases": 23,
+    "priorTags": 52
+  },
+  "updater": {
+    "installed": "1.6.13",
+    "latest": "1.6.14",
+    "status": "AVAILABLE",
+    "msi": {
+      "assetId": 780538933,
+      "url": "https://github.com/ntccong2468-lab/Bancapnhat/releases/download/v1.6.14/VN-code-1.6.14-Windows-x64.msi",
+      "bytes": 149144841,
+      "sha256": "53b76207bed1aa4834c4e2a7238a38c70bd9b4d08c2c31605faf9e99ef672f9d"
+    },
+    "downloadElapsedMs": 5087,
+    "scope": "Original 1.6.13 updater, synthetic Linux profile, verified Windows MSI selection and download. No seller UI or MSI launch."
+  },
+  "portalDeployed": false
+}

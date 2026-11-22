@@ -1,6 +1,12 @@
 # Điểm tiếp tục cho AI — VN Code
 
-Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+Cập nhật: **23.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
+
+## 23.11.2026 — VN Code 1.6.14 đã lên Latest
+
+- Công bố lúc 00:37:20 MSK, release immutable `454767077`, nguồn `33d178f4f85ca110ccacd098ca2c0f41531bbcdc`. Gom giao diện đen Unslop đã duyệt và toàn bộ bản sửa ổn định sau 1.6.13.
+- Windows `45060398827` đạt 5.356 ca trong 655 bộ kiểm thử, 0 lỗi và 2 ca bỏ qua theo hệ điều hành. Cài mới, gỡ, DPAPI, chạy cạnh bản cũ và nâng cấp 1.6.13 → 1.6.14 schema 7 → 7 đều đạt trên hồ sơ thử nghiệm. Publisher `45072965273` thành công. CodeQL giữ 9 cảnh báo Java cũ và 0 JavaScript.
+- Đã tải và so checksum đủ 16 tệp công khai. Giữ 23 release và 52 tag trước đó. Updater từ JAR 1.6.13 báo `AVAILABLE 1.6.14` và tải MSI 149.144.841 byte khớp SHA-256 trong 5,087 giây ở môi trường kiểm thử. Chưa quan sát trên máy seller. Portal chưa triển khai. [Biên nhận phát hành](../validation/vncode-1614-20261122/release-receipt.json).
 
 ## 22.11.2026 — rà lỗi toàn app cho bản kế tiếp
 

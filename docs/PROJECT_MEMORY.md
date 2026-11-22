@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 23.11.2026 MSK — 1.6.14 đã công bố Latest
+
+Release immutable `454767077`/`v1.6.14`, nguồn `33d178f`. Windows `45060398827` đạt 5.356 ca và 2 ca bỏ qua, cài mới và nâng cấp từ 1.6.13 giữ schema 7. Đủ 16 tệp công khai khớp SHA-256. Updater gốc 1.6.13 nhận 1.6.14 và tải đúng MSI. [Biên nhận](validation/vncode-1614-20261122/release-receipt.json).
+
 ## 22.11.2026 MSK — rà soát ổn định trước bản kế tiếp
 
 Đã gom các bản sửa lỗi license và cập nhật, lô WB, phân trang Sản phẩm và sao chép bài, chứng thư CryptoPro và hủy Catalog, tin tức, mẫu in, phạt Ozon và TN VED trên nhánh `design/unslop-audit-20261122`. JavaFX/Linux đạt 102 ca trên mã gộp, JAR kiểm nghiệm khớp lớp và tài nguyên. Chưa nghiệm thu Windows hoặc phát hành. [Báo cáo chi tiết](validation/2026-11-22-vncode-app-stability-audit.md).
