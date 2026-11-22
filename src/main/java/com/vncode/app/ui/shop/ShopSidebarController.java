@@ -159,7 +159,6 @@ public class ShopSidebarController {
     private RadioMenuItem languageViMenuItem;
     @FXML
     private Menu themeMenu;
-    @FXML private MenuItem glassSettingsMenuItem;
     @FXML
     private RadioMenuItem themeDarkMenuItem;
     @FXML
@@ -327,8 +326,6 @@ public class ShopSidebarController {
         this.onThemeChanged = onThemeChanged;
     }
 
-    @FXML private void onGlassSettings(){com.vncode.app.ui.GlassSettingsDialog.show();}
-
     public void setSelectedTheme(String themeName) {
         if ("light".equalsIgnoreCase(themeName)) {
             themeLightMenuItem.setSelected(true);
@@ -386,7 +383,6 @@ public class ShopSidebarController {
         settingsMenuButton.setText(" " + i18n.tr("settings.menu"));
         languageMenu.setText(i18n.tr("sidebar.language"));
         themeMenu.setText(i18n.tr("settings.theme"));
-        glassSettingsMenuItem.setText(i18n.tr("settings.glass.title"));
         themeDarkMenuItem.setText(i18n.tr("settings.theme.dark"));
         themeLightMenuItem.setText(i18n.tr("settings.theme.light"));
         checkVersionMenuItem.setText(i18n.tr("settings.check_version"));

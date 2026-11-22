@@ -12,7 +12,6 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Slider;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
@@ -31,10 +30,7 @@ public final class WorkspaceAppearancePane extends BorderPane {
     private final Map<Label, String> copyKeys = new java.util.LinkedHashMap<>();
     private final Map<ThemeService.ThemeMode, ToggleButton> themeButtons = new EnumMap<>(ThemeService.ThemeMode.class);
     private final ToggleGroup themeGroup = new ToggleGroup();
-    private final CheckBox glassEnabled = new CheckBox();
     private final CheckBox reducedMotion = new CheckBox();
-    private final Slider transparency = new Slider(0, 100, ThemeService.DEFAULT_TRANSPARENCY);
-    private final Label percentage = new Label();
     private final ComboBox<AppLanguage> language = new ComboBox<>();
     private final Button translation = actionButton("appearanceTranslationSettings");
     private final Button update = actionButton("appearanceCheckUpdate");
@@ -76,24 +72,7 @@ public final class WorkspaceAppearancePane extends BorderPane {
         appearance.getChildren().add(new VBox(8, themeLabel, options));
 
         reducedMotion.setId("appearanceReducedMotion");
-        glassEnabled.setId("appearanceGlassEnabled");
         appearance.getChildren().add(toggleRow("settings.reduced_motion", "settings.reduced_motion.hint", reducedMotion));
-        appearance.getChildren().add(toggleRow("settings.glass.enabled", "settings.glass.chrome_hint", glassEnabled));
-
-        transparency.setId("appearanceGlassTransparency");
-        transparency.setMinWidth(100);
-        transparency.setMaxWidth(Double.MAX_VALUE);
-        transparency.setBlockIncrement(5);
-        transparency.setMajorTickUnit(25);
-        transparency.setShowTickMarks(true);
-        HBox.setHgrow(transparency, Priority.ALWAYS);
-        percentage.setMinWidth(48);
-        percentage.setAlignment(Pos.CENTER_RIGHT);
-        var materialLabel = copy("settings.glass.transparency", "appearance-row-title");
-        materialLabel.setLabelFor(transparency);
-        var sliderRow = new HBox(14, transparency, percentage);
-        sliderRow.setAlignment(Pos.CENTER_LEFT);
-        appearance.getChildren().add(new VBox(8, materialLabel, sliderRow, copy("settings.glass.readability", "appearance-description")));
 
         language.setId("appearanceLanguage");
         language.getItems().setAll(AppLanguage.values());
@@ -126,17 +105,7 @@ public final class WorkspaceAppearancePane extends BorderPane {
             }
             ThemeService.switchTheme(((ThemeService.ThemeMode) selected.getUserData()).getKey());
         });
-        glassEnabled.setOnAction(event -> ThemeService.setGlassEnabled(glassEnabled.isSelected()));
         reducedMotion.setOnAction(event -> ThemeService.setReducedMotion(reducedMotion.isSelected()));
-        transparency.valueProperty().addListener((observable, previous, value) -> {
-            percentage.setText(Math.round(value.doubleValue()) + "%");
-            if (updating) return;
-            ThemeService.previewGlassTransparency(value.doubleValue());
-            if (!transparency.isValueChanging()) ThemeService.setGlassTransparency(value.doubleValue());
-        });
-        transparency.valueChangingProperty().addListener((observable, previous, changing) -> {
-            if (!updating && !changing) ThemeService.setGlassTransparency(transparency.getValue());
-        });
         language.setOnAction(event -> {
             if (!updating && language.getValue() != null) i18n.setLanguage(language.getValue());
         });
@@ -188,10 +157,6 @@ public final class WorkspaceAppearancePane extends BorderPane {
             updating = true;
             try {
                 themeGroup.selectToggle(themeButtons.get(ThemeService.getThemeMode()));
-                glassEnabled.setSelected(ThemeService.isGlassEnabled());
-                transparency.setDisable(!glassEnabled.isSelected());
-                transparency.setValue(ThemeService.getGlassTransparency());
-                percentage.setText(Math.round(transparency.getValue()) + "%");
                 reducedMotion.setSelected(ThemeService.isReducedMotion());
                 reducedMotion.setDisable(Platform.getPreferences().isReducedMotion());
                 language.setValue(i18n.getCurrentLanguage());
@@ -204,9 +169,7 @@ public final class WorkspaceAppearancePane extends BorderPane {
     public void applyTranslations() {
         for (var entry : copyKeys.entrySet()) entry.getKey().setText(i18n.tr(entry.getValue()));
         for (var entry : themeButtons.entrySet()) entry.getValue().setText(i18n.tr("settings.theme." + entry.getKey().getKey()));
-        glassEnabled.setAccessibleText(i18n.tr("settings.glass.enabled"));
         reducedMotion.setAccessibleText(i18n.tr("settings.reduced_motion"));
-        transparency.setAccessibleText(i18n.tr("settings.glass.transparency"));
         language.setAccessibleText(i18n.tr("sidebar.language"));
         translation.setText(i18n.tr("news.translation_settings"));
         update.setText(i18n.tr("settings.check_version"));

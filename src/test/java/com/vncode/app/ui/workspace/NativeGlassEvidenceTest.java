@@ -231,7 +231,7 @@ class NativeGlassEvidenceTest {
             WorkspaceHeaderController controller=head[0].getController();controller.setShops(List.of(wb,ozon),wb);controller.setControls(true,false,true,true);
             return window;
         });
-        var shadowOverlap=new java.util.concurrent.atomic.AtomicBoolean();var addCalls=new AtomicInteger();
+        var addCalls=new AtomicInteger();
         try {
             for(int width:new int[]{2560,1920,1440,1366,1280,1440}) {
                 resize(stage,width,900);
@@ -241,16 +241,16 @@ class NativeGlassEvidenceTest {
                         var combo=(ComboBox<?>)head[0].getNamespace().get("shopComboBox");var manage=(MenuButton)head[0].getNamespace().get("manageShopButton");
                         assertShopManagementAdjacent(combo,manage);
                         var selectorVisual=combo.localToScene(combo.getBoundsInLocal());var manageVisual=manage.localToScene(manage.getBoundsInLocal());
-                        if(selectorVisual.getMaxX()>manageVisual.getMinX())shadowOverlap.set(true);
-                        assertNotNull(combo.getEffect(),"Exercise the real selector shadow");assertNotNull(manage.getEffect(),"Exercise the real Manage shadow");
+                        assertTrue(selectorVisual.getMaxX()<=manageVisual.getMinX(),"Visible controls must stay separate");
+                        assertNull(combo.getEffect(),"Selector uses a flat surface");
+                        assertNull(manage.getEffect(),"Manage uses a flat surface");
                         assertEquals(8,manage.localToScene(manage.getLayoutBounds()).getMinX()-combo.localToScene(combo.getLayoutBounds()).getMaxX(),.01,
-                                "The actual HBox gap is independent of theme/focus/shadow bounds");
+                                "The actual HBox gap is independent of theme and focus");
                         geometry.add("header "+width+" "+selectedTheme+" "+focus+" "+shopManagementGeometry(combo,manage));
                         return null;
                     });
                 }
             }
-            assertTrue(shadowOverlap.get(),"The native fixture must exercise overlapping CSS shadow extents without overlapping control bodies");
             fx(()->{
                 var combo=(ComboBox<?>)head[0].getNamespace().get("shopComboBox");var manage=(MenuButton)head[0].getNamespace().get("manageShopButton");double original=manage.getTranslateX();
                 try {
@@ -263,7 +263,7 @@ class NativeGlassEvidenceTest {
             fx(()->{
                 var manage=(MenuButton)head[0].getNamespace().get("manageShopButton");var add=(Button)head[0].getNamespace().get("addShopButton");
                 assertTrue(manage.isShowing());assertTrue(add.getScene().getWindow().isShowing());
-                UiEvidence.captureWindow(stage,"native-header-shadow-layout");add.fire();assertEquals(1,addCalls.get());assertFalse(manage.isShowing());
+                UiEvidence.captureWindow(stage,"native-header-layout");add.fire();assertEquals(1,addCalls.get());assertFalse(manage.isShowing());
                 assertEquals(2,((ComboBox<?>)head[0].getNamespace().get("shopComboBox")).getItems().size());return null;
             });
             assertEquals(0,licenseCalls.get());
@@ -276,7 +276,7 @@ class NativeGlassEvidenceTest {
     }
 
     private static void assertShopManagementAdjacent(ComboBox<?> combo,MenuButton manage) {
-        // Control shadows may overlap; adjacency concerns the actual layout rectangles.
+        // Adjacency is measured against the controls' layout rectangles.
         var selectorBounds=combo.localToScene(combo.getLayoutBounds());
         var manageBounds=manage.localToScene(manage.getLayoutBounds());
         assertTrue(manageBounds.getMinX()>=selectorBounds.getMaxX()&&manageBounds.getMinX()-selectorBounds.getMaxX()<=20,

@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Scene snapshots include the real backing behind rounded, translucent report chrome. */
+/** Scene snapshots cover flat report backing and caller-owned fill preservation. */
 class ThemeDialogBackingTest {
     @TempDir Path profile;
     private String previousProfile;
@@ -51,8 +51,6 @@ class ThemeDialogBackingTest {
             boolean previous = ThemeService.isReducedMotion();
             ThemeService.setReducedMotion(true);
             ThemeService.setCurrentTheme(ThemeService.Theme.DARK);
-            ThemeService.setGlassEnabled(true);
-            ThemeService.setGlassTransparency(55);
             return previous;
         });
     }
@@ -84,14 +82,14 @@ class ThemeDialogBackingTest {
 
     private static double brightness(Color value) { return (value.getRed() + value.getGreen() + value.getBlue()) / 3; }
 
-    @Test void aDarkDecoratedReportDoesNotBlendItsGlassFrameAgainstDefaultWhite() throws Exception {
+    @Test void aDarkDecoratedReportUsesOpaqueBackingAgainstDefaultWhite() throws Exception {
         fx(() -> {
             var scene = new Scene(reportPane(), 480, 300);
             var stage = show(scene, StageStyle.DECORATED);
             var pixels = scene.snapshot(null);
             assertTrue(brightness(pixels.getPixelReader().getColor(2, 150)) < .24,
-                    "The translucent dark report frame must blend against the dark app ground, not WHITE");
-            assertEquals(Color.web("#17181b"), scene.getFill());
+                    "The dark report frame must use the dark app ground, not WHITE");
+            assertEquals(Color.web("#000000"), scene.getFill());
             assertEquals(1, stage.getOpacity()); assertEquals(1, scene.getRoot().getOpacity());
             assertEquals(StageStyle.DECORATED, stage.getStyle(), "Keep the real native window decoration");
             return null;
@@ -101,11 +99,11 @@ class ThemeDialogBackingTest {
     @Test void appOwnedBackingTracksBothThemesWithoutChangingWindowOpacity() throws Exception {
         fx(() -> {
             var scene = new Scene(reportPane(), 480, 300); var stage = show(scene, StageStyle.DECORATED);
-            assertEquals(Color.web("#17181b"), scene.getFill());
+            assertEquals(Color.web("#000000"), scene.getFill());
             ThemeService.setCurrentTheme(ThemeService.Theme.LIGHT);
-            assertEquals(Color.web("#e9ebf0"), scene.getFill());
+            assertEquals(Color.web("#f2f2f2"), scene.getFill());
             ThemeService.setCurrentTheme(ThemeService.Theme.DARK);
-            assertEquals(Color.web("#17181b"), scene.getFill());
+            assertEquals(Color.web("#000000"), scene.getFill());
             assertEquals(1, stage.getOpacity()); assertEquals(1, scene.getRoot().getOpacity());
             return null;
         });
@@ -134,7 +132,7 @@ class ThemeDialogBackingTest {
     @Test void aCallerFillChangeOptsOutEvenWhenItChangesBackToWhite() throws Exception {
         fx(() -> {
             var scene = new Scene(reportPane(), 380, 240); show(scene, StageStyle.DECORATED);
-            assertEquals(Color.web("#17181b"), scene.getFill());
+            assertEquals(Color.web("#000000"), scene.getFill());
             scene.setFill(Color.DARKORANGE);
             ThemeService.setCurrentTheme(ThemeService.Theme.LIGHT);
             assertEquals(Color.DARKORANGE, scene.getFill());
@@ -149,7 +147,7 @@ class ThemeDialogBackingTest {
         fx(() -> {
             var scene = new Scene(reportPane(), 380, 240);
             scene.fillProperty().addListener((observable, previous, fill) -> {
-                if (Color.web("#17181b").equals(fill)) scene.setFill(Color.DARKORANGE);
+                if (Color.web("#000000").equals(fill)) scene.setFill(Color.DARKORANGE);
             });
             show(scene, StageStyle.DECORATED);
             assertEquals(Color.DARKORANGE, scene.getFill());
@@ -201,11 +199,11 @@ class ThemeDialogBackingTest {
     @Test void leavingTheReportRoleRestoresOnlyTheDefaultFillThatTheThemeOwned() throws Exception {
         fx(() -> {
             var scene = new Scene(reportPane(), 380, 240); show(scene, StageStyle.DECORATED);
-            assertEquals(Color.web("#17181b"), scene.getFill());
+            assertEquals(Color.web("#000000"), scene.getFill());
             scene.setRoot(new VBox(new Label("Ordinary workspace")));
             assertEquals(Color.WHITE, scene.getFill());
             scene.setRoot(reportPane());
-            assertEquals(Color.web("#17181b"), scene.getFill());
+            assertEquals(Color.web("#000000"), scene.getFill());
             scene.setFill(Color.DARKORANGE);
             scene.setRoot(new VBox(new Label("Caller surface")));
             assertEquals(Color.DARKORANGE, scene.getFill());

@@ -17,26 +17,23 @@ import javafx.stage.Window;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/** Shared desktop appearance. Material density changes paints, never text or window opacity. */
+/** Shared desktop appearance for scenes, dialogs and popups. */
 public final class ThemeService {
     private static final String BASE_CSS = Objects.requireNonNull(ThemeService.class.getResource("/com/vncode/app/styles/theme.css")).toExternalForm();
     private static final String CONTROLS_CSS = Objects.requireNonNull(ThemeService.class.getResource("/com/vncode/app/styles/workspace-controls.css")).toExternalForm();
     private static final Set<Parent> ROOTS = Collections.newSetFromMap(new WeakHashMap<>());
     private static final List<Runnable> APPEARANCE_LISTENERS = new CopyOnWriteArrayList<>();
-    private static final String ORIGINAL_STYLE = ThemeService.class.getName() + ".originalStyle";
     private static final String DIALOG_BACKING = ThemeService.class.getName() + ".dialogBacking";
     private static boolean observingWindows;
     private static boolean observingSystemPreferences;
     private static volatile Boolean reducedMotionPreference;
     private static volatile boolean systemReducedMotion;
     private static volatile Theme systemTheme = Theme.LIGHT;
-    public static final int DEFAULT_TRANSPARENCY = 55;
     public static final String STARTUP_SCENE = "vncode.startup.progress";
     /** Opt out before applying a theme when an intentionally white caller fill looks like the default. */
     public static final String PRESERVE_SCENE_FILL = "vncode.theme.preserve-scene-fill";
@@ -86,16 +83,6 @@ public final class ThemeService {
         switchTheme(Objects.requireNonNull(theme).getKey());
     }
 
-    public static boolean isGlassEnabled() {
-        String saved = ConfigService.getConfigValue("glass_enabled");
-        return saved == null || Boolean.parseBoolean(saved);
-    }
-
-    public static void setGlassEnabled(boolean enabled) {
-        ConfigService.setConfigValue("glass_enabled", Boolean.toString(enabled));
-        refreshAppearance();
-    }
-
     /** OS accessibility preferences always take priority over optional application motion. */
     public static boolean isReducedMotion() {
         if (reducedMotionPreference == null) {
@@ -115,33 +102,6 @@ public final class ThemeService {
         refreshAppearance();
     }
 
-    public static int getGlassTransparency() {
-        try { return bounded(Double.parseDouble(ConfigService.getConfigValue("glass_transparency"))); }
-        catch (RuntimeException invalid) { return DEFAULT_TRANSPARENCY; }
-    }
-
-    private static int bounded(double value) {
-        return Double.isFinite(value) ? (int) Math.round(Math.clamp(value, 0, 100)) : DEFAULT_TRANSPARENCY;
-    }
-
-    public static void setGlassTransparency(double value) {
-        int amount = bounded(value);
-        ConfigService.setConfigValue("glass_transparency", Integer.toString(amount));
-        refreshAppearance();
-    }
-
-    /** Slider previews perform no SQL writes and never change Node/Window opacity. */
-    public static void previewGlassTransparency(double value) {
-        if (!Platform.isFxApplicationThread()) {
-            onFxThread(() -> previewGlassTransparency(value));
-            return;
-        }
-        Theme theme = getCurrentTheme();
-        int amount = bounded(value);
-        boolean glass = isGlassEnabled();
-        for (Parent root : List.copyOf(ROOTS)) material(root, theme, amount, glass);
-    }
-
     public static void applyTheme(Scene scene) {
         if (scene == null) return;
         if (Boolean.TRUE.equals(scene.getProperties().get(STARTUP_SCENE))) {
@@ -157,7 +117,7 @@ public final class ThemeService {
             scene.getProperties().put(ThemeService.class, Boolean.TRUE);
             scene.rootProperty().addListener((observable, oldRoot, newRoot) -> applyTheme(scene));
         }
-        material(scene.getRoot(), getCurrentTheme(), getGlassTransparency(), isGlassEnabled());
+        applyAppearance(scene.getRoot(), getCurrentTheme());
         WorkspaceMotion.install(scene);
         WorkspaceInteractionMotion.install(scene);
     }
@@ -176,7 +136,7 @@ public final class ThemeService {
         observeWindows();
         if (!pane.getStylesheets().contains(BASE_CSS)) pane.getStylesheets().add(BASE_CSS);
         if (!pane.getStylesheets().contains(CONTROLS_CSS)) pane.getStylesheets().add(CONTROLS_CSS);
-        material(pane, getCurrentTheme(), getGlassTransparency(), isGlassEnabled());
+        applyAppearance(pane, getCurrentTheme());
         WorkspaceMotion.install(pane);
         WorkspaceInteractionMotion.install(pane);
     }
@@ -196,7 +156,8 @@ public final class ThemeService {
                 WorkspaceMotion.cancelAll();
                 WorkspaceInteractionMotion.cancelAll();
             }
-            previewGlassTransparency(getGlassTransparency());
+            Theme theme = getCurrentTheme();
+            for (Parent root : List.copyOf(ROOTS)) applyAppearance(root, theme);
             for (Runnable listener : APPEARANCE_LISTENERS) listener.run();
         });
     }
@@ -255,67 +216,28 @@ public final class ThemeService {
         if (window.getScene() != null) applyTheme(window.getScene());
     }
 
-    private static void material(Parent root, Theme theme, int amount, boolean glass) {
+    private static void applyAppearance(Parent root, Theme theme) {
         if (root == null) return;
         ROOTS.add(root);
-        if (!root.getStyleClass().contains("workspace-theme")) root.getStyleClass().add("workspace-theme");
-        selectClass(root, "liquid-glass", glass);
-        selectClass(root, "glass-disabled", !glass);
-        selectClass(root, "theme-light", theme == Theme.LIGHT);
-        selectClass(root, "theme-dark", theme == Theme.DARK);
+        applyThemeClasses(root, theme);
         root.getStyleClass().remove("reference-dark");
-        root.getProperties().putIfAbsent(ORIGINAL_STYLE, root.getStyle());
-        // Retain the saved slider scale. Only chrome/overlay CSS consumes these paints.
-        double alpha = glass ? .005 + amount * .00995 : 1;
-        double frost = glass ? amount / 100.0 : 1;
-        String tint = theme == Theme.LIGHT ? "255,255,255" : "38,38,42";
-        String elevated = theme == Theme.LIGHT ? "255,255,255" : "48,48,53";
-        String ink = theme == Theme.LIGHT ? "36,37,42" : "241,241,244";
-        String selection = theme == Theme.LIGHT ? "36,37,42" : "241,241,244";
-        String paint = String.format(Locale.ROOT,
-                "-glass-surface:rgba(%s,%.3f);-glass-elevated:rgba(%s,%.3f);-glass-row:rgba(%s,%.3f);"
-                        + "-glass-button:rgba(%s,%.3f);-glass-highlight:rgba(255,255,255,%.3f);"
-                        + "-glass-control-highlight:rgba(255,255,255,%.3f);-glass-control-shadow:rgba(0,0,0,%.3f);"
-                        + "-glass-selected:rgba(%s,%.3f);-text-primary:rgb(%s);",
-                tint, alpha, elevated, Math.min(1, alpha + .045 * frost), tint, alpha * .55,
-                elevated, Math.min(1, alpha + .035 * frost), .015 + (theme == Theme.LIGHT ? .36 : .14) * frost,
-                .025 + .22 * frost, .005 + .12 * frost, selection, .035 + .12 * frost, ink);
-        String contentPaint = String.format(Locale.ROOT,
-                "-glass-content:rgba(%s,%.3f);-glass-field:rgba(%s,%.3f);"
-                        + "-glass-control:rgba(%s,%.3f);-glass-table-header:rgba(%s,%.3f);",
-                tint, glass ? .62 + .18 * frost : 1, tint, glass ? .68 + .18 * frost : 1,
-                elevated, glass ? .60 + .18 * frost : 1, elevated, glass ? .68 + .18 * frost : 1);
-        paint += contentPaint;
-        root.setStyle(root.getProperties().get(ORIGINAL_STYLE) + ";" + paint);
-        root.getProperties().put("glass.transparency", amount);
-        root.getProperties().put("glass.enabled", glass);
-        // PopupControl's CSS bridge inherits from its owner, outside the popup scene
-        // graph. Theme the public control too so a same-turn theme change cannot
-        // leave its skin using the owner's previously resolved lookup colours.
         Scene scene = root.getScene();
         dialogBacking(scene, theme);
-        WorkspaceBackdropMaterial.install(root, theme, glass);
         WorkspaceRoundedControlClip.install(root);
         if (scene != null && scene.getRoot() == root && scene.getWindow() instanceof PopupControl popup) {
-            if (!popup.getStyleClass().contains("workspace-theme")) popup.getStyleClass().add("workspace-theme");
-            selectClass(popup, "liquid-glass", glass);
-            selectClass(popup, "glass-disabled", !glass);
-            selectClass(popup, "theme-light", theme == Theme.LIGHT);
-            selectClass(popup, "theme-dark", theme == Theme.DARK);
-            popup.getProperties().putIfAbsent(ORIGINAL_STYLE, popup.getStyle());
-            popup.setStyle(popup.getProperties().get(ORIGINAL_STYLE) + ";" + paint);
-            // Context-menu skins copy classes once, while their inline style is bound
-            // to the popup. Retheme retained skin classes without replacing that binding.
+            applyThemeClasses(popup, theme);
+            // Context menu skins copy their classes on creation.
             var skin = popup.getSkin();
             if (skin != null && skin.getNode() != null) {
-                var content = skin.getNode();
-                if (!content.getStyleClass().contains("workspace-theme")) content.getStyleClass().add("workspace-theme");
-                selectClass(content, "liquid-glass", glass);
-                selectClass(content, "glass-disabled", !glass);
-                selectClass(content, "theme-light", theme == Theme.LIGHT);
-                selectClass(content, "theme-dark", theme == Theme.DARK);
+                applyThemeClasses(skin.getNode(), theme);
             }
         }
+    }
+
+    private static void applyThemeClasses(Styleable node, Theme theme) {
+        selectClass(node, "workspace-theme", true);
+        selectClass(node, "theme-light", theme == Theme.LIGHT);
+        selectClass(node, "theme-dark", theme == Theme.DARK);
     }
 
     private static void dialogBacking(Scene scene, Theme theme) {
@@ -331,12 +253,12 @@ public final class ThemeService {
         }
     }
 
-    /** Rounded alpha dialog paints need an opaque app ground on decorated native windows.
-     * Only default fills belong to us; every caller edit/binding permanently keeps caller ownership. */
+    /** Match the uncovered corners of decorated dialogs to the app ground.
+     * Preserve fills supplied by callers, including bindings. */
     private static final class DialogBacking {
         // Matches the semantic -bg-primary palette in both shipped stylesheets.
-        private static final Color DARK_GROUND = Color.web("#17181b");
-        private static final Color LIGHT_GROUND = Color.web("#e9ebf0");
+        private static final Color DARK_GROUND = Color.BLACK;
+        private static final Color LIGHT_GROUND = Color.web("#f2f2f2");
         private final Scene scene;
         private final Paint original;
         private Paint owned;

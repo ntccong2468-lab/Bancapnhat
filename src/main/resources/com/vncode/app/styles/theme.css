@@ -11,17 +11,17 @@
 .ozon-fbs-workspace .titled-pane > .content { -fx-background-color: -bg-primary; -fx-border-color: -border-color; }
 /* Shared semantic fallback tokens; workspace-controls.css owns the active system. */
 .root, .workspace-theme, .root.theme-dark, .workspace-theme.theme-dark {
-    -bg-primary: #17181b;
-    -nav-surface: #292a2e;
-    -bg-secondary: #232428;
-    -bg-tertiary: #303136;
-    -bg-odd-row: #232428;
-    -border-color: #3a3b41;
-    -border-color-hover: #898b95;
-    -row-rule: #33343a;
-    -text-primary: #f1f1f4;
-    -text-secondary: #c1c2cb;
-    -text-muted: #adafb9;
+    -bg-primary: #000000;
+    -nav-surface: #101010;
+    -bg-secondary: #101010;
+    -bg-tertiary: #1b1b1b;
+    -bg-odd-row: #101010;
+    -border-color: #303030;
+    -border-color-hover: #898989;
+    -row-rule: #303030;
+    -text-primary: #f2f2f2;
+    -text-secondary: #c5c5c5;
+    -text-muted: #ababab;
     -accent: #9ac6ff;
     -accent-hover: #b3d5ff;
     -accent-active: #83b7fb;
@@ -46,30 +46,15 @@
     -success-surface: #243e33;
     -danger-surface: #482b34;
     -warning-surface: #443920;
-    -glass-surface: rgba(46,47,52,.86);
-    -glass-elevated: rgba(48,49,54,.94);
-    -glass-button: rgba(61,62,68,.78);
-    -glass-highlight: rgba(255,255,255,.10);
-    -glass-control-highlight: rgba(255,255,255,.08);
-    -glass-control-shadow: rgba(0,0,0,.08);
-    -glass-content: rgba(38,38,42,.719);
-    -glass-field: rgba(38,38,42,.779);
-    -glass-control: rgba(48,48,53,.699);
-    -glass-table-header: rgba(38,38,42,.779);
-    -glass-edge: rgba(255,255,255,.16);
-    -glass-local-shadow: rgba(0,0,0,.14);
-    -chrome-shadow: rgba(0,0,0,.20);
-    -overlay-shadow: rgba(0,0,0,.28);
-    -glass-selected: #353e49;
     -ui-panel: -bg-secondary;
-    -ui-control: #2c2d32;
-    -ui-control-hover: #3b3d44;
-    -ui-control-pressed: #454750;
-    -ui-field: #232428;
+    -ui-control: #1b1b1b;
+    -ui-control-hover: #262626;
+    -ui-control-pressed: #303030;
+    -ui-field: #1b1b1b;
     -ui-input-border: #858792;
-    -ui-row-hover: #2c2e34;
+    -ui-row-hover: #262626;
     -ui-selected: #323d4b;
-    -ui-table-header: #232428;
+    -ui-table-header: #101010;
     -nav-selected: #353e49;
     -btn-bg: -ui-control;
     -btn-bg-hover: -ui-control-hover;
@@ -92,17 +77,17 @@
     -fx-font-size: 14px;
 }
 .root.theme-light, .workspace-theme.theme-light {
-    -bg-primary: #e9ebf0;
-    -nav-surface: #f7f8fa;
+    -bg-primary: #f2f2f2;
+    -nav-surface: #ffffff;
     -bg-secondary: #ffffff;
-    -bg-tertiary: #f0f1f5;
+    -bg-tertiary: #f5f5f5;
     -bg-odd-row: #ffffff;
     -border-color: #e0e2e9;
     -border-color-hover: #818493;
     -row-rule: #eceef3;
-    -text-primary: #24252a;
-    -text-secondary: #555966;
-    -text-muted: #606472;
+    -text-primary: #202020;
+    -text-secondary: #545454;
+    -text-muted: #626262;
     -accent: #0762cf;
     -accent-hover: #0656b8;
     -accent-active: #06499a;
@@ -125,30 +110,15 @@
     -success-surface: #e3f3eb;
     -danger-surface: #fce9ed;
     -warning-surface: #fff2d8;
-    -glass-surface: rgba(255,255,255,.65);
-    -glass-elevated: rgba(255,255,255,.94);
-    -glass-button: rgba(255,255,255,.78);
-    -glass-highlight: rgba(255,255,255,.80);
-    -glass-control-highlight: rgba(255,255,255,.60);
-    -glass-control-shadow: rgba(36,37,42,.04);
-    -glass-content: rgba(255,255,255,.719);
-    -glass-field: rgba(255,255,255,.779);
-    -glass-control: rgba(255,255,255,.699);
-    -glass-table-header: rgba(255,255,255,.779);
-    -glass-edge: rgba(255,255,255,.75);
-    -glass-local-shadow: rgba(36,37,42,.07);
-    -chrome-shadow: rgba(36,37,42,.09);
-    -overlay-shadow: rgba(36,37,42,.16);
-    -glass-selected: #e7edf7;
     -ui-panel: -bg-secondary;
-    -ui-control: #ffffff;
-    -ui-control-hover: #f0f3f9;
-    -ui-control-pressed: #e5eaf2;
+    -ui-control: #f5f5f5;
+    -ui-control-hover: #e8e8e8;
+    -ui-control-pressed: #dedede;
     -ui-field: #ffffff;
     -ui-input-border: #85899a;
-    -ui-row-hover: #f4f6fa;
+    -ui-row-hover: #f5f5f5;
     -ui-selected: #e8eef7;
-    -ui-table-header: #ffffff;
+    -ui-table-header: #f5f5f5;
     -nav-selected: #e7edf7;
 }
 
@@ -211,7 +181,7 @@
     -fx-border-radius: 12px;
     -fx-border-color: -border-color;
     -fx-border-width: 1px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);
+    -fx-effect: null;
     -fx-padding: 16px;
 }
 
@@ -433,14 +403,14 @@
     -fx-cursor: hand;
 }
 .packing-tabs > .tab-header-area > .headers-region > .tab:selected {
-    -fx-background-color: linear-gradient(to bottom, derive(-accent, 15%), -accent);
+    -fx-background-color: -accent;
 }
 .packing-tabs > .tab-header-area > .headers-region > .tab .tab-label {
     -fx-text-fill: -text-secondary;
     -fx-font-weight: bold;
 }
 .packing-tabs > .tab-header-area > .headers-region > .tab:selected .tab-label {
-    -fx-text-fill: white;
+    -fx-text-fill: -on-accent;
 }
 .packing-tabs > .tab-content-area {
     -fx-background-color: transparent;
@@ -484,37 +454,37 @@
 
 /* Button Variants */
 .btn-primary {
-    -fx-background-color: linear-gradient(to bottom, derive(-accent, 15%), -accent);
+    -fx-background-color: -accent;
     -fx-border-width: 1px;
-    -fx-border-color: derive(-accent, -10%);
-    -fx-text-fill: white;
+    -fx-border-color: -accent;
+    -fx-text-fill: -on-accent;
 }
-.btn-primary:hover { -fx-background-color: linear-gradient(to bottom, -accent, derive(-accent, -10%)); }
+.btn-primary:hover { -fx-background-color: -accent-hover; }
 .btn-primary:pressed { -fx-background-color: -accent-active; }
 
 .btn-success {
-    -fx-background-color: linear-gradient(to bottom, derive(-success, 15%), -success);
+    -fx-background-color: -success-fill;
     -fx-border-width: 1px;
-    -fx-border-color: derive(-success, -10%);
+    -fx-border-color: -success-fill;
     -fx-text-fill: white;
 }
-.btn-success:hover { -fx-background-color: linear-gradient(to bottom, -success, derive(-success, -10%)); }
+.btn-success:hover { -fx-background-color: -success-hover; }
 
 .btn-danger {
-    -fx-background-color: linear-gradient(to bottom, derive(-danger, 15%), -danger);
+    -fx-background-color: -danger-fill;
     -fx-border-width: 1px;
-    -fx-border-color: derive(-danger, -10%);
+    -fx-border-color: -danger-fill;
     -fx-text-fill: white;
 }
-.btn-danger:hover { -fx-background-color: linear-gradient(to bottom, -danger, derive(-danger, -10%)); }
+.btn-danger:hover { -fx-background-color: -danger-hover; }
 
 .btn-warning {
-    -fx-background-color: linear-gradient(to bottom, derive(-warning, 15%), -warning);
+    -fx-background-color: -warning-fill;
     -fx-border-width: 1px;
-    -fx-border-color: derive(-warning, -10%);
-    -fx-text-fill: white;
+    -fx-border-color: -warning-fill;
+    -fx-text-fill: -on-warning;
 }
-.btn-warning:hover { -fx-background-color: linear-gradient(to bottom, -warning, derive(-warning, -10%)); }
+.btn-warning:hover { -fx-background-color: -warning-hover; }
 
 .btn-secondary {
     -fx-background-color: -btn-bg;
@@ -687,7 +657,7 @@
     -fx-border-color: -border-color;
     -fx-border-radius: 8px;
     -fx-padding: 4px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+    -fx-effect: null;
 }
 
 .context-menu .menu-item {
@@ -730,7 +700,7 @@
     -fx-background-color: -bg-secondary;
     -fx-border-color: -border-color;
     -fx-border-radius: 8px;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 10, 0, 0, 4);
+    -fx-effect: null;
 }
 .combo-box-popup .list-cell {
     -fx-padding: 8px 12px;
@@ -741,7 +711,7 @@
 }
 .combo-box-popup .list-cell:selected {
     -fx-background-color: -accent;
-    -fx-text-fill: white;
+    -fx-text-fill: -on-accent;
 }
 .combo-box .list-cell.certificate-valid,
 .combo-box-popup .list-cell.certificate-valid {
@@ -840,7 +810,7 @@
 }
 
 .image-placeholder {
-    -fx-background-color: rgba(0, 0, 0, 0.03);
+    -fx-background-color: -bg-tertiary;
     -fx-background-radius: 6px;
     -fx-border-color: -border-color;
     -fx-border-radius: 6px;
@@ -942,7 +912,7 @@
     -fx-font-weight: bold;
 }
 .badge-warning {
-    -fx-background-color: rgba(245, 158, 11, 0.15);
+    -fx-background-color: -warning-surface;
     -fx-text-fill: -warning;
 }
 
@@ -1102,7 +1072,7 @@
 }
 .shop-item-selected {
     -fx-background-color: -bg-secondary;
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 8, 0, 0, 2);
+    -fx-effect: null;
     -fx-border-color: -border-color;
     -fx-border-radius: 8px;
     -fx-border-width: 1px;
@@ -1152,14 +1122,14 @@
 /* Screenshot reference: quiet navigation, spacious cards and supply rows. */
 .root { -fx-font-family: "Inter", "System"; }
 .header { -fx-background-color: -bg-secondary; -fx-padding: 8 12; }
-.sidebar { -fx-background-color: derive(-bg-primary, 7%); -fx-padding: 10 8 8 8; }
+.sidebar { -fx-background-color: -nav-surface; -fx-padding: 10 8 8 8; }
 .sidebar .button, .sidebar .menu-button { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: -text-secondary; -fx-alignment: CENTER_LEFT; -fx-padding: 8 10; -fx-background-radius: 8; -fx-font-size: 13; }
 .sidebar .button .ikonli-font-icon { -fx-icon-color: -text-secondary; }
 .sidebar .button:hover { -fx-background-color: -accent-transparent; }
 .sidebar .button.nav-selected { -fx-background-color: -accent-transparent; -fx-text-fill: -accent; }
 .sidebar .button.nav-selected .ikonli-font-icon { -fx-icon-color: -accent; }
-.sidebar .button.add-shop { -fx-background-color: -accent; -fx-text-fill: white; -fx-font-weight: bold; }
-.sidebar .button.add-shop .ikonli-font-icon { -fx-icon-color: white; }
+.sidebar .button.add-shop { -fx-background-color: -accent; -fx-text-fill: -on-accent; -fx-font-weight: bold; }
+.sidebar .button.add-shop .ikonli-font-icon { -fx-icon-color: -on-accent; }
 .sidebar-scroll, .sidebar-scroll > .viewport, .welcome-scroll, .welcome-scroll > .viewport { -fx-background-color: transparent; }
 .sidebar-tools > .title { -fx-background-color: transparent; -fx-padding: 8; }
 .sidebar-tools > .content { -fx-background-color: transparent; -fx-border-color: transparent; }
@@ -1189,9 +1159,9 @@
 .supply-detail .badge { -fx-padding: 6 10; -fx-font-size: 13; -fx-background-radius: 10; }
 
 .products-workspace { -fx-background-color: -bg-primary; }
-.product-row { -fx-border-color: #33303f; -fx-border-width: 0 0 1 0; }
+.product-row { -fx-border-color: -row-rule; -fx-border-width: 0 0 1 0; }
 .product-name { -fx-font-weight: bold; -fx-font-size: 15px; }
-.products-bulk { -fx-background-color: #24222f; -fx-padding: 14; -fx-background-radius: 14; }
+.products-bulk { -fx-background-color: -bg-secondary; -fx-padding: 14; -fx-background-radius: 14; }
 .document-valid { -fx-text-fill: #22c55e; }
 
 .product-row .label { -fx-font-weight: normal; }
@@ -1274,7 +1244,7 @@
 .product-issue-chip { -fx-text-fill: #c99218; -fx-border-color: #7d5b17; -fx-border-radius: 16; -fx-background-radius: 16; }
 .product-issue-chip:selected { -fx-background-color: #d79b11; -fx-text-fill: #151515; }
 
-/* Product reference layout. Paints still come from the shared glass/theme palette. */
+/* Product reference layout uses the shared theme palette. */
 #productsPane { -fx-font-size: 14px; -fx-font-family: "Inter"; }
 #productsPane .h2 { -fx-font-size: 20px; -fx-font-weight: bold; }
 #productsPane .button, #productsPane .combo-box, #productsPane .text-field,
@@ -1326,7 +1296,7 @@
 #productBulkEditPane .spinner .increment-arrow,
 #productBulkEditPane .spinner .decrement-arrow { -fx-background-color: -text-primary; }
 
-/* Permit state stays readable on every glass opacity. */
+/* Permit state stays readable in both themes. */
 .document-pending { -fx-text-fill: -warning; -fx-icon-color: -warning; }
 .document-rejected { -fx-text-fill: -danger; -fx-icon-color: -danger; }
 .document-valid { -fx-icon-color: -success; }

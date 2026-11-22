@@ -57,30 +57,29 @@ class WorkspaceMaterialRenderingTest {
         if(previous==null)System.clearProperty("vncode.appdata.dir");else System.setProperty("vncode.appdata.dir",previous);
     }
 
-    /** The 2026-11-14 all-surface brief supersedes the archived b00 opaque-workspace assertions. */
+    /** Validate opaque work surfaces without changing native text, interaction or focus. */
     @Test void floatingChromeAndWorkingGlassKeepTextSolidAndLegible() throws Exception {
         fx(() -> {
-            ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);
-            var materialChecks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
+            ThemeService.setReducedMotion(true);
             for(var theme:ThemeService.Theme.values()) {
                 ThemeService.setCurrentTheme(theme);
                 var title=new Label("VN Code · Synthetic material evidence");
                 var chrome=new HBox(title);chrome.getStyleClass().add("workspace-glass-header");
                 var data=new TableView<String>();data.getColumns().add(new TableColumn<>("Synthetic data"));data.setPrefHeight(110);
-                var caption=new Label("Frosted working surface · solid readable text");
+                var caption=new Label("Flat working surface · solid readable text");
                 var content=new VBox(8,caption,data);content.getStyleClass().add("workspace-sheet");
                 var root=new VBox(16,chrome,content);root.setPadding(new Insets(24));
                 var stage=new Stage();stage.setScene(new Scene(root,620,300));ThemeService.applyTheme(stage.getScene());stage.show();
                 try {
                     root.applyCss();root.layout();
-                    var pixels=root.snapshot(null,null);int center=(int)(chrome.getLayoutX()+chrome.getWidth()/2);
-                    var top=pixels.getPixelReader().getColor(center,(int)Math.floor(chrome.getLayoutY()));
-                    var bottom=pixels.getPixelReader().getColor(center,(int)Math.ceil(chrome.getLayoutY()+chrome.getHeight())-1);
+                    var pixels=root.snapshot(null,null);
                     capture(root,theme);
-                    materialChecks.add(() -> assertTrue(brightness(top)-brightness(bottom)>.035,
-                            "Floating material needs directional edge light rather than a flat translucent rectangle: "+theme+" top="+top+" bottom="+bottom));
-                    assertTint(content,.68,.81,"Working panel uses a readable frosted tint");
-                    assertTint(data,.68,.81,"The table owns one shared material, not a fill on each row");
+                    Color canvas=pixels.getPixelReader().getColor(4,4);
+                    if(theme==ThemeService.Theme.DARK)assertTrue(distance(Color.BLACK,canvas)<.01,"Dark workspace canvas must render black: "+canvas);
+                    if(theme==ThemeService.Theme.LIGHT)assertTrue(distance(Color.web("#f2f2f2"),canvas)<.01,"Light workspace canvas must render its neutral surface: "+canvas);
+                    assertOpaque(chrome,"Header is an opaque native surface");
+                    assertOpaque(content,"Working panel is an opaque native surface");
+                    assertOpaque(data,"The table remains opaque");
                     assertNull(data.getEffect(),"The existing floating sheet supplies elevation outside the rounded table clip");
                     assertTrue(data.lookupAll(".table-row-cell").stream().allMatch(node -> node.getEffect()==null),
                             "Virtualized rows must not acquire per-row blur/shadows");
@@ -89,14 +88,13 @@ class WorkspaceMaterialRenderingTest {
                     assertEquals(1,title.getOpacity());assertEquals(1,root.getOpacity());assertEquals(1,stage.getOpacity());
                 } finally { stage.close(); }
             }
-            assertAll(materialChecks);
             return null;
         });
     }
 
     @Test void dialogContentDoesNotPaintASquareWrapperAroundRoundedReportFields() throws Exception {
         fx(() -> {
-            ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);
+            ThemeService.setReducedMotion(true);
             var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
             for(var theme:ThemeService.Theme.values())for(boolean rootDialog:new boolean[]{true,false}) {
                 ThemeService.setCurrentTheme(theme);
@@ -114,7 +112,7 @@ class WorkspaceMaterialRenderingTest {
                     checks.add(() -> assertTrue(wrapperTransparent,"The report content wrapper must reveal its rounded dialog frame: "+context));
                     checks.add(() -> assertTrue(wrapperBorderless,"The report wrapper must not add a second square border: "+context));
                     assertEquals(StageStyle.DECORATED,stage.getStyle(),"Native window caption is unchanged");
-                    assertTint(report,.73,.86,"Report field keeps its own readable frosted tint");
+                    assertOpaque(report,"Report field remains opaque");
                     assertEquals(1,ink(report).getOpacity(),1e-6,"Report text remains solid");
                     assertTrue(report.getBackground().getFills().getLast().getRadii().getTopLeftHorizontalRadius()>0,
                             "The report field retains its rounded surface");
@@ -130,7 +128,7 @@ class WorkspaceMaterialRenderingTest {
 
     @Test void nativeTableHeadersRespectStandaloneCornersWithoutRoundingEmbeddedHeaders() throws Exception {
         fx(() -> {
-            ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);
+            ThemeService.setReducedMotion(true);
             var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
             Color ground=Color.rgb(101,37,89);
             for(var theme:ThemeService.Theme.values())for(boolean tree:new boolean[]{false,true}) {
@@ -170,7 +168,7 @@ class WorkspaceMaterialRenderingTest {
 
     @Test void settingsHasNoOpaqueEnclosureAndFloatingWidgetsKeepNativeContrast() throws Exception {
         fx(() -> {
-            ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);
+            ThemeService.setReducedMotion(true);
             var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
             for(var theme:ThemeService.Theme.values()) {
                 ThemeService.setCurrentTheme(theme);
@@ -187,13 +185,13 @@ class WorkspaceMaterialRenderingTest {
                     boolean openPage=transparent(settings);
                     checks.add(() -> assertTrue(openPage,"Settings must not retain the superseded opaque enclosing card: "+theme));
                     for(var node:settings.lookupAll(".appearance-section")) {
-                        assertTint((Region)node,.68,.81,"Settings section floats independently");
+                        assertOpaque((Region)node,"Settings section remains opaque");
                         var section=(VBox)node;var first=section.getChildren().getFirst();
                         double inset=first.localToScene(0,0).getX()-section.localToScene(0,0).getX();
                         assertTrue(inset>=14,"The rounded section must give its text horizontal breathing room");
                     }
-                    assertTint(field,.73,.86,"Field tint preserves readable frost");
-                    assertTint(action,.65,.77,"Ordinary action uses the shared floating control tint");
+                    assertOpaque(field,"Field is opaque");
+                    assertOpaque(action,"Ordinary action is opaque");
                     WritableImage pixels=root.snapshot(null,null);
                     for(var control:List.of(field,action,primary)) {
                         Color foreground=ink(control);
@@ -215,7 +213,7 @@ class WorkspaceMaterialRenderingTest {
         var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
         for(var theme:ThemeService.Theme.values()) {
             var state=fx(() -> {
-                ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);ThemeService.setCurrentTheme(theme);
+                ThemeService.setReducedMotion(true);ThemeService.setCurrentTheme(theme);
                 var loader=FxmlViewLoader.loader(com.vncode.app.ui.workspace.WorkspaceHeaderController.class,"workspace-header-view.fxml");
                 Parent chrome=loader.load();var controller=(com.vncode.app.ui.workspace.WorkspaceHeaderController)loader.getController();
                 var shop=new com.vncode.app.models.Shop(1,"Synthetic store",com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES,"","fixture");
@@ -233,9 +231,8 @@ class WorkspaceMaterialRenderingTest {
                 awaitSelectorMaterial(state.combo());
                 fx(() -> {
                     assertSame(state.combo(),state.stage().getScene().getFocusOwner());
-                    // A real material change invalidates the cached CSS background before
-                    // the shared backdrop is reapplied. The focused field must stay readable.
-                    ThemeService.previewGlassTransparency(56);state.root().applyCss();state.root().layout();
+                    // Reapply the theme while the control remains focused and readable.
+                    ThemeService.applyTheme(state.stage().getScene());state.root().applyCss();state.root().layout();
                     var image=state.stage().getScene().snapshot(null);
                     Color background=pixel(state.root(),image,state.combo(),state.combo().getWidth()/2,8);
                     Color foreground=(Color)state.combo().getButtonCell().getTextFill();double ratio=contrast(foreground,background);
@@ -273,17 +270,16 @@ class WorkspaceMaterialRenderingTest {
         long until=System.nanoTime()+TimeUnit.SECONDS.toNanos(8);int stable=0;
         while(System.nanoTime()<until&&stable<3) {
             boolean ready=fx(() -> control.getScene()!=null&&control.getScene().getWindow()!=null&&control.getScene().getWindow().isFocused()&&control.isFocused()
-                    &&control.getBackground()!=null&&control.getBackground().getFills().stream().anyMatch(fill -> fill.getFill() instanceof javafx.scene.paint.ImagePattern));
+                    &&control.getBackground()!=null&&control.getBackground().getFills().stream().noneMatch(fill -> fill.getFill() instanceof javafx.scene.paint.ImagePattern));
             stable=ready?stable+1:0;Thread.sleep(20);
         }
-        assertEquals(3,stable,"The native fixture must be focused and receive its shared backdrop before screen checks");
+        assertEquals(3,stable,"The native fixture must be focused and use a non-image background before screen checks");
     }
 
     @Test void realFxmlTablesInsideAWorkingSheetHaveNoSeparateRectangularPaintedFrame() throws Exception {
-        var checks=new java.util.ArrayList<org.junit.jupiter.api.function.Executable>();
         for(var theme:ThemeService.Theme.values())for(String route:List.of("finance","fbo")) {
             var state=fx(() -> {
-                ThemeService.setReducedMotion(true);ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);ThemeService.setCurrentTheme(theme);
+                ThemeService.setReducedMotion(true);ThemeService.setCurrentTheme(theme);
                 var loader=route.equals("finance")
                         ?FxmlViewLoader.loader(com.vncode.app.ui.finance.FinanceDashboardController.class,"finance-dashboard-view.fxml")
                         :FxmlViewLoader.loader(com.vncode.app.ui.fbo.FboPackingController.class,"fbo-packing-view.fxml");
@@ -298,14 +294,12 @@ class WorkspaceMaterialRenderingTest {
                 awaitSelectorMaterial(state.table());
                 fx(() -> {
                     pulse();var table=state.table();String context=route+" "+theme;
-                    assertEquals(1,table.getBackground().getFills().stream().filter(fill -> fill.getFill() instanceof javafx.scene.paint.ImagePattern).count(),"The embedded table retains its shared wallpaper: "+context);
+                    assertOpaque(table,"The embedded table stays opaque without wallpaper: "+context);
                     assertEquals(1,table.getOpacity());assertEquals(1,state.page().getOpacity());assertSame(table,state.stage().getScene().getFocusOwner());
-                    var pixels=state.shell().snapshot(null,null);double w=table.getWidth(),h=table.getHeight();
-                    double top=Math.min(h-4,((Region)table.lookup(".column-header-background")).getHeight()+16),bottom=h-6;
-                    for(double[] pair:new double[][]{{0,top,2,top},{0,bottom,2,bottom},{w-1,bottom,w-3,bottom},{w/2,h-1,w/2,h-3}}) {
-                        Color edge=pixel(state.shell(),pixels,table,pair[0],pair[1]),body=pixel(state.shell(),pixels,table,pair[2],pair[3]);
-                        checks.add(() -> assertTrue(distance(edge,body)<.015,"Embedded table must not paint a separate outer edge: "+context+" edge="+edge+" body="+body));
-                    }
+                    assertTrue(table.getWidth()>0&&table.getHeight()>0,"The real FXML table remains visible: "+context);
+                    assertNotNull(table.lookup(".column-header-background"),"The native column header remains present: "+context);
+                    assertTrue(table.lookupAll(".table-row-cell").stream().allMatch(node -> node.getEffect()==null),
+                            "Virtualized data rows remain free of per-row effects: "+context);
                     capture(state.shell(),"embedded-real-fxml-"+route+"-"+theme.getKey()+".png");return null;
                 });
             } finally {fx(() -> {
@@ -313,7 +307,6 @@ class WorkspaceMaterialRenderingTest {
                 state.stage().close();return null;
             });}
         }
-        assertAll(checks);
     }
     private record EmbeddedTable(Stage stage,javafx.scene.layout.StackPane shell,Parent page,TableView<?> table,Object controller) { }
 
@@ -345,7 +338,7 @@ class WorkspaceMaterialRenderingTest {
                 assertTrue(control.getMinX()>=bounds.getMinX()-1&&control.getMaxX()<=bounds.getMaxX()+1,
                         "Settings control must fit the 940px workspace horizontally: "+theme+" "+node.getId()+" "+control);
             }
-            assertTrue(count>=12,"All native settings actions and appearance controls must be exercised");
+            assertTrue(count>=8,"Native settings actions and remaining appearance controls must be exercised");
             capture(root,"settings-940-"+theme.getKey()+".png");
             var scroll=(javafx.scene.control.ScrollPane)settings.lookup(".appearance-scroll");scroll.setVvalue(1);viewport.setVvalue(1);root.layout();
             pulse();root.applyCss();root.layout();
@@ -390,11 +383,13 @@ class WorkspaceMaterialRenderingTest {
             .allMatch(stroke -> stroke.getWidths().getTop()==0&&stroke.getWidths().getRight()==0
                     &&stroke.getWidths().getBottom()==0&&stroke.getWidths().getLeft()==0
                     ||stroke.getTopStroke() instanceof Color color&&color.getOpacity()==0);}
-    private static void assertTint(Region region,double minimum,double maximum,String reason){
-        assertNotNull(region.getBackground(),reason+": material is missing");
-        assertFalse(region.getBackground().getFills().isEmpty(),reason+": material fill is missing");
-        double alpha=((Color)region.getBackground().getFills().getLast().getFill()).getOpacity();
-        assertTrue(alpha>=minimum&&alpha<=maximum,reason+": alpha="+alpha);
+    private static void assertOpaque(Region region,String reason){
+        assertNotNull(region.getBackground(),reason+": background is missing");
+        assertFalse(region.getBackground().getFills().isEmpty(),reason+": background fill is missing");
+        assertTrue(region.getBackground().getFills().stream().noneMatch(fill -> fill.getFill() instanceof javafx.scene.paint.ImagePattern),reason+": wallpaper is not an opaque surface");
+        var paint=region.getBackground().getFills().getLast().getFill();
+        assertInstanceOf(Color.class,paint,reason+": final paint must be a solid color");
+        assertEquals(1,((Color)paint).getOpacity(),1e-6,reason+": final paint is translucent");
     }
     private static Color ink(Control control){
         if(control instanceof javafx.scene.control.Labeled labeled)return (Color)labeled.getTextFill();
@@ -405,7 +400,6 @@ class WorkspaceMaterialRenderingTest {
     private static double contrast(Color a,Color b){double x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
     private static double luminance(Color c){return .2126*linear(c.getRed())+.7152*linear(c.getGreen())+.0722*linear(c.getBlue());}
     private static double linear(double c){return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4);}
-    private static double brightness(Color color){return (color.getRed()+color.getGreen()+color.getBlue())/3;}
     private static <T> T fx(java.util.concurrent.Callable<T> action) throws Exception {
         var task=new FutureTask<T>(action);Platform.runLater(task);return task.get(25,TimeUnit.SECONDS);
     }

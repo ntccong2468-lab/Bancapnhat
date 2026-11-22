@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 22.11.2026 MSK — giao diện đen phẳng sau duyệt Unslop
+
+Sau `12fbcf5`, thay Liquid Glass bằng nền tối `#000000` và các bề mặt đặc. Sáng và Theo hệ thống có cùng hệ điều khiển phẳng. Bỏ cài đặt kính, giữ hàng đợi nghiệp vụ và chủ quyền dữ liệu. JavaFX 221/221, Node 280/280, 66 ảnh fixture và xác minh JAR. Chưa phát hành hoặc kiểm máy seller. [Báo cáo](validation/2026-11-22-unslop-flat-theme.md)
+
 ## 22.11.2026 MSK — cài Unslop và đề xuất hướng giao diện
 
 Thêm Unslop cấp repo tại `.agents/skills/unslop`, pin `620163e`, nguồn CC BY 4.0 có ghi công. Audit VN Code 1.6.13 theo bản bàn giao `7570360`. Fixture JavaFX xác nhận cột Thao tác Znack bị khuất ở 1000 × 650. Báo cáo ghi ưu tiên, bằng chứng, hướng thiết kế và giai đoạn kiểm thử. Chờ chủ dự án duyệt giao diện. [Audit](validation/2026-11-22-unslop-ui-audit.md)

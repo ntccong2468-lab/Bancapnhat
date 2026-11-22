@@ -1,7 +1,6 @@
 package com.vncode.app.shared;
 
 import com.vncode.app.config.Database;
-import com.vncode.app.ui.GlassSettingsDialog;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -21,62 +20,56 @@ class ThemeServiceTest {
  @BeforeEach void setup(){System.setProperty("vncode.appdata.dir",temp.toString());Database.initDatabase();}
  @AfterEach void cleanup()throws Exception{fx(()->{for(var w:List.copyOf(Window.getWindows()))if(w instanceof Stage s)s.close();return null;});System.clearProperty("vncode.appdata.dir");}
  static <T>T fx(Callable<T> call)throws Exception{var task=new FutureTask<>(call);Platform.runLater(task);return task.get(30,TimeUnit.SECONDS);}
- @Test void contentUsesFloatingGlassWhileTextAndControlsStaySolidAndReadable()throws Exception{
+ @Test void workspaceUsesOpaqueFlatThemesWhileTextAndControlsStayReadable()throws Exception{
   fx(()->{
-   ThemeService.initializeAppearance();ThemeService.setGlassEnabled(true);
-   for(var theme:ThemeService.Theme.values())for(int amount:new int[]{0,55,100}){
-    ThemeService.setCurrentTheme(theme);ThemeService.setGlassTransparency(amount);
+   ThemeService.initializeAppearance();
+   for(var theme:ThemeService.Theme.values()){
+    ThemeService.setCurrentTheme(theme);
     var label=new Label("Đơn hàng / Заказы / Orders 152DASH-52");
     var muted=new Label("GTIN · SKU · Znack");muted.getStyleClass().add("text-muted");
     var input=new TextField("152DASH-52");var button=new Button("Lưu thay đổi");button.getStyleClass().add("btn-primary");
     var selected=new CheckBox("Kho KIZ / Склад КИЗ");selected.setSelected(true);
     var card=new VBox(12,label,muted,input,button,selected);card.getStyleClass().add("card");
     var table=new TableView<String>();table.getColumns().add(new TableColumn<>("Synthetic column"));table.setPrefHeight(130);
-    var chrome=new HBox(new Label("Synthetic native chrome"));chrome.getStyleClass().addAll("header","glass-header");
-    var root=new VBox(18,chrome,card,table);root.setStyle("-fx-padding:24;");
+    var chrome=new HBox(new Label("Synthetic native chrome"));chrome.getStyleClass().add("header");
+    var root=new VBox(18,chrome,card,table);root.getStyleClass().add("workspace-shell");root.setStyle("-fx-padding:24;");
     var stage=new Stage();stage.setScene(new Scene(root,700,520));ThemeService.applyTheme(stage.getScene());stage.show();root.applyCss();root.layout();
-    String context=theme+" glass="+amount;
-    assertEquals(1,root.getOpacity(),context);assertEquals(1,label.getOpacity());assertEquals(1,input.getOpacity());assertEquals(1,stage.getOpacity());
-    assertEquals(1,chrome.getOpacity(),"Chrome never fades its controls");
-    var material=(Color)chrome.getBackground().getFills().getLast().getFill();
-    if(amount==0)assertTrue(material.getOpacity()<.1,"Clear material setting affects chrome: "+context);
-    if(amount==100)assertTrue(material.getOpacity()>.9,"Frosted material setting affects chrome: "+context);
-    var canvas=paint(root);var panelTint=paint(card);var panel=over(panelTint,canvas);
-    // The later all-glass brief replaces the old opaque-panel appearance, never live text opacity.
-    assertEquals(.62+.18*(amount/100.0),panelTint.getOpacity(),.002,"Content glass tint follows the saved amount: "+context);
-    assertEquals(panelTint.getOpacity(),paint(table).getOpacity(),.002,"Tables share the content glass material: "+context);
-    assertTrue(table.getEffect()==null||table.getEffect() instanceof javafx.scene.effect.DropShadow,"Only an outer floating shadow is allowed; never a foreground blur");
+    String context=theme.toString();var canvas=paint(root);var panel=paint(card);
+    assertEquals(theme==ThemeService.Theme.DARK?Color.BLACK:Color.web("#f2f2f2"),canvas,"Flat workspace ground: "+context);
+    assertEquals(theme==ThemeService.Theme.DARK?Color.web("#101010"):Color.WHITE,panel,"Opaque card ground: "+context);
+    assertEquals(1,canvas.getOpacity());assertEquals(1,panel.getOpacity());assertEquals(1,paint(table).getOpacity());
+    for(var surface:List.of(root,card,table,chrome))if(surface.getBackground()!=null)
+     assertTrue(surface.getBackground().getFills().stream().noneMatch(f->f.getFill() instanceof javafx.scene.paint.ImagePattern),"No sampled image: "+context);
+    assertEquals(1,root.getOpacity());assertEquals(1,label.getOpacity());assertEquals(1,input.getOpacity());assertEquals(1,stage.getOpacity());
+    assertEquals("Inter",label.getFont().getFamily(),"The bundled app font remains applied: "+context);
     assertTrue(((Color)label.getTextFill()).getOpacity()>=.959,"Primary text is never faded: "+context);
     assertTrue(contrast(over((Color)label.getTextFill(),panel),panel)>=7,"Primary content contrast: "+context);
     assertTrue(contrast(over((Color)muted.getTextFill(),panel),panel)>=4.5,"Secondary content contrast: "+context);
     assertTrue(contrast(over((Color)label.getTextFill(),canvas),canvas)>=4.5,"Primary canvas contrast: "+context);
     assertTrue(contrast(over((Color)muted.getTextFill(),canvas),canvas)>=4.5,"Secondary canvas contrast: "+context);
-    var buttonBackground=over(paint(button),panel);
-    assertTrue(contrast(over((Color)button.getTextFill(),buttonBackground),buttonBackground)>=4.5,"Action text contrast: "+context);
-    var box=(Region)selected.lookup(".box");var mark=(Region)selected.lookup(".mark");
-    assertNotNull(mark,"Selected checkbox needs a visible native mark");
+    assertTrue(contrast((Color)button.getTextFill(),paint(button))>=4.5,"Action text contrast: "+context);
+    var box=(Region)selected.lookup(".box");var mark=(Region)selected.lookup(".mark");assertNotNull(mark);
     assertTrue(contrast(paint(mark),paint(box))>=4.5,"Selected checkbox mark contrast: "+context);
-    assertTrue(root.getStyle().contains("-fx-padding:24"),"Theme must preserve caller inline layout");
-    assertTrue(root.getStyleClass().contains("liquid-glass"));
-    assertEquals(amount,root.getProperties().get("glass.transparency"));
-    String output=System.getProperty("vncode.glass.screenshots");
-    if(output!=null){var dir=Path.of(output);Files.createDirectories(dir);var image=root.snapshot(null,null);var pixels=new java.awt.image.BufferedImage((int)image.getWidth(),(int)image.getHeight(),java.awt.image.BufferedImage.TYPE_INT_ARGB);for(int y=0;y<image.getHeight();y++)for(int x=0;x<image.getWidth();x++)pixels.setRGB(x,y,image.getPixelReader().getArgb(x,y));javax.imageio.ImageIO.write(pixels,"png",dir.resolve(theme.getKey()+"-"+amount+".png").toFile());}
-    stage.close();
+    assertTrue(root.getStyle().contains("-fx-padding:24"),"Theme preserves caller inline layout");stage.close();
    }return null;
   });
  }
- @Test void previewsDoNotPersistUntilSavedAndAllOpenAndNewRootsReceiveSetting()throws Exception{
+ @Test void oldSavedGlassPreferencesDoNotChangeFlatThemeOrRethemeNewScenes()throws Exception{
   fx(()->{
-   ThemeService.setCurrentTheme(ThemeService.Theme.DARK);ThemeService.setGlassTransparency(35);var first=new VBox(new Label("A"));var stage=new Stage();stage.setScene(new Scene(first));ThemeService.applyTheme(stage.getScene());stage.show();
-   var pane=new DialogPane();ThemeService.applyTheme(pane);
-   ThemeService.previewGlassTransparency(90);assertEquals(35,ThemeService.getGlassTransparency());assertEquals(90,first.getProperties().get("glass.transparency"));assertEquals(90,pane.getProperties().get("glass.transparency"));
-   ThemeService.setGlassTransparency(80);assertEquals(80,ThemeService.getGlassTransparency());
-   var replacement=new VBox();stage.getScene().setRoot(replacement);assertEquals(80,replacement.getProperties().get("glass.transparency"));
-   var nextScene=new Scene(new VBox(new Label("New workspace")));stage.setScene(nextScene);assertEquals(80,nextScene.getRoot().getProperties().get("glass.transparency"));
-   var popup=new Stage();popup.setScene(new Scene(new VBox(new Label("Popup"))));popup.show();assertTrue(popup.getScene().getRoot().getStyleClass().contains("theme-dark"));
-   assertEquals(80,popup.getScene().getRoot().getProperties().get("glass.transparency"));return null;
+   for(var theme:ThemeService.Theme.values()){
+    Color reference=null;
+    for(String value:List.of("0","55","100","NaN"))for(String enabled:List.of("true","false")){
+     ConfigService.setConfigValue("glass_enabled",enabled);ConfigService.setConfigValue("glass_transparency",value);
+     ThemeService.initializeAppearance();ThemeService.setCurrentTheme(theme);
+     var root=new VBox(new Label("Seller workspace"));root.getStyleClass().add("workspace-shell");var stage=new Stage();stage.setScene(new Scene(root,400,250));ThemeService.applyTheme(stage.getScene());stage.show();root.applyCss();root.layout();
+     var ground=paint(root);if(reference==null)reference=ground;else assertEquals(reference,ground,"Retired settings cannot alter the current appearance");
+     assertEquals(theme==ThemeService.Theme.DARK?Color.BLACK:Color.web("#f2f2f2"),ground);
+     assertEquals(1,ground.getOpacity());assertFalse(root.getStyleClass().contains("liquid-glass"));stage.close();
+    }
+   }return null;
   });
  }
+
  @Test void disabledSemanticAndProductFooterActionsStayDistinctReadableAndNonInvokable()throws Exception{
   fx(()->{
    for(var theme:ThemeService.Theme.values()){
@@ -126,48 +119,29 @@ class ThemeServiceTest {
    }return null;
   });
  }
- @Test void settingsDialogActuallySavesAndCancelRestoresPreview()throws Exception{
-  fx(()->{
-   ThemeService.setGlassTransparency(40);Platform.runLater(()->operateDialog(82,true));GlassSettingsDialog.show();assertEquals(82,ThemeService.getGlassTransparency());
-   Platform.runLater(()->operateDialog(10,false));GlassSettingsDialog.show();assertEquals(82,ThemeService.getGlassTransparency());return null;
-  });
- }
- static void operateDialog(int value,boolean save){
-  for(var w:List.copyOf(Window.getWindows()))if(w.getScene()!=null){var n=w.getScene().getRoot().lookup("#glassTransparencySlider");if(n instanceof Slider slider){slider.setValue(value);DialogPane pane=(DialogPane)w.getScene().getRoot();var type=pane.getButtonTypes().stream().filter(t->save?t.getButtonData()==ButtonBar.ButtonData.OK_DONE:t.getButtonData()==ButtonBar.ButtonData.CANCEL_CLOSE).findFirst().orElseThrow();((Button)pane.lookupButton(type)).fire();return;}}
-  throw new AssertionError("Glass settings dialog was not shown");
- }
- @Test void invalidSavedSettingAndOutOfBoundsCannotMakeControlsInvisible(){
-  ConfigService.setConfigValue("glass_transparency","NaN");assertEquals(55,ThemeService.getGlassTransparency());
-  ConfigService.setConfigValue("glass_transparency","200");assertEquals(100,ThemeService.getGlassTransparency());
-  ConfigService.setConfigValue("glass_transparency","-20");assertEquals(0,ThemeService.getGlassTransparency());
- }
- @Test void initializingAppearancePreservesExplicitLightSystemAndMaterialPreferences()throws Exception{
+ @Test void initializingAppearancePreservesExplicitLightAndSystemPreferences()throws Exception{
   fx(()->{
    ConfigService.setConfigValue("app_theme","light");ConfigService.setConfigValue("glass_transparency","72");
    ThemeService.initializeAppearance();assertEquals(ThemeService.Theme.LIGHT,ThemeService.getCurrentTheme());
-   assertEquals(ThemeService.ThemeMode.LIGHT,ThemeService.getThemeMode());assertEquals(72,ThemeService.getGlassTransparency());
+   assertEquals(ThemeService.ThemeMode.LIGHT,ThemeService.getThemeMode());
    ThemeService.switchTheme("system");ThemeService.initializeAppearance();
    assertEquals(ThemeService.ThemeMode.SYSTEM,ThemeService.getThemeMode());assertEquals("system",ConfigService.getConfigValue("app_theme"));
-   assertNotNull(ThemeService.getCurrentTheme());assertEquals(72,ThemeService.getGlassTransparency());
-   ThemeService.setGlassEnabled(false);ThemeService.initializeAppearance();
-   assertFalse(ThemeService.isGlassEnabled());assertEquals(72,ThemeService.getGlassTransparency());return null;
+   assertNotNull(ThemeService.getCurrentTheme());assertEquals("72",ConfigService.getConfigValue("glass_transparency"));return null;
   });
  }
- @Test void disablingGlassChangesChromeWithoutFadingTheWorkspaceAndStartupSceneIsUntouched()throws Exception{
+ @Test void startupSceneIsUntouchedAndNewRootsReceiveTheTheme()throws Exception{
   fx(()->{
    var original=new VBox(new Label("Startup"));var startup=new Scene(original);
    startup.getProperties().put(ThemeService.STARTUP_SCENE,Boolean.TRUE);ThemeService.applyTheme(startup);
    assertTrue(startup.getStylesheets().isEmpty());assertFalse(original.getStyleClass().contains("workspace-theme"));
-   var panel=new VBox(new Label("Content"));panel.getStyleClass().add("card");
-   var root=new VBox(panel);var scene=new Scene(root,500,300);ThemeService.applyTheme(scene);
-   var stage=new Stage();stage.setScene(scene);stage.show();
-   ThemeService.setGlassEnabled(false);root.applyCss();root.layout();
-   assertFalse(root.getStyleClass().contains("liquid-glass"));assertTrue(root.getStyleClass().contains("glass-disabled"));
-   assertEquals(1,root.getOpacity());assertEquals(1,paint(panel).getOpacity());
-   ThemeService.setGlassEnabled(true);assertTrue(root.getStyleClass().contains("liquid-glass"));
-   assertFalse(root.getStyleClass().contains("glass-disabled"));stage.close();return null;
+   ThemeService.setCurrentTheme(ThemeService.Theme.DARK);var root=new VBox();var scene=new Scene(root,500,300);ThemeService.applyTheme(scene);
+   var stage=new Stage();stage.setScene(scene);stage.show();assertTrue(root.getStyleClass().contains("theme-dark"));
+   var replacement=new VBox();scene.setRoot(replacement);assertTrue(replacement.getStyleClass().contains("theme-dark"));
+   var next=new Scene(new VBox(new Label("New scene")));stage.setScene(next);assertTrue(next.getRoot().getStyleClass().contains("theme-dark"));
+   assertEquals(1,stage.getOpacity());stage.close();return null;
   });
  }
+
  @Test void reducedMotionUsesTheSavedPreferenceAndCachedReadsUntilAppearanceReload()throws Exception{
   fx(()->{
    ThemeService.initializeAppearance();ThemeService.setReducedMotion(true);
@@ -185,7 +159,7 @@ class ThemeServiceTest {
   fx(()->{
    var previousLanguage=I18nService.getInstance().getCurrentLanguage();I18nService.getInstance().setLanguage(AppLanguage.VI);
    try {
-    ThemeService.initializeAppearance();ThemeService.setCurrentTheme(ThemeService.Theme.DARK);ThemeService.setGlassTransparency(55);
+    ThemeService.initializeAppearance();ThemeService.setCurrentTheme(ThemeService.Theme.DARK);
     var sidebar=FxmlViewLoader.loader(com.vncode.app.ui.shop.ShopSidebarController.class,"shop-sidebar-view.fxml");
     var header=FxmlViewLoader.loader(com.vncode.app.ui.workspace.WorkspaceHeaderController.class,"workspace-header-view.fxml");
     javafx.scene.Parent nav=sidebar.load(),top=header.load();
@@ -209,7 +183,7 @@ class ThemeServiceTest {
  @Test void reopeningTheRealManagePopupAfterThemeFlipRefreshesItsSkinInkAndMaterial()throws Exception{
   var loader=new javafx.fxml.FXMLLoader[1];var reference=new Label[1];
   Stage stage=fx(()->{
-   ThemeService.initializeAppearance();ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);ThemeService.setReducedMotion(true);
+   ThemeService.initializeAppearance();ThemeService.setReducedMotion(true);
    loader[0]=FxmlViewLoader.loader(com.vncode.app.ui.workspace.WorkspaceHeaderController.class,"workspace-header-view.fxml");
    javafx.scene.Parent header=loader[0].load();reference[0]=new Label("Synthetic owner theme reference");
    var root=new VBox(reference[0],header);var window=new Stage();window.setScene(new Scene(root,1100,300));ThemeService.applyTheme(window.getScene());window.show();return window;
@@ -228,6 +202,7 @@ class ThemeServiceTest {
      assertEquals(1,popup.getRoot().getOpacity());assertEquals(1,popup.getWindow().getOpacity());assertEquals(1,add.getOpacity());
      var bounds=add.localToScene(add.getBoundsInLocal());var pixels=popup.snapshot(null);
      var material=pixels.getPixelReader().getColor((int)Math.floor(bounds.getMinX()+4),(int)Math.floor(bounds.getMinY()+4));
+     assertEquals(1,material.getOpacity(),.001,"The real popup uses an opaque surface after switching to "+theme);
      assertTrue(contrast((Color)add.getTextFill(),material)>=4.5,"The real Manage popup must retain readable text after switching to "+theme+": ink="+add.getTextFill()+" material="+material);
      manage.hide();return null;
     });
@@ -238,7 +213,7 @@ class ThemeServiceTest {
   var popup=new ContextMenu[1];var action=new Button[1];var skin=new javafx.scene.Node[1];
   Stage owner=fx(()->{
    ThemeService.initializeAppearance();ThemeService.setCurrentTheme(ThemeService.Theme.DARK);
-   ThemeService.setGlassEnabled(true);ThemeService.setGlassTransparency(55);ThemeService.setReducedMotion(true);
+   ThemeService.setReducedMotion(true);
    var anchor=new Button("Manage shops");var root=new VBox(anchor);var stage=new Stage();
    stage.setScene(new Scene(root,500,220));ThemeService.applyTheme(stage.getScene());stage.show();
    action[0]=new Button("Add shop");popup[0]=new ContextMenu(new CustomMenuItem(action[0],false));
@@ -262,6 +237,7 @@ class ThemeServiceTest {
     owner.getScene().getRoot().applyCss();var scene=popup[0].getScene();scene.getRoot().applyCss();scene.getRoot().layout();
     var bounds=action[0].localToScene(action[0].getBoundsInLocal());var pixels=scene.snapshot(null);
     var material=pixels.getPixelReader().getColor((int)Math.floor(bounds.getMinX()+4),(int)Math.floor(bounds.getMinY()+4));
+    assertEquals(1,material.getOpacity(),.001,"The retained popup skin uses an opaque surface");
     var ink=(Color)action[0].getTextFill();String state="skin="+skin[0].getStyleClass()+" ink="+ink+" material="+material;
     assertAll("A retained popup skin must follow the current light palette: "+state,
      ()->assertTrue(skin[0].getStyleClass().contains("theme-light"),state),

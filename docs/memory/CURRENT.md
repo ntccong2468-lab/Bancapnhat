@@ -2,6 +2,12 @@
 
 Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 22.11.2026 — duyệt nền đen phẳng, hoàn thành giai đoạn 1
+
+- Người dùng duyệt giai đoạn bề mặt và yêu cầu thay Liquid Glass bằng nền đen thuần. Mã tiếp nối audit `12fbcf5`. Nền tối `#000000`, bảng và trang làm việc dùng màu nền chính, các vùng nâng dùng xám đen đặc. Tùy chọn sáng và theo hệ thống dùng bề mặt đặc.
+- Bỏ bộ tạo ảnh nền kính, slider, toggle và menu kính. Các khóa kính cũ chỉ còn là dữ liệu tương thích hồ sơ. Tỷ lệ tương phản nút bị vô hiệu hóa được đo trên JavaFX. Không đổi schema, tích hợp sàn hoặc luồng thao tác kinh doanh.
+- Đã tạo JAR. Test JavaFX/Linux 221/221, Node 280/280 và 66 ảnh trên fixture. Chưa kiểm ứng dụng trên Windows seller và chưa phát hành. Cột Thao tác Znack compact tiếp tục thuộc giai đoạn bố cục. [Báo cáo](../validation/2026-11-22-unslop-flat-theme.md).
+
 ## 22.11.2026 — cài Unslop và audit giao diện trước duyệt
 
 - Nhánh `design/unslop-audit-20261122` từ `7570360`, runtime 1.6.13 `3f679a1`. Cài skill CC BY 4.0 của Damir Sokolovsky tại `.agents/skills/unslop/`, ghim upstream `620163eedb3529d9cd23a3994ed8d287d06f760d`. Giữ 15 skill đã có.

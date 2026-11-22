@@ -1,19 +1,20 @@
-/* VN Code — approved Apple / Liquid Glass, 08 November 2026.
- * JavaFX paints provide bounded material; no scene opacity or table blur.
- * Floating work surfaces share a cached backdrop; text and data stay solid.
- * ThemeService may replace glass paints; the semantic token API is stable. */
+/* VN Code — flat, opaque workspace, 22 November 2026.
+ * Neutral solid surfaces separate the canvas, working sheets and controls.
+ * Existing native control classes keep their behavior and geometry. */
 .root, .workspace-theme, .root.theme-dark, .workspace-theme.theme-dark {
-    -bg-primary: #17181b;
-    -nav-surface: #292a2e;
-    -bg-secondary: #232428;
-    -bg-tertiary: #303136;
-    -bg-odd-row: #232428;
-    -border-color: #3a3b41;
-    -border-color-hover: #898b95;
-    -row-rule: #33343a;
-    -text-primary: #f1f1f4;
-    -text-secondary: #c1c2cb;
-    -text-muted: #adafb9;
+    -bg-primary: #000000;
+    -nav-surface: #101010;
+    -bg-secondary: #101010;
+    -bg-tertiary: #1b1b1b;
+    -work-surface: #000000;
+    -overlay-surface: #1b1b1b;
+    -bg-odd-row: #101010;
+    -border-color: #303030;
+    -border-color-hover: #858585;
+    -row-rule: #292929;
+    -text-primary: #f2f2f2;
+    -text-secondary: #c5c5c5;
+    -text-muted: #ababab;
     -accent: #9ac6ff;
     -accent-hover: #b3d5ff;
     -accent-active: #83b7fb;
@@ -38,31 +39,17 @@
     -success-surface: #243e33;
     -danger-surface: #482b34;
     -warning-surface: #443920;
-    -glass-surface: rgba(46,47,52,.86);
-    -glass-elevated: rgba(48,49,54,.94);
-    -glass-button: rgba(61,62,68,.78);
-    -glass-highlight: rgba(255,255,255,.10);
-    -glass-control-highlight: rgba(255,255,255,.08);
-    -glass-control-shadow: rgba(0,0,0,.08);
-    -glass-content: rgba(38,38,42,.719);
-    -glass-field: rgba(38,38,42,.779);
-    -glass-control: rgba(48,48,53,.699);
-    -glass-table-header: rgba(38,38,42,.779);
-    -glass-edge: rgba(255,255,255,.16);
-    -glass-local-shadow: rgba(0,0,0,.14);
-    -chrome-shadow: rgba(0,0,0,.20);
-    -overlay-shadow: rgba(0,0,0,.28);
-    -glass-selected: #353e49;
     -ui-panel: -bg-secondary;
-    -ui-control: #2c2d32;
-    -ui-control-hover: #3b3d44;
-    -ui-control-pressed: #454750;
-    -ui-field: #232428;
-    -ui-input-border: #858792;
-    -ui-row-hover: #2c2e34;
-    -ui-selected: #323d4b;
-    -ui-table-header: #232428;
-    -nav-selected: #353e49;
+    -ui-control: #1b1b1b;
+    -ui-disabled: #121212;
+    -ui-control-hover: #262626;
+    -ui-control-pressed: #333333;
+    -ui-field: #000000;
+    -ui-input-border: #6b6b6b;
+    -ui-row-hover: #1b1b1b;
+    -ui-selected: #2b2b2b;
+    -ui-table-header: #1b1b1b;
+    -nav-selected: #2b2b2b;
     -btn-bg: -ui-control;
     -btn-bg-hover: -ui-control-hover;
     -btn-bg-pressed: -ui-control-pressed;
@@ -84,17 +71,19 @@
     -fx-font-size: 14px;
 }
 .root.theme-light, .workspace-theme.theme-light {
-    -bg-primary: #e9ebf0;
-    -nav-surface: #f7f8fa;
+    -bg-primary: #f2f2f2;
+    -nav-surface: #ffffff;
     -bg-secondary: #ffffff;
-    -bg-tertiary: #f0f1f5;
+    -bg-tertiary: #f5f5f5;
+    -work-surface: #ffffff;
+    -overlay-surface: #ffffff;
     -bg-odd-row: #ffffff;
-    -border-color: #e0e2e9;
-    -border-color-hover: #818493;
-    -row-rule: #eceef3;
-    -text-primary: #24252a;
-    -text-secondary: #555966;
-    -text-muted: #606472;
+    -border-color: #d6d6d6;
+    -border-color-hover: #777777;
+    -row-rule: #e6e6e6;
+    -text-primary: #202020;
+    -text-secondary: #545454;
+    -text-muted: #626262;
     -accent: #0762cf;
     -accent-hover: #0656b8;
     -accent-active: #06499a;
@@ -117,31 +106,17 @@
     -success-surface: #e3f3eb;
     -danger-surface: #fce9ed;
     -warning-surface: #fff2d8;
-    -glass-surface: rgba(255,255,255,.65);
-    -glass-elevated: rgba(255,255,255,.94);
-    -glass-button: rgba(255,255,255,.78);
-    -glass-highlight: rgba(255,255,255,.80);
-    -glass-control-highlight: rgba(255,255,255,.60);
-    -glass-control-shadow: rgba(36,37,42,.04);
-    -glass-content: rgba(255,255,255,.719);
-    -glass-field: rgba(255,255,255,.779);
-    -glass-control: rgba(255,255,255,.699);
-    -glass-table-header: rgba(255,255,255,.779);
-    -glass-edge: rgba(255,255,255,.75);
-    -glass-local-shadow: rgba(36,37,42,.07);
-    -chrome-shadow: rgba(36,37,42,.09);
-    -overlay-shadow: rgba(36,37,42,.16);
-    -glass-selected: #e7edf7;
     -ui-panel: -bg-secondary;
-    -ui-control: #ffffff;
-    -ui-control-hover: #f0f3f9;
-    -ui-control-pressed: #e5eaf2;
+    -ui-control: #f5f5f5;
+    -ui-disabled: #ececec;
+    -ui-control-hover: #e7e7e7;
+    -ui-control-pressed: #dcdcdc;
     -ui-field: #ffffff;
-    -ui-input-border: #85899a;
-    -ui-row-hover: #f4f6fa;
-    -ui-selected: #e8eef7;
-    -ui-table-header: #ffffff;
-    -nav-selected: #e7edf7;
+    -ui-input-border: #777777;
+    -ui-row-hover: #f5f5f5;
+    -ui-selected: #e8e8e8;
+    -ui-table-header: #f5f5f5;
+    -nav-selected: #e8e8e8;
 }
 
 /* Inter hierarchy, shared by pages, dialogs, popups and utility windows. */
@@ -162,33 +137,31 @@
 .workspace-theme .ikonli-font-icon.document-pending { -fx-icon-color: -warning; }
 .workspace-theme .ikonli-font-icon.document-rejected { -fx-icon-color: -danger; }
 
-/* Directional light belongs to floating material, never a data row.
- * This is a native paint treatment, not OS backdrop blur. ThemeService's final
- * surface paint still owns the saved material amount; text remains fully solid. */
+/* Solid navigation surfaces frame the working canvas without optical effects. */
 .workspace-theme .sidebar, .workspace-theme .glass-sidebar,
 .workspace-theme .workspace-glass-sidebar {
-    -fx-background-color: linear-gradient(to bottom, -glass-highlight, -glass-control-shadow), -glass-surface;
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 20, 19;
+    -fx-background-color: -nav-surface;
+    -fx-background-insets: 0;
+    -fx-background-radius: 20;
     -fx-border-width: 0;
     -fx-padding: 18 10 10 10;
-    -fx-effect: dropshadow(gaussian, -chrome-shadow, 18, 0, 0, 6);
+    -fx-effect: null;
 }
 .workspace-theme .header, .workspace-theme .glass-toolbar,
 .workspace-theme .workspace-glass-header {
-    -fx-background-color: linear-gradient(to bottom, -glass-highlight, -glass-control-shadow), -glass-surface;
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 20, 19;
+    -fx-background-color: -nav-surface;
+    -fx-background-insets: 0;
+    -fx-background-radius: 20;
     -fx-border-width: 0;
     -fx-padding: 7 12;
     -fx-min-height: 52;
     -fx-pref-height: 52;
-    -fx-effect: dropshadow(gaussian, -chrome-shadow, 14, 0, 0, 4);
+    -fx-effect: null;
 }
 .workspace-theme .glass-surface {
-    -fx-background-color: linear-gradient(to bottom, -glass-highlight, -glass-control-shadow), -glass-surface;
-    -fx-background-insets: 0, 1;
-    -fx-background-radius: 20, 19;
+    -fx-background-color: -nav-surface;
+    -fx-background-insets: 0;
+    -fx-background-radius: 20;
     -fx-border-width: 0;
 }
 .workspace-theme .app-page, .workspace-theme .scroll-pane,
@@ -196,24 +169,27 @@
 .workspace-theme .tab-content-area { -fx-background-color: transparent; }
 .workspace-theme .app-page { -fx-font-size: 14; -fx-min-width: 0; -fx-min-height: 0; }
 .workspace-theme .workspace-sheet, .workspace-theme.workspace-sheet {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-content;
-    -fx-background-insets: 0, 1; -fx-background-radius: 18, 17;
+    -fx-background-color: -bg-primary;
+    -fx-background-insets: 0; -fx-background-radius: 18;
     -fx-border-color: transparent;
-    -fx-border-width: 1;
+    -fx-border-width: 0;
     -fx-border-radius: 18;
     -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, -glass-local-shadow, 10, 0, 0, 3);
+    -fx-effect: null;
 }
 .workspace-theme .card, .workspace-theme .surface, .workspace-theme .copy-card,
 .workspace-theme .news-card, .workspace-theme .guide-section,
 .workspace-theme .gtin-inventory-card, .workspace-theme .supply-detail {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-content;
-    -fx-background-insets: 0, 1; -fx-background-radius: 18, 17;
+    -fx-background-color: -bg-secondary;
+    -fx-background-insets: 0; -fx-background-radius: 18;
     -fx-border-color: transparent;
     -fx-border-width: 1;
     -fx-border-radius: 18;
     -fx-padding: 16;
-    -fx-effect: dropshadow(gaussian, -glass-local-shadow, 10, 0, 0, 3);
+    -fx-effect: null;
+}
+.workspace-theme .app-page.workspace-sheet, .workspace-theme.app-page.workspace-sheet {
+    -fx-background-color: -bg-primary;
 }
 .workspace-theme .workspace-sheet .workspace-sheet { -fx-padding: 0; -fx-border-width: 0; }
 .workspace-theme .workspace-toolbar, .workspace-theme .filter-bar {
@@ -223,7 +199,7 @@
 .workspace-theme .workspace-batch-footer, .workspace-theme .selection-action-bar,
 .workspace-theme .products-bulk, .workspace-theme #productsPane .products-bulk,
 .workspace-theme#productsPane .products-bulk {
-    -fx-background-color: -glass-content; -fx-background-radius: 0;
+    -fx-background-color: -bg-primary; -fx-background-radius: 0;
     -fx-border-color: -border-color transparent transparent transparent;
     -fx-border-width: 1 0 0 0; -fx-border-radius: 0;
     -fx-padding: 9 0 0 0; -fx-min-height: 52; -fx-effect: null;
@@ -233,12 +209,12 @@
 
 /* Stable dimensions across hover, pressed and keyboard focus. */
 .workspace-theme .button, .workspace-theme .menu-button, .workspace-theme .toggle-button {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-control; -fx-background-insets: 0, 1;
-    -fx-background-radius: 17; -fx-border-radius: 17;
+    -fx-background-color: -ui-control; -fx-background-insets: 0;
+    -fx-background-radius: 8; -fx-border-radius: 8;
     -fx-border-color: -ui-input-border; -fx-border-width: 1;
     -fx-padding: 6 11; -fx-min-height: 34;
     -fx-font-size: 13; -fx-font-weight: normal; -fx-text-fill: -text-primary;
-    -fx-effect: dropshadow(gaussian, -glass-local-shadow, 6, 0, 0, 2); -fx-cursor: hand;
+    -fx-effect: null; -fx-cursor: hand;
 }
 .workspace-theme .menu-button > .label { -fx-padding: 0; -fx-text-fill: -text-primary; }
 .workspace-theme .button:hover, .workspace-theme .menu-button:hover,
@@ -247,7 +223,7 @@
 .workspace-theme .toggle-button:pressed { -fx-background-color: -ui-control-pressed; }
 .workspace-theme .toggle-button:selected { -fx-background-color: -ui-selected; -fx-text-fill: -accent-text; }
 .workspace-theme .button:disabled, .workspace-theme .menu-button:disabled,
-.workspace-theme .toggle-button:disabled { -fx-opacity: 1; -fx-background-color: -bg-tertiary; -fx-border-color: -border-color; -fx-text-fill: -text-muted; -fx-cursor: default; }
+.workspace-theme .toggle-button:disabled { -fx-opacity: 1; -fx-background-color: -ui-disabled; -fx-border-color: -border-color; -fx-text-fill: -text-muted; -fx-cursor: default; }
 .workspace-theme .button:disabled .ikonli-font-icon { -fx-icon-color: -text-muted; }
 .workspace-theme .button.btn-primary, .workspace-theme .button.accent,
 .workspace-theme .sidebar .button.add-shop {
@@ -280,7 +256,7 @@
 
 /* Shared shell: the store selector stays readable on every material setting. */
 .workspace-theme .header .button, .workspace-theme .header .menu-button {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-control; -fx-border-color: transparent;
+    -fx-background-color: -ui-control; -fx-border-color: transparent;
 }
 .workspace-theme .header .button:hover, .workspace-theme .header .menu-button:hover { -fx-background-color: -ui-control-hover; }
 .workspace-theme .header .button:focused, .workspace-theme .header .menu-button:focused { -fx-border-color: -focus; }
@@ -307,6 +283,37 @@
 .workspace-theme .sidebar.sidebar-compact .button, .workspace-theme .sidebar.sidebar-compact .menu-button { -fx-alignment: CENTER; -fx-padding: 6; }
 .workspace-theme .sidebar .sidebar-footer { -fx-border-color: -border-color transparent transparent transparent; -fx-border-width: 1 0 0 0; -fx-padding: 10 0 0 0; }
 .workspace-theme .sidebar #editionStatusLabel { -fx-font-size: 11; -fx-text-fill: -text-muted; }
+/* The split Settings action has one outer frame; its native label and arrow
+ * paint no second rectangle inside it. Both click targets remain independent. */
+.workspace-theme .sidebar #settingsMenuButton {
+    -fx-background-color: -ui-control;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8;
+    -fx-border-color: -ui-input-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-padding: 0;
+    -fx-effect: null;
+}
+.workspace-theme .sidebar #settingsMenuButton > .label,
+.workspace-theme .sidebar #settingsMenuButton > .arrow-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: null;
+}
+.workspace-theme .sidebar #settingsMenuButton > .label { -fx-padding: 6 10; -fx-text-fill: -text-primary; }
+.workspace-theme .sidebar #settingsMenuButton > .arrow-button { -fx-padding: 6 10; }
+.workspace-theme .sidebar #settingsMenuButton:hover { -fx-background-color: -ui-control-hover; }
+.workspace-theme .sidebar #settingsMenuButton:pressed,
+.workspace-theme .sidebar #settingsMenuButton:showing { -fx-background-color: -ui-control-pressed; }
+.workspace-theme .sidebar #settingsMenuButton:focused { -fx-border-color: -focus; }
+.workspace-theme .sidebar #settingsMenuButton:disabled {
+    -fx-background-color: -bg-tertiary; -fx-border-color: -border-color; -fx-opacity: 1;
+}
+.workspace-theme .sidebar #settingsMenuButton:disabled > .label { -fx-text-fill: -text-muted; }
 .workspace-theme .sidebar-tools > .title { -fx-padding: 6 10; -fx-background-color: transparent; }
 .workspace-theme .sidebar-tools > .title > .text { -fx-fill: -text-muted; }
 .workspace-theme .sidebar-tools > .content { -fx-background-color: transparent; -fx-border-width: 0; }
@@ -314,13 +321,13 @@
 /* Inputs and all native form widgets. Text selection uses the action's ink. */
 .workspace-theme .text-input, .workspace-theme .combo-box-base,
 .workspace-theme .choice-box, .workspace-theme .spinner {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-field; -fx-background-insets: 0, 1;
+    -fx-background-color: -ui-field; -fx-background-insets: 0;
     -fx-background-radius: 12; -fx-border-radius: 12;
     -fx-border-color: -ui-input-border; -fx-border-width: 1;
     -fx-padding: 6 10; -fx-min-height: 36; -fx-font-size: 14;
     -fx-text-fill: -text-primary; -fx-prompt-text-fill: -text-muted;
     -fx-highlight-fill: -accent; -fx-highlight-text-fill: -on-accent;
-    -fx-effect: dropshadow(gaussian, -glass-local-shadow, 5, 0, 0, 1);
+    -fx-effect: null;
 }
 .workspace-theme .text-input:focused, .workspace-theme .combo-box-base:focused,
 .workspace-theme .choice-box:focused, .workspace-theme .date-picker:focused,
@@ -347,7 +354,7 @@
 .workspace-theme .text-area .content, .workspace-theme .text-area .viewport { -fx-background-color: transparent; -fx-background-radius: 12; }
 .workspace-theme .check-box, .workspace-theme .radio-button { -fx-text-fill: -text-primary; -fx-font-size: 14; }
 .workspace-theme .check-box > .box, .workspace-theme .radio-button > .radio {
-    -fx-background-color: -glass-field; -fx-border-color: -ui-input-border; -fx-border-width: 1;
+    -fx-background-color: -ui-field; -fx-border-color: -ui-input-border; -fx-border-width: 1;
     -fx-padding: 3; -fx-min-width: 18; -fx-min-height: 18;
 }
 .workspace-theme .check-box > .box { -fx-background-radius: 5; -fx-border-radius: 5; }
@@ -367,10 +374,10 @@
 .context-menu, .workspace-theme.context-menu,
 .combo-box-popup .list-view, .workspace-theme.combo-box-popup .list-view,
 .date-picker-popup, .workspace-theme.date-picker-popup {
-    -fx-background-color: linear-gradient(to bottom, -glass-highlight, -glass-control-shadow), -glass-elevated;
-    -fx-background-insets: 0, 1; -fx-background-radius: 18, 17;
+    -fx-background-color: -overlay-surface;
+    -fx-background-insets: 0; -fx-background-radius: 18;
     -fx-border-width: 0; -fx-padding: 5;
-    -fx-effect: dropshadow(gaussian, -overlay-shadow, 24, 0, 0, 8);
+    -fx-effect: null;
 }
 .context-menu .menu-item { -fx-background-color: transparent; -fx-background-radius: 12; -fx-padding: 7 11; }
 .context-menu .menu-item:focused, .context-menu .menu-item:hover,
@@ -387,27 +394,26 @@
 .tooltip, .workspace-theme.tooltip {
     -fx-background-color: -bg-tertiary; -fx-text-fill: -text-primary;
     -fx-background-radius: 8; -fx-font-family: "Inter"; -fx-font-size: 12;
-    -fx-padding: 7 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,.12), 10, 0, 0, 3);
+    -fx-padding: 7 10; -fx-effect: null;
 }
 
-/* One material per virtualized control. The floating sheet/dialog supplies its
- * elevation: a control clip would also clip that control's outer shadow. */
+/* Virtualized controls share an opaque sheet and retain their native clipping. */
 .workspace-theme .table-view, .workspace-theme .list-view,
 .workspace-theme .tree-view, .workspace-theme .tree-table-view {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-content;
-    -fx-background-insets: 0, 1; -fx-control-inner-background: transparent;
+    -fx-background-color: -work-surface;
+    -fx-background-insets: 0; -fx-control-inner-background: transparent;
     -fx-border-color: transparent; -fx-border-width: 1;
-    -fx-background-radius: 18, 17; -fx-border-radius: 18; -fx-padding: 1;
+    -fx-background-radius: 18; -fx-border-radius: 18; -fx-padding: 1;
     -fx-effect: null;
 }
 .workspace-theme .workspace-sheet .table-view, .workspace-theme .workspace-sheet .list-view,
 .workspace-theme .workspace-sheet .tree-table-view, .workspace-theme .workspace-sheet .tree-view {
-    -fx-background-color: -glass-content; -fx-background-insets: 0;
+    -fx-background-color: -work-surface; -fx-background-insets: 0;
     -fx-border-width: 0; -fx-padding: 0; -fx-background-radius: 0; -fx-border-radius: 0;
 }
 .workspace-theme .table-view .column-header-background,
 .workspace-theme .tree-table-view .column-header-background {
-    -fx-background-color: -glass-table-header;
+    -fx-background-color: -ui-table-header;
     -fx-background-radius: 18 18 0 0; -fx-border-radius: 18 18 0 0;
     -fx-border-color: -border-color transparent -border-color transparent; -fx-border-width: 1 0 1 0;
 }
@@ -504,22 +510,21 @@
 .workspace-theme .scroll-bar .increment-button, .workspace-theme .scroll-bar .decrement-button { -fx-padding: 0; }
 .workspace-theme .scroll-bar .increment-arrow, .workspace-theme .scroll-bar .decrement-arrow { -fx-shape: ""; -fx-padding: 0; }
 .workspace-theme .tool-bar {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-control;
-    -fx-background-insets: 0, 1; -fx-background-radius: 12, 11; -fx-border-color: transparent; -fx-border-radius: 12;
-    -fx-effect: dropshadow(gaussian, -glass-local-shadow, 8, 0, 0, 2);
+    -fx-background-color: -ui-control;
+    -fx-background-insets: 0; -fx-background-radius: 12; -fx-border-color: transparent; -fx-border-radius: 12;
+    -fx-effect: null;
 }
-.workspace-theme .titled-pane { -fx-background-color: -glass-content; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, -glass-local-shadow, 8, 0, 0, 2); }
-.workspace-theme .titled-pane > .title { -fx-background-color: -glass-control; -fx-background-radius: 10; -fx-padding: 9 12; }
+.workspace-theme .titled-pane { -fx-background-color: -bg-secondary; -fx-background-radius: 12; -fx-effect: null; }
+.workspace-theme .titled-pane > .title { -fx-background-color: -ui-control; -fx-background-radius: 10; -fx-padding: 9 12; }
 .workspace-theme .titled-pane > .title > .text { -fx-fill: -text-primary; }
-.workspace-theme .titled-pane > .content { -fx-background-color: -glass-content; -fx-background-radius: 0 0 12 12; -fx-border-color: -glass-edge; -fx-border-radius: 0 0 12 12; }
+.workspace-theme .titled-pane > .content { -fx-background-color: -bg-secondary; -fx-background-radius: 0 0 12 12; -fx-border-color: -border-color; -fx-border-radius: 0 0 12 12; }
 
-/* Report, error and edit dialogs share the floating material frame. Their
- * controls keep independent tints and fully solid text. */
+/* Report, error and edit dialogs use an opaque raised surface. */
 .workspace-theme.dialog-pane, .workspace-theme .dialog-pane {
-    -fx-background-color: linear-gradient(to bottom, -glass-highlight, -glass-control-shadow), -glass-elevated;
-    -fx-background-insets: 0, 1; -fx-background-radius: 20, 19;
+    -fx-background-color: -overlay-surface;
+    -fx-background-insets: 0; -fx-background-radius: 20;
     -fx-border-width: 0; -fx-padding: 18;
-    -fx-effect: dropshadow(gaussian, -overlay-shadow, 24, 0, 0, 8);
+    -fx-effect: null;
 }
 /* DialogPane is also a scene root. Its content is a layout wrapper, not a
  * second square surface behind already rounded report tables and fields. */
@@ -537,22 +542,22 @@
 .workspace-theme .dialog-pane > .button-bar > .container { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
 /* Only explicit app-owned floating stages reserve room for their shared chrome. */
 .workspace-theme.floating-dialog-pane, .workspace-theme .floating-dialog-pane {
-    -fx-background-insets: 12, 13; -fx-background-radius: 20, 19;
+    -fx-background-insets: 12; -fx-background-radius: 20;
     -fx-padding: 56 30 30 30;
 }
 .workspace-theme .workspace-window-chrome { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
 .workspace-theme .workspace-window-title { -fx-text-fill: -text-primary; -fx-font-size: 13; -fx-font-weight: bold; }
 .workspace-theme .workspace-window-close { -fx-min-width: 28; -fx-min-height: 28; -fx-pref-width: 28; -fx-pref-height: 28; -fx-padding: 4; -fx-background-radius: 999; -fx-border-radius: 999; }
 .workspace-theme .glass-overlay {
-    -fx-background-color: linear-gradient(to bottom, -glass-highlight, -glass-control-shadow), -glass-elevated;
-    -fx-background-insets: 0, 1; -fx-background-radius: 20, 19; -fx-padding: 18;
-    -fx-effect: dropshadow(gaussian, -overlay-shadow, 24, 0, 0, 8);
+    -fx-background-color: -overlay-surface;
+    -fx-background-insets: 0; -fx-background-radius: 20; -fx-padding: 18;
+    -fx-effect: null;
 }
 .workspace-theme .detail-drawer {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-content;
-    -fx-background-insets: 0, 1; -fx-background-radius: 18, 17;
+    -fx-background-color: -bg-secondary;
+    -fx-background-insets: 0; -fx-background-radius: 18;
     -fx-border-color: transparent; -fx-border-width: 1; -fx-border-radius: 18; -fx-padding: 18;
-    -fx-effect: dropshadow(gaussian, -glass-local-shadow, 10, 0, 0, 3);
+    -fx-effect: null;
 }
 .workspace-theme .detail-drawer .text-area { -fx-background-color: transparent; -fx-border-width: 0; -fx-padding: 0; }
 .workspace-theme .detail-drawer .text-area .content { -fx-background-color: transparent; }
@@ -639,10 +644,10 @@
 .workspace-theme .appearance-content { -fx-spacing: 0; -fx-padding: 0 12 12 0; }
 .workspace-theme .appearance-section {
     -fx-spacing: 16; -fx-padding: 20 16 24 16;
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-content;
-    -fx-background-insets: 0 0 12 0, 1 1 13 1; -fx-background-radius: 18, 17;
+    -fx-background-color: -bg-secondary;
+    -fx-background-insets: 0 0 12 0; -fx-background-radius: 18;
     -fx-border-color: transparent; -fx-border-width: 1 0 0 0;
-    -fx-effect: dropshadow(gaussian, -glass-local-shadow, 10, 0, 0, 3);
+    -fx-effect: null;
 }
 .workspace-theme .appearance-row { -fx-spacing: 24; -fx-alignment: CENTER_LEFT; -fx-padding: 3 0; }
 .workspace-theme .appearance-row-copy { -fx-spacing: 6; }
@@ -652,31 +657,17 @@
 .workspace-theme .appearance-theme-options .toggle-button:selected { -fx-background-color: -ui-selected; -fx-border-color: -accent-text; -fx-text-fill: -text-primary; }
 .workspace-theme .workspace-form { -fx-spacing: 16; -fx-padding: 16; }
 .workspace-theme .workspace-overlay, .workspace-theme .workspace-article {
-    -fx-background-color: linear-gradient(to bottom, -glass-edge, -glass-control-shadow), -glass-content;
-    -fx-background-insets: 0, 1; -fx-background-radius: 18, 17;
-    -fx-effect: dropshadow(gaussian, -glass-local-shadow, 10, 0, 0, 3);
+    -fx-background-color: -bg-secondary;
+    -fx-background-insets: 0; -fx-background-radius: 18;
+    -fx-effect: null;
 }
 .workspace-theme .workspace-overlay { -fx-padding: 18; }
 .workspace-theme .workspace-article { -fx-padding: 20; }
 .workspace-theme .workspace-feed { -fx-spacing: 12; }
 .workspace-theme .workspace-feed .news-card { -fx-min-height: 0; -fx-padding: 16; }
 .workspace-theme .workspace-sheet.feature-card,
-.workspace-theme .gs1-workspace .workspace-sheet.feature-card { -fx-background-radius: 18, 17; -fx-border-radius: 18; -fx-border-width: 1; }
+.workspace-theme .gs1-workspace .workspace-sheet.feature-card { -fx-background-radius: 18; -fx-border-radius: 18; -fx-border-width: 1; }
 .workspace-theme .gs1-workspace .page-title, .workspace-theme.gs1-workspace .page-title { -fx-font-size: 24; }
-
-/* Turning off material keeps the same geometry and fully solid text/working surfaces. */
-.workspace-theme.glass-disabled .sidebar, .workspace-theme.glass-disabled .glass-sidebar,
-.workspace-theme.glass-disabled .workspace-glass-sidebar,
-.workspace-theme.glass-disabled .header, .workspace-theme.glass-disabled .glass-toolbar,
-.workspace-theme.glass-disabled .workspace-glass-header,
-.workspace-theme.glass-disabled .glass-surface {
-    -fx-background-color: -nav-surface; -fx-background-insets: 0;
-    -fx-background-radius: 20; -fx-effect: null;
-}
-.workspace-theme.glass-disabled .glass-overlay,
-.workspace-theme.glass-disabled .context-menu,
-.workspace-theme.glass-disabled .combo-box-popup .list-view,
-.workspace-theme.glass-disabled .date-picker-popup { -fx-background-color: -bg-secondary; }
 
 .workspace-theme .workspace-shortcut-list { -fx-spacing: 0; }
 .workspace-theme .workspace-shortcut-row { -fx-min-height: 70; -fx-padding: 12 8; }
@@ -699,7 +690,7 @@
 .workspace-theme .appearance-theme-options .toggle-button:disabled,
 .workspace-theme #productBulkActions .button:disabled,
 .workspace-theme #productBulkActions.products-bulk .button.btn-primary:disabled {
-    -fx-background-color: -bg-tertiary;
+    -fx-background-color: -ui-disabled;
     -fx-border-color: -border-color;
     -fx-text-fill: -text-muted;
     -fx-font-weight: normal;
