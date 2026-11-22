@@ -6,9 +6,13 @@ import com.vncode.app.features.license.LicenseDomainFixture;
 import com.vncode.app.features.license.LicenseRuntime;
 import com.vncode.app.integration.marketplace.Marketplace;
 import com.vncode.app.integration.wb.WbApiClient;
+import com.vncode.app.integration.wb.WbCreateSupplyResponse;
+import com.vncode.app.integration.wb.WbOrderMetaDetailsResponse;
 import com.vncode.app.integration.wb.WbOrderRepository;
 import com.vncode.app.integration.wb.WbReadbackPendingException;
+import com.vncode.app.integration.wb.WbSupplyRepository;
 import com.vncode.app.integration.wb.WbSyncWorkflow;
+import com.vncode.app.models.Shop;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
@@ -16,10 +20,89 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WbPackingPartialBatchTest {
     @TempDir Path root;
+
+    @Test void acknowledgedDeliveryStaysSuccessfulAfterReadbackFailsAndAStaleViewRetries() throws Exception {
+        System.setProperty("vncode.appdata.dir", root.toString());
+        Database.initDatabase();
+        var prior = LicenseRuntime.service();
+        var license = LicenseDomainFixture.active(root.resolve("license"));
+        LicenseRuntime.install(license);
+        try {
+            var shop = GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
+            try (var connection = Database.getConnection(); var statement = connection.createStatement()) {
+                statement.execute("INSERT INTO wb_supplies(shop_id,supply_id,done,synced_at) VALUES(1,'WB-GI-1',0,'now')");
+                statement.execute("INSERT INTO wb_orders(shop_id,order_id,supply_id,supplier_status,synced_at) VALUES(1,101,'WB-GI-1','confirm','now')");
+                statement.execute("INSERT INTO wb_supply_orders(shop_id,supply_id,order_id) VALUES(1,'WB-GI-1',101)");
+                statement.execute("INSERT INTO print_jobs(shop_id,supply_id,printed_at,item_count,template_layout_json,status) VALUES(1,'WB-GI-1','now',1,'{}','success')");
+            }
+            var deliveries = new AtomicInteger();
+            var api = new WbApiClient() {
+                @Override public WbOrderMetaDetailsResponse getOrderMetadata(String token, List<Long> orderIds) { return null; }
+                @Override public void deliverSupply(String token, String id) { deliveries.incrementAndGet(); }
+            };
+            var failedRead = new WbSyncWorkflow() {
+                @Override public int syncSupplyOrdersAndStatuses(Shop owner, String id) throws IOException {
+                    throw new IOException("readback unavailable");
+                }
+            };
+            var repository = new WbSupplyRepository();
+            var openSupply = repository.findSupplySummary(shop.getId(), "WB-GI-1");
+            var workflow = new PackingWorkflow(api, failedRead);
+            assertDoesNotThrow(() -> workflow.deliverSupply(shop, openSupply));
+            assertDoesNotThrow(() -> workflow.deliverSupply(shop, openSupply));
+            assertEquals(1, deliveries.get());
+            assertTrue(repository.findSupplySummary(shop.getId(), "WB-GI-1").isDone());
+            try (var connection = Database.getConnection(); var statement = connection.createStatement()) {
+                try (var rows = statement.executeQuery("SELECT status FROM wb_action_log WHERE action_type='DELIVER_SUPPLY'")) {
+                    assertTrue(rows.next());
+                    assertEquals("success", rows.getString(1));
+                    assertFalse(rows.next());
+                }
+                try (var rows = statement.executeQuery("SELECT count(*) FROM sync_streams WHERE shop_id=1 AND stream IN ('SUPPLY_CONTENT','FBS_STATUS') AND requested=1")) {
+                    assertTrue(rows.next());
+                    assertEquals(2, rows.getInt(1));
+                }
+            }
+        } finally {
+            LicenseRuntime.install(prior);
+            license.close();
+            System.clearProperty("vncode.appdata.dir");
+        }
+    }
+
+    @Test void staleShopSnapshotNeverCreatesAShipment() throws Exception {
+        System.setProperty("vncode.appdata.dir", root.toString());
+        Database.initDatabase();
+        var prior = LicenseRuntime.service();
+        var license = LicenseDomainFixture.active(root.resolve("license"));
+        LicenseRuntime.install(license);
+        try {
+            var oldShop = GtinWriteTestFixture.shop(Marketplace.WILDBERRIES);
+            try (var connection = Database.getConnection(); var statement = connection.createStatement()) {
+                statement.execute("UPDATE shops SET api_key='fixture-rotated' WHERE id=1");
+            }
+            var creates = new AtomicInteger();
+            var api = new WbApiClient() {
+                @Override public WbCreateSupplyResponse createSupply(String token, String name) {
+                    creates.incrementAndGet();
+                    return new com.google.gson.Gson().fromJson("{\"id\":\"WB-GI-1\"}", WbCreateSupplyResponse.class);
+                }
+            };
+            assertThrows(SecurityException.class, () -> new PackingWorkflow(api).createShipment(oldShop, "Fixture", List.of()));
+            assertEquals(0, creates.get());
+            assertNull(new WbSupplyRepository().findSupplySummary(oldShop.getId(), "WB-GI-1"));
+        } finally {
+            LicenseRuntime.install(prior);
+            license.close();
+            System.clearProperty("vncode.appdata.dir");
+        }
+    }
+
     @Test void acceptedBatchIsPreservedWhenNextBatchFailsAndOlderOrdersAreNotDeleted() throws Exception {
         System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
         var prior=LicenseRuntime.service();var license=LicenseDomainFixture.active(root.resolve("license"));LicenseRuntime.install(license);

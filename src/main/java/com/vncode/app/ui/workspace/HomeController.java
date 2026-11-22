@@ -996,6 +996,7 @@ public class HomeController implements Initializable {
         updateDownloadRunning=true;
         var preparing=new java.util.concurrent.atomic.AtomicBoolean();
         var installing=new java.util.concurrent.atomic.AtomicBoolean();
+        var cancelNetworkRead=new java.util.concurrent.atomic.AtomicReference<Runnable>();
         UpdateDialogService dialogService = new UpdateDialogService();
         Task<java.nio.file.Path> task = new Task<>() {
             @Override protected java.nio.file.Path call() throws Exception {
@@ -1011,6 +1012,10 @@ public class HomeController implements Initializable {
                     @Override public void onPhase(UpdateInstallerService.Phase phase){
                         updateMessage(i18nService.tr("update.progress.phase."+phase));
                         if(phase!=UpdateInstallerService.Phase.DOWNLOADING)updateProgress(-1,1);
+                    }
+                    @Override public void setCancellationAction(Runnable action){
+                        cancelNetworkRead.set(action);
+                        if(action!=null&&isCancelled())action.run();
                     }
                 });
                 if(downloadOnly){
@@ -1061,7 +1066,11 @@ public class HomeController implements Initializable {
         };
         updateDownloadTask=task;
         var progressDialog=dialogService.showDownloadProgressDialog(info,task);
-        progressDialog.setOnCloseRequest(event->{if(task.isRunning()){if(installing.get())event.consume();else task.cancel(true);}});
+        progressDialog.setOnCloseRequest(event->{
+            if(task.isDone())return;
+            if(installing.get())event.consume();
+            else task.cancel(true);
+        });
         task.messageProperty().addListener((o,a,b)->{if(installing.get())progressDialog.getDialogPane().lookupButton(ButtonType.CANCEL).setDisable(true);});
         java.util.function.Consumer<Throwable> failed=rejection->{
             resumeUpdateWork();
@@ -1072,7 +1081,13 @@ public class HomeController implements Initializable {
             AlertService.showDetailedError(i18nService.tr(summaryKey),com.vncode.app.integration.znack.ZnackErrorDetails.format(rejection));
         };
         task.setOnFailed(event->failed.accept(task.getException()));
-        task.setOnCancelled(event->{resumeUpdateWork();updateDownloadRunning=false;progressDialog.close();if(!disposed){contentPane.setDisable(false);sidebarContainer.setDisable(false);}});
+        task.setOnCancelled(event->{
+            updateDownloadExecutor.remove(task);
+            var cancel=cancelNetworkRead.getAndSet(null);
+            if(cancel!=null)cancel.run();
+            resumeUpdateWork();updateDownloadRunning=false;progressDialog.close();
+            if(!disposed){contentPane.setDisable(false);sidebarContainer.setDisable(false);}
+        });
         task.setOnSucceeded(event->{
             updateDownloadRunning=false;progressDialog.close();if(disposed)return;
             if(downloadOnly)AlertService.showInfo(i18nService.tr("update.saved"),info.getVersion(),task.getValue().toAbsolutePath().toString());

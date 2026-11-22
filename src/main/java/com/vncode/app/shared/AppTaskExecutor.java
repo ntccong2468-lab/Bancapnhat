@@ -1,6 +1,7 @@
 package com.vncode.app.shared;
 
 import javafx.concurrent.Task;
+import javafx.concurrent.WorkerStateEvent;
 
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -22,7 +23,15 @@ public final class AppTaskExecutor {
     // Print workers may wait for a paid pipeline for minutes. Keep ordinary UI work available.
     private static final ThreadPoolExecutor PRINT_EXECUTOR=new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(16),r->{Thread t=new Thread(r,"vncode-print-"+THREAD_COUNTER.getAndIncrement());t.setDaemon(true);return t;},new ThreadPoolExecutor.AbortPolicy());
     private static final ThreadPoolExecutor CATALOG_EXECUTOR=new ThreadPoolExecutor(2,2,0,TimeUnit.MILLISECONDS,new ArrayBlockingQueue<>(20),r->{Thread t=new Thread(r,"vncode-catalog-read-"+THREAD_COUNTER.getAndIncrement());t.setDaemon(true);return t;},new ThreadPoolExecutor.AbortPolicy());
-    private static final ScheduledExecutorService CATALOG_TIMEOUT=Executors.newSingleThreadScheduledExecutor(r->{Thread t=new Thread(r,"vncode-catalog-deadline");t.setDaemon(true);return t;});
+    private static final ScheduledThreadPoolExecutor CATALOG_TIMEOUT = new ScheduledThreadPoolExecutor(1, runnable -> {
+        Thread thread = new Thread(runnable, "vncode-catalog-deadline");
+        thread.setDaemon(true);
+        return thread;
+    });
+
+    static {
+        CATALOG_TIMEOUT.setRemoveOnCancelPolicy(true);
+    }
     /** Catalog reads cannot starve UI tasks. Their wait is bounded, including queue time. */
     public static boolean executeCatalog(Task<?> task,Consumer<Throwable> rejected){return executeCatalog(task,java.time.Duration.ofMinutes(3),rejected);}
     /** Large source preparation is paginated, read-only and explicitly cancellable.
@@ -30,12 +39,60 @@ public final class AppTaskExecutor {
     public static boolean executeCatalogPreparation(Task<?> task,Consumer<Throwable> rejected){return executeCatalog(task,java.time.Duration.ofMinutes(10),rejected);}
     static boolean executeCatalog(Task<?> task,java.time.Duration deadline,Consumer<Throwable> rejected){
         if(deadline==null||deadline.isNegative()||deadline.isZero()||deadline.toMillis()>600000)throw new IllegalArgumentException("Catalog deadline is invalid");
-        Objects.requireNonNull(task);ACTIVE_TASK_COUNT.incrementAndGet();
-        var continuation=UpdateHandoff.continuation();
-        // Set CANCELLED on FX before an interrupted worker can enqueue its FAILED event.
-        var timeout=CATALOG_TIMEOUT.schedule(()->javafx.application.Platform.runLater(()->task.cancel(true)),Math.max(1,deadline.toMillis()),TimeUnit.MILLISECONDS);
-        try{CATALOG_EXECUTOR.execute(()->{try(var work=UpdateHandoff.work(continuation);var lane=MarketplaceRequestBudget.lane(true)){task.run();}catch(CancellationException stopped){task.cancel(false);}finally{timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();}});return true;}
-        catch(RejectedExecutionException full){timeout.cancel(false);ACTIVE_TASK_COUNT.decrementAndGet();task.cancel(false);rejected.accept(full);return false;}
+        var work = new CatalogWork(Objects.requireNonNull(task), UpdateHandoff.continuation());
+        task.addEventHandler(WorkerStateEvent.WORKER_STATE_CANCELLED, event -> work.removeFromQueue());
+        ACTIVE_TASK_COUNT.incrementAndGet();
+        try {
+            work.timeout = CATALOG_TIMEOUT.schedule(() -> javafx.application.Platform.runLater(work::expire),
+                    Math.max(1, deadline.toMillis()), TimeUnit.MILLISECONDS);
+            CATALOG_EXECUTOR.execute(work);
+            if (task.isCancelled()) work.removeFromQueue();
+            return true;
+        } catch (RejectedExecutionException full) {
+            work.finish();
+            task.cancel(false);
+            rejected.accept(full);
+            return false;
+        }
+    }
+
+    private static final class CatalogWork implements Runnable {
+        private final Task<?> task;
+        private final UpdateHandoff.Ticket continuation;
+        private ScheduledFuture<?> timeout;
+
+        private CatalogWork(Task<?> task, UpdateHandoff.Ticket continuation) {
+            this.task = task;
+            this.continuation = continuation;
+        }
+
+        @Override public void run() {
+            try {
+                if (task.isCancelled()) return;
+                try (var work = UpdateHandoff.work(continuation); var lane = MarketplaceRequestBudget.lane(true)) {
+                    task.run();
+                }
+            } catch (CancellationException stopped) {
+                task.cancel(false);
+            } finally {
+                finish();
+            }
+        }
+
+        private void expire() {
+            removeFromQueue();
+            // Set CANCELLED on FX before an interrupted worker can enqueue its FAILED event.
+            task.cancel(true);
+        }
+
+        private void removeFromQueue() {
+            if (CATALOG_EXECUTOR.remove(this)) finish();
+        }
+
+        private void finish() {
+            if (timeout != null) timeout.cancel(false);
+            ACTIVE_TASK_COUNT.decrementAndGet();
+        }
     }
     /** Local SQLite views must not wait behind network/signing tasks. Reuse the reserved read lane. */
     public static void executeLocal(int shopId,Task<?> task,Consumer<Throwable> rejected){

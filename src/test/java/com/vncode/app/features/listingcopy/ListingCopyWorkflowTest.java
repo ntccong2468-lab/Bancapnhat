@@ -42,11 +42,56 @@ class ListingCopyWorkflowTest {
             var restarted=new ListingCopyService(repo,(shop,key)->snapshot,shop->adapter);assertEquals(CopyState.RECONCILED,restarted.publish(target,draft.id(),preview.requestHash(),true).state());assertEquals(1,remote.writes);
         }
     }
+    @Test void wbBusinessRejectionStopsReconciliationAndReleasesTheArticle()throws Exception{
+        var remote=new Destination(Marketplace.WILDBERRIES);
+        remote.mutationReply="{\"error\":true,\"errorText\":\"Validation rejected this listing\"}";
+        var first=copy(remote);
+        var rejected=first.service.publish(first.destination,first.draft.id(),first.preview.requestHash(),true);
+        assertEquals(CopyState.FAILED,rejected.state());
+        assertEquals("IMPORT_REJECTED",rejected.issues().getFirst().code());
+        assertTrue(rejected.issues().getFirst().field().contains("Validation rejected this listing"));
+        assertEquals(CopyState.FAILED,first.service.reconcile(first.destination,first.draft.id()).state());
+        assertEquals(1,remote.writes);
+
+        remote.mutationReply=null;
+        var corrected=copy(remote);
+        assertEquals(CopyState.REMOTE_PROCESSING,corrected.service.publish(corrected.destination,corrected.draft.id(),corrected.preview.requestHash(),true).state());
+        assertEquals(2,remote.writes);
+    }
+    @Test void rateLimitKeepsTheApprovedDraftRetryableWithoutReconciliation()throws Exception{
+        var remote=new Destination(Marketplace.OZON);
+        var job=copy(remote);
+        remote.mutationFailure=new ListingRateLimitException(null);
+        assertThrows(ListingRateLimitException.class,()->job.service.publish(job.destination,job.draft.id(),job.preview.requestHash(),true));
+        assertEquals(CopyState.AWAITING_CONFIRMATION,job.service.get(job.destination,job.draft.id()).state());
+        assertEquals(1,remote.writes);
+
+        remote.mutationFailure=null;
+        assertEquals(CopyState.REMOTE_PROCESSING,job.service.publish(job.destination,job.draft.id(),job.preview.requestHash(),true).state());
+        assertEquals(2,remote.writes);
+    }
+    private CopyAttempt copy(Destination remote)throws Exception{
+        var source=new Shop(1,"Source WB","fixture");
+        var destination=remote.market==Marketplace.OZON?new Shop(4,"Target Ozon",Marketplace.OZON,"44","fixture"):new Shop(3,"Target WB","fixture");
+        var fixture=ListingCopyMappingTest.source(Marketplace.WILDBERRIES);
+        var key=new ProductKey(source.getId(),source.getMarketplace(),"321","");
+        var snapshot=new ProductSnapshot(key,fixture.revision(),fixture.title(),fixture.description(),fixture.brand(),fixture.vendorArticle(),fixture.categoryId(),List.of(),fixture.attributes(),fixture.variants(),fixture.dimensions(),List.of(),fixture.checkedAt(),Map.of("source.price.v1","100","source.price.v2","200","source.currency","RUB"));
+        var initial=CopyDefaults.initial(snapshot,destination,Set.of("v1","v2"),remote.market==Marketplace.OZON?"99:88":"99");
+        var fields=new HashSet<>(initial.fields());fields.remove("images");
+        var options=new CopyOptions(fields,initial.variantIds(),initial.targetCategoryId(),Map.of(),Map.of(),Map.of(),null,"RUB",List.of(),false);
+        ListingTargetAdapter adapter=remote.market==Marketplace.OZON?new OzonListingAdapter(s->remote,image->{throw new java.io.IOException();}):new WbListingAdapter(s->remote,image->{throw new java.io.IOException();});
+        var service=new ListingCopyService(new ListingCopyRepository(),(shop,requested)->snapshot,shop->adapter);
+        var draft=service.draft(source,List.of(key),List.of(destination),options).getFirst();
+        var preview=service.preview(destination,draft.id());assertTrue(preview.publishable(),()->preview.issues().toString());
+        return new CopyAttempt(service,destination,draft,preview);
+    }
+    private record CopyAttempt(ListingCopyService service,Shop destination,CopyJob draft,CopyPreview preview){}
     private static final class Destination implements ListingTransport {
         final Marketplace market;JsonElement submitted;int writes;boolean exposeWrongPrice;
+        String mutationReply;java.io.IOException mutationFailure;
         Destination(Marketplace market){this.market=market;}
         public JsonElement call(String path,JsonElement body,boolean mutation)throws java.io.IOException{
-            if(mutation){assertTrue(path.equals("content/v2/cards/upload")||path.equals("v3/product/import"));writes++;submitted=body.deepCopy();return JsonParser.parseString(market==Marketplace.OZON?"{\"result\":{\"task_id\":123}}":"{\"error\":false}");}
+            if(mutation){assertTrue(path.equals("content/v2/cards/upload")||path.equals("v3/product/import"));writes++;if(mutationFailure!=null)throw mutationFailure;if(mutationReply!=null)return JsonParser.parseString(mutationReply);submitted=body.deepCopy();return JsonParser.parseString(market==Marketplace.OZON?"{\"result\":{\"task_id\":123}}":"{\"error\":false}");}
             if(submitted==null)return ListingCopyMappingTest.fixture(market==Marketplace.OZON?"99:88":"99").call(path,body,false);
             if(market==Marketplace.WILDBERRIES){
                 var listing=submitted.getAsJsonArray().get(0).getAsJsonObject().getAsJsonArray("variants").get(0).getAsJsonObject().deepCopy();listing.addProperty("nmID",321);

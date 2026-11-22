@@ -121,7 +121,14 @@ public final class LicenseService implements AutoCloseable {
     }
     public CompletableFuture<Snapshot> checkStatus() {
         State saved=state;if(saved!=null&&!blank(saved.accessToken()))return refresh();
-        return submit(()->{requireRegistration();updateRegistration(withConnectionRecovery(()->api.status(state.registrationToken())));persist();return snapshot;});
+        return submit(()->{
+            // Activation may finish while this check is waiting in the worker's queue.
+            State current=state;
+            if(current!=null&&!blank(current.accessToken()))return renewSession();
+            requireRegistration();
+            updateRegistration(withConnectionRecovery(()->api.status(state.registrationToken())));
+            persist();return snapshot;
+        });
     }
     public CompletableFuture<Snapshot> activate(String code) {
         if(code==null||!code.strip().matches("(?i)VNC(?:-[A-F0-9]{4}){8}"))return failed("INVALID_LICENSE");
@@ -143,27 +150,28 @@ public final class LicenseService implements AutoCloseable {
     }
     public synchronized CompletableFuture<Snapshot> refresh() {
         if(refreshing!=null&&!refreshing.isDone())return refreshing;
-        refreshing=submit(()->{
-            boolean successful=false;
-            try{
-                requireKeys();if(state==null||blank(state.accessToken()))throw new IOException("SESSION_EXPIRED");
-                if(!verifier.configured())throw new IOException("LICENSE_TRUST_NOT_CONFIGURED");
-                withConnectionRecovery(()->{
-                    LicenseApi.Challenge challenge;
-                    try {
-                        challenge=api.challenge(state.accessToken(),keys.publicKey(),"renew");
-                    } catch(LicenseApi.Failure failure) {
-                        if(failure.status()==401&&failure.code().equals("AUTH_REQUIRED"))
-                            throw new LicenseApi.Failure("SESSION_EXPIRED",401);
-                        throw failure;
-                    }
-                    validateChallenge(challenge,"renew");
-                    accept(api.renew(state.accessToken(),challenge,keys.publicKey(),keys.sign(challenge.message())),false);return snapshot;
-                });successful=true;return snapshot;
-            }finally{
-                Long expected=operationGeneration.get();if(expected!=null&&generation.get()==expected&&!closed)refreshCadence.completed(nanos.getAsLong(),successful);
-            }
-        });return refreshing;
+        refreshing=submit(this::renewSession);return refreshing;
+    }
+    private Snapshot renewSession()throws Exception {
+        boolean successful=false;
+        try{
+            requireKeys();if(state==null||blank(state.accessToken()))throw new IOException("SESSION_EXPIRED");
+            if(!verifier.configured())throw new IOException("LICENSE_TRUST_NOT_CONFIGURED");
+            withConnectionRecovery(()->{
+                LicenseApi.Challenge challenge;
+                try {
+                    challenge=api.challenge(state.accessToken(),keys.publicKey(),"renew");
+                } catch(LicenseApi.Failure failure) {
+                    if(failure.status()==401&&failure.code().equals("AUTH_REQUIRED"))
+                        throw new LicenseApi.Failure("SESSION_EXPIRED",401);
+                    throw failure;
+                }
+                validateChallenge(challenge,"renew");
+                accept(api.renew(state.accessToken(),challenge,keys.publicKey(),keys.sign(challenge.message())),false);return snapshot;
+            });successful=true;return snapshot;
+        }finally{
+            Long expected=operationGeneration.get();if(expected!=null&&generation.get()==expected&&!closed)refreshCadence.completed(nanos.getAsLong(),successful);
+        }
     }
     private synchronized void refreshIfCurrent(long expectedGeneration){
         synchronized(submissionLock){if(!closed&&generation.get()==expectedGeneration)refresh();}

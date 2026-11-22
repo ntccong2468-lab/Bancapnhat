@@ -70,5 +70,26 @@ class CatalogErrorRepairDialogTest {
         var check=new FutureTask<Void>(()->{assertFalse(host.getChildren().contains(completed));assertTrue(host.getChildren().contains(newer));return null;});Platform.runLater(check);check.get(5,TimeUnit.SECONDS);
         assertTrue(reports.find(run).isPresent(),"The completed repair remains available through the registration report after its temporary pill disappears");
     }
+    @Test void cancelledCatalogTaskCompletesItsErrorHandler() throws Exception {
+        var notified = new CountDownLatch(1);
+        var failure = new java.util.concurrent.atomic.AtomicReference<Throwable>();
+        var task = new javafx.concurrent.Task<Void>() {
+            @Override protected Void call() throws InterruptedException {
+                new CountDownLatch(1).await();
+                return null;
+            }
+        };
+        var cancel = new FutureTask<>(() -> {
+            CatalogErrorRepairDialog.submitCatalog(task, error -> {
+                failure.set(error);
+                notified.countDown();
+            });
+            return task.cancel(true);
+        });
+        Platform.runLater(cancel);
+        assertTrue(cancel.get(5, TimeUnit.SECONDS));
+        assertTrue(notified.await(2, TimeUnit.SECONDS), "Cancelled work must leave the busy state");
+        assertInstanceOf(java.net.SocketTimeoutException.class, failure.get());
+    }
     static DialogPane pane(String id){return Window.getWindows().stream().filter(Window::isShowing).map(w->w.getScene().getRoot()).filter(n->id.equals(n.getId())).map(n->(DialogPane)n).findFirst().orElseThrow();}
 }

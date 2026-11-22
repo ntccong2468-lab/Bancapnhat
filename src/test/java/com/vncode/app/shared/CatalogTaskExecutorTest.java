@@ -36,4 +36,53 @@ class CatalogTaskExecutorTest {
   assertTrue(observed,"FX cancellation missing; done="+task.isDone()+" cancelled="+task.isCancelled()+" exited="+exited.getCount()+" outcome="+outcome);
   assertTrue(exited.await(5,TimeUnit.SECONDS),"Canceled read must exit its worker");assertTrue(task.isCancelled());assertEquals(0,writes.get());
  }
+
+ @Test void expiredQueuedReadsFreeCapacityWhileCatalogWorkersAreBusy()throws Exception{
+  assertCancelledReadsFreeCapacity(false);
+ }
+
+ @Test void manuallyCancelledQueuedReadsFreeCapacityWhileCatalogWorkersAreBusy()throws Exception{
+  assertCancelledReadsFreeCapacity(true);
+ }
+
+ private void assertCancelledReadsFreeCapacity(boolean cancelManually)throws Exception{
+  var started=new CountDownLatch(2);
+  var release=new CountDownLatch(1);
+  var cancelled=new CountDownLatch(20);
+  var blockers=new java.util.ArrayList<Task<Void>>();
+  var expiredCalls=new AtomicInteger();
+  try{
+   for(int i=0;i<2;i++){
+    var blocker=new Task<Void>(){
+     protected Void call()throws Exception{started.countDown();release.await(15,TimeUnit.SECONDS);return null;}
+    };
+    blockers.add(blocker);
+    assertTrue(AppTaskExecutor.executeCatalog(blocker,error->fail(error)));
+   }
+   assertTrue(started.await(5,TimeUnit.SECONDS));
+   var enqueue=new FutureTask<Void>(()->{
+    var queued=new java.util.ArrayList<Task<Void>>();
+    for(int i=0;i<20;i++){
+     var expired=new Task<Void>(){protected Void call(){expiredCalls.incrementAndGet();return null;}};
+     expired.setOnCancelled(event->cancelled.countDown());
+     queued.add(expired);
+     var deadline=cancelManually?Duration.ofMinutes(1):Duration.ofMillis(300);
+     assertTrue(AppTaskExecutor.executeCatalog(expired,deadline,error->fail(error)));
+    }
+    if(cancelManually)queued.forEach(task->task.cancel(true));
+    return null;
+   });
+   Platform.runLater(enqueue);
+   enqueue.get(5,TimeUnit.SECONDS);
+   assertTrue(cancelled.await(5,TimeUnit.SECONDS));
+   var fresh=new Task<Void>(){protected Void call(){return null;}};
+   assertTrue(AppTaskExecutor.executeCatalog(fresh,error->fail(error)),"Cancelled reads still occupy the queue");
+   release.countDown();
+   fresh.get(5,TimeUnit.SECONDS);
+   assertEquals(0,expiredCalls.get());
+  }finally{
+   release.countDown();
+   for(var blocker:blockers)blocker.get(5,TimeUnit.SECONDS);
+  }
+ }
 }

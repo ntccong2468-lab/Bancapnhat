@@ -42,6 +42,7 @@ public class UpdateInstallerService {
     }
 
     public Path downloadInstaller(UpdateInfo info, ProgressListener progressListener) throws IOException {
+        checkCancelled();
         String url = info==null?null:info.getBestDownloadUrl();
         if (url == null || url.isBlank()) {
             throw new IOException(I18nService.getInstance().tr("update.error.missing_url"));
@@ -64,6 +65,7 @@ public class UpdateInstallerService {
                 .build();
 
         var call=http.newCall(request);
+        if(progressListener!=null)progressListener.setCancellationAction(call::cancel);
         try (Response response = call.execute()) {
             if (!response.isSuccessful() || response.body() == null) {
                 throw new IOException(I18nService.getInstance().tr("update.error.download_failed") + " HTTP " + response.code());
@@ -87,7 +89,7 @@ public class UpdateInstallerService {
                 long lastProgress=System.nanoTime();
                 int read;
                 while ((read = input.read(buffer)) != -1) {
-                    if(Thread.currentThread().isInterrupted()){call.cancel();throw new java.io.InterruptedIOException("UPDATE_CANCELLED");}
+                    checkCancelled();
                     if(downloadedBytes+read>expected)throw new IOException("UPDATE_SIZE_MISMATCH");
                     output.write(buffer, 0, read);
                     digest.update(buffer,0,read);
@@ -101,12 +103,17 @@ public class UpdateInstallerService {
                 if(progressListener!=null)progressListener.onPhase(Phase.VERIFYING);
             }
             String actual=java.util.HexFormat.of().formatHex(digest.digest());
+            if(call.isCanceled())throw new java.io.InterruptedIOException("UPDATE_CANCELLED");
+            checkCancelled();
             if(!actual.equalsIgnoreCase(info.getBestDownloadSha256()))throw new IOException("UPDATE_CHECKSUM_MISMATCH");
             verifiedFiles.put(installerFile.toAbsolutePath().normalize(),new VerifiedInstaller(actual,info.getVersion()));
         }catch(IOException|java.security.GeneralSecurityException failure){
             Files.deleteIfExists(installerFile);Files.deleteIfExists(tempDir);
+            if(call.isCanceled())throw new java.io.InterruptedIOException("UPDATE_CANCELLED");
             if(failure instanceof IOException io)throw io;
             throw new IOException("UPDATE_VERIFICATION_FAILED");
+        }finally{
+            if(progressListener!=null)progressListener.setCancellationAction(null);
         }
 
         return installerFile;
@@ -213,5 +220,7 @@ public class UpdateInstallerService {
     public interface ProgressListener {
         void onProgress(long downloadedBytes, long totalBytes);
         default void onPhase(Phase phase){}
+        /** Set the action for aborting blocked network I/O. Cleared when the request ends. */
+        default void setCancellationAction(Runnable action){}
     }
 }

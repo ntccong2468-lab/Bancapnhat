@@ -1,5 +1,9 @@
 # Bộ nhớ dự án VNCode
 
+## 22.11.2026 MSK — rà soát ổn định trước bản kế tiếp
+
+Đã gom các bản sửa lỗi license và cập nhật, lô WB, phân trang Sản phẩm và sao chép bài, chứng thư CryptoPro và hủy Catalog, tin tức, mẫu in, phạt Ozon và TN VED trên nhánh `design/unslop-audit-20261122`. JavaFX/Linux đạt 102 ca trên mã gộp, JAR kiểm nghiệm khớp lớp và tài nguyên. Chưa nghiệm thu Windows hoặc phát hành. [Báo cáo chi tiết](validation/2026-11-22-vncode-app-stability-audit.md).
+
 ## 22.11.2026 MSK — lưu bộ giao diện cho bản kế tiếp
 
 Ghim `f42b019` với bốn giai đoạn Unslop và bộ 122 PNG của 64 màn, tab, hộp thoại. Latest xác minh 1.6.13. [Báo cáo checkpoint](validation/2026-11-22-unslop-release-checkpoint.md)

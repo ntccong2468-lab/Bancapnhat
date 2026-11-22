@@ -213,6 +213,28 @@ class LicenseServiceTest {
     @Test void renewalIsCoalescedAndLateResponseCannotRestoreLoggedOutRights()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);api.entered=new CountDownLatch(1);api.release=new CountDownLatch(1);var one=s.refresh();assertTrue(api.entered.await(2,TimeUnit.SECONDS));assertSame(one,s.refresh());var logout=s.logout();assertFalse(s.allows(Permission.KIZ));api.release.countDown();one.get(5,TimeUnit.SECONDS);logout.get(5,TimeUnit.SECONDS);assertFalse(s.allows(Permission.KIZ));assertEquals(Status.UNREGISTERED,s.snapshot().status());assertNull(LicenseDomainFixture.store(directory).load().orElseThrow().accessToken());}
     }
+    @Test void queuedRegistrationStatusCannotDiscardAnActivationThatFinishesFirst() throws Exception {
+        var api = new Api();
+        api.accountStatus = "approved";
+        try (var service = service(api, true)) {
+            register(service);
+            api.entered = new CountDownLatch(1);
+            api.release = new CountDownLatch(1);
+            var activation = service.activate(LicenseDomainFixture.CODE);
+            try {
+                assertTrue(api.entered.await(2, TimeUnit.SECONDS));
+                var queuedStatus = service.checkStatus();
+                api.release.countDown();
+                assertEquals(Status.ACTIVE, activation.get(5, TimeUnit.SECONDS).status());
+                assertEquals(Status.ACTIVE, queuedStatus.get(5, TimeUnit.SECONDS).status());
+                assertEquals(1, api.renewals);
+                assertTrue(service.allows(Permission.SELLER_API));
+                assertNotNull(LicenseDomainFixture.store(directory).load().orElseThrow().accessToken());
+            } finally {
+                api.release.countDown();
+            }
+        }
+    }
     @Test void checkingRegistrationAfterActivationDoesNotDiscardActiveSession()throws Exception {
         var api=new Api();try(var s=service(api,true)){active(s,api);s.checkStatus().get();assertTrue(s.allows(Permission.PRINT_NEW));assertNotNull(LicenseDomainFixture.store(directory).load().orElseThrow().accessToken());}
     }

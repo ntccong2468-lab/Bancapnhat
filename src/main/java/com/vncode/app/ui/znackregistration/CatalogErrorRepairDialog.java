@@ -14,7 +14,9 @@ import javafx.concurrent.Task;
 import javafx.geometry.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import java.net.SocketTimeoutException;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.*;
 
 /** Report → Edit → one bulk proposal table → Apply closes and runs beneath the source table. */
@@ -103,7 +105,7 @@ final class CatalogErrorRepairDialog {
         host.getProperties().put(BUSY,true);var text=new Label(tr("repair.applying"));text.setWrapText(true);var spinner=new ProgressIndicator();spinner.setPrefSize(18,18);var pill=new HBox(10,spinner,text);pill.setAlignment(Pos.CENTER);pill.setId("catalogRepairPill");pill.getStyleClass().add("task-status-pill");pill.setMaxSize(Region.USE_PREF_SIZE,Region.USE_PREF_SIZE);StackPane.setAlignment(pill,Pos.BOTTOM_CENTER);StackPane.setMargin(pill,new Insets(12));host.getChildren().removeIf(n->"catalogRepairPill".equals(n.getId()));host.getChildren().add(pill);
         Task<Completed> task=new Task<>(){protected Completed call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){String run=service.apply(shop,proposals,drafts,p->updateMessage(tr("repair.applying")+" "+p.completed()+"/"+p.total()+" · "+p.gtin()+" · "+tr("znack.registration.status."+p.status().name().toLowerCase(Locale.ROOT))));return new Completed(run,new com.vncode.app.features.sync.SyncRunRepository().counts(run));}}};text.textProperty().bind(task.messageProperty());
         task.setOnSucceeded(e->{var result=task.getValue();complete(host,pill,text,spinner,result.counts(),()->RegistrationSyncReportDialog.show(host.getScene()==null?null:host.getScene().getWindow(),shop,result.run()),refresh,javafx.util.Duration.seconds(8));});
-        Consumer<Throwable> failed=error->{host.getProperties().remove(BUSY);text.textProperty().unbind();text.setText(FriendlyErrorService.format(error));pill.getChildren().remove(spinner);RegistrationStatusPill.dismissAfter(host,pill,javafx.util.Duration.seconds(15));refresh.run();};task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.executeCatalog(task,failed);
+        Consumer<Throwable> failed=error->{host.getProperties().remove(BUSY);text.textProperty().unbind();text.setText(FriendlyErrorService.format(error));pill.getChildren().remove(spinner);RegistrationStatusPill.dismissAfter(host,pill,javafx.util.Duration.seconds(15));refresh.run();};submitCatalog(task,failed);
     }
     static void complete(StackPane host,HBox pill,Label text,ProgressIndicator spinner,Map<String,Long> counts,Runnable openReport,Runnable refresh,javafx.util.Duration dismiss){
         host.getProperties().remove(BUSY);text.textProperty().unbind();
@@ -111,7 +113,18 @@ final class CatalogErrorRepairDialog {
         pill.getChildren().remove(spinner);var report=new Button(tr("repair.report"));report.setId("catalogRepairResultReport");report.setOnAction(event->openReport.run());pill.getChildren().add(report);
         RegistrationStatusPill.dismissAfter(host,pill,dismiss);refresh.run();
     }
-    private static <T>void work(java.util.concurrent.Callable<T> work,Consumer<T> done,Consumer<Throwable> failed){var task=new Task<T>(){protected T call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){return work.call();}}};task.setOnSucceeded(e->done.accept(task.getValue()));task.setOnFailed(e->failed.accept(task.getException()));AppTaskExecutor.executeCatalog(task,failed);}
+    private static <T>void work(java.util.concurrent.Callable<T> work,Consumer<T> done,Consumer<Throwable> failed){var task=new Task<T>(){protected T call()throws Exception{try(var lane=MarketplaceRequestBudget.lane(true)){return work.call();}}};task.setOnSucceeded(e->done.accept(task.getValue()));submitCatalog(task,failed);}
+    static void submitCatalog(Task<?> task, Consumer<Throwable> failed) {
+        var notified = new AtomicBoolean();
+        Consumer<Throwable> report = error -> {
+            if (notified.compareAndSet(false, true)) failed.accept(error);
+        };
+        task.setOnFailed(event -> report.accept(task.getException()));
+        // A queue rejection also cancels the task. Let its own callback report the cause first.
+        task.setOnCancelled(event -> Platform.runLater(() ->
+                report.accept(new SocketTimeoutException("Catalog repair exceeded its deadline."))));
+        AppTaskExecutor.executeCatalog(task, report);
+    }
     private static <T>void column(TableView<T> table,String name,Function<T,String> text,double width){var col=new TableColumn<T,String>(name);col.setPrefWidth(width);col.setCellValueFactory(v->new ReadOnlyStringWrapper(text.apply(v.getValue())));RegistrationTextCells.wrap(col);table.getColumns().add(col);}
     private static String fieldName(long id){return switch((int)id){case 2478->tr("fbo.column.name");case 2504->tr("products.edit_brand");case 13914->"Article";case 13933->"TN VED";case 35->tr("fbo.column.size");case 36->tr("fbo.column.color");case 2483->tr("products.edit_material");case 14013->tr("products.edit_gender");default->Long.toString(id);};}
     private static void owner(Dialog<?> dialog,StackPane host){if(host.getScene()!=null)dialog.initOwner(host.getScene().getWindow());}

@@ -43,8 +43,20 @@ public final class ListingCopyService {
         LicenseRuntime.require(LISTING_WRITE);
         if(!repo.claim(destination.getId(),id,approvedHash))return owned(destination,id);var sending=owned(destination,id);var p=job.preview();var unknown=new RemoteSubmission(destination.getId(),destination.getMarketplace(),job.destinationOwner(),p.requestHash(),null,p.articles(),p.requestJson(),p.mediaJson(),p.documentsJson(),"CARD",Map.of());
         try{LicenseRuntime.require(LISTING_WRITE);}catch(LicenseGate.LicenseDeniedException denied){if(!repo.releaseUnsent(sending,approvedHash))throw new IllegalStateException("Cannot release unsent listing copy",denied);throw denied;}
-        try{var submitted=adapter.submit(destination,p);var next=sending.with(CopyState.REMOTE_PROCESSING,sending.source(),sending.options(),p,submitted,List.of());repo.checkpoint(next,Set.of(CopyState.SENDING));}
-        catch(IOException|RuntimeException failure){repo.checkpoint(sending.with(CopyState.RECONCILE_REQUIRED,sending.source(),sending.options(),p,unknown,List.of(new CopyIssue("RECONCILIATION_REQUIRED","submission",true))),Set.of(CopyState.SENDING));}
+        CopyJob outcome;
+        try{
+            var submitted=adapter.submit(destination,p);
+            outcome=sending.with(CopyState.REMOTE_PROCESSING,sending.source(),sending.options(),p,submitted,List.of());
+        }catch(ListingRateLimitException limited){
+            if(!repo.releaseUnsent(sending,approvedHash))throw new IllegalStateException("Cannot release rate-limited listing copy",limited);
+            throw limited;
+        }catch(ListingRejectedException rejected){
+            var issue=new CopyIssue("IMPORT_REJECTED",ListingRejectedException.safe(destination,rejected.getMessage()),true);
+            outcome=sending.with(CopyState.FAILED,sending.source(),sending.options(),p,null,List.of(issue));
+        }catch(IOException|RuntimeException failure){
+            outcome=sending.with(CopyState.RECONCILE_REQUIRED,sending.source(),sending.options(),p,unknown,List.of(new CopyIssue("RECONCILIATION_REQUIRED","submission",true)));
+        }
+        repo.checkpoint(outcome,Set.of(CopyState.SENDING));
         return owned(destination,id);
     }
     public CopyJob reconcile(Shop destination,String id)throws IOException{

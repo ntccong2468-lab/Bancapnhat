@@ -119,6 +119,36 @@ class UpdateHandoffUiTest {
             fx(()->{assertTrue(check.isCancelled());assertNull(field("updateCheckTask"));assertFalse((boolean)field("checkingUpdate"));assertFalse((boolean)field("pendingManualCheck"));return null;});
         } finally {release.countDown();}
     }
+    @Test void cancellingBeforeTheDownloadWorkerStartsCancelsTheQueuedTask() throws Exception {
+        var executor = fx(() -> (ThreadPoolExecutor) field("updateDownloadExecutor"));
+        var blockingWorker = new CountDownLatch(1);
+        var releaseWorker = new CountDownLatch(1);
+        executor.submit(() -> {
+            blockingWorker.countDown();
+            return releaseWorker.await(10, TimeUnit.SECONDS);
+        });
+        try {
+            assertTrue(blockingWorker.await(3, TimeUnit.SECONDS));
+            start();
+            fx(() -> {
+                var task = (javafx.concurrent.Task<?>) field("updateDownloadTask");
+                assertEquals(javafx.concurrent.Worker.State.READY, task.getState());
+                var cancel = Window.getWindows().stream().filter(Window::isShowing)
+                        .flatMap(window -> window.getScene().getRoot().lookupAll(".button").stream())
+                        .filter(Button.class::isInstance).map(Button.class::cast)
+                        .filter(Button::isCancelButton).findFirst().orElseThrow();
+                cancel.fire();
+                assertTrue(task.isCancelled(), "Closing the dialog must cancel work still in the queue");
+                assertFalse(executor.getQueue().contains(task));
+                assertFalse((boolean) field("updateDownloadRunning"));
+                return null;
+            });
+        } finally {
+            releaseWorker.countDown();
+        }
+        assertFalse(reached100.get());
+        assertFalse(exited.isDone());
+    }
     @Test void busyApplicationStillDownloadsAndAutomaticallyInstallsAfterTheSavedBoundary() throws Exception {
         var entered=new CountDownLatch(1);var finish=new CountDownLatch(1);
         try(var executor=Executors.newSingleThreadExecutor()) {

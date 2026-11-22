@@ -1,15 +1,20 @@
 package com.vncode.app.ui.workspace;
 
 import com.vncode.app.config.Database;
+import com.vncode.app.features.print.PrintTemplate;
+import com.vncode.app.features.print.PrintTemplateService;
 import com.vncode.app.shared.FxmlViewLoader;
 import com.vncode.app.shared.ThemeService;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
@@ -111,5 +116,41 @@ class FinanceHistoryDesignerResponsiveTest {
                 return null;
             });
         } finally { System.clearProperty("vncode.appdata.dir"); }
+    }
+
+    @Test void designerKeepsEditedNonDefaultTemplateSelectedAfterSaveAndReset() throws Exception {
+        System.setProperty("vncode.appdata.dir", data.toString());
+        Database.initDatabase();
+        try {
+            fx(() -> {
+                var templates = new PrintTemplateService();
+                var defaultId = templates.getDefaultTemplate().getId();
+                var custom = templates.createTemplate("Custom fixture");
+                var designer = load("print/print-template-designer-view.fxml");
+                var stage = show(designer, 1100, 650);
+                try {
+                    var root = (Parent) designer.getRoot();
+                    var choice = (ComboBox<?>) designer.getNamespace().get("templateComboBox");
+                    var elements = (ListView<?>) designer.getNamespace().get("elementListView");
+                    choice.getSelectionModel().select(1);
+                    assertEquals(custom.getId(), ((PrintTemplate) choice.getValue()).getId());
+                    elements.getSelectionModel().select(1);
+                    ((TextField) designer.getNamespace().get("labelField")).setText("Edited fixture label");
+                    designerAction(root, "template.save").fire();
+                    assertEquals("Edited fixture label", templates.findById(custom.getId()).orElseThrow().getElements().get(1).getLabel());
+                    assertEquals(custom.getId(), ((PrintTemplate) choice.getValue()).getId(), "Saving keeps the edited template selected");
+                    designerAction(root, "template.reset").fire();
+                    assertEquals(custom.getId(), ((PrintTemplate) choice.getValue()).getId(), "Resetting keeps the edited template selected");
+                    assertEquals(custom.getElements().get(1).getLabel(), templates.findById(custom.getId()).orElseThrow().getElements().get(1).getLabel());
+                    assertEquals(defaultId, templates.getDefaultTemplate().getId());
+                } finally { stage.close(); }
+                return null;
+            });
+        } finally { System.clearProperty("vncode.appdata.dir"); }
+    }
+
+    private static Button designerAction(Parent root, String key) {
+        return root.lookupAll(".button").stream().filter(Button.class::isInstance).map(Button.class::cast)
+                .filter(button -> ("i18n:" + key).equals(button.getUserData())).findFirst().orElseThrow();
     }
 }

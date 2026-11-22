@@ -227,10 +227,9 @@ public class PrintTemplateDesignerController implements Initializable {
                 i18n.tr("template.dialog.create.header"),
                 i18n.tr("template.dialog.create.initial"),
                 name -> {
-            PrintTemplate template = templateService.createTemplate(name);
-            reloadTemplates();
-            selectTemplate(template.getId());
-        });
+                    PrintTemplate template = templateService.createTemplate(name);
+                    reloadTemplates(template.getId());
+                });
     }
 
     @FXML
@@ -243,10 +242,9 @@ public class PrintTemplateDesignerController implements Initializable {
                 i18n.tr("template.dialog.duplicate.header"),
                 workingTemplate.getName() + " " + i18n.tr("template.dialog.duplicate.suffix"),
                 name -> {
-            PrintTemplate template = templateService.duplicateTemplate(workingTemplate.getId(), name);
-            reloadTemplates();
-            selectTemplate(template.getId());
-        });
+                    PrintTemplate template = templateService.duplicateTemplate(workingTemplate.getId(), name);
+                    reloadTemplates(template.getId());
+                });
     }
 
     @FXML
@@ -254,15 +252,15 @@ public class PrintTemplateDesignerController implements Initializable {
         if (workingTemplate == null) {
             return;
         }
+        int templateId = workingTemplate.getId();
         promptTemplateName(
                 i18n.tr("template.dialog.rename.title"),
                 i18n.tr("template.dialog.rename.header"),
                 workingTemplate.getName(),
                 name -> {
-            templateService.renameTemplate(workingTemplate.getId(), name);
-            reloadTemplates();
-            selectTemplate(workingTemplate.getId());
-        });
+                    templateService.renameTemplate(templateId, name);
+                    reloadTemplates(templateId);
+                });
     }
 
     @FXML
@@ -284,8 +282,7 @@ public class PrintTemplateDesignerController implements Initializable {
             return;
         }
         templateService.setDefaultTemplate(workingTemplate.getId());
-        reloadTemplates();
-        selectTemplate(workingTemplate.getId());
+        reloadTemplates(workingTemplate.getId());
     }
 
     @FXML
@@ -294,8 +291,7 @@ public class PrintTemplateDesignerController implements Initializable {
             return;
         }
         templateService.resetTemplateToSystemDefault(workingTemplate.getId());
-        reloadTemplates();
-        selectTemplate(workingTemplate.getId());
+        reloadTemplates(workingTemplate.getId());
     }
 
     @FXML
@@ -305,8 +301,7 @@ public class PrintTemplateDesignerController implements Initializable {
         }
         try {
             templateService.saveTemplate(workingTemplate);
-            reloadTemplates();
-            selectTemplate(workingTemplate.getId());
+            reloadTemplates(workingTemplate.getId());
         } catch (RuntimeException ex) {
             AlertService.showError(ex.getMessage());
         }
@@ -361,13 +356,18 @@ public class PrintTemplateDesignerController implements Initializable {
     }
 
     private void reloadTemplates() {
+        reloadTemplates(null);
+    }
+
+    private void reloadTemplates(Integer preferredId) {
         List<PrintTemplate> templates = templateService.loadTemplates();
         templateComboBox.getItems().setAll(templates);
         if (!templates.isEmpty()) {
             PrintTemplate preferred = templates.stream()
-                    .filter(PrintTemplate::isDefaultTemplate)
+                    .filter(template -> Objects.equals(template.getId(), preferredId))
                     .findFirst()
-                    .orElse(templates.getFirst());
+                    .orElseGet(() -> templates.stream().filter(PrintTemplate::isDefaultTemplate)
+                            .findFirst().orElse(templates.getFirst()));
             templateComboBox.getSelectionModel().select(preferred);
         }
     }
@@ -379,13 +379,6 @@ public class PrintTemplateDesignerController implements Initializable {
         workingTemplate.getElements().add(templateService.createElementFromPalette(paletteElement, workingTemplate.getElements().size() + 1));
         refreshTemplateView();
         elementListView.getSelectionModel().selectLast();
-    }
-
-    private void selectTemplate(int templateId) {
-        templateComboBox.getItems().stream()
-                .filter(item -> item.getId() == templateId)
-                .findFirst()
-                .ifPresent(item -> templateComboBox.getSelectionModel().select(item));
     }
 
     private void refreshTemplateView() {

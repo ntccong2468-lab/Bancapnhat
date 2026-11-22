@@ -64,4 +64,35 @@ class UpdateDownloadVerificationTest {
         finally{Thread.interrupted();}
         assertTrue(phases.isEmpty());
     }
+    @Test void cancellingAStalledDownloadClosesTheRequestAndRemovesItsTemporaryFile() throws Exception {
+        server.enqueue(new MockResponse().setSocketPolicy(SocketPolicy.NO_RESPONSE));
+        var update = info("verified-installer");
+        var cancelNetworkRead = new java.util.concurrent.atomic.AtomicReference<Runnable>();
+        var listener = new UpdateInstallerService.ProgressListener() {
+            @Override public void onProgress(long downloaded, long total) { }
+            @Override public void setCancellationAction(Runnable action) { cancelNetworkRead.set(action); }
+        };
+        String previousTempDirectory = System.getProperty("java.io.tmpdir");
+        System.setProperty("java.io.tmpdir", root.toString());
+        var download = new java.util.concurrent.FutureTask<>(() -> service.downloadInstaller(update, listener));
+        var worker = Thread.ofPlatform().daemon().start(download);
+        try {
+            assertNotNull(server.takeRequest(3, java.util.concurrent.TimeUnit.SECONDS));
+            worker.interrupt();
+            var cancel = cancelNetworkRead.get();
+            assertNotNull(cancel);
+            cancel.run();
+            var failure = assertThrows(java.util.concurrent.ExecutionException.class,
+                    () -> download.get(2, java.util.concurrent.TimeUnit.SECONDS));
+            assertInstanceOf(java.io.InterruptedIOException.class, failure.getCause());
+            assertEquals("UPDATE_CANCELLED", failure.getCause().getMessage());
+            assertNull(cancelNetworkRead.get());
+            try (var temporaryFiles = Files.list(com.vncode.app.shared.AppPaths.nativeTempDir())) {
+                assertEquals(0, temporaryFiles.count());
+            }
+        } finally {
+            worker.interrupt();
+            System.setProperty("java.io.tmpdir", previousTempDirectory);
+        }
+    }
 }

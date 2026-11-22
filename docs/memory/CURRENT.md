@@ -2,6 +2,12 @@
 
 Cập nhật: **22.11.2026 MSK (UTC+03:00)**. Đối chiếu Git/Latest trước thao tác tiếp theo. [Chỉ mục](README.md) · [Lịch sử checkpoint giữ nguyên](CURRENT-history-through-2026-11-09.md).
 
+## 22.11.2026 — rà lỗi toàn app cho bản kế tiếp
+
+- Sau mốc giao diện `439274a`, đã sửa lựa chọn phiên license khi kích hoạt, hủy tải cập nhật khi chờ và khi đang tải, xác minh cửa hàng trước tạo lô WB và đọc lại sau khi sàn xác nhận giao, phân trang và chọn sản phẩm từ truy vấn cũ, kết quả từ chối hoặc 429 khi sao chép bài, múi giờ chứng thư CryptoPro, hủy tác vụ Catalog và spinner sửa thẻ, làm mới Tin tức, giữ mẫu in, báo cáo phạt Ozon và nhấp đúp TN VED.
+- Lượt `mvn -o verify` với ca hồi quy trực tiếp của bản gộp đạt 102 ca. Node 280 và portal 72 đạt. Có kết quả riêng cho WB/Ozon, sản phẩm, Znack/KIZ/GS1, các công cụ và dữ liệu lớn. [Báo cáo và log](../validation/2026-11-22-vncode-app-stability-audit.md).
+- Lưu mã và giao diện vào cùng nhánh `design/unslop-audit-20261122`. Latest kiểm trực tiếp vẫn `v1.6.13`. Chưa nghiệm thu MSI, thiết bị CryptoPro, máy in hoặc giao dịch thật trên Windows seller. Chưa phát hành.
+
 ## 22.11.2026 — lưu giao diện cho bản kế tiếp
 
 - Nguồn đã duyệt `f42b019` gồm bốn giai đoạn Unslop. Đã lưu thư viện và ZIP 122 PNG, 64 màn, tab và hộp thoại. Mốc ghi SHA-256, dữ liệu thử nghiệm và kiểm thư viện trên Chromium. Latest vẫn 1.6.13. [Mốc gom phát hành](../validation/2026-11-22-unslop-release-checkpoint.md).

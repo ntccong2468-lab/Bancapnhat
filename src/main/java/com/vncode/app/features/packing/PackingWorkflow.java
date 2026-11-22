@@ -94,6 +94,7 @@ public class PackingWorkflow {
         Boolean orderB2b = validateOrderB2bSelection(shop.getId(), orderIds);
         String requestJson = "{\"name\":\"" + sanitize(name) + "\",\"orders\":" + orderIds + "}";
         LicenseRuntime.require(Permission.PACKING);
+        com.vncode.app.integration.listing.ListingIdentity.require(shop);
         String supplyId;
         try {
             WbCreateSupplyResponse response = apiClient.createSupply(shop.getApiKey(), name);
@@ -165,6 +166,10 @@ public class PackingWorkflow {
         MarketplaceGuard.requireWildberries(shop);
         LicenseRuntime.require(Permission.PACKING);
         com.vncode.app.integration.listing.ListingIdentity.require(shop);
+        if (supply != null) {
+            var stored = supplyRepository.findSupplySummary(shop.getId(), supply.getSupplyId());
+            if (stored != null && stored.isDone()) return;
+        }
         DeliveryPreflight preflight = inspectDelivery(shop.getId(), supply);
         if (!preflight.labelsPrinted()) {
             throw new IllegalStateException("Сначала распечатайте этикетки для поставки.");
@@ -181,16 +186,17 @@ public class PackingWorkflow {
         com.vncode.app.integration.listing.ListingIdentity.require(shop);
         try {
             apiClient.deliverSupply(shop.getApiKey(), supply.getSupplyId());
-            supplyRepository.markSupplyDelivered(shop.getId(), supply.getSupplyId());
-            actionLogRepository.record(shop.getId(), "DELIVER_SUPPLY", supply.getSupplyId(), List.of(), "success", null, null, null);
-            try {
-                syncWorkflow.syncSupplyOrdersAndStatuses(shop, supply.getSupplyId());
-            } catch (LicenseDeniedException deniedRefresh) {
-                // Keep the accepted delivery and let an authorized later sync refresh the board.
-            }
         } catch (IOException | RuntimeException ex) {
             actionLogRepository.record(shop.getId(), "DELIVER_SUPPLY", supply.getSupplyId(), List.of(), "failed", null, null, ex.getMessage());
             throw ex;
+        }
+        supplyRepository.markSupplyDelivered(shop.getId(), supply.getSupplyId());
+        actionLogRepository.record(shop.getId(), "DELIVER_SUPPLY", supply.getSupplyId(), List.of(), "success", null, null, null);
+        try {
+            syncWorkflow.syncSupplyOrdersAndStatuses(shop, supply.getSupplyId());
+        } catch (IOException | RuntimeException pending) {
+            // The delivery is already confirmed. Retry only the readback.
+            scheduleSupplyReadback(shop, supply.getSupplyId());
         }
     }
 

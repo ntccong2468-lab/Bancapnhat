@@ -24,6 +24,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.locks.LockSupport;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,6 +33,39 @@ import static org.junit.jupiter.api.Assertions.*;
 class CryptoProCertificateDiscoveryServiceTest {
     private static final String OLD = fingerprint(1);
     private static final String RENEWED = fingerprint(2);
+
+    @Test
+    @ResourceLock(Resources.TIME_ZONE)
+    void usesTheReportedTimeZoneForCertificateValidity() {
+        var original = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tokyo"));
+        try {
+            var discovery = new CryptoProCertificateDiscoveryService();
+            var zoned = discovery.parse("""
+                    SHA1 Thumbprint: %s
+                    Subject: CN=Fixture
+                    Not valid before: 24.06.2026 13:45:51 MSK
+                    Not valid after: 24.06.2027 13:45:51 UTC
+                    """.formatted(OLD)).getFirst();
+            assertEquals(Instant.parse("2026-06-24T10:45:51Z"), zoned.validFrom());
+            assertEquals(Instant.parse("2027-06-24T13:45:51Z"), zoned.validTo());
+            assertFalse(zoned.expired(Instant.parse("2027-06-24T12:00:00Z")));
+
+            var gmt = discovery.parse("""
+                    SHA1 Thumbprint: %s
+                    Not valid after: 24.06.2027 13:45:51 GMT
+                    """.formatted(OLD)).getFirst();
+            assertEquals(zoned.validTo(), gmt.validTo());
+
+            var local = discovery.parse("""
+                    SHA1 Thumbprint: %s
+                    Not valid after: 24.06.2027 13:45:51
+                    """.formatted(OLD)).getFirst();
+            assertEquals(Instant.parse("2027-06-24T04:45:51Z"), local.validTo());
+        } finally {
+            TimeZone.setDefault(original);
+        }
+    }
 
     @Test void discoversRenewedTokenCertificateEvenWhenCurrentUserStoreStillContainsOldCertificate() throws Exception {
         var runner = new DiscoveryRunner(certmgr(OLD), records(RENEWED));

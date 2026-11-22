@@ -147,7 +147,7 @@ public final class FinancePenaltyController {
     }
 
     @FXML private void onPenaltySync() {
-        if (shop == null || !active) return;
+        if (!active || !supportsPenaltySync(shop)) return;
         LocalDate from = penaltyFromDate.getValue(), to = penaltyToDate.getValue();
         if (from == null || to == null || from.isAfter(to)) { setPenaltyStatus("dashboard.penalty.invalid_range"); return; }
         Shop current = shop;
@@ -182,7 +182,7 @@ public final class FinancePenaltyController {
         Shop current = shop;
         if (current == null || !active) return;
         penaltyPoll.stop();
-        penaltySyncButton.setDisable(false);
+        penaltySyncButton.setDisable(!supportsPenaltySync(current));
         long token = ++penaltyRequestToken;
         LocalDate from = penaltyFromDate.getValue(), to = penaltyToDate.getValue();
         if (from == null || to == null || from.isAfter(to)) {
@@ -261,7 +261,11 @@ public final class FinancePenaltyController {
         setPenaltyStatus("");
         penaltyPreviousButton.setDisable(true);
         penaltyNextButton.setDisable(true);
-        penaltySyncButton.setDisable(shop == null);
+        penaltySyncButton.setDisable(!supportsPenaltySync(shop));
+    }
+
+    private static boolean supportsPenaltySync(Shop current) {
+        return current != null && current.getMarketplace() == Marketplace.WILDBERRIES;
     }
 
     private static String penaltyStatusFor(String status, String code) {

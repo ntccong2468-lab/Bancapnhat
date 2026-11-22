@@ -18,6 +18,8 @@ public final class NewsPane extends VBox {
  private com.vncode.app.models.Shop shop;
  private NewsScope scope;
  private volatile long generation;private volatile boolean disposed;private boolean showOriginal;
+ // Changing the translator invalidates translations while the news feed can finish refreshing.
+ private volatile long translationGeneration;
  private final Map<String,NewsTranslationService.TranslatedNews> translated=new LinkedHashMap<>();
  private final Set<String> translating=new HashSet<>();
  private final java.util.concurrent.ThreadPoolExecutor translationWorker=new java.util.concurrent.ThreadPoolExecutor(1,1,0,java.util.concurrent.TimeUnit.MILLISECONDS,new java.util.concurrent.ArrayBlockingQueue<>(64),r->{var thread=new Thread(r,"public-news-translation");thread.setDaemon(true);return thread;},new java.util.concurrent.ThreadPoolExecutor.AbortPolicy());
@@ -58,7 +60,7 @@ public final class NewsPane extends VBox {
   AppTaskExecutor.execute(task, taskFailure);
  }
  public void setShop(com.vncode.app.models.Shop selected){
-  generation++;translated.clear();translating.clear();busy=false;shop=selected;scope=selected!=null&&selected.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?NewsScope.forShop(selected):null;opened=null;detailShown=false;scroll.setContent(list);service.setOfficial(List.of(),official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());
+  generation++;translationGeneration++;translated.clear();translating.clear();busy=false;shop=selected;scope=selected!=null&&selected.getMarketplace()==com.vncode.app.integration.marketplace.Marketplace.WILDBERRIES?NewsScope.forShop(selected):null;opened=null;detailShown=false;scroll.setContent(list);service.setOfficial(List.of(),official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());
   if(scope==null)return;var owner=selected;var expected=scope;long epoch=generation;
   ShopReadCoordinator.shared().submitLocal(new ShopReadCoordinator.Key(owner.getId(),"news-cache",expected.ownerFingerprint()),()->official.cached(expected)).whenComplete((news,error)->Platform.runLater(()->{if(disposed||epoch!=generation||error!=null)return;replaceOfficial(news);if(getScene()!=null||preview.getScene()!=null)refreshOfficial(false);}));
  }
@@ -69,17 +71,17 @@ public final class NewsPane extends VBox {
   }));
  }
  private void replaceOfficial(List<SellerNews> news){service.setOfficial(news,official);visible.clear();cursor=null;ended=false;loadMore();renderPreview();unread.accept(service.unreadCount());for(var item:visible)requestTranslation(item);}
- public void dispose(){disposed=true;generation++;translationWorker.shutdownNow();translationRedraw.stop();translated.clear();translating.clear();if(translationService!=null)translationService.close();translationService=null;}
- public void translationSettingsChanged(){generation++;if(translationService!=null)translationService.close();translationService=null;translated.clear();translating.clear();renderList();renderPreview();}
- private synchronized NewsTranslationService translator(){if(disposed)throw new java.util.concurrent.CancellationException();if(translationService==null){long epoch=generation;com.vncode.app.integration.translation.NewsTranslator provider=new com.vncode.app.integration.translation.AutomaticNewsTranslator();try{var settings=new com.vncode.app.integration.translation.TranslationSettingsRepository().load();if(settings.isPresent())provider=new com.vncode.app.integration.translation.YandexNewsTranslator(settings.get());}catch(java.io.IOException|RuntimeException unavailable){}if(disposed||epoch!=generation){if(provider!=null)provider.close();throw new java.util.concurrent.CancellationException();}translationService=new NewsTranslationService(provider);}return translationService;}
+ public void dispose(){disposed=true;generation++;translationGeneration++;translationWorker.shutdownNow();translationRedraw.stop();translated.clear();translating.clear();if(translationService!=null)translationService.close();translationService=null;}
+ public void translationSettingsChanged(){translationGeneration++;if(translationService!=null)translationService.close();translationService=null;translated.clear();translating.clear();renderList();renderPreview();}
+ private synchronized NewsTranslationService translator(){if(disposed)throw new java.util.concurrent.CancellationException();if(translationService==null){long epoch=translationGeneration;com.vncode.app.integration.translation.NewsTranslator provider=new com.vncode.app.integration.translation.AutomaticNewsTranslator();try{var settings=new com.vncode.app.integration.translation.TranslationSettingsRepository().load();if(settings.isPresent())provider=new com.vncode.app.integration.translation.YandexNewsTranslator(settings.get());}catch(java.io.IOException|RuntimeException unavailable){}if(disposed||epoch!=translationGeneration){if(provider!=null)provider.close();throw new java.util.concurrent.CancellationException();}translationService=new NewsTranslationService(provider);}return translationService;}
  private void requestTranslation(NewsItem item){
-  var metadata=service.sellerNews(item.id());if(metadata.isEmpty())return;var news=metadata.get();String key=item.id()+":"+news.revision();if(translated.containsKey(key)||!translating.add(key))return;long epoch=generation;
+  var metadata=service.sellerNews(item.id());if(metadata.isEmpty())return;var news=metadata.get();String key=item.id()+":"+news.revision();if(translated.containsKey(key)||!translating.add(key))return;long epoch=translationGeneration;
   translation(news,epoch,key).whenComplete((result,error)->Platform.runLater(()->{
-   if(disposed||epoch!=generation)return;translating.remove(key);if(error!=null)return;translated.put(key,result);while(translated.size()>1000)translated.remove(translated.keySet().iterator().next());translationRedraw.playFromStart();
+   if(disposed||epoch!=translationGeneration)return;translating.remove(key);if(error!=null)return;translated.put(key,result);while(translated.size()>1000)translated.remove(translated.keySet().iterator().next());translationRedraw.playFromStart();
   }));
  }
  private java.util.concurrent.CompletableFuture<NewsTranslationService.TranslatedNews> translation(SellerNews news,long epoch,String key){
-  try{return java.util.concurrent.CompletableFuture.supplyAsync(()->{if(disposed||epoch!=generation)throw new java.util.concurrent.CancellationException();return translator().translate(news,"vi");},translationWorker);}
+  try{return java.util.concurrent.CompletableFuture.supplyAsync(()->{if(disposed||epoch!=translationGeneration)throw new java.util.concurrent.CancellationException();return translator().translate(news,"vi");},translationWorker);}
   catch(java.util.concurrent.RejectedExecutionException full){translating.remove(key);return java.util.concurrent.CompletableFuture.failedFuture(full);}
  }
  private NewsTranslationService.TranslatedNews translation(NewsItem item){return service.sellerNews(item.id()).map(news->translated.get(item.id()+":"+news.revision())).orElse(null);}

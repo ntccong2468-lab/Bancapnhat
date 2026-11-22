@@ -8,6 +8,7 @@ import com.vncode.app.shared.ShopReadCoordinator;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -54,6 +55,40 @@ class ProductSelectionSmoothnessTest {
             await(()->!((CheckBox)pane.lookup("#productSelectAll")).isDisabled()&&((ListView<?>)pane.lookup("#productRows")).getItems().contains(found));
             fx(()->{((CheckBox)pane.lookup("#productSelectAll")).fire();assertEquals(List.of(found.key()),pane.selectedKeys());return null;});
         }finally{fx(()->{pane.dispose();stage.close();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
+    }
+    @Test void changingSearchBlocksOldPagingAndFailedFilterBlocksOldRows()throws Exception{
+        System.setProperty("vncode.appdata.dir",root.toString());Database.initDatabase();
+        try(var c=Database.getConnection();var s=c.createStatement()){s.execute("INSERT INTO shops(id,name,api_key,marketplace) VALUES(1,'Fixture','fixture','WILDBERRIES')");}
+        var old=new ProductRow(new ProductKey(1,Marketplace.WILDBERRIES,"111",""),"Old","OLD","111","Suit","Brand","Black","L",List.of(),"","","Cotton","6103109000",DocumentState.MISSING);
+        var attemptedOldCursor=new AtomicBoolean();var attemptedNewFilter=new AtomicBoolean();var editCalled=new AtomicBoolean();
+        try(var reads=new ShopReadCoordinator(2,16)){
+            var pane=fx(()->new ProductsPane(q->{
+                if(q.text().isBlank())return new ProductPage(List.of(old),2,"old-cursor");
+                if(q.cursor()!=null&&!q.cursor().isBlank())attemptedOldCursor.set(true);
+                else attemptedNewFilter.set(true);
+                throw new IllegalStateException("fixture filter read failed");
+            },reads));var stage=fx(Stage::new);
+            try{
+                fx(()->{stage.setScene(new Scene(pane,1100,680));stage.show();pane.setShop(new Shop(1,"Fixture","fixture"));pane.setOnEdit((field,keys)->editCalled.set(true));return null;});
+                var more=(Button)fx(()->((javafx.scene.layout.BorderPane)pane.getBottom()).getRight());
+                await(()->more.isVisible()&&!more.isDisabled()&&!((ListView<?>)pane.lookup("#productRows")).getItems().isEmpty());
+                boolean pagingBlocked=fx(()->{
+                    ((TextField)pane.lookup("#productSearch")).setText("missing");
+                    boolean disabled=more.isDisabled();more.fire();return disabled;
+                });
+                String failure=com.vncode.app.shared.I18nService.getInstance().tr("products.read_failed");
+                await(()->attemptedNewFilter.get()&&failure.equals(((Label)pane.lookup("#productStatus")).getText())&&!((Button)pane.lookup("#productSync")).isDisabled());
+                fx(()->{
+                    pane.applyCss();pane.layout();var check=(CheckBox)visibleCell(pane).lookup(".check-box");
+                    boolean rowBlocked=check.isDisabled();check.fire();((Button)pane.lookup("#productEdit_brand")).fire();
+                    assertAll(()->assertTrue(pagingBlocked,"The old cursor must be disabled as soon as search changes"),
+                        ()->assertFalse(attemptedOldCursor.get(),"The old cursor must not be sent with the new filter"),
+                        ()->assertTrue(rowBlocked,"Rows left from a failed filter read must be read-only"),
+                        ()->assertTrue(pane.selectedKeys().isEmpty()),()->assertFalse(editCalled.get()));
+                    return null;
+                });
+            }finally{fx(()->{pane.dispose();stage.close();return null;});com.vncode.app.testsupport.ShopReadTestCleanup.closeAndAwait(reads);}
+        }finally{com.vncode.app.testsupport.ShopReadTestCleanup.awaitSharedIdle();System.clearProperty("vncode.appdata.dir");}
     }
     private static ListCell<?> visibleCell(ProductsPane pane){
         return pane.lookupAll(".list-cell").stream().filter(n->n instanceof ListCell<?> c&&!c.isEmpty()&&c.getItem() instanceof ProductRow).map(n->(ListCell<?>)n).findFirst().orElseThrow();

@@ -133,6 +133,8 @@ class FinancePenaltyUiTest {
             assertTrue(syncStatus.contains("Chưa hỗ trợ"), syncStatus);
             assertFalse(syncStatus.contains("private-marker"), "Do not display raw marketplace errors");
             assertTrue(fx(() -> ((javafx.scene.control.Label)view.lookup("#penaltyHelpLabel")).getText()).contains("Ozon"));
+            assertTrue(fx(() -> ((Button)view.lookup("#penaltySyncButton")).isDisabled()),
+                    "Do not offer a sync action that the Ozon service always rejects");
             for (String theme : List.of("dark", "light")) for (AppLanguage language : AppLanguage.values()) for (int[] size : List.of(new int[]{940,510}, new int[]{1000,650}, new int[]{1360,820})) {
                 fx(() -> {
                     ThemeService.switchTheme(theme); ThemeService.applyTheme(stage.getScene());
@@ -170,6 +172,8 @@ class FinancePenaltyUiTest {
             store.request(newWb, LocalDate.now().minusDays(29), LocalDate.now(), java.time.Instant.now());
             fx(() -> { I18nService.getInstance().setLanguage(AppLanguage.VI); controller.applyTranslations(); controller.setShop(newWb); return null; });
             await(() -> ((javafx.scene.control.Label)view.lookup("#penaltyStatusLabel")).getText().contains("Đã yêu cầu"));
+            assertFalse(fx(() -> ((Button)view.lookup("#penaltySyncButton")).isDisabled()),
+                    "Switching back to WB keeps the supported sync action available");
             var field = FinancePenaltyController.class.getDeclaredField("penaltyPoll"); field.setAccessible(true);
             fx(() -> { tabs.getSelectionModel().select(summary); return null; });
             assertEquals(javafx.animation.Animation.Status.STOPPED,fx(() -> ((javafx.animation.PauseTransition)field.get(penaltyController)).getStatus()),"Hidden finance tab stops polling");

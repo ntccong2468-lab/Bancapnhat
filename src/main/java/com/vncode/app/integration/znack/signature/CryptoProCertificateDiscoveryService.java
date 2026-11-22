@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 public class CryptoProCertificateDiscoveryService {
     private static final Pattern FIELD = Pattern.compile("^\\s*([^:=]+?)\\s*[:=]\\s*(.*)$");
+    private static final Pattern TIME_ZONE_SUFFIX = Pattern.compile("\\s+(UTC|GMT|MSK)$");
     private final CryptoProCommandRunner runner;
 
     public CryptoProCertificateDiscoveryService() {
@@ -143,7 +144,13 @@ public class CryptoProCertificateDiscoveryService {
 
     private static Instant date(String value) {
         if (value == null || value.isBlank()) return null;
-        String normalized = value.trim().replaceFirst("\\s+(?:UTC|GMT|MSK)$", "");
+        String normalized = value.trim();
+        ZoneId zone = ZoneId.systemDefault();
+        Matcher suffix = TIME_ZONE_SUFFIX.matcher(normalized);
+        if (suffix.find()) {
+            zone = "MSK".equals(suffix.group(1)) ? ZoneId.of("Europe/Moscow") : ZoneOffset.UTC;
+            normalized = normalized.substring(0, suffix.start());
+        }
         for (DateTimeFormatter formatter : List.of(DateTimeFormatter.ISO_INSTANT, DateTimeFormatter.ISO_LOCAL_DATE,
                 DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"), DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"),
                 DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss"), DateTimeFormatter.ofPattern("dd.MM.yyyy"),
@@ -151,9 +158,9 @@ public class CryptoProCertificateDiscoveryService {
             try {
                 if (formatter == DateTimeFormatter.ISO_INSTANT) return Instant.from(formatter.parse(normalized));
                 if (formatter == DateTimeFormatter.ISO_LOCAL_DATE || !normalized.contains(":")) {
-                    return LocalDate.parse(normalized, formatter).atStartOfDay(ZoneId.systemDefault()).toInstant();
+                    return LocalDate.parse(normalized, formatter).atStartOfDay(zone).toInstant();
                 }
-                return LocalDateTime.parse(normalized, formatter).atZone(ZoneId.systemDefault()).toInstant();
+                return LocalDateTime.parse(normalized, formatter).atZone(zone).toInstant();
             } catch (DateTimeParseException ignored) {}
         }
         return null;

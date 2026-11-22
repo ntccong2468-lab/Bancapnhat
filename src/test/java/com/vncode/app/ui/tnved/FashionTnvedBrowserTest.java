@@ -2,8 +2,11 @@ package com.vncode.app.ui.tnved;
 
 import com.vncode.app.features.tnved.FashionTnvedCatalog.Entry;
 import javafx.application.Platform;
+import javafx.event.Event;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.*;
@@ -30,6 +33,36 @@ class FashionTnvedBrowserTest {
     }
     @Test void applyUsesTheCompletePerProductProposalUntilSellerChoosesAGlobalCode()throws Exception{
         fx(()->{var browser=new FashionTnvedBrowser();new Scene(browser,1000,620);browser.applyCss();browser.layout();var chosen=new AtomicReference<Entry>();var applied=new java.util.concurrent.atomic.AtomicInteger();browser.setOnSelect(chosen::set);browser.setDefaultApply(applied::incrementAndGet,true);var apply=(Button)browser.lookup("#tnvedReferenceApply");assertFalse(apply.isDisabled());apply.fire();assertEquals(1,applied.get());assertNull(chosen.get());browser.selectCode("6112110000");apply.fire();assertEquals("6112110000",chosen.get().code());assertEquals(1,applied.get());return null;});
+    }
+
+    @Test void onlyDoubleClickingAnActualCodeAppliesThatCode() throws Exception {
+        fx(() -> {
+            var browser = new FashionTnvedBrowser();
+            new Scene(browser, 1000, 620);
+            browser.applyCss();
+            browser.layout();
+            var selected = new AtomicReference<Entry>();
+            var proposalApplies = new java.util.concurrent.atomic.AtomicInteger();
+            browser.setOnSelect(selected::set);
+            browser.setDefaultApply(proposalApplies::incrementAndGet, true);
+            var list = (ListView<?>) browser.lookup("#tnvedReferenceRows");
+            Event.fireEvent(list, doubleClick(MouseButton.PRIMARY));
+            assertEquals(0, proposalApplies.get(), "Double-clicking the list background must not apply all proposals");
+            assertNull(selected.get());
+            var row = list.lookupAll(".list-cell").stream().filter(node -> node instanceof ListCell<?> cell && !cell.isEmpty())
+                    .map(node -> (ListCell<?>) node).findFirst().orElseThrow();
+            Event.fireEvent(row, doubleClick(MouseButton.SECONDARY));
+            assertNull(selected.get(), "Only the primary button may apply a code");
+            Event.fireEvent(row, doubleClick(MouseButton.PRIMARY));
+            assertEquals(row.getItem(), selected.get());
+            assertEquals(0, proposalApplies.get());
+            return null;
+        });
+    }
+
+    private static MouseEvent doubleClick(MouseButton button) {
+        return new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0, button, 2,
+                false, false, false, false, false, false, false, false, false, true, null);
     }
     @Test void actualMouseClickCopiesCodeWithoutApplyingOrClosingThePicker()throws Exception{
         var selected=new AtomicReference<Entry>();var stage=new javafx.stage.Stage[1];var copy=new AtomicReference<Button>();
